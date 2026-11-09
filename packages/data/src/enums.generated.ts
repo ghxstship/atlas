@@ -645,6 +645,55 @@ export const laborSegment = ["Regular", "Overtime", "Double Time"] as const;
 export const laborTeamKind = ["Own Team", "Agency", "Engaged"] as const;
 /** app.language_proficiency */
 export const languageProficiency = ["Basic", "Conversational", "Fluent", "Native"] as const;
+/** app.legal_queue_basis */
+export const legalQueueBasis = [
+  "Statute",
+  "Published Promise",
+  "Internal Target",
+  "Customer Clock",
+] as const;
+/** app.legal_queue_clock_unit */
+export const legalQueueClockUnit = ["Hours", "Days", "Business Days", "Months Or 30 Days"] as const;
+/** app.legal_queue_event_kind */
+export const legalQueueEventKind = [
+  "Received",
+  "First Response",
+  "Note",
+  "State Changed",
+  "Extended",
+  "Source Changed",
+  "Alert Sent",
+  "Re-Review",
+  "Person Told",
+  "Hold Placed",
+  "Hold Released",
+] as const;
+/** app.legal_queue_matter */
+export const legalQueueMatter = [
+  "Data Subject Request",
+  "Privacy Complaint",
+  "DMCA Notice",
+  "DMCA Counter-Notice",
+  "Repeat Infringer Review",
+  "Abuse Report",
+  "Moderation Appeal",
+  "Security Report",
+  "Personal Data Breach",
+  "Accessibility Complaint",
+  "Government Data Request",
+  "Other Promise",
+  "Undelivered Notice",
+  "Queue Failure",
+] as const;
+/** app.legal_queue_state */
+export const legalQueueState = [
+  "Received",
+  "In Progress",
+  "Waiting",
+  "Completed",
+  "Refused",
+  "Withdrawn",
+] as const;
 /** app.listing_report_reason */
 export const listingReportReason = [
   "Illegal Content",
@@ -943,6 +992,16 @@ export const quoteVersionState = [
 export const rateType = ["Hourly", "Day", "Flat", "Milestone", "Bid"] as const;
 /** app.rate_unit */
 export const rateUnit = ["Hour", "Day", "Week", "Project"] as const;
+/** app.rating_dispute_ground */
+export const ratingDisputeGround = [
+  "Wrong Person",
+  "False Statement",
+  "Abusive Content",
+  "Personal Data",
+  "Other",
+] as const;
+/** app.rating_dispute_state */
+export const ratingDisputeState = ["Open", "Upheld", "Not Upheld"] as const;
 /** app.rating_side */
 export const ratingSide = ["Organization", "Party"] as const;
 /** app.reconciliation_result */
@@ -1035,6 +1094,23 @@ export const scopeKind = ["Engagement Root", "Standing Venue", "Show"] as const;
 export const seatPreference = ["Window", "Aisle", "No Preference"] as const;
 /** app.seen_surface */
 export const seenSurface = ["Today", "Itinerary", "Show Day"] as const;
+/** app.sensitive_consent_basis */
+export const sensitiveConsentBasis = ["Own Consent", "Attested Authority"] as const;
+/** app.sensitive_consent_standing */
+export const sensitiveConsentStanding = [
+  "Consent Given",
+  "Attested",
+  "Withdrawn",
+  "No Record",
+] as const;
+/** app.sensitive_consent_surface */
+export const sensitiveConsentSurface = ["Atlas", "Gateway", "Compass", "API"] as const;
+/** app.sensitive_data_category */
+export const sensitiveDataCategory = [
+  "Dietary and Allergies",
+  "Accessibility",
+  "Supplier Diversity",
+] as const;
 /** app.setting_scope */
 export const settingScope = ["Organization", "Workspace", "Team", "Project"] as const;
 /** app.setting_source */
@@ -1143,6 +1219,19 @@ export const sponsorAssetKind = ["Logo", "Artwork", "Copy", "Video", "Other"] as
 export const sponsorAssetSource = ["Org Supplied", "Sponsor Supplied"] as const;
 /** app.staffing_basis */
 export const staffingBasis = ["Ratio", "Fixed", "Declared"] as const;
+/** app.stripe_cancel_mode */
+export const stripeCancelMode = ["Immediately", "At Period End"] as const;
+/** app.stripe_cancel_source */
+export const stripeCancelSource = [
+  "Organization Canceled",
+  "Organization Deleted",
+  "Plan Ended",
+  "Stripe Portal",
+  "Reconciliation",
+  "Ended In Stripe",
+] as const;
+/** app.stripe_cancellation_state */
+export const stripeCancellationState = ["Queued", "Accepted", "Withdrawn"] as const;
 /** app.submittal_kind */
 export const submittalKind = [
   "Shop Drawing",

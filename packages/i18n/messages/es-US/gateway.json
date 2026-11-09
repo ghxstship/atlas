@@ -183,11 +183,24 @@
       "roster_entry_not_working": "Esta entrada del equipo está retirada o su contratación no está activa, así que no admite tiempo nuevo.",
       "roster_training_not_due": "Esta formación no está pendiente en tu entrada del equipo.",
       "sod_roster_training": "Una persona no puede verificar su propia formación. La verifica otra persona de la producción.",
+      "content_objectionable": "Esto contiene lenguaje que no se permite aquí. Cambia la redacción e inténtalo de nuevo.",
+      "guest_note_sensitive": "No incluyas necesidades de dieta ni de acceso en la nota. Usa el paso de necesidades del invitado, que registra el consentimiento.",
+      "sensitive_consent_required": "Acepta el texto antes de guardar esto. Nada más del formulario lo necesita.",
+      "sensitive_attestation_required": "Confirma ambas declaraciones para continuar.",
+      "sensitive_person_only": "Solo esta persona puede introducir esto.",
+      "travel_note_sensitive": "No incluyas necesidades de dieta ni de acceso en las notas de viaje. Añade una preferencia de comida o usa Datos de trabajo, que registran el consentimiento.",
+      "sensitive_notice_version": "Este texto cambió. Recarga la página y lee la versión actual.",
+      "rating_dispute_ground": "Elige por qué impugnas esta calificación.",
+      "rating_dispute_details": "Di qué está mal en esta calificación, en un máximo de 4,000 caracteres.",
+      "rating_dispute_exists": "Ya impugnaste esta calificación. Puedes ver cómo va debajo de la calificación.",
+      "rating_sharing_notice": "Vuelve a cargar la página y elige de nuevo para que registremos el aviso que viste.",
       "quote_expired": "Esta cotización venció y ya no se puede aceptar. Pide una versión nueva.",
       "quote_not_sent": "Esta versión de la cotización ya no espera una firma.",
       "quote_client_engagement": "La contratación del cliente de esta cotización está cerrada, así que ya no se puede aceptar.",
       "document_text_sign_with_hash": "Lee este documento en Gateway y fírmalo allí con tu nombre escrito.",
-      "registration_not_withdrawable": "Este registro ya se rechazó o se retiró."
+      "registration_not_withdrawable": "Este registro ya se rechazó o se retiró.",
+      "intake_account_country": "Elige el país donde está establecida la empresa.",
+      "territory_not_offered": "XOS no se ofrece en el país de tu empresa, así que no creamos esta cuenta de empresa. Si la organización que te envió este enlace trabaja contigo, no la necesitas: pídele que te configure."
     }
   },
   "common": {
@@ -262,6 +275,8 @@
         "closeOut": "Cierre"
       },
       "blocked": "Esta contratación está bloqueada hasta que pasen todos los pasos obligatorios de incorporación. Abre Incorporación para ver lo pendiente.",
+      "blockedCompliance": "Esta contratación está bloqueada hasta que pasen todos los pasos obligatorios. Abre Cumplimiento para ver lo pendiente.",
+      "blockedHere": "Esta contratación está bloqueada hasta que pasen todos los pasos obligatorios. Lo pendiente aparece en esta página.",
       "rate": "Tu tarifa",
       "rateHidden": "Se muestra mientras el área de pagos esté abierta",
       "payBasis": "Base de pago",
@@ -469,7 +484,10 @@
     "compliance": {
       "empty": "Aún no hay elementos de cumplimiento. Los seguros y la precalificación aparecen aquí.",
       "insurance": "Certificados de seguro",
-      "noInsurance": "No hay certificado de seguro registrado. Súbelo en Incorporación.",
+      "noInsurance": "No hay certificado de seguro registrado. Cuando la organización lo pida, súbelo en Pasos de cumplimiento en esta página.",
+      "noInsuranceYet": "Aún no hay certificado de seguro registrado.",
+      "uploadWaiting": "{names}: recibido y en espera de revisión. Si es tu certificado de seguro, la organización lo registra aquí después de revisarlo.",
+      "uploadPassed": "{names}: revisado y aprobado. Si es tu certificado de seguro, la organización todavía tiene que registrarlo aquí.",
       "current": "Vigente",
       "expired": "Vencido",
       "prequalification": "Precalificación",
@@ -682,7 +700,7 @@
         "done": "Calificación enviada. Aparece cuando la organización también califique, o después de 14 días."
       },
       "reply": {
-        "label": "Respuesta pública",
+        "label": "Tu respuesta",
         "submit": "Responder",
         "done": "Respuesta publicada."
       },
@@ -690,7 +708,7 @@
         "title": "Agregar un invitado",
         "name": "Nombre del invitado",
         "plusOnes": "Acompañantes",
-        "note": "Nota para la producción (opcional)",
+        "note": "Nota para la producción (opcional). No incluyas necesidades de dieta ni de acceso.",
         "submit": "Agregar invitado",
         "done": "Invitado agregado. La producción lo confirma antes del show.",
         "email": "Correo (opcional)",
@@ -1472,6 +1490,18 @@
       "productionOffice": "Oficina de producción",
       "hospitalitySuite": "Suite de hospitalidad",
       "other": "Otro"
+    },
+    "ratingDisputeGround": {
+      "wrongPerson": "No se refiere a mí",
+      "falseStatement": "Dice algo falso",
+      "abusiveContent": "Es ofensiva",
+      "personalData": "Muestra datos personales",
+      "other": "Otra cosa"
+    },
+    "ratingDisputeState": {
+      "open": "Abierta",
+      "upheld": "Aceptada",
+      "notUpheld": "No aceptada"
     }
   },
   "explore": {
@@ -1782,6 +1812,8 @@
         "shiftAssigned": "Nuevo turno: {title}",
         "shiftChanged": "Turno modificado: {title}",
         "messageReceived": "Mensaje nuevo",
+        "crisisAlert": "Alerta de crisis en {project}: {title}. {message}",
+        "crisisAllClear": "Fin de alerta en {project}: {title}",
         "advanceReminder": "{reminder, select, overdue {Vencido: {title}} other {Recordatorio: {title}}} para {projectName}",
         "advanceReturned": "Se devolvió tu respuesta a {title}",
         "submittalReturned": "Entregable devuelto: {title}",
@@ -1991,7 +2023,20 @@
     },
     "ratings": {
       "title": "Calificaciones",
-      "empty": "Aún no hay calificaciones. Aparecen tras contrataciones completas, cuando ambas partes califican."
+      "empty": "Aún no hay calificaciones. Aparecen tras contrataciones completas, cuando ambas partes califican.",
+      "who": "Solo tú y la organización que la dio pueden leer una calificación sobre ti, salvo que decidas mostrar tus calificaciones en tu perfil. La calificación de una empresa de la que eres el contacto la puede leer cualquiera con sesión iniciada.",
+      "whoAction": "Elige si quieres mostrarlas en tu perfil.",
+      "dispute": {
+        "open": "Impugnar esta calificación",
+        "help": "Cuéntanos qué está mal. La organización puede responder y nuestro equipo decide. Una calificación se retira solo si se refiere a otra persona, es falsa, ofensiva o muestra datos personales, nunca por ser baja. Hasta entonces sigue en su lugar.",
+        "ground": "Por qué la impugnas",
+        "details": "Qué está mal",
+        "submit": "Enviar impugnación",
+        "standing": "Tu impugnación: {state}. {ground}.",
+        "removed": "Se retiró una calificación de {org} en {project} tras tu impugnación.",
+        "orgResponse": "La organización respondió: {response}",
+        "decision": "Decisión: {statement}"
+      }
     },
     "representation": {
       "title": "Representación",
@@ -2038,7 +2083,11 @@
       "organizations": "Ha trabajado con",
       "links": "Enlaces",
       "ownerNote": "Así ven otros tu perfil. Visibilidad: {visibility}.",
-      "ownerAction": "Configuración de privacidad"
+      "ownerAction": "Configuración de privacidad",
+      "ratingsShared": "Se muestran porque esta persona lo decidió. Aquí está cada calificación publicada, salvo las que nuestro equipo de la plataforma retiró tras una impugnación. No sirven para decidir a quién contratar o reservar.",
+      "ratingsOwnerShared": "Las personas con sesión iniciada pueden leerlas aquí, salvo quienes tengan acceso de contratación, reserva o asignación de personal en XOS. Alguien que contrate fuera de XOS aún podría leerlas. Puedes cambiarlo en tu configuración de privacidad.",
+      "ratingsOwnerPrivate": "Solo tú y la organización que te calificó pueden leerlas. Nadie más las ve aquí.",
+      "disputed": "Impugnada por esta persona"
     },
     "errors": {
       "handle": "Usa de 1 a 40 letras minúsculas, números y guiones en tu usuario.",
@@ -2052,6 +2101,8 @@
       "availability": "Elige una fecha de inicio y una de fin igual o posterior.",
       "name": "Escribe tu nombre, hasta 200 caracteres.",
       "account": "Escribe el nombre de la empresa y una dirección web de 2 a 48 letras minúsculas, números y guiones.",
+      "accountCountry": "Elige el país donde está establecida la empresa.",
+      "territory_not_offered": "XOS no se ofrece en el país de tu empresa ({country}), así que no creamos esta cuenta de empresa. XOS se ofrece a organizaciones en {territories}. Si una organización te invitó a trabajar con ella, no necesitas una cuenta de empresa: abre tu invitación. Si tu empresa tiene un contrato firmado, pide a la organización o a tu contacto en GHXSTSHIP que la configure.",
       "company": "Revisa el usuario y la visibilidad.",
       "website": "Escribe una dirección web completa que empiece con https://.",
       "email": "Escribe un correo como equipo@empresa.com.",
@@ -2203,7 +2254,7 @@
       "crew_access_shift_state": "Ese turno ya no se puede aceptar. Recarga la página para ver su estado.",
       "registration_page_closed": "Esta página de registro no está abierta.",
       "registration_rate_limited": "Demasiados registros en la última hora. Inténtalo más tarde.",
-      "registration_age_unconfirmed": "Confirma la edad mínima para registrarte. Si aún no confirmaste tener 16 años o más, hazlo primero en tu cuenta.",
+      "registration_age_unconfirmed": "Confirma la edad mínima para registrarte. Si aún no confirmaste tu edad, hazlo primero en tu cuenta.",
       "registration_answer_required": "Responde todas las preguntas obligatorias.",
       "registration_answer_unknown": "Esta página cambió. Recárgala y responde de nuevo.",
       "registration_answer_length": "Limita cada respuesta a 4,000 caracteres.",
@@ -2380,6 +2431,12 @@
         "references": "Referencias",
         "links": "Enlaces",
         "organizations": "Organizaciones"
+      },
+      "ratings": {
+        "title": "Calificaciones sobre ti",
+        "body": "La calificación que te da una organización solo pueden leerla esa organización y tú. Si activas esta opción, las personas con sesión iniciada podrán leer todas tus calificaciones en tu perfil, incluidas las bajas. No puedes elegir cuáles. Quienes tengan acceso de contratación, reserva o asignación de personal en XOS seguirán sin verlas, y nunca aparecen en una solicitud, en una búsqueda ni en una pantalla de equipo. No podemos saber quién contrata fuera de XOS, así que alguien así con una cuenta gratuita podría leerlas. Desactívala cuando quieras y dejarán de mostrarse al instante. Solo tú puedes cambiar esto, desde tu propia sesión; una aplicación conectada no puede.",
+        "choice": "Mostrar todas mis calificaciones en mi perfil",
+        "save": "Guardar esta elección"
       }
     },
     "account": {
@@ -2397,9 +2454,12 @@
       "leave": "Salir",
       "create": "Crear una cuenta de empresa",
       "createBody": "Proveedores, agencias, firmas contratistas y patrocinadores ofertan y facturan como empresa. Serás su propietario.",
+      "availability": "XOS se ofrece a organizaciones en {territories}. Si una organización te invitó a trabajar con ella, no necesitas una cuenta de empresa: abre tu invitación.",
       "name": "Nombre de la empresa",
       "slug": "Dirección web",
       "slugHelp": "De 2 a 48 letras minúsculas, números y guiones.",
+      "country": "País donde está establecida la empresa",
+      "countryChoose": "Elige un país",
       "createSubmit": "Crear cuenta",
       "created": "Cuenta de empresa creada. Actúa como ella desde el menú de cuenta."
     },
@@ -2415,7 +2475,7 @@
       "profileUnavailable": "El perfil de la empresa lo administran los administradores de Atlas de la organización. Pide a un propietario de la cuenta que lo configure.",
       "remove": "Quitar",
       "inviteNote": "La persona invitada inicia sesión en Gateway con la dirección que invitaste y acepta en Inicio. Hasta entonces no figura en ninguna lista del equipo ni tiene contrataciones asignadas, y no se comparte nada sobre ella.",
-      "noInsurance": "No hay certificados de seguro registrados. Las organizaciones los piden durante la incorporación; súbelos ahí.",
+      "noInsurance": "No hay certificados de seguro registrados. Las organizaciones los piden en una contratación; abre la contratación y súbelos en su pestaña Cumplimiento.",
       "toEngagements": "Ver contrataciones",
       "noRepresentation": "Tu agencia aún no representa a ningún artista.",
       "proposeNote": "Para representar a un artista, pídele que comparta su perfil de Gateway con tu agencia; luego propones la representación y la acepta en Gateway.",
@@ -2616,7 +2676,9 @@
       "email": "Correo electrónico",
       "password": "Contraseña",
       "passwordHelp": "Al menos 12 caracteres, con letras y números. Evita tu nombre, tu correo y los nombres de productos.",
-      "age": "Tengo 16 años o más."
+      "age": "Tengo 18 años o más",
+      "ageUnder": "Tengo menos de 18 años",
+      "ageLegend": "Tu edad"
     },
     "or": "o",
     "usePassword": "Usar contraseña",
@@ -2640,7 +2702,9 @@
     "terms": {
       "title": "Acepta los Términos para trabajadores",
       "lead": "Tu cuenta de Gateway se creó al iniciar sesión. Acepta los Términos para trabajadores para terminar de configurarla.",
-      "submit": "Continuar"
+      "submit": "Continuar",
+      "deleteInstead": "No tienes que aceptarlos para eliminar tu cuenta.",
+      "deleteLink": "Eliminar mi cuenta"
     },
     "providers": {
       "continueWith": "Continuar con {provider}",
@@ -2768,7 +2832,27 @@
       "password": "Escribe una contraseña de al menos 12 caracteres con letras y números.",
       "passwordContext": "Elige una contraseña que no contenga tu nombre, tu correo ni un nombre de producto como Gateway.",
       "terms": "Acepta los Términos para trabajadores para crear tu cuenta: marca la casilla sobre el botón.",
-      "age": "Confirma que tienes 16 años o más. Las cuentas de XOS son para personas de 16 años en adelante."
+      "age": "Elige la respuesta que sea cierta para ti."
+    },
+    "ageRefused": {
+      "title": "Las cuentas de XOS son para personas de 18 años en adelante",
+      "sentence": "Nos dijiste que tienes menos de 18 años, así que no creamos una cuenta. No guardamos lo que escribiste.",
+      "closed": "Nos dijiste que tienes menos de 18 años, así que tu cuenta está cerrada. Eliminamos tu inicio de sesión, tu perfil y sus archivos, tus fotos de credencial, tu configuración, lo que enviaste a nuestro equipo de soporte y las respuestas y los acuerdos personales que diste a XOS. Cualquier organización con la que hayas trabajado conserva los registros que exige la ley, como las horas que trabajaste, y una nota con tu correo electrónico que indica que tu cuenta se eliminó, y XOS conserva un registro de esa eliminación con los identificadores de tu cuenta, sin tu nombre. XOS también conserva un recuento mensual de las personas menores de 18 años que rechazó, que no te identifica. Los datos eliminados permanecen en las copias de seguridad hasta que caducan.",
+      "held": "Nos dijiste que tienes menos de 18 años, pero tu cuenta aún no se puede eliminar: lo impide una retención legal, un turno abierto o ser el único propietario de una organización. Cerramos tu sesión en todos los dispositivos, no puedes usar esta cuenta y te lo volveremos a preguntar cuando inicies sesión. Contáctanos y terminaremos de cerrarla.",
+      "minors": "Si trabajas o asistes a un evento, el adulto o la organización responsable de ti puede guardar tus datos en sus propios registros. No necesitas una cuenta para eso.",
+      "contact": "Contáctanos"
+    },
+    "ageQuestion": {
+      "title": "Confirma tu edad",
+      "lead": "XOS se lo pregunta a todas las personas que aún no han respondido.",
+      "submit": "Continuar",
+      "under": {
+        "title": "Confirma tu respuesta",
+        "sentence": "Las cuentas de XOS son para personas de 18 años o más. Si tienes menos de 18 años, cerramos esta cuenta.",
+        "consequences": "Al cerrarla, terminan tus membresías, se cancela el trabajo en curso y se elimina tu inicio de sesión, tu perfil y sus archivos, tus fotos de credencial, tu configuración, lo que enviaste a nuestro equipo de soporte y las respuestas y los acuerdos personales que diste a XOS. No se puede deshacer. Cualquier organización con la que hayas trabajado conserva los registros que exige la ley, como las horas que trabajaste, y una nota con tu correo electrónico que indica que tu cuenta se eliminó, y XOS conserva un registro de esa eliminación con los identificadores de tu cuenta, sin tu nombre. XOS también conserva un recuento mensual de las personas menores de 18 años que rechazó, que no te identifica. Los datos eliminados permanecen en las copias de seguridad hasta que caducan.",
+        "confirm": "Tengo menos de 18 años. Cerrar mi cuenta",
+        "back": "Volver"
+      }
     }
   },
   "work": {
@@ -2850,7 +2934,18 @@
     }
   },
   "legal": {
-    "inReview": "La versión {version} está en revisión y aún no está vigente. El texto publicado aparecerá aquí cuando entre en vigor.",
+    "draftTitle": "Borrador, aún no vigente",
+    "draftNotice": "La versión {version} de este documento es un borrador. No está vigente y nadie puede basarse en ella.",
+    "inEffect": "Versión {version}, vigente desde el {date}",
+    "upcomingTitle": "Aún no vigente",
+    "upcomingNotice": "La versión {version} de este documento entra en vigor el {date}. Se muestra aquí antes de ese día y no está vigente antes de él.",
+    "upcomingEarlier": "Hasta entonces, la versión {version} sigue vigente, y la página de contacto indica dónde pedir una copia de su texto.",
+    "history": "Historial de versiones",
+    "versionDraft": "Versión {version}: borrador, aún no vigente",
+    "versionInEffect": "Versión {version}: vigente desde el {date}",
+    "versionUpcoming": "Versión {version}: entra en vigor el {date}",
+    "contents": "En esta página",
+    "englishOnly": "Este documento se publica solo en inglés.",
     "back": "Ir a Gateway"
   },
   "diversity": {

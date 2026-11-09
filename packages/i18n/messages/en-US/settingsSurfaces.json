@@ -529,6 +529,7 @@
     "legal_hold_table_unknown": "Choose data that has a retention period.",
     "legal_hold_released": "This hold is already released.",
     "legal_hold_immutable": "A hold is never edited, only released.",
+    "legal_hold_queue": "GHXSTSHIP placed this hold while it returns data your export left out. It is released when the return is done. To withdraw the request, write to support@ghxstship.pro with Return of Data in the subject line.",
     "department_unknown": "One of the departments is not in the canon.",
     "discipline_unknown": "One of the disciplines is not in the canon.",
     "discipline_department_not_in_use": "Choose a discipline's department too.",

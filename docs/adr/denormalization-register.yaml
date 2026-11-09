@@ -15,6 +15,12 @@ derived:
     reason: Compass PowerSync filters rows by project without a join (Section 13)
     adr: "0022"
   - objects:
+      - app.guest_care_needs.project_id
+    source: "`app.guest_list_entries.project_id`"
+    refresh: Written from the guest entry by `app.set_guest_care_needs`; a guest stays on its project
+    reason: The project's read policy and the read of a project's guest needs need no join
+    adr: "0164"
+  - objects:
       - app.live_links.project_id
     source: "`app.run_of_show.project_id`"
     refresh: Stamped by trigger for a Display link; a link never changes what it shows (3780)
@@ -377,6 +383,9 @@ json:
   - column: private.account_security_events.detail
     kind: audit-diff
     note: Facts of a security event in the person's own log (migration 1560).
+  - column: private.crisis_alert_sends.message_args
+    kind: provider-payload
+    note: The same display arguments as app.notifications.message_args, held for seconds until the worker sends them (migration 6800).
   - column: private.platform_emails.args
     kind: provider-payload
     note: Template arguments for the email provider, cleared once sent (migration 1382).
@@ -389,6 +398,12 @@ arrays:
   - column: app.calendar_feeds.sources
     kind: reviewed
     note: A set of fixed enum values a member picks for a feed, never joined on; null is the default set (migration 6210, ADR 0146).
+  - column: app.guest_care_needs.accessibility_needs
+    kind: reviewed
+    note: A set of fixed enum values, never joined on; a free-text note carries the rest (migration 6852).
+  - column: app.guest_care_needs.dietary_needs
+    kind: reviewed
+    note: A set of fixed enum values, never joined on; a free-text note carries the rest (migration 6852).
   - column: app.mcp_connectors.default_scopes
     kind: reviewed
     note: Capability groups a connector offers by default, checked against the registry and never Restricted (migration 6052).
@@ -425,6 +440,12 @@ arrays:
   - column: app.work_detail_shares.categories
     kind: reviewed
     note: The set of work detail categories a share grants, read whole (migration 1340).
+  - column: private.legal_queue_health.failing_paths
+    kind: reviewed
+    note: The named parts of the last sweep that failed, read whole by the heartbeat and written whole by each sweep; no row refers to one (ADR 0167, migration 6862).
+  - column: private.legal_queue_rules.alert_leads
+    kind: reviewed
+    note: How long before a clock ends each alert goes out; read whole by the sweep, and no row refers to one lead (ADR 0167, migration 6860).
   - column: private.live_view_fields.source_columns
     kind: reviewed
     note: The one to four columns a live link field reads, each checked against the column classifications; never joined on (migration 3780).
@@ -1059,6 +1080,14 @@ restated:
     parent: app.projects.archived_at
     kind: own
     note: When the group was archived.
+  - column: app.guest_care_needs.guest_email
+    parent: app.guest_list_entries.guest_email
+    kind: own
+    note: The address the guest's needs are matched to, so they can see and remove them; Restricted, unlike the entry's own email for invitations and passes (B8, 6255), which it never follows (ADR 0164, merge train 11).
+  - column: app.guest_care_needs.project_id
+    parent: app.guest_list_entries.project_id
+    kind: registered
+    note: Written from the guest entry by `app.set_guest_care_needs`, so the project's read policy needs no join (ADR 0164).
   - column: app.guest_list_entries.counterparty_id
     parent: app.engagements.counterparty_id
     kind: own
@@ -1681,6 +1710,26 @@ restated:
     parent: app.projects.venue_id
     kind: own
     note: Venue of a standing venue or show node, not the project's primary venue.
+  - column: app.sensitive_data_consents.person_id
+    parent: app.guest_list_entries.person_id
+    kind: own
+    note: The person the data is about; on a guest entry, person_id names whose list the guest is on, a different person (ADR 0164).
+  - column: app.sensitive_field_records.account_id
+    parent: app.sensitive_data_consents.account_id
+    kind: own
+    note: The subject of the field; the consent is a separate fact and goes when it does, and a value from before consent has none (ADR 0164).
+  - column: app.sensitive_field_records.guest_list_entry_id
+    parent: app.sensitive_data_consents.guest_list_entry_id
+    kind: own
+    note: The subject of the field; the consent is a separate fact, and a value from before consent has none (ADR 0164).
+  - column: app.sensitive_field_records.person_id
+    parent: app.guest_list_entries.person_id
+    kind: own
+    note: The person the field is about; on a guest entry, person_id names whose list the guest is on, a different person (ADR 0164).
+  - column: app.sensitive_field_records.person_id
+    parent: app.sensitive_data_consents.person_id
+    kind: own
+    note: The subject of the field; the consent is a separate fact, and a value from before consent has none (ADR 0164).
   - column: app.service_accounts.person_id
     parent: app.memberships.person_id
     kind: finding
@@ -2206,6 +2255,10 @@ restated:
     parent: app.form_links.expires_at
     kind: own
     note: When the grant stops working, the link's expiry or 2 hours after the open, whichever comes first.
+  - column: private.guest_needs_disowned.person_id
+    parent: app.guest_list_entries.person_id
+    kind: own
+    note: The person an email matched who said the guest is someone else; the entry's person_id names whose list the guest is on (ADR 0164).
   - column: private.live_link_grants.expires_at
     parent: app.live_links.expires_at
     kind: own
@@ -2248,6 +2301,18 @@ restated:
     parent: app.vendor_intake_links.expires_at
     kind: own
     note: When the grant stops working, the link's expiry or 24 hours after the open, whichever comes first.
+  - column: private.wage_record_names.family_name
+    parent: app.people.family_name
+    kind: fact
+    note: The family name a deleted person's wage records keep after account deletion clears the person's (migration 6880).
+  - column: private.wage_record_names.full_name
+    parent: app.people.full_name
+    kind: fact
+    note: The full name a deleted person's wage records keep after account deletion clears the person's (migration 6880).
+  - column: private.wage_record_names.given_name
+    parent: app.people.given_name
+    kind: fact
+    note: The given name a deleted person's wage records keep after account deletion clears the person's (migration 6880).
   - column: xpms.bridge_element_metric.item
     parent: xpms.elements.item
     kind: own
@@ -2467,6 +2532,9 @@ tenant_exceptions:
   - table: app.feedback_submissions
     kind: person-owned
     note: Feedback a person sends the platform team, keyed by person_id, read by the sender and staff (A96, migration 1531).
+  - table: app.legal_queue_items
+    kind: platform
+    note: Legal and security work of the platform itself, most of it with no tenant; tenant_org_id is optional and only says which tenant a fed item concerns (ADR 0167, migration 6860).
   - table: app.organizations
     kind: identity
     note: The tenant itself (Section 4.8.1).
@@ -2533,6 +2601,15 @@ tenant_exceptions:
   - table: app.profile_section_visibility
     kind: person-owned
     note: Profile rows keyed by person_id, read by others only through api_public (A30, migration 0860).
+  - table: app.rating_sharing_consents
+    kind: person-owned
+    note: A person's own opt-in to show their ratings, keyed by person_id, for no one org (ADR 0158, migration 6820).
+  - table: app.sensitive_data_consents
+    kind: person-owned
+    note: Evidence of consent, written only by the database, keyed by the person, company or guest it is about; it is withdrawn, never deleted, and has no soft delete (ADR 0164).
+  - table: app.sensitive_field_records
+    kind: person-owned
+    note: The field-level record of sensitive data, written only by the database and holding no value (ADR 0164).
   - table: app.shortcut_bindings
     kind: person-owned
     note: Keyboard shortcut bindings keyed by person_id, readable only by the person (A81, migration 1370).

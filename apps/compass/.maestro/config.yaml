@@ -69,4 +69,6 @@ executionOrder:
     - settings-connected-apps
     - settings-developer
     - account-delete
+    - first-sign-in-acceptance
+    - first-sign-in-under-18
     - settings-sunlight-sign-out

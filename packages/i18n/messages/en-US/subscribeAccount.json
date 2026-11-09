@@ -2,8 +2,13 @@
   "title": "Use your company in Atlas",
   "lead": "You own these company accounts in Gateway. Start Atlas with one of them and its profile, ratings and history come with it; no second organization is created.",
   "use": "Use {name} in Atlas",
+  "country": "Country where this company is established",
+  "countryChoose": "Choose a country",
+  "countryError": "Choose the country where this company is established.",
   "acceptError": "Accept the terms to start Atlas with this company.",
   "refused": "This company already uses Atlas. Open it from the organization switcher.",
+  "territory_not_offered": "XOS is not offered in your company's country ({country}), so this company did not start Atlas. XOS is offered to organizations in {territories}. Your company account in Gateway keeps working. If your company has a signed contract with GHXSTSHIP, ask your contact there to set it up.",
+  "organization_country_recorded": "This company's country is already on record, and it is not the one you chose. To change it, contact support.",
   "unexpected": "We could not start Atlas for this company. Try again in a moment.",
   "or": "Or create a new organization"
 }

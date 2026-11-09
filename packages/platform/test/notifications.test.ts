@@ -1443,6 +1443,8 @@ describe("texts held by quiet hours go out as one summary", () => {
       "weather.warning",
       "weather.hold",
       "weather.all_clear",
+      "crisis_alert.issued",
+      "crisis_alert.ended",
       "account.security_changed",
       "account.recovery_code_used",
       "access.break_glass_started",

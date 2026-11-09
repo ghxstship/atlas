@@ -6,6 +6,7 @@
  */
 export { createTransport, readEmailEnv } from "@xos/email/env";
 export { dispatchEmail } from "../../src/notifications/dispatch.ts";
+export { drain } from "../../src/notifications/drain.ts";
 export {
   checkPushReceipts,
   createPushClient,

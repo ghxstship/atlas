@@ -1,8 +1,12 @@
+import { can } from "@xos/data/console";
+import { getLegalQueueOverdue } from "@xos/data/console-legal-queue";
 import { chromeSlot } from "@xos/ia";
+import type { Route } from "next";
+import NextLink from "next/link";
 import type { ReactNode } from "react";
 import { getTranslations } from "next-intl/server";
 import { ConsoleNav } from "@/components/console-nav";
-import { Button } from "@/components/ui";
+import { Button, InlineAlert } from "@/components/ui";
 import { sitemap } from "@/ia/sitemap.generated";
 import { getConsoleFormat } from "@/lib/format";
 import { getConsoleContext } from "@/lib/operator";
@@ -20,7 +24,12 @@ const SITEMAP_ROLE = {
  */
 export default async function ConsoleLayout({ children }: { children: ReactNode }) {
   const ctx = await getConsoleContext();
-  const [{ t }, nav] = await Promise.all([getConsoleFormat(), getTranslations("nav")]);
+  const [{ t }, nav, overdue] = await Promise.all([
+    getConsoleFormat(),
+    getTranslations("nav"),
+    // A missed clock is what this console must not let happen, so its count shows on every page.
+    can(ctx.operator, "legal.queue") ? getLegalQueueOverdue(ctx.db) : null,
+  ]);
   const items = chromeSlot(sitemap, "topBar", { role: SITEMAP_ROLE[ctx.operator.role] }).map(
     (node) => ({
       href: node.route ?? "/",
@@ -58,6 +67,16 @@ export default async function ConsoleLayout({ children }: { children: ReactNode 
         id="main"
         className="mx-auto flex w-full max-w-screen-xl flex-1 flex-col gap-24 px-16 py-24"
       >
+        {overdue?.ok && overdue.data > 0 ? (
+          <InlineAlert tone="danger">
+            <span data-testid="legal-queue-banner">
+              {t("legalQueue.banner", { count: overdue.data })}{" "}
+              <NextLink href={"/legal-queue" as Route} className="underline">
+                {t("legalQueue.bannerLink")}
+              </NextLink>
+            </span>
+          </InlineAlert>
+        ) : null}
         {children}
       </main>
     </div>

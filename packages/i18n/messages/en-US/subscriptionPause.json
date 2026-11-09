@@ -30,6 +30,7 @@
     "pause_not_active": "The Stripe subscription is not active, so it cannot pause.",
     "pause_none": "This organization has no pause to resume.",
     "pause_needs_payment_method": "Add a payment method in the billing portal, then resume.",
+    "pause_plan_ending": "This plan is ending, so billing cannot pause or resume. It runs to the end of the period you paid for.",
     "org_read_only": "A read-only organization cannot pause. Settle what made it read-only first.",
     "sandbox_not_billable": "A sandbox is never billed.",
     "billing_through_partner": "Your partner bills this organization. Ask the partner about a pause.",

@@ -1,3 +1,4 @@
+import { createClient } from "@supabase/supabase-js";
 import { expect, test } from "./engine-test";
 import { expectAccessible, sql, uniqueId } from "./support";
 
@@ -51,11 +52,11 @@ test("sign-up asks once for the email and records the Worker Terms acceptance", 
   await expectAccessible(page);
 
   await page.locator("#signup-terms").check();
-  // "16 or older" gates creation too (A82, Sections 14.3 and 14.9).
+  // "18 or older" gates creation too (A82, Sections 14.3 and 14.9).
   await page.locator("#signup-password").fill("Tidal-Copper-Ladder-4821");
   await page.getByRole("button", { name: "Create account" }).click();
   await expect(
-    page.getByText("Confirm that you are 16 or older. XOS accounts are for people 16 and over."),
+    page.getByText("Choose the answer that is true for you.", { exact: true }),
   ).toBeVisible();
   await page.locator("#signup-age").check();
   await page.locator("#signup-password").fill("Tidal-Copper-Ladder-4821");
@@ -103,6 +104,146 @@ test("sign-in shows one Email field, the link first and a password on request", 
   await page.getByRole("button", { name: "Use a link" }).click();
   await expect(page.locator("#signin-password")).toHaveCount(0);
   await expectAccessible(page);
+});
+
+test("an answer of under 18 makes no account and keeps nothing typed", async ({ page }) => {
+  const email = `under-${uniqueId()}@example.com`;
+  await page.goto("/auth/sign-up");
+  await page.locator("#signup-name").fill("Una Under");
+  await page.locator("#signup-email").fill(email);
+  await page.locator("#signup-terms").check();
+  await page.locator("#signup-age-under").check();
+  await page.getByRole("button", { name: "Email me a sign-in link" }).click();
+  await page.waitForURL((url) => url.pathname === "/auth/age-refused");
+  await expect(
+    page.getByRole("heading", { name: "XOS accounts are for people 18 and older" }),
+  ).toBeVisible();
+  await expectAccessible(page);
+  const [none] = await sql<{ n: string }>(
+    `select count(*)::text as n from auth.users where email = $1`,
+    [email],
+  );
+  expect(none?.n).toBe("0");
+  const [refusal] = await sql<{ outcome: string; surface: string }>(
+    `select outcome, surface from private.age_refusals
+      where surface = 'Gateway' and outcome = 'No Account' limit 1`,
+    [],
+  );
+  expect(refusal).toEqual({ outcome: "No Account", surface: "Gateway" });
+});
+
+test("an account with no answer is asked before any page, and one answer never closes it", async ({
+  page,
+}) => {
+  const email = `noanswer-${uniqueId()}@example.com`;
+  await page.goto("/auth/sign-up");
+  await page.locator("#signup-name").fill("Nia Noanswer");
+  await page.locator("#signup-email").fill(email);
+  await page.locator("#signup-terms").check();
+  await page.locator("#signup-age").check();
+  await page.getByRole("button", { name: "Use a password" }).click();
+  await page.locator("#signup-password").fill("Tidal-Copper-Ladder-4821");
+  await page.getByRole("button", { name: "Create account" }).click();
+  await page.waitForURL((url) => url.pathname === "/home");
+  // The account as a provider, or a rule from before there was a question, leaves it: no answer at all.
+  const [person] = await sql<{ person: string; user_id: string }>(
+    `select p.id as person, u.id as user_id from app.people p join auth.users u on u.id = p.user_id where u.email = $1`,
+    [email],
+  );
+  await sql(`delete from private.age_confirmations where person_id = $1`, [person?.person]);
+
+  await page.goto("/home");
+  await page.waitForURL((url) => url.pathname === "/auth/age");
+  await page.locator("#age-question-under").check();
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
+  await page.waitForURL((url) => url.searchParams.get("under") === "1");
+  await expect(page.getByRole("heading", { name: "Confirm your answer" })).toBeVisible();
+  await expectAccessible(page);
+  const [kept] = await sql<{ n: string }>(
+    `select count(*)::text as n from auth.users where email = $1`,
+    [email],
+  );
+  expect(kept?.n).toBe("1");
+
+  // Going back is how an adult who chose wrongly recovers.
+  await page.getByRole("link", { name: "Go back", exact: true }).click();
+  await page.waitForURL((url) => url.pathname === "/auth/age" && !url.searchParams.has("under"));
+  await page.locator("#age-question-under").check();
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
+  await page.waitForURL((url) => url.searchParams.get("under") === "1");
+
+  // Files only their client can remove, one of them in a public bucket read by URL.
+  const admin = createClient(
+    process.env["E2E_SUPABASE_URL"] ?? "",
+    process.env["E2E_SUPABASE_SERVICE_KEY"] ?? "",
+  );
+  const png = Buffer.from(
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==",
+    "base64",
+  );
+  const files = [
+    ["profile-media", `${person?.person}/avatar.png`],
+    ["profile-media", `${person?.person}/certificates/osha.png`],
+    ["support-screenshots", `${person?.person}/shot.png`],
+  ] as const;
+  for (const [bucket, path] of files) {
+    const uploaded = await admin.storage
+      .from(bucket)
+      .upload(path, png, { contentType: "image/png" });
+    expect(uploaded.error).toBeNull();
+  }
+
+  await page.getByRole("button", { name: "I am under 18. Close my account", exact: true }).click();
+  await page.waitForURL((url) => url.pathname === "/auth/age-refused");
+  await expect(page.getByText(/XOS also keeps a monthly count/)).toBeVisible();
+  await expectAccessible(page);
+
+  const [objects] = await sql<{ n: string }>(
+    `select count(*)::text as n from storage.objects where bucket_id in ('profile-media', 'support-screenshots') and name like $1`,
+    [`${person?.person}/%`],
+  );
+  expect(objects?.n).toBe("0");
+
+  const [left] = await sql<{ users: string; people: string; acceptances: string }>(
+    `select (select count(*) from auth.users where id = $1)::text as users,
+            (select count(*) from app.people where id = $2)::text as people,
+            (select count(*) from app.legal_acceptances where user_id = $1)::text as acceptances`,
+    [person?.user_id, person?.person],
+  );
+  expect(left).toEqual({ users: "0", people: "0", acceptances: "0" });
+});
+
+test("someone who confirmed the earlier age of 16 answers again at sign-in", async ({ page }) => {
+  const email = `legacy-${uniqueId()}@example.com`;
+  const password = "Tidal-Copper-Ladder-4821";
+  await page.goto("/auth/sign-up");
+  await page.locator("#signup-name").fill("Lee Legacy");
+  await page.locator("#signup-email").fill(email);
+  await page.locator("#signup-terms").check();
+  await page.locator("#signup-age").check();
+  await page.getByRole("button", { name: "Use a password" }).click();
+  await page.locator("#signup-password").fill(password);
+  await page.getByRole("button", { name: "Create account" }).click();
+  await page.waitForURL((url) => url.pathname === "/home");
+  // The account as the earlier rule left it: a confirmation at 16 and none at 18.
+  await sql(
+    `update private.age_confirmations c set minimum_age = 16
+       from app.people p join auth.users u on u.id = p.user_id
+      where c.person_id = p.id and u.email = $1`,
+    [email],
+  );
+  await page.context().clearCookies();
+  await page.goto("/auth/sign-in");
+  await page.locator("#signin-email").fill(email);
+  await page.getByRole("button", { name: "Use a password" }).click();
+  await page.locator("#signin-password").fill(password);
+  await page.getByRole("button", { name: "Sign in with password" }).click();
+  await page.waitForURL((url) => url.pathname === "/auth/age");
+  await expect(page.getByRole("heading", { name: "Confirm your age" })).toBeVisible();
+  await expectAccessible(page);
+  await page.locator("#age-question").check();
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
+  await page.waitForURL((url) => url.pathname === "/home");
 });
 
 test("the legal pages sign-up links to are public, and others are not served", async ({ page }) => {

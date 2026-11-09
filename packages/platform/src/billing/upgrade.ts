@@ -1,7 +1,13 @@
 import type { PlanRegistry } from "@xos/schemas/plans";
-import { createCheckoutSession, createPortalSession, findPortalConfiguration } from "./checkout.ts";
+import {
+  createCheckoutSession,
+  createPortalSession,
+  findPortalConfiguration,
+  type PORTAL_CONFIGURATION_KEYS,
+} from "./checkout.ts";
 import type { StripeClient } from "./env.ts";
 import { lookupKeyFor, type BillingInterval } from "./plans.ts";
+import type { RenewalConsent } from "./renewal.ts";
 
 /**
  * Moving an org from a trial or Access to a paid plan, and managing a paid plan (ADR 0033
@@ -22,6 +28,14 @@ export interface CheckoutAccountStore {
     readonly trialEndsAt: string | null;
     readonly openSessionIds: readonly string[];
   }>;
+  /** app.record_renewal_consent: records exactly what the Owner agreed to (6811). Refuses a price that is not the plan's. */
+  recordConsent(input: {
+    readonly orgId: string;
+    readonly planCode: string;
+    readonly interval: BillingInterval;
+    readonly livemode: boolean;
+    readonly consent: RenewalConsent;
+  }): Promise<string>;
   /** app.record_billing_checkout: records the session and returns the open ones it closed. */
   record(input: {
     readonly orgId: string;
@@ -91,6 +105,16 @@ export interface PlanCheckoutRequest {
   readonly customerEmail?: string;
   readonly successUrl: string;
   readonly cancelUrl: string;
+  /**
+   * The renewal terms the Owner agreed to, worded once the database has said when the trial ends, so the first charge
+   * date is the one Checkout will use. Throwing refuses before Stripe hears anything.
+   */
+  readonly consent: (account: { readonly trialEndsAt: string | null }) => RenewalConsent;
+  /**
+   * The currency to charge in (app.org_checkout_currency, ADR 0160); USD when not given. The consent is worded in the
+   * same currency, and the session charges the consent's.
+   */
+  readonly currency?: string;
   /** The current time, for tests. */
   readonly now?: Date;
 }
@@ -99,9 +123,10 @@ export interface PlanCheckoutRequest {
  * Opens Stripe Checkout for a self-serve plan:
  *   1. the plan has Stripe prices in plans.yaml (NotSelfServeError for Access or a quoted plan)
  *   2. the database's checks, step-up last (a refusal from the store)
- *   3. the org's open sessions are expired, or CheckoutCompletedError when one was paid meanwhile
- *   4. the session opens on the org's Stripe customer, carrying the rest of a running trial
- *   5. the session is recorded; any session another tab opened in the meantime is expired too
+ *   3. the renewal terms the Owner agreed to are recorded (ADR 0161)
+ *   4. the org's open sessions are expired, or CheckoutCompletedError when one was paid meanwhile
+ *   5. the session opens on the org's Stripe customer, carrying the rest of a running trial and repeating the renewal terms
+ *   6. the session is recorded, tied to the consent; any session another tab opened in the meantime is expired too
  * Returns the URL to send the Owner to.
  */
 export async function startPlanCheckout(
@@ -116,6 +141,14 @@ export async function startPlanCheckout(
     planCode: request.planCode,
     livemode: request.livemode,
   });
+  const consent = request.consent(account);
+  await store.recordConsent({
+    orgId: request.orgId,
+    planCode: request.planCode,
+    interval: request.interval,
+    livemode: request.livemode,
+    consent,
+  });
   for (const id of account.openSessionIds) await expireCheckoutSession(stripe, id);
   const session = await createCheckoutSession(stripe, registry, {
     orgId: request.orgId,
@@ -129,6 +162,8 @@ export async function startPlanCheckout(
     ...(account.trialEndsAt === null ? {} : { trialEnd: account.trialEndsAt }),
     successUrl: request.successUrl,
     cancelUrl: request.cancelUrl,
+    currency: consent.currency,
+    renewalMessage: consent.statement,
     ...(request.now === undefined ? {} : { now: request.now }),
   });
   const closed = await store.record({
@@ -154,17 +189,24 @@ export async function startPlanCheckout(
 
 /**
  * Opens the Stripe customer portal for the org's customer after the database's checks (step-up), with
- * the portal configuration `stripe:setup` created when it exists. Returns the portal URL.
+ * the portal configuration `stripe:setup` created for the plan's term when it exists, so the portal cannot change the
+ * term. With no term on record there is no paid plan to switch, or its first event has not arrived, and the monthly one
+ * still cannot move anyone onto an annual plan. Returns the portal URL.
  */
 export async function openBillingPortal(
   stripe: StripeClient,
   store: CheckoutAccountStore,
-  request: { readonly orgId: string; readonly livemode: boolean; readonly returnUrl: string },
+  request: {
+    readonly orgId: string;
+    readonly livemode: boolean;
+    readonly returnUrl: string;
+    readonly term: keyof typeof PORTAL_CONFIGURATION_KEYS | null;
+  },
 ): Promise<string> {
   const customer = await store.portalCustomer({
     orgId: request.orgId,
     livemode: request.livemode,
   });
-  const configuration = await findPortalConfiguration(stripe);
+  const configuration = await findPortalConfiguration(stripe, request.term ?? "Monthly");
   return createPortalSession(stripe, customer, request.returnUrl, configuration);
 }

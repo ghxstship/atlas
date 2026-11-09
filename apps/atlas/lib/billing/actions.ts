@@ -10,11 +10,14 @@ import {
   billingLivemode,
   createStripeClient,
   openBillingPortal,
+  RENEWAL_TERMS_VERSION,
   pauseSubscription,
   resumeSubscription,
   startPlanCheckout,
 } from "@xos/platform/billing";
+import { getBillingAccount, requestPlanEnd } from "@xos/data/billing";
 import { revalidatePath } from "next/cache";
+import { getLocale } from "next-intl/server";
 import { z } from "zod";
 import { PLAN_REGISTRY } from "@/lib/billing/plan-registry.generated";
 import {
@@ -23,11 +26,15 @@ import {
   checkoutAccountStore,
   pauseAccountStore,
 } from "@/lib/billing/stripe";
+import { renewalWording } from "@/lib/billing/renewal-terms";
+import { askStripeToStopNow } from "@/lib/billing/stop-stripe";
 import { env } from "@/lib/env";
 import { contextFor } from "@/lib/platform/action-context";
+import { getOrgTimeZone } from "@/lib/shell/time-zone";
 import { done, field, inputError, type PlatformActionState } from "@/lib/platform/state";
 import { fromDataError } from "@/lib/platform/data-error";
 import { observability } from "@/lib/observability";
+import { orgCheckoutCurrency } from "@xos/data/billing";
 import * as enums from "@xos/data/enums";
 
 /**
@@ -36,9 +43,15 @@ import * as enums from "@xos/data/enums";
  * decides who may (migration 1640: the Owner, after a second factor in the last 15 minutes) before Stripe is
  * called. Each returns the Stripe URL as `value`, and the form sends the browser there. Until the owner sets
  * STRIPE_SECRET_KEY, both answer `billing_not_open` instead of failing.
+ *
+ * ADR 0161: Checkout opens only after the Owner agreed to the renewal terms on the page, which are recorded word for
+ * word, and the Owner can end the plan here with one button.
  */
 
 const refused = (rule: string): PlatformActionState => ({ rule, at: Date.now() });
+
+/** The terms worded now differ from those on the page, for example across midnight or after a price change. */
+class RenewalTermsChangedError extends Error {}
 
 /** The page Checkout and the portal return to, with what happened. */
 function billingPage(slug: string, outcome?: "done" | "canceled"): string {
@@ -54,6 +67,7 @@ function billingFailure(error: unknown): PlatformActionState {
   if (error instanceof PriceNotFoundError) return refused("billing_price_missing");
   if (error instanceof BillingNotConfiguredError) return refused("billing_not_open");
   if (error instanceof PauseRefusedError) return refused(error.rule);
+  if (error instanceof RenewalTermsChangedError) return refused("renewal_terms_changed");
   observability.logger.error("billing action failed", { error: error });
   return { error: "unexpected", at: Date.now() };
 }
@@ -67,13 +81,31 @@ export async function startCheckoutAction(
     .object({
       plan: z.string().regex(/^[a-z][a-z0-9_]*$/),
       interval: z.enum(enums.billingInterval),
+      hash: z.string().regex(/^[0-9a-f]{64}$/),
+      initials: z.string().max(12),
     })
-    .safeParse({ plan: field(form, "plan"), interval: field(form, "interval") });
+    .safeParse({
+      plan: field(form, "plan"),
+      interval: field(form, "interval"),
+      hash: field(form, "hash"),
+      initials: field(form, "initials"),
+    });
   if (!parsed.success) return inputError();
+  // Agreeing is a deliberate act on this request: nothing is ticked or assumed on the Owner's behalf.
+  if (field(form, "agree") !== "on") return refused("renewal_consent_required");
+  if (parsed.data.interval === "Annual" && parsed.data.initials.length === 0) {
+    return refused("renewal_initials_required");
+  }
   const billing = atlasBillingEnv();
   if (!billingConfigured(billing)) return refused("billing_not_open");
   try {
-    const stripe = await createStripeClient(billing);
+    const [stripe, currency, word, zone, locale] = await Promise.all([
+      createStripeClient(billing),
+      orgCheckoutCurrency(ctx.viewer.db, ctx.org.id),
+      renewalWording(),
+      getOrgTimeZone(ctx),
+      getLocale(),
+    ]);
     const session = await startPlanCheckout(
       stripe,
       PLAN_REGISTRY,
@@ -83,9 +115,30 @@ export async function startCheckoutAction(
         planCode: parsed.data.plan,
         interval: parsed.data.interval,
         livemode: billingLivemode(billing),
+        currency,
         ...(ctx.viewer.email === null ? {} : { customerEmail: ctx.viewer.email }),
         successUrl: billingPage(ctx.org.slug, "done"),
         cancelUrl: billingPage(ctx.org.slug, "canceled"),
+        consent: ({ trialEndsAt }) => {
+          const terms = word({
+            planCode: parsed.data.plan,
+            interval: parsed.data.interval,
+            currency,
+            trialEndsAt,
+            zone,
+          });
+          if (terms === null) throw new NotSelfServeError(parsed.data.plan, "quote");
+          if (terms.hash !== parsed.data.hash) throw new RenewalTermsChangedError();
+          return {
+            amountMinor: terms.amountMinor,
+            currency: terms.currency,
+            nextChargeOn: terms.nextChargeOn,
+            textVersion: RENEWAL_TERMS_VERSION,
+            locale,
+            statement: terms.statement,
+            initials: parsed.data.initials.length > 0 ? parsed.data.initials : null,
+          };
+        },
       },
     );
     return done(session.sessionId, session.url);
@@ -103,15 +156,40 @@ export async function openBillingPortalAction(
   if (!billingConfigured(billing)) return refused("billing_not_open");
   try {
     const stripe = await createStripeClient(billing);
+    const livemode = billingLivemode(billing);
+    const account = await getBillingAccount(ctx.viewer.db, ctx.org.id, livemode);
     const url = await openBillingPortal(stripe, checkoutAccountStore(ctx.viewer.db), {
       orgId: ctx.org.id,
-      livemode: billingLivemode(billing),
+      livemode,
       returnUrl: billingPage(ctx.org.slug),
+      term: account.ok ? account.data.interval : null,
     });
     return done(undefined, url);
   } catch (error) {
     return billingFailure(error);
   }
+}
+
+/**
+ * Ends the org's paid plan at the end of the period paid for (ADR 0161): the same online medium as buying it, no second
+ * factor and no reason to give. The database queues the cancel first, so it is retried even if Stripe is down now; the
+ * Stripe webhook or the worker records that it was accepted, and Billing and Plan shows what Stripe has said.
+ */
+export async function endPlanAction(
+  _: PlatformActionState,
+  form: FormData,
+): Promise<PlatformActionState> {
+  const ctx = await contextFor(form);
+  const billing = atlasBillingEnv();
+  if (!billingConfigured(billing)) return refused("billing_not_open");
+  const queued = await requestPlanEnd(ctx.viewer.db, {
+    orgId: ctx.org.id,
+    livemode: billingLivemode(billing),
+  });
+  if (!queued.ok) return fromDataError(queued.error);
+  await askStripeToStopNow(ctx.viewer.db, ctx.org.id);
+  revalidatePath(`/${ctx.org.slug}`, "layout");
+  return done(queued.data.cancellationId);
 }
 
 /**

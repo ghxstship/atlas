@@ -7,6 +7,7 @@ import { useEffect, useState, type ReactElement } from "react";
 import { useTranslation } from "react-i18next";
 import { hapticsOn } from "../../src/domain/settings";
 import { useCompass } from "../../src/runtime/CompassProvider";
+import { AiDisclosure } from "../../src/screens/AiDisclosure";
 import { useAllowed } from "../../src/screens/common";
 import { groupSections, settingsSections, type SettingsSection } from "../../src/settings/sections";
 import {
@@ -53,8 +54,21 @@ function usePersonalTokens(): boolean {
 export default function SettingsScreen(): ReactElement {
   const { t } = useTranslation();
   const router = useRouter();
-  const { settings, updateSettings, status, signOut, enqueue, config, orgSettings, resolved } =
-    useCompass();
+  const {
+    settings,
+    updateSettings,
+    status,
+    signOut,
+    enqueue,
+    config,
+    orgSettings,
+    resolved,
+    aiChoice,
+    chooseAi,
+  } = useCompass();
+  const member = resolved?.contexts.some((c) => c.kind === "member") ?? false;
+  const [askingAi, setAskingAi] = useState(false);
+  const [aiFailed, setAiFailed] = useState(false);
   const canKiosk = useAllowed("kiosk.operate");
   const personalTokens = usePersonalTokens();
   const [confirmSignOut, setConfirmSignOut] = useState(false);
@@ -140,6 +154,35 @@ export default function SettingsScreen(): ReactElement {
           onChange={(biometric) => updateSettings({ biometric })}
         />
       </Card>
+      {member ? (
+        <Card title={t("compass.aiDisclosure.settingsTitle")}>
+          <Switch
+            testID="settings-ai"
+            label={t("compass.aiDisclosure.settingsLabel")}
+            help={t("compass.aiDisclosure.settingsHelp")}
+            value={aiChoice === "Allowed"}
+            onChange={(on) => {
+              setAiFailed(false);
+              // Turning on shows the words again; turning off is one tap and takes effect on the server.
+              if (on) setAskingAi(true);
+              else {
+                setAskingAi(false);
+                void chooseAi("Declined").then((done) => setAiFailed(!done));
+              }
+            }}
+          />
+          {aiFailed ? (
+            <InlineAlert
+              testID="settings-ai-failed"
+              tone="danger"
+              message={t("compass.aiDisclosure.failed")}
+            />
+          ) : null}
+          {askingAi && aiChoice !== "Allowed" ? (
+            <AiDisclosure testID="settings-ai-disclosure" />
+          ) : null}
+        </Card>
+      ) : null}
       {canKiosk ? (
         <Card>
           <ListRow

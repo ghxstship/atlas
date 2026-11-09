@@ -16,7 +16,7 @@ name: account-delete
     file: ../subflows/open-dev-bundle.yaml
 - extendedWaitUntil:
     visible:
-      id: "sign-in|tab-bar|identity-failed"
+      id: "sign-in|tab-bar|identity-failed|legal-gate-age"
     timeout: 120000
 - runFlow:
     when:
@@ -52,6 +52,8 @@ name: account-delete
       visible: "Not Now"
     commands:
       - tapOn: "Not Now"
+# A new sign-in answers the age and accepts the documents before anything else (ADR 0156).
+- runFlow: ../subflows/first-sign-in-answers.yaml
 - extendedWaitUntil:
     visible:
       id: "identity-failed"

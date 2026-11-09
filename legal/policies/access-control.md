@@ -2,13 +2,13 @@
 title: Access Control Policy
 version: 1.0.0-draft
 effective_date: The date this version is approved by the Owner
-status: Draft for review by counsel before launch
+status: Draft before launch
 audience: Internal
 ---
 
 # Access Control Policy
 
-> **Draft for review by counsel before launch.** This internal policy is a draft. It takes effect when the Owner approves it, and its effective date is that date of approval.
+> **Draft before launch.** This internal policy is a draft. It takes effect when the Owner approves it, and its effective date is that date of approval.
 
 ## 1. Purpose and Scope
 
@@ -18,7 +18,7 @@ This policy governs who may access GHXSTSHIP Industries LLC ("GHXSTSHIP") system
 
 - **Least privilege.** Grant the minimum access needed for the task, for the shortest time.
 - **Need to know.** Access to Confidential and Restricted data requires a business reason.
-- **Separation of duties.** No one person can both make and approve a sensitive change.
+- **Separation of duties.** XOS enforces separation of duties for Customers. While GHXSTSHIP has one person with production access, that person makes and approves changes to GHXSTSHIP's own systems, and logs and automated checks stand in place of a second approver.
 - **Deny by default.** An absent grant is a refusal. The database refuses access unless a policy allows it.
 
 ## 3. Personnel Access to Internal Systems
@@ -35,7 +35,7 @@ This policy governs who may access GHXSTSHIP Industries LLC ("GHXSTSHIP") system
 
 3.6 **Privileged access.** Production database access is limited to named people, granted just in time for a stated task, logged, and expires within 8 hours. Routine operations use migrations and stored procedures, not ad hoc queries. Superuser and service-role keys live only in Supabase Vault and Vercel encrypted environment variables.
 
-3.7 **Source code.** Commits to `main` are signed and arrive only through reviewed pull requests that pass CI. Branch protection prevents force pushes and deletion.
+3.7 **Source code.** This policy calls for commits to `main` to be signed and to arrive only through reviewed pull requests that pass CI, with branch protection that prevents force pushes and deletion. Repository settings do not yet require signing or a passing run, and review by a second person cannot be required while there is one maintainer, so the maintainer who merges checks each change with the automated and AI-assisted checks.
 
 3.8 **AI agents.** AI coding agents work in isolated worktrees, edit only the paths they own, never hold production credentials, and cannot merge to `main`. Their output is reviewed like any contributor's.
 

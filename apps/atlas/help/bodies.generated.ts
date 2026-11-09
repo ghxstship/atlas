@@ -94,6 +94,15 @@ export const HELP_BODIES: HelpBodies = {
           { t: "text", v: "." },
         ],
       },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "A guest's dietary and access needs are optional and have their own step on the guest's row, not the door note. You confirm you have the guest's authority and that they have had notice, and the record shows it was you. You see only who attested and when; the Owner, the catering lead and on-site medical roles, and anyone else the organization gives medical data access read them, and each read is logged. Give the guest's email and, if they have an XOS account, they are told and can remove it. The email stays on file when you save again with the field empty; to take it off, tick Remove the email on file.",
+          },
+        ],
+      },
       { t: "h2", v: "Guest passes and guest emails" },
       {
         t: "p",
@@ -841,6 +850,16 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Near misses at gate 7" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Gate 7 attests that every incident, injury and near miss was logged and dispositioned. XOS has no near-miss type, so log a near miss as an incident at Level 5 - Advisory with What happened starting with the words Near miss. Filter Incidents by that severity to find them.",
+          },
+        ],
+      },
       { t: "h2", v: "Definitions" },
       {
         t: "p",
@@ -1431,6 +1450,15 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "XOS has no near-miss type. Report something that could have hurt someone or caused damage but did not as an incident at Level 5 - Advisory, with What happened starting with the words Near miss. Filter Incidents by that severity to find them later.",
+          },
+        ],
+      },
       { t: "h2", v: "Dispatch board" },
       {
         t: "p",
@@ -1438,6 +1466,16 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "The dispatch board shows open incidents by state and on the map. Assign responders, move incidents through their states and follow them to close. The table view lists every incident for the keyboard and screen readers.",
+          },
+        ],
+      },
+      { t: "h2", v: "Crisis alerts" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Announcing a crisis alert on the Emergency codes page tells the people clocked in on or assigned to the project and its dispatchers, through their Inbox, push, email and, for those who turned it on, text, and the alert shows how many were told. The Inbox has it at once; push and text reach phones within minutes, and email can take longer for a large alert. It also sends the all-clear to them. XOS does not contact emergency services: in an emergency, call your local emergency number.",
           },
         ],
       },
@@ -2111,7 +2149,16 @@ export const HELP_BODIES: HelpBodies = {
           { t: "strong", v: "Prompt members to rate parties" },
           {
             t: "text",
-            v: " in Settings, Gateway and Marketplace only decides whether members see the engagements waiting for their rating. Turning it off never hides or removes a rating, and you can still rate from the engagement. Ratings are moderated only for abuse or personal data, never for their score.",
+            v: " in Settings, Gateway and Marketplace only decides whether members see the engagements waiting for their rating. Turning it off never hides or removes a rating, and you can still rate from the engagement. Ratings are moderated only for abuse, personal data or a wrong or false statement, never for their score.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "A rating of a person stays with your organization and that person: no other organization can read it unless that person chooses to show all their ratings on their profile, and even then it never appears on a hiring, search or crew screen, and no one with hiring, booking or staffing access in XOS can read it. A rating of a company can be read by anyone signed in. A person you rated may dispute the rating; you can answer once on the Ratings page, and our platform team decides.",
           },
         ],
       },
@@ -2130,7 +2177,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "People register from their own Gateway account, and you approve or decline them in the queue. Approving makes them a member of the pool. An org that needs adults sets the minimum age to 18.",
+            v: "People register from their own Gateway account, and you approve or decline them in the queue. Approving makes them a member of the pool. Every registrant is 18 or older, as every XOS account is; set a higher minimum age when the work needs one.",
           },
         ],
       },
@@ -2449,7 +2496,7 @@ export const HELP_BODIES: HelpBodies = {
             { t: "strong", v: "Insurance Certificates" },
             {
               t: "text",
-              v: ": collect a certificate from each vendor, with the additional insureds you require. Aurora can read a certificate and show its confidence in each field before you confirm.",
+              v: ": collect a certificate from each vendor, with the additional insureds you require. Aurora can read a certificate and show its confidence in each field before you confirm. Files vendors upload for onboarding items wait at the top of this page, where you can open one and record it as a certificate; recording does not verify the onboarding item.",
             },
           ],
           [
@@ -3934,7 +3981,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Set up a counter for each space you count at the doors. Its permitted load comes from a permit, the space capacity, or the occupant load factor. Atlas alerts at 90 percent of the permitted load.",
+            v: "Set up a counter for each space you count at the doors. Its load comes from a permit, the space capacity, or the occupant load factor. Only a load from a permit is a permitted load; one from the area and a load factor is a calculated load, and the counter says which it has. Atlas alerts at 90 percent of the load.",
           },
         ],
       },
@@ -4153,7 +4200,7 @@ export const HELP_BODIES: HelpBodies = {
             { t: "strong", v: "Reported Content" },
             {
               t: "text",
-              v: ": posts, comments and messages people reported, for the Owners, Admins and anyone else who manages communication. Decide each within 24 hours: remove it or take no action, name the rule, the facts and your statement of reasons. The people who reported it, and on removal its author, receive the statement; nobody is told who decided. Reports about your own posts, comments and messages never reach you: another moderator decides them.",
+              v: ": posts, comments and messages people reported, for the Owners, Admins and anyone else who manages communication. Decide each within 24 hours: remove it or take no action, name the rule, the facts and your statement of reasons. The people who reported it, and on removal its author, receive the statement; nobody is told who decided. Reports about your own posts, comments and messages never reach you: another moderator decides them. A report still undecided after 24 hours also goes to the GHXSTSHIP Trust and Safety team, which may decide it; its decision shows as GHXSTSHIP's, and the item leaves their list once you decide it. Posts, comments and messages with a slur are refused before anyone sees them.",
             },
           ],
         ],
@@ -4313,6 +4360,15 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "Las asignaciones dicen lo que recibe cada parte y cada persona para una producción: credenciales, pases de estacionamiento, radios y carritos, catering, habitaciones, viajes y viáticos. Un coordinador solicita una para la reserva común de una parte o para una persona; un revisor que no la solicitó la aprueba o la rechaza. Aprobar equipo lo reserva del inventario de la clase, de un lote o del pedido en el que llega, y el diálogo muestra cuántos hay disponibles para esas fechas y cuánto queda de la asignación permitida. Divida la reserva común de una parte entre su gente y luego entregue cada artículo: entregar confirma que la persona lo tiene. El estado lee lo reservado, pedido, recibido, entregado y devuelto de los registros que lo anotan. Las reservas que ya no caben en lo que puede suministrarse aparecen en un aviso. Las asignaciones de radios llevan canales, e Imprimir hoja de radios da la hoja que la gente firma.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Las necesidades de dieta y acceso de un invitado son opcionales y tienen su propio paso en la fila del invitado, no en la nota de acceso. Confirmas que tienes la autorización del invitado y que se le ha avisado, y el registro muestra que fuiste tú. Solo ves quién lo declaró y cuándo; el Propietario, los roles de jefe de catering y personal médico en sitio, y cualquier otra persona a quien la organización dé acceso a datos médicos las leen, y cada lectura queda registrada. Si das el correo del invitado y tiene una cuenta de XOS, se le avisa y puede eliminarlas. El correo sigue registrado cuando guardas de nuevo con el campo vacío; para quitarlo, marca Quitar el correo registrado.",
           },
         ],
       },
@@ -5069,6 +5125,16 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Casi accidentes en la compuerta 7" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "La compuerta 7 atestigua que cada incidente, lesión y casi accidente se registró y se resolvió. XOS no tiene un tipo de casi accidente, así que registre un casi accidente como incidente en Level 5 - Advisory, con Qué pasó empezando con las palabras Near miss. Filtre Incidentes por esa severidad para encontrarlos.",
+          },
+        ],
+      },
       { t: "h2", v: "Definiciones" },
       {
         t: "p",
@@ -5669,6 +5735,15 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "XOS no tiene un tipo de casi accidente. Informe algo que pudo lastimar a alguien o causar daños pero no lo hizo como incidente en Level 5 - Advisory, con Qué pasó empezando con las palabras Near miss. Filtre Incidentes por esa severidad para encontrarlos después.",
+          },
+        ],
+      },
       { t: "h2", v: "Tablero de despacho" },
       {
         t: "p",
@@ -5676,6 +5751,16 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "Muestra los incidentes abiertos por estado y en el mapa. Asigne personal de respuesta y lleve cada incidente hasta su cierre. La vista de tabla los muestra para el teclado y los lectores de pantalla.",
+          },
+        ],
+      },
+      { t: "h2", v: "Alertas de crisis" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Anunciar una alerta de crisis en la página de Códigos de emergencia avisa a quienes tienen entrada marcada en el proyecto o están asignados a él y a sus despachadores, por su Bandeja de entrada, notificaciones push, correo y, para quienes lo activaron, mensajes de texto, y la alerta muestra a cuántas personas se avisó. La Bandeja de entrada la recibe al instante; las notificaciones push y los mensajes de texto llegan a los teléfonos en minutos, y el correo puede tardar más en una alerta grande. También les envía el fin de la alerta. XOS no contacta a los servicios de emergencia: en una emergencia, llame a su número local de emergencias.",
           },
         ],
       },
@@ -6348,7 +6433,16 @@ export const HELP_BODIES: HelpBodies = {
           { t: "strong", v: "Pedir a los miembros que valoren a las partes" },
           {
             t: "text",
-            v: ", en Configuración, Gateway y mercado, solo decide si los miembros ven los compromisos pendientes de su valoración. Desactivarlo nunca oculta ni elimina una calificación, y aún puede calificar desde el compromiso. Las calificaciones solo se moderan por abuso o datos personales, nunca por su puntuación.",
+            v: ", en Configuración, Gateway y mercado, solo decide si los miembros ven los compromisos pendientes de su valoración. Desactivarlo nunca oculta ni elimina una calificación, y aún puede calificar desde el compromiso. Las calificaciones solo se moderan por abuso, datos personales o una declaración falsa o sobre la persona equivocada, nunca por su puntuación.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "La calificación de una persona queda entre su organización y esa persona: ninguna otra organización puede leerla, salvo que esa persona decida mostrar todas sus calificaciones en su perfil, y aun así nunca aparece en una pantalla de contratación, búsqueda o equipo, y nadie con acceso de contratación, reserva o asignación de personal en XOS puede leerla. La calificación de una empresa la puede leer cualquiera con sesión iniciada. Una persona a la que calificó puede impugnar la calificación; usted puede responder una vez en la página de calificaciones, y nuestro equipo de la plataforma decide.",
           },
         ],
       },
@@ -6367,7 +6461,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Las personas se registran desde su propia cuenta de Gateway, y tú las apruebas o rechazas en la cola. Aprobar las hace miembros del grupo. Una organización que requiere adultos pone la edad mínima en 18.",
+            v: "Las personas se registran desde su propia cuenta de Gateway, y tú las apruebas o rechazas en la cola. Aprobar las hace miembros del grupo. Toda persona que se registra tiene 18 años o más, como toda cuenta de XOS; pon una edad mínima mayor cuando el trabajo la necesite.",
           },
         ],
       },
@@ -6666,7 +6760,7 @@ export const HELP_BODIES: HelpBodies = {
             { t: "strong", v: "Certificados de seguro" },
             {
               t: "text",
-              v: ": reúna un certificado de cada proveedor, con los asegurados adicionales que exige. Aurora puede leer un certificado y mostrar su confianza en cada campo antes de que lo confirme.",
+              v: ": reúna un certificado de cada proveedor, con los asegurados adicionales que exige. Aurora puede leer un certificado y mostrar su confianza en cada campo antes de que lo confirme. Los archivos que los proveedores suben para elementos de incorporación esperan arriba en esta página, donde puede abrir uno y registrarlo como certificado; registrarlo no verifica el elemento de incorporación.",
             },
           ],
           [
@@ -8140,7 +8234,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Configure un contador para cada espacio que cuenta en las puertas. Su aforo permitido viene de un permiso, de la capacidad del espacio o del factor de carga de ocupantes. Atlas avisa al llegar al 90 por ciento del aforo permitido.",
+            v: "Configure un contador para cada espacio que cuenta en las puertas. Su aforo viene de un permiso, de la capacidad del espacio o del factor de carga de ocupantes. Solo el que viene de un permiso es un aforo permitido; el que sale del área y un factor de carga es un aforo calculado, y el contador indica cuál tiene. Atlas avisa al llegar al 90 por ciento del aforo.",
           },
         ],
       },
@@ -8350,7 +8444,7 @@ export const HELP_BODIES: HelpBodies = {
             { t: "strong", v: "Contenido denunciado" },
             {
               t: "text",
-              v: ": publicaciones, comentarios y mensajes que se denunciaron, para los propietarios, los administradores y cualquier otra persona que gestione la comunicación. Decida cada uno en 24 horas: elimínelo o no tome medidas, e indique la norma, los hechos y su declaración de motivos. Quienes lo denunciaron y, si lo elimina, quien lo escribió reciben la declaración; no se dice a nadie quién decidió. Las denuncias sobre sus propias publicaciones, comentarios y mensajes nunca le llegan: las decide otro moderador.",
+              v: ": publicaciones, comentarios y mensajes que se denunciaron, para los propietarios, los administradores y cualquier otra persona que gestione la comunicación. Decida cada uno en 24 horas: elimínelo o no tome medidas, e indique la norma, los hechos y su declaración de motivos. Quienes lo denunciaron y, si lo elimina, quien lo escribió reciben la declaración; no se dice a nadie quién decidió. Las denuncias sobre sus propias publicaciones, comentarios y mensajes nunca le llegan: las decide otro moderador. Una denuncia sin decidir después de 24 horas pasa también al equipo de Confianza y Seguridad de GHXSTSHIP, que puede decidirla; su decisión aparece como de GHXSTSHIP, y el elemento sale de su lista en cuanto usted lo decide. Las publicaciones, los comentarios y los mensajes con un insulto discriminatorio se rechazan antes de que nadie los vea.",
             },
           ],
         ],

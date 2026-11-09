@@ -7,6 +7,33 @@
     "name": "Gateway",
     "tagline": "Encuentra trabajo, completa tu incorporación, entrega y recibe tu pago."
   },
+  "landing": {
+    "brand": "XOS",
+    "title": "Gestiona cada producción en vivo en un solo lugar",
+    "lead": "XOS es el software de producción de GHXSTSHIP Industries LLC para los equipos que realizan eventos y experiencias en vivo, y para el personal, los proveedores y los artistas que contratan. Una sola cuenta abre las tres aplicaciones.",
+    "signIn": "Iniciar sesión",
+    "apps": {
+      "title": "Tres aplicaciones, una cuenta",
+      "atlas": "Para equipos de producción",
+      "gateway": "Para personal, proveedores, artistas, clientes y patrocinadores",
+      "compass": "Para el trabajo en campo, en iOS y Android",
+      "compassTagline": "Operaciones en campo que siguen funcionando sin señal."
+    },
+    "google": {
+      "title": "Inicio de sesión con Google",
+      "body": "Si inicias sesión con Google, XOS recibe el perfil básico que Google comparte con las aplicaciones en las que inicias sesión, y lo usa para crear tu cuenta e iniciar tu sesión. La <privacy>Política de privacidad</privacy> indica qué incluye y cómo lo tratamos."
+    },
+    "availability": "XOS no está dirigido a niños. Los Términos del Servicio indican quién puede tener una cuenta."
+  },
+  "legalLinks": {
+    "label": "Legal",
+    "privacy": "Política de privacidad",
+    "healthData": "Política de privacidad de datos de salud del consumidor",
+    "terms": "Términos del Servicio",
+    "workerTerms": "Términos para trabajadores",
+    "cookies": "Configuración de cookies",
+    "contact": "Contacto"
+  },
   "pages": {
     "home": {
       "today": {
@@ -827,7 +854,18 @@
     "skipToContent": "Ir al contenido"
   },
   "legal": {
-    "inReview": "La versión {version} está en revisión y aún no está vigente. El texto publicado aparecerá aquí cuando entre en vigor.",
+    "draftTitle": "Borrador, aún no vigente",
+    "draftNotice": "La versión {version} de este documento es un borrador. No está vigente y nadie puede basarse en ella.",
+    "inEffect": "Versión {version}, vigente desde el {date}",
+    "upcomingTitle": "Aún no vigente",
+    "upcomingNotice": "La versión {version} de este documento entra en vigor el {date}. Se muestra aquí antes de ese día y no está vigente antes de él.",
+    "upcomingEarlier": "Hasta entonces, la versión {version} sigue vigente, y la página de contacto indica dónde pedir una copia de su texto.",
+    "history": "Historial de versiones",
+    "versionDraft": "Versión {version}: borrador, aún no vigente",
+    "versionInEffect": "Versión {version}: vigente desde el {date}",
+    "versionUpcoming": "Versión {version}: entra en vigor el {date}",
+    "contents": "En esta página",
+    "englishOnly": "Este documento se publica solo en inglés.",
     "action": "Volver a Atlas"
   },
   "home": {
@@ -952,9 +990,13 @@
       "password": "Contraseña",
       "passwordHelp": "Al menos 12 caracteres, con letras y números. Evita tu nombre, tu correo y los nombres de productos.",
       "orgName": "Nombre de la organización",
+      "orgCountry": "País donde está establecida tu organización",
+      "orgCountryChoose": "Elige un país",
       "orgSlug": "Dirección web",
       "orgSlugHelp": "Letras minúsculas, números y guiones. Tu dirección de Atlas es /{slug}.",
-      "age": "Tengo 16 años o más."
+      "age": "Tengo 18 años o más",
+      "ageUnder": "Tengo menos de 18 años",
+      "ageLegend": "Tu edad"
     },
     "or": "o",
     "signIn": {
@@ -986,6 +1028,7 @@
     "organization": {
       "title": "Crea tu organización",
       "lead": "Serás su propietario. Después podrás invitar a tu equipo.",
+      "availability": "XOS se ofrece a organizaciones en {territories}. Si una organización te invitó, abre tu invitación.",
       "accept": "Acepto los <termsLink>{terms}</termsLink> y el <dpaLink>{dpa}</dpaLink> en nombre de esta organización.",
       "submit": "Crear organización"
     },
@@ -1035,11 +1078,13 @@
       "password": "Escribe una contraseña de al menos 12 caracteres con letras y números.",
       "passwordContext": "Elige una contraseña que no contenga tu nombre, tu correo ni un nombre de producto como Atlas.",
       "orgName": "Escribe el nombre de tu organización.",
+      "orgCountry": "Elige el país donde está establecida tu organización.",
+      "territory_not_offered": "XOS no se ofrece en el país de tu organización ({country}), así que no creamos esta organización. XOS se ofrece a organizaciones en {territories}. Si una organización te invitó a trabajar con ella, no necesitas crear una: abre tu invitación. Si tu organización tiene un contrato firmado con GHXSTSHIP, pide a tu contacto allí que la configure.",
       "orgSlug": "Usa de 2 a 48 letras minúsculas, números y guiones sencillos.",
       "accept": "Acepta los Términos del Servicio y el Acuerdo de Tratamiento de Datos para continuar.",
       "slug_taken": "Esa dirección web ya está en uso. Elige otra.",
       "slug_reserved": "Atlas reserva esa dirección web. Elige otra.",
-      "age": "Confirma que tienes 16 años o más. Las cuentas de XOS son para personas de 16 años en adelante."
+      "age": "Elige la respuesta que sea cierta para ti."
     },
     "networkRestricted": {
       "title": "Su red no está permitida",
@@ -1051,6 +1096,26 @@
       "reasonHelp": "Al menos 20 caracteres.",
       "start": "Tomar acceso de emergencia",
       "back": "Elegir otra organización"
+    },
+    "ageRefused": {
+      "title": "Las cuentas de XOS son para personas de 18 años en adelante",
+      "sentence": "Nos dijiste que tienes menos de 18 años, así que no creamos una cuenta. No guardamos lo que escribiste.",
+      "closed": "Nos dijiste que tienes menos de 18 años, así que tu cuenta está cerrada. Eliminamos tu inicio de sesión, tu perfil y sus archivos, tus fotos de credencial, tu configuración, lo que enviaste a nuestro equipo de soporte y las respuestas y los acuerdos personales que diste a XOS. Cualquier organización con la que hayas trabajado conserva los registros que exige la ley, como las horas que trabajaste, y una nota con tu correo electrónico que indica que tu cuenta se eliminó, y XOS conserva un registro de esa eliminación con los identificadores de tu cuenta, sin tu nombre. XOS también conserva un recuento mensual de las personas menores de 18 años que rechazó, que no te identifica. Los datos eliminados permanecen en las copias de seguridad hasta que caducan.",
+      "held": "Nos dijiste que tienes menos de 18 años, pero tu cuenta aún no se puede eliminar: lo impide una retención legal, un turno abierto o ser el único propietario de una organización. Cerramos tu sesión en todos los dispositivos, no puedes usar esta cuenta y te lo volveremos a preguntar cuando inicies sesión. Contáctanos y terminaremos de cerrarla.",
+      "minors": "Si trabajas o asistes a un evento, el adulto o la organización responsable de ti puede guardar tus datos en sus propios registros. No necesitas una cuenta para eso.",
+      "contact": "Contáctanos"
+    },
+    "ageQuestion": {
+      "title": "Confirma tu edad",
+      "lead": "XOS se lo pregunta a todas las personas que aún no han respondido.",
+      "submit": "Continuar",
+      "under": {
+        "title": "Confirma tu respuesta",
+        "sentence": "Las cuentas de XOS son para personas de 18 años o más. Si tienes menos de 18 años, cerramos esta cuenta.",
+        "consequences": "Al cerrarla, terminan tus membresías, se cancela el trabajo en curso y se elimina tu inicio de sesión, tu perfil y sus archivos, tus fotos de credencial, tu configuración, lo que enviaste a nuestro equipo de soporte y las respuestas y los acuerdos personales que diste a XOS. No se puede deshacer. Cualquier organización con la que hayas trabajado conserva los registros que exige la ley, como las horas que trabajaste, y una nota con tu correo electrónico que indica que tu cuenta se eliminó, y XOS conserva un registro de esa eliminación con los identificadores de tu cuenta, sin tu nombre. XOS también conserva un recuento mensual de las personas menores de 18 años que rechazó, que no te identifica. Los datos eliminados permanecen en las copias de seguridad hasta que caducan.",
+        "confirm": "Tengo menos de 18 años. Cerrar mi cuenta",
+        "back": "Volver"
+      }
     }
   },
   "roles": {
@@ -1194,7 +1259,7 @@
       "redirecting": "Abriendo Stripe…",
       "portal": {
         "title": "Portal de facturación",
-        "body": "Cambia el plan o el método de pago, descarga facturas o cancela en el portal de facturación de Stripe. Un plan cancelado sigue hasta el final del periodo pagado, y luego la organización pasa a Access.",
+        "body": "Cambia el plan o el método de pago y descarga facturas en el portal de facturación de Stripe. El cambio entre facturación mensual y anual no se hace allí: termina este plan y elige el nuevo plazo aquí cuando termine, para que veas y aceptes primero las nuevas condiciones de renovación.",
         "bodyEnded": "Descarga facturas anteriores y actualiza los datos de facturación en el portal de facturación de Stripe.",
         "period": "Facturación {term, select, Annual {anual} other {mensual}}. El periodo actual termina el {date}.",
         "open": "Abrir el portal de facturación"
@@ -1212,7 +1277,13 @@
         "checkout_completed": "Acaba de completarse un pago de esta organización. El plan que se muestra aquí se actualiza en un momento.",
         "billing_price_missing": "Este plan aún no está a la venta en Stripe. Inténtalo más tarde o contacta con soporte.",
         "billing_no_customer": "Esta organización aún no ha pagado con Stripe. Elige un plan primero.",
-        "other": "La facturación no se completó. Inténtalo de nuevo o contacta con soporte."
+        "other": "La facturación no se completó. Inténtalo de nuevo o contacta con soporte.",
+        "renewal_consent_required": "Acepta las condiciones de renovación para continuar.",
+        "renewal_initials_required": "Escribe tus iniciales para aceptar una renovación anual.",
+        "renewal_terms_changed": "Estas condiciones cambiaron. Lee las nuevas en esta página y vuelve a aceptarlas.",
+        "renewal_price_mismatch": "El precio cambió. Vuelve a cargar la página e inténtalo de nuevo.",
+        "renewal_date_range": "La fecha del primer cargo cambió. Vuelve a cargar la página e inténtalo de nuevo.",
+        "billing_no_subscription": "Esta organización no tiene un plan de pago que terminar."
       },
       "errors": {
         "input": "Elige un plan y un periodo de facturación.",
@@ -1238,7 +1309,39 @@
         "buy": "Comprar un paquete"
       },
       "foundingOffer": "Clientes fundadores: las primeras {count} organizaciones de pago obtienen un {percent} por ciento de descuento durante sus primeros {months} meses con el código {code}.",
-      "pricesInUsd": "Precios en dólares estadounidenses antes de impuestos. Los precios en EUR, GBP, CAD y AUD se aplican al pagar."
+      "pricesInUsd": "Precios en dólares estadounidenses antes de impuestos.",
+      "pricesInOtherCurrencies": "Las organizaciones de los demás territorios donde se ofrece XOS pagan en {currencies} al finalizar la compra.",
+      "checkoutTerms": "Se renueva automáticamente hasta que lo termines. Te estamos enviando las condiciones por correo y puedes terminar el plan en esta página en cualquier momento.",
+      "renewal": {
+        "title": "Revisa el plan {plan}",
+        "statementMonthly": "{plan} se renueva automáticamente cada mes por {price} {currency} al mes, más impuestos, hasta que lo canceles. Tu primer cargo de {price} {currency} es el {date}, y luego se cobra a tu método de pago cada mes ese mismo día. Un código promocional cambia el precio solo durante el período que indica, y solo podemos cambiar el precio en una renovación después de avisarte con 30 días de antelación. Para cancelar, elige Terminar plan en Configuración, Facturación y plan en cualquier momento. La próxima renovación se detiene y el plan sigue activo hasta el final del período que pagaste. Las tarifas ya pagadas no se reembolsan, salvo que la ley lo exija.",
+        "statementAnnual": "{plan} se renueva automáticamente cada año por {price} {currency} al año, más impuestos, hasta que lo canceles. Tu primer cargo de {price} {currency} es el {date}, y luego se cobra a tu método de pago cada año ese mismo día. Un código promocional cambia el precio solo durante el período que indica, y solo podemos cambiar el precio en una renovación después de avisarte con 30 días de antelación. Te enviamos un recordatorio por correo 30 días antes de cada renovación. Para cancelar, elige Terminar plan en Configuración, Facturación y plan en cualquier momento. La próxima renovación se detiene y el plan sigue activo hasta el final del año que pagaste. Las tarifas ya pagadas no se reembolsan, salvo que la ley lo exija.",
+        "agree": "Acepto estas condiciones de renovación y autorizo a XOS a cobrar a mi método de pago mediante Stripe hasta que cancele.",
+        "initials": "Tus iniciales",
+        "initialsHelp": "Un plan anual se renueva por un año completo, así que te pedimos que pongas tus iniciales en estas condiciones.",
+        "continue": "Aceptar y continuar al pago",
+        "back": "Volver a los planes",
+        "planNames": {
+          "core": "Core",
+          "pro": "Pro",
+          "team": "Team"
+        }
+      },
+      "endPlan": {
+        "title": "Terminar el plan",
+        "body": "Detiene la próxima renovación. El plan sigue funcionando hasta el final del período que pagaste y luego la organización pasa al plan Access con sus datos intactos. No se te volverá a cobrar. El tiempo que ya pagaste no se reembolsa, salvo que la ley lo exija.",
+        "submit": "Terminar plan",
+        "sent": "Recibimos tu solicitud y la estamos enviando a Stripe. Esta página muestra cuándo Stripe la acepta."
+      },
+      "stripeCancel": {
+        "acceptedTitle": "Suscripción cancelada",
+        "acceptedBody": "Stripe aceptó la cancelación y no volverá a cobrar esta suscripción. El tiempo que ya pagaste no se reembolsa, salvo que la ley lo exija.",
+        "queuedTitle": "Cancelación aún sin confirmar",
+        "queuedBody": "Recibimos tu cancelación y la estamos enviando a Stripe, nuestro proveedor de pagos. Stripe todavía no la ha aceptado, así que la suscripción puede seguir activa. No tienes que hacer nada. Seguimos intentándolo automáticamente y te escribiremos en cuanto se acepte. Si recibes un cargo después de cancelar, escribe a support@ghxstship.pro y te lo reembolsaremos.",
+        "endingTitle": "Este plan va a terminar",
+        "endingBody": "Stripe aceptó tu solicitud. El plan sigue funcionando hasta el {date} y no se te volverá a cobrar. Para conservar el plan, renuévalo en el portal de facturación antes de esa fecha.",
+        "endingBodyNoDate": "Stripe aceptó tu solicitud. El plan sigue funcionando hasta el final del período que pagaste y no se te volverá a cobrar. Para conservar el plan, renuévalo en el portal de facturación antes de esa fecha."
+      }
     },
     "organizations": {
       "leave": "Salir",

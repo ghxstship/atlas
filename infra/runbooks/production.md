@@ -113,14 +113,14 @@ The operator console for the platform team. The owner created the project and at
    value from that page; never retype the DKIM key.
 2. Add them at the DNS host of `ghxstship.tech`:
 
-   | Purpose     | Type | Name and value                                                                                                                                                                                                                 |
-   | ----------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-   | SPF         | TXT  | As Resend lists it, on its return-path subdomain under `mail.ghxstship.tech`                                                                                                                                                   |
-   | Return path | MX   | As Resend lists it, on the same subdomain, so bounces come back to Resend                                                                                                                                                      |
-   | DKIM        | TXT  | As Resend lists it, on a `_domainkey` name under `mail.ghxstship.tech`                                                                                                                                                         |
-   | DMARC       | TXT  | `_dmarc.mail.ghxstship.tech`: `v=DMARC1; p=none; rua=mailto:<the DMARC report mailbox>`, monitoring only, with aggregate reports to a mailbox the owner reads (ADR 0033, decision 46). Step 5 below moves it to `p=quarantine` |
+| Purpose     | Type | Name and value                                                                                                                                                                                                                 |
+| ----------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| SPF         | TXT  | As Resend lists it, on its return-path subdomain under `mail.ghxstship.tech`                                                                                                                                                   |
+| Return path | MX   | As Resend lists it, on the same subdomain, so bounces come back to Resend                                                                                                                                                      |
+| DKIM        | TXT  | As Resend lists it, on a `_domainkey` name under `mail.ghxstship.tech`                                                                                                                                                         |
+| DMARC       | TXT  | `_dmarc.mail.ghxstship.tech`: `v=DMARC1; p=none; rua=mailto:<the DMARC report mailbox>`, monitoring only, with aggregate reports to a mailbox the owner reads (ADR 0033, decision 46). Step 5 below moves it to `p=quarantine` |
 
-   A policy at `_dmarc.ghxstship.tech` instead covers every subdomain unless its `sp=` says otherwise.
+A policy at `_dmarc.ghxstship.tech` instead covers every subdomain unless its `sp=` says otherwise.
 
 3. Verify the domain in Resend. Then set Supabase SMTP (`promote-to-production.md`, step 6) and the function
    secrets `RESEND_API_KEY` and `XOS_EMAIL_FROM`.
@@ -176,12 +176,12 @@ wired differently: the webhook carries metadata only, and it is signed instead o
    Resend's is the lowest priority, as Resend requires. The sending records (SPF, return path) are not needed on a
    receive-only domain.
 
-   | Name                               | Type | Value                                             |
-   | ---------------------------------- | ---- | ------------------------------------------------- |
-   | `inbound.ghxstship.tech`           | MX   | `<priority> <Resend's receiving host>`, as listed |
-   | Resend's DKIM name under `inbound` | TXT  | As Resend lists it                                |
+| Name                               | Type | Value                                             |
+| ---------------------------------- | ---- | ------------------------------------------------- |
+| `inbound.ghxstship.tech`           | MX   | `<priority> <Resend's receiving host>`, as listed |
+| Resend's DKIM name under `inbound` | TXT  | As Resend lists it                                |
 
-   Click "I've added the record" in Resend and wait until receiving shows Verified.
+Click "I've added the record" in Resend and wait until receiving shows Verified.
 
 3. In Resend, Webhooks, add the endpoint `https://<project ref>.supabase.co/functions/v1/inbound-email` with the
    event `email.received` only. Copy its signing secret.
@@ -236,7 +236,7 @@ Every release is a tag `vX.Y.Z` on `main`. Each step starts only when the one be
 
 ### 0. Preflight (release owner)
 
-1. CI is green on the tagged commit: `checks`, `database`, `secrets`, `route-js-budget`, `visual`, `ai-evals`, `e2e`, `e2e-pseudo-locales`, `verapdf`, and `api-breaking-changes` (gate 20, `infra/ci/oasdiff.sh`) once the orchestrator adds it.
+1. CI is green on the release pull request: `CI required checks`, which fails unless every CI job passed, and `Analyze (javascript-typescript)` and `Analyze (python)`.
 2. The release drill passed on the tagged commit: `infra/drills/release-drill.sh`. Attach the report to the release.
 3. No High or Critical finding is open (`legal/security/findings`, `legal/accessibility/findings`, `legal/qa/findings`).
 4. The status page shows the last 30 days inside the error budget (`incident-response.md`, After the incident).
@@ -271,7 +271,7 @@ supabase functions deploy --project-ref <production-ref>
 supabase secrets list --project-ref <production-ref>   # names only; values never print
 ```
 
-Set any secret new in this release with `supabase secrets set --project-ref <production-ref> NAME=...` from the owner's secret store. Confirm the worker schedules (`webhook-dispatch`, `notification-dispatch`, `upload-scan`, `report-run`, `import-run`, `integration-worker`, `subprocessor-notices`, `automation-run`, `search-embed`, each every minute; `infra/runbooks/integrations.md`; and `xos_fx_rates_ecb`, `xos_export_render`, `xos_guest_email` (every minute while guest emails are queued) and `xos_weather_feed` (every 10 minutes while a weather feed is on), which migrations create, sections Exchange rates and Exports, and ADR 0147) still exist: `select jobname, schedule from cron.job order by 1;`.
+Set any secret new in this release with `supabase secrets set --project-ref <production-ref> NAME=...` from the owner's secret store. Confirm the worker schedules (`webhook-dispatch`, `notification-dispatch`, `upload-scan`, `report-run`, `import-run`, `integration-worker`, `subprocessor-notices`, `automation-run`, `search-embed`, each every minute; `infra/runbooks/integrations.md`; and `xos_fx_rates_ecb`, `xos_export_render`, `xos_guest_email` (every minute while guest emails are queued) and `xos_weather_feed` (every 10 minutes while a weather feed is on), which migrations create, sections Exchange rates and Exports, and ADR 0147; and `xos_send_waiting_crisis_alerts`, every 15 seconds from migration 6800, without which a large crisis alert stops at the people told inline and Atlas keeps showing the rest as still being told) still exist: `select jobname, schedule from cron.job order by 1;`.
 
 How the functions are bundled (A85, RRR-130):
 
@@ -284,6 +284,8 @@ How the functions are bundled (A85, RRR-130):
 Kiosk re-keying: a kiosk whose device key was retired or revoked in Atlas answers every punch with `kiosk_device_unregistered`, and Compass shows "This device is no longer registered as a kiosk". Register a new kiosk in Atlas, then on the device, signed in as a supervisor, choose **Forget this kiosk** and enter the new key (Compass help, Kiosk).
 
 ### 3. Apps
+
+`main` moves only through a pull request (`security-owner-steps.md`, Branch protection on main, which has the commands). Open the release's pull request before the migrations, so its checks are green first, and merge it here with a merge commit. Never push or fast-forward `main`: production deploys from it.
 
 1. Vercel builds `atlas`, `gateway`, `docs` and `console` for the tagged commit as preview deployments against staging. Let Atlas and Gateway run there for 30 minutes with the synthetic checks green.
 2. Promote `atlas` through its Rolling Release: 5, 25 and 100 percent, each stage approved by hand when the release gate (`progressive-delivery.md`) says promote. The plan includes Rolling Releases for one project, and `atlas` has it (ADR 0033, decision 50).
@@ -364,6 +366,7 @@ None. The site is built from the repository and the OpenAPI document. Project se
 | Secret                                                           | Notes                                                                                                                                                                                                                                                          |
 | ---------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `XOS_API_JWT_SIGNING_KEY`                                        | The project's JWT secret, for `api-token`, `integration-worker` and `automation-run` (ADR 0047)                                                                                                                                                                |
+| `XOS_CONSOLE_URL`                                                | `https://console.ghxstship.tech`; the link in a legal queue alert. Without it the alert has no link (ADR 0167)                                                                                                                                                 |
 | `XOS_APP_URL`, `XOS_GATEWAY_URL`, `XOS_POSTAL_ADDRESS`           | `https://atlas.ghxstship.tech`, `https://gateway.ghxstship.tech`; the postal address in email (CAN-SPAM)                                                                                                                                                       |
 | `XOS_EMAIL_TRANSPORT`, `XOS_EMAIL_FROM`, `RESEND_API_KEY`        | `resend`; an address on the verified domain, such as `XOS <notifications@mail.ghxstship.tech>`; the Resend key                                                                                                                                                 |
 | `XOS_EMAIL_ALLOWLIST`, `XOS_EMAIL_DELIVER_TO_ANY`                | `XOS_EMAIL_DELIVER_TO_ANY=true` only in production, at cutover, once the domain passes its checks and `XOS_POSTAL_ADDRESS` is set (ADR 0033, decision 41)                                                                                                      |
@@ -425,27 +428,27 @@ A preview or production build on EAS stops in `apps/compass/app.config.ts` when 
 
 ### GitHub Actions (repository secrets and variables)
 
-| Name                                            | Kind     | Used by                                                             |
-| ----------------------------------------------- | -------- | ------------------------------------------------------------------- |
-| `NPM_TOKEN`                                     | Secret   | `publish-packages.yml`, only until npm trusted publishing is set up |
-| PyPI trusted publisher (no secret)              | pypi.org | `publish-packages.yml`                                              |
-| `EXPO_TOKEN`                                    | Secret   | A Compass build workflow, if builds move to CI                      |
-| `STAGING_DB_URL`                                | Secret   | `backup-weekly.yml`                                                 |
-| `PRODUCTION_BACKUP_DB_URL`                      | Secret   | `backup-weekly.yml`, in the `production-backup` environment         |
-| `XOS_SYNTHETIC_EMAIL`, `XOS_SYNTHETIC_PASSWORD` | Secret   | `synthetics.yml`                                                    |
-| `XOS_ALERT_WEBHOOK_URL`                         | Secret   | `synthetics.yml`, alerts to on-call                                 |
-| `ANTHROPIC_API_KEY`                             | Secret   | `ai-evals` (gate 21)                                                |
-| `XOS_STAGING_*` URLs and the staging anon key   | Variable | `synthetics.yml`                                                    |
-| `GOOGLE_CLOUD_PROJECT`                          | Variable | `translate.yml`, machine translation (ADR 0037); not a secret       |
-| `GOOGLE_TRANSLATE_GLOSSARY_BUCKET`              | Variable | `translate.yml`, the glossary upload; not a secret                  |
-| `GOOGLE_WORKLOAD_IDENTITY_PROVIDER`             | Variable | `translate.yml`, Workload Identity Federation; no key               |
-| `GOOGLE_TRANSLATE_SERVICE_ACCOUNT`              | Variable | `translate.yml`, the account CI impersonates; no key                |
+| Name                                | Kind     | Used by                                                             |
+| ----------------------------------- | -------- | ------------------------------------------------------------------- |
+| `NPM_TOKEN`                         | Secret   | `publish-packages.yml`, only until npm trusted publishing is set up |
+| PyPI trusted publisher (no secret)  | pypi.org | `publish-packages.yml`                                              |
+| `EXPO_TOKEN`                        | Secret   | A Compass build workflow, if builds move to CI                      |
+| `STAGING_DB_URL`                    | Secret   | `backup-weekly.yml`; its job skips with a notice until it is set    |
+| `PRODUCTION_BACKUP_DB_URL`          | Secret   | `backup-weekly.yml`, in the `production-backup` environment         |
+| `XOS_ALERT_WEBHOOK_URL`             | Secret   | `synthetics.yml` and `backup-weekly.yml`, alerts to on-call         |
+| `VERCEL_STATUS_TOKEN`               | Secret   | `synthetics.yml`, publishes the status page                         |
+| `ANTHROPIC_API_KEY`                 | Secret   | `ai-evals` (gate 21)                                                |
+| `GOOGLE_CLOUD_PROJECT`              | Variable | `translate.yml`, machine translation (ADR 0037); not a secret       |
+| `GOOGLE_TRANSLATE_GLOSSARY_BUCKET`  | Variable | `translate.yml`, the glossary upload; not a secret                  |
+| `GOOGLE_WORKLOAD_IDENTITY_PROVIDER` | Variable | `translate.yml`, Workload Identity Federation; no key               |
+| `GOOGLE_TRANSLATE_SERVICE_ACCOUNT`  | Variable | `translate.yml`, the account CI impersonates; no key                |
 
 ## Upload scanning (ClamAV)
 
 Uploads are scanned by self-hosted ClamAV (owner decision 10, ADR 0034). Until clamd answers, every upload
 stays quarantined: attachments cannot be downloaded, imports wait, and private uploads reach only their
-uploader. Files never leave XOS infrastructure, so ClamAV is not a subprocessor.
+uploader. ClamAV is software XOS runs itself, but the file bytes reach a machine at Fly.io to be scanned, so Fly.io is
+on the Subprocessor List.
 
 **Hosting (owner approved 2026-10-24):** one always-on Fly.io machine with stunnel in front of clamd, reached by the
 Edge Functions over mutual TLS. The files and the owner's steps are in `infra/scanning/fly/README.md`. The rest of this
@@ -473,9 +476,10 @@ section describes clamd itself, for that machine or any other host.
 
 **Connect the functions**
 
-```sh
-supabase secrets set --project-ref <production-ref> XOS_CLAMAV_HOST=<private address> XOS_CLAMAV_PORT=3310
-```
+Production uses the host, port and three mutual TLS secrets of `infra/scanning/fly/README.md`, step 4:
+`XOS_CLAMAV_HOST=xos-clamav.fly.dev`, `XOS_CLAMAV_PORT=3311` and `XOS_CLAMAV_TLS_CA`, `XOS_CLAMAV_TLS_CERT` and
+`XOS_CLAMAV_TLS_KEY`. The three are all or none: the function refuses to choose a scanner with only some of them. A
+clamd reached over a private network instead takes only the host and port, 3310 by default.
 
 Then call `upload-scan` once with the service key. A 200 with `"scanner": "clamav"` means it is connected.
 A 503 `scanner-not-configured` means the secret is missing. The `retrying` outcome, with "clamd is
@@ -497,8 +501,43 @@ becomes downloadable after the next run.
 
 **Upgrade**
 
-Renovate proposes new `clamav/clamav` tags. Update ADR 0001 and `infra/scanning/docker-compose.yaml`
-together. Roll hosts one at a time; while one restarts, scans retry with backoff.
+Renovate proposes new `clamav/clamav` tags. Update ADR 0001, `infra/scanning/docker-compose.yaml` and
+`infra/scanning/fly/Dockerfile` together. Roll hosts one at a time; while one restarts, scans retry with backoff.
+
+## Legal queue and the support address (OWNER)
+
+Everything with a legal clock lives in the console at `/legal-queue` (ADR 0167). Only an Administrator with a second factor reaches it. `xos_sweep_legal_queue` (pg_cron, hourly at :11) reads the feeds and raises the alerts; migrations create it. Times on the form are typed in New York time, the zone every clock counts in.
+
+**1. Route the address.** The documents name one public address, `support@ghxstship.pro` (owner decision, 2026-11-08), and ask the writer to put the purpose in the subject line (Legal Contact page). It must reach a person who checks it daily, and each message that starts a clock goes into the queue the day it arrives, with the time it arrived. The clock starts then, not when it is entered. A message whose subject names no purpose is read for what it asks.
+
+| Subject line                 | Add to the queue as                                                                                                               |
+| ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| Privacy, Privacy Appeal      | Data subject request, from Brazil, appeal of a refused request, deletion by email, privacy complaint, Customer's request for help |
+| Copyright                    | DMCA notice, DMCA counter-notice                                                                                                  |
+| Abuse Report, Appeal         | Abuse report, intimate image, child sexual abuse material, appeal of a moderation decision                                        |
+| Security                     | Security report, personal data breach                                                                                             |
+| Accessibility                | Accessibility report, accessibility review request                                                                                |
+| Legal Notice, Return of Data | Government data request, return of omitted data, another written promise                                                          |
+| Support                      | Manual cancel and refund promises, and any of the above that arrive without its subject                                           |
+
+Give the address an auto-reply saying it was received and when to expect an answer, using only the numbers the published documents state.
+
+A request for the data the export omits holds the org's deletion until the return is done (Terms 11.2 and 11.4, DPA 10.2). Add it the day it arrives as "Return of data the export omits", with the org's slug from the Tenants page: that places a legal hold on the org, which the deletion job and the purge honour, and closing the item releases it. If the org is already purged, nothing is left to return: add it as another written promise and say so to the person.
+
+**2. Connect the alert paths.**
+
+- Confirm the `subprocessor-notices` worker runs every minute. It sends the alerts, so they stop when it stops.
+- Set the Edge Function secret `XOS_CONSOLE_URL`.
+- Save the on-call webhook in Vault, the same value as the `XOS_ALERT_WEBHOOK_URL` repository secret: `select vault.create_secret('<webhook url>', 'xos_alert_webhook_url');`
+- Before `XOS_EMAIL_DELIVER_TO_ANY` is on, keep the operator's address and any backup contact in `XOS_EMAIL_ALLOWLIST`, or alerts are refused.
+- Check the queue page after setup. It says when alert email or a moderation result is stuck or has failed, when an overdue clock has had no alert in 26 hours or the sweep has not finished in 2 (the sweep is down), and when the on-call channel is not connected.
+- Install the synthetics workflow (`infra/ci/synthetics.sh`), with `SUPABASE_URL`, `SUPABASE_ANON_KEY` and the synthetic user. Its `legal_queue.heartbeat` check is the only alert that works when the database's own sweep has stopped. See the incident runbook, "Legal queue heartbeat failing".
+
+**3. Name a backup contact.** Add one on the queue page, on a different provider from the owner's inbox. They get overdue alerts only, with references and dates and never the matter. Tell them what to do when one arrives: reach the owner by phone. Add a person, not another of your own addresses.
+
+**4. Outside reviewer (optional).** Appoint one on the queue page only after signing an agreement that covers confidentiality and data protection, and after deciding whether they belong on the Subprocessor List. From then on every moderation appeal goes to them, and the operator only records their decision. Update Acceptable Use Policy 7 and the Contact Page the same day.
+
+**5. Each January.** Read the government request count on the queue page and publish it at `/legal`, zero included (DPA 13.6). The first count covers the first full calendar year after the DPA takes effect.
 
 ## Legal change notices (OWNER)
 
@@ -547,19 +586,40 @@ How it behaves:
 - It refuses live mode keys. Creating the live catalogue is a separate owner step, made when billing opens.
 - It never prints or stores the key.
 - It exits 2 and writes nothing when Stripe already holds a price, coupon or promotion code that differs from `plans.yaml`. Stripe prices cannot be edited. To change a price, give it a new versioned lookup key in `plans.yaml` (for example `_v5`), regenerate the plan seed, and run the script again.
-- The portal configuration (named "XOS plans", marked `xos_portal: xos_billing_portal_v1`) lets customers update the payment method and billing details, download invoices, cancel at the end of the paid period, and switch between the Core, Pro and Team prices, prorated. Atlas finds it by that mark; until the script has run, Atlas opens the account's default portal, which Stripe test mode offers only after the portal settings are saved in the Dashboard.
+- The two portal configurations (named "XOS monthly plans" and "XOS annual plans", marked `xos_portal: xos_billing_portal_monthly_v1` and `xos_billing_portal_annual_v1`) let customers update the payment method and billing details, download invoices, cancel at the end of the paid period, and switch between the Core, Pro and Team prices of that term, prorated. They cannot change the term: that goes through the review step on Billing and Plan, which records the consent (ADR 0161). Atlas finds each by its mark; until the script has run, Atlas opens the account's default portal, which Stripe test mode offers only after the portal settings are saved in the Dashboard. An older configuration marked `xos_billing_portal_v1` is no longer opened; deactivate it in the Dashboard. The live catalogue step must create both, or Atlas falls back to the default portal, which is not limited by term.
 
 ### 3. Webhook and secrets (staging first)
 
-1. In the Dashboard (Developers, Webhooks), add an endpoint at `https://<project-ref>.supabase.co/functions/v1/stripe-webhook` that sends `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`, `customer.subscription.paused`, `customer.subscription.resumed`, `checkout.session.completed`, `checkout.session.async_payment_succeeded` and `checkout.session.expired`. Those events carry the plan, extra seats, Aurora pack payments and the state of each Checkout session.
+1. In the Dashboard (Developers, Webhooks), add an endpoint at `https://<project-ref>.supabase.co/functions/v1/stripe-webhook` that sends `invoice.paid`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`, `customer.subscription.paused`, `customer.subscription.resumed`, `checkout.session.completed`, `checkout.session.async_payment_succeeded` and `checkout.session.expired`. Those events carry the plan, extra seats, Aurora pack payments and the state of each Checkout session.
 2. Set the Edge Function secrets `STRIPE_WEBHOOK_SECRET` (the endpoint's signing secret, `whsec_...`) and `STRIPE_SECRET_KEY` (the same key; the function reads its mode, so test events never touch live billing).
 3. Set `STRIPE_SECRET_KEY` on the `atlas` Vercel project for the staging environment, then redeploy. Without it Billing and Plan says billing is not open yet.
 4. Check on staging: sign up, create an org (it starts the Pro trial), open Settings, Billing and plan, choose Core, pass the second factor, and pay with Stripe's test card `4242 4242 4242 4242`. Back in Atlas the page says the org is on Core; "Open the billing portal" opens the portal on the org's customer. In the Dashboard, the webhook endpoint shows every event delivered with HTTP 200.
 5. If a payment went through and Billing and Plan keeps saying Stripe is confirming it, the subscription's event has not been applied yet. Find the failed `customer.subscription.*` delivery on the endpoint and resend it. Meanwhile Atlas offers that org no second Checkout, for up to three days after the payment (Stripe's retry window); after that a new checkout can open, so resolve it before then.
 
-### 4. Opening billing in production
+### 4. Stopping Stripe (ADR 0161)
+
+Canceling or deleting an org, and End plan on Billing and Plan, queue a cancel the worker retries until Stripe accepts it. An org cannot finish deletion before then. No step is needed per customer. Before live billing, the **OWNER**:
+
+1. Sets the Edge Function secret `XOS_BILLING_ALERT_EMAIL` to the mailbox that should hear about billing alerts: a cancel Stripe has not accepted, a subscription Stripe calls live on a deleted or canceled org, a charge after a cancel, a deletion waiting on Stripe. Mail goes through the worker's transport, so `XOS_EMAIL_ALLOWLIST` must allow it.
+2. Confirms `org-lifecycle` is scheduled every 5 minutes (`infra/runbooks/org-lifecycle.md`). It holds `STRIPE_SECRET_KEY`, retries cancels and sends alerts. Without the schedule, cancels Atlas could not finish stay queued, and pg_cron still tells the billing owners after 15 minutes.
+3. Creates a Sentry alert rule on the `billing_attention_needed` log event of the Edge Functions, so an alert also reaches on-call when mail cannot.
+4. Sets Stripe's retries and end-of-retry behavior (Dashboard, Billing, Revenue recovery). Failed retries that cancel the subscription now settle as an end on record, with no cancellation notice to the customer.
+
+When an alert arrives, read it in the console's Tenants page. `charged_after_cancel` names the invoice: refund it in the Stripe Dashboard and tell the Owner, as Terms 11.4 promises. It can name an annual renewal paid while End plan waited on Stripe; that plan then runs to the end of the term just renewed, so also cancel the subscription in the Dashboard when you refund, unless the Owner asks to keep it. `active_on_deleted_org` and `active_after_cancel` mean a subscription Stripe called live when it should not have been: check Stripe for a charge and refund any. Those three stay open until you close them with what you did, even after Stripe accepts the cancel. Only `cancel_delayed` and `deletion_blocked` clear themselves once Stripe accepts.
+
+### 5. Opening billing in production
 
 Billing opens with the live catalogue and live keys, a separate owner step: create the live catalogue (the script refuses live keys by design), add the live webhook endpoint, set the live `STRIPE_WEBHOOK_SECRET` and `STRIPE_SECRET_KEY` on the production Edge Functions and the live `STRIPE_SECRET_KEY` on the `atlas` Production environment, then redeploy.
+
+## Where XOS is offered (OWNER and platform team)
+
+XOS launches in the United States only (ADR 0160). `private.territories` is the one source of truth, and an Administrator opens or closes a territory on the console's Territories page, with a reason, with no deploy. Signup follows at once. Prices and languages usually follow within a minute, and at most about 11 minutes, because each server keeps its last good read. Before opening a territory, do what the table in ADR 0160 lists for it. Only after a territory opens, run `pnpm --filter @xos/i18n translate --locale <code>` if its language should read translated: email reads a saved language with no territory check, so a catalog written earlier would reach anyone who saved it. Rerun nothing in Stripe: every price already carries its currency.
+
+Before launch, once the live catalogue exists, run one test-mode Checkout from the Billing page and confirm it opens in USD with no currency switcher: `currency` and `adaptive_pricing` on the session were only tested against fakes, and if Stripe refused the combination every plan checkout would fail.
+
+The owner keeps the app stores in step: App Store Connect and Google Play availability set to the United States only. A worker abroad whose store account is in another country cannot download Compass from a United States listing and uses Gateway on the web, or the app already on their phone.
+
+The console's list of organizations outside the offered territories is the review to do before launch, after any close and from time to time after that. It includes Gateway company accounts, anyone from before the question, and anyone who called the API or the database without stating a country. A vendor company abroad that a US customer has engaged under a signed contract can be let in with an exception naming that contract; it cannot start a company account by itself.
 
 ## Machine translation (OWNER, Google Cloud Translation)
 
@@ -705,7 +765,7 @@ expired.
 
 ## Push and SMS (OWNER)
 
-`notification-dispatch` (every minute) sends email, push and SMS deliveries and reads push receipts; `sms-webhook` takes Twilio's inbound messages and status callbacks (finding A65-012, migrations 1361 to 1363). Until the steps below are done both channels record instead of sending: deliveries are marked Sent with a `recorded-` provider id and nothing leaves the platform. Every secret is set with `supabase secrets set --project-ref <ref> NAME=...` from the owner's secret store; values never go into the repository, a ticket or a chat.
+`notification-dispatch` (every minute) sends email, push and SMS deliveries and reads push receipts; a run sends up to 600 pushes, 200 texts and 50 emails, the kinds that bypass quiet hours (safety alerts, a crisis alert and its all-clear) before any backlog (6800), so a crisis alert's emails to a large project take many minutes; `sms-webhook` takes Twilio's inbound messages and status callbacks (finding A65-012, migrations 1361 to 1363). Until the steps below are done both channels record instead of sending: deliveries are marked Sent with a `recorded-` provider id and nothing leaves the platform. Every secret is set with `supabase secrets set --project-ref <ref> NAME=...` from the owner's secret store; values never go into the repository, a ticket or a chat.
 
 ### Push (Expo push service, ADR 0030)
 
@@ -911,30 +971,35 @@ Rollback: build Compass without `EXPO_PUBLIC_APPLE_SIGN_IN`, which removes both 
 
 ## Monitoring and alerting
 
-| Signal        | Where                                                                                                                                                            | Alert                                                                                                                                                         |
-| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Errors        | Sentry projects `xos-atlas` and `xos-gateway`, plus the Edge Functions' DSN; scrubbed of personal data (`infra/observability`)                                   | Create one alert rule per project: a new issue, or more than 10 events in 5 minutes, emails on-call                                                           |
-| Logs          | Vercel runtime logs; Supabase logs (API, Postgres, Auth, Edge Functions). One JSON line per event, with `request_id`                                             | Search by `x-request-id` from a user report. Log drains go to Better Stack (ADR 0033, decision 45): **OWNER** creates the account and a source for each drain |
-| Uptime        | `synthetics.yml` every 5 minutes from `us-east`: sign-in, Gateway, API, Realtime, sync, notifications; Better Stack every minute from five regions (decision 45) | A failed required check posts to `XOS_ALERT_WEBHOOK_URL` and turns the status page red                                                                        |
-| Status page   | `https://status.ghxstship.tech` (decision 72): the Vercel project `status`, history on `status-data`, incidents in `infra/status/incidents.json`                 | Public; updated every synthetics run                                                                                                                          |
-| Deploy health | The release gate's error rate and p95 per rollout stage                                                                                                          | Rolls back on its thresholds (`progressive-delivery.md`)                                                                                                      |
-| Database      | Supabase reports (CPU, connections, disk), advisors, and the weekly restore drill                                                                                | Supabase usage emails at 80 percent of plan quotas                                                                                                            |
-| Backups       | Daily backups listed in Dashboard, Backups; `backup-weekly.yml` run status                                                                                       | A failed scheduled run emails whoever last changed the workflow's schedule or re-enabled it, not the admins (`backup-and-restore.md`, step 4)                 |
+| Signal        | Where                                                                                                                                                                                                                            | Alert                                                                                                                                                                             |
+| ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Errors        | Sentry projects `xos-atlas` and `xos-gateway`, plus the Edge Functions' DSN; scrubbed of personal data (`infra/observability`)                                                                                                   | Create one alert rule per project: a new issue, or more than 10 events in 5 minutes, emails on-call                                                                               |
+| Logs          | Vercel runtime logs; Supabase logs (API, Postgres, Auth, Edge Functions). One JSON line per event, with `request_id`                                                                                                             | Search by `x-request-id` from a user report. Log drains go to Better Stack (ADR 0033, decision 45): **OWNER** creates the account and a source for each drain                     |
+| Uptime        | `synthetics.yml` every 5 minutes from `us-east`, anonymous and read-only: the sign-in pages, the API document and host, and the docs. Better Stack every minute from five regions once the owner adds its monitors (decision 45) | A required check that fails twice in a row posts once to `XOS_ALERT_WEBHOOK_URL` and marks that run failed, again every 6 hours, and posts when it recovers                       |
+| Status page   | `https://status.ghxstship.tech` (decision 72): the Vercel project `status`, history on `refs/status/history`, incidents on `refs/status/incidents`                                                                               | Public; republished when a failure is confirmed or ends and about hourly, once `VERCEL_STATUS_TOKEN` is set                                                                       |
+| Deploy health | The release gate's error rate and p95 per rollout stage                                                                                                                                                                          | Rolls back on its thresholds (`progressive-delivery.md`)                                                                                                                          |
+| Database      | Supabase reports (CPU, connections, disk), advisors, and the weekly restore drill                                                                                                                                                | Supabase usage emails at 80 percent of plan quotas                                                                                                                                |
+| Backups       | Daily backups listed in Dashboard, Backups; `backup-weekly.yml` run status                                                                                                                                                       | A failed run posts to `XOS_ALERT_WEBHOOK_URL`; GitHub also emails whoever last changed the workflow's schedule or re-enabled it, not the admins (`backup-and-restore.md`, step 4) |
 
-One-minute checks from five regions (Section 5.1) run on Better Stack (ADR 0033, decision 45; `infra/ci/README.md`, Frequency and regions). **OWNER** creates the account. Its monitors cover the components `infra/synthetics` checks, sign in only as the synthetic account and alert on-call; `synthetics.yml` keeps feeding the status page. Vercel and Supabase each drain their logs to a Better Stack source, which is on the Subprocessor List.
+One-minute checks from five regions (Section 5.1) run on Better Stack (ADR 0033, decision 45; `infra/ci/README.md`, Frequency and regions). **OWNER** creates the account. Its monitors cover the components `infra/synthetics` checks and alert on-call; `synthetics.yml` keeps feeding the status page. Vercel and Supabase each drain their logs to a Better Stack source, which is on the Subprocessor List.
 
 **Mask bearer tokens in the log drains (OWNER, finding A69-012).** Vercel's request log records every path, and some
-paths carry a bearer token: `/share/`, `/advance/`, `/sign/`, `/shifts/`, `/auth/invite/` and `/ical/`. The app's redactor never
-sees that log, so each Better Stack source that receives a drain (Vercel's and Supabase's) masks the tokens before it
-stores anything. In Better Stack, open the source, then Transformations, and add this VRL (approved by the owner on
-2026-10-24):
+paths carry a bearer token: `/share/`, `/share/view/`, `/share/screen/`, `/share/showcaller/`, `/share/pack/`,
+`/share/pack/unsubscribe/`, `/advance/`, `/sign/`, `/shifts/`, `/forms/`, `/onboard/`, `/unsubscribe/`, `/auth/invite/`,
+`/auth/act/` and `/ical/`. The app's redactor never sees that log, so each Better Stack source that receives a drain
+(Vercel's and Supabase's) masks the tokens before it stores anything. In Better Stack, open the source, then
+Transformations, and add this VRL. The owner approved its first version on 2026-10-24; this one also masks the live
+links (P1), one-tap action links (A127) and the crew access, showcaller, form and pack links added since, so a source that has the old one replaces it.
+`infra/observability/test/redact.test.ts` fails when the app's redactor, a migration or a literal in the code names a
+token prefix this does not mask, or when a route with a `[token]` segment has a path this does not mask. It runs these
+patterns through JavaScript, not VRL.
 
 ```
 # A69-012: a bearer token in a request path or a prefixed secret never reaches the log store.
 . = map_values(., recursive: true) -> |v| {
   if is_string(v) {
-    s = replace(string!(v), r'(^|[\s"(=,]|//[^/\s"]+)(/(?:share|advance|sign|shifts|auth/invite|ical)/)[^/?#\s"]+', "$1$2[token]")
-    replace(s, r'(?i)(?:xadv|xagr|xcal|xcrw|xdlt|xdoc|xinv|xkio|xlnk|xshr|xspn|xspu|xos_pat|xos_scim)_[0-9a-f]{16,}', "[token]")
+    s = replace(string!(v), r'(^|[\s"(=,]|//[^/\s"]+)(/(?:share(?:/(?:view|screen|showcaller|pack(?:/unsubscribe)?))?|advance|sign|shifts|forms|onboard|unsubscribe|auth/invite|auth/act|ical)/)[^/?#\s"]+', "$1$2[token]")
+    replace(s, r'(?i)(?:xact|xadv|xagr|xcal|xcch|xcgr|xcrw|xdlt|xdoc|xfrg|xfrm|xgue|xinv|xkio|xlch|xlgr|xlnk|xpkg|xpkl|xpku|xscl|xscr|xshr|xshv|xspn|xspu|xvig|xvin|xos_pat|xos_scim)_[0-9a-f]{16,}(?:\.[0-9a-f]{16,})?', "[token]")
   } else {
     v
   }
@@ -961,7 +1026,7 @@ stored as `/share/[token]`.
 
 **Weekly**
 
-- [ ] `backup-weekly.yml` succeeded and its artifact exists.
+- [ ] `backup-weekly.yml` succeeded, its summary names the object it stored, and the run has no artifact (`backup-and-restore.md`, Weekly logical backup).
 - [ ] Run `infra/drills/release-drill.sh` on a fresh local stack; record the result in `backup-and-restore.md`.
 - [ ] Review Supabase advisors and `pnpm --filter @xos/config licenses:check`; dependency updates from Renovate are merged or triaged.
 - [ ] Error budget: the 30-day uptime on the status page is above 99.9 percent.

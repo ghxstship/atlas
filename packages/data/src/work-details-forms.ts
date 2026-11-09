@@ -1,10 +1,14 @@
 import type { DataError } from "./result.ts";
+import { csvField } from "./csv.ts";
+import type { GuestNeeds } from "./sensitive-consent.ts";
 import {
   ACCESSIBILITY_NEEDS,
   DIETARY_NEEDS,
   LOYALTY_PROGRAM_KINDS,
   SHAREABLE_WORK_DETAIL_CATEGORIES,
   WORK_DETAIL_RULES,
+  type AccessibilityNeed,
+  type DietaryNeed,
   type EmergencyContactInput,
   type LoyaltyProgramInput,
   type WorkDetailCategory,
@@ -77,6 +81,66 @@ export function parseAccessibilityForm(form: FormData): Parsed<WorkDetailsPatch>
     accessibilityNotes: optional(form, "accessibilityNotes", 1000, problems),
   };
   return problems.length > 0 ? bad(problems) : good(value);
+}
+
+/** A guest's needs from the two-step form (ADR 0164): the keeper's two statements, then the optional needs. */
+export function parseGuestNeedsForm(form: FormData): Parsed<{
+  readonly guestListEntryId: string;
+  readonly dietaryNeeds: readonly DietaryNeed[];
+  readonly allergies: string | null;
+  readonly dietaryNotes: string | null;
+  readonly accessibilityNeeds: readonly AccessibilityNeed[];
+  readonly accessibilityNotes: string | null;
+  readonly guestEmail: string | null;
+  readonly clearGuestEmail: boolean;
+  readonly authorityConfirmed: boolean;
+  readonly noticeConfirmed: boolean;
+}> {
+  const problems: string[] = [];
+  const guestListEntryId = parseId(form, "guestId");
+  if (!guestListEntryId) problems.push("guestId");
+  const allergies = optional(form, "allergies", 500, problems);
+  const dietaryNotes = optional(form, "dietaryNotes", 500, problems);
+  const accessibilityNotes = optional(form, "accessibilityNotes", 1000, problems);
+  const guestEmail = optional(form, "guestEmail", 320, problems);
+  if (guestEmail !== null && !EMAIL.test(guestEmail)) problems.push("guestEmail");
+  if (problems.length > 0 || !guestListEntryId) return bad(problems);
+  return good({
+    guestListEntryId,
+    dietaryNeeds: pickAll(DIETARY_NEEDS, form, "dietaryNeeds"),
+    allergies,
+    dietaryNotes,
+    accessibilityNeeds: pickAll(ACCESSIBILITY_NEEDS, form, "accessibilityNeeds"),
+    accessibilityNotes,
+    guestEmail,
+    clearGuestEmail: form.get("clearGuestEmail") === "on",
+    authorityConfirmed: form.get("authorityConfirmed") === "true",
+    noticeConfirmed: form.get("noticeConfirmed") === "true",
+  });
+}
+
+/** The guests' needs as CSV, for a holder of the medical capability who downloads them. */
+export function guestNeedsCsv(rows: readonly GuestNeeds[]): string {
+  // Whoever keeps the list typed these, and a spreadsheet would run a cell that starts like a formula (csv.ts, A69-005).
+  const lines = [
+    [
+      "guest_name",
+      "dietary_needs",
+      "allergies",
+      "dietary_notes",
+      "accessibility_needs",
+      "accessibility_notes",
+    ],
+    ...rows.map((r) => [
+      r.guestName,
+      r.dietaryNeeds.join("; "),
+      r.allergies ?? "",
+      r.dietaryNotes ?? "",
+      r.accessibilityNeeds.join("; "),
+      r.accessibilityNotes ?? "",
+    ]),
+  ];
+  return lines.map((line) => line.map(csvField).join(",")).join("\r\n");
 }
 
 /** Passport details; `number` is null when the field was left blank (keep the number on file). */

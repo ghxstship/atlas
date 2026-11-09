@@ -53,12 +53,19 @@ export interface CheckoutRequest {
   readonly customerEmail?: string;
   readonly successUrl: string;
   readonly cancelUrl: string;
+  /** The currency to charge in (app.org_checkout_currency, ADR 0160); USD when not given. */
+  readonly currency?: string;
   /**
    * End of the org's running XOS trial (app.subscriptions.trial_ends_at, Section 14.7). Checkout then
    * collects the card now and Stripe charges it only when the trial would have ended; the webhook moves the
    * trialing subscription to active at once, so adding a card converts the trial.
    */
   readonly trialEnd?: string;
+  /**
+   * The renewal terms the Owner agreed to, shown again above Stripe's pay button (ADR 0161), so the same disclosure stands
+   * next to the point of payment. Stripe limits it to 1,200 characters.
+   */
+  readonly renewalMessage?: string;
   /** The current time, for tests. */
   readonly now?: Date;
 }
@@ -121,6 +128,10 @@ function opened(session: {
  * session and subscription metadata, which is how the webhook ties the subscription back to the org.
  * Promotion codes are accepted, so the founding-customer code applies at checkout (ADR 0035). Stripe
  * Tax computes tax and collects VAT and GST ids (Section 16). A quoted plan (Enterprise) refuses.
+ *
+ * The session names its currency and turns adaptive pricing off. The prices carry a currency option for every price book
+ * currency, and left to itself Stripe shows one from where the buyer seems to be, which would offer a closed territory's
+ * prices to anyone browsing from it (ADR 0160).
  */
 export async function createCheckoutSession(
   stripe: StripeClient,
@@ -144,6 +155,8 @@ export async function createCheckoutSession(
   }
   const session = await stripe.checkout.sessions.create({
     mode: "subscription",
+    currency: (request.currency ?? "USD").toLowerCase(),
+    adaptive_pricing: { enabled: false },
     line_items: lineItems,
     client_reference_id: request.orgId,
     metadata: { org_id: request.orgId },
@@ -156,6 +169,9 @@ export async function createCheckoutSession(
     tax_id_collection: { enabled: true },
     success_url: request.successUrl,
     cancel_url: request.cancelUrl,
+    ...(request.renewalMessage === undefined
+      ? {}
+      : { custom_text: { submit: { message: request.renewalMessage } } }),
     ...customerFields(request),
   });
   return opened(session);
@@ -171,6 +187,8 @@ export interface AddonCheckoutRequest {
   readonly customerEmail?: string;
   readonly successUrl: string;
   readonly cancelUrl: string;
+  /** The currency to charge in (app.org_checkout_currency, ADR 0160); USD when not given. */
+  readonly currency?: string;
 }
 
 /**
@@ -198,6 +216,8 @@ export async function createAddonCheckoutSession(
   };
   const session = await stripe.checkout.sessions.create({
     mode: "payment",
+    currency: (request.currency ?? "USD").toLowerCase(),
+    adaptive_pricing: { enabled: false },
     line_items: [{ price, quantity }],
     client_reference_id: request.orgId,
     metadata,
@@ -250,19 +270,28 @@ export async function setExtraSeats(
 }
 
 /**
- * Metadata that marks the customer portal configuration `stripe:setup` creates from plans.yaml
- * (stripe-setup.ts), so Atlas opens the portal with it rather than the account's default.
+ * Metadata that marks the customer portal configurations `stripe:setup` creates from plans.yaml
+ * (stripe-setup.ts), so Atlas opens the portal with one rather than the account's default. There is one per term and each
+ * lists only that term's prices: changing the renewal term goes through the review step, where the Owner sees and agrees
+ * to the new terms and XOS records it (ADR 0161), never through a page XOS keeps no record of.
  */
-export const PORTAL_CONFIGURATION_KEY = "xos_billing_portal_v1";
+export const PORTAL_CONFIGURATION_KEYS = {
+  Monthly: "xos_billing_portal_monthly_v1",
+  Annual: "xos_billing_portal_annual_v1",
+} as const;
 
-/** The id of the portal configuration `stripe:setup` created, or undefined when it has not run. */
-export async function findPortalConfiguration(stripe: StripeClient): Promise<string | undefined> {
+/** The id of the term's portal configuration `stripe:setup` created, or undefined when it has not run. */
+export async function findPortalConfiguration(
+  stripe: StripeClient,
+  term: keyof typeof PORTAL_CONFIGURATION_KEYS,
+): Promise<string | undefined> {
   const configurations = await stripe.billingPortal.configurations.list({
     active: true,
     limit: 100,
   });
-  return configurations.data.find((c) => c.metadata?.["xos_portal"] === PORTAL_CONFIGURATION_KEY)
-    ?.id;
+  return configurations.data.find(
+    (c) => c.metadata?.["xos_portal"] === PORTAL_CONFIGURATION_KEYS[term],
+  )?.id;
 }
 
 /**

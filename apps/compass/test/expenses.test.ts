@@ -214,9 +214,34 @@ describe("reading a receipt with Aurora (Section 4.7)", () => {
     expect(RECEIPT_FILE_NAME).toBe("receipt.jpg");
   });
 
+  it("sends nothing until the person allows AI features", async () => {
+    const asked = reader();
+    const reading = await readReceipt(asked.r, "AAAA", true, "unknown");
+    expect(reading).toEqual({ state: "ask", proposal: null });
+    expect(asked.calls).toEqual(["status"]);
+    const declined = reader();
+    expect((await readReceipt(declined.r, "AAAA", true, "Declined")).state).toBe("declined");
+    expect(declined.calls).toEqual([]);
+    // A decline made on another device binds too, though this one still holds Allowed.
+    const elsewhere = reader({
+      status: async () => ({
+        ok: true,
+        data: {
+          enabled_features: [],
+          used: 0,
+          allowance: null,
+          plan_includes_aurora: true,
+          declined_by_person: true,
+        },
+      }),
+    });
+    expect((await readReceipt(elsewhere.r, "AAAA", true, "Allowed")).state).toBe("declined");
+    expect(elsewhere.calls).not.toContain("extract");
+  });
+
   it("reads the fields when the org has document extraction on", async () => {
     const { r, calls } = reader();
-    const reading = await readReceipt(r, "AAAA", true);
+    const reading = await readReceipt(r, "AAAA", true, "Allowed");
     expect(calls).toEqual(["status", "extract receipt", "suggestion sug-1"]);
     expect(reading.state).toBe("read");
     expect(reading.proposal).toEqual({
@@ -241,7 +266,7 @@ describe("reading a receipt with Aurora (Section 4.7)", () => {
         },
       }),
     });
-    expect((await readReceipt(off.r, "AAAA", true)).state).toBe("off");
+    expect((await readReceipt(off.r, "AAAA", true, "Allowed")).state).toBe("off");
     expect(off.calls).toEqual([]);
     const plan = reader({
       status: async () => ({
@@ -249,7 +274,7 @@ describe("reading a receipt with Aurora (Section 4.7)", () => {
         data: { enabled_features: [], used: 0, allowance: null, plan_includes_aurora: false },
       }),
     });
-    expect((await readReceipt(plan.r, "AAAA", true)).state).toBe("not-in-plan");
+    expect((await readReceipt(plan.r, "AAAA", true, "Allowed")).state).toBe("not-in-plan");
     const limit = reader({
       status: async () => ({
         ok: true,
@@ -261,10 +286,10 @@ describe("reading a receipt with Aurora (Section 4.7)", () => {
         },
       }),
     });
-    expect((await readReceipt(limit.r, "AAAA", true)).state).toBe("limit");
+    expect((await readReceipt(limit.r, "AAAA", true, "Allowed")).state).toBe("limit");
     expect(limit.calls).toEqual([]);
     const offline = reader();
-    expect(await readReceipt(offline.r, "AAAA", false)).toEqual({
+    expect(await readReceipt(offline.r, "AAAA", false, "Allowed")).toEqual({
       state: "offline",
       proposal: null,
     });
@@ -278,21 +303,21 @@ describe("reading a receipt with Aurora (Section 4.7)", () => {
         problem: { status: 422, rule: "aurora_feature_off", detail: "off" },
       }),
     });
-    expect((await readReceipt(refused.r, "AAAA", true)).state).toBe("off");
+    expect((await readReceipt(refused.r, "AAAA", true, "Allowed")).state).toBe("off");
     const used = reader({
       extract: async () => ({
         ok: false,
         problem: { status: 422, rule: "plan_limit_exceeded", detail: "x" },
       }),
     });
-    expect((await readReceipt(used.r, "AAAA", true)).state).toBe("limit");
+    expect((await readReceipt(used.r, "AAAA", true, "Allowed")).state).toBe("limit");
     const away = reader({
       status: async () => ({
         ok: false,
         problem: { status: 0, rule: null, detail: "Network request failed" },
       }),
     });
-    expect((await readReceipt(away.r, "AAAA", true)).state).toBe("failed");
+    expect((await readReceipt(away.r, "AAAA", true, "Allowed")).state).toBe("failed");
     const silent = reader({
       extract: async () => ({
         ok: true,
@@ -308,7 +333,7 @@ describe("reading a receipt with Aurora (Section 4.7)", () => {
         },
       }),
     });
-    expect((await readReceipt(silent.r, "AAAA", true)).state).toBe("no-answer");
+    expect((await readReceipt(silent.r, "AAAA", true, "Allowed")).state).toBe("no-answer");
   });
 
   it("calls the public API with the person's own token and only the receipt", async () => {
@@ -339,7 +364,7 @@ describe("reading a receipt with Aurora (Section 4.7)", () => {
       headers: () => ({ Authorization: "Bearer person-session" }),
       idempotencyKey: () => "k",
     });
-    await readReceipt(client, "AAAA", true);
+    await readReceipt(client, "AAAA", true, "Allowed");
     expect(seen.map((s) => s.url)).toEqual([
       "https://atlas.test/api/v1/aurora/status",
       "https://atlas.test/api/v1/aurora/extract",

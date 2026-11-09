@@ -42,7 +42,10 @@ export function projectFactRows(
         label("seatPreference"),
         v.seatPreference ? t(`seatPreferences.${workDetailLabelKey(v.seatPreference)}`) : null,
       ],
-      [label("mealPreference"), v.mealPreference],
+      [
+        label("mealPreference"),
+        v.mealPreference ?? (v.mealPreferenceMasked ? t("consent.meal.lockedValue") : null),
+      ],
       [label("travelNotes"), v.travelNotes],
     );
   }

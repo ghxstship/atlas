@@ -9,7 +9,7 @@ import type { ActionResult, ScreenStatus } from "@xos/workforce-native";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useCompass } from "../runtime/CompassProvider";
 import { toAction } from "./messages";
-import { workforceWrite, type WorkforceSyncRpc } from "./writes";
+import { holdsObjectionableText, workforceWrite, type WorkforceSyncRpc } from "./writes";
 
 export { actionMessage, toAction } from "./messages";
 
@@ -39,6 +39,9 @@ export function useWorkforce(t: (key: string) => string): WorkforceContext {
       rpc: WorkforceSyncRpc,
       args: Readonly<Record<string, unknown>>,
     ): Promise<ActionResult> => {
+      if (holdsObjectionableText(rpc, args)) {
+        return { ok: false, message: t("workforce.refusals.content_objectionable") };
+      }
       try {
         await enqueue(workforceWrite(rpc, args, Date.now()));
         return { ok: true };

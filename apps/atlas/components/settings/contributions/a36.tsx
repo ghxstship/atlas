@@ -17,6 +17,7 @@ import {
   ReactivateOrganizationForm,
   ViewAsForm,
 } from "@/components/platform/settings-forms";
+import { StripeCancellationNotice } from "@/components/settings/stripe-cancellation-notice";
 import { getFormatters } from "@/lib/platform/format";
 import { getOrgTimeZone } from "@/lib/shell/time-zone";
 import type { SettingsContribution, SettingsPanelProps } from "./types";
@@ -255,6 +256,7 @@ async function DangerZonePanel({ ctx }: SettingsPanelProps) {
               purge: date(purgeDay(cancellation.data.canceledAt, zone)),
             })}
           </InlineAlert>
+          <StripeCancellationNotice ctx={ctx} />
           {owner ? (
             <>
               <StepUpDownloadLink

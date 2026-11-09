@@ -1,5 +1,5 @@
 import pg from "pg";
-import { expect, settle, settledGoto, test } from "./engine-test";
+import { expect as baseExpect, settle, settledGoto, test } from "./engine-test";
 import { expectAccessible } from "./support";
 import { expectAccessibleInBothThemes, ORG, signIn } from "./operations-support";
 
@@ -14,7 +14,8 @@ import { expectAccessibleInBothThemes, ORG, signIn } from "./operations-support"
 
 test.use({ reducedMotion: "reduce" });
 test.setTimeout(300_000);
-expect.configure({ timeout: 20_000 });
+// configure returns a new expect; the file-level timeout applies only through it.
+const expect = baseExpect.configure({ timeout: 20_000 });
 
 test("every Advancing page and view renders accessibly", async ({ page }) => {
   await signIn(page, "producer@example.com");
@@ -495,13 +496,22 @@ test("advancing progress", async ({ page, browser }) => {
 
   // A section's track can change after the packet is sent.
   await page.goto(packetUrl);
-  await page.getByRole("button", { name: "Edit Power" }).click();
-  await page.getByLabel("Track", { exact: true }).selectOption({ label: "Finance" });
+  // A click before the page hydrates is lost (A71, A77); clicking only while the field is absent never closes it.
+  const trackField = page.getByLabel("Track", { exact: true });
+  await expect(async () => {
+    if (!(await trackField.isVisible())) {
+      await page.getByRole("button", { name: "Edit Power" }).click({ timeout: 2_000 });
+    }
+    await expect(trackField).toBeVisible({ timeout: 2_000 });
+  }).toPass();
+  await trackField.selectOption({ label: "Finance" });
   await page
     .locator("form")
     .filter({ has: page.getByLabel("Track", { exact: true }) })
     .getByRole("button", { name: "Save", exact: true })
     .click();
+  // The form closes once the track is saved; reading before then can find the old one.
+  await expect(trackField).toHaveCount(0);
   await owner.goto(`${progress}&pane=tracks`);
   await expect(track(answered, "Finance", "In progress")).toBeVisible();
   await ownerContext.close();

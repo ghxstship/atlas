@@ -240,6 +240,11 @@ describe("assistant conversation", () => {
       kind: "not-in-plan",
     });
     expect(availabilityOf({ ...ready, enabled_features: [] })).toEqual({ kind: "off" });
+    // A person who turned AI off for themselves is told so, not that an Admin did.
+    expect(availabilityOf({ ...ready, enabled_features: [], declined_by_person: true })).toEqual({
+      kind: "declined",
+    });
+    expect(availabilityOf({ ...ready, declined_by_person: false }).kind).toBe("ready");
     expect(availabilityOf({ ...ready, used: 500 })).toEqual({
       kind: "limit-reached",
       allowance: 500,

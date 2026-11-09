@@ -12,7 +12,7 @@ import {
   type ActionState,
 } from "@/app/[org]/finance/actions";
 import { useCustomFieldColumns } from "@/components/custom-fields/list";
-import { useLiveRefresh } from "@/components/live/live-refresh";
+import { useLiveRefresh, useSettledSave } from "@/components/live/live-refresh";
 import {
   catchUpLine,
   lineSaveOutcome,
@@ -104,6 +104,8 @@ const validBp = (bp: number | null) =>
 export function BudgetEditor(props: Props) {
   const t = useFinanceT();
   const router = useRouter();
+  // Pastes, line dialogs and their undos: each action's answer carries the page after it.
+  const settle = useSettledSave();
   const [lines, setLines] = useState<readonly BudgetLine[]>(props.lines);
   const [gridKey, setGridKey] = useState(0);
   const [status, setStatus] = useState<ActionState>({});
@@ -141,13 +143,18 @@ export function BudgetEditor(props: Props) {
     }
     return { ok: false, message: t(`errors.${error.kind}`) };
   };
-  /** Deletes or restores lines for an undo or a redo, refreshing the grid either way. */
+  /**
+   * Deletes or restores lines for an undo or a redo. A saved change comes back with the page after it;
+   * a refused one rereads the page, which shows why.
+   */
   const batch = async (ids: readonly string[], restore: boolean) => {
-    const result = await submit(deleteBudgetLinesAction, {
-      org: props.org,
-      ids: ids.join(","),
-      ...(restore ? { restore: "1" } : {}),
-    });
+    const result = await settle(() =>
+      submit(deleteBudgetLinesAction, {
+        org: props.org,
+        ids: ids.join(","),
+        ...(restore ? { restore: "1" } : {}),
+      }),
+    );
     setStatus(result);
     // Lines this tab removed leave the page without a line-removed status; restored ones count again.
     if (result.ok) {
@@ -159,8 +166,9 @@ export function BudgetEditor(props: Props) {
         }
         return next;
       });
+    } else {
+      start(() => router.refresh());
     }
-    start(() => router.refresh());
     return undoResult(result);
   };
   /** A paste (restore false) or a delete (restore true) on the stack, with its toast. */
@@ -747,11 +755,16 @@ export function BudgetEditor(props: Props) {
           }}
         />
       ) : null}
-      {sheet === "add" ? <AddLineDialog {...props} onClose={() => setSheet(null)} /> : null}
-      {sheet === "catalog" ? <CatalogDialog {...props} onClose={() => setSheet(null)} /> : null}
+      {sheet === "add" ? (
+        <AddLineDialog {...props} settle={settle} onClose={() => setSheet(null)} />
+      ) : null}
+      {sheet === "catalog" ? (
+        <CatalogDialog {...props} settle={settle} onClose={() => setSheet(null)} />
+      ) : null}
       {sheet === "paste" ? (
         <PasteDialog
           {...props}
+          settle={settle}
           onClose={() => setSheet(null)}
           onPasted={(ids) => {
             setSheet(null);
@@ -762,6 +775,7 @@ export function BudgetEditor(props: Props) {
       {sheet === "delete" ? (
         <DeleteLinesDialog
           {...props}
+          settle={settle}
           lines={lines}
           onClose={() => setSheet(null)}
           onDeleted={(ids) => {

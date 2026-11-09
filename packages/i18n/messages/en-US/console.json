@@ -104,7 +104,6 @@
     "moderation_statement": "Write the statement of reasons, in up to 4,000 characters.",
     "moderation_report_mismatch": "The report must be one on this listing.",
     "moderation_appeal_decided": "This appeal has already been decided.",
-    "moderation_appeal_same_operator": "Another operator decides this appeal: you made the decision it appeals.",
     "moderation_appeal_outcome": "Uphold the decision or reverse it.",
     "moderation_appeal_new_decision": "Reversing a decision to take no action needs the new decision: remove or restrict, with its ground, rule and facts.",
     "system_banner_shape": "Choose the kind, the severity and who sees the banner.",
@@ -123,7 +122,70 @@
     "operator_revoked": "This role was already revoked.",
     "operator_last_administrator": "The platform team keeps at least one Administrator. Grant another first.",
     "funnel_alert_missing": "That funnel alert no longer exists. Reload the page.",
-    "funnel_alert_resolved": "The funnel recovered and its alert is closed."
+    "funnel_alert_resolved": "The funnel recovered and its alert is closed.",
+    "legal_queue_rule": "Choose what this item is.",
+    "legal_queue_title": "Describe it in up to 200 characters.",
+    "legal_queue_received": "Say when it arrived. That cannot be in the future.",
+    "legal_queue_details": "Keep the details to 4,000 characters.",
+    "legal_queue_contact": "Keep the contact to 320 characters.",
+    "legal_queue_due": "Enter the date the document sets, after the day it arrived.",
+    "legal_queue_subject": "No account uses that email. Leave it empty if the content has no account behind it.",
+    "legal_queue_related": "Name the reference of the DMCA notice this answers.",
+    "legal_queue_org": "Name the organization by its slug, as the Tenants page shows it. If its data is already deleted, add the request as another written promise and tell the person nothing is left to return.",
+    "legal_hold_queue": "This hold belongs to an open return of omitted data. Close that item to release it.",
+    "org_read_only": "This organization is read-only, so the change was not saved.",
+    "legal_queue_note": "Say what was done, in up to 4,000 characters.",
+    "legal_queue_first_response": "This item has no first response waiting.",
+    "legal_queue_fed": "This item follows its source. Act on the source, and it follows.",
+    "transition_reason_required": "Every state change carries a reason.",
+    "legal_queue_item_transition_not_allowed": "An item cannot move to that state from where it is.",
+    "legal_queue_item_state_conflict": "The item has moved since this page loaded. Reload it.",
+    "legal_queue_court_action": "A court action applies only when completing a DMCA counter-notice.",
+    "legal_queue_too_early": "The statute does not allow this before its earliest day. Wait for it, or record the court action.",
+    "legal_queue_no_extension": "This clock has no extension.",
+    "legal_queue_extended": "This item can no longer be extended.",
+    "legal_queue_extension_late": "An extension must be taken, and the person told, before the first period ends.",
+    "legal_queue_extension_reason": "Say why, in up to 1,000 characters, as you will tell the person.",
+    "legal_contact_name": "Say who this is, in up to 200 characters.",
+    "legal_contact_email": "Enter a working email address.",
+    "legal_contact_exists": "This address already gets overdue alerts.",
+    "legal_contact_missing": "That contact was already removed. Reload the page.",
+    "outside_reviewer_name": "Name the reviewer, in up to 200 characters.",
+    "outside_reviewer_organization": "Keep the firm or body to 200 characters.",
+    "outside_reviewer_reason": "Say why, in up to 500 characters.",
+    "outside_reviewer_exists": "An outside reviewer is already appointed. End that appointment first.",
+    "outside_reviewer_missing": "That appointment has already ended. Reload the page.",
+    "moderation_appeal_re_review": "Record what you looked at again and how you weighed the grounds, in up to 4,000 characters.",
+    "moderation_appeal_outside_reviewer": "This appeal goes to the outside reviewer. Record their decision once they have made it.",
+    "legal_queue_re_review": "Record what you looked at again and how you weighed the grounds, in up to 4,000 characters.",
+    "legal_queue_person_told": "Say how and when you told the person the result and the reasons, in up to 1,000 characters.",
+    "territory_reason": "Say why, in up to 500 characters.",
+    "territory_code": "Use 2 to 8 capital letters or digits, starting with a letter.",
+    "territory_name": "Give the name in English and Spanish, in up to 100 characters each.",
+    "territory_countries": "Choose at least one country.",
+    "territory_country_taken": "A country belongs to one territory. Take it out of the other one first.",
+    "territory_currency_unpriced": "Choose currencies the price book has.",
+    "territory_locale_unknown": "Choose languages XOS has.",
+    "territory_code_taken": "A territory already has that code. Edit it from the list.",
+    "territory_unknown": "Choose a territory from the list.",
+    "territory_transition_not_allowed": "The territory is already in that state. Refresh the page.",
+    "territory_last_offered": "XOS must stay offered somewhere. Open another territory first.",
+    "territory_exception_email": "Enter the email of the organization's first Owner.",
+    "organization_country_invalid": "Choose a country.",
+    "territory_exception_not_needed": "XOS is already offered in that country, so no exception is needed.",
+    "territory_exception_contract": "Name the signed contract, in up to 200 characters.",
+    "territory_exception_signed_on": "An exception needs a contract that is already signed: enter its date.",
+    "territory_exception_open": "An open exception already names this person and country.",
+    "territory_exception_unknown": "Choose an exception from the list.",
+    "territory_exception_transition_not_allowed": "Only an open exception can be withdrawn. Refresh the page.",
+    "rating_dispute_own": "Another operator decides this dispute: it is your own.",
+    "sod_rating_dispute_decide": "Another operator decides this dispute: you belong to the organization that gave the rating.",
+    "rating_dispute_outcome": "Uphold the dispute or do not.",
+    "rating_dispute_decision_ground": "Upholding needs a named ground: the wrong person, a false statement, abuse or personal data. A low score or an unfavorable opinion is not one.",
+    "rating_dispute_statement": "Write the reasons the person and the organization receive, in up to 4,000 characters.",
+    "rating_dispute_transition_not_allowed": "This dispute has already been decided.",
+    "billing_alert_reason": "Say what was done about it, in up to 500 characters.",
+    "billing_alert_unknown": "This alert is already closed."
   },
   "tenants": {
     "title": "Tenants",
@@ -145,7 +207,16 @@
     },
     "canceled": "Canceled, read-only",
     "active": "Active",
-    "clientOf": "Client of {partner}"
+    "clientOf": "Client of {partner}",
+    "billingAlerts": {
+      "title": "Billing alerts",
+      "kind": "Alert",
+      "org": "Org",
+      "detail": "What happened",
+      "raised": "Raised",
+      "close": "Close alert",
+      "closed": "Alert closed."
+    }
   },
   "plans": {
     "access": "Access",
@@ -222,6 +293,13 @@
     "limitValue": "Limit",
     "limitValueHelp": "Leave empty for unlimited.",
     "overrideSaved": "Override saved.",
+    "partnerClients": "Client orgs",
+    "partnerClientsOff": "This org cannot create client orgs. Turn it on only under a signed partner agreement.",
+    "partnerClientsOn": "This org may create client orgs, turned on {when}: {reason}",
+    "partnerClientsUnknown": "Whether this org may create client orgs could not be read.",
+    "partnerClientsTurnOn": "Allow client orgs",
+    "partnerClientsTurnOff": "Stop new client orgs",
+    "partnerClientsSaved": "Client org setting saved.",
     "supportSessions": "Support sessions",
     "noSessions": "No support session yet.",
     "sessionPlatform": "Platform: {reason}",
@@ -279,6 +357,69 @@
     "notKilled": "Off",
     "saved": "Kill switch saved."
   },
+  "territories": {
+    "title": "Territories",
+    "intro": "Where XOS is offered. A closed territory's prices and languages stay switched off, and no organization can start there. Opening one changes signup at once, and prices and languages usually within a minute and at most about 11 minutes. Before you open a territory, confirm what its law requires, such as appointed representatives and localized terms, and say so in the reason.",
+    "list": "All territories",
+    "territory": "Territory",
+    "countries": "Countries",
+    "currencies": "Currencies",
+    "languages": "Languages",
+    "state": "State",
+    "lastChange": "Last change",
+    "open": "Open",
+    "closed": "Closed",
+    "openIt": "Open this territory",
+    "close": "Close this territory",
+    "changeFor": "Open or close {code}",
+    "changedBy": "{name}: {reason}",
+    "add": "Add a territory",
+    "edit": "Edit",
+    "editTitle": "Edit {code}",
+    "editIntro": "This form starts from what the territory holds now. Saving replaces its countries, currencies and languages, so whatever you take out leaves the territory.",
+    "editOpen": "This territory is open, so a change reaches signup at once.",
+    "addInstead": "Add a new territory instead.",
+    "code": "Code",
+    "codeHelp": "A two-letter country code, or a short name such as EEA. A new territory starts closed.",
+    "codeFixed": "The code stays as it is.",
+    "nameEn": "Name in English",
+    "nameEs": "Name in Spanish",
+    "nameHelp": "As it reads in \"offered to organizations in the United States\".",
+    "currenciesHelp": "The first one is what its organizations pay in. None means US dollars.",
+    "save": "Save territory",
+    "saved": "Territory saved.",
+    "exceptions": "Exceptions for signed contracts",
+    "exceptionsIntro": "An exception lets one organization start outside the offered territories, for a contract already signed, including a United States customer's contract with a vendor company. It names the first Owner's email and the country, and it is used once; a company account and its later start in Atlas each need one. It does not open the territory, and it appoints no representative: confirm what that country's law requires first.",
+    "exceptionsNone": "No exceptions recorded.",
+    "ownerEmail": "First Owner's email",
+    "ownerEmailHelp": "The organization can only be started by the person signed in with this email, once they have confirmed it.",
+    "country": "Country",
+    "countryChoose": "Choose a country",
+    "contract": "Contract",
+    "contractHelp": "Its number, or where it is filed.",
+    "signedOn": "Date signed",
+    "contractOn": "{reference}, signed {date}",
+    "exceptionReason": "Recorded",
+    "grantedBy": "{name}, {when}: {reason}",
+    "exceptionOpen": "Open",
+    "exceptionUsed": "Used by {org}",
+    "exceptionUsedGone": "Used; the organization was later deleted",
+    "exceptionRevoked": "Withdrawn {when}: {reason}",
+    "grant": "Record exception",
+    "granted": "Exception recorded.",
+    "grantTitle": "Record an exception",
+    "withdraw": "Withdraw",
+    "withdrawFor": "Withdraw the exception for {email}",
+    "outside": "Organizations outside the offered territories",
+    "outsideIntro": "Organizations using Atlas and Gateway company accounts whose stated country is outside the offered territories, or who stated none. Nothing happens to them automatically: review them yourself.",
+    "outsideNone": "None.",
+    "org": "Organization",
+    "uses": "Uses",
+    "usesAtlas": "Atlas",
+    "usesAccount": "Gateway company account",
+    "exceptionContract": "Exception's contract",
+    "notRecorded": "Not recorded"
+  },
   "support": {
     "title": "Support sessions",
     "intro": "Open platform support sessions an org's Owner granted. While one lasts you may read the org's overview, members, projects and settings; every read is logged for the org.",
@@ -323,7 +464,7 @@
   },
   "moderation": {
     "title": "Moderation",
-    "intro": "Reported listings and appeals. Each decision carries a statement of reasons the affected party receives, and another operator decides each appeal.",
+    "intro": "Reported listings and appeals. Each decision carries a statement of reasons the affected party receives, and each appeal gets a fresh, documented re-review.",
     "openTab": "Open",
     "decidedTab": "Decided",
     "none": "Nothing waits for a decision.",
@@ -348,7 +489,7 @@
     "decidedBy": "{action} on {when} by {name}",
     "ground": "Ground",
     "ruleReference": "Law or rule relied on",
-    "ruleReferenceHelp": "For example: Acceptable Use Policy 3.2, or the law and article.",
+    "ruleReferenceHelp": "For example: Acceptable Use Policy, Section 3, or the law and article.",
     "facts": "Facts and circumstances",
     "statement": "Statement of reasons",
     "statementHelp": "Sent to the affected party as written. Say what you decided, why and that they may appeal within six months.",
@@ -362,14 +503,27 @@
     "noAppeals": "No appeal.",
     "appealBy": "{name} appealed the {decision} decision on {when}",
     "appealState": "{state} on {when} by {name}: {statement}",
-    "appealOwn": "You made the decision this appeal is about, so another operator decides it.",
+    "appealOwn": "You made the decision this appeal is about. Look at it afresh: the record and the notice to the person will both say the same person re-reviewed it.",
     "outcome": "Outcome",
     "uphold": "Uphold the decision",
     "reverse": "Reverse the decision",
     "appealStatement": "Reasons sent to the appellant",
     "newDecision": "New decision, when reversing no action",
     "decideAppeal": "Decide the appeal",
-    "appealDecided": "Appeal decided and sent."
+    "appealDecided": "Appeal decided and sent.",
+    "appealOutside": "This appeal goes to {name}, the outside reviewer. Record their decision once they have made it.",
+    "reReview": "What you looked at again",
+    "reReviewHelp": "Kept on the record and never sent. Say what you re-read and how you weighed the grounds.",
+    "appealRecord": "Re-review: {notes}",
+    "reviewerSame": "The person who made the first decision re-reviewed it.",
+    "reviewerOutside": "{name}, the outside reviewer, re-reviewed it.",
+    "notTold": "This person has no email left, so they have not been told. It is in the Legal Queue with its own clock.",
+    "recordOutside": "Record {name}'s decision",
+    "told": "The person was told on {when}.",
+    "toldByOperator": "The person was told another way on {when}. The legal queue log says how.",
+    "noticeOnItsWay": "The email telling the person the result is on its way.",
+    "noticeGone": "The person has not been told. The email never left, and it has since been deleted, with their account or when its Legal Queue item closed.",
+    "noticeFailed": "The email telling the person the result failed, so they have not been told. It is in the Legal Queue with its own clock."
   },
   "actions": {
     "Removed": "Removed",
@@ -394,6 +548,50 @@
     "Misleading Information": "Misleading information",
     "Missing Pay Range": "Missing pay range",
     "Safety": "Safety"
+  },
+  "reportedContent": {
+    "title": "Reported Content",
+    "intro": "Posts, comments and messages whose reports an organization left undecided past their 24 hours. Decide each with a statement of reasons; the people who reported it and, on removal, its author receive it from GHXSTSHIP. The organization can still decide it first.",
+    "openTab": "Open",
+    "decidedTab": "Decided",
+    "none": "No organization has left a report undecided.",
+    "noneDecided": "No escalated item has been decided yet.",
+    "item": "Item",
+    "org": "Org",
+    "reports": "Reports",
+    "reasons": "Reported for",
+    "escalated": "Escalated",
+    "lastDecision": "Last decision",
+    "kinds": {
+      "Feed Post": "Post",
+      "Comment": "Comment",
+      "Chat Message": "Message"
+    },
+    "itemTitle": "{kind} in {org}",
+    "removed": "Removed",
+    "visible": "Still visible",
+    "detailIntro": "{org}, {context}. Written by {author}. {state}.",
+    "bodyRemoved": "The text is no longer shown: it was removed.",
+    "reportsTitle": "Reports",
+    "reported": "Reported on {when}, escalated {escalated}",
+    "reportedNotEscalated": "Reported on {when}",
+    "excerpt": "Text when reported",
+    "decideTitle": "Decide for GHXSTSHIP",
+    "statementHelp": "Sent as written, from GHXSTSHIP, to the people who reported it and, on removal, to its author. Say what you decided and why.",
+    "decisionsTitle": "Decisions",
+    "noDecisions": "No decision yet.",
+    "decidedBy": "{action} on {when} by {who}",
+    "byPlatform": "GHXSTSHIP",
+    "byOrg": "the organization",
+    "nothingOpen": "Every report on this item is decided."
+  },
+  "contentReasons": {
+    "Harassment": "Harassment or bullying",
+    "Hate": "Hate speech or symbols",
+    "Sexual Content": "Sexual content",
+    "Violence": "Violence or threats",
+    "Spam": "Spam or a scam",
+    "Other": "Something else"
   },
   "banners": {
     "title": "System banners",
@@ -693,7 +891,26 @@
     "system_banner_ended": "Ended a banner",
     "platform_operator_granted": "Granted an operator role",
     "platform_operator_revoked": "Revoked an operator role",
-    "funnel_alert_acknowledge": "Acknowledged a funnel alert"
+    "funnel_alert_acknowledge": "Acknowledged a funnel alert",
+    "content_report_viewed": "Opened reported content",
+    "content_report_decided": "Decided reported content",
+    "legal_queue_viewed": "Opened a legal queue item",
+    "legal_queue_added": "Added a legal queue item",
+    "legal_queue_noted": "Added to a legal queue log",
+    "legal_queue_first_response": "Recorded a first response",
+    "legal_queue_moved": "Moved a legal queue item",
+    "legal_queue_extended": "Extended a legal clock",
+    "legal_contact_added": "Added a backup contact",
+    "legal_contact_removed": "Removed a backup contact",
+    "outside_reviewer_appointed": "Appointed an outside reviewer",
+    "outside_reviewer_ended": "Ended an outside reviewer's appointment",
+    "territory_opened": "Opened a territory",
+    "territory_closed": "Closed a territory",
+    "territory_saved": "Saved a territory",
+    "territory_exception_granted": "Recorded a territory exception",
+    "territory_exception_revoked": "Withdrew a territory exception",
+    "rating_dispute_viewed": "Opened a rating dispute",
+    "rating_dispute_decided": "Decided a rating dispute"
   },
   "notFound": {
     "title": "Not found",
@@ -704,5 +921,406 @@
     "title": "This page did not load",
     "body": "Something went wrong while loading it. Try again; if it keeps failing, reload the page.",
     "action": "Try again"
+  },
+  "legalQueue": {
+    "title": "Legal Queue",
+    "intro": "Every legal and security clock in one list, by the clock that comes next. Each due date comes from its clock's rule. Alerts go out before a clock ends and every day it is overdue.",
+    "openTab": "Open",
+    "closedTab": "Closed",
+    "none": "Nothing is waiting. Add anything that arrives by mailbox, letter or call.",
+    "noneClosed": "No closed item yet.",
+    "loadError": "The queue could not load. Your mailboxes still hold everything, so check them while this is down.",
+    "summary": "{open} open, {overdue} overdue, {dueSoon} due within 7 days. Clocks count in {zone} time.",
+    "banner": "{count, plural, one {# legal clock is overdue.} other {# legal clocks are overdue.}}",
+    "bannerLink": "Open the Legal Queue",
+    "columns": {
+      "reference": "Reference",
+      "matter": "What",
+      "title": "About",
+      "org": "Org",
+      "received": "Received",
+      "next": "Next clock",
+      "state": "State",
+      "closed": "Closed"
+    },
+    "overdue": "Overdue",
+    "customerClock": "Customer's clock",
+    "delivery": {
+      "stuck": "{count, plural, one {# alert email has} other {# alert emails have}} waited over an hour to send. Check the subprocessor-notices worker and its schedule.",
+      "failed": "{count, plural, one {# alert email} other {# alert emails}} failed in the last 30 days. Check the email provider and the allowlist.",
+      "noAlert": "{count, plural, one {# overdue clock has} other {# overdue clocks have}} had no alert in 26 hours. Check the xos_sweep_legal_queue job and the platform email outbox.",
+      "webhookOff": "The on-call channel is not connected, so alerts go by email only.",
+      "lastSent": "Last alert email: {when}.",
+      "noticesStuck": "{count, plural, one {# email telling someone a moderation result has} other {# emails telling people a moderation result have}} waited over an hour to send. Check the subprocessor-notices worker and its schedule.",
+      "noticesFailed": "{count, plural, one {# email telling someone a moderation result} other {# emails telling people a moderation result}} failed in the last 30 days. Each one is an item here, so tell them another way.",
+      "sweepStale": "The hourly sweep has not finished in 2 hours, so no alert is going out. Check the xos_sweep_legal_queue job.",
+      "alertPathFailed": "Part of the sweep failed in the last 24 hours, and what it could not send tries again each hour. Check the platform email outbox and the on-call webhook."
+    },
+    "add": {
+      "title": "Add an item",
+      "intro": "Add anything that arrives outside XOS. The clock starts when it arrived, not when you enter it.",
+      "rule": "What is it",
+      "titleField": "Short description",
+      "titleHelp": "Keep personal data out of this line. Alerts name the reference, never this.",
+      "received": "When it arrived",
+      "receivedHelp": "In {zone} time, the zone every clock here counts in. Take it from the message itself.",
+      "contact": "Who to answer",
+      "details": "Details",
+      "detailsHelp": "Only the personal data the work needs. The full message stays in the mailbox.",
+      "subject": "Account it is about",
+      "subjectHelp": "Email of the account the notice names, for the repeat infringer count. Leave empty if there is none.",
+      "related": "Reference of the DMCA notice it answers",
+      "relatedHelp": "For example LQ-2026-00001.",
+      "org": "Organization slug",
+      "orgHelp": "As the Tenants page shows it. Its deletion is held until this item closes.",
+      "due": "Date the document sets",
+      "dueHelp": "In {zone} time. The rule cannot compute this one, so check it twice.",
+      "submit": "Add to the queue",
+      "done": "Added to the queue."
+    },
+    "facts": {
+      "matter": "What",
+      "rule": "Clock",
+      "source": "Rests on",
+      "basis": "Kind of clock",
+      "org": "Org",
+      "state": "State",
+      "received": "Received",
+      "firstDue": "First response due",
+      "firstDone": "First response sent",
+      "earliest": "Not before",
+      "due": "Due",
+      "extended": "Extended",
+      "extensionReason": "Why it was extended",
+      "contact": "Who to answer",
+      "details": "Details",
+      "subject": "Account it is about",
+      "related": "Answers notice",
+      "courtAction": "Court action filed",
+      "closed": "Closed",
+      "reReviewer": "Who re-reviewed it",
+      "reReviewerSame": "The person who made the first decision",
+      "reReviewerOther": "Someone who did not make the first decision",
+      "reReviewerOutside": "{name}, the outside reviewer"
+    },
+    "move": {
+      "title": "Move it",
+      "next": "New state",
+      "reason": "What happened",
+      "court": "The notifier filed a court action, so the material stays down",
+      "submit": "Save",
+      "done": "Saved.",
+      "reReview": "What you looked at again",
+      "reReviewHelp": "Needed to complete or refuse it. Kept on the record and never sent. Say what you re-read and how you weighed the grounds.",
+      "told": "How you told the person the result",
+      "toldHelp": "Needed to complete or refuse it. Say how and when you sent the result and the reasons, and that you told them who re-reviewed it.",
+      "samePerson": "I made the original decision",
+      "outside": "This appeal goes to {name}, the outside reviewer. Record their decision once they have made it."
+    },
+    "first": {
+      "title": "Record the first response",
+      "note": "What you sent",
+      "submit": "Record it",
+      "done": "First response recorded."
+    },
+    "extend": {
+      "title": "Take the extension",
+      "reason": "Why, as you will tell the person",
+      "help": "One extension, before the first period ends. The person must be told.",
+      "submit": "Extend the clock",
+      "done": "Clock extended."
+    },
+    "note": {
+      "title": "Add to the log",
+      "note": "What was done",
+      "submit": "Add to the log",
+      "done": "Added to the log."
+    },
+    "fedNote": "This item follows the record that created it, so its state changes when that record does.",
+    "listingLink": "Open the listing",
+    "customerNote": "This clock is the Customer's. Who asked and what they said stay in the Customer's register, and GHXSTSHIP helps when the Customer asks.",
+    "earliestNote": "Do not restore before {when}. The statute sets the earliest day.",
+    "logTitle": "Log",
+    "logBy": "{what}, {when}, {who}",
+    "system": "XOS",
+    "stateChange": "{from} to {to}",
+    "repeat": {
+      "title": "Repeat infringer counts",
+      "intro": "Valid, uncontested DMCA notices in each person's busiest 12 months. More than two meets the rule in the Copyright and DMCA Policy. A person decides what happens next.",
+      "none": "No counted notice yet.",
+      "person": "Person",
+      "counted": "Counted",
+      "from": "12 months from",
+      "status": "Status",
+      "met": "Meets the rule",
+      "under": "Under the rule"
+    },
+    "government": {
+      "title": "Government data requests",
+      "intro": "Requests received per calendar year, for the yearly count the Data Processing Agreement promises. A year with no row is a count of zero.",
+      "none": "None received.",
+      "year": "Year",
+      "received": "Received"
+    },
+    "contacts": {
+      "title": "Backup contacts",
+      "intro": "Each Administrator gets every alert by email. A backup contact gets overdue alerts only, with references and dates, never the matter.",
+      "none": "No backup contact yet. One full inbox could hide a missed clock.",
+      "name": "Name",
+      "email": "Email",
+      "submit": "Add backup contact",
+      "done": "Backup contact added.",
+      "remove": "Remove",
+      "removeLabel": "Remove {name}",
+      "line": "{name}, {email}"
+    },
+    "reviewer": {
+      "title": "Outside reviewer",
+      "none": "None is appointed. An operator re-reviews each moderation appeal afresh and records it. If you appoint one, every appeal goes to them.",
+      "current": "{name} reviews moderation appeals, since {when}.",
+      "currentOrg": "{name} of {organization} reviews moderation appeals, since {when}.",
+      "name": "Name",
+      "organization": "Firm or body",
+      "email": "Email",
+      "reason": "Why",
+      "submit": "Appoint",
+      "done": "Outside reviewer appointed.",
+      "end": "End the appointment",
+      "endReason": "Why it ends",
+      "ended": "Appointment ended."
+    },
+    "matters": {
+      "Data Subject Request": "Data subject request",
+      "Privacy Complaint": "Privacy complaint",
+      "DMCA Notice": "DMCA notice",
+      "DMCA Counter-Notice": "DMCA counter-notice",
+      "Repeat Infringer Review": "Repeat infringer review",
+      "Abuse Report": "Abuse report",
+      "Moderation Appeal": "Moderation appeal",
+      "Security Report": "Security report",
+      "Personal Data Breach": "Personal data breach",
+      "Accessibility Complaint": "Accessibility complaint",
+      "Government Data Request": "Government data request",
+      "Other Promise": "Other promise",
+      "Undelivered Notice": "Undelivered notice",
+      "Queue Failure": "Queue failure"
+    },
+    "states": {
+      "Received": "Received",
+      "In Progress": "In progress",
+      "Waiting": "Waiting on someone else",
+      "Completed": "Completed",
+      "Refused": "Refused",
+      "Withdrawn": "Withdrawn"
+    },
+    "bases": {
+      "Statute": "Set by law",
+      "Published Promise": "Our published promise",
+      "Internal Target": "Our own target",
+      "Customer Clock": "The Customer's clock"
+    },
+    "events": {
+      "Received": "Received",
+      "First Response": "First response",
+      "Note": "Note",
+      "State Changed": "State changed",
+      "Extended": "Extended",
+      "Source Changed": "Followed its source",
+      "Alert Sent": "Alert queued for email",
+      "Re-Review": "Re-review",
+      "Person Told": "Person told",
+      "Hold Placed": "Legal hold placed on the organization",
+      "Hold Released": "Legal hold released"
+    },
+    "rules": {
+      "dsar_privacy": {
+        "label": "Data subject request by email",
+        "source": "Privacy Policy 7: confirm in 10 business days and answer in 30 days or a calendar month, whichever is shorter. One extension if you say why inside the first period (GDPR 12(3), California regulations)."
+      },
+      "dsar_brazil": {
+        "label": "Data subject request from Brazil",
+        "source": "LGPD Article 19 and Privacy Policy 7: confirm at once and give a full statement in 15 days."
+      },
+      "dsar_appeal": {
+        "label": "Appeal of a refused data request",
+        "source": "Privacy Policy 7: answer in 45 days, after looking at the appeal afresh and recording the reasons."
+      },
+      "account_deletion_email": {
+        "label": "Account deletion by email",
+        "source": "Delete Your Account: finish in 30 days."
+      },
+      "privacy_complaint": {
+        "label": "Privacy complaint",
+        "source": "Privacy Policy 7: acknowledge in 30 days and give the outcome without undue delay. The 60 days are our own target."
+      },
+      "dmca_notice": {
+        "label": "DMCA notice",
+        "source": "17 U.S.C. 512(c): act expeditiously and tell the uploader promptly. The 2 business days are our own target."
+      },
+      "dmca_counter_notice": {
+        "label": "DMCA counter-notice",
+        "source": "17 U.S.C. 512(g): copy to the notifier promptly, then restore between 10 and 14 business days unless the notifier files a court action."
+      },
+      "repeat_infringer_review": {
+        "label": "Repeat infringer review",
+        "source": "17 U.S.C. 512(i) and Copyright and DMCA Policy 5. The 5 business days are our own target."
+      },
+      "abuse_report": {
+        "label": "Abuse report by email",
+        "source": "Acceptable Use Policy 6 and Digital Services Act Article 16: decide in a timely way. The 5 business days are our own target."
+      },
+      "intimate_image_report": {
+        "label": "Intimate image shared without consent",
+        "source": "Our own target, set to the Take It Down Act's 48 hours from a valid request, kept as if XOS were a covered platform."
+      },
+      "child_safety_report": {
+        "label": "Child sexual abuse material",
+        "source": "18 U.S.C. 2258A: report to NCMEC as soon as reasonably possible. The 24 hours are our own target."
+      },
+      "listing_report": {
+        "label": "Report of a marketplace listing",
+        "source": "Acceptable Use Policy 6 and Digital Services Act Article 16: decide in a timely way. The 5 business days are our own target."
+      },
+      "moderation_appeal": {
+        "label": "Appeal of a moderation decision",
+        "source": "Acceptable Use Policy 7: a fresh, documented re-review, with the person told the result. The 30 days are our own target."
+      },
+      "security_report": {
+        "label": "Security report",
+        "source": "Responsible Disclosure Policy 2: acknowledge in 3 business days and share a plan in 10."
+      },
+      "personal_data_breach": {
+        "label": "Personal data breach",
+        "source": "Data Processing Agreement 9.1: tell Customers in 48 hours. GDPR Article 33: tell regulators in 72 hours where GHXSTSHIP is controller."
+      },
+      "accessibility_report": {
+        "label": "Accessibility report",
+        "source": "Accessibility Statement 5: respond in 5 business days."
+      },
+      "accessibility_review": {
+        "label": "Accessibility review request",
+        "source": "Accessibility Statement 6: respond in 10 business days, after looking at the complaint afresh and recording the reasons."
+      },
+      "government_request": {
+        "label": "Government data request",
+        "source": "Data Processing Agreement 13.6: tell the Customer unless the law forbids it, for which the 2 business days are our own target. The document sets the due date."
+      },
+      "omitted_data_return": {
+        "label": "Return of data the export omits",
+        "source": "Data Processing Agreement 10.2 and Terms 11.2: return it in 30 days. Adding it places a legal hold on the organization, so its deletion waits until this item closes."
+      },
+      "customer_privacy_help": {
+        "label": "Customer's request for privacy help",
+        "source": "Data Processing Agreement 8.3: reasonable help. The 14 days are our own target, to fit the Customer's 30-day clock."
+      },
+      "other_promise": {
+        "label": "Another written promise",
+        "source": "The document that makes the promise. Enter its date."
+      },
+      "dsar_customer_register": {
+        "label": "Request in a Customer's register",
+        "source": "The Customer's clock (Data Processing Agreement 8.1): 30 days, or 90 extended. XOS only watches it."
+      },
+      "abuse_appeal": {
+        "label": "Appeal of a moderation decision, by email",
+        "source": "Acceptable Use Policy 7: a fresh, documented re-review, with the person told the result. The 30 days are our own target."
+      },
+      "undelivered_notice": {
+        "label": "Moderation result not delivered",
+        "source": "Acceptable Use Policy 6 and 7: the person is told the result. The 2 business days are our own target."
+      },
+      "queue_feed_failure": {
+        "label": "Queue feed failure",
+        "source": "Our own target: the queue must see every record that starts a clock."
+      }
+    },
+    "fedTitles": {
+      "listing": "Marketplace listing",
+      "repeat": "{count, plural, one {# valid, uncontested DMCA notice} other {# valid, uncontested DMCA notices}}",
+      "undelivered": "Moderation result not delivered",
+      "feed": "The {feed} feed failed"
+    },
+    "requestTypes": {
+      "Access": "Access",
+      "Rectification": "Correction",
+      "Erasure": "Erasure",
+      "Restriction": "Restriction",
+      "Portability": "Portability",
+      "Objection": "Objection",
+      "Opt Out of Sale": "Opt out of sale"
+    },
+    "feeds": {
+      "moderation_appeals": "moderation appeals",
+      "listing_reports": "listing reports",
+      "dsar_requests": "Customer registers",
+      "moderation_notices": "moderation notices",
+      "sources": "source records"
+    },
+    "clocks": {
+      "First Response": "First response",
+      "Due": "Due date"
+    },
+    "alertSoon": "{clock} clock ends {when}.",
+    "alertOverdue": "{clock} clock ended {when}, and is overdue.",
+    "watched": {
+      "title": "Customer clocks we watch",
+      "intro": "{count} open. These clocks are each Customer's own. They stay here until the Customer closes them, and never count as work overdue."
+    },
+    "undeliveredNote": "This person has not been told the result of a moderation decision or appeal. Tell them another way, then complete this item and say how. Who it was for and what it said show below, if we still hold them.",
+    "feedFailureNote": "One of the queue's automatic feeds is failing, so records of that kind are not reaching this list. Everything else still runs, and this item closes itself when the feed works again. Check the error below and the most recent migration."
+  },
+  "ratingDisputes": {
+    "title": "Rating disputes",
+    "intro": "People disputing a rating an organization gave them. The score is not shown, because it cannot decide a dispute. Uphold only on a named ground; the reasons go to the person and the organization.",
+    "link": "Rating disputes",
+    "backToListings": "Reported listings",
+    "none": "No dispute waits for a decision.",
+    "noneDecided": "No decided dispute yet.",
+    "person": "Person",
+    "org": "Org",
+    "ground": "Ground given",
+    "state": "State",
+    "answered": "Org answered",
+    "waiting": "Filed",
+    "decidedAt": "Decided",
+    "detailIntro": "{person} disputes a rating from {org}, project {project}, given on {when}.",
+    "what": "What the person says",
+    "comment": "The rating's comment",
+    "noComment": "The rating has no comment.",
+    "reply": "The person's reply",
+    "orgAnswer": "The organization's answer",
+    "noAnswer": "The organization has not answered.",
+    "decideTitle": "Decide",
+    "outcome": "Outcome",
+    "uphold": "Uphold and remove the rating",
+    "notUphold": "Do not uphold; the rating stays",
+    "decisionGround": "Ground for upholding",
+    "statement": "Reasons sent to the person and the organization",
+    "statementHelp": "Sent as written. Say what you decided and why, without using the score or an opinion as a reason.",
+    "decide": "Record the decision",
+    "decided": "Decision recorded and sent.",
+    "own": "This dispute is your own, or you belong to the organization that gave the rating, so another operator decides it.",
+    "decidedBy": "{state} on {when} by {name}"
+  },
+  "ratingDisputeGrounds": {
+    "Wrong Person": "About the wrong person",
+    "False Statement": "False statement",
+    "Abusive Content": "Abusive content",
+    "Personal Data": "Personal data",
+    "Other": "Other"
+  },
+  "ratingDisputeStates": {
+    "Open": "Open",
+    "Upheld": "Upheld",
+    "Not Upheld": "Not upheld"
+  },
+  "billingAlerts": {
+    "cancel_delayed": "Stripe has not accepted a cancel",
+    "active_on_deleted_org": "Live subscription on a deleted org",
+    "active_after_cancel": "Live subscription after a cancel",
+    "charged_after_cancel": "Charged after a cancel",
+    "deletion_blocked": "Deletion waiting on Stripe",
+    "cancel_missing": "Stripe did not know a live subscription",
+    "notice_undelivered": "Billing notice not emailed"
   }
 }

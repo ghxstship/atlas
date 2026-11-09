@@ -66,6 +66,8 @@ export interface NewClientOrg {
   readonly slug: string;
   readonly ownerEmail: string;
   readonly planCode: string;
+  /** The country the partner states the client is established in (ADR 0160). */
+  readonly countryCode: string;
 }
 
 export interface CreatedClientOrg {
@@ -89,6 +91,7 @@ export async function createClientOrg(
       p_slug: input.slug,
       p_owner_email: input.ownerEmail,
       p_plan_code: input.planCode,
+      p_country_code: input.countryCode,
     },
     (data) => (Array.isArray(data) ? (data[0] as Raw | undefined) : (data as Raw | null)) ?? null,
   );
@@ -99,6 +102,22 @@ export async function createClientOrg(
     inviteId: str(result.data["invite_id"]),
     inviteToken: str(result.data["invite_token"]),
   });
+}
+
+/**
+ * Whether a platform operator has allowed the partner to create client orgs (migration 6870). It is off by
+ * default, and the database refuses a new client org until it is on. Needs org.partner.manage.
+ */
+export async function getClientCreationAllowed(
+  db: XosClient,
+  partnerOrgId: string,
+): Promise<Result<boolean>> {
+  return rpc(
+    db,
+    "partner_client_creation_allowed",
+    { p_partner_org_id: partnerOrgId },
+    (data) => data === true,
+  );
 }
 
 // Default brand -----------------------------------------------------------------------------------------

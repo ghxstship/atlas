@@ -4,6 +4,7 @@ import {
   deleteMyAccount,
   parsePreview,
   previewAccountDeletion,
+  refuseMinimumAge,
   removeProfileMedia,
 } from "../src/account-deletion.ts";
 
@@ -16,12 +17,30 @@ interface Rpc {
  * A client whose RPCs answer from queues and whose storage holds the given objects: profile-media paths,
  * or `upload-staging:<name>` for a staged upload.
  */
-function fake(rpcs: Record<string, Rpc[]>, objects: string[] = [], failRemove = false) {
+function fake(
+  rpcs: Record<string, Rpc[]>,
+  objects: string[] = [],
+  failRemove = false,
+  assurance: { currentLevel: string; nextLevel: string } = {
+    currentLevel: "aal1",
+    nextLevel: "aal1",
+  },
+) {
   const calls: string[] = [];
   const stored = new Set(objects);
   const key = (bucket: string, path: string) =>
     bucket === "profile-media" ? path : `${bucket}:${path}`;
   const client = {
+    auth: {
+      getSession: () =>
+        Promise.resolve({ data: { session: { access_token: "jwt" } }, error: null }),
+      mfa: {
+        getAuthenticatorAssuranceLevel: (jwt?: string) => {
+          calls.push(`aal:${jwt ?? ""}`);
+          return Promise.resolve({ data: assurance, error: null });
+        },
+      },
+    },
     rpc(name: string, args?: unknown) {
       calls.push(`rpc:${name}:${JSON.stringify(args ?? null)}`);
       const next = rpcs[name]?.shift();
@@ -30,7 +49,7 @@ function fake(rpcs: Record<string, Rpc[]>, objects: string[] = [], failRemove = 
     },
     storage: {
       from: (bucket: string) => ({
-        list: (folder: string) => {
+        list: (folder: string, options: { limit?: number; offset?: number } = {}) => {
           calls.push(`list:${bucket}:${folder}`);
           const names = new Map<string, boolean>();
           const prefix = key(bucket, `${folder}/`);
@@ -40,8 +59,10 @@ function fake(rpcs: Record<string, Rpc[]>, objects: string[] = [], failRemove = 
             const [head, ...tail] = rest.split("/");
             names.set(head ?? "", tail.length > 0 || names.get(head ?? "") === true);
           }
+          const offset = options.offset ?? 0;
+          const page = [...names].slice(offset, offset + (options.limit ?? 100));
           return Promise.resolve({
-            data: [...names].map(([name, isFolder]) => ({ name, id: isFolder ? null : name })),
+            data: page.map(([name, isFolder]) => ({ name, id: isFolder ? null : name })),
             error: null,
           });
         },
@@ -294,5 +315,169 @@ describe("account deletion", () => {
   it("removes nothing from an empty folder", async () => {
     const { client } = fake({});
     expect(await removeProfileMedia(client, "p1")).toEqual({ ok: true, data: 0 });
+  });
+});
+
+describe("closing an account after an answer of under 18 (ADR 0156)", () => {
+  const PERSON = "01920000-0000-7000-8000-00000000abcd";
+  const FILES = [
+    `${PERSON}/avatar.png`,
+    `${PERSON}/certificates/osha.pdf`,
+    `upload-staging:profile-media/${PERSON}/staged.png`,
+    `support-screenshots:${PERSON}/shot.png`,
+  ];
+  const clear = { person_id: PERSON, email: "m@x.test", blockers: [], kept: [] };
+  const answers = (over: Record<string, Rpc[]> = {}) => ({
+    minimum_age_confirmed: [{ data: false, error: null }],
+    account_deletion_preview: [{ data: clear, error: null }],
+    withdraw_my_credential_photos: [{ data: [], error: null }],
+    refuse_minimum_age: [{ data: { outcome: "Account Removed" }, error: null }],
+    ...over,
+  });
+
+  it("removes the person's files while they can still reach them, then closes the account", async () => {
+    const { client, calls, stored } = fake(
+      answers({
+        withdraw_my_credential_photos: [
+          { data: [{ org_id: "o1", photo_path: `o1/${PERSON}/face.png` }], error: null },
+        ],
+      }),
+      [...FILES, `credential-photos:o1/${PERSON}/face.png`, "someone-else/avatar.png"],
+    );
+    expect(await refuseMinimumAge(client, "Compass")).toEqual({
+      ok: true,
+      data: { outcome: "Account Removed" },
+    });
+    expect([...stored]).toEqual(["someone-else/avatar.png"]);
+    const removals = calls.filter((c) => c.startsWith("remove:"));
+    expect(removals.map((c) => c.split(":")[1])).toEqual([
+      "credential-photos",
+      "profile-media",
+      "upload-staging",
+      "support-screenshots",
+    ]);
+    // The account goes last: nobody can reach these files once the sign-in is gone.
+    expect(calls.at(-1)).toBe('rpc:refuse_minimum_age:{"p_surface":"Compass"}');
+  });
+
+  it("removes nothing from an account a hold keeps open, and says why", async () => {
+    const { client, calls, stored } = fake(
+      answers({
+        account_deletion_preview: [
+          {
+            data: {
+              ...clear,
+              blockers: [
+                {
+                  code: "account_delete_on_shift",
+                  org_id: "o1",
+                  org_name: "Northwind Live",
+                  matter: null,
+                },
+              ],
+            },
+            error: null,
+          },
+        ],
+        refuse_minimum_age: [
+          {
+            data: {
+              outcome: "Account Held",
+              reason: "account_delete_on_shift",
+              org_name: "Northwind Live",
+            },
+            error: null,
+          },
+        ],
+      }),
+      FILES,
+    );
+    expect(await refuseMinimumAge(client, "Atlas")).toEqual({
+      ok: true,
+      data: {
+        outcome: "Account Held",
+        reason: "account_delete_on_shift",
+        orgName: "Northwind Live",
+      },
+    });
+    expect(stored.size).toBe(FILES.length);
+    expect(calls.some((c) => c.startsWith("remove:") || c.includes("withdraw"))).toBe(false);
+  });
+
+  it("removes nothing from someone who has confirmed 18, whom the database refuses", async () => {
+    const { client, calls, stored } = fake(
+      answers({
+        minimum_age_confirmed: [{ data: true, error: null }],
+        refuse_minimum_age: [
+          { data: null, error: { code: "XR001", message: "age_already_confirmed: ..." } },
+        ],
+      }),
+      FILES,
+    );
+    expect((await refuseMinimumAge(client, "Gateway")).ok).toBe(false);
+    expect(stored.size).toBe(FILES.length);
+    expect(calls.some((c) => c.startsWith("remove:") || c.includes("preview"))).toBe(false);
+  });
+
+  it("does not close the account when a file cannot be removed, so it can be tried again", async () => {
+    const { client, calls } = fake(answers(), FILES, true);
+    expect((await refuseMinimumAge(client, "Compass")).ok).toBe(false);
+    expect(calls.some((c) => c.includes("refuse_minimum_age"))).toBe(false);
+  });
+
+  it("does not close the account when storage quietly removes nothing", async () => {
+    const { client, calls } = fake(answers(), [`${PERSON}/avatar.png`]);
+    const quiet = client.storage.from;
+    (client.storage as { from: unknown }).from = (bucket: string) => ({
+      ...quiet(bucket),
+      remove: () => Promise.resolve({ data: [], error: null }),
+    });
+    const refused = await refuseMinimumAge(client, "Compass");
+    expect(refused.ok).toBe(false);
+    expect(calls.some((c) => c.includes("refuse_minimum_age"))).toBe(false);
+  });
+
+  it("does not close the account, or touch a file, when the server cannot be asked", async () => {
+    const down = { data: null, error: { code: "PGRST000", message: "down" } };
+    for (const over of [{ minimum_age_confirmed: [down] }, { account_deletion_preview: [down] }]) {
+      const { client, stored, calls } = fake(answers(over), FILES);
+      expect((await refuseMinimumAge(client, "Compass")).ok).toBe(false);
+      expect(stored.size).toBe(FILES.length);
+      expect(calls.some((c) => c.includes("refuse_minimum_age"))).toBe(false);
+    }
+  });
+
+  it("removes nothing, and closes nothing, until a sign-in passes the second factor it holds", async () => {
+    const { client, calls, stored } = fake(answers(), FILES, false, {
+      currentLevel: "aal1",
+      nextLevel: "aal2",
+    });
+    expect(await refuseMinimumAge(client, "Gateway")).toEqual({
+      ok: false,
+      error: expect.objectContaining({ kind: "refusal", rule: "age_second_factor" }),
+    });
+    expect(stored.size).toBe(FILES.length);
+    // The factors are read from Supabase Auth for this token, not from a stored session.
+    expect(calls).toContain("aal:jwt");
+    expect(calls.some((c) => c.startsWith("remove:") || c.includes("refuse_minimum_age"))).toBe(
+      false,
+    );
+  });
+
+  it("empties a folder with more files than one list returns", async () => {
+    const many = Array.from({ length: 1001 }, (_, i) => `${PERSON}/portfolio/${i}.png`);
+    const { client, stored } = fake(answers(), many);
+    expect((await refuseMinimumAge(client, "Compass")).ok).toBe(true);
+    expect(stored.size).toBe(0);
+  });
+
+  it("reads an account that closed with an org's records behind it", async () => {
+    const { client } = fake(
+      answers({ refuse_minimum_age: [{ data: { outcome: "Account Closed" }, error: null }] }),
+    );
+    expect(await refuseMinimumAge(client, "Atlas")).toEqual({
+      ok: true,
+      data: { outcome: "Account Closed" },
+    });
   });
 });

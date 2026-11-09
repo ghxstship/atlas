@@ -8,6 +8,7 @@ import {
 } from "@xos/ia";
 import { getMessages } from "@xos/i18n";
 import type { PlanRegistry } from "@xos/schemas/plans";
+import type { LegalTextEntry } from "@xos/ui/legal-text";
 import { parse } from "yaml";
 import { packNodes } from "./client-sitemap-codec";
 import { IMPLEMENTED } from "./implemented";
@@ -136,6 +137,21 @@ export function parseLegalRegistry(text: string): LegalDocument[] {
     publish: d.publish,
     requiresAcceptanceAtSignup: d.requires_acceptance_at_signup,
     acceptanceBy: d.acceptance_by,
+  }));
+}
+
+/**
+ * Where each document's text lives, and its versions, for the generated text module
+ * (lib/legal-text.generated.ts).
+ */
+export function parseLegalFiles(text: string): LegalTextEntry[] {
+  const data = parse(text) as { documents: LegalTextEntry[] };
+  return data.documents.map(({ slug, file, publish, version, history }) => ({
+    slug,
+    file,
+    publish,
+    version,
+    history,
   }));
 }
 

@@ -1,39 +1,92 @@
 ---
 title: Delete Your Account
 version: 1.0.0-draft
-effective_date: The date this version is published at /legal
-status: Draft for review by counsel before launch
+effective_date: The date GHXSTSHIP states when it makes this version final
+status: Draft before launch
 ---
 
 # Delete Your Account
 
-> **Draft for review by counsel before launch.** This document is a draft. It is not in effect and no one may rely on it. It takes effect only when GHXSTSHIP Industries LLC publishes it at /legal, and its effective date is that date of publication.
+> **Draft before launch.** This document is a draft. It is not in effect and no one may rely on it. Showing it at /legal does not put it in effect. It takes effect only on the effective date that GHXSTSHIP Industries LLC states at the top of a final version.
 
-This page explains how to delete your XOS account, whether or not you have the Compass app installed. It is the account deletion link for Google Play and supports the in-app deletion that Apple requires.
+This page explains how to delete your XOS account, whether or not you have the Compass app installed. XOS and Compass are published by GHXSTSHIP Industries LLC. This page is written to serve as the account deletion link Google Play asks for, and it supports the in-app deletion that Apple requires. One account works across Atlas, Gateway and Compass, so deleting it once deletes it everywhere.
 
 ## 1. Ways to Delete
 
-- **In Compass:** More, then Settings, then Delete Account.
-- **In Gateway or Atlas:** Settings, Account, then Delete Account.
-- **Without the app:** use the Delete Account form on this page. Enter the email address on your account. We send a confirmation link to that address, and your account is deleted when you confirm.
+- **In Compass:** More, then Settings, then Delete Account. You need a connection. Compass also offers Delete Account at its first sign-in step, without agreeing to anything.
+- **On the web, with no app:** sign in to Gateway at gateway.ghxstship.tech, using the same sign-in you use anywhere in XOS, then go to Settings, Account, Delete Account. If you use Atlas, your account deletes here too. Atlas has no Delete Account page of its own. If you have only used Atlas and sign in with a provider such as Google, Gateway first asks you to accept the Worker Terms. You do not have to accept them to delete your account: choose Delete my account instead on that page, which takes you to Settings, Account without accepting anything. The email route below also works.
+- **If you cannot sign in:** write from your account's email address to support@ghxstship.pro with "Support" in the subject line. We confirm you control that address, tell you if anything in Section 2 stops the deletion, and finish within 30 days.
 
-If you are the Owner of an organization, transfer ownership or delete the organization first. Organization deletion is a separate process described in our Data Retention and Deletion Policy.
+You confirm by typing the email address you sign in with. Compass may also ask for your biometric check if you have turned that on, and asks you to hold the delete button. If you signed in with Apple, Compass shows Apple's sheet once more so we can revoke our access. If that fails, your account is still deleted, and you can remove XOS from Sign in with Apple in your Apple Account settings.
 
-## 2. What Is Deleted
+## 2. What Can Stop a Deletion
 
-- your sign-in methods, passkeys and sessions
-- your profile, marketplace listing, portfolio and press kit
-- your personal settings, saved searches and notification preferences
-- data stored for you on your devices, at their next connection
+Nothing is deleted while any of these is true. Compass and Gateway tell you which applies.
 
-## 3. What Organizations Keep
+- **You are clocked in.** Clock out first.
+- **You are the only Owner of an organization or the only Account Owner of a company account.** Make someone else an owner first. Deleting a whole organization is a separate process described in our Data Retention and Deletion Policy.
+- **An organization you belong to or work for has a legal hold over the kinds of records a deletion changes.** This applies even if the hold is not about you. Ask that organization to release the hold.
 
-Organizations you worked with keep the records the law requires them to keep, such as timesheets, payments, tax documents, signed agreements and incident reports. Those records keep your name so they remain accurate. Each organization's own privacy notice explains how long it keeps them. You can ask an organization to delete records it is not required to keep.
+If you answered that you are under 18 and one of these stops your account from closing, Compass and Gateway send you to Legal Contact. Choosing Done signs you out, on every device when you are online, and you are asked again at each sign-in until it closes.
 
-## 4. Timing
+**If you cannot clear it.** While a deletion is stopped you can still change or remove your profile, Work Details and settings yourself. If an organization does not release its hold, or you cannot hand over ownership, write to support@ghxstship.pro with "Privacy" in the subject line. We answer within 30 days, tell you what we can erase, what has to stay and why, and you can appeal as Section 7 of our Privacy Policy describes. We do not erase records a hold covers.
 
-Deletion completes within 30 days of your confirmation. Copies in backups expire on their normal schedule and are never restored to the live service except during disaster recovery, after which deletions are re-applied.
+## 3. What Is Deleted
 
-## 5. Help
+It happens at once when you confirm:
 
-If you cannot sign in or do not receive the confirmation email, contact the support mailbox listed on our contact page at /legal/contact.
+- your sign-in methods, passkeys and sessions, and your full name on your person record
+- your profile, marketplace listing, links, languages, skills, references, portfolio and press kit, certifications, availability and saved searches
+- your Work Details, including allergies, dietary and accessibility needs and passport details, your emergency contacts and loyalty numbers, the project facts on your roster entries, such as travel requests, uniform sizes and vehicle details, and any supplier diversity certifications you hold personally. Shares of them with organizations end
+- your badge photos, which are withdrawn, and your profile media and its files: your public profile photo, certificate scans, portfolio media and uploads waiting to be published. Deletion reliably removes these files from this release on
+- your AI choices
+- your personal settings, notification preferences, favorites, push devices and the apps you connected to your account
+
+It also has these effects:
+
+- your memberships end
+- your engagements that are still Onboarding, Blocked or Active are canceled. Closing and Complete engagements stay for settlement
+- every organization you belonged to or worked for receives a Completed erasure request in its data request register, with your email address, so it knows what happened
+- what a guest list holds about you, under your person or your verified email, is closed, unless an organization's legal hold keeps it hidden until the hold ends
+- legal alerts and moderation result emails addressed to you leave our email records at once
+- you are signed out, and Compass wipes its offline records on that device. A device that is offline wipes them when it next connects
+
+**A gap we are telling you about.** Separate given and family names are not yet removed by deletion. You may have added them yourself, and Sign in with Apple can set them when you first use it. To remove them, clear those fields in your settings before you delete. Your full name is removed.
+
+## 4. What Organizations and We Keep
+
+**If you answer that you are under 18.** Your account closes the same way once you confirm that answer, after you pass any second factor your sign-in holds. It also removes your personal acceptances, age answers, cookie choices and opt-out signals made while signed in, support requests, feedback and support screenshots. Acceptances you gave for an organization stay with that organization. Our Privacy Policy, Section 7, says what stays.
+
+We keep these, and we keep your person record without your full name so that records stay consistent. The renewal terms you agreed to when you bought a paid plan keep your sign-in email and initials, as the table says. This table lists the main things and is not complete. Section 2 of our Data Retention and Deletion Policy is the full schedule.
+
+| Kept                                                                                                                                                                                                                   | Why                                                                                                                                            | How long                                                                                                                                                                  |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Time and pay records                                                                                                                                                                                                   | Payroll and wage law, for the organization                                                                                                     | 7 years after the organization deletes them from its live records, or sooner if the organization's own data is purged                                                     |
+| Tax forms, which keep the legal name on the form                                                                                                                                                                       | Tax law, for the organization                                                                                                                  | The same                                                                                                                                                                  |
+| Engagement records and signed agreements, which keep the name as signed                                                                                                                                                | Evidence of the contract                                                                                                                       | The same                                                                                                                                                                  |
+| Records and content you created for an organization: incident reports, chat messages, comments, feed posts, photos and files                                                                                           | They belong to that organization's records                                                                                                     | Set by that organization's rules. Chat defaults to 730 days. They no longer carry your name, except where you typed it or a photo or document shows it                    |
+| Ratings about you and ratings you gave                                                                                                                                                                                 | The organization's own records. A rating of you is no longer shown to anyone outside the organization that gave it (Privacy Policy, Section 1) | 7 years after they are deleted                                                                                                                                            |
+| Applications and interviews, with your cover notes and answers                                                                                                                                                         | The organization's own records                                                                                                                 | Until the organization deletes them, then purged 7 years later                                                                                                            |
+| Expenses and receipts                                                                                                                                                                                                  | The organization's own records                                                                                                                 | Until the organization deletes them, then purged 7 years later                                                                                                            |
+| Files attached to a record that has been purged, and the raw copy of an email sent to a project inbox                                                                                                                  | The file purge is not built yet                                                                                                                | Until the organization's data is purged                                                                                                                                   |
+| Email sent to a project inbox                                                                                                                                                                                          | The organization's own records                                                                                                                 | 2 years                                                                                                                                                                   |
+| AI prompts and outputs, which can hold your name and text from records                                                                                                                                                 | Record of AI use                                                                                                                               | 7 years. Deletion does not change this log (AI Features Notice, Section 8)                                                                                                |
+| Notification records and delivery logs                                                                                                                                                                                 | Troubleshooting                                                                                                                                | 13 months                                                                                                                                                                 |
+| Support tickets and attached diagnostics; product feedback with any screenshot                                                                                                                                         | Support and product improvement                                                                                                                | Tickets stay until someone deletes them, and are purged 7 years later. Diagnostics are purged 2 years after they are deleted. Feedback is kept 2 years                    |
+| Your Work Details access log, which holds no values                                                                                                                                                                    | Accountability                                                                                                                                 | 7 years                                                                                                                                                                   |
+| Security audit trail                                                                                                                                                                                                   | Security and accountability                                                                                                                    | 7 years, with your personal details in it removed after 90 days                                                                                                           |
+| Your erasure request, in each organization's register, with your email address                                                                                                                                         | Proof that it was done                                                                                                                         | 3 years from the request                                                                                                                                                  |
+| A record of the deletion, holding IDs only, and your age confirmation with its time and IP address                                                                                                                     | Proof, and to stop a deletion repeating                                                                                                        | While the person record exists. After an answer of under 18, the age answers are deleted                                                                                  |
+| The record of any rating sharing opt-in you made, with the notice version, time and IP address                                                                                                                         | Proof of consent                                                                                                                               | 7 years after the opt-in closes                                                                                                                                           |
+| The renewal terms you agreed to when you bought a paid plan for an organization, with your sign-in email and initials; and, for an organization you owned, Stripe cancel records, renewal reminders and billing alerts | Proof of what was agreed and of the cancellation                                                                                               | The renewal terms 7 years from when you agreed, or until a year after that plan ends if that is later; the rest 7 years. Both including after the organization is deleted |
+| Consent and acceptance records, such as the documents you accepted                                                                                                                                                     | Proof                                                                                                                                          | As our Data Retention and Deletion Policy sets out                                                                                                                        |
+
+Each organization's own privacy notice explains how it handles what it keeps. You can ask an organization to delete records it is not required to keep, or ask us, using support@ghxstship.pro with "Privacy" in the subject line, and we pass your request on.
+
+## 5. Timing
+
+Deletion runs at once in Compass and Gateway. A request by email finishes within 30 days. Copies in backups expire on their normal schedule, within 35 days, and are never restored to the live service except during disaster recovery. We have not yet written a step that re-applies deletions after such a restore, so a restore could bring deleted data back until we erase it again.
+
+## 6. Help
+
+If you cannot sign in or get stuck, contact support@ghxstship.pro with "Support" in the subject line.

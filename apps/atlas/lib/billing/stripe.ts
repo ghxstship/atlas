@@ -6,6 +6,7 @@ import {
   beginSubscriptionResume,
   getBillingPortalCustomer,
   recordBillingCheckout,
+  recordRenewalConsent,
   recordSubscriptionPause,
   recordSubscriptionResume,
 } from "@xos/data/billing";
@@ -61,6 +62,8 @@ function unwrap<T>(result: Result<T>): T {
 export function checkoutAccountStore(db: XosClient): CheckoutAccountStore {
   return {
     begin: async (input) => unwrap(await beginBillingCheckout(db, input)),
+    recordConsent: async ({ consent, ...input }) =>
+      unwrap(await recordRenewalConsent(db, { ...input, ...consent })),
     record: async (input) => unwrap(await recordBillingCheckout(db, input)),
     portalCustomer: async (input) => unwrap(await getBillingPortalCustomer(db, input)),
   };

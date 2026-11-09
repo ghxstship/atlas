@@ -1,4 +1,5 @@
 import {
+  getClientCreationAllowed,
   getEffectiveBrand,
   listClientOrgs,
   listClientPrices,
@@ -13,13 +14,16 @@ import {
 } from "@/components/partner/client-orgs";
 import { ErrorPanel } from "@/components/platform/kit";
 import { PartnerFrame } from "@/components/partner/partner-frame";
+import { signupCountryOptions } from "@/lib/auth/territory";
+import { currentOffering } from "@/lib/offering";
 import { requireNode } from "@/lib/shell/require-node";
 import { getFormatters } from "@/lib/platform/format";
 
 /**
  * Client orgs (Section 4.6.1): every client with its plan, seats, Owner and support session; create a
- * client with an Owner invitation; open a client to price it, see its inherited brand and, only while
- * its Owner has granted a support session, read its records.
+ * client with an Owner invitation, once a platform operator has turned that on for the partner (6870);
+ * open a client to price it, see its inherited brand and, only while its Owner has granted a support
+ * session, read its records.
  */
 export default async function Page({
   params,
@@ -28,10 +32,15 @@ export default async function Page({
   const ctx = await requireNode("partner-console.client-orgs", await params);
   const query = await searchParams;
   const { t, money, dateTime } = await getFormatters(ctx);
-  const [clients, prices] = await Promise.all([
+  const [clients, prices, offering, countries, allowed] = await Promise.all([
     listClientOrgs(ctx.viewer.db, ctx.org.id),
     listClientPrices(ctx.viewer.db, ctx.org.id),
+    currentOffering(),
+    signupCountryOptions(),
+    getClientCreationAllowed(ctx.viewer.db, ctx.org.id),
   ]);
+  // A failed read offers no create action: the database refuses one until an operator turns it on anyway.
+  const canCreate = allowed.ok && allowed.data;
   if (!clients.ok || !prices.ok) {
     return (
       <PartnerFrame ctx={ctx} node="partner-console.client-orgs">
@@ -88,8 +97,11 @@ export default async function Page({
     <PartnerFrame ctx={ctx} node="partner-console.client-orgs">
       <ClientOrgsView
         org={ctx.org.slug}
+        currencies={offering.currencies}
+        countries={countries}
         rows={rows}
-        creating={query["create"] === "1"}
+        canCreate={canCreate}
+        creating={canCreate && query["create"] === "1"}
         detail={detail}
       />
     </PartnerFrame>

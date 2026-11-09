@@ -66,10 +66,11 @@ allowlist.
 
 Section 8.6 requires Internal links to expire, so every link has an expiry after now and within 90 days. A display
 link defaults to the end of the day after the show in the project's zone (the org's `locale.time_zone`, then UTC),
-clamped to 90 days; a show already past gets a day from now. Section 7.5 invariant 8, as ADR 0033 decision 56 words
-it, reads "Token RPCs require a token and an access code", so there is no switch: every link has a 6-digit code,
-returned once with the token. The `/open` handlers open a link only on POST, with the code in the form body; a GET
-shows the code form.
+clamped to 90 days; a show already past gets a day from now. A day the person picks ends at 23:59:59 in the
+project's zone too (the running order's project for a display link), never at UTC midnight (amended for RRR-243).
+Section 7.5 invariant 8, as ADR 0033 decision 56 words it, reads "Token RPCs require a token and an access code", so
+there is no switch: every link has a 6-digit code, returned once with the token. The `/open` handlers open a link
+only on POST, with the code in the form body; a GET shows the code form.
 
 Only members of the project's org make links (`private.is_member`, as 1380), so a partner org that reaches a project
 through `app.project_shares` (1205) never publishes the owner org's data; a read-only org makes none, and revoking
@@ -136,5 +137,7 @@ link, and Gateway and Compass surfaces are not part of this decision.
 ## Consequences
 
 - Live links are out of Trash (ADR 0110): a revoked or regenerated link is replaced, never restored.
+- The private channel keys and device grants carry the link's org (6910), so deleting the org or a sandbox takes
+  them with it; before 6910, an org that had made a live link could not finish its purge.
 - A new collection a link may show needs rows in both registries and a review of the columns it exposes.
 - Production Realtime must accept the anonymous private-channel join; until it does, screens update on their pull.

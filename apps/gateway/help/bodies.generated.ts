@@ -175,7 +175,12 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Organizations request certificates during onboarding, and you upload them there. Choose ",
+            v: "Organizations ask for certificates on an engagement, and you upload them under its ",
+          },
+          { t: "strong", v: "Compliance" },
+          {
+            t: "text",
+            v: " tab. An upload shows as received and waiting for review until the organization records the certificate. Choose ",
           },
           { t: "strong", v: "See engagements" },
           { t: "text", v: " to find the engagement asking for one. Each engagement's " },
@@ -3239,7 +3244,17 @@ export const HELP_BODIES: HelpBodies = {
           ],
           [
             { t: "strong", v: "Ratings" },
-            { t: "text", v: ": ratings from completed engagements, with any reply." },
+            {
+              t: "text",
+              v: ": ratings organizations gave you after completed engagements, with any reply. Only you and the organization that gave a rating can read it, unless you turn on ",
+            },
+            { t: "strong", v: "Show all my ratings on my profile" },
+            { t: "text", v: " in Profile Privacy. " },
+            { t: "strong", v: "Dispute this rating" },
+            {
+              t: "text",
+              v: " if it is about the wrong person, false, abusive or shows personal data.",
+            },
           ],
           [
             { t: "strong", v: "Representation" },
@@ -3732,7 +3747,10 @@ export const HELP_BODIES: HelpBodies = {
           ],
           [
             { t: "strong", v: "Automatic reply" },
-            { t: "text", v: ": sent once to each person who messages you while you are away." },
+            {
+              t: "text",
+              v: ": sent once to each person who messages you while you are away. A reply with a slur is not saved.",
+            },
           ],
         ],
       },
@@ -4025,7 +4043,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "An organization sees a category only while you share it with that engagement. Your allergies are restricted: only the catering lead and on-site medical on the project, and the organization's Owner, can read them, and every time they do it shows in your access log. Contact, your sign-in email and phone, is shared together with at least one other category.",
+            v: "An organization sees a category only while you share it with that engagement. Your allergies are restricted: only the catering lead and on-site medical on the project, the organization's Owner, and anyone else the organization gives medical data access can read them, and every time they do it shows in your access log. Contact, your sign-in email and phone, is shared together with at least one other category.",
           },
         ],
       },
@@ -4035,6 +4053,15 @@ export const HELP_BODIES: HelpBodies = {
           { t: "text", v: "Your skills, certifications, rates and availability are in " },
           { t: "link", v: "Profile settings", href: "help:settings-profile" },
           { t: "text", v: "." },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Dietary, allergy and accessibility details are optional. Before you add any, you read what we collect, why, who sees it and how to withdraw, and agree. Withdraw from the same place at any time: we stop using the details at once and delete them. If someone else entered details for you, they show here so you can remove them: whoever entered them cannot enter them for you again, by your account or email, anywhere in that organization, until you agree yourself. If a guest list entry is about someone else, choose This is not me: your name and email come off it, and the guest's needs stay with whoever keeps the list.",
+          },
         ],
       },
     ],
@@ -4389,7 +4416,12 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Las organizaciones piden los certificados durante la incorporación, y los cargas allí. Elige ",
+            v: "Las organizaciones piden los certificados en una contratación, y los subes en su pestaña ",
+          },
+          { t: "strong", v: "Cumplimiento" },
+          {
+            t: "text",
+            v: ". Un archivo subido aparece como recibido y en espera de revisión hasta que la organización registra el certificado. Elige ",
           },
           { t: "strong", v: "Ver contrataciones" },
           { t: "text", v: " para encontrar la contratación que pide uno. La " },
@@ -7529,7 +7561,17 @@ export const HELP_BODIES: HelpBodies = {
           ],
           [
             { t: "strong", v: "Calificaciones" },
-            { t: "text", v: ": las de contrataciones completadas, con su respuesta si la hay." },
+            {
+              t: "text",
+              v: ": las que te dieron las organizaciones tras contrataciones completadas, con su respuesta si la hay. Solo tú y la organización que dio una calificación pueden leerla, salvo que actives ",
+            },
+            { t: "strong", v: "Mostrar todas mis calificaciones en mi perfil" },
+            { t: "text", v: " en Privacidad del perfil. Usa " },
+            { t: "strong", v: "Impugnar esta calificación" },
+            {
+              t: "text",
+              v: " si se refiere a otra persona, es falsa, ofensiva o muestra datos personales.",
+            },
           ],
           [
             { t: "strong", v: "Representación" },
@@ -8033,7 +8075,7 @@ export const HELP_BODIES: HelpBodies = {
             { t: "strong", v: "Respuesta automática" },
             {
               t: "text",
-              v: ": se envía una vez a cada persona que te escribe mientras estás fuera.",
+              v: ": se envía una vez a cada persona que te escribe mientras estás fuera. Una respuesta con un insulto discriminatorio no se guarda.",
             },
           ],
         ],
@@ -8338,7 +8380,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Una organización ve una categoría solo mientras la compartes con esa contratación. Tus alergias están restringidas: solo el responsable de catering y el personal médico en el lugar del proyecto, y el Propietario de la organización, pueden leerlas, y cada vez que lo hacen aparece en tu registro de acceso. Contacto, tu correo y teléfono de inicio de sesión, se comparte junto con al menos otra categoría.",
+            v: "Una organización ve una categoría solo mientras la compartes con esa contratación. Tus alergias están restringidas: solo el responsable de catering y el personal médico en el lugar del proyecto, el Propietario de la organización y cualquier otra persona a quien la organización dé acceso a datos médicos pueden leerlas, y cada vez que lo hacen aparece en tu registro de acceso. Contacto, tu correo y teléfono de inicio de sesión, se comparte junto con al menos otra categoría.",
           },
         ],
       },
@@ -8348,6 +8390,15 @@ export const HELP_BODIES: HelpBodies = {
           { t: "text", v: "Tus habilidades, certificaciones, tarifas y disponibilidad están en " },
           { t: "link", v: "Configuración del perfil", href: "help:settings-profile" },
           { t: "text", v: "." },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Los datos de dieta, alergias y accesibilidad son opcionales. Antes de añadir alguno, lees qué recopilamos, por qué, quién lo ve y cómo retirar el consentimiento, y aceptas. Retíralo desde el mismo lugar en cualquier momento: dejamos de usar los datos de inmediato y los eliminamos. Si otra persona introdujo datos por ti, aparecen aquí para que puedas eliminarlos: quien los introdujo no podrá volver a introducirlos por ti, con tu cuenta o tu correo, en ninguna parte de esa organización, hasta que lo aceptes tú. Si una entrada de la lista de invitados es de otra persona, elige No soy yo: tu nombre y tu correo se quitan de ella, y las necesidades del invitado siguen con quien lleva la lista.",
+          },
         ],
       },
     ],

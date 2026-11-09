@@ -23,7 +23,7 @@ export {
 export {
   MAX_ADDON_QUANTITY,
   MAX_EXTRA_SEATS,
-  PORTAL_CONFIGURATION_KEY,
+  PORTAL_CONFIGURATION_KEYS,
   PriceNotFoundError,
   createAddonCheckoutSession,
   createCheckoutSession,
@@ -52,6 +52,17 @@ export {
   type StripeWebhookRequest,
   type WebhookOutcome,
 } from "./billing/webhook.ts";
+export { stripeCancellationStore } from "./billing/cancel-store.ts";
+export {
+  runStripeCancellations,
+  sendStripeCancel,
+  stripeStatusEnded,
+  type BillingAlert,
+  type BillingAlertSink,
+  type StripeCancelJob,
+  type StripeCancellationRun,
+  type StripeCancellationStore,
+} from "./billing/cancel.ts";
 export { signWebhook, verifyWebhook, type VerifyOptions } from "./webhooks/signing.ts";
 export {
   dispatchWebhooks,
@@ -251,10 +262,10 @@ export {
   type ResendReceivedEvent,
   type ResendSignatureHeaders,
 } from "./inbound/resend.ts";
+export { billingStore } from "./billing/store.ts";
 export {
   PUNCH_KINDS,
   PlatformDbError,
-  billingStore,
   inboundStore,
   isPlatformEmailKind,
   kioskPunch,

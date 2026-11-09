@@ -17,7 +17,11 @@ import type { ThemePreference } from "@xos/ui-native/theme";
 import { touchMySession } from "@xos/data/account-security";
 import type { XosClient } from "@xos/data/client";
 import type { CueCallKind } from "@xos/data/cue-calls";
+import { recordAiChoice, type AiChoice } from "@xos/data/consent";
+import type { LegalReacceptance } from "@xos/data/legal-reacceptance";
 import type { InboxLens } from "@xos/data/role-lens";
+import { launchLocales, type Locale } from "@xos/i18n/locales";
+import { readOffering, type OfferingClient } from "@xos/i18n/offering";
 import Constants from "expo-constants";
 import * as SecureStore from "expo-secure-store";
 import {
@@ -31,7 +35,7 @@ import {
   type ReactElement,
   type ReactNode,
 } from "react";
-import { Platform } from "react-native";
+import { AppState, Platform } from "react-native";
 import { downloadAll, type DownloadReport } from "../data/downloader";
 import { secondFactorGate, type ChallengeFactor, type SecondFactorGate } from "./assurance";
 import {
@@ -55,6 +59,7 @@ import {
   type BuildTenant,
   type OrgBrand,
 } from "../domain/brand";
+import { AI_DISCLOSURE_VERSION, type AiChoiceState, type LegalNeeds } from "../domain/legalGate";
 import { inOrg, personTimeZone } from "../domain/orgs";
 import {
   activeLens,
@@ -81,6 +86,7 @@ import {
 import { forgetGoogleAccount } from "./google";
 import { clearGlance } from "./glance";
 import { applyLanguage } from "./i18n";
+import { forgetGate, readGate, rememberAiChoice } from "./legalGate";
 import { persistQueuedMedia, resumableMediaUploader } from "./uploads";
 import {
   createSupabase,
@@ -141,18 +147,26 @@ export const BRANDS_TABLE = "_org_brands";
 export const IDENTITY_TABLE = "_identity";
 /** The outbox before the local store opens: nothing is queued. */
 const NO_QUEUE: QueuedOutbox = { all: () => Promise.resolve([]) };
+/** How often an app left open asks again whether a legal change has taken effect. */
+const LEGAL_RECHECK_MS = 6 * 60 * 60 * 1000;
 
 export type Phase =
   | { readonly kind: "starting" }
   | { readonly kind: "signed-out" }
   | { readonly kind: "second-factor"; readonly factors: readonly ChallengeFactor[] }
   | { readonly kind: "factor-required" }
+  /** Compass asks the age and the documents before anything else (src/screens/LegalGate.tsx). */
+  | { readonly kind: "legal-required"; readonly needs: LegalNeeds }
+  /** Those questions need the server, and nothing shows this person has ever answered them. */
+  | { readonly kind: "legal-connection" }
   | { readonly kind: "identity-failed"; readonly step: string; readonly message: string }
   | { readonly kind: "ready" };
 
 export interface CompassContextValue {
   readonly config: CompassConfig;
   readonly client: SupabaseClient;
+  /** The languages offered now (ADR 0160). */
+  readonly offeredLocales: readonly Locale[];
   readonly phase: Phase;
   readonly resolved: ResolvedIdentity | null;
   /**
@@ -207,6 +221,12 @@ export interface CompassContextValue {
   /** The offline storage was replaced and unsent offline work could not be recovered; say so once. */
   readonly storageNotice: boolean;
   readonly dismissStorageNotice: () => void;
+  /** Announced legal changes still in their notice period: a prompt, never a stop. */
+  readonly upcomingLegal: readonly LegalReacceptance[];
+  /** The person's first-use AI choice; `unknown` means ask first and send nothing (ADR 0156). */
+  readonly aiChoice: AiChoiceState;
+  /** Records the choice on the server. False when it could not, and nothing changes. */
+  readonly chooseAi: (choice: AiChoice) => Promise<boolean>;
 }
 
 const CompassContext = createContext<CompassContextValue | null>(null);
@@ -308,8 +328,11 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
   const [storageNotice, setStorageNotice] = useState(false);
   /** True while Compass runs on the identity cached at the last successful sign-in (no server). */
   const [offlineIdentity, setOfflineIdentity] = useState(false);
+  const [upcomingLegal, setUpcomingLegal] = useState<readonly LegalReacceptance[]>([]);
+  const [aiChoice, setAiChoice] = useState<AiChoiceState>("unknown");
   const orgRef = useRef<string | null>(null);
   const storeRef = useRef<LocalStore | null>(null);
+  const userRef = useRef<string | null>(null);
   const orgProjectsRef = useRef<Record<string, string>>({});
   /** Whether the person chose an org on this device; a branded build opens on its own org until they do. */
   const chosenOrgRef = useRef(false);
@@ -498,11 +521,18 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
   useEffect(() => {
     void client.auth.getSession().then(({ data }) => {
       setSession(data.session);
+      if (data.session) userRef.current = data.session.user.id;
       if (!data.session) setPhase({ kind: "signed-out" });
     });
     const { data } = client.auth.onAuthStateChange((_event, next) => {
       setSession(next);
+      if (next) userRef.current = next.user.id;
       if (!next) {
+        // What this device remembers about the person's legal step goes with their data.
+        if (userRef.current) void forgetGate(userRef.current);
+        userRef.current = null;
+        setUpcomingLegal([]);
+        setAiChoice("unknown");
         // Signed out here or remotely from Atlas (the refresh token was revoked): wipe the local store (Section 13).
         void storeRef.current?.wipe();
         clearGlance();
@@ -550,6 +580,23 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
     void secondFactorGate(client, null)
       .then(async (gate) => {
         if (held(gate)) return null;
+        // Before anything else: nothing has been read or downloaded for this person yet (ADR 0156).
+        const legal = await readGate(
+          client,
+          session.user.id,
+          async () => cachedContexts(await store.get(IDENTITY_TABLE, session.user.id)) !== null,
+        );
+        if (!live) return null;
+        setUpcomingLegal(legal.upcoming);
+        setAiChoice(legal.aiChoice);
+        if (legal.decision.kind === "ask") {
+          setPhase({ kind: "legal-required", needs: legal.decision.needs });
+          return null;
+        }
+        if (legal.decision.kind === "needs-connection") {
+          setPhase({ kind: "legal-connection" });
+          return null;
+        }
         storedOrg = await SecureStore.getItemAsync(ORG_KEY).catch(() => null);
         if (storedOrg) chosenOrgRef.current = true;
         // A device that never chose an org opens on the person's default (Settings, Organizations; ADR 0070).
@@ -594,6 +641,52 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
     const timer = setTimeout(() => setIdentityAttempt((n) => n + 1), 30_000);
     return () => clearTimeout(timer);
   }, [offlineIdentity, network.isConnected, identityAttempt]);
+
+  // Waiting for a connection to ask the legal questions: ask as soon as there is one.
+  useEffect(() => {
+    if (phase.kind === "legal-connection" && network.isConnected) {
+      setIdentityAttempt((n) => n + 1);
+    }
+  }, [phase.kind, network.isConnected]);
+
+  // An app left open for days still hears when a legal change takes effect: back in the foreground, at most every six
+  // hours, the server is asked again. Only an answer that asks for something holds the app.
+  const userId = session?.user.id ?? null;
+  const legalCheckedAt = useRef(0);
+  useEffect(() => {
+    if (phase.kind !== "ready" || !userId) return undefined;
+    legalCheckedAt.current = Date.now();
+    const subscription = AppState.addEventListener("change", (state) => {
+      if (state !== "active" || Date.now() - legalCheckedAt.current < LEGAL_RECHECK_MS) return;
+      legalCheckedAt.current = Date.now();
+      void readGate(client, userId, () => Promise.resolve(true))
+        .then((legal) => {
+          setUpcomingLegal(legal.upcoming);
+          setAiChoice(legal.aiChoice);
+          if (legal.decision.kind === "ask") {
+            setPhase({ kind: "legal-required", needs: legal.decision.needs });
+          }
+        })
+        .catch(() => undefined);
+    });
+    return () => subscription.remove();
+  }, [client, phase.kind, userId]);
+
+  const chooseAi = useCallback(
+    async (choice: AiChoice) => {
+      const recorded = await recordAiChoice(client as unknown as XosClient, {
+        surface: "Compass",
+        disclosureVersion: AI_DISCLOSURE_VERSION,
+        choice,
+        clientIp: null,
+      }).catch(() => null);
+      if (!recorded?.ok) return false;
+      setAiChoice(choice);
+      if (userId) await rememberAiChoice(userId, choice, AI_DISCLOSURE_VERSION);
+      return true;
+    },
+    [client, userId],
+  );
 
   const refresh = useCallback(async () => {
     if (!syncSession) return null;
@@ -699,10 +792,22 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
     };
   }, [client, engine, phase.kind, network.isConnected, orgId, projectId, settledSettings]);
 
+  // Where XOS is offered decides which languages count (ADR 0160). Unreachable, only the launch languages do.
+  const [offeredLocales, setOfferedLocales] = useState<readonly Locale[]>(launchLocales);
+  useEffect(() => {
+    let live = true;
+    void readOffering(client as unknown as OfferingClient).then((offering) => {
+      if (live) setOfferedLocales(offering.locales);
+    });
+    return () => {
+      live = false;
+    };
+  }, [client, network.isConnected]);
+
   // Compass speaks the language the person or their org chose (locale.language), else the device's (A65-001).
   useEffect(() => {
-    void applyLanguage(languageOf(resolvedSettings));
-  }, [resolvedSettings]);
+    void applyLanguage(languageOf(resolvedSettings, offeredLocales));
+  }, [resolvedSettings, offeredLocales]);
 
   /**
    * Queues a write in the org that is active now: `device_org_id` names the member org whose replay
@@ -752,6 +857,7 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
   );
 
   const value: CompassContextValue = {
+    offeredLocales,
     config,
     client,
     phase,
@@ -781,6 +887,9 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
     retryStartup,
     storageNotice,
     dismissStorageNotice,
+    upcomingLegal,
+    aiChoice,
+    chooseAi,
   };
   return <CompassContext.Provider value={value}>{children}</CompassContext.Provider>;
 }

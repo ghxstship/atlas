@@ -4,6 +4,7 @@ import { getTranslations } from "next-intl/server";
 import { SignInForm } from "@/components/auth/forms";
 import { ProviderButtons } from "@/components/auth/providers";
 import { PasskeySignInButton } from "@/components/auth/security/passkey-sign-in";
+import { LegalLinks } from "@/components/privacy/legal-links";
 import { InlineAlert } from "@/components/ui";
 import { authErrorKey, isAuthNotice } from "@/lib/auth/errors";
 import { safeNext } from "@/lib/auth/redirect";
@@ -15,7 +16,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 /**
  * Sign in: OAuth providers, then one Email field whose primary action emails a sign-in link and whose
- * password signs in second (Section 11.10, rule 12; A59-025).
+ * password signs in second (Section 11.10, rule 12; A59-025). The public legal links close the card.
  */
 export default async function SignInPage({ searchParams }: PageProps<"/auth/sign-in">) {
   const query = await searchParams;
@@ -50,6 +51,9 @@ export default async function SignInPage({ searchParams }: PageProps<"/auth/sign
           {t("signIn.toSignUp")}
         </Link>
       </p>
+      <footer className="border-t border-border-subtle pt-12">
+        <LegalLinks />
+      </footer>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { buttonClass } from "../src/index.ts";
-import { Skeleton, TemplateSystemLink } from "../src/static.ts";
+import { buttonClass as staticButtonClass, Skeleton, TemplateSystemLink } from "../src/static.ts";
 
 /**
  * `@xos/ui/static` renders without any provider, as a React Server Component renders it: no hooks,
@@ -22,6 +22,10 @@ describe("@xos/ui/static", () => {
     expect(html).toContain("Page not found");
     expect(html).toContain(`<a href="/demo/home" class="${buttonClass("primary")}">Go to Home</a>`);
     expect(html).not.toContain("<button");
+  });
+
+  it("styles a server-rendered link as a Button with the same classes", () => {
+    expect(staticButtonClass("primary", "lg")).toBe(buttonClass("primary", "lg"));
   });
 
   it("renders a skeleton block", () => {

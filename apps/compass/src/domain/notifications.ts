@@ -217,6 +217,31 @@ export function inboxTarget(row: InboxNotificationRow): InboxTarget | null {
   return null;
 }
 
+/** What the Inbox says of a crisis alert or its all-clear (6800): which it is, and for an alert what to do. */
+export interface CrisisAlertNotice {
+  readonly ended: boolean;
+  readonly code: string;
+  readonly project: string;
+  readonly message: string;
+}
+
+/** The crisis alert a notification carries, or null for any other kind. */
+export function crisisAlertNotice(
+  row: Pick<InboxNotificationRow, "kind" | "args">,
+): CrisisAlertNotice | null {
+  if (row.kind !== "crisis_alert.issued" && row.kind !== "crisis_alert.ended") return null;
+  const text = (key: string): string => {
+    const value = row.args[key];
+    return typeof value === "string" ? value.trim() : "";
+  };
+  return {
+    ended: row.kind === "crisis_alert.ended",
+    code: text("title"),
+    project: text("project"),
+    message: text("message"),
+  };
+}
+
 /** The record key the Inbox shows beside a notification, when it has one. */
 export function inboxRecordKey(row: InboxNotificationRow): string | null {
   const carried = row.args["recordKey"];

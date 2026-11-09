@@ -50,10 +50,12 @@ export function noAccess(route: SweepRoute, status: number): boolean {
 }
 
 /**
- * Pages anyone may open: the Auth template (sign in, sign up) and public legal documents, which
- * the sitemap marks `auth: public`. No session.
+ * Pages anyone may open: the public homepage a signed-out visitor sees at the root, the Auth
+ * template (sign in, sign up) and public legal documents, which the sitemap marks `auth: public`.
+ * No session.
  */
 export const PUBLIC_PAGES: readonly string[] = [
+  "/",
   "/auth/sign-in",
   "/auth/sign-up",
   "/legal/accessibility-statement",

@@ -8,7 +8,7 @@ order: 35
 
 ## Occupancy
 
-Set up a counter for each space you count at the doors. Its permitted load comes from a permit, the space capacity, or the occupant load factor. Atlas alerts at 90 percent of the permitted load.
+Set up a counter for each space you count at the doors. Its load comes from a permit, the space capacity, or the occupant load factor. Only a load from a permit is a permitted load; one from the area and a load factor is a calculated load, and the counter says which it has. Atlas alerts at 90 percent of the load.
 
 ## Weather
 

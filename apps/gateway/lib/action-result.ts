@@ -31,6 +31,11 @@ export const KNOWN_REFUSALS = [
   "profile_share_engagement",
   "rating_engagement_not_complete",
   "rating_immutable",
+  // A rated person's dispute of a rating and their choice to show ratings (ADR 0158, migrations 6820 and 6821).
+  "rating_dispute_ground",
+  "rating_dispute_details",
+  "rating_dispute_exists",
+  "rating_sharing_notice",
   "tin_format",
   "tax_form_payee",
   "sod_self_grant",
@@ -216,6 +221,17 @@ export const KNOWN_REFUSALS = [
   "registration_not_withdrawable",
   "invitation_closed",
   "invitation_not_yours",
+  // ADR 0164: consent for sensitive data, and the door note that has no consent step (migrations 6850 to 6852).
+  "guest_note_sensitive",
+  "sensitive_consent_required",
+  "sensitive_attestation_required",
+  "sensitive_person_only",
+  "travel_note_sensitive",
+  "sensitive_notice_version",
+  // 6890: a message, thread subject, rating or reply with a slur is refused, and the form keeps the text.
+  "content_objectionable",
+  // ADR 0160: a company account is created only in an offered territory, and the intake wizard asks its country.
+  "territory_not_offered",
 ] as const;
 
 /** The outcome key of a refusal rule: its own copy when it has some, else the generic refusal. */

@@ -59,6 +59,7 @@ select app.add_account_member(pg_temp.id('acct_v'), pg_temp.id(p), 'Account Memb
 select pg_temp.as_user('kai');
 select app.accept_account_membership(pg_temp.membership('acct_v', 'kai'));
 select app.ensure_my_work_details();
+select app.give_sensitive_consent('Dietary and Allergies', '2026-11-06', 'en-US', 'Atlas');
 update app.person_work_details set allergies = 'Peanuts', dietary_needs = array['Vegetarian']::app.dietary_need[]
 where person_id = pg_temp.id('kai');
 select app.set_my_passport_number('X1234567');
@@ -110,7 +111,7 @@ select is(pg_temp.read('victor', 'e_kai') ->> 'reader', 'company', 'the account'
 select is(jsonb_array_length(pg_temp.read('victor', 'e_kai') -> 'readable'), 6,
   'every category but the retired Uniform Sizes (R6a), not only those shared with the producing org');
 select ok(pg_temp.read('victor', 'e_kai') -> 'uniform' = 'null'::jsonb, 'uniform sizes are entered per roster entry now (R6a)');
-select is(pg_temp.read('pia', 'e_kai') #>> '{dietary,dietary_needs,0}', 'Vegetarian', 'the Advancing Lead reads the dietary needs, never shared with the org');
+select is(pg_temp.read('pia', 'e_kai') #>> '{dietary,dietary_masked}', 'true', 'the Advancing Lead sees dietary needs locked, as every company reader does (ADR 0164)');
 select ok(pg_temp.read('victor', 'e_kai') #> '{dietary,allergies}' = 'null'::jsonb, 'allergies are masked for a company reader');
 select is(pg_temp.read('victor', 'e_kai') #>> '{dietary,allergies_on_file}', 'true', 'with allergies_on_file');
 select ok(pg_temp.read('victor', 'e_kai') #> '{passport,passport_number}' = 'null'::jsonb, 'the passport number stays masked');
@@ -131,6 +132,7 @@ select ok(pg_temp.read('alice', 'self_ivy') #>> '{dietary,allergies}' is null
   and pg_temp.read('alice', 'self_ivy') #>> '{dietary,allergies_on_file}' = 'false', 'an org reader of shared dietary needs sees no allergies when none are on file');
 select pg_temp.as_user('ivy');
 select app.ensure_my_work_details();
+select app.give_sensitive_consent('Dietary and Allergies', '2026-11-06', 'en-US', 'Atlas');
 update app.person_work_details set allergies = 'Shellfish' where person_id = pg_temp.id('ivy');
 select pg_temp.as_platform();
 select is(pg_temp.read('alice', 'self_ivy') #>> '{dietary,allergies}', 'Shellfish',

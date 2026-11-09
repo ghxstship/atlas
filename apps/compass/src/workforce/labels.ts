@@ -153,6 +153,7 @@ export function directoryLabels(t: T): DirectoryScreenLabels {
     call: (name) => t(`${C}.directory.call`, { name }),
     message: (name) => t(`${C}.directory.message`, { name }),
     recognitions: (count) => t(`${C}.directory.recognitions`, { count }),
+    block: (name) => t("compass.safety.block", { name }),
   };
 }
 
@@ -305,6 +306,7 @@ export function helpDeskLabels(t: T): HelpDeskScreenLabels {
 }
 
 export function occupancyLabels(t: T): OccupancyCounterScreenLabels {
+  const compact = (basis: string) => basis.replaceAll(" ", "");
   return {
     ...frame(t, t(`${C}.occupancy.title`)),
     empty: t(`${C}.occupancy.empty`),
@@ -316,8 +318,14 @@ export function occupancyLabels(t: T): OccupancyCounterScreenLabels {
     add: (n) => t(`${C}.occupancy.add`, { n }),
     remove: (n) => t(`${C}.occupancy.remove`, { n }),
     count: (count, permitted) => t(`${C}.occupancy.count`, { count, permitted }),
-    percent: (percent) => t(`${C}.occupancy.percent`, { percent }),
-    level: (level) => t(`${C}.occupancy.level${level}`),
+    percent: (percent, basis) =>
+      t(`${C}.occupancy.percent`, {
+        percent,
+        load: t(`${C}.occupancy.loadName.${compact(basis)}`),
+      }),
+    level: (level, basis) =>
+      t(`${C}.occupancy.level${level}`, { load: t(`${C}.occupancy.loadName.${compact(basis)}`) }),
+    basis: (basis) => t(`${C}.occupancy.basis.${compact(basis)}`),
   };
 }
 

@@ -1,7 +1,7 @@
 import { isRecordKey } from "@xos/ia/handoff";
 import { notificationKind } from "@xos/schemas/notifications";
 import { z } from "zod";
-import { clip, localeOf, notificationText } from "./copy.ts";
+import { clip, loadNotificationCopy, localeOf, notificationText } from "./copy.ts";
 import type { DeliveryOutcome, Recipient } from "./dispatch.ts";
 import type { WebPushClient, WebPushDevice, WebPushPayload } from "./web-push.ts";
 
@@ -291,6 +291,7 @@ export async function dispatchPush(
   options: PushDispatchOptions = {},
 ): Promise<PushDispatchSummary> {
   const claims = await store.claimPush(options.limit ?? 50);
+  if (claims.length > 0) await loadNotificationCopy();
   const pending: Pending[] = [];
   const failedEarly = new Map<string, string>();
   const recipients = new Map<string, Recipient>();

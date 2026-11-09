@@ -52,6 +52,9 @@ function HiddenFields({ org, projectKey }: Hidden) {
   );
 }
 
+/** The canon criterion that attests near misses, which XOS logs as incidents: it has no type of their own. */
+const NEAR_MISS_CRITERION = "G7.INCIDENTS_CLOSED";
+
 /**
  * The Gates tab (Section 4.5.4): the nine gates with their canon criteria, the evidence on the one
  * evidence spine, blocking flags, the pass action for the current gate and the transition history.
@@ -226,6 +229,11 @@ export function GatesView({
                           <div className="flex flex-wrap items-start justify-between gap-8">
                             <div className="flex min-w-0 flex-col gap-4">
                               <span className="text-text-14 text-text-primary">{c.statement}</span>
+                              {c.id === NEAR_MISS_CRITERION ? (
+                                <span className="text-text-13 text-text-secondary">
+                                  {t("gates.nearMissHelp")}
+                                </span>
+                              ) : null}
                               <span className="flex flex-wrap items-center gap-6">
                                 <span className="font-mono text-text-12 text-text-secondary">
                                   {c.id}

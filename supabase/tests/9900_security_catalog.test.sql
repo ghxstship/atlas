@@ -71,10 +71,10 @@ select set_eq($$
   where p.prosecdef and n.nspname in ('app', 'private', 'xpms', 'api_public', 'api_external', 'public')
     and has_function_privilege('anon', p.oid, 'EXECUTE')
     and has_schema_privilege('anon', n.oid, 'USAGE')
-$$, $$values ('active_system_banners'), ('calendar_feed'), ('client_minimum_version'), ('confirm_subprocessor_notices'), ('docs_brand_for_slug'), ('org_brand_for_host'), ('org_brand_for_slug'), ('open_share_link'), ('crew_access_accept_shift'), ('crew_access_shifts'), ('registration_page'),
+$$, $$values ('active_system_banners'), ('calendar_feed'), ('client_minimum_version'), ('confirm_subprocessor_notices'), ('docs_brand_for_slug'), ('org_brand_for_host'), ('org_brand_for_slug'), ('open_share_link'), ('crew_access_accept_shift'), ('crew_access_shifts'), ('registration_page'), ('offered_territories'),
   ('organization_profile'), ('organization_profile_details'), ('person_profile'), ('person_profile_certifications'), ('person_profile_languages'),
   ('person_profile_links'), ('person_profile_organizations'), ('person_profile_portfolio'), ('person_profile_references'),
-  ('person_profile_skills'), ('preview_advance'), ('read_agreement'), ('record_cookie_consent'), ('sign_agreement'),
+  ('person_profile_skills'), ('preview_advance'), ('read_agreement'), ('record_age_refusal'), ('record_cookie_consent'), ('sign_agreement'),
   ('invite_token_open'), ('live_channel_open'), ('live_display'), ('live_view'), ('open_live_link'),
   ('open_stakeholder_pack'), ('stakeholder_pack'), ('stakeholder_pack_item'), ('stakeholder_pack_file'),
   ('sign_stakeholder_pack_item'), ('unsubscribe_stakeholder_pack'), ('open_vendor_intake'), ('vendor_intake'),

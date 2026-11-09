@@ -10,6 +10,7 @@ import { GatewayFrame } from "@/components/shell/gateway-frame";
 import { ReporterUser } from "@/components/shell/reporter-user";
 import { SystemBanners } from "@/components/shell/system-banners";
 import { selectableLocales } from "@/i18n/negotiate";
+import { currentOffering } from "@/lib/offering";
 import { docsSiteUrl, env } from "@/lib/env";
 import { buildNav } from "@/lib/shell/nav-model";
 import { buildGatewayKeys } from "@/lib/shell/shell-keys";
@@ -104,7 +105,10 @@ export default async function ShellLayout({ children }: { children: ReactNode })
         .sort((a, b) => a.name.localeCompare(b.name))}
       theme={preferenceFromCookie(cookieStore.get(THEME_COOKIE)?.value)}
       locale={locale}
-      locales={selectableLocales(process.env.NODE_ENV === "production")}
+      locales={selectableLocales(
+        process.env.NODE_ENV === "production",
+        (await currentOffering()).locales,
+      )}
       preferences={preferences}
       storedPreferences={cookieStore.get(PREFERENCES_COOKIE)?.value ?? ""}
       viewerTimeZone={schedule.viewerZone}

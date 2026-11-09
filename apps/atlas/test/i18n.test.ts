@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { getMessages } from "@xos/i18n";
+import { locales } from "@xos/i18n/locales";
 import {
   localeDirection,
   lockedLocale,
@@ -11,6 +12,8 @@ import {
 import { isPseudoLocale, pseudoCatalog, pseudoMessage, transformMessage } from "../i18n/pseudo";
 
 const BETA = ["fr-FR", "de-DE", "it-IT", "pt-BR", "ja-JP"];
+/** Every locale offered, as when every territory is open. */
+const OPEN = locales;
 
 describe("locale negotiation", () => {
   it("orders Accept-Language by quality", () => {
@@ -43,9 +46,11 @@ describe("locale negotiation", () => {
     ).toBe("es-US");
     expect(lockedLocale(org("es-US", true))).toBe("es-US");
     expect(lockedLocale(org("es-US"))).toBeNull();
-    // An org may lock a Beta locale (ADR 0053), whose catalog loads on demand; never a language XOS does not ship.
-    expect(lockedLocale(org("fr-FR", true))).toBe("fr-FR");
-    expect(lockedLocale(org("nl-NL", true))).toBeNull();
+    // An org may lock a Beta locale of an open territory (ADR 0053, ADR 0160), whose catalog loads on demand; never one
+    // of a closed territory, nor a language XOS does not ship.
+    expect(lockedLocale(org("fr-FR", true), OPEN)).toBe("fr-FR");
+    expect(lockedLocale(org("fr-FR", true))).toBeNull();
+    expect(lockedLocale(org("nl-NL", true), OPEN)).toBeNull();
     // Unlocked, the device's choice still wins.
     expect(
       negotiateLocale({
@@ -77,22 +82,35 @@ describe("locale negotiation", () => {
     expect(negotiateLocale({ acceptLanguage: "es", production: true, setting: org("nl-NL") })).toBe(
       "es-US",
     );
-    // A Beta locale someone chose applies, though the browser alone never picks one.
+    // A Beta locale someone chose applies while its territory is open, though the browser alone never picks one.
+    expect(
+      negotiateLocale({
+        acceptLanguage: "es",
+        production: true,
+        setting: org("fr-FR"),
+        offered: OPEN,
+      }),
+    ).toBe("fr-FR");
     expect(negotiateLocale({ acceptLanguage: "es", production: true, setting: org("fr-FR") })).toBe(
-      "fr-FR",
+      "es-US",
     );
   });
 
   it("accepts pseudo-locales in development only", () => {
     expect(negotiateLocale({ cookie: "en-XA", production: false })).toBe("en-XA");
     expect(negotiateLocale({ cookie: "en-XA", production: true })).toBe("en-US");
-    expect(selectableLocales(true)).toEqual(["en-US", "es-US", ...BETA]);
-    expect(selectableLocales(false)).toEqual(["en-US", "es-US", ...BETA, "en-XA", "ar-XB"]);
+    expect(selectableLocales(true)).toEqual(["en-US", "es-US"]);
+    expect(selectableLocales(false)).toEqual(["en-US", "es-US", "en-XA", "ar-XB"]);
+    expect(selectableLocales(true, OPEN)).toEqual(["en-US", "es-US", ...BETA]);
   });
 
-  it("offers the Beta locales when chosen, but never guesses one from the browser (ADR 0053)", () => {
+  it("offers an open territory's Beta locales when chosen, but never guesses one from the browser (ADR 0053)", () => {
+    expect(
+      negotiateLocale({ cookie: "fr-FR", acceptLanguage: "ja", production: true, offered: OPEN }),
+    ).toBe("fr-FR");
+    // Its territory closed, a saved choice reads as no choice (ADR 0160), and the code stays.
     expect(negotiateLocale({ cookie: "fr-FR", acceptLanguage: "ja", production: true })).toBe(
-      "fr-FR",
+      "en-US",
     );
     expect(negotiateLocale({ acceptLanguage: "ja-JP,de;q=0.8", production: true })).toBe("en-US");
     expect(negotiateLocale({ acceptLanguage: "pt-BR,es;q=0.5", production: true })).toBe("es-US");
@@ -103,7 +121,7 @@ describe("locale negotiation", () => {
   it("labels every picker locale and marks the Beta ones in both catalogs", () => {
     for (const locale of ["en-US", "es-US"] as const) {
       const shell = getMessages(locale).shell.chrome;
-      for (const l of selectableLocales(true)) {
+      for (const l of selectableLocales(true, OPEN)) {
         expect(shell.locales[l as keyof typeof shell.locales], `${locale} ${l}`).toBeTruthy();
       }
       expect(shell.betaLocale).toContain("{language}");

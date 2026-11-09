@@ -1,14 +1,14 @@
 ---
 title: Data Protection Impact Assessment Template
 version: 1.0.0-draft
-effective_date: The date this version is published at /legal
-status: Draft for review by counsel before launch
+effective_date: The date GHXSTSHIP states when it makes this version final
+status: Draft before launch
 audience: Customers and internal
 ---
 
 # Data Protection Impact Assessment Template
 
-> **Draft for review by counsel before launch.** This template is a draft. It takes effect when GHXSTSHIP Industries LLC publishes it at /legal, and its effective date is that date of publication.
+> **Draft before launch.** This template is a draft. Showing it at /legal does not put it in effect. It takes effect only on the effective date that GHXSTSHIP Industries LLC states at the top of a final version.
 
 GHXSTSHIP Industries LLC uses this template for its own high-risk processing and offers it to Customers for assessing their use of XOS 4.0. It follows GDPR Article 35 and the UK ICO's DPIA guidance, and also serves as a privacy impact assessment under Quebec Law 25. Complete each section; the guidance in italics explains what to write.
 
@@ -80,3 +80,7 @@ These facts about XOS support sections 5 and 7:
 - Background check reports are never stored; only result and reference.
 - AI features are off by default, never receive Restricted or medical data, and never train on customer data.
 - External parties' access to an engagement closes 18 months after Complete.
+- Dietary, allergy and accessibility needs, meal preferences and guest needs are Restricted, need consent recorded per category before first entry (or an attestation of authority and notice for a guest), are read only by the person and the Owner, catering lead and on-site medical roles on the project, with every read logged, and are refused by standard exports and AI features.
+- Withdrawing consent clears the values at once and ends every share. Guest needs are deleted at most 90 days after the project ends.
+- Every account holder is 18 or older; minors appear only as records an organization keeps.
+- An organization's rating of a person is shown outside that organization only if the person opts in, and never to people with hiring, booking or staffing access in XOS.

@@ -10,7 +10,6 @@ import type {
 } from "@xos/data/finance";
 import { BUDGET_LINE_TYPES, xyzFor } from "@xos/data/finance";
 import { Button, Combobox, Dialog, Drawer, Input, Select, Textarea } from "@xos/ui";
-import { useRouter } from "next/navigation";
 import { useLocale } from "next-intl";
 import { useActionState, useEffect, useMemo, useState, useTransition } from "react";
 import {
@@ -21,6 +20,7 @@ import {
   type ActionState,
 } from "@/app/[org]/finance/actions";
 import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
+import type { SettledSave } from "@/components/live/live-refresh";
 import { lineConflictFields, type LineConflictField } from "@/lib/finance/live-lines";
 import { parsePastedLines } from "@/lib/finance/paste";
 import { submit, type BudgetEditorProps as Props } from "./budget-editor-shared";
@@ -154,29 +154,35 @@ export function ConflictDialog({
   );
 }
 
-function useAddLines(org: string, budgetId: string, onDone: (ids: string[]) => void) {
-  const router = useRouter();
+/**
+ * Adds lines through the editor's settled save: the action's answer carries the page with the new
+ * lines, and the dialog closes before that page is on screen, so the editor's transition holds the
+ * live refreshes their own rows cause until it is.
+ */
+function useAddLines(
+  settle: SettledSave,
+  org: string,
+  budgetId: string,
+  onDone: (ids: string[]) => void,
+) {
   const [state, setState] = useState<ActionState>({});
   const [pending, start] = useTransition();
   const add = (lines: BudgetLineInput[]) =>
     start(async () => {
-      const result = await submit(addBudgetLinesAction, {
-        org,
-        budgetId,
-        lines: JSON.stringify(lines),
-      });
+      const result = await settle(() =>
+        submit(addBudgetLinesAction, { org, budgetId, lines: JSON.stringify(lines) }),
+      );
       setState(result);
-      if (result.ok) {
-        router.refresh();
-        onDone([...(result.ids ?? [])]);
-      }
+      if (result.ok) onDone([...(result.ids ?? [])]);
     });
   return { state, pending, add };
 }
 
-export function AddLineDialog(props: Props & { onClose: () => void }) {
+export function AddLineDialog(props: Props & { onClose: () => void; settle: SettledSave }) {
   const t = useFinanceT();
-  const { state, pending, add } = useAddLines(props.org, props.budgetId, () => props.onClose());
+  const { state, pending, add } = useAddLines(props.settle, props.org, props.budgetId, () =>
+    props.onClose(),
+  );
   const [urid, setUrid] = useState("");
   const [problem, setProblem] = useState<string | null>(null);
   const option = props.urids.find((u) => u.urid === urid);
@@ -308,10 +314,12 @@ export function AddLineDialog(props: Props & { onClose: () => void }) {
   );
 }
 
-export function CatalogDialog(props: Props & { onClose: () => void }) {
+export function CatalogDialog(props: Props & { onClose: () => void; settle: SettledSave }) {
   const t = useFinanceT();
   const [search, run, searching] = useActionState(searchCatalogAction, {});
-  const { state, pending, add } = useAddLines(props.org, props.budgetId, () => props.onClose());
+  const { state, pending, add } = useAddLines(props.settle, props.org, props.budgetId, () =>
+    props.onClose(),
+  );
   const [grade, setGrade] = useState(props.grades[0]?.code ?? "base");
   const [picked, setPicked] = useState<Record<string, number>>({});
   const elements: readonly CatalogElement[] = search.elements ?? [];
@@ -433,11 +441,16 @@ export function CatalogDialog(props: Props & { onClose: () => void }) {
 }
 
 export function PasteDialog(
-  props: Props & { onClose: () => void; onPasted: (ids: string[]) => void },
+  props: Props & { onClose: () => void; onPasted: (ids: string[]) => void; settle: SettledSave },
 ) {
   const t = useFinanceT();
   const [text, setText] = useState("");
-  const { state, pending, add } = useAddLines(props.org, props.budgetId, props.onPasted);
+  const { state, pending, add } = useAddLines(
+    props.settle,
+    props.org,
+    props.budgetId,
+    props.onPasted,
+  );
   const parsed = useMemo(
     () =>
       text.trim() === ""
@@ -511,10 +524,10 @@ export function DeleteLinesDialog(
     lines: readonly BudgetLine[];
     onClose: () => void;
     onDeleted: (ids: string[]) => void;
+    settle: SettledSave;
   },
 ) {
   const t = useFinanceT();
-  const router = useRouter();
   const [selected, setSelected] = useState<string[]>([]);
   const [state, setState] = useState<ActionState>({});
   const [pending, start] = useTransition();
@@ -532,15 +545,11 @@ export function DeleteLinesDialog(
             disabled={selected.length === 0}
             onClick={() =>
               start(async () => {
-                const result = await submit(deleteBudgetLinesAction, {
-                  org: props.org,
-                  ids: selected.join(","),
-                });
+                const result = await props.settle(() =>
+                  submit(deleteBudgetLinesAction, { org: props.org, ids: selected.join(",") }),
+                );
                 setState(result);
-                if (result.ok) {
-                  router.refresh();
-                  props.onDeleted(selected);
-                }
+                if (result.ok) props.onDeleted(selected);
               })
             }
           >

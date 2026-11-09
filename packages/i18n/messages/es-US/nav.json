@@ -570,13 +570,20 @@
     "tenant": "Organización",
     "metrics": "Métricas",
     "flags": "Indicadores de funciones",
+    "territories": "Territorios",
     "support": "Sesiones de soporte",
     "supportSession": "Sesión de soporte",
     "moderation": "Moderación",
     "listing": "Anuncio denunciado",
+    "reportedContent": "Contenido denunciado",
+    "reportedItem": "Elemento denunciado",
+    "legalQueue": "Cola legal",
+    "legalQueueItem": "Elemento de la cola legal",
     "banners": "Avisos del sistema",
     "funnels": "Embudos",
     "team": "Equipo de la plataforma",
-    "activity": "Actividad"
+    "activity": "Actividad",
+    "ratingDisputes": "Impugnaciones de calificaciones",
+    "ratingDispute": "Impugnación de calificación"
   }
 }

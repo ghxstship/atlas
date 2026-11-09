@@ -48,8 +48,11 @@ export function negotiateLocale(input: {
   readonly cookie?: string | undefined;
   readonly acceptLanguage?: string | null | undefined;
   readonly production: boolean;
+  /** The locales offered now (@xos/i18n/offering); launch locales only when not given. */
+  readonly offered?: readonly Locale[] | undefined;
 }): ConsoleLocale {
-  if (input.cookie && isLocale(input.cookie)) return input.cookie;
+  const offered = input.offered ?? launchLocales;
+  if (input.cookie && isLocale(input.cookie) && offered.includes(input.cookie)) return input.cookie;
   if (input.cookie && !input.production && isPseudoLocale(input.cookie)) return input.cookie;
   for (const range of parseAcceptLanguage(input.acceptLanguage)) {
     const match = matchRange(range);

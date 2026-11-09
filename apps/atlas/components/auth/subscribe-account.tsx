@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Checkbox, InlineAlert } from "@xos/ui";
+import { Button, Checkbox, InlineAlert, Select } from "@xos/ui";
 import { useTranslations } from "next-intl";
 import { useActionState } from "react";
 import { subscribeAccountAction, type SubscribeState } from "@/app/auth/subscribe-actions";
@@ -16,10 +16,12 @@ export function SubscribeAccounts({
   accounts,
   terms,
   dpa,
+  countries,
 }: {
   accounts: readonly { id: string; name: string; slug: string }[];
   terms: Doc;
   dpa: Doc;
+  countries: readonly { value: string; label: string }[];
 }) {
   const t = useTranslations("subscribeAccount");
   if (accounts.length === 0) return null;
@@ -32,7 +34,7 @@ export function SubscribeAccounts({
         <p className="m-0 text-text-13 text-text-secondary">{t("lead")}</p>
       </div>
       {accounts.map((a) => (
-        <SubscribeForm key={a.id} account={a} terms={terms} dpa={dpa} />
+        <SubscribeForm key={a.id} account={a} terms={terms} dpa={dpa} countries={countries} />
       ))}
       <h2 className="m-0 text-heading-16 font-semibold">{t("or")}</h2>
     </section>
@@ -45,10 +47,12 @@ function SubscribeForm({
   account,
   terms,
   dpa,
+  countries,
 }: {
   account: { id: string; name: string; slug: string };
   terms: Doc;
   dpa: Doc;
+  countries: readonly { value: string; label: string }[];
 }) {
   const t = useTranslations("subscribeAccount");
   const tr = useTranslations("shell.auth.organization");
@@ -64,9 +68,25 @@ function SubscribeForm({
     >
       <input type="hidden" name="accountId" value={account.id} />
       <input type="hidden" name="slug" value={account.slug} />
-      {state.error && state.error !== "accept" ? (
+      {state.error === "territory_not_offered" ? (
+        <InlineAlert tone="danger">
+          {t("territory_not_offered", {
+            country: state.errorValues?.["country"] ?? "",
+            territories: state.errorValues?.["territories"] ?? "",
+          })}
+        </InlineAlert>
+      ) : state.error && state.error !== "accept" && state.error !== "country" ? (
         <InlineAlert tone="danger">{t(state.error)}</InlineAlert>
       ) : null}
+      <Select
+        id={`subscribe-country-${account.id}`}
+        name="country"
+        label={t("country")}
+        placeholder={t("countryChoose")}
+        options={[...countries]}
+        {...(state.country ? { value: state.country } : {})}
+        {...(state.error === "country" ? { error: t("countryError") } : {})}
+      />
       <Checkbox
         id={acceptId}
         name="accept"

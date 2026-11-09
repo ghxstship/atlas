@@ -1,4 +1,4 @@
-import { lighthouseAssertions, webBudgets } from "./budgets.ts";
+import { lighthouseAssertions, realtimeClientGzipBytes, webBudgets } from "./budgets.ts";
 
 /**
  * Lighthouse CI for Atlas, Gateway and docs (Section 18, gate 10): every signed-in route in the
@@ -102,22 +102,31 @@ export interface LighthouseRcInput {
   readonly runs?: number;
   /** Route JavaScript ceilings by path, for pages still over 200 KB (bundle-ceilings.json). */
   readonly ceilings?: Readonly<Record<string, number>>;
+  /**
+   * True when the app's build has a Realtime client chunk (realtime-chunk.ts). Its bytes do not count toward a page's
+   * script budget (ADR 0027, owner decision of 2026-11-06), so lhci, which counts every script, allows its own 20 KB on
+   * top; scorePage then holds each part to its own limit.
+   */
+  readonly realtimeClient?: boolean;
 }
 
 const escapeRegExp = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 /**
  * The spec budgets for a run's pages. Every page gets the 200 KB script budget unless it holds a
- * ceiling; pages that share a budget share one `assertMatrix` entry, matched by exact URL.
+ * ceiling; pages that share a budget share one `assertMatrix` entry, matched by exact URL. lhci
+ * counts every script, so `allowance` adds the Realtime client's own limit where the app has one:
+ * the exact split is scorePage's.
  */
 export function runAssertions(
   baseUrl: string,
   paths: readonly string[],
   ceilings: Readonly<Record<string, number>> = {},
+  allowance = 0,
 ) {
   const groups = new Map<number, string[]>();
   for (const path of paths) {
-    const budget = Math.max(webBudgets.routeJavaScriptGzipBytes, ceilings[path] ?? 0);
+    const budget = Math.max(webBudgets.routeJavaScriptGzipBytes, ceilings[path] ?? 0) + allowance;
     groups.set(budget, [...(groups.get(budget) ?? []), `${baseUrl}${path}`]);
   }
   if (groups.size <= 1) return { assertions: lighthouseAssertions([...groups.keys()][0]) };
@@ -152,7 +161,12 @@ export function lighthouseRc(input: LighthouseRcInput) {
           ...(input.sessionScript ? {} : { chromeFlags: CHROME_FLAGS.join(" ") }),
         },
       },
-      assert: runAssertions(input.baseUrl, input.paths, input.ceilings),
+      assert: runAssertions(
+        input.baseUrl,
+        input.paths,
+        input.ceilings,
+        input.realtimeClient ? realtimeClientGzipBytes : 0,
+      ),
       upload: { target: "filesystem", outputDir: input.outputDir },
     },
   };
@@ -169,7 +183,10 @@ export interface PageScore {
   readonly lcpMs: number | null;
   readonly cls: number | null;
   readonly tbtMs: number | null;
+  /** Every script the page fetched but the Realtime client, which the 200 KB does not cover (ADR 0027). */
   readonly scriptBytes: number | null;
+  /** The Realtime client's chunks the page fetched, held to their own 20 KB. */
+  readonly realtimeBytes: number;
   readonly withinBudget: boolean;
 }
 
@@ -182,7 +199,9 @@ interface LighthouseResult {
     string,
     | {
         numericValue?: number;
-        details?: { items?: { resourceType?: string; transferSize?: number }[] };
+        details?: {
+          items?: { resourceType?: string; transferSize?: number; url?: string }[];
+        };
       }
     | undefined
   >;
@@ -193,17 +212,34 @@ function numeric(result: LighthouseResult, audit: string): number | null {
   return typeof value === "number" ? value : null;
 }
 
+/** The bytes of the named chunks among a report's script requests (network-requests audit). */
+function chunkBytes(result: LighthouseResult, names: ReadonlySet<string>): number {
+  if (names.size === 0) return 0;
+  let bytes = 0;
+  for (const item of result.audits?.["network-requests"]?.details?.items ?? []) {
+    if (item.resourceType !== "Script" || item.url === undefined) continue;
+    const file = new URL(item.url).pathname.split("/").pop() ?? "";
+    if (names.has(file)) bytes += item.transferSize ?? 0;
+  }
+  return bytes;
+}
+
 /**
  * Scores and budget verdict for one Lighthouse JSON report, against the page's script budget: the
  * same errors lhci asserts (lighthouseAssertions), so the summary fails what the assertions fail.
+ * The Realtime client's chunks (`realtimeChunks`, by file name) come out of the script count and
+ * answer to their own 20 KB (ADR 0027): a live page fetches the client once idle, so lhci counts
+ * it only when idle comes before the trace ends.
  */
 export function scorePage(
   result: LighthouseResult,
   scriptBudget: number = webBudgets.routeJavaScriptGzipBytes,
+  realtimeChunks: readonly string[] = [],
 ): PageScore {
   const scripts = result.audits?.["resource-summary"]?.details?.items?.find(
     (item) => item.resourceType === "script",
   );
+  const realtimeBytes = chunkBytes(result, new Set(realtimeChunks));
   const score = (name: string) => result.categories?.[name]?.score ?? null;
   const url = result.requestedUrl ?? result.finalDisplayedUrl ?? "";
   const finalUrl = result.finalUrl ?? result.finalDisplayedUrl ?? url;
@@ -216,7 +252,8 @@ export function scorePage(
     lcpMs: numeric(result, "largest-contentful-paint"),
     cls: numeric(result, "cumulative-layout-shift"),
     tbtMs: numeric(result, "total-blocking-time"),
-    scriptBytes: scripts?.transferSize ?? null,
+    scriptBytes: scripts?.transferSize === undefined ? null : scripts.transferSize - realtimeBytes,
+    realtimeBytes,
   };
   const within = (value: number | null, max: number) => value !== null && value < max;
   return {
@@ -227,6 +264,7 @@ export function scorePage(
       within(page.cls, webBudgets.cumulativeLayoutShift) &&
       within(page.tbtMs, webBudgets.interactionToNextPaintMs) &&
       page.scriptBytes !== null &&
-      page.scriptBytes <= scriptBudget,
+      page.scriptBytes <= scriptBudget &&
+      page.realtimeBytes <= realtimeClientGzipBytes,
   };
 }

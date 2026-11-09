@@ -101,6 +101,29 @@ export const COMPASS_HELP: HelpContent = {
               { t: "text", v: " starts over." },
             ],
           },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "The first time you open Aurora, Compass asks whether to allow AI features. They send your questions, with the records that answer them, to a third-party AI provider, and nothing goes until you choose ",
+              },
+              { t: "strong", v: "Allow" },
+              { t: "text", v: ". " },
+              { t: "strong", v: "Don't Allow" },
+              {
+                t: "text",
+                v: " turns AI features off for you everywhere in XOS. You can change this in ",
+              },
+              { t: "strong", v: "Settings" },
+              { t: "text", v: ", " },
+              { t: "strong", v: "AI features" },
+              {
+                t: "text",
+                v: ". It does not stop other people in your organization using AI features on records they can see.",
+              },
+            ],
+          },
         ],
       },
       {
@@ -711,8 +734,12 @@ export const COMPASS_HELP: HelpContent = {
               [
                 {
                   t: "text",
-                  v: "If your organization turned on receipt reading, Aurora fills in what it can read: what was bought, the amount and the date. Each field it read says how sure it is. A value the receipt does not show stays empty for you to type; Aurora never guesses it.",
+                  v: "If your organization turned on receipt reading and you allowed AI features, Aurora fills in what it can read: what was bought, the amount and the date. Each field it read says how sure it is. A value the receipt does not show stays empty for you to type; Aurora never guesses it. The first time, Compass asks whether to allow AI features, since reading it sends the photo to a third-party AI provider; until you allow them, Aurora does not read it and you type the details. You can change this in ",
                 },
+                { t: "strong", v: "Settings" },
+                { t: "text", v: ", " },
+                { t: "strong", v: "AI features" },
+                { t: "text", v: "." },
               ],
               [
                 { t: "text", v: "Check every field, choose the " },
@@ -950,7 +977,30 @@ export const COMPASS_HELP: HelpContent = {
           },
           {
             t: "p",
-            c: [{ t: "text", v: "Offline, the report is saved and sends when you reconnect." }],
+            c: [
+              {
+                t: "text",
+                v: "In an emergency, call your local emergency number first. XOS does not alert emergency services.",
+              },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Offline, the report is saved but not sent until you reconnect. If it is an emergency, call your local emergency number now.",
+              },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "For a near miss, something that could have hurt someone or caused damage but did not, choose Level 5 - Advisory and start What happened with the words Near miss, so it can be found later.",
+              },
+            ],
           },
           { t: "h2", v: "Dispatch" },
           {
@@ -1002,7 +1052,7 @@ export const COMPASS_HELP: HelpContent = {
             c: [
               {
                 t: "text",
-                v: "When critical items fail, Compass tells you to stop use until they are fixed. Offline, the inspection is saved and uploads later.",
+                v: "When critical items fail, take the item out of use, tell your supervisor, and name the unit in the inspection. XOS does not block or track the unit itself. Offline, the inspection is saved and uploads later.",
               },
             ],
           },
@@ -2156,7 +2206,10 @@ export const COMPASS_HELP: HelpContent = {
               ],
               [
                 { t: "strong", v: "Automatic reply" },
-                { t: "text", v: ": sent once to each person who messages you while you are away." },
+                {
+                  t: "text",
+                  v: ": sent once to each person who messages you while you are away. A reply with a slur is not saved, and Compass keeps what you wrote so you can change it.",
+                },
               ],
             ],
           },
@@ -2551,7 +2604,7 @@ export const COMPASS_HELP: HelpContent = {
             c: [
               {
                 t: "text",
-                v: "Work details other than the work phone need a connection and never stay on this phone. An organization sees them only when you share them with an engagement, and your allergies only reach the catering lead and on-site medical on the project.",
+                v: "Work details other than the work phone need a connection and never stay on this phone. An organization sees them only when you share them with an engagement, and your allergies only reach the catering lead and on-site medical on the project, the organization's Owner, and anyone else the organization gives medical data access.",
               },
             ],
           },
@@ -2564,6 +2617,15 @@ export const COMPASS_HELP: HelpContent = {
               },
               { t: "link", v: "profile", href: "help:profile" },
               { t: "text", v: " shows your contacts." },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Dietary, allergy and accessibility details are optional. Before you add any, you read what we collect, why, who sees it and how to withdraw, and agree. Withdraw from the same place at any time: we stop using the details at once and delete them. If someone else entered details for you, they show here. Remove them, and whoever entered them cannot enter them for you again, by your account or email, in that organization until you agree. If a guest list entry is someone else, choose This is not me.",
+              },
             ],
           },
         ],
@@ -2949,7 +3011,7 @@ export const COMPASS_HELP: HelpContent = {
             c: [
               {
                 t: "text",
-                v: "Tap the three dots on a message from someone else to report it to your organization's moderators, who review it within 24 hours, or to block its author. A block hides their messages in every conversation. Reporting and blocking need a connection.",
+                v: "Tap the three dots on a message from someone else to report it to your organization's moderators, who review it within 24 hours, or to block its author. A report they leave undecided after 24 hours goes to the GHXSTSHIP Trust and Safety team. A block hides their messages in every conversation. A message with a slur is not sent, and Compass keeps what you wrote so you can change it. Reporting and blocking need a connection.",
               },
             ],
           },
@@ -2979,6 +3041,17 @@ export const COMPASS_HELP: HelpContent = {
                 t: "text",
                 v: "Each person can be called or messaged in one tap, and shows their recognitions.",
               },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "To stop seeing someone, block them from their card. A block hides their posts, comments, shout-outs and messages, and they are not told. See ",
+              },
+              { t: "link", v: "Blocked people", href: "help:blocked-people" },
+              { t: "text", v: "." },
             ],
           },
         ],
@@ -3104,7 +3177,7 @@ export const COMPASS_HELP: HelpContent = {
             c: [
               {
                 t: "text",
-                v: "Tap the three dots on someone else's post to report it to your organization's moderators, who review it within 24 hours, or to block its author. Nobody is told who reported. See ",
+                v: "Tap the three dots on someone else's post to report it to your organization's moderators, who review it within 24 hours, or to block its author. A report they leave undecided after 24 hours goes to the GHXSTSHIP Trust and Safety team. Nobody is told who reported. A post with a slur is refused before anyone sees it. See ",
               },
               { t: "link", v: "Blocked people", href: "help:blocked-people" },
               { t: "text", v: "." },
@@ -3247,7 +3320,7 @@ export const COMPASS_HELP: HelpContent = {
       {
         slug: "workforce-occupancy",
         title: "Occupancy",
-        summary: "Counting people in and out at each door against the permitted load.",
+        summary: "Counting people in and out at each door against the counter's load.",
         kind: "workflow",
         nodes: ["workforce.occupancy"],
         order: 1,
@@ -3257,7 +3330,7 @@ export const COMPASS_HELP: HelpContent = {
             c: [
               {
                 t: "text",
-                v: "Each counter shows the count against the permitted load. Add or remove people at your door as they come and go.",
+                v: "Each counter shows the count against its load, and says where that load comes from. It is a permitted load only when a permit set it; a load from the space's area and a load factor is a calculated load. Add or remove people at your door as they come and go.",
               },
             ],
           },
@@ -3266,7 +3339,7 @@ export const COMPASS_HELP: HelpContent = {
             items: [
               [{ t: "text", v: "At 80 percent, slow entry." }],
               [{ t: "text", v: "At 90 percent, hold entry and call your supervisor." }],
-              [{ t: "text", v: "At the permitted load, stop entry now." }],
+              [{ t: "text", v: "At the load, stop entry now." }],
             ],
           },
           { t: "p", c: [{ t: "text", v: "Counters are set up in Atlas. Counts work offline." }] },
@@ -3560,6 +3633,29 @@ export const COMPASS_HELP: HelpContent = {
               },
               { t: "strong", v: "Nueva conversación" },
               { t: "text", v: " empieza de nuevo." },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "La primera vez que abres Aurora, Compass te pregunta si permites las funciones de IA. Envían tus preguntas, con los registros que las responden, a un proveedor externo de IA, y no se envía nada hasta que eliges ",
+              },
+              { t: "strong", v: "Permitir" },
+              { t: "text", v: ". " },
+              { t: "strong", v: "No permitir" },
+              {
+                t: "text",
+                v: " desactiva las funciones de IA para ti en todo XOS. Puedes cambiarlo en ",
+              },
+              { t: "strong", v: "Configuración" },
+              { t: "text", v: ", " },
+              { t: "strong", v: "Funciones de IA" },
+              {
+                t: "text",
+                v: ". No impide que otras personas de tu organización usen las funciones de IA con los registros que pueden ver.",
+              },
             ],
           },
         ],
@@ -4203,8 +4299,12 @@ export const COMPASS_HELP: HelpContent = {
               [
                 {
                   t: "text",
-                  v: "Si tu organización activó la lectura de recibos, Aurora completa lo que puede leer: qué se compró, el importe y la fecha. Cada campo leído indica qué tan seguro está. Un valor que el recibo no muestra queda vacío para que lo escribas; Aurora nunca lo adivina.",
+                  v: "Si tu organización activó la lectura de recibos y permitiste las funciones de IA, Aurora completa lo que puede leer: qué se compró, el importe y la fecha. Cada campo leído indica qué tan seguro está. Un valor que el recibo no muestra queda vacío para que lo escribas; Aurora nunca lo adivina. La primera vez, Compass te pregunta si las permites, porque leerla envía la foto a un proveedor externo de IA; sin permiso, escribes los datos tú. Puedes cambiarlo en ",
                 },
+                { t: "strong", v: "Configuración" },
+                { t: "text", v: ", " },
+                { t: "strong", v: "Funciones de IA" },
+                { t: "text", v: "." },
               ],
               [
                 { t: "text", v: "Revisa cada campo, elige la " },
@@ -4258,12 +4358,12 @@ export const COMPASS_HELP: HelpContent = {
               { t: "strong", v: "No adeudado" },
               {
                 t: "text",
-                v: " significa que se rechazó o se canceló. Compass no ve los créditos que finanzas registró contra tu gasto, así que uno acreditado por completo puede seguir diciendo ",
+                v: " significa que se rechazó o se canceló. Compass no ve los créditos que finanzas registró, así que un gasto acreditado puede seguir diciendo ",
               },
               { t: "strong", v: "Te lo deben" },
               {
                 t: "text",
-                v: "; pregunta a finanzas si el importe no parece correcto. XOS registra el reembolso y no mueve dinero.",
+                v: "; pregunta a finanzas si algo no cuadra. XOS registra el reembolso y no mueve dinero.",
               },
             ],
           },
@@ -4447,7 +4547,30 @@ export const COMPASS_HELP: HelpContent = {
           },
           {
             t: "p",
-            c: [{ t: "text", v: "Sin conexión, el reporte se guarda y se envía al reconectar." }],
+            c: [
+              {
+                t: "text",
+                v: "En una emergencia, llama primero a tu número local de emergencias. XOS no avisa a los servicios de emergencia.",
+              },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Sin conexión, el reporte se guarda, pero no se envía hasta que reconectes. Si es una emergencia, llama ahora a tu número local de emergencias.",
+              },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Para un casi accidente, algo que pudo lastimar a alguien o causar daños pero no lo hizo, elige Level 5 - Advisory y empieza Qué pasó con las palabras Near miss, para encontrarlo después.",
+              },
+            ],
           },
           { t: "h2", v: "Despachar" },
           {
@@ -4500,7 +4623,7 @@ export const COMPASS_HELP: HelpContent = {
             c: [
               {
                 t: "text",
-                v: "Cuando fallan puntos críticos, Compass te indica que detengas el uso hasta que se corrijan. Sin conexión, la inspección se guarda y se sube después.",
+                v: "Cuando fallan puntos críticos, saca el elemento de uso, avisa a tu supervisor y nombra la unidad en la inspección. XOS no bloquea la unidad ni le da seguimiento. Sin conexión, la inspección se guarda y se sube después.",
               },
             ],
           },
@@ -5698,7 +5821,7 @@ export const COMPASS_HELP: HelpContent = {
                 { t: "strong", v: "Respuesta automática" },
                 {
                   t: "text",
-                  v: ": se envía una vez a cada persona que te escriba mientras no estás.",
+                  v: ": se envía una vez a cada persona que te escriba mientras no estás. Una respuesta con un insulto discriminatorio no se guarda, y Compass conserva lo que escribiste para que lo cambies.",
                 },
               ],
             ],
@@ -6104,7 +6227,7 @@ export const COMPASS_HELP: HelpContent = {
             c: [
               {
                 t: "text",
-                v: "Los datos de trabajo, salvo el teléfono de trabajo, necesitan conexión y nunca se quedan en este teléfono. Una organización solo los ve cuando los compartes con una contratación, y tus alergias solo llegan al responsable de catering y al personal médico en el lugar del proyecto.",
+                v: "Los datos de trabajo, salvo el teléfono de trabajo, necesitan conexión y nunca se quedan en este teléfono. Una organización solo los ve cuando los compartes con una contratación, y tus alergias solo llegan al responsable de catering y al personal médico en el lugar del proyecto, al Propietario de la organización y a cualquier otra persona a quien la organización dé acceso a datos médicos.",
               },
             ],
           },
@@ -6117,6 +6240,15 @@ export const COMPASS_HELP: HelpContent = {
               },
               { t: "link", v: "perfil", href: "help:profile" },
               { t: "text", v: " muestra tus contactos." },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Los datos de dieta, alergias y accesibilidad son opcionales. Antes de añadir alguno, lees qué recopilamos, por qué, quién lo ve y cómo retirar el consentimiento, y aceptas. Retíralo desde el mismo lugar en cualquier momento: dejamos de usar los datos de inmediato y los eliminamos. Si otra persona introdujo datos por ti, aparecen aquí. Elimínalos, y quien los introdujo no podrá volver a introducirlos por ti, con tu cuenta o tu correo, en esa organización hasta que lo aceptes. Si una entrada de la lista de invitados es de otra persona, elige No soy yo.",
+              },
             ],
           },
         ],
@@ -6516,7 +6648,7 @@ export const COMPASS_HELP: HelpContent = {
             c: [
               {
                 t: "text",
-                v: "Toca los tres puntos en un mensaje de otra persona para denunciarlo ante los moderadores de tu organización, que lo revisan en 24 horas, o para bloquear a quien lo escribió. Un bloqueo oculta sus mensajes en todas las conversaciones. Denunciar y bloquear necesitan conexión.",
+                v: "Toca los tres puntos en un mensaje de otra persona para denunciarlo ante los moderadores de tu organización, que lo revisan en 24 horas, o para bloquear a quien lo escribió. Una denuncia que no deciden en 24 horas pasa al equipo de Confianza y Seguridad de GHXSTSHIP. Un bloqueo oculta sus mensajes en todas las conversaciones. Un mensaje con un insulto discriminatorio no se envía, y Compass conserva lo que escribiste para que lo cambies. Denunciar y bloquear necesitan conexión.",
               },
             ],
           },
@@ -6546,6 +6678,17 @@ export const COMPASS_HELP: HelpContent = {
                 t: "text",
                 v: "A cada persona puedes llamarla o escribirle con un toque, y muestra sus reconocimientos.",
               },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Para dejar de ver a alguien, bloquéalo desde su tarjeta. Un bloqueo oculta sus publicaciones, comentarios, reconocimientos y mensajes, y no se le avisa. Consulta ",
+              },
+              { t: "link", v: "Personas bloqueadas", href: "help:blocked-people" },
+              { t: "text", v: "." },
             ],
           },
         ],
@@ -6678,7 +6821,7 @@ export const COMPASS_HELP: HelpContent = {
             c: [
               {
                 t: "text",
-                v: "Toca los tres puntos en la publicación de otra persona para denunciarla ante los moderadores de tu organización, que la revisan en 24 horas, o para bloquear a quien la escribió. No se avisa a nadie de quién denunció. Consulta ",
+                v: "Toca los tres puntos en la publicación de otra persona para denunciarla ante los moderadores de tu organización, que la revisan en 24 horas, o para bloquear a quien la escribió. Una denuncia que no deciden en 24 horas pasa al equipo de Confianza y Seguridad de GHXSTSHIP. No se avisa a nadie de quién denunció. Una publicación con un insulto discriminatorio se rechaza antes de que nadie la vea. Consulta ",
               },
               { t: "link", v: "Personas bloqueadas", href: "help:blocked-people" },
               { t: "text", v: "." },
@@ -6845,7 +6988,7 @@ export const COMPASS_HELP: HelpContent = {
         slug: "workforce-occupancy",
         title: "Aforo",
         summary:
-          "Cómo contar a las personas que entran y salen en cada puerta frente al aforo permitido.",
+          "Cómo contar a las personas que entran y salen en cada puerta frente al aforo del contador.",
         kind: "workflow",
         nodes: ["workforce.occupancy"],
         order: 1,
@@ -6855,7 +6998,7 @@ export const COMPASS_HELP: HelpContent = {
             c: [
               {
                 t: "text",
-                v: "Cada contador muestra el conteo frente al aforo permitido. Suma o resta personas en tu puerta a medida que entran y salen.",
+                v: "Cada contador muestra el conteo frente a su aforo y dice de dónde viene. Es aforo permitido solo cuando lo fijó un permiso; el que sale del área del espacio y un factor de carga es un aforo calculado. Suma o resta personas en tu puerta a medida que entran y salen.",
               },
             ],
           },
@@ -6864,7 +7007,7 @@ export const COMPASS_HELP: HelpContent = {
             items: [
               [{ t: "text", v: "Al 80 por ciento, reduce el ingreso." }],
               [{ t: "text", v: "Al 90 por ciento, detén el ingreso y llama a tu supervisor." }],
-              [{ t: "text", v: "Con el aforo permitido alcanzado, detén el ingreso ahora." }],
+              [{ t: "text", v: "Con el aforo alcanzado, detén el ingreso ahora." }],
             ],
           },
           {

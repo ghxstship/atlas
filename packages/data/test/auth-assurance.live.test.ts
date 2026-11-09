@@ -56,7 +56,11 @@ async function signUp(): Promise<{ db: XosClient; email: string; password: strin
   const db = newClient();
   const email = `a77-${randomBytes(5).toString("hex")}@atlas-e2e.test`;
   const password = `Live-${randomBytes(12).toString("base64url")}`;
-  const { error } = await db.auth.signUp({ email, password });
+  const { error } = await db.auth.signUp({
+    email,
+    password,
+    options: { data: { age_confirmed: "18", signup_surface: "Atlas" } },
+  });
   if (error) throw error;
   return { db, email, password };
 }

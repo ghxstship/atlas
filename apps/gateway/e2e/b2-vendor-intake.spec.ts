@@ -90,6 +90,8 @@ test("a vendor goes from the code to an approved request and the intake's invoic
     const heading = (name: string) => page.getByRole("heading", { name, exact: true });
     await expect(heading("Your company")).toBeVisible();
     await page.getByLabel("Or create a company account").fill(`Harbor Audio ${mark}`);
+    // ADR 0160: a new company account states its country, and only an offered one is created.
+    await page.getByLabel("Company country").selectOption("US");
     expect(await cognitiveLoadProblems(page)).toEqual([]);
     await page.getByRole("button", { name: "Next", exact: true }).click();
 

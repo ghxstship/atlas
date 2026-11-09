@@ -45,6 +45,7 @@
     "setting_scope_org": "That workspace, team or project belongs to another organization. Reload the page.",
     "setting_not_lockable": "This setting cannot be locked. Save it without the lock.",
     "setting_unknown": "This setting no longer exists. Reload the page.",
+    "content_objectionable": "This contains language that is not allowed here. Change the wording and try again.",
     "not_member": "You no longer belong to this organization. Switch to another one.",
     "plan_feature_required": "Your plan does not include this. Compare plans in Billing and Plan.",
     "favorites_limit": "Favorites hold 50 items. Unpin one, then pin this page.",
@@ -186,7 +187,7 @@
     },
     "ratingsEnabled": {
       "label": "Prompt members to rate parties",
-      "help": "Members see completed engagements waiting for their rating, and Rate the party as the next step. Ratings are always on: turning prompts off never hides or removes a rating, and rated parties and marketplace viewers see the same ratings either way. Moderation follows policy only (abuse, personal data), whatever the score."
+      "help": "Members see completed engagements waiting for their rating, and Rate the party as the next step. Ratings are always on: turning prompts off never hides or removes a rating, and rated parties and anyone else who may read a rating see the same ratings either way. Moderation follows policy only (abuse, personal data, a wrong or false statement), whatever the score."
     },
     "messageRetention": {
       "label": "Message retention in days",
@@ -210,7 +211,7 @@
     },
     "language": {
       "label": "Language",
-      "help": "The language of menus, emails and documents. Beta languages are machine translated; anything not translated yet shows in English."
+      "help": "The language of menus, emails and documents. Anything not translated yet shows in English."
     },
     "timeZone": {
       "label": "Time zone",

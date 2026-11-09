@@ -9,6 +9,7 @@ import {
   setClientPrice,
   type RadiusScale,
 } from "@xos/data/partner";
+import { isCountryCode } from "@xos/i18n/formats";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { checkAccent } from "@/lib/brand/contrast";
@@ -37,12 +38,14 @@ export async function createClientOrgAction(
       slug: z.string().refine(isOrgSlug),
       ownerEmail: z.email().max(320),
       plan: z.enum(PLANS),
+      country: z.string().refine(isCountryCode),
     })
     .safeParse({
       name: field(form, "name"),
       slug: field(form, "slug").toLowerCase(),
       ownerEmail: field(form, "ownerEmail").toLowerCase(),
       plan: field(form, "plan"),
+      country: field(form, "country"),
     });
   if (!parsed.success) return inputError();
   const result = await createClientOrg(ctx.viewer.db, {
@@ -51,6 +54,7 @@ export async function createClientOrgAction(
     slug: parsed.data.slug,
     ownerEmail: parsed.data.ownerEmail,
     planCode: parsed.data.plan,
+    countryCode: parsed.data.country,
   });
   if (!result.ok) return fromDataError(result.error);
   revalidatePath(`/partner/${ctx.org.slug}`, "layout");
@@ -112,6 +116,8 @@ export async function setClientPriceAction(
     .object({
       client: z.uuid(),
       amount: z.string().regex(/^\d+(\.\d{1,2})?$/),
+      // The database decides which currencies are open (ADR 0160): a price already in a closed one can keep it and change
+      // its amount, which a list of offered currencies here would refuse.
       currency: z.string().regex(/^[A-Z]{3}$/),
     })
     .safeParse({

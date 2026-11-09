@@ -557,7 +557,7 @@ export const HELP_CONTENT: HelpIndex = {
         slug: "profile",
         title: "Your profile",
         summary:
-          "What organizations see about you, how complete it is, your certifications, availability, ratings and shares.",
+          "What organizations see about you, how complete it is, your certifications, availability and shares, and who reads your ratings.",
         kind: "page",
         nodes: ["profile"],
         order: 1,
@@ -1292,7 +1292,7 @@ export const HELP_CONTENT: HelpIndex = {
         slug: "profile",
         title: "Tu perfil",
         summary:
-          "Lo que ven las organizaciones sobre ti, qué tan completo está, tus certificaciones, disponibilidad, calificaciones y perfiles compartidos.",
+          "Lo que ven las organizaciones sobre ti, qué tan completo está, tus certificaciones, disponibilidad y perfiles compartidos, y quién lee tus calificaciones.",
         kind: "page",
         nodes: ["profile"],
         order: 1,

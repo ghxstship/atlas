@@ -5,5 +5,5 @@
  */
 export { StripeSignatureError, handleStripeWebhook } from "../../src/billing/webhook.ts";
 export { isTestKey } from "../../src/billing/keys.ts";
-export { billingStore } from "../../src/stores.ts";
+export { billingStore } from "../../src/billing/store.ts";
 export { planRegistry } from "virtual:xos-plan-registry";

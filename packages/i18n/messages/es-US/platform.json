@@ -20,6 +20,7 @@
     "partner_is_client": "Una organización cliente no puede tener clientes propios, así que no define una marca predeterminada para clientes.",
     "partner_client_unknown": "Esa organización no es uno de sus clientes.",
     "partner_price_client_immutable": "Un precio se queda con su cliente. Defina un precio para el otro cliente.",
+    "partner_price_currency_not_offered": "Fije este precio en una moneda en la que se ofrece XOS.",
     "partner_depth": "Un socio no puede tener un socio superior, y una organización con clientes no puede volverse cliente.",
     "partner_agreement_missing": "La facturación mayorista empieza cuando la plataforma registra su acuerdo de socio. Contacte a su gerente de cuenta.",
     "partner_no_clients": "Cree una organización cliente antes de ejecutar la facturación mayorista.",
@@ -35,6 +36,8 @@
     "brand_contrast": "Este color de acento no cumple el contraste WCAG 2.2 AA en al menos un tema. Elija un acento más oscuro o más claro.",
     "slug_taken": "Esa dirección web ya está en uso. Elija otra.",
     "slug_reserved": "Esa dirección web está reservada por la plataforma. Elija otra.",
+    "territory_not_offered": "XOS no se ofrece a organizaciones en ese país, así que esta organización cliente no se creó.",
+    "organization_country_invalid": "Elija el país donde está establecido el cliente.",
     "plan_unknown": "Ese plan no existe.",
     "plan_limit_exceeded": "Se alcanzó el límite de su plan. Mejore el plan o quite algo primero.",
     "plan_limit_read_only": "Esto es de solo lectura porque la organización supera los límites de su plan. El aviso en la parte superior de la página indica qué límite y cómo levantarlo.",
@@ -148,6 +151,9 @@
     "holiday_calendar_applies_taken": "Otro calendario ya se aplica en toda la organización para este estado, o sin estado. Cambie ese, o deje sin marcar Se aplica en toda la organización.",
     "holiday_day_taken": "Este calendario ya tiene un feriado ese día. Quítelo primero o elija otro día.",
     "holiday_venue_taken": "Ese recinto ya tiene un calendario de feriados. Desasígnelo allí primero.",
+    "import_sensitive_column": "Esta columna parece contener datos de dieta, accesibilidad o diversidad. Una importación no puede registrar el consentimiento, así que déjala sin asignar.",
+    "custom_field_sensitive": "Un campo personalizado no puede guardar datos de dieta, accesibilidad o diversidad. Usa Datos de trabajo o el paso de necesidades del invitado.",
+    "question_sensitive": "Una pregunta no puede pedir datos de dieta, accesibilidad o de grupos protegidos, porque responderla no registra ningún consentimiento. Usa Datos de trabajo o el paso de necesidades del invitado.",
     "shift_reconfirm_answered": "Este turno ya se confirmó, o ya nadie lo está preguntando.",
     "shift_no_show_self": "No puedes marcarte como ausente. Avísale a tu supervisor.",
     "shift_no_show_state": "Marca la ausencia cuando el turno haya empezado y haya alguien asignado.",
@@ -214,6 +220,7 @@
     "clients": {
       "intro": "Cada organización cliente tiene sus propios datos, miembros y marca. Usted ve solo datos de facturación; leer los registros de un cliente requiere una sesión de soporte que otorga su Propietario.",
       "create": "Crear una organización cliente",
+      "createOff": "La creación de organizaciones cliente está desactivada para este socio. El equipo de la plataforma la activa con un acuerdo de socio firmado; escriba al buzón de soporte para solicitarla.",
       "createTitle": "Nueva organización cliente",
       "createSubmit": "Crear e invitar al Propietario",
       "caption": "Organizaciones cliente",
@@ -232,7 +239,9 @@
         "slugHelp": "Letras minúsculas, dígitos y guiones. La dirección de Atlas del cliente.",
         "owner": "Correo del Propietario",
         "ownerHelp": "Esta persona recibe la invitación como Propietario.",
-        "plan": "Plan"
+        "plan": "Plan",
+        "country": "País del cliente",
+        "countryChoose": "Elija un país"
       },
       "inviteReady": "La organización cliente está lista. Envíe a su Propietario este enlace de invitación.",
       "inviteLink": "Enlace de invitación del Propietario",
@@ -568,6 +577,7 @@
       "invalid_duration": "no es una duración",
       "unknown_space": "ningún espacio de este recinto tiene este nombre",
       "invalid_plus_ones": "no está entre 0 y 20",
+      "sensitive_note": "menciona una necesidad de dieta o acceso: no la incluyas en la nota",
       "unknown_show": "ningún show de este proyecto tiene este nombre",
       "unknown_party": "ninguna empresa de esta organización tiene este nombre",
       "too_long": "demasiado largo",
@@ -781,7 +791,9 @@
         "security_changed": "Cambió la seguridad de la cuenta",
         "recovery_code_used": "Código de recuperación usado",
         "session_signed_out": "Sesión cerrada",
-        "work_details_moved": "Datos de trabajo pasados a cada proyecto"
+        "work_details_moved": "Datos de trabajo pasados a cada proyecto",
+        "sensitive_data_attested": "Datos introducidos por ti",
+        "sensitive_consent_needed": "Datos sensibles a la espera de tu consentimiento"
       },
       "announcement": {
         "posted": "Anuncio publicado"
@@ -806,7 +818,12 @@
         "trial_ending": "La prueba termina pronto",
         "trial_ended": "La prueba terminó",
         "paused": "Organización en pausa",
-        "resumed": "Organización reanudada"
+        "resumed": "Organización reanudada",
+        "purchase_confirmed": "Plan confirmado",
+        "renewal_reminder": "Plan próximo a renovarse",
+        "cancellation_confirmed": "Suscripción cancelada",
+        "plan_ending": "Plan por terminar",
+        "cancellation_delayed": "Cancelación aún sin confirmar"
       },
       "comment": {
         "created": "Nuevo comentario"
@@ -825,6 +842,10 @@
       },
       "incident": {
         "reported": "Incidente reportado"
+      },
+      "crisis_alert": {
+        "issued": "Alerta de crisis",
+        "ended": "Fin de la alerta de crisis"
       },
       "invoice": {
         "approved": "Factura aprobada",
@@ -846,6 +867,10 @@
       },
       "moderation_appeal": {
         "decided": "Apelación decidida"
+      },
+      "rating_dispute": {
+        "filed": "Calificación impugnada",
+        "decided": "Impugnación de calificación decidida"
       },
       "occupancy": {
         "threshold": "Se alcanzó el umbral de ocupación"
@@ -1077,7 +1102,7 @@
   },
   "lifecycle": {
     "title": "Cancelar la organización",
-    "description": "Cancelar termina la suscripción. La organización queda en solo lectura durante 30 días con la exportación completa disponible, y sus datos se eliminan el día 90.",
+    "description": "Al cancelar, cualquier suscripción de pago termina de inmediato en Stripe, sin más cargos. El tiempo ya pagado no se reembolsa, salvo que la ley lo exija. La organización queda en solo lectura de inmediato, el Propietario puede reactivarla durante 30 días, la exportación completa sigue disponible hasta la eliminación y sus datos se eliminan el día 90.",
     "loadError": "No se pudo cargar el estado de la organización.",
     "ownerOnly": "Solo el Propietario cancela la organización o descarga la exportación completa.",
     "banner": "Esta organización está cancelada y en solo lectura {days, plural, one {# día más} other {# días más}}, hasta el {until}. El Propietario puede descargar la exportación completa en Configuración, Zona de peligro.",
@@ -1087,7 +1112,7 @@
     },
     "cancel": {
       "title": "Cancelar la organización",
-      "explain": "Descargue primero la exportación completa si necesita una copia ahora; sigue disponible durante 30 días después de cancelar.",
+      "explain": "Descargue primero la exportación completa si necesita una copia ahora; sigue disponible hasta la eliminación.",
       "confirm": "Escriba {name} para confirmar",
       "reason": "¿Por qué cancela?",
       "reasonHelp": "Se guarda con el registro de cancelación.",
@@ -1360,7 +1385,7 @@
   },
   "moderation": {
     "title": "Decisiones de moderación",
-    "description": "Cuando el equipo de la plataforma XOS retira, restringe o restablece uno de tus anuncios tras una denuncia, la decisión y su exposición de motivos aparecen aquí. Puedes apelar un retiro o una restricción en un plazo de seis meses; otra persona decide la apelación.",
+    "description": "Cuando el equipo de la plataforma XOS retira, restringe o restablece uno de tus anuncios tras una denuncia, la decisión y su exposición de motivos aparecen aquí. Puedes apelar un retiro o una restricción en un plazo de seis meses. Revisamos cada apelación desde cero, dejamos constancia de los motivos y te avisamos del resultado.",
     "loadError": "No se pudieron cargar las decisiones de moderación.",
     "none": "No hay decisiones de moderación sobre tus anuncios.",
     "decision": "{title}: {action} el {when}",
@@ -1374,7 +1399,7 @@
       "No Action": "sin medidas"
     },
     "appeal": "Apelar esta decisión",
-    "appealed": "Apelación enviada. Otra persona la decidirá.",
+    "appealed": "Apelación enviada. La revisaremos desde cero y te avisaremos del resultado.",
     "grounds": "¿Por qué es incorrecta la decisión?",
     "groundsHelp": "Explica qué pasó por alto la revisión. Puedes apelar una vez.",
     "appealUntil": "Puedes apelar hasta el {until}.",

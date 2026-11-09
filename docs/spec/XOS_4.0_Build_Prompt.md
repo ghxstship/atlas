@@ -517,7 +517,8 @@ Gateway is the external face of every org on the platform. Atlas is for the peop
 **Ratings**
 - Ratings come only from completed engagements, and both sides rate each other.
 - Both ratings are released together, once both are in or after 14 days.
-- The person rated can reply publicly.
+- The person rated can reply.
+- An org's rating of an individual is read only inside that org and by that person; another org sees it only through that person's own withdrawable opt-in, and never on a hiring surface. The person can dispute it (ADR 0158).
 - Internal org notes are never shown externally.
 
 **Abuse**
@@ -1099,7 +1100,7 @@ AI features use Anthropic's Claude models through the Anthropic API. The model i
   - photo, name, preferred name, pronouns (optional), headline, bio, location to city level
   - skills by URID, certifications with verification badges, portfolio or EPK
   - rates (optional), availability, languages, links
-  - ratings from completed engagements
+  - ratings from completed engagements, for the person themselves and, with their opt-in, for viewers who decide no hiring (ADR 0158)
   - organizations worked with (each one shown only if both sides allow it)
 - **Organization profile:**
   - logo, cover, name, about, locations and service regions, capabilities by URID
@@ -2971,7 +2972,7 @@ Each journey is covered by an automated end-to-end test.
 46. Client: a signed proposal invites the client into Gateway; the client approves a change order, sees the shared run of show, and never sees internal notes, margins or other parties' rates.
 47. Sponsor: a sponsorship package is accepted, assets are approved in Gateway, entitlement fulfillment is captured with photos in Compass, and the proof-of-performance report satisfies gate 8.
 48. A person who is an internal member of one org and a crew member for another switches between Atlas, Gateway and Compass with one sign-in, and each surface shows only its own context.
-49. Ratings: both sides rate; neither sees the other's rating until both submit or 14 days pass; the rated party replies publicly.
+49. Ratings: both sides rate; neither sees the other's rating until both submit or 14 days pass; the rated party replies.
 50. A token advance form is completed without an account, then claimed into a new Gateway account, and the submission appears under that account.
 51. A Finance Lead signs in for the first time and sees Commercial expanded and other groups collapsed; an Admin turns off the Hospitality module and it disappears from navigation, search and the command menu.
 52. A crew member clocks in from the Live Activity, takes a break and clocks out without opening Compass.

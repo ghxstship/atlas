@@ -2,14 +2,18 @@
 
 `.github/workflows` belongs to the orchestrator. The jobs below call the reusable scripts in this directory, and each snippet is ready to paste. Actions are pinned by the SHAs ADR 0001 already lists; no new action is needed.
 
-| Script               | Runs                                                                                                                                                                   | Blocking                                                         |
-| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| `restore-drill.sh`   | Backup and restore drill (`infra/drills/release-drill.sh`: row counts, key-table checksums, pgTAP smoke) on the stack `supabase db start` built, in the `database` job | Yes                                                              |
-| `powersync-check.sh` | Sync rules against the migrated catalog; writes the publication SQL                                                                                                    | `continue-on-error` until the A17 rule fixes land, then blocking |
-| `synthetics.sh`      | Synthetic checks against staging, the status history and the status page                                                                                               | Its own scheduled workflow; a failed run notifies on-call        |
-| `backup-weekly.sh`   | Encrypted weekly logical backup of staging, and of production with its own read-only login (`--reader`, ADR 0033 decision 47)                                          | Its own scheduled workflow; needs the owner's public key first   |
-| `oasdiff.sh`         | Gate 20: breaking changes in the OpenAPI document since the latest `v*` tag                                                                                            | Yes; passes with a notice until the first tag                    |
-| `supabase-images.sh` | Pulls the Supabase CLI's images from GHCR before every `supabase start` and `supabase db start` in `ci.yml` and `nightly.yml` (section 7)                              | No; warns and leaves the pull to the CLI                         |
+| Script                     | Runs                                                                                                                                                                           | Blocking                                                                    |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------- |
+| `restore-drill.sh`         | Backup and restore drill (`infra/drills/release-drill.sh`: row counts, key-table checksums, pgTAP smoke) on the stack `supabase db start` built, in the `database` job         | Yes                                                                         |
+| `powersync-check.sh`       | Sync rules against the migrated catalog; writes the publication SQL                                                                                                            | `continue-on-error` until the A17 rule fixes land, then blocking            |
+| `status-history.sh`        | Reads and force-pushes the synthetic checks' history on the single-commit ref `refs/status/history`                                                                            | Its own scheduled workflow; a failed run notifies on-call                   |
+| `status-incidents.sh`      | Reads and publishes the status page's incident list on the single-commit ref `refs/status/incidents`, run by the incident commander and by the page job                        | No merge, CI run or deployment; refuses a list that changed since the fetch |
+| `post-alert.sh`            | One line to `XOS_ALERT_WEBHOOK_URL`, the channel the synthetic checks post to                                                                                                  | No; passes with a warning until the secret exists                           |
+| `backup-weekly.sh`         | Encrypted weekly logical backup of staging, and of production with its own read-only login (`--reader`, ADR 0033 decision 47)                                                  | Its own scheduled workflow; needs the owner's public key first              |
+| `oasdiff.sh`               | Gate 20: breaking changes in the OpenAPI document since the latest `v*` tag                                                                                                    | Yes; passes with a notice until the first tag                               |
+| `supabase-images.sh`       | Pulls the Supabase CLI's images from GHCR before every `supabase start` and `supabase db start` in `ci.yml` and `nightly.yml` (section 7)                                      | No; warns and leaves the pull to the CLI                                    |
+| `e2e-env.sh`               | The journeys' `.env.local` files and `E2E_*` variables from the CI stack, for `ci.yml` (Chromium) and the nightly Firefox and WebKit journeys alike                            | Yes                                                                         |
+| `supabase-wait-healthy.sh` | Waits for the stack's health checks after `supabase start --ignore-health-check` in the nightly iOS Maestro job, whose Colima VM is slower than the CLI's own wait (section 8) | Yes                                                                         |
 
 `@xos/infra`'s lint, typecheck and tests already run in the `checks` job through `pnpm verify`, since `infra` is in the workspace.
 
@@ -28,89 +32,16 @@
 
 Also raise `timeout-minutes` of the `database` job from 20 to 30. The drill adds about a minute, plus the image start.
 
-## 2. New workflow `.github/workflows/synthetics.yml`
+## 2. Workflow `.github/workflows/synthetics.yml`
 
-The repository is private (owner decision, 2026-10-24), so GitHub Actions minutes count against the plan's allowance: a 5-minute schedule is about 8,600 runs a month. Better Stack runs the one-minute checks from five regions (decision 45), so a longer interval here costs no coverage. Scheduled runs fire at most every 5 minutes, and GitHub may delay them under load. The page deploys to the Vercel project `status`, and the history lives on the `status-data` branch, so neither touches `main`.
+The workflow file is the source; this section no longer copies it. It runs every 5 minutes from `us-east`, and GitHub may delay a scheduled run under load.
 
-```yaml
-name: Synthetics
-
-on:
-  schedule:
-    - cron: "*/5 * * * *"
-  workflow_dispatch:
-
-permissions:
-  contents: write
-
-concurrency:
-  group: synthetics
-  cancel-in-progress: false
-
-jobs:
-  check:
-    name: Synthetic checks and status page
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version-file: .nvmrc
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter @xos/tokens build
-      - name: Fetch status history
-        run: |
-          git fetch --depth 1 origin status-data || true
-          mkdir -p "$RUNNER_TEMP/status-data"
-          if git rev-parse --verify -q origin/status-data >/dev/null; then
-            git show origin/status-data:history.json > "$RUNNER_TEMP/status-data/history.json"
-          fi
-      - name: Run checks and build the page
-        id: run
-        env:
-          XOS_SYNTHETICS_REGION: us-east
-          XOS_ATLAS_URL: ${{ vars.XOS_STAGING_ATLAS_URL }}
-          XOS_GATEWAY_URL: ${{ vars.XOS_STAGING_GATEWAY_URL }}
-          SUPABASE_URL: ${{ vars.XOS_STAGING_SUPABASE_URL }}
-          SUPABASE_ANON_KEY: ${{ vars.XOS_STAGING_SUPABASE_ANON_KEY }}
-          XOS_POWERSYNC_URL: ${{ vars.XOS_STAGING_POWERSYNC_URL }}
-          XOS_SYNTHETIC_EMAIL: ${{ secrets.XOS_SYNTHETIC_EMAIL }}
-          XOS_SYNTHETIC_PASSWORD: ${{ secrets.XOS_SYNTHETIC_PASSWORD }}
-          XOS_ALERT_WEBHOOK_URL: ${{ secrets.XOS_ALERT_WEBHOOK_URL }}
-        run: infra/ci/synthetics.sh "$RUNNER_TEMP/status-data/history.json" "$RUNNER_TEMP/status-site"
-      - name: Publish history and page
-        if: always() && steps.run.outcome != 'skipped'
-        run: |
-          git config user.name "xos-synthetics"
-          git config user.email "xos-synthetics@users.noreply.github.com"
-          publish() {
-            local branch="$1" dir="$2"
-            local work="$RUNNER_TEMP/publish-$branch"
-            rm -rf "$work" && mkdir -p "$work" && cp -R "$dir"/. "$work"/
-            touch "$work/.nojekyll"
-            git -C "$work" init -q -b "$branch"
-            git -C "$work" add -A
-            git -C "$work" -c user.name=xos-synthetics -c user.email=xos-synthetics@users.noreply.github.com commit -q -m "status: $(date -u +%Y-%m-%dT%H:%MZ)"
-            git -C "$work" push -q --force "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "$branch"
-          }
-          publish status-data "$RUNNER_TEMP/status-data"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      # The page is a static Vercel project, status.ghxstship.tech: GitHub Pages needs a paid plan for a private
-      # repository (owner decision, 2026-10-24). The CLI version is pinned like every other tool here.
-      - name: Deploy the page
-        if: always() && steps.run.outcome != 'skipped'
-        run: npx --yes vercel@63.1.2 deploy "$RUNNER_TEMP/status-site" --prod --yes --token "$VERCEL_TOKEN"
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_STATUS_TOKEN }}
-          VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ vars.VERCEL_STATUS_PROJECT_ID }}
-```
-
-The history branch is force-pushed as a single commit, so the repository does not grow with every run. The history file is the only state, and it keeps 90 days. The page itself deploys to the Vercel project `status`.
+- **Public hosts, no credential.** Each run makes five anonymous GETs, the same a visitor could: the Atlas and Gateway sign-in pages, the OpenAPI document on Atlas, a refused request on the API host (401 as a problem document) and the docs home. No check needs a secret, signs in or writes, so no test data reaches production. The checks that need a synthetic account, the Supabase project URL or PowerSync are skipped, and the status page shows their rows as No data, with a banner that says so instead of "All systems operational".
+- **Cheap.** The checks are plain Node with no dependencies, so a run installs nothing and takes seconds. The repository is public as of 2026-11-06, so Actions minutes are free. A private repository would pay about 8,600 minutes a month: then move the schedule to every 15 minutes, since Better Stack runs the one-minute checks (decision 45).
+- **Quiet.** A required check alerts on its second failure in a row, posting to `XOS_ALERT_WEBHOOK_URL` and marking that run failed, so GitHub notifies too. It posts again every 6 hours while it keeps failing, and once when it recovers. Other runs in an outage pass, and show the failure in their summary and on the status page. A check that is not required never alerts.
+- **History.** One file on the ref `refs/status/history`, force-pushed as a single commit so the repository does not grow, keeping 90 days. It holds the failure streaks, so a failed push turns the run red. It is deliberately not a branch: Vercel deploys every branch push on all five projects connected to this repository, and an orphan commit has none of their root directories. The one such push, `status-site` on 2026-10-25, failed on `atlas`, `gateway`, `docs` and `console`. A branch here would have made about 1,500 deployments a day. Rulesets on `main` do not touch this ref. Runs that start less than 4 minutes after the last recorded one (`MIN_RUN_GAP_MS`) are left out, so the hourly run, a manual run or two delayed runs cannot be the two failures in a row.
+- **Incidents.** The incident commander's list sits on its own single-commit ref, `refs/status/incidents`, written with `infra/ci/status-incidents.sh` from a local checkout. It is not a file on `main`, because the `main` ruleset requires a pull request and the full CI run, which takes over an hour, while the incident runbook requires a post within 30 minutes and an update every 60. The page job reads the ref on every run, so a run from any ref shows the same list.
+- **Status page.** A static Vercel project, `status.ghxstship.tech`: GitHub Pages was set aside while the repository was private (owner decision, 2026-10-24). It deploys when a failure is confirmed (the second in a row) or a confirmed failure ends, and about once an hour, not on every run, and it skips with a notice until `VERCEL_STATUS_TOKEN` exists.
 
 ## 3. Workflow `.github/workflows/backup-weekly.yml`
 
@@ -119,7 +50,7 @@ The workflow is in the repository since 2026-10-23 (RRR-139), so this section no
 - **`staging`**, as this section first wrote it: `supabase db dump` with `STAGING_DB_URL`, a repository secret.
 - **`production`** (ADR 0033, decision 47): `infra/ci/backup-weekly.sh production <dir> --reader` with `PRODUCTION_BACKUP_DB_URL`, a secret of the `production-backup` environment, which only `main` may use. It logs in as `xos_backup`, the read-only login of migration 1650. The CLI cannot dump as that login, because it always switches to the `postgres` role, so the script runs pg_dumpall, pg_dump and psql from the `supabase/postgres` image the pinned CLI names (`supabase services`), with the CLI's own flags and filters, two of them corrected, and adds the accounts, `platform.sql`, `cron.sql` and `migrations.txt` (`infra/runbooks/backup-and-restore.md`, What the production login reads).
 
-Both encrypt to `infra/backup/backup-public-key.asc` and upload `xos-<environment>-backup` kept 35 days. Each fails on purpose until the owner commits that key and sets its secret (`infra/runbooks/backup-and-restore.md`, Set up the production backup login). At 35 days' retention the account's artifact storage holds five archives of each project.
+Both encrypt to the key in `infra/backup/backup-public-key.asc` whose fingerprint the secret `BACKUP_ENCRYPTION_RECIPIENT` pins, and `infra/ci/backup-store.sh` uploads the archive to `<environment>/` in the owner's private, versioned and locked S3-compatible bucket, named only by the `BACKUP_S3_*` secrets of the `production-backup` environment. No backup is stored on GitHub as an artifact, cache, release asset or commit, because the repository is public. `production` fails on purpose until the owner commits that key and sets every secret, `staging` skips with a notice until its connection string exists, and a failed run posts to `XOS_ALERT_WEBHOOK_URL` (`infra/runbooks/security-owner-steps.md`, step 1). The bucket's lifecycle rule ages each archive out after about 5 weeks, so it holds about five of each project.
 
 ## 4. `ci.yml`, new job `api-breaking-changes` (gate 20)
 
@@ -147,7 +78,7 @@ Publishes `@ghxstship/xos-sdk` and `@ghxstship/xos-cli` to npm and `xos-sdk` to 
 
 - **Names.** `@xos` on npm belongs to someone else, so both npm packages publish under the owner's `@ghxstship` scope (ADR 0024, 2026-10-28 amendment). The other workspace packages keep `@xos/*`: they are private and never published. The PyPI name stays `xos-sdk`.
 - **`verify`.** Checks that the tag equals the version in all three packages (`packages/sdk-ts/test/release.test.ts` keeps them equal on every push), runs their tests, builds them once and packs them. pnpm names a scoped archive `<scope>-<name>-<version>.tgz`, so the job looks for `ghxstship-xos-sdk-X.Y.Z.tgz` and `ghxstship-xos-cli-X.Y.Z.tgz`, checks each holds its built entry point, and checks that the packed CLI depends on the exact SDK version (pnpm writes `workspace:*` as `X.Y.Z`). The publish jobs get these exact archives.
-- **npm.** Publishes the SDK first, then the CLI, because the CLI depends on that SDK version. Each step runs `npm view <name>@X.Y.Z` first and skips a version that already exists. Both manifests set `publishConfig.provenance` to `false`: npm reads `publishConfig` from the archive, and npm signs provenance only for a public repository, while this one is private (owner decision, 2026-10-24). A public mirror of the SDK packages can bring it back later.
+- **npm.** Publishes the SDK first, then the CLI, because the CLI depends on that SDK version. Each step runs `npm view <name>@X.Y.Z` first and skips a version that already exists. Both manifests set `publishConfig.provenance` to `false`: npm reads `publishConfig` from the archive, and npm signs provenance only for a public repository, which this one was not when that was set (owner decision, 2026-10-24). It reads as public on 2026-11-06, so the owner confirms which it should be (`infra/runbooks/security-owner-steps.md`) before this changes.
 - **PyPI.** Trusted publishing through `pypa/gh-action-pypi-publish`, so no PyPI secret exists. The owner registers a pending publisher for `xos-sdk` on pypi.org (owner `ghxstship`, repository `atlas`, workflow `publish-packages.yml`, environment `pypi`). Attestations are off (`attestations: false`): PEP 740 attestations need a public repository.
 - **Environments.** `npm` and `pypi` are GitHub environments with the owner as required reviewer, so a pushed tag waits for one approval before anything leaves the repository. The `npm` environment links to `https://www.npmjs.com/package/@ghxstship/xos-sdk`.
 - **Publishing an existing tag.** Actions, Publish packages, Run workflow, with the tag (for example `v4.0.0`). The run uses the workflow from `main` and checks out the tag, so a fix to the workflow reaches a tag that has already been pushed. A tag cut before the rename still names `@xos/*` in its manifests, so publish the first release that carries the `@ghxstship` names, not v4.0.0.
@@ -172,10 +103,9 @@ Before the first tag, the owner confirms the names are theirs. Publishing under 
 | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Vercel project `status`                       | A static project on the existing Vercel team, domain `status.ghxstship.tech` (ADR 0033, decision 72; hosted on Vercel by owner decision, 2026-10-24)                           |
 | Settings, Variables and Secrets (status page) | `VERCEL_ORG_ID`, `VERCEL_STATUS_PROJECT_ID` (variables) and `VERCEL_STATUS_TOKEN` (secret, a token the owner creates in Vercel, limited to the team)                           |
-| Settings, Variables (Actions)                 | `XOS_STAGING_ATLAS_URL`, `XOS_STAGING_GATEWAY_URL`, `XOS_STAGING_SUPABASE_URL`, `XOS_STAGING_SUPABASE_ANON_KEY` (public by design), `XOS_STAGING_POWERSYNC_URL` once it exists |
-| Settings, Secrets (Actions)                   | `XOS_SYNTHETIC_EMAIL`, `XOS_SYNTHETIC_PASSWORD`, `XOS_ALERT_WEBHOOK_URL`, `STAGING_DB_URL`                                                                                     |
+| Settings, Secrets (Actions)                   | `XOS_ALERT_WEBHOOK_URL`, `STAGING_DB_URL`                                                                                                                                      |
 | Settings, Environments                        | `production-backup`, deployment branches `main` only, with the secret `PRODUCTION_BACKUP_DB_URL` (the owner sets it; `infra/runbooks/backup-and-restore.md`)                   |
-| Branch protection                             | Leave `status-data` unprotected so the workflow can force-push it; `main` is untouched                                                                                         |
+| Branch protection                             | `main` through `infra/security/github/main-ruleset.json` (`infra/runbooks/security-owner-steps.md`). The synthetic history's ref is not a branch, so no branch rule reaches it |
 
 ## 7. Supabase stack images: GHCR first
 
@@ -207,11 +137,11 @@ Verified locally (A67): all nine images pull from GHCR at these tags, and with e
 
 ## 8. Compass Maestro jobs (nightly, gate 7)
 
-**iOS on `macos-15-intel` with Colima.** GitHub's Apple Silicon macOS runners (`macos-15`, `macos-latest`) have no Docker and cannot run it, because they do not support nested virtualization, so `supabase start` failed there. The Intel image can: Colima's own integration tests start a Docker VM on `macos-15-intel` on every push. The job installs `docker` and `colima` with Homebrew, starts a 2 CPU, 6 GB VM, and runs the same stack as the Linux jobs; Colima forwards the stack's ports to the Mac, so the simulator reaches it at `127.0.0.1:55421`. It then builds Compass for the simulator with Xcode 26.3 for x86_64 only. GitHub supports `macos-15-intel` until August 2027, as its last Intel image. Before then, the job moves to the hosted staging branch (ADR 0033 decision 1, `infra/runbooks/promote-to-production.md`) on an Apple Silicon runner. That needs the owner's staging URL, anon key and a seeded demo tenant as secrets, so it is not used today.
+**iOS on `macos-15-intel` with Colima.** GitHub's Apple Silicon macOS runners (`macos-15`, `macos-latest`) have no Docker and cannot run it, because they do not support nested virtualization, so `supabase start` failed there. The Intel image can: Colima's own integration tests start a Docker VM on `macos-15-intel` on every push. The job installs `docker` and `colima` with Homebrew, starts a 2 CPU, 6 GB VM (trying again from a clean VM if the image download fails), and runs the same stack as the Linux jobs. In that VM the migrations and seed take about seven minutes and Realtime and Storage turn healthy after the CLI has stopped waiting, so the job starts the stack with `--ignore-health-check` and `supabase-wait-healthy.sh` waits up to ten minutes, failing with the slow containers' logs; Colima forwards the stack's ports to the Mac, so the simulator reaches it at `127.0.0.1:55421`. It then builds Compass for the simulator with Xcode 26.3 for x86_64 only. GitHub supports `macos-15-intel` until August 2027, as its last Intel image. Before then, the job moves to the hosted staging branch (ADR 0033 decision 1, `infra/runbooks/promote-to-production.md`) on an Apple Silicon runner. That needs the owner's staging URL, anon key and a seeded demo tenant as secrets, so it is not used today.
 
 Approaches considered: running the stack in a Linux job and tunnelling to it from the macOS job needs a public tunnel and two jobs alive at once, which GitHub does not coordinate. Pointing at hosted staging is the fallback above. The Intel runner works today with no new secrets.
 
-**Android on `ubuntu-24.04`.** The first run never reached Maestro. The runner user could not open `/dev/kvm`, so the emulator ran with `-accel off`. It took 13 minutes to boot, and then `adb` lost it (`Broken pipe`) while the action turned animations off. The job now adds the udev rule GitHub documents for hardware acceleration. The release APK is built for x86_64 only, since the emulator is x86_64; the four-ABI build took 23 minutes. The CI build also allows cleartext HTTP, because release builds refuse `http://10.0.2.2:55421`; store builds keep Android's default.
+**Android on `ubuntu-24.04`.** The first run never reached Maestro. The runner user could not open `/dev/kvm`, so the emulator ran with `-accel off`. It took 13 minutes to boot, and then `adb` lost it (`Broken pipe`) while the action turned animations off. The job now adds the udev rule GitHub documents for hardware acceleration. The release APK is built for x86_64 only, since the emulator is x86_64; the four-ABI build took 23 minutes. The Gradle daemon gets 4 GB of heap and 1.5 GB of metaspace: with prebuild's 2 GB and 512 MB, the release lint ran out of metaspace and the build hung until the job timed out. The CI build also allows cleartext HTTP, because release builds refuse `http://10.0.2.2:55421`; store builds keep Android's default.
 
 **Both.** `apps/compass/scripts/maestro-ci-env.sh` gives the flows what they read: `SUPABASE_URL` and `SUPABASE_ANON_KEY` for their helper scripts, and a kiosk registered as the Demo Admin with the Demo Field Tech's kiosk PIN, for `supervisor-kiosk`. `apps/compass/scripts/maestro-ci.sh` installs Maestro at `MAESTRO_VERSION` and runs the flows with a JUnit report, uploaded as the job's artifact. iOS skips `field-clock-offline` (tag `airplane-mode`), because Maestro sets airplane mode only on Android.
 
@@ -239,4 +169,4 @@ To apply the result:
 
 ## Frequency and regions
 
-Section 5.1 asks for checks every minute from five regions. GitHub Actions on the free tier gives every 5 minutes from one region (`us-east`, the primary region). A 1-minute, five-region check needs a paid monitoring service: the owner chose Better Stack (ADR 0033, decision 45), and its monitors run once the owner's account exists. The checks are plain Node scripts with no dependencies, so any scheduler that runs Node 22 can run them per region with `XOS_SYNTHETICS_REGION` set.
+Section 5.1 asks for checks every minute from five regions. GitHub Actions gives every 5 minutes from one region (`us-east`, the primary region). A 1-minute, five-region check needs a paid monitoring service: the owner chose Better Stack (ADR 0033, decision 45), and its monitors run once the owner adds them. The checks are plain Node scripts with no dependencies, so any scheduler that runs Node 22 can run them per region with `XOS_SYNTHETICS_REGION` set.

@@ -70,6 +70,7 @@ select is(pg_temp.hook('grace') -> 'claims' -> 'org_id', null, 'with no org yet,
 
 -- She creates her organization on /auth/organization, as a new email account does.
 select pg_temp.as_user('grace');
+select app.confirm_minimum_age('Atlas');
 select lives_ok($$select app.create_organization('Harbor Crew', 'harbor-crew-google')$$,
   'a Google account creates its organization');
 select ok(exists (select 1 from app.memberships m join app.organizations o on o.id = m.org_id
@@ -87,6 +88,7 @@ select pg_temp.google_sign_up('hedy', 'hedy@northwind.test', 'Hedy Lamarr', '110
 create temporary table invite as select pg_temp.invite_token('bob', 'org_a', 'hedy@northwind.test', 'member') as token;
 grant select on invite to public;
 select pg_temp.as_user('hedy');
+select app.confirm_minimum_age('Atlas');
 select is((select refusal from app.accept_invite((select token from invite))), null,
   'an invitation to the address Google verified is accepted after signing in with Google');
 select pg_temp.as_platform();

@@ -31,6 +31,10 @@ function emailCatalog(locale) {
   if (typeof catalog !== "object") throw new Error(`The ${locale} catalog has no email namespace`);
   return catalog;
 }
+/** True when the email namespace of the locale holds the dotted key. */
+function hasMessage(locale, key) {
+  return lookup(emailCatalog(locale), key.split(".")) !== void 0;
+}
 /**
  * Formats an email message (`email.<key>`) as ICU with the given arguments. Dates are formatted in
  * the recipient's time zone. A missing key or argument throws: an email never ships a raw key.
@@ -56,4 +60,4 @@ function translator(locale, timeZone = "UTC") {
   return (key, args) => formatMessage(locale, key, args, timeZone);
 }
 //#endregion
-export { formatMessage, translator };
+export { emailCatalog, formatMessage, hasMessage, translator };

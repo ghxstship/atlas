@@ -4,7 +4,8 @@ import { fail, ok, toDataError, type Result } from "./result.ts";
 
 /**
  * Cookie consent, Global Privacy Control and the account age rule (Sections 14.3 and 14.9, finding
- * A65-014; migrations 0501 and 1381), shared by the Atlas and Gateway shells.
+ * A65-014; migrations 0501, 1381 and 6840), shared by the Atlas and Gateway shells and, for the age
+ * rule and what a sign-in still owes, Compass.
  *
  * What the shells set, and why a banner is needed (legal/cookie-policy.md section 3):
  * - Strictly necessary: the Supabase Auth session, this consent cookie, Gateway's acting account
@@ -135,22 +136,30 @@ export async function recordCookieConsent(
   return ok(data === true);
 }
 
-// Age 16 or older (Section 14.3 Children, Section 14.9 Minors) ----------------------------------
+// Age 18 or older (Section 14.3 Children, Section 14.9 Minors) ----------------------------------
 
 export type AgeSurface = "Atlas" | "Gateway" | "Compass";
 
-/** The minimum account age the Terms state (Terms of Service 3.2). */
-export const MINIMUM_AGE = 16;
+/** The minimum account age the Terms state (Terms of Service 3.2), in every app. */
+export const MINIMUM_AGE = 18;
 
-/** Sign-up metadata that records the ticked box when the account is created (migration 1381). */
+/**
+ * The two answers to the age question, as a form posts them. The question offers both with equal
+ * weight and says nothing of the rule until it is answered: the FTC warns against a box that only
+ * invites "I am old enough" (ADR 0156).
+ */
+export const AGE_OLD_ENOUGH = "18";
+export const AGE_UNDER = "under-18";
+
+/** Sign-up metadata that records the answer when the account is created (migrations 1381, 6840). */
 export function ageMetadata(surface: AgeSurface): {
-  readonly age_confirmed: "16";
+  readonly age_confirmed: typeof AGE_OLD_ENOUGH;
   readonly signup_surface: AgeSurface;
 } {
-  return { age_confirmed: "16", signup_surface: surface };
+  return { age_confirmed: AGE_OLD_ENOUGH, signup_surface: surface };
 }
 
-/** Whether the signed-in person has confirmed they are 16 or older. */
+/** Whether the signed-in person has confirmed they are 18 or older. A confirmation at 16 does not count. */
 export async function minimumAgeConfirmed(db: XosClient): Promise<Result<boolean>> {
   const { data, error } = await db.rpc("minimum_age_confirmed");
   if (error) return fail(toDataError(error));
@@ -166,6 +175,97 @@ export async function confirmMinimumAge(
   const { data, error } = await db.rpc("confirm_minimum_age", {
     p_surface: surface,
     ...(clientIp === null ? {} : { p_client_ip: clientIp }),
+  });
+  if (error) return fail(toDataError(error));
+  return ok(String(data));
+}
+
+/** What happened to an account whose holder answered that they are under 18. */
+export type AgeRefusal =
+  | { readonly outcome: "Account Removed" | "Account Closed" }
+  | {
+      readonly outcome: "Account Held";
+      /** Why deletion could not run: account_delete_legal_hold, _on_shift or _sole_owner. */
+      readonly reason: string;
+      readonly orgName: string | null;
+    };
+
+/**
+ * Whether a signed-in request still owes the age question, so a shell's proxy sends it to /auth/age first (ADR 0156). A
+ * failed read lets it through: the database still refuses joining an org and AI features until the answer is recorded.
+ */
+export async function owesAgeAnswer(db: XosClient): Promise<boolean> {
+  const age = await minimumAgeConfirmed(db);
+  return age.ok && !age.data;
+}
+
+/**
+ * Someone answered under 18 on a sign-up form, before any account exists: counts the refusal and keeps
+ * nothing they typed (api_public.record_age_refusal). A failure never changes what they are told.
+ */
+export async function recordAgeRefusal(
+  db: XosClient,
+  surface: AgeSurface,
+): Promise<Result<boolean>> {
+  const api = (db as unknown as { schema(name: "api_public"): PublicRpc }).schema("api_public");
+  const { data, error } = await api.rpc("record_age_refusal", { p_surface: surface });
+  if (error) return fail(toDataError(error));
+  return ok(data === true);
+}
+
+// What a Compass sign-in still owes (migration 6840) --------------------------------------------
+
+/** What the person chose when told what AI features send to a third-party AI provider. */
+export type AiChoice = "Allowed" | "Declined";
+
+export interface LegalStanding {
+  readonly ageConfirmed: boolean;
+  /** Personal documents accepted at any version; a new version comes from the re-acceptance list. */
+  readonly acceptedDocuments: readonly string[];
+  /** They hold an engagement or a roster entry, or no active membership. */
+  readonly workerTermsApply: boolean;
+  readonly aiChoice: AiChoice | null;
+  /** The version of the words shown with that choice. */
+  readonly aiDisclosureVersion: string | null;
+  /** A legal hold, an open shift or being an only owner would stop this account closing now. */
+  readonly closingBlocked: boolean;
+}
+
+export function parseLegalStanding(raw: Record<string, unknown>): LegalStanding {
+  const documents = raw["accepted_documents"];
+  const choice = raw["ai_choice"];
+  const version = raw["ai_disclosure_version"];
+  return {
+    ageConfirmed: raw["age_confirmed"] === true,
+    acceptedDocuments: Array.isArray(documents) ? documents.map(String) : [],
+    workerTermsApply: raw["worker_terms_apply"] !== false,
+    aiChoice: choice === "Allowed" || choice === "Declined" ? choice : null,
+    aiDisclosureVersion: typeof version === "string" ? version : null,
+    closingBlocked: raw["closing_blocked"] === true,
+  };
+}
+
+export async function readLegalStanding(db: XosClient): Promise<Result<LegalStanding>> {
+  const { data, error } = await db.rpc("my_legal_standing");
+  if (error) return fail(toDataError(error));
+  return ok(parseLegalStanding((data ?? {}) as Record<string, unknown>));
+}
+
+/** Records the person's AI choice with the version of the words they saw (app.record_ai_choice). */
+export async function recordAiChoice(
+  db: XosClient,
+  input: {
+    readonly surface: AgeSurface;
+    readonly disclosureVersion: string;
+    readonly choice: AiChoice;
+    readonly clientIp: string | null;
+  },
+): Promise<Result<string>> {
+  const { data, error } = await db.rpc("record_ai_choice", {
+    p_surface: input.surface,
+    p_disclosure_version: input.disclosureVersion,
+    p_choice: input.choice,
+    ...(input.clientIp === null ? {} : { p_client_ip: input.clientIp }),
   });
   if (error) return fail(toDataError(error));
   return ok(String(data));

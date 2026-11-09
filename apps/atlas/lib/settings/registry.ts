@@ -49,6 +49,7 @@ export const KNOWN_SETTING_ERRORS = new Set([
   "plan_feature_ip_allowlist",
   "setting_fixed",
   "work_phone_e164",
+  "content_objectionable",
 ]);
 
 /** The `settings.errors.*` key for a repository error. */

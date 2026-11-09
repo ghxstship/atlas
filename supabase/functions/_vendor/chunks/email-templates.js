@@ -337,38 +337,44 @@ function Greeting({ ctx }) {
     children: ctx.t("common.greeting", { name: ctx.recipientName }),
   });
 }
-var templates = {
-  notification: {
-    transactional: false,
-    compose: (item, ctx) => {
-      const subject = ctx.t(kindKey(item.kind, "subject"), item.args);
-      return {
-        subject,
-        element: /* @__PURE__ */ jsxs(Layout, {
-          locale: ctx.locale,
-          t: ctx.t,
-          sender: ctx.sender,
-          preview: subject,
-          heading: ctx.t("notification.heading", { subject }),
-          transactional: false,
-          action: {
-            label: ctx.t("common.open"),
-            url: item.url,
-          },
-          children: [
-            /* @__PURE__ */ jsx(Greeting, { ctx }),
-            /* @__PURE__ */ jsx(Paragraph, {
-              children: ctx.t(kindKey(item.kind, "body"), item.args),
-            }),
-            /* @__PURE__ */ jsx(ActionLinks, {
+/** A kind's email. A transactional one (billing_notice) has no unsubscribe link or one-tap actions. */
+function composeKind(item, ctx, transactional) {
+  const subject = ctx.t(kindKey(item.kind, "subject"), item.args);
+  return {
+    subject,
+    element: /* @__PURE__ */ jsxs(Layout, {
+      locale: ctx.locale,
+      t: ctx.t,
+      sender: ctx.sender,
+      preview: subject,
+      heading: ctx.t("notification.heading", { subject }),
+      transactional,
+      action: {
+        label: ctx.t("common.open"),
+        url: item.url,
+      },
+      children: [
+        /* @__PURE__ */ jsx(Greeting, { ctx }),
+        /* @__PURE__ */ jsx(Paragraph, { children: ctx.t(kindKey(item.kind, "body"), item.args) }),
+        transactional
+          ? null
+          : /* @__PURE__ */ jsx(ActionLinks, {
               actions: item.actions ?? [],
               kind: item.kind,
               t: ctx.t,
             }),
-          ],
-        }),
-      };
-    },
+      ],
+    }),
+  };
+}
+var templates = {
+  notification: {
+    transactional: false,
+    compose: (item, ctx) => composeKind(item, ctx, false),
+  },
+  billing_notice: {
+    transactional: true,
+    compose: (item, ctx) => composeKind(item, ctx, true),
   },
   digest: {
     transactional: false,
@@ -683,6 +689,80 @@ var templates = {
             /* @__PURE__ */ jsx(Paragraph, { children: summary }),
             /* @__PURE__ */ jsx(Paragraph, { children: ctx.t("subprocessor_notice.objection") }),
           ],
+        }),
+      };
+    },
+  },
+  legal_clock_alert: {
+    transactional: true,
+    compose: ({ audience, overdue, dueSoon, items, queueUrl }, ctx) => {
+      if (items.length === 0) throw new Error("A legal clock alert needs at least one item");
+      const subject = ctx.t("legal_clock_alert.subject", {
+        overdue,
+        dueSoon,
+      });
+      return {
+        subject,
+        element: /* @__PURE__ */ jsxs(Layout, {
+          locale: ctx.locale,
+          t: ctx.t,
+          sender: ctx.sender,
+          preview: subject,
+          heading: subject,
+          transactional: true,
+          ...(audience === "operator" && queueUrl
+            ? {
+                action: {
+                  label: ctx.t("legal_clock_alert.open"),
+                  url: queueUrl,
+                },
+              }
+            : {}),
+          children: [
+            /* @__PURE__ */ jsx(Paragraph, {
+              children: ctx.t(`legal_clock_alert.intro.${audience}`),
+            }),
+            items.map((item) =>
+              /* @__PURE__ */ jsx(
+                Paragraph,
+                {
+                  children: ctx.t(
+                    item.matter ? "legal_clock_alert.itemMatter" : "legal_clock_alert.item",
+                    {
+                      reference: item.reference,
+                      ...(item.matter
+                        ? { matter: ctx.t(`legal_clock_alert.matters.${item.matter}`) }
+                        : {}),
+                      clock: item.clock,
+                      overdue: item.overdue ? "yes" : "no",
+                      at: item.at,
+                    },
+                  ),
+                },
+                `${item.reference} ${item.clock}`,
+              ),
+            ),
+          ],
+        }),
+      };
+    },
+  },
+  moderation_notice: {
+    transactional: true,
+    compose: ({ kind, args }, ctx) => {
+      const subject = ctx.t(kindKey(kind, "subject"), args);
+      return {
+        subject,
+        element: /* @__PURE__ */ jsx(Layout, {
+          locale: ctx.locale,
+          t: ctx.t,
+          sender: ctx.sender,
+          preview: subject,
+          heading: subject,
+          transactional: true,
+          children: /* @__PURE__ */ jsx(Paragraph, {
+            children: ctx.t(kindKey(kind, "body"), args),
+          }),
         }),
       };
     },

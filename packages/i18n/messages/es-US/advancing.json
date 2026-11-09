@@ -156,6 +156,7 @@
     "advance_dock_zone": "Elige una zona de muelle vigente.",
     "dock_slot_overlap": "Otro turno ocupa ese muelle a esa hora. Elige otro muelle o mueve el turno.",
     "credential_names_closed": "Ya pasó la fecha límite de nombres para la parte; cambia los nombres desde Asignaciones.",
+    "guest_note_sensitive": "No incluyas necesidades de dieta ni de acceso en la nota. Usa el paso de necesidades del invitado, que registra el consentimiento.",
     "guest_pass_category": "Un tipo de pase es una categoría de Acceso de este proyecto. Elige una de la lista.",
     "guest_host_not_on_project": "Un anfitrión es miembro de tu organización o está contratado en este proyecto. Elige a alguien de la lista.",
     "guest_entry_production_fields": "El tipo de pase, la mesa y el anfitrión los define la producción.",
@@ -583,7 +584,7 @@
       "show": "Show",
       "wholeProject": "Todo el proyecto",
       "note": "Nota para la puerta",
-      "noteHelp": "Opcional. Por ejemplo, lateral del escenario o prensa.",
+      "noteHelp": "Opcional. Por ejemplo, lateral del escenario o prensa. No incluyas necesidades de dieta ni de acceso en esta nota.",
       "approveNow": "Aprobar ahora como cortesía de producción"
     },
     "actions": {

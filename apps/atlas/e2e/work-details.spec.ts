@@ -48,6 +48,12 @@ test("Work Details: a member records their details and reveals the passport numb
   const contact = page.getByRole("listitem").filter({ hasText: "Robin Example" });
   await expect(contact).toContainText("(305) 555-0142");
 
+  // ADR 0164: the fields appear only after the person reads and agrees to what is collected.
+  await expect(page.getByRole("form", { name: "Dietary needs" })).toHaveCount(0);
+  await page.getByRole("button", { name: "Add dietary details" }).click();
+  const consent = page.getByRole("dialog", { name: "Before you add dietary and allergy details" });
+  await consent.getByRole("button", { name: "I agree" }).click();
+  await expect(consent).toBeHidden();
   const dietary = page.getByRole("form", { name: "Dietary needs" });
   await dietary.getByRole("button", { name: /^Dietary needs/ }).click();
   await dietary.getByLabel("Vegan").check();

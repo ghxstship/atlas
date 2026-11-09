@@ -16,6 +16,13 @@ import type {
   RequestOptions,
 } from "./types.ts";
 
+/** The URL without trailing slashes: a loop, which stays linear where `/\/+$/` backtracks over a run of slashes. */
+function withoutTrailingSlashes(url: string): string {
+  let end = url.length;
+  while (end > 0 && url[end - 1] === "/") end -= 1;
+  return url.slice(0, end);
+}
+
 export interface XosClientOptions {
   /** API base URL including the version, for example `https://api.ghxstship.tech/v1`. */
   readonly baseUrl: string;
@@ -91,7 +98,7 @@ export class XosClientCore {
     if (typeof fetchImpl !== "function") {
       throw new TypeError("No fetch implementation is available; pass one as options.fetch.");
     }
-    this.baseUrl = options.baseUrl.replace(/\/+$/, "");
+    this.baseUrl = withoutTrailingSlashes(options.baseUrl);
     this.#options = options;
     this.#fetch = fetchImpl;
   }

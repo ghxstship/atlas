@@ -1,0 +1,73 @@
+appId: pro.ghxstship.compass
+# Legal issue 4 (ADR 0156): someone who answers under 18 keeps no account and lands back on the sign-in screen.
+# Named after its file: config.yaml orders flows by name.
+name: first-sign-in-under-18
+---
+- runScript:
+    file: ../scripts/throwaway-account.js
+- assertTrue: ${output.throwaway.status == 200}
+- launchApp:
+    stopApp: true
+- runFlow:
+    when:
+      true: ${typeof DEV_URL !== "undefined" && DEV_URL !== ""}
+    file: ../subflows/open-dev-bundle.yaml
+- extendedWaitUntil:
+    visible:
+      id: "sign-in|tab-bar|identity-failed|legal-gate-age"
+    timeout: 120000
+- runFlow:
+    when:
+      visible:
+        id: "tab-bar"
+    file: ../subflows/sign-out.yaml
+- runFlow:
+    when:
+      visible:
+        id: "identity-failed"
+    commands:
+      - tapOn:
+          id: "identity-failed-sign-out"
+- tapOn:
+    id: "sign-in-toggle"
+- tapOn:
+    id: "sign-in-email"
+- inputText: ${output.throwaway.email}
+- tapOn:
+    id: "sign-in-password"
+- inputText: ${XOS_DEMO_PASSWORD}
+- hideKeyboard
+- tapOn:
+    id: "sign-in-submit"
+# iOS offers to save the password after a password sign-in; it covers the app until answered.
+- extendedWaitUntil:
+    visible: "Not Now"
+    timeout: 15000
+    optional: true
+- runFlow:
+    when:
+      visible: "Not Now"
+    commands:
+      - tapOn: "Not Now"
+- extendedWaitUntil:
+    visible:
+      id: "legal-gate-age"
+    timeout: 30000
+- tapOn:
+    id: "legal-gate-age-under"
+- extendedWaitUntil:
+    visible:
+      id: "legal-gate-under"
+    timeout: 5000
+- tapOn:
+    id: "legal-gate-under-confirm"
+- extendedWaitUntil:
+    visible:
+      id: "legal-gate-refused"
+    timeout: 30000
+- tapOn:
+    id: "legal-gate-leave"
+- extendedWaitUntil:
+    visible:
+      id: "sign-in"
+    timeout: 30000

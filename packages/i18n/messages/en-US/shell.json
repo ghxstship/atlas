@@ -7,6 +7,33 @@
     "name": "Gateway",
     "tagline": "Find work, get onboarded, deliver and get paid."
   },
+  "landing": {
+    "brand": "XOS",
+    "title": "Run every live production in one place",
+    "lead": "XOS is production software from GHXSTSHIP Industries LLC for the teams who put on live events and experiences, and for the crew, vendors and artists they hire. One account opens all three apps.",
+    "signIn": "Sign in",
+    "apps": {
+      "title": "Three apps, one account",
+      "atlas": "For production teams",
+      "gateway": "For crew, vendors, artists, clients and sponsors",
+      "compass": "For the field, on iOS and Android",
+      "compassTagline": "Field operations that keep working without a signal."
+    },
+    "google": {
+      "title": "Signing in with Google",
+      "body": "If you sign in with Google, XOS receives the basic profile Google shares with the apps you sign in to, and uses it to create your account and sign you in. The <privacy>Privacy Policy</privacy> says what that includes and how we handle it."
+    },
+    "availability": "XOS is not directed to children. The Terms of Service say who may hold an account."
+  },
+  "legalLinks": {
+    "label": "Legal",
+    "privacy": "Privacy Policy",
+    "healthData": "Consumer Health Data Privacy Policy",
+    "terms": "Terms of Service",
+    "workerTerms": "Worker Terms",
+    "cookies": "Cookie settings",
+    "contact": "Contact"
+  },
   "pages": {
     "home": {
       "today": {
@@ -827,7 +854,18 @@
     "skipToContent": "Skip to content"
   },
   "legal": {
-    "inReview": "Version {version} is in review and not yet in effect. The published text appears here when it takes effect.",
+    "draftTitle": "Draft, not yet in effect",
+    "draftNotice": "Version {version} of this document is a draft. It is not in effect, and no one may rely on it.",
+    "inEffect": "Version {version}, in effect from {date}",
+    "upcomingTitle": "Not yet in effect",
+    "upcomingNotice": "Version {version} of this document takes effect on {date}. It is shown here ahead of that day and is not in effect before it.",
+    "upcomingEarlier": "Until then, version {version} stays in effect, and the Contact Page lists where to ask for a copy of its text.",
+    "history": "Version history",
+    "versionDraft": "Version {version}: draft, not yet in effect",
+    "versionInEffect": "Version {version}: in effect from {date}",
+    "versionUpcoming": "Version {version}: takes effect on {date}",
+    "contents": "On this page",
+    "englishOnly": "This document is published in English.",
     "action": "Back to Atlas"
   },
   "home": {
@@ -952,9 +990,13 @@
       "password": "Password",
       "passwordHelp": "At least 12 characters, with letters and numbers. Avoid your name, your email and product names.",
       "orgName": "Organization name",
+      "orgCountry": "Country where your organization is established",
+      "orgCountryChoose": "Choose a country",
       "orgSlug": "Web address",
       "orgSlugHelp": "Lowercase letters, numbers and hyphens. Your Atlas address is /{slug}.",
-      "age": "I am 16 or older."
+      "age": "I am 18 or older",
+      "ageUnder": "I am under 18",
+      "ageLegend": "Your age"
     },
     "or": "or",
     "signIn": {
@@ -986,6 +1028,7 @@
     "organization": {
       "title": "Create your organization",
       "lead": "You will be its Owner. You can invite your team next.",
+      "availability": "XOS is offered to organizations in {territories}. If an organization invited you, open your invitation.",
       "accept": "I accept the <termsLink>{terms}</termsLink> and the <dpaLink>{dpa}</dpaLink> on behalf of this organization.",
       "submit": "Create organization"
     },
@@ -1035,11 +1078,13 @@
       "password": "Enter a password of at least 12 characters with letters and numbers.",
       "passwordContext": "Choose a password that does not contain your name, your email or a product name such as Atlas.",
       "orgName": "Enter your organization's name.",
+      "orgCountry": "Choose the country where your organization is established.",
+      "territory_not_offered": "XOS is not offered in your organization's country ({country}), so we did not create this organization. XOS is offered to organizations in {territories}. If an organization invited you to work with it, you do not need to create one: open your invitation. If your organization has a signed contract with GHXSTSHIP, ask your contact there to set it up.",
       "orgSlug": "Use 2 to 48 lowercase letters, numbers and single hyphens.",
       "accept": "Accept the Terms of Service and the Data Processing Agreement to continue.",
       "slug_taken": "That web address is already in use. Choose another.",
       "slug_reserved": "That web address is reserved by Atlas. Choose another.",
-      "age": "Confirm that you are 16 or older. XOS accounts are for people 16 and over."
+      "age": "Choose the answer that is true for you."
     },
     "networkRestricted": {
       "title": "Your network is not allowed",
@@ -1051,6 +1096,26 @@
       "reasonHelp": "At least 20 characters.",
       "start": "Take emergency access",
       "back": "Choose another organization"
+    },
+    "ageRefused": {
+      "title": "XOS accounts are for people 18 and older",
+      "sentence": "You told us you are under 18, so we did not create an account. We did not keep what you typed.",
+      "closed": "You told us you are under 18, so your account is closed. We deleted your sign-in, your profile and its files, your badge photos, your settings, what you sent our support team, and the answers and personal agreements you gave XOS. Any organization you worked with keeps the records the law requires, such as hours you worked, and a note with your email address that your account was deleted, and XOS keeps a record of that deletion with your account IDs but no name. XOS also keeps a monthly count of people under 18 it turned away, which does not identify you. Deleted data stays in backups until they expire.",
+      "held": "You told us you are under 18, but your account cannot be deleted yet: a legal hold, an open shift or being an organization's only owner stands in the way. We signed you out everywhere, you cannot use this account, and we will ask again when you sign in. Contact us and we will finish closing it.",
+      "minors": "If you are working or attending an event, the adult or organization responsible for you can keep your details in their own records. You do not need an account for that.",
+      "contact": "Contact us"
+    },
+    "ageQuestion": {
+      "title": "Confirm your age",
+      "lead": "XOS asks everyone who has not answered yet.",
+      "submit": "Continue",
+      "under": {
+        "title": "Confirm your answer",
+        "sentence": "XOS accounts are for people 18 and older. If you are under 18, we close this account.",
+        "consequences": "Closing it ends your memberships, cancels work under way and deletes your sign-in, your profile and its files, your badge photos, your settings, what you sent our support team, and the answers and personal agreements you gave XOS. It cannot be undone. Any organization you worked with keeps the records the law requires, such as hours you worked, and a note with your email address that your account was deleted, and XOS keeps a record of that deletion with your account IDs but no name. XOS also keeps a monthly count of people under 18 it turned away, which does not identify you. Deleted data stays in backups until they expire.",
+        "confirm": "I am under 18. Close my account",
+        "back": "Go back"
+      }
     }
   },
   "roles": {
@@ -1194,7 +1259,7 @@
       "redirecting": "Opening Stripe…",
       "portal": {
         "title": "Billing portal",
-        "body": "Change the plan or the payment method, download invoices or cancel in the Stripe billing portal. A canceled plan runs to the end of the period paid for, then the organization moves to Access.",
+        "body": "Change the plan or the payment method and download invoices in the Stripe billing portal. Moving between monthly and annual billing is not done there: end this plan, then choose the new term here when it ends, so you see and agree to the new renewal terms first.",
         "bodyEnded": "Download past invoices and update billing details in the Stripe billing portal.",
         "period": "Billed {term, select, Annual {yearly} other {monthly}}. The current period ends on {date}.",
         "open": "Open the billing portal"
@@ -1212,7 +1277,13 @@
         "checkout_completed": "A checkout for this organization just completed. The plan shown here updates in a moment.",
         "billing_price_missing": "This plan is not on sale in Stripe yet. Try again later, or contact support.",
         "billing_no_customer": "This organization has not paid through Stripe yet. Choose a plan first.",
-        "other": "Billing did not go through. Try again, or contact support."
+        "other": "Billing did not go through. Try again, or contact support.",
+        "renewal_consent_required": "Agree to the renewal terms to continue.",
+        "renewal_initials_required": "Type your initials to agree to an annual renewal.",
+        "renewal_terms_changed": "These terms have changed. Read the new ones on this page, then agree again.",
+        "renewal_price_mismatch": "The price changed. Reload the page and try again.",
+        "renewal_date_range": "The first charge date changed. Reload the page and try again.",
+        "billing_no_subscription": "This organization has no paid plan to end."
       },
       "errors": {
         "input": "Choose a plan and a billing term.",
@@ -1238,7 +1309,39 @@
         "buy": "Buy a pack"
       },
       "foundingOffer": "Founding customers: the first {count} paying organizations get {percent} percent off their first {months} months with code {code}.",
-      "pricesInUsd": "Prices in US dollars before tax. EUR, GBP, CAD and AUD prices apply at checkout."
+      "pricesInUsd": "Prices in US dollars before tax.",
+      "pricesInOtherCurrencies": "Organizations in the other territories XOS is offered in pay in {currencies} at checkout.",
+      "checkoutTerms": "It renews automatically until you end it. We are emailing you the terms, and you can end the plan on this page at any time.",
+      "renewal": {
+        "title": "Review the {plan} plan",
+        "statementMonthly": "{plan} renews automatically every month at {price} {currency} a month, plus tax, until you cancel. Your first charge of {price} {currency} is on {date}, and your payment method is then charged each month on that day. A promotion code changes the price only for the period it states, and we can change the price at a renewal only after giving you 30 days of notice. To cancel, choose End plan in Settings, Billing and Plan at any time. The next renewal stops and the plan runs to the end of the period you paid for. Fees already paid are not refunded unless the law requires it.",
+        "statementAnnual": "{plan} renews automatically every year at {price} {currency} a year, plus tax, until you cancel. Your first charge of {price} {currency} is on {date}, and your payment method is then charged each year on that day. A promotion code changes the price only for the period it states, and we can change the price at a renewal only after giving you 30 days of notice. We email you a reminder 30 days before each renewal. To cancel, choose End plan in Settings, Billing and Plan at any time. The next renewal stops and the plan runs to the end of the year you paid for. Fees already paid are not refunded unless the law requires it.",
+        "agree": "I agree to these renewal terms, and I authorize XOS to charge my payment method through Stripe until I cancel.",
+        "initials": "Your initials",
+        "initialsHelp": "An annual plan renews for a full year, so we ask you to initial these terms.",
+        "continue": "Agree and continue to payment",
+        "back": "Back to the plans",
+        "planNames": {
+          "core": "Core",
+          "pro": "Pro",
+          "team": "Team"
+        }
+      },
+      "endPlan": {
+        "title": "End the plan",
+        "body": "Stops the next renewal. The plan keeps working to the end of the period you paid for, then the organization moves to the Access plan with its data intact. You will not be charged again. Time you already paid for is not refunded unless the law requires it.",
+        "submit": "End plan",
+        "sent": "We have your request and are sending it to Stripe. This page shows when Stripe accepts it."
+      },
+      "stripeCancel": {
+        "acceptedTitle": "Subscription canceled",
+        "acceptedBody": "Stripe has accepted the cancellation and will not charge this subscription again. Time you already paid for is not refunded unless the law requires it.",
+        "queuedTitle": "Cancellation not confirmed yet",
+        "queuedBody": "We have your cancellation and are sending it to Stripe, our payment provider. Stripe has not accepted it yet, so the subscription may still be active. You do not need to do anything. We keep trying automatically and we will email you as soon as it is accepted. If a charge reaches you after you canceled, write to support@ghxstship.pro and we will refund it.",
+        "endingTitle": "This plan is ending",
+        "endingBody": "Stripe has accepted your request. The plan keeps working until {date} and you will not be charged again. To keep the plan, renew it in the billing portal before then.",
+        "endingBodyNoDate": "Stripe has accepted your request. The plan keeps working to the end of the period you paid for and you will not be charged again. To keep the plan, renew it in the billing portal before then."
+      }
     },
     "organizations": {
       "leave": "Leave",

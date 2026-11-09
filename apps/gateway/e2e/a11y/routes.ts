@@ -49,10 +49,11 @@ export function sweepRoutesFor(person: Person): { id: string; path: string }[] {
     .map((r) => ({ id: r.id, path: fillRoute(r.route, params) }));
 }
 
-/** Pages anyone may open: sign in, sign up and the public profiles. No session. */
+/** Pages anyone may open: sign in, sign up, the public profiles and a legal document. No session. */
 export const PUBLIC_PAGES: readonly string[] = [
   "/auth/sign-in",
   "/auth/sign-up",
   "/u/demo-crew",
   "/c/demo-productions",
+  "/legal/privacy-policy",
 ];

@@ -6,7 +6,7 @@ import { expectAccessible, sql, uniqueId } from "./support";
  * choices, the server-side record, Cookie settings, and Global Privacy Control (Section 14.3); and
  * re-accepting the Worker Terms after a material change (Section 14.4). The config sends Global
  * Privacy Control so the banner stays out of other journeys; the cookie tests open their own
- * contexts. The "16 or older" question is covered in sign-up.spec.ts and google-sign-in.spec.ts.
+ * contexts. The "18 or older" question is covered in sign-up.spec.ts and google-sign-in.spec.ts.
  */
 
 async function plainContext(browser: Browser) {

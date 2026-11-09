@@ -8,11 +8,13 @@ owner sets it from the owner's secret store.
 
 ## What runs where
 
-| Piece                          | Runs                                          | Does                                                                                                                                                                       |
-| ------------------------------ | --------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `private.run_org_lifecycle()`  | pg_cron `xos_hourly_org_lifecycle`, minute 23 | Ends trials (Access plan), lapses ownership offers, ends white label kept after a downgrade, writes deletion certificates for orgs due, purges orgs whose storage is clear |
-| `private.run_dunning()` (0560) | pg_cron `xos_daily_dunning`                   | Dunning notices; read-only on day 21, which 1353 now enforces                                                                                                              |
-| `org-lifecycle` Edge Function  | the owner's scheduler, every 5 minutes        | Deletes due orgs' storage objects through the Storage API; renders, stores and emails deletion certificates; provisions custom domains at Vercel and Resend                |
+| Piece                                     | Runs                                                      | Does                                                                                                                                                                                                                |
+| ----------------------------------------- | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `private.run_org_lifecycle()`             | pg_cron `xos_hourly_org_lifecycle`, minute 23             | Ends trials (Access plan), lapses ownership offers, ends white label kept after a downgrade, writes deletion certificates for orgs due, purges orgs whose storage is clear                                          |
+| `private.run_dunning()` (0560)            | pg_cron `xos_daily_dunning`                               | Dunning notices; read-only on day 21, which 1353 now enforces                                                                                                                                                       |
+| `private.run_stripe_cancellation_watch()` | pg_cron `xos_stripe_cancellation_watch`, every 15 minutes | A Stripe cancel still queued after 15 minutes tells the billing owners and raises an alert, even if the worker is not running (ADR 0161)                                                                            |
+| `private.run_billing_renewal_reminders()` | pg_cron `xos_daily_billing_renewal_reminders`             | Reminds billing owners 30 days before an annual plan renews (ADR 0161)                                                                                                                                              |
+| `org-lifecycle` Edge Function             | the owner's scheduler, every 5 minutes                    | Sends due Stripe cancels and billing alerts (ADR 0161); deletes due orgs' storage objects through the Storage API; renders, stores and emails deletion certificates; provisions custom domains at Vercel and Resend |
 
 The purge itself runs in the database (`private.purge_organization`, called by the hourly job) so it has no
 statement timeout and runs in one transaction through the tenant purge of migration 1270. The Edge Function only
@@ -31,6 +33,8 @@ optional: without it, that part waits and says why.
 | `VERCEL_PROJECT_ID_GATEWAY` | The Gateway Vercel project                                   | `prj_<28 characters>`                        |
 | `RESEND_DOMAINS_API_KEY`    | Creating, verifying and removing sending domains             | `re_<32 characters>`, a key with full access |
 | `ATLAS_SITE_URL`            | The link printed on deletion certificates                    | `https://<the production Atlas host>`        |
+| `XOS_BILLING_ALERT_EMAIL`   | Where billing alerts go (ADR 0161)                           | `<the owner's mailbox>`                      |
+| `STRIPE_SECRET_KEY`         | Sending Stripe cancels, the same key `stripe-webhook` holds  | `sk_live_<...>`, an owner step               |
 
 The certificate email reuses the email secrets of `production.md` (`XOS_EMAIL_TRANSPORT`, `XOS_EMAIL_FROM`,
 `RESEND_API_KEY`, `XOS_EMAIL_ALLOWLIST`, `XOS_EMAIL_DELIVER_TO_ANY`). `RESEND_API_KEY` may stay a sending-only
@@ -45,9 +49,18 @@ provider.
 1. Deploy the function: `supabase functions deploy org-lifecycle --project-ref <ref>`.
 2. Schedule it every 5 minutes with the service key, as for `report-run` and `upload-scan`
    (`hosted-security-settings.md`).
-3. Check: call it once with the service key. A 200 with `{"certificates": [], "domains": []}` means it is
-   connected; `select jobname, schedule from cron.job where jobname = 'xos_hourly_org_lifecycle';` shows the
+3. Check: call it once with the service key. A 200 with `{"stripe": {...}, "certificates": [], "domains": []}`
+   means it is connected; `select jobname, schedule from cron.job where jobname = 'xos_hourly_org_lifecycle';` shows the
    hourly job.
+
+## Stripe cancels
+
+The worker also sends each Stripe cancel that is due, retrying until Stripe accepts it (ADR 0161, migration 6810), and
+closes Checkout sessions on orgs that are ending. It does this first, because an org cannot finish deletion until its cancel
+is accepted, and it spends at most about a minute on it, so a Stripe that hangs leaves certificates and domains their time.
+To see what is waiting: `select cancellation_state, attempts, last_error, next_attempt_at from
+private.stripe_cancellations where cancellation_state = 'Queued';` and `select alert_kind, detail from private.billing_alerts
+where resolved_at is null;`. Secrets and owner steps are in `production.md`, section "Stopping Stripe".
 
 ## The org's calendar
 
@@ -77,6 +90,7 @@ org's time zone, and its PDF and email date the deletion on that calendar.
 - Due: day 90 of a cancellation, or the end of a deletion request's 7-day recovery window. The hourly job writes a
   row in `app.deletion_certificates` (kept after the org is gone, read only by the former Owner).
 - Legal hold: a held org is marked `held_at` and waits; the purge refuses it too. Releasing the hold lets it go on.
+- A request for the data the export omits (Terms 11.2, DPA 10.2) holds the deletion too: the owner adds it to the console's legal queue as "Return of data the export omits", naming the org's slug, and that places a hold over every table of the org. Closing the item, once the data is returned, releases it. Nobody in the org can release that hold while the item is open; if the Customer withdraws the request, withdraw the item with their words as the reason.
 - Storage: the worker lists the org's objects (`app.deletion_storage_objects`) and deletes them through the
   Storage API in batches of 100 per bucket, then records the storage as clear.
 - Purge: the next hourly run deletes every row of the org and its Vault credentials, and records the counts.

@@ -1376,6 +1376,9 @@ __all__ = [
     "GuestListEntryCreate",
     "GuestListEntryUpdate",
     "GuestDecisionRequest",
+    "GuestNeedsRequest",
+    "GuestNeedsPage",
+    "GuestNeeds",
     "GuestEmailSendQueued",
     "GuestEmailSendRequest",
     "GuestEmailSendPage",
@@ -1506,6 +1509,17 @@ __all__ = [
     "RequestableItem",
     "ParkingPassPage",
     "ParkingPass",
+    "SensitiveConsentPage",
+    "SensitiveConsent",
+    "SensitiveDataCategory",
+    "SensitiveConsentBasis",
+    "SensitiveConsentSurface",
+    "SensitiveConsentCreate",
+    "SensitiveConsentReportRowPage",
+    "SensitiveConsentReportRow",
+    "SensitiveConsentStanding",
+    "SensitiveFieldRecordPage",
+    "SensitiveFieldRecord",
     "WorkDetailsPage",
     "WorkDetails",
     "GarmentLetterSize",
@@ -15792,13 +15806,18 @@ class OrganizationUpdate(TypedDict, total=False):
     organization_type: str
 
 
-class CreateOrganizationRequest(TypedDict):
-    """Creates an organization on the Access plan with the caller as its Owner."""
-
+class _CreateOrganizationRequestRequired(TypedDict):
     #: Organization name.
     name: str
     #: URL slug; reserved and taken slugs are refused.
     slug: str
+
+
+class CreateOrganizationRequest(_CreateOrganizationRequestRequired, total=False):
+    """Creates an organization with the caller as its Owner."""
+
+    #: ISO 3166-1 alpha-2 country the organization is established in, as the caller states it. A country outside the territories XOS is offered in is refused with 422 `territory_not_offered`. Omitted, no country is recorded and the platform team reviews the organization; XOS is offered only to organizations in the offered territories, as the Terms of Service say.
+    country_code: str
 
 
 class CreateClientOrganizationResult(TypedDict):
@@ -15826,6 +15845,8 @@ class CreateClientOrganizationRequest(_CreateClientOrganizationRequestRequired, 
 
     #: Plan code from `plans.yaml`; defaults to access.
     plan_code: str
+    #: ISO 3166-1 alpha-2 country the organization is established in, as the caller states it. A country outside the territories XOS is offered in is refused with 422 `territory_not_offered`. Omitted, no country is recorded and the platform team reviews the organization; XOS is offered only to organizations in the offered territories, as the Terms of Service say.
+    country_code: str
 
 
 class LeavePartnerRequest(TypedDict):
@@ -22023,9 +22044,7 @@ class RosterFactProvenance(TypedDict):
     vehicle: bool
 
 
-class RosterTravelRequest(TypedDict):
-    """The travel a rostered person asks for on one project (R5)."""
-
+class _RosterTravelRequestRequired(TypedDict):
     #: Identifier of the travel request.
     id: str
     #: IATA code of the airport the person flies into.
@@ -22042,7 +22061,7 @@ class RosterTravelRequest(TypedDict):
     outbound_on: Optional[str]
     #: Preferred seat.
     seat_preference: Optional[Literal["Window", "Aisle", "No Preference"]]
-    #: Meal preference.
+    #: Meal preference. Restricted: only the person, and holders of data.restricted.read.medical on the project while a grant stands, read it.
     meal_preference: Optional[str]
     #: The person needs a pickup on arrival.
     needs_ground_transport: bool
@@ -22052,6 +22071,13 @@ class RosterTravelRequest(TypedDict):
     travel_notes: Optional[str]
     #: When the request was last saved.
     updated_at: str
+
+
+class RosterTravelRequest(_RosterTravelRequestRequired, total=False):
+    """The travel a rostered person asks for on one project (R5)."""
+
+    #: One is on file that the caller may not read. Absent when there is nothing to mask.
+    meal_preference_masked: bool
 
 
 class RosterUniformSizes(TypedDict):
@@ -22122,7 +22148,7 @@ class RosterTravelRequestInput(_RosterTravelRequestInputRequired, total=False):
 
     #: Preferred seat.
     seat_preference: Optional[Literal["Window", "Aisle", "No Preference"]]
-    #: Meal preference.
+    #: Meal preference: needs the person's consent, or the company's attestation (422 sensitive_consent_required). A company sends null to leave one as it is, because it cannot read it back.
     meal_preference: Optional[str]
     #: A pickup is needed on arrival.
     needs_ground_transport: bool
@@ -22934,6 +22960,62 @@ class GuestDecisionRequest(TypedDict):
 
     #: Approved or Declined.
     outcome: Literal["Approved", "Declined"]
+
+
+class _GuestNeedsRequestRequired(TypedDict):
+    #: The caller has the guest's authority to enter this.
+    authority_confirmed: bool
+    #: The guest has been told what is entered, why and who sees it.
+    notice_confirmed: bool
+    #: Language the wording was shown in.
+    locale: str
+
+
+class GuestNeedsRequest(_GuestNeedsRequestRequired, total=False):
+    """A guest's needs, under the caller's attestation."""
+
+    dietary_needs: List[Literal["Vegetarian", "Vegan", "Pescatarian", "Halal", "Kosher", "Gluten Free", "Dairy Free", "Nut Free", "Shellfish Free"]]
+    #: Allergies, with how severe.
+    allergies: Optional[str]
+    #: Other dietary notes.
+    dietary_notes: Optional[str]
+    accessibility_needs: List[Literal["Step-Free Access", "Accessible Parking", "Accessible Restroom", "Seating", "Sign Language Interpreter", "Captioning", "Large Print", "Service Animal", "Quiet Space", "Assistance on Arrival"]]
+    #: Accessibility needs in words.
+    accessibility_notes: Optional[str]
+    #: The guest's email, so they can see this and remove it. Left out, the email on file stays.
+    guest_email: Optional[str]
+    #: Removes the email on file.
+    clear_guest_email: bool
+    #: Version of the dietary wording the caller read.
+    dietary_notice_version: Optional[str]
+    #: Version of the accessibility wording the caller read.
+    accessibility_notice_version: Optional[str]
+
+
+class GuestNeedsPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[GuestNeeds]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class GuestNeeds(TypedDict):
+    """A guest's needs, for a holder of the medical capability."""
+
+    #: The guest.
+    guest_list_entry_id: str
+    #: Name the guest gives at the door.
+    guest_name: str
+    dietary_needs: List[Literal["Vegetarian", "Vegan", "Pescatarian", "Halal", "Kosher", "Gluten Free", "Dairy Free", "Nut Free", "Shellfish Free"]]
+    #: Allergies.
+    allergies: Optional[str]
+    #: Other dietary notes.
+    dietary_notes: Optional[str]
+    accessibility_needs: List[Literal["Step-Free Access", "Accessible Parking", "Accessible Restroom", "Seating", "Sign Language Interpreter", "Captioning", "Large Print", "Service Animal", "Quiet Space", "Assistance on Arrival"]]
+    #: Accessibility notes.
+    accessibility_notes: Optional[str]
 
 
 class GuestEmailSendQueued(TypedDict):
@@ -24272,6 +24354,8 @@ class AuroraStatus(TypedDict):
     allowance: Optional[int]
     #: Whether the plan includes Aurora AI.
     plan_includes_aurora: bool
+    #: Whether the caller turned AI features off for themselves, in Compass, Settings. Their enabled_features is then empty whatever the org's setting, and only they can turn them back on. False with no recorded choice and for an API key.
+    declined_by_person: bool
 
 
 class _AuroraResultRequired(TypedDict):
@@ -24991,6 +25075,139 @@ class ParkingPass(TypedDict):
     holder_person_id: str
 
 
+class SensitiveConsentPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[SensitiveConsent]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class _SensitiveConsentRequired(TypedDict):
+    #: Identifier of the sensitive consent.
+    id: str
+    #: When the row was created.
+    created_at: str
+    #: When the row was last updated.
+    updated_at: str
+    category: SensitiveDataCategory
+    basis: SensitiveConsentBasis
+    #: Identifier of the external account whose supplier diversity status it covers.
+    account_id: Optional[str]
+    #: Identifier of the guest list entry the attestation covers.
+    guest_list_entry_id: Optional[str]
+    #: Identifier of the org whose member attested.
+    org_id: Optional[str]
+    #: Version of the wording the person read, for example the one the apps show. A retired or unknown version is refused with 422 sensitive_notice_version.
+    notice_version: str
+    #: Language the wording was shown in.
+    locale: str
+    surface: SensitiveConsentSurface
+    #: Identifier of the person who consented or attested.
+    given_by: str
+    #: When it was given.
+    given_at: str
+    #: When it was withdrawn; null while it stands.
+    withdrawn_at: Optional[str]
+
+
+class SensitiveConsent(_SensitiveConsentRequired, total=False):
+    """A consent to hold one category of sensitive data, or an attestation that someone else has the person's authority and that the person has had notice (ADR 0164). A new dietary, allergy, accessibility or supplier diversity value is refused with 422 sensitive_consent_required until one stands; clearing a value never needs one. Evidence: nothing changes after capture but a one-time withdrawal. The subject reads every row about them; whoever gave it reads theirs. A row does not name the person it is about, or who withdrew it, because whoever gave it reads it too: a person reads what was entered about them through the Work Details screens."""
+
+    #: With account_id: the caller confirms they have authority to declare for the company. Refused with 422 sensitive_attestation_required without it.
+    authority_confirmed: bool
+    #: With account_id: the caller confirms the people it describes have had notice. Refused with 422 sensitive_attestation_required without it.
+    notice_confirmed: bool
+
+
+class _SensitiveConsentCreateRequired(TypedDict):
+    category: SensitiveDataCategory
+    #: Version of the wording the person read, for example the one the apps show. A retired or unknown version is refused with 422 sensitive_notice_version.
+    notice_version: str
+    #: Language the wording was shown in.
+    locale: str
+
+
+class SensitiveConsentCreate(_SensitiveConsentCreateRequired, total=False):
+    """Fields accepted when creating a SensitiveConsent."""
+
+    #: Identifier of the external account whose supplier diversity status it covers.
+    account_id: Optional[str]
+    #: With account_id: the caller confirms they have authority to declare for the company. Refused with 422 sensitive_attestation_required without it.
+    authority_confirmed: bool
+    #: With account_id: the caller confirms the people it describes have had notice. Refused with 422 sensitive_attestation_required without it.
+    notice_confirmed: bool
+
+
+class SensitiveConsentReportRowPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[SensitiveConsentReportRow]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class SensitiveConsentReportRow(TypedDict):
+    """Consent state of one sensitive field of one subject. Never a value."""
+
+    #: Person, Guest or Company.
+    subject_kind: str
+    #: The person, guest list entry or external account.
+    subject_id: str
+    #: Display name.
+    subject_name: Optional[str]
+    category: SensitiveDataCategory
+    #: Field.
+    field_code: str
+    standing: SensitiveConsentStanding
+    #: Version of the wording.
+    notice_version: Optional[str]
+    #: When it was given.
+    given_at: Optional[str]
+    #: Who gave it.
+    given_by_name: Optional[str]
+    #: When it was withdrawn.
+    withdrawn_at: Optional[str]
+
+
+class SensitiveFieldRecordPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[SensitiveFieldRecord]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class SensitiveFieldRecord(TypedDict):
+    """Per subject and sensitive field: the consent the value stands on, who entered it and when, and when it was cleared. Never a value (ADR 0164). The person reads their own, and a company's Owners and Admins read the company's."""
+
+    #: Identifier of the record.
+    id: str
+    #: Field.
+    field_code: str
+    #: Identifier of the person the field is about.
+    person_id: Optional[str]
+    #: Identifier of the external account the field is about.
+    account_id: Optional[str]
+    #: Identifier of the guest list entry the field is about.
+    guest_list_entry_id: Optional[str]
+    #: Identifier of the consent the value stands on; null for a value from before consent was recorded.
+    consent_id: Optional[str]
+    #: Identifier of the person who last entered the value.
+    entered_by: Optional[str]
+    #: When a value was first entered.
+    entered_at: str
+    #: When the value last changed.
+    changed_at: str
+    #: When the value was cleared; null while one is held.
+    cleared_at: Optional[str]
+    #: When a value from before consent was recorded started waiting for it; it is cleared 30 days later.
+    awaiting_since: Optional[str]
+
+
 class WorkDetailsPage(TypedDict):
     """One page of results with a cursor to the next page."""
 
@@ -25415,9 +25632,7 @@ class SharedUniformSizes(TypedDict):
     uniform_notes: Optional[str]
 
 
-class SharedDietaryNeeds(TypedDict):
-    """Dietary needs as an engaging org reads them."""
-
+class _SharedDietaryNeedsRequired(TypedDict):
     dietary_needs: List[DietaryNeed]
     #: Allergies; null when masked for the reader. Restricted: only a holder of data.restricted.read.medical on the project reads them, and each such read is logged; a company reader never does.
     allergies: Optional[str]
@@ -25429,19 +25644,40 @@ class SharedDietaryNeeds(TypedDict):
     dietary_notes: Optional[str]
 
 
-class SharedMedicalNeeds(TypedDict):
-    """The Restricted medical read (R6a): present when the share names Dietary Needs and the caller holds data.restricted.read.medical on the project (the org Owner, and by default the catering lead and on-site medical roles worked there), even without hospitality.fulfillment.read; null otherwise. Each read is logged as allergies.viewed."""
+class SharedDietaryNeeds(_SharedDietaryNeedsRequired, total=False):
+    """Dietary needs as an engaging org reads them."""
 
+    #: Dietary needs or notes are recorded and withheld from this reader: they are Restricted (ADR 0164), so dietary_needs is empty and dietary_notes null without data.restricted.read.medical on the project.
+    dietary_masked: bool
+
+
+class _SharedMedicalNeedsRequired(TypedDict):
     #: Allergies, unmasked.
     allergies: Optional[str]
 
 
-class SharedAccessibilityNeeds(TypedDict):
-    """Accessibility needs as an engaging org reads them."""
+class SharedMedicalNeeds(_SharedMedicalNeedsRequired, total=False):
+    """The Restricted medical read (R6a): present when the share names Dietary Needs and the caller holds data.restricted.read.medical on the project (the org Owner, and by default the catering lead and on-site medical roles worked there), even without hospitality.fulfillment.read; null otherwise. Each read is logged as allergies.viewed."""
 
+    dietary_needs: List[DietaryNeed]
+    #: Other dietary notes, unmasked.
+    dietary_notes: Optional[str]
+    accessibility_needs: List[AccessibilityNeed]
+    #: Accessibility notes, unmasked.
+    accessibility_notes: Optional[str]
+
+
+class _SharedAccessibilityNeedsRequired(TypedDict):
     accessibility_needs: List[AccessibilityNeed]
     #: Accessibility notes.
     accessibility_notes: Optional[str]
+
+
+class SharedAccessibilityNeeds(_SharedAccessibilityNeedsRequired, total=False):
+    """Accessibility needs as an engaging org reads them."""
+
+    #: Accessibility needs or notes are recorded and withheld from this reader: they are Restricted (ADR 0164), so accessibility_needs is empty and accessibility_notes null without data.restricted.read.medical on the project.
+    accessibility_masked: bool
 
 
 class SharedTravelProfile(TypedDict):
@@ -30630,6 +30866,18 @@ AiSuggestionState = Literal["Proposed", "Confirmed", "Applied", "Rejected", "Exp
 
 #: How a model call ended. No Answer is the silence rule (Section 3.7).
 AiRequestOutcome = Literal["Pending", "Answered", "No Answer", "Failed"]
+
+#: A category of sensitive data consented to on its own.
+SensitiveDataCategory = Literal["Dietary and Allergies", "Accessibility", "Supplier Diversity"]
+
+#: Own Consent, or Attested Authority when someone else entered it.
+SensitiveConsentBasis = Literal["Own Consent", "Attested Authority"]
+
+#: Where it was captured; API for anything recorded here.
+SensitiveConsentSurface = Literal["Atlas", "Gateway", "Compass", "API"]
+
+#: Consent state of the field, computed.
+SensitiveConsentStanding = Literal["Consent Given", "Attested", "Withdrawn", "No Record"]
 
 #: Letter size for a shirt, jacket or gloves.
 GarmentLetterSize = Literal["XXS", "XS", "S", "M", "L", "XL", "2XL", "3XL", "4XL", "5XL"]

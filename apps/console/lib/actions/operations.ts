@@ -2,7 +2,9 @@
 
 import {
   decideAppeal,
+  decideEscalation,
   decideListing,
+  decideRatingDispute,
   endBanner,
   endSupportSession,
   grantOperator,
@@ -21,6 +23,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { actionContext } from "@/lib/operator";
 import { failed, field, fromResult, type ActionState } from "@/lib/action-state";
+import { contentGroundsFor, type ContentModerationAction } from "@xos/data/content-safety";
 import * as enums from "@xos/data/enums";
 
 /**
@@ -35,6 +38,7 @@ const KINDS: readonly ConsoleBanner["kind"][] = enums.systemBannerKind;
 const SEVERITIES: readonly ConsoleBanner["severity"][] = enums.systemBannerSeverity;
 const AUDIENCES: readonly BannerAudience[] = enums.systemBannerAudience;
 const ROLES: readonly OperatorRole[] = enums.platformOperatorRole;
+const CONTENT_ACTIONS: readonly ContentModerationAction[] = enums.contentModerationAction;
 
 const pick = <T extends string>(list: readonly T[], value: string): T | undefined =>
   list.find((v) => v === value);
@@ -84,6 +88,70 @@ export async function decideListingAction(_: ActionState, form: FormData): Promi
   return fromResult(result);
 }
 
+/** An operator decides a rating dispute (ADR 0158). Upholding needs a named ground, which the database checks again. */
+export async function decideRatingDisputeAction(
+  _: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  const ctx = await actionContext("moderation.decide");
+  if (!ctx.ok) return failed(ctx.key);
+  const disputeId = field(form, "disputeId");
+  const outcome = field(form, "outcome");
+  const ground = pick(enums.ratingDisputeGround, field(form, "ground"));
+  const statement = field(form, "statement");
+  if (
+    !Uuid.safeParse(disputeId).success ||
+    (outcome !== "Upheld" && outcome !== "Not Upheld") ||
+    statement === ""
+  ) {
+    return failed("errors.invalid");
+  }
+  if (outcome === "Upheld" && (!ground || ground === "Other")) {
+    return failed("refusals.rating_dispute_decision_ground");
+  }
+  const result = await decideRatingDispute(ctx.db, {
+    disputeId,
+    outcome,
+    ground: outcome === "Upheld" ? (ground ?? null) : null,
+    statement,
+  });
+  if (result.ok) {
+    revalidatePath(`/rating-disputes/${disputeId}`);
+    revalidatePath("/rating-disputes");
+  }
+  return fromResult(result);
+}
+
+/**
+ * GHXSTSHIP decides a post, comment or message whose reports the org left undecided past their 24 hours (6891), with
+ * the statement of reasons in parts an org moderator gives.
+ */
+export async function decideEscalationAction(_: ActionState, form: FormData): Promise<ActionState> {
+  const ctx = await actionContext("moderation.decide");
+  if (!ctx.ok) return failed(ctx.key);
+  const subjectId = field(form, "subjectId");
+  const action = pick(CONTENT_ACTIONS, field(form, "action"));
+  const ground = pick(GROUNDS, field(form, "ground"));
+  const ruleReference = field(form, "ruleReference");
+  const facts = field(form, "facts");
+  const statement = field(form, "statement");
+  if (!Uuid.safeParse(subjectId).success || !action || !ground) return failed("errors.invalid");
+  if (!contentGroundsFor(action).includes(ground)) return failed("refusals.moderation_ground");
+  if (ruleReference === "" || facts === "" || statement === "") return failed("errors.invalid");
+  const result = await decideEscalation(ctx.db, subjectId, {
+    action,
+    ground,
+    ruleReference,
+    facts,
+    statement,
+  });
+  if (result.ok) {
+    revalidatePath(`/reported-content/${subjectId}`);
+    revalidatePath("/reported-content");
+  }
+  return fromResult(result);
+}
+
 export async function decideAppealAction(_: ActionState, form: FormData): Promise<ActionState> {
   const ctx = await actionContext("moderation.decide");
   if (!ctx.ok) return failed(ctx.key);
@@ -91,6 +159,7 @@ export async function decideAppealAction(_: ActionState, form: FormData): Promis
   const appealId = field(form, "appealId");
   const outcome = field(form, "outcome");
   const statement = field(form, "statement");
+  const reReviewNotes = field(form, "reReviewNotes");
   if (
     !Uuid.safeParse(appealId).success ||
     (outcome !== "Upheld" && outcome !== "Reversed") ||
@@ -109,10 +178,18 @@ export async function decideAppealAction(_: ActionState, form: FormData): Promis
           facts: field(form, "facts"),
         }
       : null;
-  const result = await decideAppeal(ctx.db, { appealId, outcome, statement, newDecision });
+  const result = await decideAppeal(ctx.db, {
+    appealId,
+    outcome,
+    statement,
+    reReviewNotes,
+    newDecision,
+    outsideReviewerDecided: field(form, "outsideReviewerDecided") === "yes",
+  });
   if (result.ok) {
     revalidatePath(`/moderation/${opportunityId}`);
     revalidatePath("/moderation");
+    revalidatePath("/legal-queue");
   }
   return fromResult(result);
 }

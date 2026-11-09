@@ -1,9 +1,15 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { BillingStore } from "./billing/webhook.ts";
 import type { InboundStore } from "./inbound/parse.ts";
 import { actionLinks } from "./notifications/action-links.ts";
 import type { ClaimedEmail, NotificationStore, Recipient } from "./notifications/dispatch.ts";
 import type { ClaimedWebhook, WebhookStore } from "./webhooks/dispatch.ts";
+
+/** The URL without trailing slashes: a loop, which stays linear where `/\/+$/` backtracks over a run of slashes. */
+function withoutTrailingSlashes(url: string): string {
+  let end = url.length;
+  while (end > 0 && url[end - 1] === "/") end -= 1;
+  return url.slice(0, end);
+}
 
 /**
  * The database operations the platform services use: app schema RPCs and single-row reads, run with
@@ -81,7 +87,7 @@ export interface RestDbOptions {
  * supabase-js. The Edge Functions use it, so a cold start parses only what the function calls (A85).
  */
 export function restDb(options: RestDbOptions): PlatformDb {
-  const base = `${options.url.replace(/\/+$/, "")}/rest/v1`;
+  const base = `${withoutTrailingSlashes(options.url)}/rest/v1`;
   const send = options.fetch ?? ((url: string, init: RequestInit) => fetch(url, init));
   const auth = { apikey: options.serviceKey, Authorization: `Bearer ${options.serviceKey}` };
   const schema = options.schema ?? "app";
@@ -127,94 +133,23 @@ export function restDb(options: RestDbOptions): PlatformDb {
   };
 }
 
-function rows(data: unknown): readonly Readonly<Record<string, unknown>>[] {
+export function rows(data: unknown): readonly Readonly<Record<string, unknown>>[] {
   return Array.isArray(data) ? (data as Readonly<Record<string, unknown>>[]) : [];
 }
 
-function text(row: Readonly<Record<string, unknown>> | undefined, key: string): string {
+export function text(row: Readonly<Record<string, unknown>> | undefined, key: string): string {
   const value = row?.[key];
   if (typeof value !== "string")
     throw new PlatformDbError(key, "expected text in the database response");
   return value;
 }
 
-function optionalText(
+export function optionalText(
   row: Readonly<Record<string, unknown>> | undefined,
   key: string,
 ): string | null {
   const value = row?.[key];
   return typeof value === "string" ? value : null;
-}
-
-/** BillingStore over the 0560, 1250 and 1640 RPCs. */
-export function billingStore(db: PlatformDb): BillingStore {
-  return {
-    async recordStripeEvent(event) {
-      const row = rows(
-        await db.rpc("record_stripe_event", {
-          p_stripe_event_id: event.id,
-          p_event_type: event.type,
-          p_livemode: event.livemode,
-          p_stripe_created_at: event.createdAt.toISOString(),
-          p_payload: event.payload,
-          p_org_id: event.orgId,
-        }),
-      )[0];
-      const rowId = text(row, "stripe_event_row_id");
-      const stored = await db.selectOne("stripe_events", "processed_at", { id: rowId });
-      return {
-        rowId,
-        isNew: row?.["is_new"] === true,
-        processed: optionalText(stored ?? undefined, "processed_at") !== null,
-      };
-    },
-    async finishStripeEvent(rowId, error) {
-      await db.rpc("finish_stripe_event", { p_stripe_event_row_id: rowId, p_error: error });
-    },
-    async orgForCustomer(customerId) {
-      const link = await db.selectOne("stripe_subscription_links", "org_id", {
-        stripe_customer_id: customerId,
-      });
-      return optionalText(link ?? undefined, "org_id");
-    },
-    async syncSubscription(input) {
-      const state = await db.rpc("sync_subscription_from_stripe", {
-        p_org_id: input.orgId,
-        p_stripe_customer_id: input.customerId,
-        p_stripe_subscription_id: input.subscriptionId,
-        p_plan_code: input.planCode,
-        p_billing_interval: input.interval,
-        p_stripe_status: input.status,
-        p_current_period_end: input.currentPeriodEnd?.toISOString() ?? null,
-        p_livemode: input.livemode,
-        p_extra_seats: input.extraSeats,
-        p_pause_collection: input.pauseCollection !== null,
-        p_pause_resumes_at: input.pauseCollection?.resumesAt?.toISOString() ?? null,
-        p_event_created_at: input.eventCreatedAt.toISOString(),
-      });
-      return String(state);
-    },
-    async recordAddonPurchase(input) {
-      const id = await db.rpc("record_addon_purchase_from_stripe", {
-        p_org_id: input.orgId,
-        p_addon_code: input.addonCode,
-        p_quantity: input.quantity,
-        p_stripe_checkout_session_id: input.checkoutSessionId,
-        p_currency_code: input.currency,
-        p_amount_total_minor: input.amountTotalMinor,
-        p_livemode: input.livemode,
-        p_paid_at: input.paidAt.toISOString(),
-      });
-      return String(id);
-    },
-    async finishCheckout(sessionId, state) {
-      const known = await db.rpc("finish_billing_checkout_from_stripe", {
-        p_stripe_checkout_session_id: sessionId,
-        p_checkout_state: state,
-      });
-      return known === true;
-    },
-  };
 }
 
 /** WebhookStore over the 0510 dispatcher RPCs. */

@@ -570,13 +570,20 @@
     "tenant": "Tenant",
     "metrics": "Metrics",
     "flags": "Feature Flags",
+    "territories": "Territories",
     "support": "Support Sessions",
     "supportSession": "Support Session",
     "moderation": "Moderation",
     "listing": "Reported Listing",
+    "reportedContent": "Reported Content",
+    "reportedItem": "Reported Item",
+    "legalQueue": "Legal Queue",
+    "legalQueueItem": "Legal Queue Item",
     "banners": "System Banners",
     "funnels": "Funnels",
     "team": "Platform Team",
-    "activity": "Activity"
+    "activity": "Activity",
+    "ratingDisputes": "Rating Disputes",
+    "ratingDispute": "Rating Dispute"
   }
 }

@@ -1,10 +1,15 @@
+import { readFileSync } from "node:fs";
+import { createRequire } from "node:module";
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import type { ReactElement } from "react";
 import { describe, expect, it, vi } from "vitest";
 import {
   Combobox,
   DatePicker,
   DateRangePicker,
+  Dialog,
+  Drawer,
   FileDrop,
   MultiSelect,
   Slider,
@@ -98,6 +103,74 @@ describe("MultiSelect", () => {
     await userEvent.click(screen.getByRole("button", { name: "Remove Creative" }));
     expect(onChange).toHaveBeenLastCalledWith([]);
   });
+});
+
+/** The token stack: z-dialog, z-command and the rest, by name. */
+const zTokens: Record<string, number> = Object.fromEntries(
+  (
+    JSON.parse(
+      readFileSync(createRequire(import.meta.url).resolve("@xos/tokens/tokens.json"), "utf8"),
+    ) as { zIndex: { tokens: { name: string; value: string }[] } }
+  ).zIndex.tokens.map((token) => [token.name, Number(token.value)]),
+);
+
+/** The stacking layer of the nearest element at or above `el` that names a z token. */
+function layerOf(el: Element | null): number {
+  for (let at = el; at; at = at.parentElement) {
+    const name = [...at.classList].find((c) => c in zTokens);
+    if (name) return zTokens[name] as number;
+  }
+  throw new Error("no z token above the element");
+}
+
+describe("a picker inside an overlay", () => {
+  type Pick = (value: unknown) => void;
+  const holders: [string, (field: ReactElement) => ReactElement][] = [
+    ["a drawer", (field) => <Drawer title="Project details">{field}</Drawer>],
+    [
+      "a dialog",
+      (field) => (
+        <Dialog title="Edit travel" actions={null}>
+          {field}
+        </Dialog>
+      ),
+    ],
+  ];
+  const pickers: [string, (onChange: Pick) => ReactElement, unknown][] = [
+    [
+      "Combobox",
+      (onChange) => <Combobox label="Arriving at" options={departments} onChange={onChange} />,
+      "6000",
+    ],
+    [
+      "MultiSelect",
+      (onChange) => (
+        <MultiSelect label="Arriving at" options={departments} value={[]} onChange={onChange} />
+      ),
+      ["6000"],
+    ],
+  ];
+  const cases = holders.flatMap(([where, hold]) =>
+    pickers.map(([kind, field, picked]) => [kind, where, hold, field, picked] as const),
+  );
+
+  it.each(cases)(
+    "a %s list opens above %s, so an option takes a click",
+    async (_kind, _where, hold, field, picked) => {
+      const onChange = vi.fn();
+      render(hold(field(onChange)));
+      const holder = screen.getByRole("dialog");
+      await userEvent.click(within(holder).getByRole("combobox", { name: "Arriving at" }));
+      const list = screen.getByRole("listbox");
+      // Portaled out of the overlay, so only its own layer decides what lies on top.
+      expect(holder.contains(list)).toBe(false);
+      expect(layerOf(list)).toBeGreaterThan(layerOf(holder));
+      expect(layerOf(list)).toBeGreaterThan(zTokens["z-peek"] as number);
+      expect(getComputedStyle(list.parentElement as Element).pointerEvents).not.toBe("none");
+      await userEvent.click(screen.getByRole("option", { name: /Operations/ }));
+      expect(onChange).toHaveBeenLastCalledWith(picked);
+    },
+  );
 });
 
 describe("Slider", () => {

@@ -2,6 +2,10 @@
 
 This is the operational runbook for the Incident Response Policy (`legal/policies/incident-response.md`, owner A21). The policy defines severities, roles and notification duties. This runbook says what to do, minute by minute. Every synthetic check alert links to a section below.
 
+## With one person on the team
+
+Every role below can be one person, and today it is. Do not wait for someone to hand over to: you are the Incident Commander, the Communications Lead and the Privacy Officer, so do each step yourself in the order given. A SEV1 or SEV2 "immediately, 24x7" start means as soon as an alert reaches you. Add every incident with personal data to the Legal Queue (`/legal-queue`, Personal data breach) so the 48-hour and 72-hour clocks alert you. If an outside firm is ever named for incidents, call it at step 5.
+
 ## First 15 minutes
 
 1. **Acknowledge** the alert in the on-call channel: "I have it." You are the Incident Commander (IC) until you hand over.
@@ -44,7 +48,7 @@ Never delete data, accounts or cloud resources during an incident. Pause or isol
 
 ### Atlas or Gateway unavailable
 
-Checks: `atlas.sign_in_page`, `gateway.home`.
+Checks: `atlas.sign_in_page`, `gateway.home`. An alert means a check failed twice in a row, at least 4 minutes apart and usually 5. A run that starts sooner after the last one, such as the hourly page run or a manual one, does not count. It repeats every 6 hours while the check keeps failing, and another line says when it recovers.
 
 1. Vercel, the project, Deployments: did a deploy land in the last hour? If yes, roll back first and investigate after.
 2. Vercel, Observability or Logs, filtered on `level:error`. Each log line is JSON with `service`, `request_id`, `trace_id` and `http_route`.
@@ -54,25 +58,32 @@ Checks: `atlas.sign_in_page`, `gateway.home`.
 
 ### Sign-in failing
 
-Check: `atlas.sign_in`.
+Check: `atlas.sign_in`, which runs only where a synthetic account is set. `synthetics.yml` checks the public hosts with no credential, so it sees the sign-in page and not a sign-in: this section starts from a user's report or a Better Stack monitor.
 
 1. Supabase, the project, Auth logs: rate limits, `invalid_grant` for every user, or provider outages.
-2. Check the synthetic user still exists and is not locked. A locked synthetic user is SEV4: fix the account and close.
+2. Where a synthetic account is set, check it still exists and is not locked. A locked synthetic user is SEV4: fix the account and close.
 3. Check the custom access token hook (`0920_active_org_token_hook.sql`). A failing hook blocks every sign-in. The Auth logs show `hook` errors.
 4. Recent changes to Auth settings (Supabase, Auth, Settings) are a common cause. Revert them through the dashboard and record the change in the timeline.
 
 ### API errors or latency
 
-Checks: `api.openapi`, `api.read`.
+Checks: `api.openapi` (the document on Atlas's host), `api.host_guard` (the API host refuses a request with no key, as `application/problem+json`) and `api.read` (only where a synthetic account is set).
 
 1. Errors: Vercel logs for `/api/v1`, grouped by `http_route` and status. A wave of 5xx after a deploy means roll back.
 2. Latency: Supabase, Reports, Database. Look for CPU, connections and slow queries (`pg_stat_statements`). Connections near the limit point at pooling: the API must use Supavisor in transaction mode (Section 5.1).
 3. The RLS benchmark (gate 17) catches policy regressions. A slow list query usually means a policy without an index; `explain analyze` it as the affected role.
 4. If the API is slow only for one tenant, check that tenant's import or export jobs (`app.import_jobs`, `app.export_jobs`) and pause the job.
 
+### Documentation unavailable
+
+Check: `docs.home`. The docs site is not a Covered Service under the SLA, so this is usually SEV3.
+
+1. Vercel, project `docs`, Deployments: did a deploy land in the last hour? If yes, roll back first and investigate after.
+2. The site is static, so check `https://www.vercel-status.com` next.
+
 ### Realtime or sync degraded
 
-Checks: `realtime.join`, and `sync.liveness` once PowerSync runs (it is skipped while `XOS_POWERSYNC_URL` is unset).
+Checks: `realtime.join`, and `sync.liveness` once PowerSync runs. `synthetics.yml` sets neither for now, so the status page shows these as No data and this section starts from a user's report.
 
 1. Realtime: Supabase, Realtime inspector; check concurrent connection and message quotas on the plan page.
    If only co-editing fails (Edit together keeps falling back to the slow pull) while live lists still update, check
@@ -85,11 +96,21 @@ Checks: `realtime.join`, and `sync.liveness` once PowerSync runs (it is skipped 
 
 ### Notifications delayed
 
-Check: `notifications.function`.
+Check: `notifications.function`, not set in `synthetics.yml` for now, so the status page shows No data.
 
 1. Supabase, Edge Functions, `notification-dispatch`: invocations and errors. The function answers 401 without the service key, which is what the check expects.
 2. Check the scheduled job that calls it (`cron.job_run_details` for the dispatch job) and the provider status (Resend).
 3. Deliveries are rows in `app.notification_deliveries`. Undelivered rows are retried, so nothing is lost while the function is down.
+
+### Legal queue heartbeat failing
+
+Check: `legal_queue.heartbeat`. It stays off the public status page, because it says nothing about the service Customers use, but it pages you, because a stopped sweep means no legal clock alerts go out. Treat it as SEV3, and open `/legal-queue` by hand until it is clear. The check's detail says which part stopped:
+
+- `sweep_stale`: the hourly sweep has not finished in 2 hours. Look at `cron.job_run_details` for `xos_sweep_legal_queue`, then run `select private.sweep_legal_queue();` once in the SQL editor.
+- `feed_failing`: an automatic feed is failing, most often after a migration changed its table. Alerts on everything else still go out. The failure is also an item in the queue, with the error, and closes itself once the feed works.
+- `alert_path_failing`: part of the last sweep failed, and an alert it could not send tries again next hour. `select failing_paths from private.legal_queue_health;` names which: `operator`, `backup`, `reviewer`, `on_call` or `purge`. Most often a later migration changed `platform_emails_template` or the outbox and dropped `legal_clock_alert`. Run `select private.sweep_legal_queue();` once it is fixed, and the check clears. Until then read the queue by hand.
+- `alert_email_stuck_or_failed`: an alert or moderation-result email has waited over an hour, or failed in the last 48 hours. Check the `subprocessor-notices` worker, the provider, and `XOS_EMAIL_ALLOWLIST` or `XOS_EMAIL_DELIVER_TO_ANY`. A failed result email is also a queue item: tell the person another way.
+- `no_alert_recipient`: nobody holds the Administrator role, so alerts reach no one. Grant it with `private.grant_platform_operator`.
 
 ### Security incident or suspected breach
 
@@ -103,7 +124,14 @@ Check: `notifications.function`.
 
 ## Communication
 
-- **Status page.** Add an entry to `infra/status/incidents.json` (title and update in en-US and es-US, affected components and regions, `startedAt`, `resolvedAt` set to null) and merge it. The next synthetics run republishes the page. Update at least every 60 minutes until resolved (SLA Section 5).
+- **Status page.** Incidents live on the ref `refs/status/incidents`, not on `main`, so posting one needs no pull request, no CI run and no deployment, and does not break the deploy freeze. From any up-to-date checkout of the repository, with write access and Node from `.nvmrc`:
+
+  1. `infra/ci/status-incidents.sh fetch status-incidents` writes the current list to `status-incidents/incidents.json`, or `[]` if there is none yet.
+  2. Add an entry like the one below: title and update in en-US and es-US, affected components and regions, `startedAt`, and `resolvedAt` set to null. Keep the entries already there.
+  3. `infra/ci/status-incidents.sh publish status-incidents` checks the file, lists every problem if there is one, and publishes it. If someone else published since your fetch, it refuses: fetch again and redo the edit.
+  4. `gh workflow run synthetics.yml --repo ghxstship/atlas --ref main` puts it on the page within a few minutes. Otherwise the page shows it at its next update, about once an hour.
+
+  Update at least every 60 minutes until resolved (SLA Section 5), the same way. The folder `status-incidents/` is ignored by git.
 
   ```json
   {
@@ -126,21 +154,21 @@ Check: `notifications.function`.
   ```
 
 - **In-app banner.** The Communications Lead posts the same text in the Atlas and Gateway banner.
-- **Resolution.** Set `resolvedAt`, write the final update and lift the deploy freeze.
+- **Resolution.** Set `resolvedAt`, write the final update, publish it the same way and lift the deploy freeze.
 
 ## After the incident
 
 1. **Postmortem.** For SEV1 and SEV2, hold a blameless review within 5 business days. Cover the timeline, root cause, what worked and what did not, and actions with owners and dates, each filed as an issue.
 2. **Post-incident report.** Publish it within 5 business days for any downtime under the SLA.
-3. **Error budget.** At 99.9 percent, the monthly budget is 43 minutes. When a month's budget is spent, feature releases pause until reliability work restores it (Section 5.1). The release owner checks the status page's 30-day uptime before each release.
+3. **Error budget.** At 99.9 percent, the monthly budget is 43 minutes. When a month's budget is spent, feature releases pause until reliability work restores it (Section 5.1). The release owner checks the status page's 30-day uptime before each release. That figure counts only confirmed failures, two in a row, so scattered single failures do not show in it: also read the day marks, which turn Degraded when more than 5 percent of a day's answers were slow or failed alone, and the server logs.
 4. **Update this runbook** with anything the next on-call would have needed.
 
 ## On-call setup (orchestrator)
 
-| Item                 | Setting                                                                                                                  |
-| -------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| Alert channel        | A Slack incoming webhook for the on-call channel, saved as the `XOS_ALERT_WEBHOOK_URL` repository secret                 |
-| GitHub notifications | Watch the repository for failed `synthetics` runs (Actions notifications for the on-call engineers)                      |
-| Synthetic user       | One staging user with no org data of value, `XOS_SYNTHETIC_EMAIL` and `XOS_SYNTHETIC_PASSWORD` secrets                   |
-| Sentry alerts        | Projects `atlas` and `gateway`: alert on a new issue and on more than 10 events in 5 minutes, routed to the same channel |
-| Rotation             | Weekly primary and secondary; the handover note lists open incidents and frozen deploys                                  |
+| Item                 | Setting                                                                                                                                                       |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Alert channel        | A Slack incoming webhook for the on-call channel, saved as the `XOS_ALERT_WEBHOOK_URL` repository secret. `synthetics.yml` and `backup-weekly.yml` post to it |
+| GitHub notifications | Watch the repository for failed `synthetics` runs (Actions notifications for the on-call engineers). A run is marked failed only when it alerts               |
+| Synthetic user       | None for now: `synthetics.yml` checks the public hosts with no credential and writes no data to production                                                    |
+| Sentry alerts        | Projects `atlas` and `gateway`: alert on a new issue and on more than 10 events in 5 minutes, routed to the same channel                                      |
+| Rotation             | Weekly primary and secondary; the handover note lists open incidents and frozen deploys                                                                       |

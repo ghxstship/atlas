@@ -30,6 +30,7 @@
     "pause_not_active": "La suscripción de Stripe no está activa, así que no puede pausarse.",
     "pause_none": "Esta organización no tiene una pausa que reanudar.",
     "pause_needs_payment_method": "Agrega un método de pago en el portal de facturación y luego reanuda.",
+    "pause_plan_ending": "Este plan está por terminar, así que la facturación no puede pausarse ni reanudarse. Sigue activo hasta el final del período que pagaste.",
     "org_read_only": "Una organización de solo lectura no puede pausarse. Primero resuelve lo que la hizo de solo lectura.",
     "sandbox_not_billable": "Un entorno de pruebas nunca se factura.",
     "billing_through_partner": "Tu socio factura esta organización. Pregúntale al socio por una pausa.",

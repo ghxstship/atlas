@@ -168,7 +168,22 @@
     "delete": "Remove certificate",
     "deleteTitle": "Remove this certificate?",
     "deleteBody": "It leaves the list and the vendor's compliance; the audit log keeps the record.",
-    "back": "Back to insurance certificates"
+    "back": "Back to insurance certificates",
+    "uploads": {
+      "heading": "Vendor uploads with no certificate",
+      "help": "Files vendors uploaded for onboarding items, whether or not they are insurance. Open one, and if it is an insurance certificate, record it. Recording does not verify the onboarding item: review that on the engagement. Passing the review does not record a certificate. A file that is not insurance needs nothing here and leaves when the engagement closes.",
+      "meta": "{item}, uploaded {date}",
+      "waiting": "Waiting for review",
+      "passed": "Passed review, no certificate recorded",
+      "notReady": "Cannot be opened yet: still being scanned, or you do not have access to the file.",
+      "loadError": "Vendor uploads could not be loaded. Refresh to try again.",
+      "more": "Showing {shown} of {total}, those not yet reviewed first.",
+      "open": "Open file",
+      "record": "Record certificate",
+      "review": "Review on engagement",
+      "fromUpload": "From {vendor}: {item}.",
+      "uploadedFile": "Uploaded by the vendor"
+    }
   },
   "scorecards": {
     "title": "Scorecards",
@@ -340,6 +355,7 @@
       "smallDisadvantagedBusiness": "Small disadvantaged business",
       "hubzone": "HUBZone business",
       "other": "Other certification"
-    }
+    },
+    "restricted": "Restricted: shared certifications are read only by people with restricted data access."
   }
 }

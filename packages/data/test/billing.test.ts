@@ -5,10 +5,13 @@ import {
   beginSubscriptionResume,
   getBillingAccount,
   getBillingPortalCustomer,
+  getStripeCancellations,
   getSubscriptionPause,
   recordBillingCheckout,
+  recordRenewalConsent,
   recordSubscriptionPause,
   recordSubscriptionResume,
+  requestPlanEnd,
 } from "../src/billing.ts";
 import { errorResponse, fakeClient, okResponse } from "./fake-client.ts";
 
@@ -264,5 +267,113 @@ describe("subscription pause (B16, 6051)", () => {
       },
     });
     expect(await getSubscriptionPause(db, org)).toEqual({ ok: true, data: null });
+  });
+});
+
+describe("renewal consent and Stripe cancels (ADR 0161)", () => {
+  const consent = {
+    orgId: org,
+    planCode: "core",
+    interval: "Monthly" as const,
+    livemode: false,
+    amountMinor: 14900,
+    currency: "USD",
+    nextChargeOn: "2026-11-06",
+    textVersion: "2026-11-06",
+    locale: "en-US",
+    statement: "Core renews automatically.",
+    initials: null,
+  };
+
+  it("records what the Owner agreed to, and passes on a refusal", async () => {
+    const { db, calls } = fakeClient({
+      "rpc:record_renewal_consent": [
+        okResponse("consent-1"),
+        errorResponse("XR001", "renewal_price_mismatch: The price changed."),
+      ],
+    });
+    await expect(recordRenewalConsent(db, consent)).resolves.toEqual({
+      ok: true,
+      data: "consent-1",
+    });
+    expect(calls[0]?.steps[0]).toEqual([
+      "args",
+      [
+        {
+          p_org_id: org,
+          p_plan_code: "core",
+          p_billing_interval: "Monthly",
+          p_amount_minor: 14900,
+          p_currency_code: "USD",
+          p_next_charge_on: "2026-11-06",
+          p_text_version: "2026-11-06",
+          p_locale: "en-US",
+          p_statement: "Core renews automatically.",
+          p_initials: "",
+          p_livemode: false,
+        },
+      ],
+    ]);
+    await expect(recordRenewalConsent(db, { ...consent, initials: "BB" })).resolves.toMatchObject({
+      ok: false,
+    });
+    expect((calls[1]?.steps[0]?.[1] as { p_initials: string }[])[0]?.p_initials).toBe("BB");
+  });
+
+  it("reads where the org's cancels stand", async () => {
+    const { db } = fakeClient({
+      "rpc:stripe_cancellation_status": [
+        okResponse([
+          {
+            cancellation_id: "c-1",
+            stripe_subscription_id: "sub_1",
+            cancel_mode: "At Period End",
+            cancellation_state: "Accepted",
+            source: "Plan Ended",
+            requested_at: "2026-11-06T00:00:00Z",
+            accepted_at: "2026-11-06T00:00:01Z",
+            ends_at: "2026-12-06T00:00:00Z",
+          },
+        ]),
+        errorResponse("42501", "org.billing.read is required"),
+      ],
+    });
+    await expect(getStripeCancellations(db, org)).resolves.toEqual({
+      ok: true,
+      data: [
+        {
+          id: "c-1",
+          stripeSubscriptionId: "sub_1",
+          mode: "At Period End",
+          state: "Accepted",
+          requestedAt: "2026-11-06T00:00:00Z",
+          acceptedAt: "2026-11-06T00:00:01Z",
+          endsAt: "2026-12-06T00:00:00Z",
+        },
+      ],
+    });
+    await expect(getStripeCancellations(db, org)).resolves.toMatchObject({ ok: false });
+  });
+
+  it("ends a plan, and passes on no paid plan or an empty answer", async () => {
+    const { db } = fakeClient({
+      "rpc:request_plan_end": [
+        okResponse([
+          { cancellation_id: "c-1", stripe_subscription_id: "sub_1", cancellation_state: "Queued" },
+        ]),
+        errorResponse("XR001", "billing_no_subscription: None."),
+        okResponse([]),
+      ],
+    });
+    const input = { orgId: org, livemode: false };
+    await expect(requestPlanEnd(db, input)).resolves.toEqual({
+      ok: true,
+      data: { cancellationId: "c-1", stripeSubscriptionId: "sub_1", state: "Queued" },
+    });
+    await expect(requestPlanEnd(db, input)).resolves.toMatchObject({ ok: false });
+    await expect(requestPlanEnd(db, input)).resolves.toMatchObject({
+      ok: false,
+      error: { kind: "unexpected" },
+    });
   });
 });

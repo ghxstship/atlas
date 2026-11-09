@@ -90,7 +90,7 @@
     "postings": "Publicaciones",
     "project": "Proyecto",
     "proposedFee": "Tarifa propuesta",
-    "publicComment": "Comentario público",
+    "publicComment": "Comentario",
     "question": "Pregunta",
     "rank": "Posición",
     "rate": "Tarifa",
@@ -236,7 +236,12 @@
       "invite_expiry_range": "Una invitación permanece abierta de 1 hora a 30 días.",
       "invitation_closed": "Esta invitación ya se respondió o se revocó. Invita de nuevo a la dirección.",
       "opportunity_hidden_client_named": "Mientras el cliente y el evento están ocultos, el título y la descripción no pueden nombrar el proyecto, su cliente ni el lugar. Quita el nombre o muestra el cliente y el evento.",
-      "opportunity_hidden_client_published": "Esta publicación ya mostró su cliente y su evento, así que ya no se pueden ocultar. Publica una oportunidad nueva para ocultarlos."
+      "opportunity_hidden_client_published": "Esta publicación ya mostró su cliente y su evento, así que ya no se pueden ocultar. Publica una oportunidad nueva para ocultarlos.",
+      "question_sensitive": "Una pregunta no puede pedir datos de dieta, accesibilidad o de grupos protegidos, porque responderla no registra ningún consentimiento. Usa Datos de trabajo o el paso de necesidades del invitado.",
+      "rating_dispute_decided": "Esta impugnación ya se decidió.",
+      "rating_dispute_answered": "Tu organización ya respondió a esta impugnación.",
+      "rating_dispute_response": "Escribe tu respuesta en un máximo de 4,000 caracteres.",
+      "sod_rating_dispute_answer": "Tú presentaste esta impugnación, así que otra persona con acceso a valoraciones responde por la organización."
     },
     "insuredsMissing": "Registrado como no aprobado. Ningún certificado vigente nombra a: {rule}. Pida al proveedor un certificado actualizado.",
     "questionsNotApplied": "El borrador está guardado, pero no se añadieron las preguntas de la plantilla. Abre el borrador y añádelas allí."
@@ -494,13 +499,14 @@
     "ratings": "Valoraciones",
     "ratingsAfterComplete": "Ambos lados valoran cuando la contratación está Completa.",
     "orgRated": "Valoraste con {score} de 5.",
+    "orgRatingRemoved": "Se aceptó una disputa de tu valoración y se retiró. No se puede volver a dar.",
     "partyRated": "La parte valoró a tu organización con {score} de 5.",
     "partyRatingHeld": "La parte ya valoró; se muestra cuando tú también valores o pasen 14 días.",
     "replied": "Tu respuesta: {reply}",
     "reply": "Respuesta pública",
     "sendReply": "Responder",
     "rateTitle": "Valorar a la parte",
-    "ratingHelp": "Pública y nunca se edita. Deja las notas internas fuera de las valoraciones.",
+    "ratingHelp": "Nunca se edita. Solo tu organización y la persona pueden leer la valoración de una persona, salvo que esa persona decida mostrar sus valoraciones en su perfil. La valoración de una empresa la puede leer cualquiera con sesión iniciada. No incluyas notas internas en las valoraciones.",
     "rate": "Enviar valoración",
     "stars": "{score, plural, one {# estrella} other {# estrellas}}",
     "reengagement": "Nueva contratación",
@@ -523,7 +529,28 @@
     "all": "Todas las valoraciones",
     "empty": "Aún no hay valoraciones. Provienen de contrataciones completadas.",
     "emptyAction": "Abrir contrataciones",
-    "replyNeedsWrite": "Una persona con acceso a valoraciones responde."
+    "replyNeedsWrite": "Una persona con acceso a valoraciones responde.",
+    "disputes": {
+      "title": "Impugnaciones de tus valoraciones",
+      "help": "Una persona a la que valoraste puede impugnar la valoración. Puedes responder una vez y nuestro equipo de la plataforma decide. Una puntuación baja por sí sola nunca es motivo para retirar una valoración, y no puedes retirarla tú.",
+      "yourRating": "Tu valoración: {score}. {comment}",
+      "answer": "Tu respuesta",
+      "sendAnswer": "Enviar respuesta",
+      "answered": "Tu respuesta: {response}",
+      "decided": "Decisión: {statement}",
+      "grounds": {
+        "wrongPerson": "Dice que se refiere a otra persona",
+        "falseStatement": "Dice que es falsa",
+        "abusiveContent": "Dice que es ofensiva",
+        "personalData": "Dice que muestra datos personales",
+        "other": "Otro motivo"
+      },
+      "states": {
+        "open": "Abierta",
+        "upheld": "Aceptada, valoración retirada",
+        "notUpheld": "No aceptada, la valoración sigue"
+      }
+    }
   },
   "marketplace": {
     "title": "Configuración del mercado",
@@ -540,8 +567,7 @@
       "skills": "Coincidencia entre el rol y las habilidades de la persona.",
       "certifications": "Certificaciones requeridas vigentes.",
       "location": "Distancia al trabajo.",
-      "availability": "Disponibilidad para las fechas.",
-      "ratings": "Valoraciones de contrataciones completadas."
+      "availability": "Disponibilidad para las fechas."
     },
     "noPaidPlacement": "Ninguna posición se puede comprar.",
     "reportsTitle": "{count, plural, =0 {Denuncias de publicaciones} one {# denuncia de publicación} other {# denuncias de publicaciones}}",

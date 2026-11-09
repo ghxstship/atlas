@@ -1,5 +1,7 @@
 import type { Database, XosClient } from "./client.ts";
-import { Constants, type Json } from "./database.types.ts";
+import { type Json } from "./database.types.ts";
+// Named enum lists, not the whole Constants map: these modules load in the browser (merge train 11, route budget).
+import { projectFactKind, shoeSizeSystem } from "./enums.generated.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 import type { GarmentLetterSize, SeatPreference } from "./work-details.ts";
 
@@ -19,11 +21,17 @@ export type ProjectFactKind = Enums["project_fact_kind"];
 export type ShoeSizeSystem = Enums["shoe_size_system"];
 export type ProjectFactStanding = "Person" | "Company" | "Producer";
 
-export const PROJECT_FACT_KINDS: readonly ProjectFactKind[] = Constants.app.Enums.project_fact_kind;
-export const SHOE_SIZE_SYSTEMS: readonly ShoeSizeSystem[] = Constants.app.Enums.shoe_size_system;
+export const PROJECT_FACT_KINDS: readonly ProjectFactKind[] = projectFactKind;
+export const SHOE_SIZE_SYSTEMS: readonly ShoeSizeSystem[] = shoeSizeSystem;
 
 /** Refusal rules of the project fact RPCs; the apps label each with `workDetails.errors.<rule>`. */
 export const ROSTER_FACT_RULES = [
+  // ADR 0164: a meal preference is dietary data, entered under consent or an attestation (6852).
+  "sensitive_consent_required",
+  "sensitive_attestation_required",
+  "sensitive_person_only",
+  "travel_note_sensitive",
+  "sensitive_notice_version",
   "project_fact_not_yours",
   "roster_entry_withdrawn",
   "roster_entry_declined",
@@ -55,6 +63,8 @@ export interface RosterTravelRequest {
   readonly outboundOn: string | null;
   readonly seatPreference: SeatPreference | null;
   readonly mealPreference: string | null;
+  /** One is on file that this reader may not read (ADR 0164). */
+  readonly mealPreferenceMasked: boolean;
   readonly needsGroundTransport: boolean;
   readonly needsLodging: boolean;
   readonly travelNotes: string | null;
@@ -162,6 +172,7 @@ export function parseTravel(v: unknown): RosterTravelRequest | null {
     outboundOn: str(o["outbound_on"]),
     seatPreference: str(o["seat_preference"]) as SeatPreference | null,
     mealPreference: str(o["meal_preference"]),
+    mealPreferenceMasked: bool(o["meal_preference_masked"]),
     needsGroundTransport: bool(o["needs_ground_transport"]),
     needsLodging: bool(o["needs_lodging"]),
     travelNotes: str(o["travel_notes"]),

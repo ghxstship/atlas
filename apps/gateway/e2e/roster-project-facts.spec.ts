@@ -143,6 +143,106 @@ test("project details: a crew member's wizard, and the tab follows the offerings
   }
 });
 
+test("ADR 0164: the company attests before a member's meal preference, and cannot read it back", async ({
+  page,
+}) => {
+  const project = await newProject("Meal Attestation Run");
+  try {
+    await offer("offerings.travel", project.id);
+    await asPerson(
+      PEOPLE.owner,
+      `select app.set_setting($1, 'advancing.company_may_submit_project_facts', 'Project', $2, null, true, null, false)`,
+      [DEMO.org, project.id],
+    );
+    const [engagement] = await sql<{ id: string }>(
+      `insert into app.engagements (project_id, person_id, counterparty_id, role_type, role_code, worker_classification,
+         pay_basis, arrangement, agreed_rate_minor, currency_code, start_date, end_date)
+       values ($1, $2,
+         (select c.id from app.counterparties c where c.org_id = $3 and c.organization_id = $4 and c.deleted_at is null limit 1),
+         'Staff', '5000.51.02', 'INDEPENDENT_CONTRACTOR', 'Day Rate', 'Per Engagement', 30000, 'USD', '2027-06-04', '2027-06-06')
+       returning id`,
+      [project.id, AGENCY.owner, DEMO.org, AGENCY.account],
+      PEOPLE.owner,
+    );
+    const engagementId = engagement?.id as string;
+    const [entry] = await asPerson<{ id: string }>(
+      AGENCY.owner,
+      "select app.add_roster_entry($1, $2) as id",
+      [engagementId, AGENCY.staffOne],
+    );
+    const entryId = entry?.id as string;
+    await asPerson(AGENCY.owner, "select app.submit_roster($1)", [engagementId]);
+    await asPerson(AGENCY.staffOne, "select app.respond_roster_entry($1, 'Accepted')", [entryId]);
+
+    await signIn(page, "agency@example.com", "/home");
+    await page
+      .context()
+      .addCookies([{ name: "xos-acting", value: AGENCY.account, url: page.url() }]);
+    await page.goto(`/work/engagements/${toDisplayKey("engagement", engagementId)}/crew`);
+    const row = page.getByRole("listitem").filter({ hasText: "Demo Staff One" });
+    await row.getByRole("button", { name: "Project details" }).click();
+    const drawer = page.getByRole("dialog", { name: "Project details for Demo Staff One" });
+    await drawer.getByRole("button", { name: "Enter for Demo Staff One" }).click();
+
+    // No field before the attestation, and the rest of the form works without it.
+    await drawer.getByLabel("Arrival date").fill("2027-06-03");
+    await drawer.getByRole("button", { name: "More fields" }).click();
+    await expect(drawer.getByLabel("Meal preference", { exact: true })).toHaveCount(0);
+    await drawer.getByRole("button", { name: "Add a meal preference for this person" }).click();
+    const step = page.getByRole("dialog", { name: "Enter a meal preference for this person" });
+    await expect(step).toContainText("cannot read it back");
+    await expect(step.getByRole("button", { name: "I agree" })).toBeDisabled();
+    await step.getByLabel("I have this person's authority to enter this.").check();
+    await step
+      .getByLabel(
+        "This person has been told what is entered, why and who sees it, and that they can have it removed.",
+      )
+      .check();
+    await step.getByRole("button", { name: "I agree" }).click();
+    await expect(step).toBeHidden();
+
+    const meal = drawer.getByLabel("Meal preference", { exact: true });
+    await expect(meal).toBeVisible();
+    await meal.fill("Vegetarian");
+    await drawer.getByRole("button", { name: "Next" }).click();
+    await expect
+      .poll(() =>
+        count(
+          `select count(*)::int as n from app.roster_travel_requests
+            where roster_entry_id = $1 and meal_preference = 'Vegetarian' and deleted_at is null`,
+          [entryId],
+        ),
+      )
+      .toBe(1);
+    const [attestation] = await sql<{ basis: string; given_by: string }>(
+      `select basis::text, given_by from app.sensitive_data_consents
+        where person_id = $1 and category = 'Dietary and Allergies' and withdrawn_at is null
+          and basis = 'Attested Authority'`,
+      [AGENCY.staffOne],
+    );
+    // Another journey may have recorded the person's own consent on this stack; the company's attestation is its own row.
+    expect(attestation).toEqual({ basis: "Attested Authority", given_by: AGENCY.owner });
+
+    // It sees that one is on file, and never the value.
+    await expect(drawer).toContainText("Locked");
+    await expect(drawer).not.toContainText("Vegetarian");
+    const [read] = await asPerson<{ value: string | null; masked: string }>(
+      AGENCY.owner,
+      `select r -> 'travel' ->> 'meal_preference' as value, r -> 'travel' ->> 'meal_preference_masked' as masked
+         from app.roster_project_facts($1) r`,
+      [entryId],
+    );
+    expect(read).toEqual({ value: null, masked: "true" });
+  } finally {
+    await sql(
+      `update app.sensitive_data_consents set withdrawn_at = now()
+        where person_id = $1 and category = 'Dietary and Allergies' and withdrawn_at is null`,
+      [AGENCY.staffOne],
+    );
+    await removeProject(project.id);
+  }
+});
+
 test("crew tab: the company enters a member's vehicle, and the names lock", async ({
   page,
   browser,
@@ -281,6 +381,71 @@ test("crew tab: the company enters a member's vehicle, and the names lock", asyn
         count(
           `select count(*)::int as n from app.engagement_roster_entries
             where id = $1 and entry_state = 'Submitted'`,
+          [entryId],
+        ),
+      )
+      .toBe(1);
+  } finally {
+    await removeProject(project.id);
+  }
+});
+
+test("crew tab: the company picks a member's airports in the Project details drawer", async ({
+  page,
+}) => {
+  const project = await newProject("Drawer Airport Run");
+  try {
+    await offer("offerings.travel", project.id);
+    await asPerson(
+      PEOPLE.owner,
+      `select app.set_setting($1, 'advancing.company_may_submit_project_facts', 'Project', $2, null, true, null, false)`,
+      [DEMO.org, project.id],
+    );
+    const [engagement] = await sql<{ id: string }>(
+      `insert into app.engagements (project_id, person_id, counterparty_id, role_type, role_code, worker_classification,
+         pay_basis, arrangement, agreed_rate_minor, currency_code, start_date, end_date)
+       values ($1, $2,
+         (select c.id from app.counterparties c where c.org_id = $3 and c.organization_id = $4 and c.deleted_at is null limit 1),
+         'Staff', '5000.51.02', 'INDEPENDENT_CONTRACTOR', 'Day Rate', 'Per Engagement', 30000, 'USD', '2027-06-04', '2027-06-06')
+       returning id`,
+      [project.id, AGENCY.owner, DEMO.org, AGENCY.account],
+      PEOPLE.owner,
+    );
+    const engagementId = engagement?.id as string;
+    const [entry] = await asPerson<{ id: string }>(
+      AGENCY.owner,
+      "select app.add_roster_entry($1, $2) as id",
+      [engagementId, AGENCY.staffOne],
+    );
+    const entryId = entry?.id as string;
+    await asPerson(AGENCY.owner, "select app.submit_roster($1)", [engagementId]);
+    await asPerson(AGENCY.staffOne, "select app.respond_roster_entry($1, 'Accepted')", [entryId]);
+
+    await signIn(page, "agency@example.com", "/home");
+    await page
+      .context()
+      .addCookies([{ name: "xos-acting", value: AGENCY.account, url: page.url() }]);
+    await page.goto(`/work/engagements/${toDisplayKey("engagement", engagementId)}/crew`);
+    const row = page.getByRole("listitem").filter({ hasText: "Demo Staff One" });
+    await row.getByRole("button", { name: "Project details" }).click();
+    const drawer = page.getByRole("dialog", { name: "Project details for Demo Staff One" });
+    await drawer.getByRole("button", { name: "Enter for Demo Staff One" }).click();
+
+    // The airport list opens over the drawer that holds the field, so an option takes a real click (no force).
+    await drawer.getByRole("combobox", { name: "Arriving at" }).fill("MIA");
+    await page.getByRole("option", { name: /\(MIA\)/ }).click();
+    await drawer.getByLabel("Arrival date").fill("2027-06-03");
+    await drawer.getByRole("combobox", { name: "Flying home from" }).fill("MIA");
+    await page.getByRole("option", { name: /\(MIA\)/ }).click();
+    await drawer.getByLabel("Departure date").fill("2027-06-07");
+    await drawer.getByRole("button", { name: "Next" }).click();
+    await expect(drawer).toContainText("Miami International Airport (MIA)");
+    await expect
+      .poll(() =>
+        count(
+          `select count(*)::int as n from app.roster_travel_requests
+            where roster_entry_id = $1 and inbound_airport_code = 'MIA' and outbound_airport_code = 'MIA'
+              and deleted_at is null`,
           [entryId],
         ),
       )

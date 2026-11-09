@@ -50,8 +50,17 @@ vi.mock("next/navigation", () => ({
 }));
 
 let tokenRequests: { auth_code: string; code_verifier: string }[];
+/** Whether the person has answered 18 or older, apart from an answer given in this test. */
+let confirmed = false;
+/** Sessions ended, by scope. */
+let signOuts: string[] = [];
+/** Refusals written through app.refuse_minimum_age or api_public.record_age_refusal. */
+let refusals: Record<string, unknown>[] = [];
+let refusal: Record<string, unknown> = { outcome: "Account Removed" };
 /** The signed-in user's metadata, as Supabase Auth's /user returns it. */
 let userMetadata: Record<string, unknown>;
+/** The signed-in user's second factors, as Supabase Auth's /user returns them. */
+let userFactors: { id: string; status: string; factor_type: string }[] = [];
 /** Worker Terms rows the acceptance log holds for the person. */
 let accepted: { document_slug: string }[];
 /** Acceptances written through app.record_legal_acceptances. */
@@ -90,9 +99,15 @@ beforeEach(() => {
   jar.host.value = "127.0.0.1:3127";
   tokenRequests = [];
   userMetadata = { full_name: "Sam Rivera" };
+  userFactors = [];
   accepted = [];
   recorded = [];
   ages = [];
+  confirmed = false;
+  signOuts = [];
+  closing = [];
+  blockers = [];
+  storageRemoves = true;
   vi.spyOn(globalThis, "fetch").mockImplementation(async (input, init) => {
     const url = new URL(input instanceof Request ? input.url : String(input));
     if (url.origin !== SUPABASE) throw new Error(`unexpected request to ${url.origin}`);
@@ -102,14 +117,49 @@ beforeEach(() => {
       return json(session());
     }
     if (url.pathname === "/auth/v1/user") {
-      return json({ ...(session()["user"] as object), user_metadata: userMetadata });
+      return json({
+        ...(session()["user"] as object),
+        user_metadata: userMetadata,
+        factors: userFactors,
+      });
     }
     if (url.pathname === "/rest/v1/legal_acceptances") return json(accepted);
     if (url.pathname === "/rest/v1/rpc/record_legal_acceptances") {
       recorded.push(JSON.parse(String(init?.body)));
       return json(1);
     }
-    if (url.pathname === "/rest/v1/rpc/minimum_age_confirmed") return json(ages.length > 0);
+    if (url.pathname === "/rest/v1/rpc/minimum_age_confirmed") {
+      return json(confirmed || ages.length > 0);
+    }
+    if (url.pathname === "/rest/v1/rpc/refuse_minimum_age") {
+      closing.push("close");
+      refusals.push(JSON.parse(String(init?.body)));
+      return json(refusal);
+    }
+    if (url.pathname === "/rest/v1/rpc/account_deletion_preview") {
+      return json({ person_id: "p1", email: "m@x.test", blockers, kept: [] });
+    }
+    if (url.pathname === "/rest/v1/rpc/withdraw_my_credential_photos") {
+      return json([{ org_id: "o1", photo_path: "o1/p1/face.png" }]);
+    }
+    if (url.pathname.startsWith("/storage/v1/object/list/")) {
+      const bucket = url.pathname.split("/").at(-1);
+      return json(bucket === "profile-media" ? [{ name: "avatar.png", id: "a1" }] : []);
+    }
+    if (url.pathname.startsWith("/storage/v1/object/") && init?.method === "DELETE") {
+      const bucket = url.pathname.split("/").at(-1);
+      closing.push(`remove ${bucket}`);
+      const { prefixes } = JSON.parse(String(init.body)) as { prefixes: string[] };
+      return json(storageRemoves ? prefixes.map((name) => ({ name })) : []);
+    }
+    if (url.pathname === "/rest/v1/rpc/record_age_refusal") {
+      refusals.push(JSON.parse(String(init?.body)));
+      return json(true);
+    }
+    if (url.pathname === "/auth/v1/logout") {
+      signOuts.push(url.searchParams.get("scope") ?? "global");
+      return new Response(null, { status: 204 });
+    }
     if (url.pathname === "/rest/v1/rpc/confirm_minimum_age") {
       ages.push(JSON.parse(String(init?.body)));
       return json("2026-10-20T10:00:00Z");
@@ -190,6 +240,7 @@ describe("Gateway: Continue with Google", () => {
 
   it("exchanges the code and lands on next with the session cookie set", async () => {
     accepted = [{ document_slug: "worker-terms" }];
+    ages = [{ p_surface: "Gateway" }];
     const start = await startWith({ provider: "google", next: "/work/engagements/eng_1" });
     const back = new URL(start.searchParams.get("redirect_to") ?? "");
     back.searchParams.set("code", "c0ffee00-0000-4000-8000-000000000127");
@@ -242,8 +293,20 @@ describe("Gateway: the Worker Terms for an account Google created (A59-025)", ()
     expect(`${home.pathname}${home.search}`).toBe("/auth/terms");
   });
 
-  it("lets an account through that accepted them, or whose acceptance is about to be written", async () => {
+  it("never holds account deletion behind them (Worker Terms 13)", async () => {
+    expect((await signedInWithGoogle("/settings/account")).pathname).toBe("/settings/account");
+  });
+
+  it("asks an account that accepted them but never answered the age", async () => {
     accepted = [{ document_slug: "worker-terms" }];
+    const to = await signedInWithGoogle("/auth/claim");
+    expect(to.pathname).toBe("/auth/age");
+    expect(to.searchParams.get("next")).toBe("/auth/claim");
+  });
+
+  it("lets an account through that accepted them and answered, or whose acceptance is about to be written", async () => {
+    accepted = [{ document_slug: "worker-terms" }];
+    ages = [{ p_surface: "Gateway" }];
     expect((await signedInWithGoogle("/auth/claim")).pathname).toBe("/auth/claim");
     accepted = [];
     userMetadata = {
@@ -253,6 +316,7 @@ describe("Gateway: the Worker Terms for an account Google created (A59-025)", ()
   });
 
   it("never asks after an email link, which accepted them on the sign-up form", async () => {
+    confirmed = true;
     const start = await startWith({ provider: "google" });
     expect(start.pathname).toBe("/auth/v1/authorize");
     const { to } = await callback("code=abc&next=%2Fauth%2Fclaim");
@@ -275,9 +339,9 @@ describe("Gateway: the Worker Terms for an account Google created (A59-025)", ()
     const ticked = new FormData();
     ticked.set("next", "/auth/claim");
     ticked.set("acceptTerms", "yes");
-    ticked.set("ageConfirmed", "16");
+    ticked.set("ageConfirmed", "18");
     await expect(acceptSignUpTerms({}, ticked)).rejects.toMatchObject({ url: "/auth/claim" });
-    // A Google account confirms "16 or older" here, since no form asked before (A65-014).
+    // A Google account confirms "18 or older" here, since no form asked before (A65-014).
     expect(ages).toEqual([{ p_surface: "Gateway" }]);
     expect(recorded).toEqual([
       {
@@ -286,6 +350,131 @@ describe("Gateway: the Worker Terms for an account Google created (A59-025)", ()
         p_document_versions: ["1.0.0-draft"],
       },
     ]);
+  });
+});
+
+/** The order things happened in while an account closed. */
+let closing: string[] = [];
+/** What stops the account closing. */
+let blockers: { code: string; org_id: string; org_name: string }[] = [];
+/** False: storage answers a delete with nothing removed, as it does one the caller may not make. */
+let storageRemoves = true;
+
+describe("an answer of under 18 (ADR 0156)", () => {
+  beforeEach(() => {
+    refusals = [];
+    refusal = { outcome: "Account Removed" };
+  });
+
+  it("closes nothing on a radio answer: it asks the person to confirm what closing means", async () => {
+    const { acceptSignUpTerms, closeUnderAgeAccount } = await import("../app/auth/actions");
+    await startWith({ provider: "google" });
+    await callback(new URLSearchParams({ code: "abc", provider: "google" }).toString());
+    const form = new FormData();
+    form.set("next", "/auth/claim");
+    form.set("acceptTerms", "yes");
+    form.set("ageConfirmed", "under-18");
+    await expect(acceptSignUpTerms({}, form)).rejects.toMatchObject({
+      url: "/auth/age?under=1&next=%2Fauth%2Fterms%3Fnext%3D%252Fauth%252Fclaim",
+    });
+    expect(refusals).toEqual([]);
+    expect(recorded).toEqual([]);
+    expect(ages).toEqual([]);
+    await expect(closeUnderAgeAccount()).rejects.toMatchObject({
+      url: "/auth/age-refused?outcome=closed",
+    });
+    expect(refusals).toEqual([{ p_surface: "Gateway" }]);
+    expect(signOuts).toEqual(["local"]);
+  });
+
+  it("removes the person's files before the account goes", async () => {
+    const { closeUnderAgeAccount } = await import("../app/auth/actions");
+    await startWith({ provider: "google" });
+    await callback(new URLSearchParams({ code: "abc", provider: "google" }).toString());
+    await expect(closeUnderAgeAccount()).rejects.toMatchObject({
+      url: "/auth/age-refused?outcome=closed",
+    });
+    expect(closing).toEqual(["remove credential-photos", "remove profile-media", "close"]);
+  });
+
+  it("does not close the account when a file cannot be removed", async () => {
+    const { closeUnderAgeAccount } = await import("../app/auth/actions");
+    await startWith({ provider: "google" });
+    await callback(new URLSearchParams({ code: "abc", provider: "google" }).toString());
+    storageRemoves = false;
+    expect(await closeUnderAgeAccount()).toEqual({ error: "unexpected" });
+    expect(closing).not.toContain("close");
+    expect(signOuts).toEqual([]);
+  });
+
+  it("asks a sign-in that holds a second factor to pass it, and removes nothing until then", async () => {
+    const { closeUnderAgeAccount } = await import("../app/auth/actions");
+    await startWith({ provider: "google" });
+    await callback(new URLSearchParams({ code: "abc", provider: "google" }).toString());
+    userFactors = [{ id: "f1", status: "verified", factor_type: "totp" }];
+    await expect(closeUnderAgeAccount()).rejects.toMatchObject({
+      url: "/auth/mfa?next=%2Fauth%2Fage%3Funder%3D1",
+    });
+    expect(closing).toEqual([]);
+    expect(refusals).toEqual([]);
+    expect(signOuts).toEqual([]);
+  });
+
+  it("removes nothing from an account that cannot close yet", async () => {
+    const { closeUnderAgeAccount } = await import("../app/auth/actions");
+    await startWith({ provider: "google" });
+    await callback(new URLSearchParams({ code: "abc", provider: "google" }).toString());
+    blockers = [{ code: "account_delete_on_shift", org_id: "o1", org_name: "Acme" }];
+    refusal = { outcome: "Account Held", reason: "account_delete_on_shift", org_name: "Acme" };
+    await expect(closeUnderAgeAccount()).rejects.toMatchObject({
+      url: "/auth/age-refused?outcome=held",
+    });
+    expect(closing).toEqual(["close"]);
+  });
+
+  it("says so when a legal hold, a shift or sole ownership holds the account", async () => {
+    const { closeUnderAgeAccount } = await import("../app/auth/actions");
+    await startWith({ provider: "google" });
+    await callback(new URLSearchParams({ code: "abc", provider: "google" }).toString());
+    refusal = { outcome: "Account Held", reason: "account_delete_on_shift", org_name: "Acme" };
+    await expect(closeUnderAgeAccount()).rejects.toMatchObject({
+      url: "/auth/age-refused?outcome=held",
+    });
+    expect(signOuts).toEqual(["global"]);
+  });
+
+  it("makes no account on a sign-up form, and counts it without the name or email", async () => {
+    const { sendMagicLink, signUp } = await import("../app/auth/actions");
+    for (const action of [sendMagicLink, signUp]) {
+      const form = new FormData();
+      form.set("intent", "sign-up");
+      form.set("fullName", "Una Under");
+      form.set("email", "una@example.com");
+      form.set("acceptTerms", "yes");
+      form.set("ageConfirmed", "under-18");
+      await expect(action({}, form)).rejects.toMatchObject({ url: "/auth/age-refused" });
+    }
+    expect(refusals).toEqual([{ p_surface: "Gateway" }, { p_surface: "Gateway" }]);
+  });
+
+  it("asks anyone who has not answered at 18 after a sign-in, and goes on", async () => {
+    const { answerAgeQuestion } = await import("../app/auth/actions");
+    await startWith({ provider: "google" });
+    accepted = [{ document_slug: "worker-terms" }];
+    const { to } = await callback(
+      new URLSearchParams({ code: "abc", provider: "google", next: "/auth/claim" }).toString(),
+    );
+    expect(to.pathname).toBe("/auth/age");
+    expect(to.searchParams.get("next")).toBe("/auth/claim");
+    const unanswered = new FormData();
+    expect(await answerAgeQuestion({}, unanswered)).toEqual({
+      fieldErrors: { ageConfirmed: "age" },
+    });
+    const form = new FormData();
+    form.set("next", "/auth/claim");
+    form.set("ageConfirmed", "18");
+    await expect(answerAgeQuestion({}, form)).rejects.toMatchObject({ url: "/auth/claim" });
+    expect(ages).toEqual([{ p_surface: "Gateway" }]);
   });
 });
 

@@ -49,7 +49,14 @@ describe("occupancyLevel", () => {
 describe("OccupancyCounterScreen", () => {
   it("counts in and out at a door and shows the alert level", async () => {
     const onCount = vi.fn(ok);
-    const ol = labels<OccupancyCounterScreenLabels>(["add", "remove", "count", "percent", "level"]);
+    const ol = labels<OccupancyCounterScreenLabels>([
+      "add",
+      "remove",
+      "count",
+      "percent",
+      "level",
+      "basis",
+    ]);
     const { container, rerender } = render(
       <OccupancyCounterScreen
         status="ready"
@@ -62,7 +69,9 @@ describe("OccupancyCounterScreen", () => {
         onCount={onCount}
       />,
     );
-    expect(screen.getByText("level(80)")).toBeTruthy();
+    // The banner and the counter name the load for its basis: only a permit makes it a permitted load.
+    expect(screen.getByText('level(80,"Space Capacity")')).toBeTruthy();
+    expect(screen.getByText('basis("Space Capacity")')).toBeTruthy();
     expect(screen.getByText("count(250,300)")).toBeTruthy();
     expect(screen.getByText("closed")).toBeTruthy();
     fireEvent.change(screen.getByLabelText("door"), { target: { value: " Gate A " } });
@@ -75,7 +84,7 @@ describe("OccupancyCounterScreen", () => {
     expect(onCount).toHaveBeenLastCalledWith("oc1", -1, null);
     await expectAccessible(container);
     fireEvent.click(screen.getByRole("radio", { name: "Bar Tent" }));
-    expect(screen.getByLabelText("percent(0)")).toBeTruthy();
+    expect(screen.getByLabelText('percent(0,"Space Capacity")')).toBeTruthy();
 
     rerender(
       <OccupancyCounterScreen
@@ -85,7 +94,7 @@ describe("OccupancyCounterScreen", () => {
         onCount={refused("The counter is closed.")}
       />,
     );
-    expect(screen.getByText("level(100)")).toBeTruthy();
+    expect(screen.getByText('level(100,"Space Capacity")')).toBeTruthy();
     await press("add(1)");
     expect(screen.getByText("The counter is closed.")).toBeTruthy();
   });

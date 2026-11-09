@@ -565,6 +565,8 @@
     "title": "Incidentes",
     "new": "Reportar incidente",
     "empty": "No hay incidentes en este proyecto. Repórtalo en el momento en que ocurra.",
+    "emergencyFirst": "En una emergencia, llama primero a tu número local de emergencias. XOS no avisa a los servicios de emergencia.",
+    "nearMiss": "¿Casi accidente? Si pudo lastimar a alguien o causar daños, pero no lo hizo, elige Level 5 - Advisory y empieza Qué pasó con las palabras Near miss, para encontrarlo después.",
     "step": "Paso {step} de 3",
     "severity": "¿Qué tan grave es?",
     "location": "Ubicación",
@@ -581,7 +583,7 @@
     "submit": "Enviar reporte",
     "holdHint": "Mantén para enviar",
     "sent": "Reporte enviado.",
-    "queued": "Reporte guardado. Se envía cuando vuelvas a tener conexión.",
+    "queued": "Reporte guardado, pero aún no enviado. Se envía cuando vuelvas a tener conexión. Si es una emergencia, llama ahora a tu número local de emergencias.",
     "dispatch": "Despachar",
     "contain": "Contenido",
     "dispatchTitle": "Tablero de despacho",
@@ -621,12 +623,13 @@
     "fail": "Falla",
     "progress": "{done} de {total} revisados",
     "failNote": "Qué está mal",
+    "failNoteHelp": "Nombra la unidad, por ejemplo su etiqueta o número de serie.",
     "failNoteMissing": "Indica qué falló para que alguien lo arregle.",
     "failPhoto": "Agregar foto",
     "failPhotoMissing": "Agrega una foto de la falla.",
     "saveFail": "Guardar falla",
     "submit": "Enviar inspección",
-    "criticalFailures": "Elementos críticos fallidos: {count}. Detén el uso hasta que se arreglen.",
+    "criticalFailures": "Elementos críticos fallidos: {count}. Saca el elemento de uso y avisa a tu supervisor ahora. Nombra la unidad en la inspección. XOS no la ha bloqueado ni le da seguimiento.",
     "submitted": "Inspección enviada.",
     "queued": "Inspección guardada. Se sube cuando vuelvas a tener conexión.",
     "signOff": "Aprobar",
@@ -725,7 +728,9 @@
     "empty": "Estás al día. Las aprobaciones y mensajes aparecen aquí.",
     "update": "Novedad",
     "updateFrom": "Novedad de {org}",
-    "new": "Nuevo"
+    "new": "Nuevo",
+    "crisisAlert": "Alerta de crisis en {project}: {code}",
+    "crisisAllClear": "Fin de alerta en {project}: {code}"
   },
   "more": {
     "title": "Más",
@@ -796,6 +801,82 @@
     "manageInAtlas": "Administrar en Atlas",
     "manageInGateway": "Administrar en Gateway"
   },
+  "legalGate": {
+    "age": {
+      "title": "Confirma tu edad",
+      "sentence": "Elige la opción que sea cierta para ti.",
+      "over": "Tengo 18 años o más",
+      "under": "Tengo menos de 18 años"
+    },
+    "under": {
+      "title": "Las cuentas de XOS son para personas de 18 años en adelante",
+      "sentence": "Nos dijiste que tienes menos de 18 años, así que no puedes usar Compass con este inicio de sesión. Si continúas, lo cerramos.",
+      "keeps": "También eliminamos tu perfil y sus archivos, tus fotos de credencial, tu configuración, lo que enviaste a nuestro equipo de soporte y las respuestas y los acuerdos personales que diste a XOS. Cualquier organización con la que hayas trabajado conserva los registros que exige la ley, como las horas que trabajaste, y una nota con tu correo electrónico que indica que tu cuenta se eliminó, y XOS conserva un registro de esa eliminación con los identificadores de tu cuenta, sin tu nombre. XOS también conserva un recuento mensual de las personas menores de 18 años que rechazó, que no te identifica. Los datos eliminados permanecen en las copias de seguridad hasta que caducan.",
+      "confirm": "Cerrar este inicio de sesión",
+      "back": "Volver",
+      "queuedOne": "1 cambio en este dispositivo no se ha subido, como las horas que trabajaste. Al cerrar este inicio de sesión se elimina. Si puedes, conéctate y deja que se suba primero.",
+      "queuedOther": "{count} cambios en este dispositivo no se han subido, como las horas que trabajaste. Al cerrar este inicio de sesión se eliminan. Si puedes, conéctate y deja que se suban primero."
+    },
+    "refused": {
+      "title": "Tu inicio de sesión está cerrado",
+      "sentence": "Ya no tienes una cuenta de XOS.",
+      "minors": "Si trabajas o asistes a un evento, el adulto o la organización responsable de ti puede guardar tus datos en sus propios registros. No necesitas una cuenta para eso."
+    },
+    "held": {
+      "title": "Todavía no pudimos cerrarlo",
+      "legalHold": "{org} conserva tus registros bajo una retención legal, así que tu cuenta no se puede eliminar ahora.",
+      "onShift": "Marcaste entrada en {org}, así que tu cuenta no se puede eliminar ahora.",
+      "soleOwner": "Eres el único propietario de {org}, así que tu cuenta no se puede eliminar ahora.",
+      "other": "Tu cuenta no se puede eliminar ahora.",
+      "next": "Listo cierra tu sesión, en todos los dispositivos cuando tienes conexión. Hasta que la cuenta se cierre, Compass te lo volverá a preguntar cada vez que inicies sesión. Contáctanos y terminaremos de cerrarla.",
+      "contact": "Contáctanos"
+    },
+    "documents": {
+      "title": "Revisa y acepta",
+      "lead": "Lee estos documentos antes de usar Compass. Cada uno se abre en tu navegador.",
+      "limits": "Limitan lo que te debemos si algo sale mal e indican dónde se resuelven las disputas. En un iPhone también se aplican los términos de Apple.",
+      "agree": "Leí estos documentos y los acepto",
+      "accept": "Aceptar y continuar",
+      "decline": "No acepto",
+      "later": "Ahora no",
+      "effective": "Entra en vigor el {date}"
+    },
+    "documentNames": {
+      "mobile-eula": "Contrato de licencia de usuario final de la app móvil",
+      "worker-terms": "Términos para trabajadores"
+    },
+    "declined": {
+      "title": "Compass necesita tu aceptación",
+      "sentence": "No puedes usar Compass sin aceptar estos documentos. Puedes revisarlos de nuevo, cerrar sesión o eliminar tu cuenta.",
+      "back": "Revisar de nuevo",
+      "queuedOne": "1 cambio en este dispositivo no se ha subido, como las horas que trabajaste. Al cerrar sesión o eliminar tu cuenta se elimina de este dispositivo.",
+      "queuedOther": "{count} cambios en este dispositivo no se han subido, como las horas que trabajaste. Al cerrar sesión o eliminar tu cuenta se eliminan de este dispositivo."
+    },
+    "connection": {
+      "title": "Conéctate para continuar",
+      "sentence": "Antes de usar Compass, te pregunta tu edad y si aceptas sus términos, y guarda tus respuestas en nuestros servidores. Para eso necesita conexión. Conéctate y vuelve a intentarlo."
+    },
+    "online": "Este paso necesita conexión. Compass guarda tus respuestas en nuestros servidores para que valgan en todos tus dispositivos y se puedan mostrar más adelante.",
+    "needsConnection": "No pudimos registrar eso, así que nada cambió. Compass necesita conexión para este paso. Revisa tu conexión y vuelve a intentarlo.",
+    "upcoming": "{document} cambia el {date}. Revísalo y acéptalo.",
+    "review": "Revisar"
+  },
+  "aiDisclosure": {
+    "title": "¿Permitir las funciones de IA en Compass?",
+    "provider": "Las funciones de IA envían datos a un proveedor externo de IA. Hoy ese proveedor es Anthropic, que opera los modelos Claude para nosotros.",
+    "sent": "Lo que se le envía: las preguntas que le haces al asistente, junto con los SOP, las páginas del manual y los registros relacionados que ya puedes ver, y las fotos de recibos que tomas para un gasto cuando tu organización tiene activada la lectura de recibos.",
+    "notSent": "No se envían los registros médicos ni los campos restringidos, como tarifas de pago, datos bancarios e identificaciones oficiales. Sí se envía todo lo que se vea en una foto que tomes. El proveedor no entrena sus modelos con estos datos.",
+    "change": "Compass no envía nada tuyo al proveedor hasta que lo permitas. Si no lo permites, las funciones de IA quedan desactivadas para ti en todo XOS y Compass funciona sin ellas. Puedes cambiarlo en Configuración.",
+    "others": "Esta elección cubre las funciones de IA que usas tú. Hasta que elijas, las funciones de IA que uses en las aplicaciones web de XOS siguen la configuración de tu organización. Si tu organización tiene activadas las funciones de IA, otras personas de ella pueden seguir usándolas con los registros que pueden ver, incluidos los registros sobre ti.",
+    "notice": "Leer el Aviso de funciones de IA",
+    "allow": "Permitir",
+    "decline": "No permitir",
+    "failed": "No pudimos guardar tu elección, así que nada cambió y no se envió nada. Revisa tu conexión y vuelve a intentarlo.",
+    "declined": "Las funciones de IA están desactivadas, como elegiste. Para usarlas, permítelas abajo.",
+    "settingsTitle": "Funciones de IA",
+    "settingsLabel": "Usar funciones de IA",
+    "settingsHelp": "Envía tus preguntas y fotos de recibos a un proveedor externo de IA. Si lo desactivas, las funciones de IA quedan desactivadas para ti en todo XOS. No impide que otras personas de tu organización las usen con los registros que pueden ver."
+  },
   "settings": {
     "title": "Ajustes",
     "theme": "Tema",
@@ -830,7 +911,7 @@
     "actionsPost": "Denunciar o bloquear: publicación de {name}",
     "actionsMessage": "Denunciar o bloquear: mensaje de {name}",
     "actionsShoutOut": "Denunciar o bloquear: reconocimiento de {name}",
-    "intro": "Los moderadores de tu organización revisan cada denuncia en {hours} horas. No se avisa a nadie de quién denunció.",
+    "intro": "Los moderadores de tu organización revisan cada denuncia en {hours} horas, y GHXSTSHIP revisa las que dejen sin decidir. No se avisa a nadie de quién denunció.",
     "reportPost": "Denunciar esta publicación",
     "reportMessage": "Denunciar este mensaje",
     "reportShoutOut": "Denunciar este reconocimiento",
@@ -847,7 +928,7 @@
     "details": "Algo que los moderadores deban saber (opcional)",
     "submit": "Enviar denuncia",
     "reportedTitle": "Denuncia enviada",
-    "reported": "Gracias. Los moderadores de tu organización la revisarán en {hours} horas y te dirán qué decidieron.",
+    "reported": "Gracias. Los moderadores de tu organización la revisarán en {hours} horas, o lo hará GHXSTSHIP si no lo hacen, y sabrás qué se decidió.",
     "blockToo": "Bloquear también a {name}",
     "confirmTitle": "¿Bloquear a {name}?",
     "confirm": "Dejarás de ver sus publicaciones, comentarios, reconocimientos y mensajes, en todas las conversaciones. No se le avisa. Puedes desbloquearlo cuando quieras en Ajustes, Personas bloqueadas.",
@@ -975,6 +1056,8 @@
     "inputHelp": "Pregunta con una frase, como ¿A qué hora es mi llamado mañana?",
     "notInPlan": "Aurora AI viene con los planes Core, Pro, Team y Enterprise. Pide a un Propietario que cambie el plan en Atlas, Configuración, Facturación y plan.",
     "offTitle": "Aurora está desactivada en esta organización",
+    "declinedTitle": "Las funciones de IA están desactivadas para ti",
+    "declined": "Las desactivaste. Para usarlas, actívalas en Configuración, Funciones de IA.",
     "limit": "Tu organización usó las {allowance} solicitudes de este mes. El límite se renueva el primer día del mes próximo.",
     "noAnswer": "Los registros que puedes ver no responden esto. Pregunta por un turno, un SOP o el manual.",
     "confirmReason": "Confirmado en Compass.",
@@ -1008,12 +1091,15 @@
     },
     "keptTitle": "Qué se conserva y por qué",
     "kept": {
-      "time_and_pay": "Tus registros de tiempo y pago, conservados 7 años porque lo exige la ley de nómina.",
+      "time_and_pay": "Tus registros de tiempo y pago, conservados 7 años, con tu nombre guardado aparte para los registros salariales que exige la ley.",
       "tax_forms": "Tus formularios fiscales, conservados 7 años porque lo exige la ley fiscal.",
       "engagements": "Tus registros de contratación y acuerdos firmados, conservados 7 años.",
       "org_records": "Los registros que creaste para una organización, como reportes de incidentes, que esa organización conserva sin tu nombre.",
+      "billing_consent": "Los términos de renovación que aceptaste al comprar un plan de pago para una organización, con tu correo de acceso y tus iniciales, conservados 7 años y durante un año después de que termine ese plan, como prueba de lo acordado.",
       "audit_trail": "El registro de auditoría de seguridad, conservado 7 años. Tus datos personales se quitan a los 90 días.",
-      "erasure_request": "Un registro de que pediste este borrado, para que cada organización pueda demostrar que se hizo."
+      "erasure_request": "Un registro de que pediste este borrado, para que cada organización pueda demostrar que se hizo.",
+      "rating_sharing": "Tu registro de haber decidido mostrar tus calificaciones, con su hora y dirección IP, conservado 7 años después de cerrarse como prueba de lo que elegiste.",
+      "rating_disputes": "Las impugnaciones de calificaciones que presentaste, conservadas con el registro de la calificación para poder mostrar la decisión."
     },
     "emailLabel": "Escribe tu correo de acceso para confirmar",
     "emailHelp": "Inicias sesión como {email}.",
@@ -1029,7 +1115,8 @@
     "doneTitle": "Tu cuenta está eliminada",
     "doneSentence": "Tu acceso, tu nombre y tu perfil están borrados. Organizaciones avisadas: {count}.",
     "done": "Listo",
-    "signOutFailed": "Compass no pudo limpiar este dispositivo: {reason}. Toca Listo otra vez."
+    "signOutFailed": "Compass no pudo limpiar este dispositivo: {reason}. Toca Listo otra vez.",
+    "back": "Volver"
   },
   "notifications": {
     "title": "Compass",

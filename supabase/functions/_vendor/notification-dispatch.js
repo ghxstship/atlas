@@ -8,13 +8,14 @@ import {
   createTransport,
   readEmailEnv,
 } from "./chunks/email-env.js";
-import { isTemplateCode, sendEmail } from "./chunks/email.js";
+import { isTemplateCode, sendEmail } from "./chunks/email-send.js";
 import {
   clip,
   createSmsProvider,
   dispatchSms,
   dispatchSmsSummaries,
   isRecordKey,
+  loadNotificationCopy,
   localeOf,
   notificationKind,
   notificationText,
@@ -71,6 +72,15 @@ async function propsFor(claim, store) {
         },
       };
     }
+    case "billing_notice":
+      return {
+        code: "billing_notice",
+        props: {
+          kind: claim.kind,
+          args: messageArgs(claim.messageArgs),
+          url: await store.linkFor(claim),
+        },
+      };
     case "export_ready":
       return {
         code: "export_ready",
@@ -148,6 +158,31 @@ async function dispatchEmail(store, transport, limit = 50) {
     attempted: claims.length,
     sent,
     failed,
+  };
+}
+//#endregion
+//#region src/notifications/drain.ts
+/** Each batch's counts are added up; a summary holds counts only. */
+async function drain(run, options) {
+  const now = options.now ?? Date.now;
+  const started = now();
+  const total = {};
+  let batches = 0;
+  for (;;) {
+    const summary = await run(options.batch);
+    batches += 1;
+    for (const [key, value] of Object.entries(summary))
+      if (typeof value === "number") total[key] = (total[key] ?? 0) + value;
+    if (
+      summary.attempted === 0 ||
+      batches >= options.maxBatches ||
+      now() - started >= options.budgetMs
+    )
+      break;
+  }
+  return {
+    ...total,
+    batches,
   };
 }
 //#endregion
@@ -287,6 +322,7 @@ async function inBatches(items, size, concurrency, run) {
  */
 async function dispatchPush(store, client, options = {}) {
   const claims = await store.claimPush(options.limit ?? 50);
+  if (claims.length > 0) await loadNotificationCopy();
   const pending = [];
   const failedEarly = /* @__PURE__ */ new Map();
   const recipients = /* @__PURE__ */ new Map();
@@ -623,6 +659,7 @@ export {
   dispatchPush,
   dispatchSms,
   dispatchSmsSummaries,
+  drain,
   notificationStore,
   pushStore,
   readEmailEnv,

@@ -1,10 +1,12 @@
 import {
   APP_ENUMS,
+  getRatingSharing,
   listAccountMembers,
   listMyAccounts,
   listPayoutAccounts,
   listRepresentations,
   listTaxForms,
+  RATING_SHARING_NOTICE_VERSION,
   readView,
   representationStanding,
 } from "@xos/data/gateway";
@@ -33,6 +35,9 @@ import { ActionButton } from "@/components/actions/action-button";
 import { RowList, TabEmpty } from "@/components/engagement/rows";
 import { SimpleForm } from "@/components/forms/simple-form";
 import { RegionError, Section } from "@/components/page/page";
+import { countryOptions } from "@xos/i18n/formats";
+import { currentOffering } from "@/lib/offering";
+import { offeredTerritoriesPhrase } from "@/lib/territory";
 import { InlineAlert } from "@/components/ui";
 import { revokeProfileShareAction, revokeRepresentationAction } from "@/lib/actions/engagement";
 import {
@@ -45,6 +50,7 @@ import {
   removeProfileItemAction,
   saveCompanyProfileAction,
   saveNameAction,
+  saveRatingSharingAction,
   savePrivacyAction,
   saveProfileAction,
 } from "@/lib/actions/profile";
@@ -107,8 +113,12 @@ function Header({ t, node, children }: { t: Translate; node: string; children?: 
 async function RegistrySettings({ ctx, t, node, locale }: SectionProps) {
   const defs = personalSettings(node);
   if (defs.length === 0) return null;
-  const resolved = await resolveSettings(ctx.db, { orgId: NO_ORG });
+  const [resolved, offering] = await Promise.all([
+    resolveSettings(ctx.db, { orgId: NO_ORG }),
+    currentOffering(),
+  ]);
   if (!resolved.ok) return <InlineAlert tone="danger">{t("settings.loadFailed")}</InlineAlert>;
+  const offeredLocales: readonly string[] = offering.locales;
   const zones = ["UTC", ...Intl.supportedValuesOf("timeZone").filter((z) => z !== "UTC")];
   return (
     <ul
@@ -144,7 +154,11 @@ async function RegistrySettings({ ctx, t, node, locale }: SectionProps) {
               setHere={source === "Personal"}
               options={
                 def.type === "choice"
-                  ? def.choices.map((c) => ({ value: c, label: t(choiceLabelKey(def.key, c)) }))
+                  ? // The registry keeps every language; only those of open territories are choices (ADR 0160).
+                    (def.key === "locale.language"
+                      ? def.choices.filter((c) => offeredLocales.includes(c))
+                      : def.choices
+                    ).map((c) => ({ value: c, label: t(choiceLabelKey(def.key, c)) }))
                   : def.input === "time_zone"
                     ? zones.map((z) => ({ value: z, label: z.replaceAll("_", " ") }))
                     : []
@@ -434,12 +448,13 @@ async function ProfileSection(props: SectionProps) {
 
 async function PrivacySection(props: SectionProps) {
   const { ctx, t, locale } = props;
-  const [profile, sections, shares] = await Promise.all([
+  const [profile, sections, shares, ratingSharing] = await Promise.all([
     getMyProfile(ctx.db),
     listSectionVisibility(ctx.db, ctx.personId),
     readView(ctx.db, "my_profile_shares", { order: ["shared_at", "desc"] }),
+    getRatingSharing(ctx.db),
   ]);
-  if (!profile.ok || !sections.ok || !shares.ok) return <RegionError />;
+  if (!profile.ok || !sections.ok || !shares.ok || !ratingSharing.ok) return <RegionError />;
   const visibility = APP_ENUMS.profile_visibility.map((v) => ({
     value: v,
     label: t(enumLabelKey("profileVisibility", v)),
@@ -487,6 +502,29 @@ async function PrivacySection(props: SectionProps) {
           })),
         ]}
       />
+      <Section title={t("gateway.settings.privacy.ratings.title")}>
+        <p className="m-0 text-text-13 text-text-secondary">
+          {t("gateway.settings.privacy.ratings.body")}
+        </p>
+        <SimpleForm
+          id="rating-sharing"
+          action={saveRatingSharingAction}
+          hidden={{ noticeVersion: RATING_SHARING_NOTICE_VERSION }}
+          label={t("gateway.settings.privacy.ratings.title")}
+          errorsNamespace="gateway.profile.errors"
+          submitLabel={t("gateway.settings.privacy.ratings.save")}
+          doneLabel={t("settings.saved")}
+          variant="secondary"
+          fields={[
+            {
+              name: "shareRatings",
+              label: t("gateway.settings.privacy.ratings.choice"),
+              kind: "checkbox",
+              defaultChecked: ratingSharing.data,
+            },
+          ]}
+        />
+      </Section>
       <Section title={t("gateway.profile.shares.title")}>
         <p className="m-0 text-text-13 text-text-secondary">
           {t("gateway.settings.privacy.sharesBody")}
@@ -582,8 +620,11 @@ function SecuritySection(props: SectionProps) {
 }
 
 async function OrganizationsSection(props: SectionProps) {
-  const { ctx, t } = props;
-  const accounts = await listMyAccounts(ctx.db);
+  const { ctx, t, locale } = props;
+  const [accounts, territories] = await Promise.all([
+    listMyAccounts(ctx.db),
+    offeredTerritoriesPhrase(),
+  ]);
   const members = accounts.ok
     ? await Promise.all(accounts.data.map((a) => listAccountMembers(ctx.db, a.id)))
     : [];
@@ -626,6 +667,9 @@ async function OrganizationsSection(props: SectionProps) {
         <p className="m-0 text-text-13 text-text-secondary">
           {t("gateway.settings.organizations.createBody")}
         </p>
+        <p className="m-0 text-text-13 text-text-secondary">
+          {t("gateway.settings.organizations.availability", { territories })}
+        </p>
         <SimpleForm
           id="create-account"
           action={createAccountAction}
@@ -646,6 +690,16 @@ async function OrganizationsSection(props: SectionProps) {
               label: t("gateway.settings.organizations.slug"),
               required: true,
               help: t("gateway.settings.organizations.slugHelp"),
+            },
+            {
+              name: "countryCode",
+              kind: "select",
+              label: t("gateway.settings.organizations.country"),
+              required: true,
+              options: [
+                { value: "", label: t("gateway.settings.organizations.countryChoose") },
+                ...countryOptions(locale),
+              ],
             },
           ]}
         />

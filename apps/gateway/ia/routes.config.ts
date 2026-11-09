@@ -11,6 +11,9 @@ export const SHELL_ROUTES: Readonly<Record<string, string>> = {
   "/auth/sign-in": "Auth template: magic link, OAuth and password sign-in.",
   "/auth/sign-up": "Auth template: account creation.",
   "/auth/check-email": "Auth template: magic link and confirmation sent.",
+  "/auth/age": "Auth template: the age question for anyone who has not answered at 18 (ADR 0156).",
+  "/auth/age-refused":
+    "Auth template: what someone who answered under 18 is told, with no account left (ADR 0156).",
   "/auth/callback": "Route handler: OAuth and PKCE code exchange.",
   "/auth/confirm": "Route handler: email link token verification.",
   "/auth/sign-out": "Route handler: ends the session (POST only).",
@@ -48,4 +51,5 @@ export const SHELL_ROUTES: Readonly<Record<string, string>> = {
     "Route handler: universal links to Compass for Continue on another device (ADR 0030).",
   "/.well-known/assetlinks.json":
     "Route handler: Android App Links to Compass for Continue on another device (ADR 0030).",
+  "/.well-known/security.txt": "The vulnerability disclosure contact (RFC 9116), not a screen",
 };

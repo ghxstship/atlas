@@ -1,9 +1,14 @@
 name: Weekly backup
 
 # Encrypted logical backups to separate storage (Section 9, infra/runbooks/backup-and-restore.md). Each job dumps one
-# project with infra/ci/backup-weekly.sh, encrypts the archive to the owner's public key
-# (infra/backup/backup-public-key.asc) and keeps it as an artifact for 35 days. Both fail until the owner commits that key
-# and sets the job's connection string, so a missing backup is never silent.
+# project with infra/ci/backup-weekly.sh, encrypts the archive to the owner's key (infra/backup/backup-public-key.asc,
+# pinned by the secret BACKUP_ENCRYPTION_RECIPIENT) and uploads it to the owner's private, versioned and locked bucket
+# with infra/ci/backup-store.sh. No backup, encrypted or not, is ever stored on GitHub: no artifact, cache, release
+# asset or commit, because the repository is public and anyone signed in to GitHub can download its artifacts.
+# The bucket's secrets live in the production-backup environment, which only main may use, so both jobs run in it.
+# The production job refuses to dump until every secret is set and the key is committed, so a missing backup is never
+# silent, and a failed run posts to the on-call channel. Staging holds no customer data, so its job waits for its
+# connection string with a notice and fails like production once it has one (infra/runbooks/security-owner-steps.md).
 
 on:
   schedule:
@@ -22,21 +27,40 @@ jobs:
     name: Encrypted logical backup of staging
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    environment: production-backup
     steps:
+      - name: Skip without the staging secret
+        id: gate
+        env:
+          HAS_SECRET: ${{ secrets.STAGING_DB_URL != '' }}
+        run: |
+          if [ "$HAS_SECRET" = "true" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice title=Staging backup skipped::Add the STAGING_DB_URL repository secret to back up staging (infra/runbooks/security-owner-steps.md)."
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          fi
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: steps.gate.outputs.run == 'true'
       - uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
+        if: steps.gate.outputs.run == 'true'
         with:
           version: 2.120.0
-      - name: Dump and encrypt
+      - name: Dump, encrypt and upload to private storage
+        if: steps.gate.outputs.run == 'true'
         env:
           XOS_BACKUP_DB_URL: ${{ secrets.STAGING_DB_URL }}
+          XOS_BACKUP_SECRET_NAME: STAGING_DB_URL
+          BACKUP_ENCRYPTION_RECIPIENT: ${{ secrets.BACKUP_ENCRYPTION_RECIPIENT }}
+          BACKUP_S3_ENDPOINT: ${{ secrets.BACKUP_S3_ENDPOINT }}
+          BACKUP_S3_REGION: ${{ secrets.BACKUP_S3_REGION }}
+          BACKUP_S3_BUCKET: ${{ secrets.BACKUP_S3_BUCKET }}
+          BACKUP_S3_ACCESS_KEY_ID: ${{ secrets.BACKUP_S3_ACCESS_KEY_ID }}
+          BACKUP_S3_SECRET_ACCESS_KEY: ${{ secrets.BACKUP_S3_SECRET_ACCESS_KEY }}
         run: infra/ci/backup-weekly.sh staging "$RUNNER_TEMP/backup"
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: xos-staging-backup
-          path: ${{ runner.temp }}/backup/*.gpg
-          retention-days: 35
-          if-no-files-found: error
+      - name: Remove the local archive
+        if: always()
+        run: rm -rf "$RUNNER_TEMP/backup"
 
   production:
     name: Encrypted logical backup of production (read-only login)
@@ -51,13 +75,34 @@ jobs:
       - uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
         with:
           version: 2.120.0
-      - name: Dump and encrypt
+      - name: Dump, encrypt and upload to private storage
         env:
           XOS_BACKUP_DB_URL: ${{ secrets.PRODUCTION_BACKUP_DB_URL }}
+          XOS_BACKUP_SECRET_NAME: PRODUCTION_BACKUP_DB_URL
+          BACKUP_ENCRYPTION_RECIPIENT: ${{ secrets.BACKUP_ENCRYPTION_RECIPIENT }}
+          BACKUP_S3_ENDPOINT: ${{ secrets.BACKUP_S3_ENDPOINT }}
+          BACKUP_S3_REGION: ${{ secrets.BACKUP_S3_REGION }}
+          BACKUP_S3_BUCKET: ${{ secrets.BACKUP_S3_BUCKET }}
+          BACKUP_S3_ACCESS_KEY_ID: ${{ secrets.BACKUP_S3_ACCESS_KEY_ID }}
+          BACKUP_S3_SECRET_ACCESS_KEY: ${{ secrets.BACKUP_S3_SECRET_ACCESS_KEY }}
         run: infra/ci/backup-weekly.sh production "$RUNNER_TEMP/backup" --reader
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: xos-production-backup
-          path: ${{ runner.temp }}/backup/*.gpg
-          retention-days: 35
-          if-no-files-found: error
+      - name: Remove the local archive
+        if: always()
+        run: rm -rf "$RUNNER_TEMP/backup"
+
+  # GitHub emails a failed scheduled run only to whoever last changed the cron line, so the channel hears it too.
+  alert:
+    name: Alert on a failed backup
+    needs: [staging, production]
+    if: failure()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Post to the on-call channel
+        env:
+          XOS_ALERT_WEBHOOK_URL: ${{ secrets.XOS_ALERT_WEBHOOK_URL }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          RUNBOOK_URL: ${{ github.server_url }}/${{ github.repository }}/blob/main/infra/runbooks/backup-and-restore.md
+        run: |
+          infra/ci/post-alert.sh "Weekly backup failed. Run: $RUN_URL Runbook: $RUNBOOK_URL"

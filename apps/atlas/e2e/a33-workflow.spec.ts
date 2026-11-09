@@ -1,4 +1,4 @@
-import { expect, test } from "./engine-test";
+import { expect as baseExpect, test } from "./engine-test";
 import { expectAccessibleInBothThemes, ORG, settled, signIn } from "./operations-support";
 import { expectAccessible } from "./support";
 
@@ -14,7 +14,8 @@ import { expectAccessible } from "./support";
 
 test.use({ reducedMotion: "reduce" });
 test.setTimeout(240_000);
-expect.configure({ timeout: 20_000 });
+// configure returns a new expect; the file-level timeout applies only through it.
+const expect = baseExpect.configure({ timeout: 20_000 });
 
 test("approvals: the Owner decides the step a purchase order waits on", async ({ page }) => {
   await signIn(page, "owner@example.com");

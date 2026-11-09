@@ -481,6 +481,21 @@ describe("dates on the right calendar (A71)", () => {
     expect(
       onboardingStanding(r("x", { satisfied: true, expires_on: "2027-06-09" }), "2027-06-10"),
     ).toBe("expired");
+    // Sent again after a review returned it, it waits for the org rather than reading Returned.
+    const sentAgain = { submitted_at: "2027-06-08T10:00:00Z", latest_outcome: "Failed" };
+    expect(onboardingStanding(r("x", { ...sentAgain, awaiting_review: true }), "2027-06-10")).toBe(
+      "waiting",
+    );
+    expect(onboardingStanding(r("x", { ...sentAgain, awaiting_review: false }), "2027-06-10")).toBe(
+      "returned",
+    );
+    // A file the scanner refused waits for nobody.
+    expect(
+      onboardingStanding(
+        r("x", { submitted_at: "2027-06-08T10:00:00Z", awaiting_review: false }),
+        "2027-06-10",
+      ),
+    ).toBe("to-do");
   });
 });
 

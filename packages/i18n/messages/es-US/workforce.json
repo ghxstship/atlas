@@ -635,7 +635,7 @@
     "noSpace": "Sin espacio",
     "spaceOption": "{name} ({area} pies², capacidad {capacity})",
     "factor": "Factor de carga de ocupantes",
-    "factorHelp": "De las métricas de capacidad de la Biblia: el área del espacio dividida entre este factor da el aforo permitido.",
+    "factorHelp": "De las métricas de capacidad de la Biblia: el área del espacio dividida entre este factor da un aforo calculado, no un aforo permitido.",
     "noFactor": "Sin factor de carga",
     "factorOption": "{item}: {feet} pies² por persona",
     "permit": "Aforo permitido por un permiso",
@@ -647,7 +647,7 @@
       "Permit": "Permiso"
     },
     "inside": "Adentro",
-    "load": "Aforo permitido",
+    "load": "Aforo",
     "percent": "Porcentaje",
     "ratio": "{count} de {load} ({percent} %)",
     "counting": "Contando",
@@ -916,7 +916,7 @@
     "support_ticket_closed": "Esta solicitud está cerrada. Abre una nueva.",
     "occupancy_count_negative": "Eso dejaría el conteo bajo cero. Revisa el conteo de la puerta.",
     "occupancy_counter_closed": "Este contador está cerrado.",
-    "occupancy_load_unknown": "Indica un aforo permitido, elige un factor de carga o primero configura la capacidad del espacio.",
+    "occupancy_load_unknown": "Escribe el aforo de un permiso, elige un factor de carga o primero configura la capacidad del espacio.",
     "occupancy_space_area": "El espacio necesita su área antes de que un factor de carga calcule el aforo.",
     "occupancy_load_factor": "Elige un factor de carga de ocupantes de las métricas de capacidad de la Biblia.",
     "guest_not_approved": "Solo se registran invitados aprobados. Pregunta a quien lleva la lista.",
@@ -928,11 +928,13 @@
     "lost_item_claim_settled": "Este reclamo ya se resolvió.",
     "lost_item_rejection_note": "Indica por qué se rechaza el reclamo.",
     "content_report_own": "No puedes denunciar tu propia publicación, comentario o mensaje.",
+    "content_objectionable": "Esto contiene lenguaje que no se permite aquí. Cambia la redacción e inténtalo de nuevo.",
     "content_report_removed": "Esto ya se eliminó.",
     "block_self": "No puedes bloquearte a ti mismo.",
     "content_moderation_own": "Otro moderador decide las denuncias sobre tu propia publicación, comentario o mensaje.",
     "content_moderation_nothing_open": "Ya se decidieron todas las denuncias sobre esto.",
     "content_moderation_authority": "Revisar contenido denunciado requiere permiso para gestionar la comunicación.",
+    "question_sensitive": "Una pregunta no puede pedir datos de dieta, accesibilidad o de grupos protegidos, porque responderla no registra ningún consentimiento. Usa Datos de trabajo o el paso de necesidades del invitado.",
     "weather_feed_unsupported": "El feed oficial cubre sedes de EE. UU. con ubicación. Ubica la sede primero.",
     "weather_feed_worker_fields": "El feed define su propia estación, URL de pronóstico y hora de verificación.",
     "weather_feed_payload": "El feed oficial envió algo que no pudimos leer. Lo intentará de nuevo.",
@@ -1203,10 +1205,20 @@
       "add": "Sumar {n}",
       "remove": "Restar {n}",
       "count": "{count} de {permitted}",
-      "percent": "{percent} por ciento del aforo permitido",
-      "level80": "80 por ciento del aforo permitido. Reduce el ingreso.",
-      "level90": "90 por ciento del aforo permitido. Detén el ingreso y llama a tu supervisor.",
-      "level100": "Aforo permitido alcanzado. Detén el ingreso ahora."
+      "percent": "{percent} por ciento del {load}",
+      "level80": "80 por ciento del {load}. Reduce la entrada.",
+      "level90": "90 por ciento del {load}. Detén la entrada y llama a tu supervisor.",
+      "level100": "En el {load}. Detén la entrada ahora.",
+      "loadName": {
+        "Permit": "aforo permitido",
+        "OccupantLoadFactor": "aforo calculado",
+        "SpaceCapacity": "aforo del espacio"
+      },
+      "basis": {
+        "Permit": "Aforo fijado por un permiso.",
+        "OccupantLoadFactor": "Aforo calculado: el área del espacio dividida entre su factor de carga de ocupantes. Ningún permiso lo fijó.",
+        "SpaceCapacity": "Aforo según la capacidad indicada del espacio. Ningún permiso lo fijó."
+      }
     },
     "weather": {
       "title": "Clima",
@@ -1366,7 +1378,7 @@
       "noAction": "No tomar medidas: no incumple ninguna norma"
     },
     "ruleReference": "Norma aplicada",
-    "ruleReferenceHelp": "Por ejemplo, Política de uso aceptable 1, o una sección del código de conducta de tu organización.",
+    "ruleReferenceHelp": "Por ejemplo, Política de uso aceptable, sección 1, o una sección del código de conducta de tu organización.",
     "facts": "Hechos",
     "factsHelp": "Lo que el contenido dice o hace y en lo que se basa la decisión.",
     "statement": "Declaración de motivos",

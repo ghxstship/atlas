@@ -1,16 +1,30 @@
 import { getSeatUsage, getSubscription } from "@xos/data";
-import { getBillingAccount, type BillingAccount } from "@xos/data/billing";
+import {
+  getBillingAccount,
+  getStripeCancellations,
+  orgCheckoutCurrency,
+  type BillingAccount,
+} from "@xos/data/billing";
+import { planFeatureOffered } from "@xos/i18n/offering";
 import type { Route } from "next";
 import Link from "next/link";
 import { getFormatter, getTranslations } from "next-intl/server";
 import { BillingLifecycleNotice } from "@/components/lifecycle/billing-notice";
 import { ContributedPanels } from "@/components/settings/contributed-panels";
 import { SectionHeader } from "@/components/settings/section-header";
-import { BillingPortalButton, CheckoutButton } from "@/components/settings/billing-forms";
+import {
+  BillingPortalButton,
+  EndPlanForm,
+  RenewalConsentForm,
+} from "@/components/settings/billing-forms";
+import { StripeCancellationNotice } from "@/components/settings/stripe-cancellation-notice";
 import { requireNode } from "@/lib/shell/require-node";
-import { Button, Card, InlineAlert } from "@/components/ui";
+import { Button, ButtonLink, Card, InlineAlert } from "@/components/ui";
+import { renewalWording } from "@/lib/billing/renewal-terms";
 import { billingStatus } from "@/lib/billing/stripe";
+import { currentOffering } from "@/lib/offering";
 import { ADDONS, OFFERS, PLANS } from "@/lib/plans.generated";
+import { getOrgTimeZone } from "@/lib/shell/time-zone";
 import { getTranslate } from "@/lib/shell/translate";
 
 /**
@@ -20,8 +34,10 @@ import { getTranslate } from "@/lib/shell/translate";
  *
  * ADR 0033 decision 59: XOS launches on the trial and the Access plan, and billing opens once the
  * owner sets the Stripe key. An org on a trial or Access chooses a self-serve plan and term and pays in
- * Stripe Checkout; an org that pays through Stripe changes its plan, card or cancellation in the Stripe
- * customer portal. While a paid checkout waits for its subscription to sync, the page says Stripe is confirming
+ * Stripe Checkout; an org that pays through Stripe changes its plan or card in the Stripe customer portal. ADR 0161:
+ * choosing a plan first shows its renewal terms (price, term, first charge date and how to cancel), and only agreeing to
+ * them opens Checkout. A paying org ends its plan here with one button, and the page says what Stripe has said about it.
+ * While a paid checkout waits for its subscription to sync, the page says Stripe is confirming
  * and offers no second Checkout. Until the key is set the page says billing is not open yet, and the buttons
  * answer the same. Buying extra seats and packs stays disabled; Enterprise is sold by quote and never checks out.
  * Panels other modules contribute follow, such as A107's choice of what stays writable over the plan's limits.
@@ -34,7 +50,19 @@ export default async function BillingSettingsPage({
   const ctx = await requireNode("settings.billing-and-plan", routeParams);
   const search = await searchParams;
   const billing = billingStatus();
-  const [subscription, seats, account, t, tp, translate, format] = await Promise.all([
+  const [
+    subscription,
+    seats,
+    account,
+    t,
+    tp,
+    translate,
+    format,
+    word,
+    zone,
+    cancellations,
+    currency,
+  ] = await Promise.all([
     getSubscription(ctx.viewer.db, ctx.org.id),
     getSeatUsage(ctx.viewer.db, ctx.org.id),
     billing.open ? getBillingAccount(ctx.viewer.db, ctx.org.id, billing.livemode) : null,
@@ -42,6 +70,11 @@ export default async function BillingSettingsPage({
     getTranslations("shell.plans"),
     getTranslate(),
     getFormatter(),
+    renewalWording(),
+    getOrgTimeZone(ctx),
+    getStripeCancellations(ctx.viewer.db, ctx.org.id),
+    // The currency Checkout charges in (ADR 0160), so the terms shown are the terms the action words again.
+    orgCheckoutCurrency(ctx.viewer.db, ctx.org.id),
   ]);
   if (!subscription.ok) {
     throw new Error(`Cannot read the subscription: ${JSON.stringify(subscription.error)}`);
@@ -64,6 +97,18 @@ export default async function BillingSettingsPage({
   const usage = seats.data;
   const org = ctx.org.slug;
   const page = `/${org}/settings/billing-and-plan`;
+  const reviewCode = typeof search["review"] === "string" ? search["review"] : null;
+  const review =
+    buying && reviewCode !== null
+      ? word({
+          planCode: reviewCode,
+          interval: term,
+          currency,
+          trialEndsAt: subscription.data.trialEndsAt,
+          zone,
+        })
+      : null;
+  const ending = cancellations.ok && cancellations.data.some((c) => c.mode === "At Period End");
   const name = (code: string) => translate(`shell.plans.${code}.name`);
   const usd = (minor: number) =>
     format.number(minor / 100, {
@@ -72,6 +117,9 @@ export default async function BillingSettingsPage({
       maximumFractionDigits: minor % 100 === 0 ? 0 : 2,
     });
   const full = usage.limit !== null && usage.used >= usage.limit;
+  // Only the currencies of open territories are mentioned (ADR 0160).
+  const offering = await currentOffering();
+  const otherCurrencies = offering.currencies.filter((c) => c !== "USD");
   const pack = ADDONS.find((a) => a.limit === "aurora_requests_per_month");
   const founding = OFFERS.find((o) => o.code === "founding_customer");
   return (
@@ -79,18 +127,51 @@ export default async function BillingSettingsPage({
       <SectionHeader node="settings.billing-and-plan" />
       <BillingLifecycleNotice
         ctx={ctx}
-        billing={{ open: billing.open, portal: stripe?.hasStripeCustomer === true, awaiting }}
+        billing={{
+          open: billing.open,
+          portal: stripe?.hasStripeCustomer === true,
+          awaiting,
+          reviewing: review !== null,
+        }}
       />
       <p className="m-0 text-text-14">{t("current", { org: ctx.org.name, plan: name(current) })}</p>
+      <StripeCancellationNotice ctx={ctx} />
       {billing.open ? null : <InlineAlert tone="info">{t("notAvailable")}</InlineAlert>}
       {checkout === "done" && paid ? (
         <InlineAlert tone="success">
-          {t("checkoutDone", { org: ctx.org.name, plan: name(current) })}
+          {t("checkoutDone", { org: ctx.org.name, plan: name(current) })} {t("checkoutTerms")}
         </InlineAlert>
       ) : checkout === "done" || awaiting ? (
         <InlineAlert tone="success">{t("checkoutPending")}</InlineAlert>
       ) : checkout === "canceled" ? (
         <InlineAlert tone="info">{t("checkoutCanceled")}</InlineAlert>
+      ) : null}
+      {review ? (
+        <Card>
+          <section aria-labelledby="renewal-review" className="flex flex-col gap-8">
+            <h2 id="renewal-review" className="m-0 text-heading-16 font-semibold">
+              {t("renewal.title", { plan: name(review.planCode) })}
+            </h2>
+            <p className="m-0 text-text-14" data-testid="renewal-statement">
+              {review.statement}
+            </p>
+            <RenewalConsentForm
+              org={org}
+              plan={review.planCode}
+              interval={review.interval}
+              hash={review.hash}
+              label={t("renewal.continue")}
+            />
+            <div>
+              <Link
+                href={(term === "Annual" ? `${page}?term=annual` : page) as Route}
+                className="text-text-13 text-text-secondary underline"
+              >
+                {t("renewal.back")}
+              </Link>
+            </div>
+          </section>
+        </Card>
       ) : null}
       {stripe?.hasStripeCustomer ? (
         <Card>
@@ -108,6 +189,15 @@ export default async function BillingSettingsPage({
               </p>
             ) : null}
             <BillingPortalButton org={org} label={t("portal.open")} />
+            {paid && !ending ? (
+              <section aria-labelledby="end-plan" className="flex flex-col gap-8 pt-8">
+                <h3 id="end-plan" className="m-0 text-heading-14 font-semibold">
+                  {t("endPlan.title")}
+                </h3>
+                <p className="m-0 text-text-13 text-text-secondary">{t("endPlan.body")}</p>
+                <EndPlanForm org={org} label={t("endPlan.submit")} />
+              </section>
+            ) : null}
           </section>
         </Card>
       ) : null}
@@ -225,9 +315,11 @@ export default async function BillingSettingsPage({
                       </span>
                     ) : null}
                     <ul className="m-0 ps-16">
-                      {plan.adds.map((f) => (
-                        <li key={f}>{translate(`shell.plans.features.${f}`)}</li>
-                      ))}
+                      {plan.adds
+                        .filter((f) => planFeatureOffered(f, offering))
+                        .map((f) => (
+                          <li key={f}>{translate(`shell.plans.features.${f}`)}</li>
+                        ))}
                     </ul>
                   </div>
                 ) : null}
@@ -238,17 +330,17 @@ export default async function BillingSettingsPage({
                     </span>
                   ) : null}
                   {plan.selfServe && buying ? (
-                    <CheckoutButton
-                      org={org}
-                      plan={plan.code}
-                      interval={term}
-                      label={
-                        term === "Annual"
+                    <div>
+                      <ButtonLink
+                        href={
+                          `${page}?review=${plan.code}${term === "Annual" ? "&term=annual" : ""}#renewal-review` as Route
+                        }
+                      >
+                        {term === "Annual"
                           ? t("chooseAnnual", { plan: name(plan.code) })
-                          : t("choose", { plan: name(plan.code) })
-                      }
-                      variant={plan.code === current ? "primary" : "secondary"}
-                    />
+                          : t("choose", { plan: name(plan.code) })}
+                      </ButtonLink>
+                    </div>
                   ) : plan.selfServe && plan.code !== current && !billing.open ? (
                     <div>
                       <Button variant="secondary" disabled>
@@ -286,7 +378,13 @@ export default async function BillingSettingsPage({
           </div>
         </Card>
       ) : null}
-      <p className="m-0 text-text-12 text-text-secondary">{t("pricesInUsd")}</p>
+      <p className="m-0 text-text-12 text-text-secondary">
+        {otherCurrencies.length === 0
+          ? t("pricesInUsd")
+          : `${t("pricesInUsd")} ${t("pricesInOtherCurrencies", {
+              currencies: otherCurrencies.join(", "),
+            })}`}
+      </p>
       {founding ? (
         <p className="m-0 text-text-12 text-text-secondary">
           {t("foundingOffer", {

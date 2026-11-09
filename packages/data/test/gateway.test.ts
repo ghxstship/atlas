@@ -3,7 +3,6 @@ import {
   acceptRepresentation,
   addAccountMember,
   addAvailabilityBlock,
-  averageScore,
   awaitingSignature,
   base32ToUuid,
   createAvailabilityCalendar,
@@ -22,12 +21,18 @@ import {
   listOnboardingItems,
   listPayments,
   listPayoutAccounts,
+  fileRatingDispute,
+  getRatingSharing,
+  listMyRatingDisputes,
   listRatingsAbout,
+  RATING_SHARING_NOTICE_VERSION,
+  setRatingSharing,
   listRepresentations,
   listSharedRecords,
   listTaxForms,
   listThreads,
   onboardingStanding,
+  uploadsAwaitingCertificate,
   openThread,
   proposeRepresentation,
   rateEngagement,
@@ -195,6 +200,7 @@ describe("onboarding", () => {
     expires_on: null,
     passes: false,
     satisfied: false,
+    awaiting_review: false,
     ...over,
   });
 
@@ -210,6 +216,35 @@ describe("onboarding", () => {
     expect((await listOnboardingItems(db)).ok).toBe(false);
   });
 
+  it("says which uploads have no certificate behind them yet", () => {
+    const base: OnboardingItem = {
+      id: "i",
+      engagementId: ID,
+      name: "n",
+      kind: "Document Upload" as OnboardingItem["kind"],
+      blocking: true,
+      verification: "Reviewer",
+      submittedAt: "x",
+      latestOutcome: null,
+      expiresOn: null,
+      passes: false,
+      satisfied: false,
+      awaitingReview: true,
+    };
+    const items: OnboardingItem[] = [
+      { ...base, id: "waiting" },
+      { ...base, id: "passed", latestOutcome: "Passed", satisfied: true, awaitingReview: false },
+      { ...base, id: "failed", latestOutcome: "Failed", awaitingReview: false },
+      // Sent again after a failed review: the view says it waits for review again.
+      { ...base, id: "sent again", latestOutcome: "Failed" },
+      { ...base, id: "not uploaded", submittedAt: null, awaitingReview: false },
+    ];
+    const { waiting, passed } = uploadsAwaitingCertificate(items, "2026-10-14");
+    expect(waiting.map((i) => i.id)).toEqual(["waiting", "sent again"]);
+    // A passed review is the path the vendor lands on when nobody records a certificate.
+    expect(passed.map((i) => i.id)).toEqual(["passed"]);
+  });
+
   it("derives the standing of an item", () => {
     const base: OnboardingItem = {
       id: "i",
@@ -223,12 +258,24 @@ describe("onboarding", () => {
       expiresOn: null,
       passes: false,
       satisfied: false,
+      awaitingReview: false,
     };
     expect(onboardingStanding(base, "2026-10-14")).toBe("todo");
-    expect(onboardingStanding({ ...base, submittedAt: "x" }, "2026-10-14")).toBe("review");
+    expect(
+      onboardingStanding({ ...base, submittedAt: "x", awaitingReview: true }, "2026-10-14"),
+    ).toBe("review");
     expect(
       onboardingStanding({ ...base, submittedAt: "x", latestOutcome: "Failed" }, "2026-10-14"),
     ).toBe("todo");
+    // Uploaded again after a failed review, it waits for review rather than asking for it again.
+    expect(
+      onboardingStanding(
+        { ...base, submittedAt: "x", latestOutcome: "Failed", awaitingReview: true },
+        "2026-10-14",
+      ),
+    ).toBe("review");
+    // A file the scanner refused is not waiting for anyone.
+    expect(onboardingStanding({ ...base, submittedAt: "x" }, "2026-10-14")).toBe("todo");
     expect(onboardingStanding({ ...base, satisfied: true }, "2026-10-14")).toBe("verified");
     expect(
       onboardingStanding(
@@ -487,11 +534,15 @@ describe("accounts", () => {
       "rpc:add_account_member": [okResponse("m1"), errorResponse("42501", "no")],
       "rpc:end_account_membership": [okResponse(null), errorResponse("42501", "no")],
     });
-    expect(await createExternalAccount(db, { name: "Bright", slug: "bright" })).toEqual({
+    expect(
+      await createExternalAccount(db, { name: "Bright", slug: "bright", countryCode: "US" }),
+    ).toEqual({
       ok: true,
       data: { accountId: "a1" },
     });
-    expect((await createExternalAccount(db, { name: "Bright", slug: "bright" })).ok).toBe(false);
+    expect(
+      (await createExternalAccount(db, { name: "Bright", slug: "bright", countryCode: "US" })).ok,
+    ).toBe(false);
     expect(
       await addAccountMember(db, { accountId: "a1", personId: "p2", role: "Account Member" }),
     ).toEqual({ ok: true, data: { membershipId: "m1" } });
@@ -674,9 +725,86 @@ describe("ratings", () => {
     expect((await listRatingsAbout(db, { personId: "me" })).ok).toBe(false);
   });
 
-  it("averages to one decimal and never invents a zero", () => {
-    expect(averageScore([])).toBeNull();
-    expect(averageScore([{ score: 5 }, { score: 4 }, { score: 4 }])).toBe(4.3);
+  it("records the person's rating sharing choice with the notice they saw", async () => {
+    const { db, calls } = gatewayClient({
+      "from:rating_sharing_consents": [okResponse([{ id: "c1" }]), okResponse([])],
+      "rpc:set_rating_sharing": [okResponse(true), okResponse(false)],
+    });
+    expect(await getRatingSharing(db)).toEqual({ ok: true, data: true });
+    expect(await getRatingSharing(db)).toEqual({ ok: true, data: false });
+    expect(await setRatingSharing(db, true, RATING_SHARING_NOTICE_VERSION)).toEqual({
+      ok: true,
+      data: true,
+    });
+    expect(await setRatingSharing(db, false, null)).toEqual({ ok: true, data: false });
+    expect(calls.at(-1)?.steps).toContainEqual(["args", [{ p_opt_in: false, p_source: "Web" }]]);
+    expect(calls.at(-2)?.steps).toContainEqual([
+      "args",
+      [
+        {
+          p_opt_in: true,
+          p_notice_version: RATING_SHARING_NOTICE_VERSION,
+          p_source: "Web",
+        },
+      ],
+    ]);
+  });
+
+  it("files and lists the person's own rating disputes", async () => {
+    const { db, calls } = gatewayClient({
+      "from:rating_disputes": [
+        okResponse([
+          {
+            id: "d1",
+            rating_id: "r1",
+            dispute_ground: "False Statement",
+            dispute_details: "I was on time.",
+            dispute_state: "Open",
+            filed_at: "2026-11-06T12:00:00Z",
+            org_response: null,
+            decision_statement: null,
+            decided_at: null,
+          },
+        ]),
+        errorResponse("08000", "down"),
+      ],
+      "rpc:rating_dispute_subjects": [
+        okResponse([
+          {
+            dispute_id: "d1",
+            org_name: "Harbor",
+            engagement_id: "e1",
+            party_name: "Ivy Chen",
+            project_name: "Summer Series",
+            rating_score: null,
+            rating_comment: null,
+            rating_submitted_at: "2026-11-01T12:00:00Z",
+          },
+        ]),
+        okResponse([]),
+      ],
+      "rpc:file_rating_dispute": [
+        okResponse("d1"),
+        errorResponse("XR001", "rating_dispute_exists: x"),
+      ],
+    });
+    const list = await listMyRatingDisputes(db, "me");
+    expect(list.ok && list.data[0]).toMatchObject({ ratingId: "r1", state: "Open" });
+    expect(calls[0]?.steps).toContainEqual(["eq", ["disputant_person_id", "me"]]);
+    expect((await listMyRatingDisputes(db, "me")).ok).toBe(false);
+    const input = { ratingId: "r1", ground: "Other", details: " Not me. " } as const;
+    expect(await fileRatingDispute(db, input)).toEqual({ ok: true, data: "d1" });
+    expect(calls.at(-1)?.steps).toContainEqual([
+      "args",
+      [
+        {
+          p_rating_id: "r1",
+          p_ground: "Other",
+          p_details: "Not me.",
+        },
+      ],
+    ]);
+    expect((await fileRatingDispute(db, input)).ok).toBe(false);
   });
 
   it("rates and replies", async () => {

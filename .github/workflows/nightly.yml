@@ -211,16 +211,27 @@ jobs:
         if: env.ANTHROPIC_API_KEY != ''
 
   # Owner decision 13 (ADR 0033): the journeys in Firefox and WebKit run nightly; Chromium runs on
-  # every push in ci.yml.
+  # every push in ci.yml. Atlas runs about 360 journeys: on one runner Firefox reached 229 of them in
+  # 90 minutes and was cut off (run 42489339979), so Atlas runs in four shards per engine, as ci.yml
+  # shards it for Chromium, each with its own stack and server.
   e2e-engines:
-    name: Playwright journeys (${{ matrix.app }}, ${{ matrix.engine }}) (gate 6)
+    name: Playwright journeys (${{ matrix.app }}, ${{ matrix.engine }}${{ matrix.shard && format(', {0}/{1}', matrix.shard, matrix.shards) || '' }}) (gate 6)
     runs-on: ubuntu-24.04
     timeout-minutes: 90
     strategy:
       fail-fast: false
       matrix:
-        app: [atlas, gateway]
-        engine: [firefox, webkit]
+        include:
+          - { app: atlas, engine: firefox, shard: 1, shards: 4 }
+          - { app: atlas, engine: firefox, shard: 2, shards: 4 }
+          - { app: atlas, engine: firefox, shard: 3, shards: 4 }
+          - { app: atlas, engine: firefox, shard: 4, shards: 4 }
+          - { app: atlas, engine: webkit, shard: 1, shards: 4 }
+          - { app: atlas, engine: webkit, shard: 2, shards: 4 }
+          - { app: atlas, engine: webkit, shard: 3, shards: 4 }
+          - { app: atlas, engine: webkit, shard: 4, shards: 4 }
+          - { app: gateway, engine: firefox }
+          - { app: gateway, engine: webkit }
     env:
       E2E_ENGINES: ${{ matrix.engine }}
     steps:
@@ -247,32 +258,28 @@ jobs:
           echo "XOS_FILE_HANDOVER_SECRET=$SECRET" > supabase/functions/.env
           echo "XOS_FILE_HANDOVER_SECRET=$SECRET" >> "$GITHUB_ENV"
       - run: supabase start -x studio,imgproxy,logflare,vector,postgres-meta,supavisor
+      # The same .env.local files and E2E_* variables as the Chromium journeys in ci.yml.
       - name: Write the app environment from the stack
-        run: |
-          ANON=$(supabase status -o env | sed -n 's/^ANON_KEY="\(.*\)"$/\1/p')
-          printf 'SUPABASE_URL=http://127.0.0.1:55421\nSUPABASE_ANON_KEY=%s\nATLAS_SITE_URL=http://127.0.0.1:3006\nGATEWAY_SITE_URL=http://127.0.0.1:3127\nSUPABASE_INBUCKET_URL=http://127.0.0.1:55424\nXOS_FILE_HANDOVER_SECRET=%s\n' "$ANON" "$XOS_FILE_HANDOVER_SECRET" > apps/atlas/.env.local
-          printf 'SUPABASE_URL=http://127.0.0.1:55421\nSUPABASE_ANON_KEY=%s\nGATEWAY_SITE_URL=http://127.0.0.1:3127\nGATEWAY_PLATFORM_HOSTS=127.0.0.1,localhost\n' "$ANON" > apps/gateway/.env.local
-          echo "E2E_ATLAS_URL=http://127.0.0.1:3006" >> "$GITHUB_ENV"
-          echo "E2E_GATEWAY_URL=http://127.0.0.1:3127" >> "$GITHUB_ENV"
-          echo "E2E_SUPABASE_URL=http://127.0.0.1:55421" >> "$GITHUB_ENV"
-          echo "E2E_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:55422/postgres" >> "$GITHUB_ENV"
-          echo "E2E_INBUCKET_URL=http://127.0.0.1:55424" >> "$GITHUB_ENV"
-          echo "E2E_SUPABASE_SERVICE_KEY=$(supabase status -o env | sed -n 's/^SERVICE_ROLE_KEY="\(.*\)"$/\1/p')" >> "$GITHUB_ENV"
+        run: infra/ci/e2e-env.sh
       - run: pnpm turbo run build --filter=@xos/${{ matrix.app }} ${{ matrix.app == 'gateway' && '--filter=@xos/atlas' || '' }}
       - name: Start the production server
         run: |
           PORT=$([ "${{ matrix.app }}" = atlas ] && echo 3006 || echo 3127)
+          # Journeys open a territory and need the change at once, so the server reads the offering every time.
+          export E2E_OFFERING_FRESH=1
+          echo "E2E_OFFERING_FRESH=1" >> "$GITHUB_ENV"
           (cd apps/${{ matrix.app }} && nohup pnpm exec next start --port "$PORT" > /tmp/app.log 2>&1 &)
           if [ "${{ matrix.app }}" = gateway ]; then (cd apps/atlas && nohup pnpm exec next start --port 3006 > /tmp/atlas.log 2>&1 &); fi
           for i in $(seq 60); do curl -fs -o /dev/null "http://127.0.0.1:$PORT" && break; sleep 2; done
           echo "E2E_BASE_URL=http://127.0.0.1:$PORT" >> "$GITHUB_ENV"
           echo "E2E_PRODUCTION_BUILD=1" >> "$GITHUB_ENV"
-      - run: pnpm exec playwright test
+      - name: Journeys
+        run: pnpm exec playwright test ${{ matrix.shard && format('--shard={0}/{1}', matrix.shard, matrix.shards) || '' }}
         working-directory: apps/${{ matrix.app }}
       - if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: e2e-${{ matrix.app }}-${{ matrix.engine }}
+          name: e2e-${{ matrix.app }}-${{ matrix.engine }}${{ matrix.shard && format('-{0}', matrix.shard) || '' }}
           path: |
             apps/${{ matrix.app }}/node_modules/.cache/playwright
             /tmp/*.log
@@ -296,7 +303,14 @@ jobs:
       - name: Start Docker in a Colima VM
         run: |
           brew install docker colima
-          colima start --runtime docker --cpu 2 --memory 6 --disk 40
+          # Colima downloads its VM image from GitHub on start; one run failed there resolving the
+          # download URL (run 42056141915), so a failed start is tried again from a clean VM.
+          for attempt in 1 2 3; do
+            colima start --runtime docker --cpu 2 --memory 6 --disk 40 && break
+            [ "$attempt" = 3 ] && exit 1
+            colima delete --force || true
+            sleep $((attempt * 20))
+          done
           echo "DOCKER_HOST=unix://$HOME/.colima/default/docker.sock" >> "$GITHUB_ENV"
           docker info --format 'Docker {{.ServerVersion}} in Colima: {{.NCPU}} CPUs, {{.MemTotal}} bytes'
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
@@ -310,7 +324,10 @@ jobs:
       - run: pnpm install --frozen-lockfile
       # Services no test uses stay off; the images come from GHCR first (infra/ci/README.md).
       - run: infra/ci/supabase-images.sh start
-      - run: supabase start -x studio,imgproxy,logflare,vector,postgres-meta,supavisor
+      # In the Colima VM, Realtime and Storage come up after the CLI's own wait for health ends, and the CLI
+      # then stopped the stack: it keeps the stack here, and the next step waits up to ten minutes.
+      - run: supabase start --ignore-health-check -x studio,imgproxy,logflare,vector,postgres-meta,supavisor
+      - run: infra/ci/supabase-wait-healthy.sh 600
       # SUPABASE_URL, SUPABASE_ANON_KEY, a registered kiosk and the Field Tech's kiosk PIN.
       - name: Prepare the Maestro run against the CI stack
         run: apps/compass/scripts/maestro-ci-env.sh >> "$GITHUB_ENV"
@@ -404,6 +421,11 @@ jobs:
           # build allows it. Store builds keep Android's default.
           sed -i 's/<application /<application android:usesCleartextTraffic="true" /' android/app/src/main/AndroidManifest.xml
           grep -q 'android:usesCleartextTraffic="true"' android/app/src/main/AndroidManifest.xml
+          # Prebuild gives the Gradle daemon 2 GB of heap and 512 MB of metaspace. The release lint ran out of
+          # metaspace, the daemon stopped answering, and the build sat until the job's time ran out (run
+          # 42489339979 and the five before it). The runner has 16 GB.
+          sed -i 's/^org\.gradle\.jvmargs=.*/org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1536m/' android/gradle.properties
+          grep -q '^org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1536m$' android/gradle.properties
           # The emulator is x86_64: one ABI instead of four (the first nightly spent 23 minutes here).
           (cd android && ./gradlew assembleRelease -PreactNativeArchitectures=x86_64)
       - name: Run the field flows on an emulator

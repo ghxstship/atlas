@@ -25,7 +25,14 @@ import { Banner, useTheme } from "../ui";
 
 const DISMISSED_KEY = "xos.compass.dismissed-banners";
 
-export function SystemBanners({ client }: { client: SupabaseClient | null }): ReactElement | null {
+export function SystemBanners({
+  client,
+  legalNotice,
+}: {
+  client: SupabaseClient | null;
+  /** An announced legal change in its notice period (migration 1383), under the operator's banners. */
+  legalNotice?: { message: string; onReview: () => void; onHide: () => void };
+}): ReactElement | null {
   const { t, i18n } = useTranslation();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
@@ -54,7 +61,7 @@ export function SystemBanners({ client }: { client: SupabaseClient | null }): Re
   }, [refresh]);
 
   const shown = visibleBanners(banners, dismissed);
-  if (shown.length === 0) return null;
+  if (shown.length === 0 && !legalNotice) return null;
   const dismiss = (id: string) => {
     const next = addDismissed(JSON.stringify(dismissed), id);
     setDismissed(parseDismissed(next));
@@ -89,6 +96,17 @@ export function SystemBanners({ client }: { client: SupabaseClient | null }): Re
             : {})}
         />
       ))}
+      {legalNotice ? (
+        <Banner
+          testID="legal-change-notice"
+          tone="info"
+          message={legalNotice.message}
+          actionLabel={t("compass.legalGate.review")}
+          onAction={legalNotice.onReview}
+          onDismiss={legalNotice.onHide}
+          dismissLabel={t("compass.systemBanner.dismiss")}
+        />
+      ) : null}
     </View>
   );
 }

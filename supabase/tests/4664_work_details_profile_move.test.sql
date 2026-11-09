@@ -100,6 +100,7 @@ select throws_ok(format($$update app.work_detail_shares set categories = '{Conta
 select pg_temp.as_user('ivy');
 select throws_like($$update app.person_work_details set shirt_size = 'L' where person_id = (select id from world where key = 'ivy')$$,
   'work_detail_field_moved:%', 'writing a retired column is refused');
+select app.give_sensitive_consent('Dietary and Allergies', '2026-11-06', 'en-US', 'Atlas');
 select lives_ok($$update app.person_work_details set seat_preference = null, dietary_needs = '{Vegan,Halal}'
   where person_id = (select id from world where key = 'ivy')$$, 'clearing one, or changing the others, is not');
 select throws_like(format($$select app.share_work_details(%L, '{Uniform Sizes,Dietary Needs}')$$, pg_temp.id('eng_ivy_a')),

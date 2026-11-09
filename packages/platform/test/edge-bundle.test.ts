@@ -70,19 +70,20 @@ const PACKAGES: Record<string, { boot: string[]; lazy: string[] }> = {
   "integration-inbound": { boot: ["@supabase/supabase-js"], lazy: [] },
   "integration-worker": { boot: ["@supabase/supabase-js"], lazy: [] },
   "kiosk-punch": { boot: [], lazy: [] },
+  // Merge train 11: the email copy and its formatter load on the first email, push or text (loadNotificationCopy).
   "notification-dispatch": {
-    boot: ["intl-messageformat", "zod"],
-    lazy: ["@react-email/components", "react/jsx-runtime", "resend"],
+    boot: ["zod"],
+    lazy: ["@react-email/components", "intl-messageformat", "react/jsx-runtime", "resend"],
   },
   "org-lifecycle": {
     boot: ["@supabase/supabase-js", "zod"],
-    lazy: ["pdfkit", "resend"],
+    lazy: ["pdfkit", "resend", "stripe"],
   },
   "report-run": { boot: ["@supabase/supabase-js", "zod"], lazy: ["exceljs", "pdfkit", "resend"] },
   scim: { boot: ["@supabase/supabase-js"], lazy: [] },
   // A87: plain fetch to PostgREST and Supabase's built-in gte-small model, no package.
   "search-embed": { boot: [], lazy: [] },
-  "sms-webhook": { boot: ["intl-messageformat", "zod"], lazy: [] },
+  "sms-webhook": { boot: ["zod"], lazy: ["intl-messageformat"] },
   // B16: the storage providers and their OAuth renewal, plain fetch to Google and Microsoft.
   "storage-browse": { boot: ["@supabase/supabase-js"], lazy: [] },
   "stripe-webhook": { boot: [], lazy: ["stripe"] },
@@ -215,6 +216,28 @@ describe("Edge Function bundles", () => {
       );
       expect(bytes / 1024, fn).toBeLessThanOrEqual(BOOT_BUDGET_KB[fn] ?? 0);
     }
+  });
+
+  it("send a reporter the appeal sentence the email catalog has now, in both locales (1473)", () => {
+    // notification-dispatch formats listing_report.decided from the vendored copy, not the catalog, so a
+    // copy change without bundle:edge would still send the old sentence.
+    const fn = graph("notification-dispatch");
+    const sent = [...fn.boot, ...fn.lazy].map((file) => readEdgeFile(file) ?? "").join("\n");
+    for (const locale of ["en-US", "es-US"]) {
+      const email = JSON.parse(
+        readFileSync(new URL(`../../i18n/messages/${locale}/email.json`, import.meta.url), "utf8"),
+      ) as { kinds: { listing_report: { decided: { body: string } } } };
+      const body = JSON.stringify(email.kinds.listing_report.decided.body);
+      expect(
+        sent.includes(body),
+        `${locale} listing_report.decided.body is stale; run bundle:edge`,
+      ).toBe(true);
+    }
+    // The old copy promised every reporter an appeal and ended there, without abuse@.
+    expect(
+      /within six months\."|en un plazo de seis meses\."/.test(sent),
+      "the old appeal sentence",
+    ).toBe(false);
   });
 
   it("never bundle a whole message catalog, only the namespaces the functions use", () => {

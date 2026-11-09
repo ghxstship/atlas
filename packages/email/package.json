@@ -1,5 +1,6 @@
 {
   "name": "@xos/email",
+  "sideEffects": false,
   "version": "0.0.0",
   "private": true,
   "description": "XOS transactional and notification email: React Email templates with copy from @xos/i18n, rendered to semantic HTML and plain text, sent through Resend behind a transport interface.",

@@ -28,6 +28,8 @@
     "account": "Company account",
     "newAccount": "Or create a company account",
     "newAccountHelp": "Your company's name. You become its Account Owner.",
+    "newAccountCountry": "Company country",
+    "newAccountCountryChoose": "Choose a country",
     "newAccountName": "New account",
     "next": "Next",
     "back": "Back",

@@ -155,11 +155,17 @@ export async function updateMyName(
 /** Creates an org on the Access plan with the signed-in person as Owner (app.create_organization). */
 export async function createOrganization(
   db: XosClient,
-  input: { readonly name: string; readonly slug: string },
+  input: {
+    readonly name: string;
+    readonly slug: string;
+    /** The country the creator states it is established in (ADR 0160). Omitted, none is recorded. */
+    readonly countryCode?: string;
+  },
 ): Promise<Result<{ orgId: string }>> {
   const { data, error } = await db.rpc("create_organization", {
     p_name: input.name,
     p_slug: input.slug,
+    ...(input.countryCode === undefined ? {} : { p_country_code: input.countryCode }),
   });
   if (error) return fail(toDataError(error));
   return ok({ orgId: data });
@@ -181,8 +187,12 @@ export async function listSubscribableAccounts(
 export async function subscribeExternalAccount(
   db: XosClient,
   accountId: string,
+  countryCode?: string,
 ): Promise<Result<{ orgId: string }>> {
-  const { data, error } = await db.rpc("subscribe_external_account", { p_account_id: accountId });
+  const { data, error } = await db.rpc("subscribe_external_account", {
+    p_account_id: accountId,
+    ...(countryCode === undefined ? {} : { p_country_code: countryCode }),
+  });
   if (error) return fail(toDataError(error));
   return ok({ orgId: data });
 }

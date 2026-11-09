@@ -16,6 +16,8 @@ export interface OpportunityActionState {
 
 /** Refusal rules with their own sentence in the catalog; any other rule reads the generic refusal with its code. */
 export const KNOWN_RULES: ReadonlySet<string> = new Set([
+  // ADR 0164: a question cannot ask for what no consent step covers.
+  "question_sensitive",
   "requisition_required",
   "requisition_not_approved",
   "requisition_mismatch",
@@ -56,6 +58,10 @@ export const KNOWN_RULES: ReadonlySet<string> = new Set([
   "pool_member_own_org",
   "rating_engagement_not_complete",
   "rating_not_released",
+  "rating_dispute_decided",
+  "rating_dispute_answered",
+  "rating_dispute_response",
+  "sod_rating_dispute_answer",
   "sod_rating_self",
   "deliverable_return_reason",
   "sod_deliverable_self",

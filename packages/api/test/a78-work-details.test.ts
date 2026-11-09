@@ -81,6 +81,14 @@ describe("Identity: work details", () => {
         reveal_my_passport_number: () => "YA0000TEST",
         // Allergies are Restricted (R6a, 4663): the owner reads them through their own RPC.
         my_allergies: () => (rows[0]?.["allergies"] as string | undefined) ?? null,
+        // So are dietary and accessibility needs (ADR 0164, 6851).
+        my_work_detail_needs: () =>
+          rows.slice(0, 1).map((row) => ({
+            dietary_needs: row["dietary_needs"] ?? [],
+            dietary_notes: row["dietary_notes"] ?? null,
+            accessibility_needs: row["accessibility_needs"] ?? [],
+            accessibility_notes: row["accessibility_notes"] ?? null,
+          })),
       },
     );
     return { db, http: requests(contractApp({ handlers: [identity], db })) };
@@ -120,6 +128,7 @@ describe("Identity: work details", () => {
       "ensure_my_work_details",
       "set_my_passport_number",
       "my_allergies",
+      "my_work_detail_needs",
     ]);
     expect(db.writes.some((w) => JSON.stringify(w.values).includes('passport_number"'))).toBe(
       false,

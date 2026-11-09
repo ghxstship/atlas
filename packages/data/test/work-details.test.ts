@@ -50,6 +50,7 @@ describe("work details", () => {
     const { db, calls } = fakeClient({
       "from:person_work_details": [okResponse(DETAIL_ROW), okResponse(null)],
       "rpc:my_allergies": [okResponse("Peanuts, severe")],
+      "rpc:my_work_detail_needs": [okResponse([DETAIL_ROW])],
     });
     const read = await getMyWorkDetails(db);
     expect(read.ok && read.data).toMatchObject({
@@ -65,6 +66,8 @@ describe("work details", () => {
     expect(select).not.toMatch(/shirt_size|seat_preference|home_airport/);
     // Allergies are Restricted (R6a, 4663): the owner reads them through app.my_allergies.
     expect(select).not.toMatch(/allergies/);
+    // So are dietary and accessibility needs (ADR 0164, 6851).
+    expect(select).not.toMatch(/dietary|accessibility/);
     const none = await getMyWorkDetails(db);
     expect(none.ok && none.data).toBeNull();
   });
@@ -72,8 +75,9 @@ describe("work details", () => {
   it("saves only the fields given, after ensuring the row", async () => {
     const { db, calls } = fakeClient({
       "rpc:ensure_my_work_details": [okResponse("wd1"), REFUSED("not_signed_in")],
-      "from:person_work_details": [okResponse({ ...DETAIL_ROW, dietary_notes: "No cilantro." })],
+      "from:person_work_details": [okResponse(DETAIL_ROW)],
       "rpc:my_allergies": [okResponse(null)],
+      "rpc:my_work_detail_needs": [okResponse([{ ...DETAIL_ROW, dietary_notes: "No cilantro." }])],
     });
     const saved = await saveMyWorkDetails(db, { dietaryNotes: "No cilantro.", allergies: null });
     expect(saved.ok && saved.data).toMatchObject({ dietaryNotes: "No cilantro.", allergies: null });
@@ -362,7 +366,13 @@ describe("sharing", () => {
       medical: { allergies: "Peanuts, severe" },
     });
     expect(medicalOnly.dietary).toBeNull();
-    expect(medicalOnly.medical).toEqual({ allergies: "Peanuts, severe" });
+    expect(medicalOnly.medical).toEqual({
+      allergies: "Peanuts, severe",
+      dietaryNeeds: [],
+      dietaryNotes: null,
+      accessibilityNeeds: [],
+      accessibilityNotes: null,
+    });
   });
 
   it("shares every category but the retired Uniform Sizes, and names R6a's refusals and log actions", () => {

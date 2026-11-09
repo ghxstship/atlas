@@ -56,6 +56,8 @@ const ARGS: Readonly<Record<string, Record<string, string>>> = {
   "account.session_signed_out": { count: "2" },
   // R6a's one-time move (4664), as private.move_profile_work_details stores it.
   "account.work_details_moved": { moved: "both" },
+  "account.sensitive_data_attested": { category: "Accessibility" },
+  "account.sensitive_consent_needed": {},
   "announcement.posted": { title: "Wristband Change Friday" },
   "approval.requested": { title: "Purchase Order 41", actorName: "Demo Producer" },
   "approval.decided": { title: "Purchase Order 41", actorName: "Demo Admin", decision: "approved" },
@@ -90,6 +92,20 @@ const ARGS: Readonly<Record<string, Record<string, string>>> = {
   "billing.payment_failed": { days: "3" },
   "billing.read_only": {},
   "billing.paused": { resumesOn: "2026-12-30" },
+  "billing.purchase_confirmed": {
+    plan: "Core",
+    term: "Monthly",
+    price: "149.00 USD",
+    nextChargeOn: "1790000000000",
+  },
+  "billing.renewal_reminder": {
+    plan: "Team",
+    price: "1,490.00 USD",
+    renewsOn: "1790000000000",
+  },
+  "billing.plan_ending": { plan: "Team", endsOn: "1790000000000" },
+  "billing.cancellation_confirmed": {},
+  "billing.cancellation_delayed": {},
   "billing.resumed": {},
   "agent.change_proposed": { app: "Claude", appId: "app-1", operation: "updateTask" },
   "comment.created": { title: "NWS-12 Production Meeting", recordKey: "NWS-12" },
@@ -110,6 +126,12 @@ const ARGS: Readonly<Record<string, Record<string, string>>> = {
     skipped: "0",
   },
   "incident.reported": { title: "NWS-32 Slip at dock" },
+  "crisis_alert.issued": {
+    title: "Code Red",
+    project: "Northwind Summer Series",
+    message: "Evacuate the north lawn.",
+  },
+  "crisis_alert.ended": { title: "Code Red", project: "Northwind Summer Series" },
   "invoice.approved": { title: "INV-0042" },
   "quote.accepted": { quoteKey: "NWF26-Q-14", version: "1", actorName: "Cleo Marsh" },
   "invoice.submitted": { title: "INV-0042" },
@@ -394,6 +416,15 @@ const ARGS: Readonly<Record<string, Record<string, string>>> = {
     title: "Festival Riggers",
     outcome: "Upheld",
     statement: "The fee request breaks the marketplace rules.",
+    reviewer: "same",
+    reviewerName: "",
+  },
+  // Rating disputes (ADR 0158, 6821).
+  "rating_dispute.filed": { ground: "False Statement", project: "Summer Series" },
+  "rating_dispute.decided": {
+    outcome: "Upheld",
+    statement: "The call sheets show the person was on time.",
+    project: "Summer Series",
   },
 };
 
@@ -449,9 +480,11 @@ describe("Inbox item copy", () => {
         const label = copy.t(`inbox.kinds.${kind}`);
         expect(out.summary, kind).not.toBe("");
         expect(out.detail, kind).not.toBe("");
-        expect(`${out.summary} ${out.detail}`, kind).not.toMatch(
-          /undefined|[{}]|\b[a-z_]{3,}\.[a-z_]{3,}\b/,
-        );
+        // A raw key reads like kinds.thing; the one contact address (support@ghxstship.pro) is not one.
+        expect(
+          `${out.summary} ${out.detail}`.replaceAll("support@ghxstship.pro", ""),
+          kind,
+        ).not.toMatch(/undefined|[{}]|\b[a-z_]{3,}\.[a-z_]{3,}\b/);
         // The email copy, not the bare kind label, describes every kind that has copy.
         if (copy.hasEmail(`kinds.${kind}.subject`)) expect(out.summary, kind).not.toBe(label);
       }

@@ -18,6 +18,11 @@ export interface ConsoleFormat {
    */
   readonly instant: (iso: string | null) => string;
   readonly number: (n: number) => string;
+  /**
+   * An instant in a named time zone, for legal clocks: a clock counts in its own zone, so it is shown there and named,
+   * with the time zone's own abbreviation.
+   */
+  readonly zoned: (iso: string | null, timeZone: string) => string;
 }
 
 export async function getConsoleFormat(): Promise<ConsoleFormat> {
@@ -38,5 +43,17 @@ export async function getConsoleFormat(): Promise<ConsoleFormat> {
     locale,
     instant: (iso) => (iso ? `${instantFormat.format(new Date(iso))} UTC` : t("common.never")),
     number: (n) => numberFormat.format(n),
+    zoned: (iso, timeZone) =>
+      iso
+        ? new Intl.DateTimeFormat(locale, {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+            hour: "numeric",
+            minute: "2-digit",
+            timeZone,
+            timeZoneName: "short",
+          }).format(new Date(iso))
+        : t("common.never"),
   };
 }

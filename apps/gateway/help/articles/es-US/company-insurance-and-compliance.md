@@ -14,4 +14,4 @@ Cada certificado registrado de la empresa, con su cobertura, aseguradora y la fe
 
 La precalificación de tu empresa con las organizaciones, con su alcance, la fecha hasta la que es válida y la decisión.
 
-Las organizaciones piden los certificados durante la incorporación, y los cargas allí. Elige **Ver contrataciones** para encontrar la contratación que pide uno. La [pestaña Cumplimiento](help:engagement-compliance) de cada contratación muestra los asegurados adicionales que nombra un certificado.
+Las organizaciones piden los certificados en una contratación, y los subes en su pestaña **Cumplimiento**. Un archivo subido aparece como recibido y en espera de revisión hasta que la organización registra el certificado. Elige **Ver contrataciones** para encontrar la contratación que pide uno. La [pestaña Cumplimiento](help:engagement-compliance) de cada contratación muestra los asegurados adicionales que nombra un certificado.

@@ -3,6 +3,13 @@ import type { Result } from "./result.ts";
 import { bool, num, numOrNull, rpc, str, strOrNull, type Raw } from "./platform-common.ts";
 import type { Database } from "./database.types.ts";
 import * as enums from "./enums.generated.ts";
+import type {
+  ContentDecision,
+  ContentModerationAction,
+  ContentModerationGround,
+  ContentReportReason,
+  ContentSubjectKind,
+} from "./content-safety.ts";
 
 /**
  * The operator console (A90, migrations 1470 to 1474; Section 4.10, Section 6, Section 8). Every call runs as the
@@ -22,6 +29,8 @@ export const CONSOLE_PERMISSIONS = [
   "moderation.decide",
   "banners.write",
   "operators.manage",
+  "territories.write",
+  "legal.queue",
 ] as const;
 export type ConsolePermission = (typeof CONSOLE_PERMISSIONS)[number];
 
@@ -386,6 +395,42 @@ export async function endPlanOverride(
   return rpc(db, "console_end_plan_override", { p_override_id: overrideId, p_reason: reason }, str);
 }
 
+// Partner client creation ------------------------------------------------------------------------------------------------
+
+export interface PartnerClientGrant {
+  readonly allowed: boolean;
+  readonly reason: string | null;
+  readonly grantedAt: string | null;
+}
+
+/** Whether the org may create client orgs (migration 6870, tenants.read). Off by default. */
+export async function getPartnerClientGrant(
+  db: XosClient,
+  orgId: string,
+): Promise<Result<PartnerClientGrant>> {
+  return rpc(db, "console_partner_client_grant", { p_org_id: orgId }, (data) => {
+    const r = ((Array.isArray(data) ? data[0] : data) as Raw | null) ?? {};
+    return {
+      allowed: bool(r["allowed"]),
+      reason: strOrNull(r["reason"]),
+      grantedAt: strOrNull(r["granted_at"]),
+    };
+  });
+}
+
+/** An Administrator (plans.write) turns client org creation on or off for a partner, with a reason. */
+export async function setPartnerClients(
+  db: XosClient,
+  input: { readonly orgId: string; readonly allowed: boolean; readonly reason: string },
+): Promise<Result<boolean>> {
+  return rpc(
+    db,
+    "console_set_partner_clients",
+    { p_org_id: input.orgId, p_allowed: input.allowed, p_reason: input.reason },
+    (data) => data === true,
+  );
+}
+
 // Feature flags ----------------------------------------------------------------------------------------------------------
 
 export interface FlagSummary {
@@ -708,6 +753,8 @@ export interface ListingDetail {
     readonly org: { readonly id: string; readonly name: string; readonly slug: string };
     readonly projectName: string | null;
   };
+  /** The named outside reviewer appeals go to (6863), or null while none is appointed. */
+  readonly outsideReviewer: { readonly name: string; readonly organization: string | null } | null;
   readonly reports: readonly {
     readonly id: string;
     readonly reason: string;
@@ -740,8 +787,19 @@ export interface ListingDetail {
     readonly decidedByName: string | null;
     readonly decisionStatement: string | null;
     readonly decidedAt: string | null;
-    /** Whether the signed-in operator may decide it: open, and not their own decision. */
-    readonly decidableByMe: boolean;
+    /** The signed-in operator made the decision appealed. They may still re-review it; the notice says so (6863). */
+    readonly myOwnDecision: boolean;
+    /** What was looked at again; internal, never sent. Null before the rule of 6863. */
+    readonly reReviewNotes: string | null;
+    readonly sameReviewer: boolean;
+    readonly outsideReviewerName: string | null;
+    /** How the appellant is told; null with a re-review on record means no channel could reach them. */
+    readonly toldBy: string | null;
+    /** When they were told. For an email, when the provider took it; null until then. */
+    readonly toldAt: string | null;
+    /** The outbox state of the email carrying the result: Queued, Sending, Sent or Failed. */
+    readonly noticeState: string | null;
+    readonly hasReview: boolean;
   }[];
 }
 
@@ -750,6 +808,7 @@ export function parseListingDetail(raw: unknown): ListingDetail {
   const d = obj(raw);
   const l = obj(d["listing"]);
   const org = obj(l["org"]);
+  const reviewer = d["outside_reviewer"] ? obj(d["outside_reviewer"]) : null;
   return {
     listing: {
       id: str(l["id"]),
@@ -765,6 +824,9 @@ export function parseListingDetail(raw: unknown): ListingDetail {
       org: { id: str(org["id"]), name: str(org["name"]), slug: str(org["slug"]) },
       projectName: strOrNull(l["project"]),
     },
+    outsideReviewer: reviewer
+      ? { name: str(reviewer["name"]), organization: strOrNull(reviewer["organization"]) }
+      : null,
     reports: arr(d["reports"]).map((x) => {
       const r = obj(x);
       return {
@@ -805,7 +867,14 @@ export function parseListingDetail(raw: unknown): ListingDetail {
         decidedByName: strOrNull(r["decided_by_name"]),
         decisionStatement: strOrNull(r["decision_statement"]),
         decidedAt: strOrNull(r["decided_at"]),
-        decidableByMe: bool(r["decidable_by_me"]),
+        myOwnDecision: bool(r["my_own_decision"]),
+        reReviewNotes: strOrNull(r["re_review_notes"]),
+        sameReviewer: bool(r["same_reviewer"]),
+        outsideReviewerName: strOrNull(r["outside_reviewer_name"]),
+        toldBy: strOrNull(r["told_by"]),
+        toldAt: strOrNull(r["told_at"]),
+        noticeState: strOrNull(r["notice_state"]),
+        hasReview: bool(r["has_review"]),
       };
     }),
   };
@@ -831,6 +900,115 @@ export function groundsFor(action: ModerationAction): readonly ModerationGround[
   return action === "Removed" || action === "Restricted"
     ? ["Terms Violation", "Illegal Content"]
     : ["No Violation"];
+}
+
+// Rating disputes (ADR 0158). The score never comes through here: what a rating scored cannot decide its dispute. ------
+
+export type RatingDisputeState = Database["app"]["Enums"]["rating_dispute_state"];
+export type RatingDisputeGround = Database["app"]["Enums"]["rating_dispute_ground"];
+
+export interface RatingDisputeRow {
+  readonly disputeId: string;
+  readonly orgName: string;
+  readonly disputantName: string | null;
+  readonly ground: RatingDisputeGround;
+  readonly state: RatingDisputeState;
+  readonly orgAnswered: boolean;
+  readonly filedAt: string;
+  readonly decidedAt: string | null;
+}
+
+export async function getRatingDisputeQueue(
+  db: XosClient,
+  open = true,
+): Promise<Result<RatingDisputeRow[]>> {
+  return rpc(db, "console_rating_dispute_queue", { p_open: open }, (data) =>
+    arr(data).map((d) => {
+      const r = obj(d);
+      return {
+        disputeId: str(r["dispute_id"]),
+        orgName: str(r["org_name"]),
+        disputantName: strOrNull(r["disputant_name"]),
+        ground: str(r["dispute_ground"]) as RatingDisputeGround,
+        state: str(r["dispute_state"]) as RatingDisputeState,
+        orgAnswered: bool(r["org_answered"]),
+        filedAt: str(r["filed_at"]),
+        decidedAt: strOrNull(r["decided_at"]),
+      };
+    }),
+  );
+}
+
+export interface RatingDisputeDetail {
+  readonly id: string;
+  readonly state: RatingDisputeState;
+  readonly ground: RatingDisputeGround;
+  readonly details: string;
+  readonly filedAt: string;
+  readonly disputantName: string | null;
+  readonly orgName: string;
+  readonly projectName: string | null;
+  readonly comment: string | null;
+  readonly submittedAt: string;
+  readonly reply: string | null;
+  readonly orgResponse: string | null;
+  readonly orgRespondedAt: string | null;
+  readonly decisionGround: RatingDisputeGround | null;
+  readonly decisionStatement: string | null;
+  readonly decidedAt: string | null;
+  readonly decidedByName: string | null;
+  readonly decidableByMe: boolean;
+}
+
+export async function getRatingDisputeDetail(
+  db: XosClient,
+  disputeId: string,
+): Promise<Result<RatingDisputeDetail>> {
+  return rpc(db, "console_rating_dispute_detail", { p_dispute_id: disputeId }, (data) => {
+    const r = obj(data);
+    return {
+      id: str(r["id"]),
+      state: str(r["state"]) as RatingDisputeState,
+      ground: str(r["ground"]) as RatingDisputeGround,
+      details: str(r["details"]),
+      filedAt: str(r["filed_at"]),
+      disputantName: strOrNull(r["disputant_name"]),
+      orgName: str(r["org_name"]),
+      projectName: strOrNull(r["project_name"]),
+      comment: strOrNull(r["comment"]),
+      submittedAt: str(r["submitted_at"]),
+      reply: strOrNull(r["reply"]),
+      orgResponse: strOrNull(r["org_response"]),
+      orgRespondedAt: strOrNull(r["org_responded_at"]),
+      decisionGround: strOrNull(r["decision_ground"]) as RatingDisputeGround | null,
+      decisionStatement: strOrNull(r["decision_statement"]),
+      decidedAt: strOrNull(r["decided_at"]),
+      decidedByName: strOrNull(r["decided_by_name"]),
+      decidableByMe: bool(r["decidable_by_me"]),
+    };
+  });
+}
+
+export async function decideRatingDispute(
+  db: XosClient,
+  input: {
+    readonly disputeId: string;
+    readonly outcome: "Upheld" | "Not Upheld";
+    readonly ground: RatingDisputeGround | null;
+    readonly statement: string;
+  },
+): Promise<Result<null>> {
+  return rpc(
+    db,
+    "console_decide_rating_dispute",
+    {
+      p_dispute_id: input.disputeId,
+      p_outcome: input.outcome,
+      p_ground: input.ground,
+      p_statement: input.statement,
+    },
+    () => null,
+  );
 }
 
 export async function decideListing(
@@ -859,8 +1037,12 @@ export async function decideAppeal(
     readonly appealId: string;
     readonly outcome: "Upheld" | "Reversed";
     readonly statement: string;
+    /** What was looked at again and how the grounds were weighed: the documented re-review (6863). Never sent. */
+    readonly reReviewNotes: string;
     /** Required when reversing a decision to take no action: the new decision. */
     readonly newDecision?: Omit<StatementOfReasons, "statement"> | null;
+    /** While an outside reviewer is appointed, the operator confirms this records their decision. */
+    readonly outsideReviewerDecided?: boolean;
   },
 ): Promise<Result<string>> {
   const n = input.newDecision ?? null;
@@ -871,10 +1053,178 @@ export async function decideAppeal(
       p_appeal_id: input.appealId,
       p_outcome: input.outcome,
       p_statement: input.statement,
+      p_re_review_notes: input.reReviewNotes,
       p_action: n?.action ?? null,
       p_ground: n?.ground ?? null,
       p_rule_reference: n?.ruleReference ?? null,
       p_facts: n?.facts ?? null,
+      p_outside_reviewer_decided: input.outsideReviewerDecided ?? false,
+    },
+    str,
+  );
+}
+
+// Reported content the org left undecided (6891) ------------------------------------------------------------------------
+
+export interface EscalationRow {
+  readonly orgId: string;
+  readonly orgName: string;
+  readonly kind: ContentSubjectKind;
+  readonly id: string;
+  readonly removed: boolean;
+  readonly openReports: number;
+  readonly totalReports: number;
+  readonly reasons: readonly ContentReportReason[];
+  readonly firstReportedAt: string;
+  /** When the first report on it reached the console, past its due time. */
+  readonly escalatedAt: string;
+  readonly lastAction: ContentModerationAction | null;
+  readonly lastDecidedAt: string | null;
+  /** Whether GHXSTSHIP made the newest decision; false when the org did or nobody has. */
+  readonly decidedByPlatform: boolean;
+}
+
+/**
+ * Posts, comments and messages whose reports an org left undecided past their 24 hours, the longest escalated first,
+ * without their text; or, with `open` false, the escalated items decided since, by the org or by GHXSTSHIP.
+ */
+export async function getContentEscalations(
+  db: XosClient,
+  open = true,
+): Promise<Result<EscalationRow[]>> {
+  return rpc(db, "console_content_escalations", { p_open: open }, (data) =>
+    arr(data).map((d) => {
+      const r = obj(d);
+      return {
+        orgId: str(r["org_id"]),
+        orgName: str(r["org_name"]),
+        kind: str(r["subject_kind"]) as ContentSubjectKind,
+        id: str(r["subject_id"]),
+        removed: bool(r["removed"]),
+        openReports: num(r["open_reports"]),
+        totalReports: num(r["total_reports"]),
+        reasons: arr(r["reasons"]).map((x) => str(x) as ContentReportReason),
+        firstReportedAt: str(r["first_reported_at"]),
+        escalatedAt: str(r["escalated_at"]),
+        lastAction: strOrNull(r["last_action"]) as ContentModerationAction | null,
+        lastDecidedAt: strOrNull(r["last_decided_at"]),
+        decidedByPlatform: bool(r["decided_by_platform"]),
+      };
+    }),
+  );
+}
+
+export interface EscalationDetail {
+  readonly subject: {
+    readonly kind: ContentSubjectKind;
+    readonly id: string;
+    readonly context: string | null;
+    readonly orgId: string;
+    readonly orgName: string;
+    readonly authorName: string | null;
+    /** The current text; null once removed. */
+    readonly body: string | null;
+    readonly removed: boolean;
+  };
+  /** Every report on the item, without who reported. */
+  readonly reports: readonly {
+    readonly id: string;
+    readonly reason: ContentReportReason;
+    readonly details: string | null;
+    readonly excerpt: string;
+    readonly reportedAt: string;
+    readonly escalatedAt: string | null;
+    readonly open: boolean;
+  }[];
+  /** Every decision on it, the org's or GHXSTSHIP's, without who decided. */
+  readonly decisions: readonly {
+    readonly id: string;
+    readonly action: ContentModerationAction;
+    readonly ground: ContentModerationGround;
+    readonly ruleReference: string;
+    readonly facts: string;
+    readonly statement: string;
+    readonly decidedAt: string;
+    readonly byPlatform: boolean;
+  }[];
+}
+
+/** Parses app.console_content_escalation_detail's document. */
+export function parseEscalationDetail(raw: unknown): EscalationDetail {
+  const d = obj(raw);
+  const s = obj(d["subject"]);
+  return {
+    subject: {
+      kind: str(s["kind"]) as ContentSubjectKind,
+      id: str(s["id"]),
+      context: strOrNull(s["context"]),
+      orgId: str(s["org_id"]),
+      orgName: str(s["org_name"]),
+      authorName: strOrNull(s["author_name"]),
+      body: strOrNull(s["body"]),
+      removed: bool(s["removed"]),
+    },
+    reports: arr(d["reports"]).map((x) => {
+      const r = obj(x);
+      return {
+        id: str(r["id"]),
+        reason: str(r["reason"]) as ContentReportReason,
+        details: strOrNull(r["details"]),
+        excerpt: str(r["content_excerpt"]),
+        reportedAt: str(r["reported_at"]),
+        escalatedAt: strOrNull(r["escalated_at"]),
+        open: bool(r["open"]),
+      };
+    }),
+    decisions: arr(d["decisions"]).map((x) => {
+      const r = obj(x);
+      return {
+        id: str(r["id"]),
+        action: str(r["action"]) as ContentModerationAction,
+        ground: str(r["ground"]) as ContentModerationGround,
+        ruleReference: str(r["rule_reference"]),
+        facts: str(r["facts"]),
+        statement: str(r["statement"]),
+        decidedAt: str(r["decided_at"]),
+        byPlatform: bool(r["by_platform"]),
+      };
+    }),
+  };
+}
+
+/** One escalated item, by id; each read is logged in the console ledger. Any item never escalated is refused. */
+export async function getEscalationDetail(
+  db: XosClient,
+  subjectId: string,
+): Promise<Result<EscalationDetail>> {
+  return rpc(
+    db,
+    "console_content_escalation_detail",
+    { p_subject_id: subjectId },
+    parseEscalationDetail,
+  );
+}
+
+/**
+ * GHXSTSHIP decides an escalated item with a statement of reasons in parts, as an org moderator would: Removed hides
+ * the post or deletes the comment or message. The reporters and the author hear it from GHXSTSHIP. Returns the
+ * decision id.
+ */
+export async function decideEscalation(
+  db: XosClient,
+  subjectId: string,
+  decision: ContentDecision,
+): Promise<Result<string>> {
+  return rpc(
+    db,
+    "console_decide_content_escalation",
+    {
+      p_subject_id: subjectId,
+      p_action: decision.action,
+      p_ground: decision.ground,
+      p_rule_reference: decision.ruleReference,
+      p_facts: decision.facts,
+      p_statement: decision.statement,
     },
     str,
   );
@@ -1073,4 +1423,49 @@ export async function listActionLog(
 /** A refusal the console names in copy, or the error kind for anything else. */
 export function consoleErrorKey(error: { readonly kind: string; readonly rule?: string }): string {
   return error.kind === "refusal" && error.rule ? error.rule : error.kind;
+}
+
+/** An open billing alert for the platform owner (migrations 6810 and 6812, ADR 0161). */
+export interface BillingAlertRow {
+  readonly id: string;
+  readonly kind: string;
+  readonly orgId: string | null;
+  readonly orgName: string | null;
+  readonly stripeSubscriptionId: string | null;
+  readonly detail: string;
+  readonly raisedAt: string;
+  readonly occurrences: number;
+}
+
+/** Open billing alerts, newest first (tenants.read). */
+export async function listBillingAlerts(db: XosClient): Promise<Result<BillingAlertRow[]>> {
+  return rpc(db, "console_billing_alerts", { p_limit: 100 }, (data) =>
+    arr(data).map((d) => {
+      const r = obj(d);
+      return {
+        id: str(r["alert_id"]),
+        kind: str(r["alert_kind"]),
+        orgId: strOrNull(r["subject_org_id"]),
+        orgName: strOrNull(r["org_name"]),
+        stripeSubscriptionId: strOrNull(r["stripe_subscription_id"]),
+        detail: str(r["detail"]),
+        raisedAt: str(r["raised_at"]),
+        occurrences: Number(r["occurrences"]),
+      };
+    }),
+  );
+}
+
+/** Closes a billing alert with what was done about it (plans.write). */
+export async function resolveBillingAlert(
+  db: XosClient,
+  alertId: string,
+  reason: string,
+): Promise<Result<string>> {
+  return rpc(
+    db,
+    "console_resolve_billing_alert",
+    { p_alert_id: alertId, p_reason: reason },
+    (data) => str(data),
+  );
 }

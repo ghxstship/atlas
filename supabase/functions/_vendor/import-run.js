@@ -709,6 +709,8 @@ async function validateRow(orgId, targetCode, fields, columns, row, lookups, des
       const projectId = destination.project?.id ?? null;
       for (const f of ["guest_name", "note", "table_label"]) bounded(f);
       await set("guest_email", importGuestEmail, "invalid_email");
+      const { looksSensitive } = await import("./chunks/data-sensitive-words.js");
+      await set("note", (v) => (looksSensitive(v) ? null : v), "sensitive_note");
       await set(
         "plus_ones",
         (v) => {

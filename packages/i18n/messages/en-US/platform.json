@@ -20,6 +20,7 @@
     "partner_is_client": "A client org cannot have clients of its own, so it sets no default client brand.",
     "partner_client_unknown": "That org is not one of your clients.",
     "partner_price_client_immutable": "A price stays with its client. Set a price for the other client instead.",
+    "partner_price_currency_not_offered": "Set this price in a currency XOS is offered in.",
     "partner_depth": "A partner cannot have a parent partner, and an org with clients cannot become a client.",
     "partner_agreement_missing": "Wholesale billing starts once the platform records your partner agreement. Contact your account manager.",
     "partner_no_clients": "Create a client org before running wholesale billing.",
@@ -35,6 +36,8 @@
     "brand_contrast": "This accent fails WCAG 2.2 AA contrast in at least one theme. Choose a darker or lighter accent.",
     "slug_taken": "That web address is already in use. Choose another.",
     "slug_reserved": "That web address is reserved by the platform. Choose another.",
+    "territory_not_offered": "XOS is not offered to organizations in that country, so this client org was not created.",
+    "organization_country_invalid": "Choose the country the client is established in.",
     "plan_unknown": "That plan does not exist.",
     "plan_limit_exceeded": "Your plan's limit is reached. Upgrade the plan or remove something first.",
     "plan_limit_read_only": "This is read-only because the organization is over its plan's limits. The banner at the top of the page says which limit and how to lift it.",
@@ -148,6 +151,9 @@
     "holiday_calendar_applies_taken": "Another calendar already applies across the org for this state, or for no state. Change that one, or leave Applies across the org unchecked.",
     "holiday_day_taken": "This calendar already has a holiday on that day. Remove it first, or choose another day.",
     "holiday_venue_taken": "That venue already has a holiday calendar. Unassign it there first.",
+    "import_sensitive_column": "This column looks like dietary, accessibility or diversity data. An import cannot record consent for it, so leave it unmapped.",
+    "custom_field_sensitive": "A custom field cannot hold dietary, accessibility or diversity data. Use Work Details or the guest's needs step.",
+    "question_sensitive": "A question cannot ask for dietary, accessibility or protected-group details, because answering it records no consent. Use Work Details or the guest's needs step.",
     "shift_reconfirm_answered": "This shift was already confirmed, or nobody is asking any more.",
     "shift_no_show_self": "You cannot mark yourself as a no-show. Tell your supervisor.",
     "shift_no_show_state": "Mark a no-show once the shift has started and someone is on it.",
@@ -214,6 +220,7 @@
     "clients": {
       "intro": "Each client org has its own data, members and brand. You see billing facts only; reading a client's records needs a support session its Owner grants.",
       "create": "Create a client org",
+      "createOff": "Creating client orgs is off for this partner. The platform team turns it on under a signed partner agreement, so write to the support mailbox to ask.",
       "createTitle": "New client org",
       "createSubmit": "Create and invite the Owner",
       "caption": "Client orgs",
@@ -232,7 +239,9 @@
         "slugHelp": "Lowercase letters, digits and hyphens. The client's Atlas address.",
         "owner": "Owner's email",
         "ownerHelp": "This person receives the Owner invitation.",
-        "plan": "Plan"
+        "plan": "Plan",
+        "country": "Client's country",
+        "countryChoose": "Choose a country"
       },
       "inviteReady": "The client org is ready. Send its Owner this invitation link.",
       "inviteLink": "Owner invitation link",
@@ -568,6 +577,7 @@
       "invalid_duration": "not a duration",
       "unknown_space": "no space at this venue has this name",
       "invalid_plus_ones": "not 0 to 20",
+      "sensitive_note": "names a dietary or access need: leave it out of the note",
       "unknown_show": "no show of this project has this name",
       "unknown_party": "no company of this org has this name",
       "too_long": "too long",
@@ -781,7 +791,9 @@
         "security_changed": "Account security changed",
         "recovery_code_used": "Recovery code used",
         "session_signed_out": "Session signed out",
-        "work_details_moved": "Work details moved to each project"
+        "work_details_moved": "Work details moved to each project",
+        "sensitive_data_attested": "Data entered for you",
+        "sensitive_consent_needed": "Sensitive details wait for your consent"
       },
       "announcement": {
         "posted": "Announcement posted"
@@ -806,7 +818,12 @@
         "trial_ending": "Trial ending soon",
         "trial_ended": "Trial ended",
         "paused": "Organization paused",
-        "resumed": "Organization resumed"
+        "resumed": "Organization resumed",
+        "purchase_confirmed": "Plan confirmed",
+        "renewal_reminder": "Plan renewing soon",
+        "cancellation_confirmed": "Subscription canceled",
+        "plan_ending": "Plan ending",
+        "cancellation_delayed": "Cancellation not confirmed yet"
       },
       "comment": {
         "created": "New comment"
@@ -825,6 +842,10 @@
       },
       "incident": {
         "reported": "Incident reported"
+      },
+      "crisis_alert": {
+        "issued": "Crisis alert",
+        "ended": "Crisis alert all-clear"
       },
       "invoice": {
         "approved": "Invoice approved",
@@ -846,6 +867,10 @@
       },
       "moderation_appeal": {
         "decided": "Appeal decided"
+      },
+      "rating_dispute": {
+        "filed": "Rating disputed",
+        "decided": "Rating dispute decided"
       },
       "occupancy": {
         "threshold": "Occupancy threshold reached"
@@ -1077,7 +1102,7 @@
   },
   "lifecycle": {
     "title": "Cancel the organization",
-    "description": "Canceling ends the subscription. The organization is read-only for 30 days with the full export available, then its data is deleted at day 90.",
+    "description": "Canceling ends any paid subscription in Stripe at once, with no further charges. Time you already paid for is not refunded unless the law requires it. The organization is read-only at once, the Owner can reactivate it for 30 days, the full export stays available until deletion, and its data is deleted on day 90.",
     "loadError": "The organization's status could not be loaded.",
     "ownerOnly": "Only the Owner cancels the organization or takes the full export.",
     "banner": "This organization is canceled and read-only for {days, plural, one {# more day} other {# more days}}, until {until}. The Owner can download the full export in Settings, Danger zone.",
@@ -1087,7 +1112,7 @@
     },
     "cancel": {
       "title": "Cancel the organization",
-      "explain": "Take the full export first if you need a copy now; it stays available for 30 days after canceling.",
+      "explain": "Take the full export first if you need a copy now; it stays available until deletion.",
       "confirm": "Type {name} to confirm",
       "reason": "Why are you canceling?",
       "reasonHelp": "Kept with the cancellation record.",
@@ -1360,7 +1385,7 @@
   },
   "moderation": {
     "title": "Moderation decisions",
-    "description": "When the XOS platform team removes, restricts or restores one of your listings after a report, the decision and its statement of reasons appear here. You can appeal a removal or restriction within six months; another reviewer decides the appeal.",
+    "description": "When the XOS platform team removes, restricts or restores one of your listings after a report, the decision and its statement of reasons appear here. You can appeal a removal or restriction within six months. We look at each appeal afresh, record the reasons and tell you the result.",
     "loadError": "Moderation decisions could not be loaded.",
     "none": "No moderation decision on your listings.",
     "decision": "{title}: {action} on {when}",
@@ -1374,7 +1399,7 @@
       "No Action": "no action taken"
     },
     "appeal": "Appeal this decision",
-    "appealed": "Appeal sent. Another reviewer will decide it.",
+    "appealed": "Appeal sent. We will look at it afresh and tell you the result.",
     "grounds": "Why is the decision wrong?",
     "groundsHelp": "Explain what the reviewer missed. You can appeal once.",
     "appealUntil": "You can appeal until {until}.",

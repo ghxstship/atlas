@@ -41,6 +41,8 @@ export interface ContentSafetySheetProps {
   /** After a block, so the screen reads its rows again without the blocked person's. */
   readonly onBlocked: () => void;
   readonly onClose: () => void;
+  /** Opens on the block's confirmation, for a person rather than an item (the Directory). */
+  readonly blockOnly?: boolean;
 }
 
 export function ContentSafetySheet({
@@ -51,6 +53,7 @@ export function ContentSafetySheet({
   onBlock,
   onBlocked,
   onClose,
+  blockOnly = false,
 }: ContentSafetySheetProps): ReactElement {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -63,11 +66,11 @@ export function ContentSafetySheet({
   // Every item opens on its first step with nothing chosen.
   useEffect(() => {
     if (!target) return;
-    setStep(firstStep(target));
+    setStep(firstStep(target, blockOnly));
     setReason(null);
     setDetails("");
     setProblem(null);
-  }, [target]);
+  }, [target, blockOnly]);
 
   const name = target?.authorName ?? t("compass.safety.someone");
   const suffix = nounKey(noun);

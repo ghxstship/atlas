@@ -4,18 +4,21 @@ import type { Route } from "next";
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
 import { Button, InlineAlert } from "@/components/ui";
-import { gatewayLegalDocument } from "@/lib/auth/legal";
+import { askedInGateway, gatewayLegalDocument } from "@/lib/auth/legal";
 import { acceptPersonalLegalChangeAction } from "@/lib/legal/reacceptance-actions";
 
 /**
  * The re-acceptance prompt at the top of every signed-in Gateway page (Section 14.4, finding A65-014;
  * migration 1383): after the platform team announces a material change to a personal document the
  * person accepted before, such as the Worker Terms, it says what changes and when, links the
- * document and accepts with one button. It stays until they accept.
+ * document and accepts with one button. It stays until they accept. Only documents Gateway asks for and
+ * publishes show here: the Mobile EULA is Compass's to ask (legal/index.yaml), which holds Compass itself.
  */
 export async function ReacceptancePrompt({ db }: { db: XosClient }) {
-  const pending = await listPendingReacceptances(db, null);
-  if (!pending.ok || pending.data.length === 0) return null;
+  const listed = await listPendingReacceptances(db, null);
+  if (!listed.ok) return null;
+  const pending = { data: askedInGateway(listed.data) };
+  if (pending.data.length === 0) return null;
   const [t, locale] = await Promise.all([getTranslations("compliance.reacceptance"), getLocale()]);
   const long = new Intl.DateTimeFormat(locale, { dateStyle: "long", timeZone: "UTC" });
   return (

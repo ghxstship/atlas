@@ -1,4 +1,5 @@
 import { getRosterProjectFacts } from "@xos/data/roster-facts";
+import { listMySensitiveConsents, standingFor } from "@xos/data/sensitive-consent";
 import { listEngagementRoster } from "@xos/data/roster";
 import { RegionError, Section } from "@/components/page/page";
 import { InlineAlert } from "@/components/ui";
@@ -23,6 +24,8 @@ export async function ProjectDetailsTab({ view, t }: TabProps) {
   if (facts.some((f) => !f.ok)) return <RegionError />;
   const loaded = facts.flatMap((f) => (f.ok ? [f.data] : []));
   const asked = loaded.filter((f) => f.offered.travel || f.offered.uniforms || f.offered.parking);
+  const consents = await listMySensitiveConsents(view.ctx.db);
+  const mealConsent = consents.ok && standingFor(consents.data, "Dietary and Allergies") !== null;
   return (
     <div className="flex flex-col gap-16">
       <p className="m-0 max-w-[60ch] text-text-14 text-text-secondary">
@@ -38,6 +41,7 @@ export async function ProjectDetailsTab({ view, t }: TabProps) {
               mode="person"
               personName=""
               projectName={view.engagement.projectName}
+              mealConsent={mealConsent}
             />
           </Section>
         ))

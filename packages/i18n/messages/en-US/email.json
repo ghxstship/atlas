@@ -99,6 +99,16 @@
         "body": "{actorName} reported {title}. Open it to see the details and response."
       }
     },
+    "crisis_alert": {
+      "issued": {
+        "subject": "Crisis alert at {project}: {title}",
+        "body": "{message} Announced by {actorName}. XOS does not alert emergency services. In an emergency, call your local emergency number."
+      },
+      "ended": {
+        "subject": "All clear at {project}: {title}",
+        "body": "{actorName} gave the all-clear for {title} at {project}."
+      }
+    },
     "account": {
       "security_changed": {
         "subject": "Your account security changed",
@@ -115,6 +125,14 @@
       "work_details_moved": {
         "subject": "Uniform sizes and travel preferences moved to each project",
         "body": "{moved, select, uniform {Your uniform sizes were} travel {Your seat, meal and home airport preferences were} other {Your uniform sizes and travel preferences were}} removed from your profile. Productions now ask for them on each project you are rostered on, and keep them only for that project. Your other work details are unchanged."
+      },
+      "sensitive_data_attested": {
+        "subject": "Someone entered data for you",
+        "body": "Someone said they had your authority to enter your {category, select, Accessibility {accessibility} other {dietary}} details. See it, or remove it, under Settings, Work Details."
+      },
+      "sensitive_consent_needed": {
+        "subject": "Confirm or delete your sensitive details",
+        "body": "You have dietary, accessibility or supplier diversity details on file from before we recorded consent. They are hidden from everyone else. Agree where you keep them, under Settings, Work Details, or on your profile for supplier diversity, or we delete them in 30 days."
       }
     },
     "report": {
@@ -159,6 +177,26 @@
       "resumed": {
         "subject": "Your organization has resumed",
         "body": "The pause has ended. The organization is writable again and billing continues."
+      },
+      "purchase_confirmed": {
+        "subject": "Your {plan} plan is confirmed",
+        "body": "Your {plan} plan renews automatically every {term, select, Annual {year} other {month}} at {price}, plus tax, until you cancel. The next charge is on {nextChargeOn, date, long}. To stop it, choose End plan in Settings, Billing and Plan any time before that date. The plan then runs to the end of the period you paid for. Fees already paid are not refunded unless the law requires it."
+      },
+      "renewal_reminder": {
+        "subject": "Your {plan} plan renews on {renewsOn, date, long}",
+        "body": "Your annual {plan} plan renews automatically for another year on {renewsOn, date, long}, and your payment method is charged {price, select, none {the plan's annual price, which the billing portal shows} other {{price}}}, plus tax. To stop it, choose End plan in Settings, Billing and Plan any time before that date. The plan then runs to the end of the year you paid for. Fees already paid are not refunded unless the law requires it."
+      },
+      "cancellation_confirmed": {
+        "subject": "Your subscription is canceled",
+        "body": "Stripe has accepted the cancellation and will not charge this subscription again. Time you already paid for is not refunded unless the law requires it. If a charge reaches you after you canceled, write to support@ghxstship.pro and we will refund it."
+      },
+      "plan_ending": {
+        "subject": "Your {plan} plan ends on {endsOn, date, long}",
+        "body": "Stripe has accepted your request. Your {plan} plan will not renew and you will not be charged again. It keeps working until {endsOn, date, long}, and then the organization moves to the Access plan with its data intact. Time you already paid for is not refunded unless the law requires it."
+      },
+      "cancellation_delayed": {
+        "subject": "Your cancellation is not confirmed yet",
+        "body": "We have your cancellation and are sending it to Stripe, our payment provider. Stripe has not accepted it yet, so the subscription may still be active. You do not need to do anything. We keep trying automatically, our team has been alerted, and we will email you as soon as it is accepted. If a charge reaches you after you canceled, write to support@ghxstship.pro and we will refund it."
       }
     },
     "message": {
@@ -205,8 +243,8 @@
     },
     "occupancy": {
       "threshold": {
-        "subject": "{title} is at {percent}% of its permitted load",
-        "body": "{title} has {count} people inside, {percent}% of the permitted load of {permitted_load}."
+        "subject": "{title} is at {percent}% of its occupant load",
+        "body": "{title} has {count} people inside, {percent}% of its occupant load of {permitted_load}."
       }
     },
     "weather": {
@@ -322,13 +360,23 @@
     "listing_report": {
       "decided": {
         "subject": "We reviewed the listing {title} you reported",
-        "body": "{action, select, Removed {We removed the listing.} Restricted {We restricted the listing.} Restored {We restored the listing.} other {We took no action on the listing.}} {statement} You can appeal this decision within six months."
+        "body": "{action, select, Removed {We removed the listing. {statement}} Restricted {We restricted the listing. {statement}} Restored {We restored the listing. {statement} You can appeal this decision within six months by writing to support@ghxstship.pro with Appeal in the subject line.} other {We took no action on the listing. {statement} You can appeal this decision within six months by writing to support@ghxstship.pro with Appeal in the subject line.}}"
       }
     },
     "moderation_appeal": {
       "decided": {
         "subject": "{outcome, select, Reversed {We reversed our decision on {title}} other {We kept our decision on {title}}}",
-        "body": "{outcome, select, Reversed {Another reviewer agreed with your appeal and reversed the decision.} other {Another reviewer looked at your appeal and kept the decision.}} {statement}"
+        "body": "{outcome, select, Reversed {We looked at your appeal afresh and reversed the decision.} other {We looked at your appeal afresh and kept the decision.}} {reviewer, select, same {The person who made the first decision did this review.} outside {{reviewerName}, an outside reviewer, did this review.} other {Someone who did not make the first decision did this review.}} {statement}"
+      }
+    },
+    "rating_dispute": {
+      "filed": {
+        "subject": "Someone disputed a rating on {project}",
+        "body": "A person your organization rated on {project} disputes the rating. Answer from Opportunities, Ratings. Our platform team decides."
+      },
+      "decided": {
+        "subject": "{outcome, select, Upheld {The rating on {project} was removed after a dispute} other {The rating on {project} stays after a dispute}}",
+        "body": "{outcome, select, Upheld {The dispute was upheld and the rating was removed.} other {The dispute was not upheld and the rating stays.}} {statement}"
       }
     },
     "content_report": {
@@ -342,13 +390,13 @@
       },
       "decided": {
         "subject": "{action, select, Removed {The {subject, select, comment {comment} message {message} other {post}} you reported was removed} other {Your report was reviewed}}",
-        "body": "Your organization's moderators reviewed the {subject, select, comment {comment} message {message} other {post}} you reported. {statement}"
+        "body": "{actorName} reviewed the {subject, select, comment {comment} message {message} other {post}} you reported. {statement}"
       }
     },
     "content": {
       "removed": {
         "subject": "{subject, select, comment {Your comment was removed} message {Your message was removed} other {Your post was removed}}",
-        "body": "Your organization's moderators removed your {subject, select, comment {comment} message {message} other {post}} under {ruleReference}. {statement}"
+        "body": "{actorName} removed your {subject, select, comment {comment} message {message} other {post}} under {ruleReference}. {statement}"
       }
     },
     "agent": {
@@ -590,6 +638,33 @@
     "poolSubject": "{inviterName} invites you to join the {orgName} crew list",
     "poolRole": "Role: {jobTitle}",
     "poolHow": "Sign in to Gateway with this address and accept on Home by {expiresAt, date, long}. Not expecting this? Ignore it."
+  },
+  "legal_clock_alert": {
+    "subject": "{overdue, plural, =0 {XOS legal queue: {dueSoon, plural, one {# clock is} other {# clocks are}} coming due} one {XOS legal queue: # clock is overdue} other {XOS legal queue: # clocks are overdue}}",
+    "open": "Open the legal queue",
+    "intro": {
+      "operator": "These clocks need you. Open the queue to act on them, and log what you did.",
+      "backup": "You are a backup contact for the legal queue of GHXSTSHIP Industries LLC. These clocks are overdue. Please make sure the owner has seen this.",
+      "reviewer": "These appeals are yours to re-review as outside reviewer for GHXSTSHIP Industries LLC. GHXSTSHIP sends you each file separately."
+    },
+    "item": "{reference}: {clock, select, Due {due} other {first response due}} {at, date, long} at {at, time, short}, New York time{overdue, select, yes {. Overdue.} other {.}}",
+    "itemMatter": "{reference}, {matter}: {clock, select, Due {due} other {first response due}} {at, date, long} at {at, time, short}, New York time{overdue, select, yes {. Overdue.} other {.}}",
+    "matters": {
+      "Data Subject Request": "data subject request",
+      "Privacy Complaint": "privacy complaint",
+      "DMCA Notice": "DMCA notice",
+      "DMCA Counter-Notice": "DMCA counter-notice",
+      "Repeat Infringer Review": "repeat infringer review",
+      "Abuse Report": "abuse report",
+      "Moderation Appeal": "moderation appeal",
+      "Security Report": "security report",
+      "Personal Data Breach": "personal data breach",
+      "Accessibility Complaint": "accessibility complaint",
+      "Government Data Request": "government data request",
+      "Other Promise": "other promise",
+      "Undelivered Notice": "undelivered notice",
+      "Queue Failure": "queue failure"
+    }
   },
   "guest_message": {
     "invitationSubject": "{orgName} invites you to {projectName}",

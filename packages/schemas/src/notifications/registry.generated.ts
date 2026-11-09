@@ -174,6 +174,24 @@ export const NOTIFICATION_EMAIL_TEMPLATES: readonly EmailTemplateDefinition[] = 
     description:
       "An org's email to a guest on its guest list: an invitation, the guest's pass (the guest-pass PDF attached) or a message, with the unsubscribe link and the postal address (B8, ADR 0147 decision 7).",
   },
+  {
+    code: "billing_notice",
+    transactional: true,
+    description:
+      "A notice the billing terms promise, such as a renewal reminder or a cancel confirmation, which no setting or unsubscribe stops (ADR 0161).",
+  },
+  {
+    code: "legal_clock_alert",
+    transactional: true,
+    description:
+      "The legal queue's digest of clocks coming due or overdue, to platform operators, a backup contact or an outside reviewer (ADR 0167).",
+  },
+  {
+    code: "moderation_notice",
+    transactional: true,
+    description:
+      "The outcome of a moderation decision or appeal, for a person the notification queue cannot reach (ADR 0167).",
+  },
 ];
 
 /** The templates index: every notification kind. */
@@ -421,6 +439,26 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
     channels: ["In App", "Email", "SMS", "Push"],
   },
   {
+    kind: "crisis_alert.issued",
+    category: "safety",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: {
+      startsWithinHours: null,
+    },
+    channels: ["In App", "Email", "SMS", "Push"],
+  },
+  {
+    kind: "crisis_alert.ended",
+    category: "safety",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: {
+      startsWithinHours: null,
+    },
+    channels: ["In App", "Email", "SMS", "Push"],
+  },
+  {
     kind: "account.security_changed",
     category: "account",
     emailTemplate: "notification",
@@ -450,6 +488,22 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
   },
   {
     kind: "account.work_details_moved",
+    category: "account",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+  },
+  {
+    kind: "account.sensitive_data_attested",
+    category: "account",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+  },
+  {
+    kind: "account.sensitive_consent_needed",
     category: "account",
     emailTemplate: "notification",
     pushCategory: null,
@@ -510,6 +564,46 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
     kind: "billing.resumed",
     category: "account",
     emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+  },
+  {
+    kind: "billing.purchase_confirmed",
+    category: "account",
+    emailTemplate: "billing_notice",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+  },
+  {
+    kind: "billing.renewal_reminder",
+    category: "account",
+    emailTemplate: "billing_notice",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+  },
+  {
+    kind: "billing.cancellation_confirmed",
+    category: "account",
+    emailTemplate: "billing_notice",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+  },
+  {
+    kind: "billing.plan_ending",
+    category: "account",
+    emailTemplate: "billing_notice",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+  },
+  {
+    kind: "billing.cancellation_delayed",
+    category: "account",
+    emailTemplate: "billing_notice",
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
@@ -596,6 +690,22 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
   },
   {
     kind: "moderation_appeal.decided",
+    category: "account",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+  },
+  {
+    kind: "rating_dispute.filed",
+    category: "account",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+  },
+  {
+    kind: "rating_dispute.decided",
     category: "account",
     emailTemplate: "notification",
     pushCategory: null,

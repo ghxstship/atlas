@@ -8,6 +8,7 @@
  * direct message, grading a quiz, opening a help desk request) needs the server's answer at once and
  * goes online through A29's repositories.
  */
+import { holdsObjectionableLanguage } from "@xos/data/content-filter";
 import { uuidv7, type MutationInput } from "@xos/sync";
 import { signaturePng } from "./signature-png";
 
@@ -61,6 +62,28 @@ const TABLE: Readonly<Record<WorkforceSyncRpc, string>> = {
   call_weather_hold: "weather_holds",
   give_weather_all_clear: "weather_holds",
 };
+
+/**
+ * The arguments of a queued write that other people read: a chat message and a shout-out. The database refuses a slur
+ * in them (content_objectionable, migration 6890); Compass checks the same list before it queues, so the person reads
+ * why at once and keeps what they wrote, instead of finding the write refused in the offline queue later.
+ */
+const TEXT_ARGS: Partial<Readonly<Record<WorkforceSyncRpc, readonly string[]>>> = {
+  send_chat_message: ["p_body"],
+  recognize: ["p_message"],
+};
+
+/** Whether a write would be refused for objectionable language in the text other people read. */
+export function holdsObjectionableText(
+  rpc: WorkforceSyncRpc,
+  args: Readonly<Record<string, unknown>>,
+): boolean {
+  const texts = (TEXT_ARGS[rpc] ?? []).map((name) => {
+    const value = args[name];
+    return typeof value === "string" ? value : null;
+  });
+  return holdsObjectionableLanguage(...texts);
+}
 
 /** Arguments with undefined values dropped, as the repositories send them. */
 function compact(args: Readonly<Record<string, unknown>>): Record<string, unknown> {

@@ -4,6 +4,7 @@
 - Date: 2026-10-30
 - Decider: Owner decisions on advancing, 2026-10-28 (decisions 2, 4 and 5); R6a (RRR-185)
 - Amends: ADR 0102 sections 1, 3 and 4 (records them as built); ADR 0071, decision 6
+- Amended by: [ADR 0164](0164-recorded-consent-for-sensitive-data.md): dietary needs and notes and accessibility needs and notes are Restricted too, read on the same terms, and a company reads them locked
 - Migrations: `4660_notification_kind_seed.sql`, `4661_work_detail_category_contact.sql`,
   `4662_workforce_role_capabilities.sql`, `4663_allergies_restricted.sql`, `4664_work_details_profile_move.sql`
 

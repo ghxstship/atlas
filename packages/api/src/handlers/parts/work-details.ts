@@ -12,7 +12,7 @@
  */
 import type { Components } from "../../contract/operations.generated.ts";
 import { notFound, refused } from "../../problem.ts";
-import { requirePerson } from "../../runtime/context.ts";
+import { requireOrg, requirePerson } from "../../runtime/context.ts";
 import type { RequestContext } from "../../runtime/context.ts";
 import { assertIfMatch } from "../../runtime/etag.ts";
 import type { HandlerSet } from "../../runtime/handler.ts";
@@ -32,12 +32,30 @@ const ownRow = (_body: Row, context: RequestContext): Row => ({
 
 const workDetails = tableResource("workDetails", {
   verbs: ["list", "get", "delete"],
-  derived: ["passport_number", "allergies"],
-  // The caller holds one row, so one read of their allergies serves the page.
+  derived: [
+    "passport_number",
+    "allergies",
+    "dietary_needs",
+    "dietary_notes",
+    "accessibility_needs",
+    "accessibility_notes",
+  ],
+  // The caller holds one row, so one read of their Restricted needs serves the page (R6a, ADR 0164).
   enrich: async (rows, context) => {
     if (rows.length === 0) return rows;
-    const allergies = await run<string | null>(rpc(context.db, "my_allergies"));
-    return rows.map((row) => ({ ...row, allergies }));
+    const [allergies, needs] = await Promise.all([
+      run<string | null>(rpc(context.db, "my_allergies")),
+      run<Row[]>(rpc(context.db, "my_work_detail_needs")),
+    ]);
+    const own = needs[0] ?? {};
+    return rows.map((row) => ({
+      ...row,
+      allergies,
+      dietary_needs: own["dietary_needs"] ?? [],
+      dietary_notes: own["dietary_notes"] ?? null,
+      accessibility_needs: own["accessibility_needs"] ?? [],
+      accessibility_notes: own["accessibility_notes"] ?? null,
+    }));
   },
   toContract: (row) => ({ ...row, passport_number: masked(PASSPORT_REASON) }),
 });
@@ -115,6 +133,17 @@ const events = tableResource("workDetailEvents", {
     categories: v1Categories(row["categories"]),
     includes_contact: namesContact(row["categories"]),
   }),
+});
+
+const sensitiveConsents = tableResource("sensitiveConsents", {
+  orgColumn: false,
+  softDelete: false,
+  key: "id",
+});
+const sensitiveFieldRecords = tableResource("sensitiveFieldRecords", {
+  orgColumn: false,
+  softDelete: false,
+  key: "id",
 });
 
 async function liveShare(context: RequestContext, id: string): Promise<Row> {
@@ -246,4 +275,55 @@ export const workDetailHandlers = {
   },
 
   ...handlersFor("Identity", events),
+
+  ...handlersFor("Identity", sensitiveConsents),
+  ...handlersFor("Identity", sensitiveFieldRecords),
+  "sensitiveConsents.create": async ({ body }, context) => {
+    requirePerson(context);
+    const input = body as Row;
+    const id = await run<string>(
+      rpc(context.db, "give_sensitive_consent", {
+        p_category: input["category"],
+        p_notice_version: input["notice_version"],
+        p_locale: input["locale"],
+        p_surface: "API",
+        ...(input["account_id"] ? { p_account_id: input["account_id"] } : {}),
+        ...(input["authority_confirmed"] === true ? { p_authority_confirmed: true } : {}),
+        ...(input["notice_confirmed"] === true ? { p_notice_confirmed: true } : {}),
+      }),
+    );
+    return created((await sensitiveConsents.read(context, id)) as never);
+  },
+  "sensitiveConsents.withdraw": async ({ params }, context) => {
+    const me = requirePerson(context);
+    const grant = await sensitiveConsents.read(context, params.id);
+    if (grant["withdrawn_at"] === null) {
+      if (grant["basis"] === "Attested Authority" && grant["account_id"] === null) {
+        await run(rpc(context.db, "remove_sensitive_entry", { p_consent_id: params.id }));
+      } else if (grant["account_id"] !== null || grant["given_by"] === me) {
+        await run(
+          rpc(context.db, "withdraw_sensitive_consent", {
+            p_category: grant["category"],
+            ...(grant["account_id"] ? { p_account_id: grant["account_id"] } : {}),
+          }),
+        );
+      } else {
+        throw notFound("No consent with this identifier is yours.");
+      }
+    }
+    return ok((await sensitiveConsents.read(context, params.id)) as never);
+  },
+  "sensitiveConsents.disown": async ({ params }, context) => {
+    requirePerson(context);
+    // Read first: once the entry no longer names the caller, the row is no longer theirs to read.
+    const grant = await sensitiveConsents.read(context, params.id);
+    await run(rpc(context.db, "disown_sensitive_entry", { p_consent_id: params.id }));
+    return ok(grant as never);
+  },
+  "sensitiveConsents.report": async (_, context) => {
+    const rows = await run<Row[]>(
+      rpc(context.db, "sensitive_consent_report", { p_org_id: requireOrg(context).id }),
+    );
+    return ok({ data: rows, next_cursor: null } as never);
+  },
 } satisfies HandlerSet<"Identity">;

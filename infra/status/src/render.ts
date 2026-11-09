@@ -8,8 +8,12 @@
  * setting. State is never shown by color alone: every mark carries its state as text.
  */
 
-import type { CheckHistory, StatusHistory } from "../../synthetics/src/run.ts";
-import type { ComponentId } from "../../synthetics/src/types.ts";
+import {
+  CONFIRM_AFTER_FAILS,
+  type CheckHistory,
+  type StatusHistory,
+} from "../../synthetics/src/run.ts";
+import { COMPONENTS, type ComponentId } from "../../synthetics/src/types.ts";
 
 export type ComponentState = "operational" | "degraded" | "outage" | "unknown";
 
@@ -17,7 +21,8 @@ export interface StatusMessages {
   title: string;
   description: string;
   skipLink: string;
-  overall: Record<ComponentState, string>;
+  /** `partial`: everything checked is working, and some components are not checked. */
+  overall: Record<ComponentState | "partial", string>;
   state: Record<ComponentState, string>;
   component: Record<ComponentId, string>;
   region: Record<string, string>;
@@ -50,6 +55,72 @@ export interface Incident {
   readonly resolvedAt: string | null;
   /** Title and latest update per locale, written by the incident commander. */
   readonly text: Readonly<Record<string, { readonly title: string; readonly update: string }>>;
+}
+
+/** Locales every incident entry carries, matching the page's two locales. */
+export const INCIDENT_LOCALES = ["en-US", "es-US"] as const;
+
+const isTime = (value: unknown): value is string =>
+  typeof value === "string" && !Number.isNaN(Date.parse(value));
+const isText = (value: unknown): value is string =>
+  typeof value === "string" && value.trim() !== "";
+
+/**
+ * Reads the incident list from refs/status/incidents (infra/ci/status-incidents.sh), which the incident
+ * commander writes by hand. It throws with every problem listed, so a bad entry is refused before it is
+ * published and a page build never shows half of one. A missing or empty file is no incidents.
+ */
+export function parseIncidents(text: string | null): Incident[] {
+  if (text === null || text.trim() === "") return [];
+  let data: unknown;
+  try {
+    data = JSON.parse(text);
+  } catch (error) {
+    throw new Error(`incidents.json is not JSON: ${(error as Error).message}`, { cause: error });
+  }
+  if (!Array.isArray(data)) throw new Error("incidents.json must be a list of incidents.");
+  const problems: string[] = [];
+  const ids = new Set<string>();
+  data.forEach((entry: unknown, index) => {
+    const where = `incident ${index + 1}`;
+    if (typeof entry !== "object" || entry === null) {
+      problems.push(`${where} is not an object.`);
+      return;
+    }
+    const e = entry as Record<string, unknown>;
+    if (!isText(e["id"])) problems.push(`${where} needs an id.`);
+    else if (ids.has(e["id"])) problems.push(`${where} repeats the id ${e["id"]}.`);
+    else ids.add(e["id"]);
+    const components = e["components"];
+    if (
+      !Array.isArray(components) ||
+      components.length === 0 ||
+      !components.every((c) => (COMPONENTS as readonly unknown[]).includes(c))
+    ) {
+      problems.push(`${where} needs components from: ${COMPONENTS.join(", ")}.`);
+    }
+    const regions = e["regions"];
+    if (!Array.isArray(regions) || regions.length === 0 || !regions.every(isText)) {
+      problems.push(`${where} needs regions.`);
+    }
+    if (!isTime(e["startedAt"])) problems.push(`${where} needs startedAt as an ISO time.`);
+    if (e["resolvedAt"] !== null && !isTime(e["resolvedAt"])) {
+      problems.push(`${where} needs resolvedAt as an ISO time, or null while it is ongoing.`);
+    }
+    const texts = e["text"];
+    for (const locale of INCIDENT_LOCALES) {
+      const t =
+        typeof texts === "object" && texts !== null
+          ? (texts as Record<string, unknown>)[locale]
+          : undefined;
+      const entryText = typeof t === "object" && t !== null ? (t as Record<string, unknown>) : {};
+      if (!isText(entryText["title"]) || !isText(entryText["update"])) {
+        problems.push(`${where} needs a title and an update in ${locale}.`);
+      }
+    }
+  });
+  if (problems.length > 0) throw new Error(problems.join("\n"));
+  return data as Incident[];
 }
 
 export interface RenderInput {
@@ -96,7 +167,12 @@ function checksOf(history: StatusHistory, region: string, component: ComponentId
   return Object.values(history.regions[region] ?? {}).filter((c) => c.component === component);
 }
 
-/** Current state of a component in a region from the latest result of each of its checks. */
+/**
+ * Current state of a component in a region from the latest result of each of its checks. A failure is an
+ * outage only once it is confirmed, which is also when it alerts: one failed check is Degraded, so the page
+ * never says "unavailable, we are working on it" about a request that may only have been lost, before anyone
+ * has been told.
+ */
 export function currentState(
   history: StatusHistory,
   region: string,
@@ -108,7 +184,9 @@ export function currentState(
   const states = checksOf(history, region, component).map((check): ComponentState => {
     const last = check.last;
     if (!last || last.status === "skipped" || Date.parse(last.at) < fresh) return "unknown";
-    if (last.status === "fail") return "outage";
+    if (last.status === "fail") {
+      return (check.failStreak ?? 0) >= CONFIRM_AFTER_FAILS ? "outage" : "degraded";
+    }
     return last.status === "degraded" ? "degraded" : "operational";
   });
   const known = states.filter((s) => s !== "unknown");
@@ -125,8 +203,17 @@ export interface DaySummary {
 }
 
 /**
- * Daily state, oldest first: outage below 99 percent of good checks that day, degraded below 100
- * percent or with any slow answer, operational otherwise, unknown with no checks.
+ * A day counts as unsteady when more than this share of its answers ran over budget or failed without being
+ * confirmed. One such answer from a CI runner says little about the service, and at about 300 runs a day any
+ * stricter rule would mark most days Degraded on a public page.
+ */
+export const UNSTEADY_DAY_SHARE = 0.05;
+
+/**
+ * Daily state, oldest first, where only a confirmed failure counts as the service being down. Outage when
+ * confirmed failures leave less than 99 percent of that day's checks good; degraded on any confirmed failure
+ * or with more than UNSTEADY_DAY_SHARE of its answers slow or failed without confirmation; operational
+ * otherwise; unknown with no checks.
  */
 export function dailyStates(
   history: StatusHistory,
@@ -139,27 +226,32 @@ export function dailyStates(
   const out: DaySummary[] = [];
   for (let offset = days - 1; offset >= 0; offset -= 1) {
     const day = utcDay(now, offset);
-    let good = 0;
-    let slow = 0;
+    let confirmed = 0;
+    let unsteady = 0;
     let total = 0;
     for (const check of checks) {
       const counts = check.days[day];
       if (!counts) continue;
-      good += counts.pass + counts.degraded;
-      slow += counts.degraded;
+      const down = counts.confirmed ?? 0;
+      confirmed += down;
+      unsteady += counts.degraded + counts.fail - down;
       total += counts.pass + counts.degraded + counts.fail;
     }
     let state: ComponentState = "unknown";
     if (total > 0) {
-      const ratio = good / total;
-      state = ratio < 0.99 ? "outage" : ratio < 1 || slow > 0 ? "degraded" : "operational";
+      state =
+        (total - confirmed) / total < 0.99
+          ? "outage"
+          : confirmed > 0 || unsteady / total > UNSTEADY_DAY_SHARE
+            ? "degraded"
+            : "operational";
     }
     out.push({ day, state });
   }
   return out;
 }
 
-/** Share of good checks over the window, or null when nothing ran. */
+/** Share of checks over the window that were not confirmed failures, or null when nothing ran. */
 export function uptime(
   history: StatusHistory,
   region: string,
@@ -173,20 +265,22 @@ export function uptime(
     for (let offset = 0; offset < days; offset += 1) {
       const counts = check.days[utcDay(now, offset)];
       if (!counts) continue;
-      good += counts.pass + counts.degraded;
-      total += counts.pass + counts.degraded + counts.fail;
+      const checked = counts.pass + counts.degraded + counts.fail;
+      good += checked - (counts.confirmed ?? 0);
+      total += checked;
     }
   }
   return total === 0 ? null : good / total;
 }
 
+/** When a check last ran. A skipped result is the run noticing a check has no settings, so it does not count. */
 function lastCheckedAt(
   history: StatusHistory,
   region: string,
   component: ComponentId,
 ): string | null {
   const times = checksOf(history, region, component)
-    .map((c) => c.last?.at)
+    .map((c) => (c.last?.status === "skipped" ? undefined : c.last?.at))
     .filter((t): t is string => typeof t === "string")
     .sort();
   return times.at(-1) ?? null;
@@ -281,6 +375,11 @@ export function renderStatusPage(input: RenderInput): string {
 
   const known = allStates.filter((s) => s !== "unknown");
   const overall: ComponentState = known.length === 0 ? "unknown" : worst(known);
+  // "All systems operational" is a claim about every row, so a row with no data keeps it from showing.
+  const overallText =
+    overall === "operational" && known.length < allStates.length
+      ? m.overall.partial
+      : m.overall[overall];
 
   const windowStart = now.getTime() - config.incidentWindowDays * 86_400_000;
   const recent = input.incidents
@@ -320,7 +419,7 @@ ${PAGE_CSS}</style>
 <main>
 <h1>${escapeHtml(m.title)}</h1>
 <p class="lede">${escapeHtml(m.description)}</p>
-<p class="banner" role="status" data-state="${overall}">${escapeHtml(m.overall[overall])}</p>
+<p class="banner" role="status" data-state="${overall}">${escapeHtml(overallText)}</p>
 <div id="components">${regionSections.join("")}</div>
 <section aria-labelledby="incidents"><h2 id="incidents">${escapeHtml(m.incidents.heading)}</h2>${incidents}</section>
 <footer>${escapeHtml(m.footer)}</footer>

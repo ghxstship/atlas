@@ -104,7 +104,6 @@
     "moderation_statement": "Escribe la exposición de motivos, en hasta 4,000 caracteres.",
     "moderation_report_mismatch": "La denuncia debe ser de este anuncio.",
     "moderation_appeal_decided": "Esta apelación ya se decidió.",
-    "moderation_appeal_same_operator": "Otra persona del equipo decide esta apelación: tú tomaste la decisión apelada.",
     "moderation_appeal_outcome": "Mantén la decisión o revócala.",
     "moderation_appeal_new_decision": "Revocar una decisión de no tomar medidas necesita la nueva decisión: retirar o restringir, con su fundamento, norma y hechos.",
     "system_banner_shape": "Elige el tipo, la gravedad y quién ve el aviso.",
@@ -123,7 +122,70 @@
     "operator_revoked": "Este rol ya se revocó.",
     "operator_last_administrator": "El equipo de la plataforma conserva al menos una persona de Administración. Concede otra primero.",
     "funnel_alert_missing": "Esa alerta de embudo ya no existe. Vuelve a cargar la página.",
-    "funnel_alert_resolved": "El embudo se recuperó y su alerta está cerrada."
+    "funnel_alert_resolved": "El embudo se recuperó y su alerta está cerrada.",
+    "legal_queue_rule": "Elige qué es este elemento.",
+    "legal_queue_title": "Descríbelo en hasta 200 caracteres.",
+    "legal_queue_received": "Indica cuándo llegó. No puede ser en el futuro.",
+    "legal_queue_details": "Limita los detalles a 4,000 caracteres.",
+    "legal_queue_contact": "Limita el contacto a 320 caracteres.",
+    "legal_queue_due": "Ingresa la fecha que fija el documento, posterior al día en que llegó.",
+    "legal_queue_subject": "Ninguna cuenta usa ese correo. Déjalo vacío si no hay una cuenta detrás del contenido.",
+    "legal_queue_related": "Indica la referencia del aviso DMCA al que responde.",
+    "legal_queue_org": "Indica la organización por su identificador, como aparece en la página de Organizaciones. Si sus datos ya se eliminaron, agrega la solicitud como otra promesa escrita y dile a la persona que no queda nada que devolver.",
+    "legal_hold_queue": "Esta retención pertenece a una devolución de datos omitidos que sigue abierta. Cierra ese elemento para levantarla.",
+    "org_read_only": "Esta organización es de solo lectura, así que el cambio no se guardó.",
+    "legal_queue_note": "Di qué se hizo, en hasta 4,000 caracteres.",
+    "legal_queue_first_response": "Este elemento no tiene una primera respuesta pendiente.",
+    "legal_queue_fed": "Este elemento sigue a su origen. Actúa sobre el origen y este lo seguirá.",
+    "transition_reason_required": "Cada cambio de estado lleva un motivo.",
+    "legal_queue_item_transition_not_allowed": "Un elemento no puede pasar a ese estado desde el actual.",
+    "legal_queue_item_state_conflict": "El elemento cambió desde que se cargó esta página. Vuelve a cargarla.",
+    "legal_queue_court_action": "Una acción judicial solo aplica al completar un contraaviso DMCA.",
+    "legal_queue_too_early": "La ley no lo permite antes de su primer día posible. Espéralo o registra la acción judicial.",
+    "legal_queue_no_extension": "Este plazo no tiene prórroga.",
+    "legal_queue_extended": "Este elemento ya no se puede prorrogar.",
+    "legal_queue_extension_late": "La prórroga debe tomarse, y avisarse a la persona, antes de que termine el primer periodo.",
+    "legal_queue_extension_reason": "Di por qué, en hasta 1,000 caracteres, tal como se lo dirás a la persona.",
+    "legal_contact_name": "Di quién es, en hasta 200 caracteres.",
+    "legal_contact_email": "Ingresa un correo que funcione.",
+    "legal_contact_exists": "Este correo ya recibe las alertas de plazos vencidos.",
+    "legal_contact_missing": "Ese contacto ya se quitó. Vuelve a cargar la página.",
+    "outside_reviewer_name": "Nombra al revisor, en hasta 200 caracteres.",
+    "outside_reviewer_organization": "Limita la firma u organismo a 200 caracteres.",
+    "outside_reviewer_reason": "Di por qué, en hasta 500 caracteres.",
+    "outside_reviewer_exists": "Ya hay un revisor externo nombrado. Termina ese nombramiento primero.",
+    "outside_reviewer_missing": "Ese nombramiento ya terminó. Vuelve a cargar la página.",
+    "moderation_appeal_re_review": "Registra qué volviste a mirar y cómo valoraste los motivos, en hasta 4,000 caracteres.",
+    "moderation_appeal_outside_reviewer": "Esta apelación va al revisor externo. Registra su decisión cuando la haya tomado.",
+    "legal_queue_re_review": "Registra qué volviste a revisar y cómo valoraste los motivos, en un máximo de 4,000 caracteres.",
+    "legal_queue_person_told": "Indica cómo y cuándo le comunicaste a la persona el resultado y las razones, en un máximo de 1,000 caracteres.",
+    "territory_reason": "Di por qué, en un máximo de 500 caracteres.",
+    "territory_code": "Usa de 2 a 8 mayúsculas o dígitos, empezando por una letra.",
+    "territory_name": "Da el nombre en inglés y en español, con un máximo de 100 caracteres cada uno.",
+    "territory_countries": "Elige al menos un país.",
+    "territory_country_taken": "Un país pertenece a un solo territorio. Sácalo primero del otro.",
+    "territory_currency_unpriced": "Elige monedas que estén en la lista de precios.",
+    "territory_locale_unknown": "Elige idiomas que XOS tenga.",
+    "territory_code_taken": "Ya hay un territorio con ese código. Edítalo desde la lista.",
+    "territory_unknown": "Elige un territorio de la lista.",
+    "territory_transition_not_allowed": "El territorio ya está en ese estado. Actualiza la página.",
+    "territory_last_offered": "XOS debe seguir ofreciéndose en algún lugar. Abre otro territorio primero.",
+    "territory_exception_email": "Escribe el correo de la primera persona propietaria de la organización.",
+    "organization_country_invalid": "Elige un país.",
+    "territory_exception_not_needed": "XOS ya se ofrece en ese país, así que no hace falta una excepción.",
+    "territory_exception_contract": "Nombra el contrato firmado, en un máximo de 200 caracteres.",
+    "territory_exception_signed_on": "Una excepción necesita un contrato ya firmado: escribe su fecha.",
+    "territory_exception_open": "Ya hay una excepción abierta para esta persona y este país.",
+    "territory_exception_unknown": "Elige una excepción de la lista.",
+    "territory_exception_transition_not_allowed": "Solo se puede retirar una excepción abierta. Actualiza la página.",
+    "rating_dispute_own": "Otro operador decide esta impugnación: es tuya.",
+    "sod_rating_dispute_decide": "Otro operador decide esta impugnación: perteneces a la organización que dio la calificación.",
+    "rating_dispute_outcome": "Acepta la impugnación o recházala.",
+    "rating_dispute_decision_ground": "Para aceptarla se necesita un motivo concreto: persona equivocada, declaración falsa, contenido ofensivo o datos personales. Una puntuación baja o una opinión desfavorable no lo son.",
+    "rating_dispute_statement": "Escribe los motivos que recibirán la persona y la organización, en un máximo de 4,000 caracteres.",
+    "rating_dispute_transition_not_allowed": "Esta impugnación ya se decidió.",
+    "billing_alert_reason": "Indica qué se hizo al respecto, en un máximo de 500 caracteres.",
+    "billing_alert_unknown": "Esta alerta ya está cerrada."
   },
   "tenants": {
     "title": "Organizaciones",
@@ -145,7 +207,16 @@
     },
     "canceled": "Cancelada, solo lectura",
     "active": "Activa",
-    "clientOf": "Cliente de {partner}"
+    "clientOf": "Cliente de {partner}",
+    "billingAlerts": {
+      "title": "Alertas de facturación",
+      "kind": "Alerta",
+      "org": "Organización",
+      "detail": "Qué ocurrió",
+      "raised": "Generada",
+      "close": "Cerrar alerta",
+      "closed": "Alerta cerrada."
+    }
   },
   "plans": {
     "access": "Access",
@@ -222,6 +293,13 @@
     "limitValue": "Límite",
     "limitValueHelp": "Déjalo vacío para no tener límite.",
     "overrideSaved": "Excepción guardada.",
+    "partnerClients": "Organizaciones cliente",
+    "partnerClientsOff": "Esta organización no puede crear organizaciones cliente. Actívelo solo con un acuerdo de socio firmado.",
+    "partnerClientsOn": "Esta organización puede crear organizaciones cliente, activado {when}: {reason}",
+    "partnerClientsUnknown": "No se pudo leer si esta organización puede crear organizaciones cliente.",
+    "partnerClientsTurnOn": "Permitir organizaciones cliente",
+    "partnerClientsTurnOff": "Detener nuevas organizaciones cliente",
+    "partnerClientsSaved": "Configuración de organizaciones cliente guardada.",
     "supportSessions": "Sesiones de soporte",
     "noSessions": "Todavía no hay sesiones de soporte.",
     "sessionPlatform": "Plataforma: {reason}",
@@ -279,6 +357,69 @@
     "notKilled": "Desactivado",
     "saved": "Interruptor de emergencia guardado."
   },
+  "territories": {
+    "title": "Territorios",
+    "intro": "Dónde se ofrece XOS. Los precios y los idiomas de un territorio cerrado siguen desactivados, y ninguna organización puede empezar allí. Abrir uno cambia el registro de inmediato, y los precios y los idiomas normalmente en un minuto y como máximo en unos 11 minutos. Antes de abrir un territorio, confirma lo que exige su ley, como representantes designados y términos locales, y dilo en el motivo.",
+    "list": "Todos los territorios",
+    "territory": "Territorio",
+    "countries": "Países",
+    "currencies": "Monedas",
+    "languages": "Idiomas",
+    "state": "Estado",
+    "lastChange": "Último cambio",
+    "open": "Abierto",
+    "closed": "Cerrado",
+    "openIt": "Abrir este territorio",
+    "close": "Cerrar este territorio",
+    "changeFor": "Abrir o cerrar {code}",
+    "changedBy": "{name}: {reason}",
+    "add": "Agregar un territorio",
+    "edit": "Editar",
+    "editTitle": "Editar {code}",
+    "editIntro": "Este formulario parte de lo que el territorio tiene ahora. Al guardar se reemplazan sus países, monedas e idiomas, así que lo que quites sale del territorio.",
+    "editOpen": "Este territorio está abierto, así que un cambio llega al registro de inmediato.",
+    "addInstead": "Agregar un territorio nuevo.",
+    "code": "Código",
+    "codeHelp": "Un código de país de dos letras o un nombre corto como EEA. Un territorio nuevo empieza cerrado.",
+    "codeFixed": "El código no cambia.",
+    "nameEn": "Nombre en inglés",
+    "nameEs": "Nombre en español",
+    "nameHelp": "Como se lee en «se ofrece a organizaciones en los Estados Unidos».",
+    "currenciesHelp": "La primera es en la que pagan sus organizaciones. Ninguna significa dólares estadounidenses.",
+    "save": "Guardar territorio",
+    "saved": "Territorio guardado.",
+    "exceptions": "Excepciones por contratos firmados",
+    "exceptionsIntro": "Una excepción permite que una organización empiece fuera de los territorios ofrecidos, por un contrato ya firmado, incluido el contrato de un cliente de Estados Unidos con una empresa proveedora. Nombra el correo de la primera persona propietaria y el país, y se usa una sola vez; una cuenta de empresa y su inicio posterior en Atlas necesitan una cada uno. No abre el territorio ni designa a ningún representante: confirma primero lo que exige la ley de ese país.",
+    "exceptionsNone": "No hay excepciones registradas.",
+    "ownerEmail": "Correo de la primera persona propietaria",
+    "ownerEmailHelp": "Solo puede crear la organización la persona que inició sesión con este correo, una vez confirmado.",
+    "country": "País",
+    "countryChoose": "Elige un país",
+    "contract": "Contrato",
+    "contractHelp": "Su número o dónde está archivado.",
+    "signedOn": "Fecha de firma",
+    "contractOn": "{reference}, firmado el {date}",
+    "exceptionReason": "Registrada",
+    "grantedBy": "{name}, {when}: {reason}",
+    "exceptionOpen": "Abierta",
+    "exceptionUsed": "Usada por {org}",
+    "exceptionUsedGone": "Usada; la organización se eliminó después",
+    "exceptionRevoked": "Retirada {when}: {reason}",
+    "grant": "Registrar excepción",
+    "granted": "Excepción registrada.",
+    "grantTitle": "Registrar una excepción",
+    "withdraw": "Retirar",
+    "withdrawFor": "Retirar la excepción de {email}",
+    "outside": "Organizaciones fuera de los territorios ofrecidos",
+    "outsideIntro": "Organizaciones que usan Atlas y cuentas de empresa de Gateway cuyo país indicado está fuera de los territorios ofrecidos, o que no indicaron ninguno. No les pasa nada automáticamente: revísalas tú.",
+    "outsideNone": "Ninguna.",
+    "org": "Organización",
+    "uses": "Usa",
+    "usesAtlas": "Atlas",
+    "usesAccount": "Cuenta de empresa de Gateway",
+    "exceptionContract": "Contrato de la excepción",
+    "notRecorded": "No registrado"
+  },
   "support": {
     "title": "Sesiones de soporte",
     "intro": "Sesiones de soporte de la plataforma abiertas que concedió la persona propietaria de una organización. Mientras duran puedes leer el resumen, los miembros, los proyectos y la configuración de la organización; cada lectura queda registrada para la organización.",
@@ -323,7 +464,7 @@
   },
   "moderation": {
     "title": "Moderación",
-    "intro": "Anuncios denunciados y apelaciones. Cada decisión lleva una exposición de motivos que recibe la parte afectada, y otra persona del equipo decide cada apelación.",
+    "intro": "Anuncios denunciados y apelaciones. Cada decisión lleva una exposición de motivos que recibe la parte afectada, y cada apelación recibe una nueva revisión documentada.",
     "openTab": "Abiertos",
     "decidedTab": "Decididos",
     "none": "No hay nada pendiente de decisión.",
@@ -348,7 +489,7 @@
     "decidedBy": "{action} el {when} por {name}",
     "ground": "Fundamento",
     "ruleReference": "Ley o norma aplicada",
-    "ruleReferenceHelp": "Por ejemplo: Política de uso aceptable 3.2, o la ley y el artículo.",
+    "ruleReferenceHelp": "Por ejemplo: Política de uso aceptable, sección 3, o la ley y el artículo.",
     "facts": "Hechos y circunstancias",
     "statement": "Exposición de motivos",
     "statementHelp": "La parte afectada la recibe tal como la escribes. Di qué decidiste, por qué y que puede apelar en un plazo de seis meses.",
@@ -362,14 +503,27 @@
     "noAppeals": "Sin apelaciones.",
     "appealBy": "{name} apeló la decisión {decision} el {when}",
     "appealState": "{state} el {when} por {name}: {statement}",
-    "appealOwn": "Tú tomaste la decisión de esta apelación, así que la decide otra persona del equipo.",
+    "appealOwn": "Tú tomaste la decisión de esta apelación. Revísala desde cero: el registro y el aviso a la persona dirán que la misma persona volvió a revisarla.",
     "outcome": "Resultado",
     "uphold": "Mantener la decisión",
     "reverse": "Revocar la decisión",
     "appealStatement": "Motivos que recibe quien apela",
     "newDecision": "Nueva decisión, al revocar una decisión de no tomar medidas",
     "decideAppeal": "Decidir la apelación",
-    "appealDecided": "Apelación decidida y enviada."
+    "appealDecided": "Apelación decidida y enviada.",
+    "appealOutside": "Esta apelación va a {name}, revisor externo. Registra su decisión cuando la haya tomado.",
+    "reReview": "Qué volviste a mirar",
+    "reReviewHelp": "Queda en el registro y nunca se envía. Di qué releíste y cómo valoraste los motivos.",
+    "appealRecord": "Nueva revisión: {notes}",
+    "reviewerSame": "La persona que tomó la primera decisión volvió a revisarla.",
+    "reviewerOutside": "{name}, revisor externo, volvió a revisarla.",
+    "notTold": "Esta persona ya no tiene correo, así que no se le ha comunicado. Está en la Cola Legal con su propio plazo.",
+    "recordOutside": "Registrar la decisión de {name}",
+    "told": "Se le comunicó a la persona el {when}.",
+    "toldByOperator": "Se le comunicó a la persona por otra vía el {when}. El registro de la cola legal indica cómo.",
+    "noticeOnItsWay": "El correo que comunica el resultado a la persona está en camino.",
+    "noticeGone": "No se le ha comunicado a la persona. El correo nunca salió y ya se eliminó, junto con su cuenta o al cerrarse su elemento en la Cola Legal.",
+    "noticeFailed": "Falló el correo que comunica el resultado a la persona, así que no se le ha comunicado. Está en la Cola Legal con su propio plazo."
   },
   "actions": {
     "Removed": "Retirado",
@@ -394,6 +548,50 @@
     "Misleading Information": "Información engañosa",
     "Missing Pay Range": "Falta el rango salarial",
     "Safety": "Seguridad"
+  },
+  "reportedContent": {
+    "title": "Contenido denunciado",
+    "intro": "Publicaciones, comentarios y mensajes cuyas denuncias una organización dejó sin decidir pasadas sus 24 horas. Decide cada uno con una exposición de motivos; quienes lo denunciaron y, si se elimina, quien lo escribió la reciben de GHXSTSHIP. La organización todavía puede decidirlo antes.",
+    "openTab": "Abiertos",
+    "decidedTab": "Decididos",
+    "none": "Ninguna organización ha dejado una denuncia sin decidir.",
+    "noneDecided": "Todavía no se ha decidido ningún elemento escalado.",
+    "item": "Elemento",
+    "org": "Organización",
+    "reports": "Denuncias",
+    "reasons": "Denunciado por",
+    "escalated": "Escalado",
+    "lastDecision": "Última decisión",
+    "kinds": {
+      "Feed Post": "Publicación",
+      "Comment": "Comentario",
+      "Chat Message": "Mensaje"
+    },
+    "itemTitle": "{kind} en {org}",
+    "removed": "Eliminado",
+    "visible": "Todavía visible",
+    "detailIntro": "{org}, {context}. Lo escribió {author}. {state}.",
+    "bodyRemoved": "El texto ya no se muestra: se eliminó.",
+    "reportsTitle": "Denuncias",
+    "reported": "Denunciado el {when}, escalado {escalated}",
+    "reportedNotEscalated": "Denunciado el {when}",
+    "excerpt": "Texto al denunciarlo",
+    "decideTitle": "Decidir por GHXSTSHIP",
+    "statementHelp": "La reciben tal como la escribes, de parte de GHXSTSHIP, quienes lo denunciaron y, si se elimina, quien lo escribió. Di qué decidiste y por qué.",
+    "decisionsTitle": "Decisiones",
+    "noDecisions": "Todavía no hay decisión.",
+    "decidedBy": "{action} el {when} por {who}",
+    "byPlatform": "GHXSTSHIP",
+    "byOrg": "la organización",
+    "nothingOpen": "Todas las denuncias de este elemento están decididas."
+  },
+  "contentReasons": {
+    "Harassment": "Acoso o intimidación",
+    "Hate": "Discurso o símbolos de odio",
+    "Sexual Content": "Contenido sexual",
+    "Violence": "Violencia o amenazas",
+    "Spam": "Spam o estafa",
+    "Other": "Otra cosa"
   },
   "banners": {
     "title": "Avisos del sistema",
@@ -693,7 +891,26 @@
     "system_banner_ended": "Terminó un aviso",
     "platform_operator_granted": "Concedió un rol de operación",
     "platform_operator_revoked": "Revocó un rol de operación",
-    "funnel_alert_acknowledge": "Marcó como vista una alerta de embudo"
+    "funnel_alert_acknowledge": "Marcó como vista una alerta de embudo",
+    "content_report_viewed": "Abrió contenido denunciado",
+    "content_report_decided": "Decidió sobre contenido denunciado",
+    "legal_queue_viewed": "Abrió un elemento de la cola legal",
+    "legal_queue_added": "Agregó un elemento a la cola legal",
+    "legal_queue_noted": "Agregó al registro de la cola legal",
+    "legal_queue_first_response": "Registró una primera respuesta",
+    "legal_queue_moved": "Cambió el estado de un elemento de la cola legal",
+    "legal_queue_extended": "Prorrogó un plazo legal",
+    "legal_contact_added": "Agregó un contacto de respaldo",
+    "legal_contact_removed": "Quitó un contacto de respaldo",
+    "outside_reviewer_appointed": "Nombró a un revisor externo",
+    "outside_reviewer_ended": "Terminó el nombramiento de un revisor externo",
+    "territory_opened": "Abrió un territorio",
+    "territory_closed": "Cerró un territorio",
+    "territory_saved": "Guardó un territorio",
+    "territory_exception_granted": "Registró una excepción de territorio",
+    "territory_exception_revoked": "Retiró una excepción de territorio",
+    "rating_dispute_viewed": "Abrió una impugnación de calificación",
+    "rating_dispute_decided": "Decidió una impugnación de calificación"
   },
   "notFound": {
     "title": "No se encontró",
@@ -704,5 +921,406 @@
     "title": "Esta página no se cargó",
     "body": "Algo salió mal al cargarla. Inténtalo de nuevo; si sigue fallando, vuelve a cargar la página.",
     "action": "Intentar de nuevo"
+  },
+  "legalQueue": {
+    "title": "Cola legal",
+    "intro": "Todos los plazos legales y de seguridad en una sola lista, primero los más próximos. Cada fecha de vencimiento sale de la regla de su plazo. Las alertas salen antes de que venza un plazo y cada día que siga vencido.",
+    "openTab": "Abiertos",
+    "closedTab": "Cerrados",
+    "none": "No hay nada pendiente. Agrega lo que llegue por buzón, carta o llamada.",
+    "noneClosed": "Todavía no hay elementos cerrados.",
+    "loadError": "No se pudo cargar la cola. Tus buzones siguen guardando todo, así que revísalos mientras tanto.",
+    "summary": "{open} abiertos, {overdue} vencidos, {dueSoon} vencen en 7 días. Los plazos se cuentan en la hora de {zone}.",
+    "banner": "{count, plural, one {# plazo legal está vencido.} other {# plazos legales están vencidos.}}",
+    "bannerLink": "Abrir la cola legal",
+    "columns": {
+      "reference": "Referencia",
+      "matter": "Qué es",
+      "title": "Sobre qué",
+      "org": "Organización",
+      "received": "Recibido",
+      "next": "Próximo plazo",
+      "state": "Estado",
+      "closed": "Cerrado"
+    },
+    "overdue": "Vencido",
+    "customerClock": "Plazo del cliente",
+    "delivery": {
+      "stuck": "{count, plural, one {# correo de alerta lleva} other {# correos de alerta llevan}} más de una hora sin enviarse. Revisa el proceso subprocessor-notices y su programación.",
+      "failed": "{count, plural, one {# correo de alerta falló} other {# correos de alerta fallaron}} en los últimos 30 días. Revisa el proveedor de correo y la lista de permitidos.",
+      "noAlert": "{count, plural, one {# plazo vencido no tiene} other {# plazos vencidos no tienen}} alerta desde hace 26 horas. Revisa el trabajo xos_sweep_legal_queue y la bandeja de salida de correos de la plataforma.",
+      "webhookOff": "El canal de guardia no está conectado, así que las alertas solo salen por correo.",
+      "lastSent": "Último correo de alerta: {when}.",
+      "noticesStuck": "{count, plural, one {# correo que comunica un resultado de moderación lleva} other {# correos que comunican un resultado de moderación llevan}} más de una hora sin enviarse. Revisa el proceso subprocessor-notices y su programación.",
+      "noticesFailed": "{count, plural, one {# correo que comunica un resultado de moderación falló} other {# correos que comunican un resultado de moderación fallaron}} en los últimos 30 días. Cada uno es un elemento aquí, así que avísales por otra vía.",
+      "sweepStale": "La revisión de cada hora no ha terminado en 2 horas, así que no sale ninguna alerta. Revisa el trabajo xos_sweep_legal_queue.",
+      "alertPathFailed": "Parte del barrido falló en las últimas 24 horas, y lo que no pudo enviar se reintenta cada hora. Revisa la bandeja de salida de correos de la plataforma y el webhook de guardia."
+    },
+    "add": {
+      "title": "Agregar un elemento",
+      "intro": "Agrega lo que llegue fuera de XOS. El plazo empieza cuando llegó, no cuando lo registras.",
+      "rule": "Qué es",
+      "titleField": "Descripción breve",
+      "titleHelp": "No pongas datos personales en esta línea. Las alertas nombran la referencia, nunca esto.",
+      "received": "Cuándo llegó",
+      "receivedHelp": "En hora de {zone}, la zona en la que cuentan todos los plazos de aquí. Tómala del propio mensaje.",
+      "contact": "A quién responder",
+      "details": "Detalles",
+      "detailsHelp": "Solo los datos personales que el trabajo necesita. El mensaje completo se queda en el buzón.",
+      "subject": "Cuenta a la que se refiere",
+      "subjectHelp": "Correo de la cuenta que nombra el aviso, para el conteo de infractores reincidentes. Déjalo vacío si no hay ninguna.",
+      "related": "Referencia del aviso DMCA al que responde",
+      "relatedHelp": "Por ejemplo, LQ-2026-00001.",
+      "org": "Identificador de la organización",
+      "orgHelp": "Como aparece en la página de Organizaciones. Su eliminación queda retenida hasta que este elemento se cierre.",
+      "due": "Fecha que fija el documento",
+      "dueHelp": "En hora de {zone}. La regla no puede calcular esta fecha, así que revísala dos veces.",
+      "submit": "Agregar a la cola",
+      "done": "Agregado a la cola."
+    },
+    "facts": {
+      "matter": "Qué es",
+      "rule": "Plazo",
+      "source": "Se basa en",
+      "basis": "Tipo de plazo",
+      "org": "Organización",
+      "state": "Estado",
+      "received": "Recibido",
+      "firstDue": "Primera respuesta vence",
+      "firstDone": "Primera respuesta enviada",
+      "earliest": "No antes de",
+      "due": "Vence",
+      "extended": "Prorrogado",
+      "extensionReason": "Motivo de la prórroga",
+      "contact": "A quién responder",
+      "details": "Detalles",
+      "subject": "Cuenta a la que se refiere",
+      "related": "Responde al aviso",
+      "courtAction": "Acción judicial presentada",
+      "closed": "Cerrado",
+      "reReviewer": "Quién hizo la nueva revisión",
+      "reReviewerSame": "La persona que tomó la primera decisión",
+      "reReviewerOther": "Alguien que no tomó la primera decisión",
+      "reReviewerOutside": "{name}, el revisor externo"
+    },
+    "move": {
+      "title": "Cambiar de estado",
+      "next": "Nuevo estado",
+      "reason": "Qué pasó",
+      "court": "Quien notificó presentó una acción judicial, así que el material sigue retirado",
+      "submit": "Guardar",
+      "done": "Guardado.",
+      "reReview": "Qué volviste a revisar",
+      "reReviewHelp": "Necesario para completarlo o rechazarlo. Queda en el registro y nunca se envía. Indica qué volviste a leer y cómo valoraste los motivos.",
+      "told": "Cómo le comunicaste el resultado a la persona",
+      "toldHelp": "Necesario para completarlo o rechazarlo. Indica cómo y cuándo enviaste el resultado y las razones, y que le dijiste quién hizo la nueva revisión.",
+      "samePerson": "Yo tomé la decisión original",
+      "outside": "Esta apelación corresponde a {name}, el revisor externo. Registra su decisión cuando la haya tomado."
+    },
+    "first": {
+      "title": "Registrar la primera respuesta",
+      "note": "Qué enviaste",
+      "submit": "Registrarla",
+      "done": "Primera respuesta registrada."
+    },
+    "extend": {
+      "title": "Tomar la prórroga",
+      "reason": "Por qué, tal como se lo dirás a la persona",
+      "help": "Una sola prórroga, antes de que termine el primer periodo. Hay que avisarle a la persona.",
+      "submit": "Prorrogar el plazo",
+      "done": "Plazo prorrogado."
+    },
+    "note": {
+      "title": "Agregar al registro",
+      "note": "Qué se hizo",
+      "submit": "Agregar al registro",
+      "done": "Agregado al registro."
+    },
+    "fedNote": "Este elemento sigue al registro que lo creó, así que su estado cambia cuando cambia ese registro.",
+    "listingLink": "Abrir el anuncio",
+    "customerNote": "Este plazo es del cliente. Quién lo pidió y qué dijo se quedan en el registro del cliente, y GHXSTSHIP ayuda cuando el cliente lo pide.",
+    "earliestNote": "No restablezcas antes de {when}. La ley fija el primer día posible.",
+    "logTitle": "Registro",
+    "logBy": "{what}, {when}, {who}",
+    "system": "XOS",
+    "stateChange": "De {from} a {to}",
+    "repeat": {
+      "title": "Conteo de infractores reincidentes",
+      "intro": "Avisos DMCA válidos y no impugnados en los 12 meses con más avisos de cada persona. Más de dos cumple la regla de la Política de Derechos de Autor y DMCA. Una persona decide qué sigue.",
+      "none": "Todavía no hay avisos contados.",
+      "person": "Persona",
+      "counted": "Contados",
+      "from": "12 meses desde",
+      "status": "Situación",
+      "met": "Cumple la regla",
+      "under": "Por debajo de la regla"
+    },
+    "government": {
+      "title": "Solicitudes de datos del gobierno",
+      "intro": "Solicitudes recibidas por año calendario, para el conteo anual que promete el Acuerdo de Tratamiento de Datos. Un año sin fila es un conteo de cero.",
+      "none": "No se ha recibido ninguna.",
+      "year": "Año",
+      "received": "Recibidas"
+    },
+    "contacts": {
+      "title": "Contactos de respaldo",
+      "intro": "Cada administrador recibe todas las alertas por correo. Un contacto de respaldo recibe solo las de plazos vencidos, con referencias y fechas, nunca el asunto.",
+      "none": "Todavía no hay contacto de respaldo. Un solo buzón lleno podría ocultar un plazo vencido.",
+      "name": "Nombre",
+      "email": "Correo",
+      "submit": "Agregar contacto de respaldo",
+      "done": "Contacto de respaldo agregado.",
+      "remove": "Quitar",
+      "removeLabel": "Quitar a {name}",
+      "line": "{name}, {email}"
+    },
+    "reviewer": {
+      "title": "Revisor externo",
+      "none": "No hay ninguno nombrado. Un operador vuelve a revisar desde cero cada apelación de moderación y lo deja registrado. Si nombras uno, todas las apelaciones van a esa persona.",
+      "current": "{name} revisa las apelaciones de moderación desde {when}.",
+      "currentOrg": "{name}, de {organization}, revisa las apelaciones de moderación desde {when}.",
+      "name": "Nombre",
+      "organization": "Firma u organismo",
+      "email": "Correo",
+      "reason": "Por qué",
+      "submit": "Nombrar",
+      "done": "Revisor externo nombrado.",
+      "end": "Terminar el nombramiento",
+      "endReason": "Por qué termina",
+      "ended": "Nombramiento terminado."
+    },
+    "matters": {
+      "Data Subject Request": "Solicitud de derechos de datos",
+      "Privacy Complaint": "Queja de privacidad",
+      "DMCA Notice": "Aviso DMCA",
+      "DMCA Counter-Notice": "Contraaviso DMCA",
+      "Repeat Infringer Review": "Revisión de infractor reincidente",
+      "Abuse Report": "Denuncia de abuso",
+      "Moderation Appeal": "Apelación de moderación",
+      "Security Report": "Informe de seguridad",
+      "Personal Data Breach": "Violación de datos personales",
+      "Accessibility Complaint": "Queja de accesibilidad",
+      "Government Data Request": "Solicitud de datos del gobierno",
+      "Other Promise": "Otro compromiso",
+      "Undelivered Notice": "Aviso no entregado",
+      "Queue Failure": "Fallo de la cola"
+    },
+    "states": {
+      "Received": "Recibido",
+      "In Progress": "En curso",
+      "Waiting": "A la espera de otra persona",
+      "Completed": "Completado",
+      "Refused": "Rechazado",
+      "Withdrawn": "Retirado"
+    },
+    "bases": {
+      "Statute": "Fijado por ley",
+      "Published Promise": "Nuestro compromiso publicado",
+      "Internal Target": "Nuestra propia meta",
+      "Customer Clock": "El plazo del cliente"
+    },
+    "events": {
+      "Received": "Recibido",
+      "First Response": "Primera respuesta",
+      "Note": "Nota",
+      "State Changed": "Cambio de estado",
+      "Extended": "Prórroga",
+      "Source Changed": "Siguió a su origen",
+      "Alert Sent": "Alerta en cola para el correo",
+      "Re-Review": "Nueva revisión",
+      "Person Told": "Persona informada",
+      "Hold Placed": "Retención legal aplicada a la organización",
+      "Hold Released": "Retención legal liberada"
+    },
+    "rules": {
+      "dsar_privacy": {
+        "label": "Solicitud de derechos de datos por correo",
+        "source": "Política de Privacidad 7: confirmar en 10 días hábiles y responder en 30 días o un mes natural, lo que sea más corto. Una prórroga si indicas el motivo dentro del primer plazo (RGPD 12(3), reglamentos de California)."
+      },
+      "dsar_brazil": {
+        "label": "Solicitud de derechos de datos desde Brasil",
+        "source": "LGPD artículo 19 y Política de Privacidad 7: confirmar de inmediato y dar una declaración completa en 15 días."
+      },
+      "dsar_appeal": {
+        "label": "Apelación de una solicitud de datos rechazada",
+        "source": "Política de Privacidad 7: responder en 45 días, tras revisar de nuevo la apelación y registrar las razones."
+      },
+      "account_deletion_email": {
+        "label": "Eliminación de cuenta por correo",
+        "source": "Elimina tu cuenta: terminar en 30 días."
+      },
+      "privacy_complaint": {
+        "label": "Queja de privacidad",
+        "source": "Política de Privacidad 7: acusar recibo en 30 días y dar el resultado sin demora indebida. Los 60 días son nuestra propia meta."
+      },
+      "dmca_notice": {
+        "label": "Aviso DMCA",
+        "source": "17 U.S.C. 512(c): actuar con diligencia y avisar pronto a quien subió el material. Los 2 días hábiles son nuestra propia meta."
+      },
+      "dmca_counter_notice": {
+        "label": "Contraaviso DMCA",
+        "source": "17 U.S.C. 512(g): enviar copia pronto a quien notificó y restablecer entre 10 y 14 días hábiles, salvo que presente una acción judicial."
+      },
+      "repeat_infringer_review": {
+        "label": "Revisión de infractor reincidente",
+        "source": "17 U.S.C. 512(i) y Política de Derechos de Autor y DMCA 5. Los 5 días hábiles son nuestra propia meta."
+      },
+      "abuse_report": {
+        "label": "Denuncia de abuso por correo",
+        "source": "Política de Uso Aceptable 6 y artículo 16 de la Ley de Servicios Digitales: decidir a tiempo. Los 5 días hábiles son nuestra propia meta."
+      },
+      "intimate_image_report": {
+        "label": "Imagen íntima compartida sin consentimiento",
+        "source": "Nuestra propia meta, fijada en las 48 horas de la Take It Down Act desde una solicitud válida, cumplida como si XOS fuera una plataforma cubierta."
+      },
+      "child_safety_report": {
+        "label": "Material de abuso sexual infantil",
+        "source": "18 U.S.C. 2258A: informar a NCMEC lo antes razonablemente posible. Las 24 horas son nuestra propia meta."
+      },
+      "listing_report": {
+        "label": "Denuncia de un anuncio del mercado",
+        "source": "Política de Uso Aceptable 6 y artículo 16 de la Ley de Servicios Digitales: decidir a tiempo. Los 5 días hábiles son nuestra propia meta."
+      },
+      "moderation_appeal": {
+        "label": "Apelación de una decisión de moderación",
+        "source": "Política de Uso Aceptable 7: una nueva revisión documentada, y avisar del resultado a la persona. Los 30 días son nuestra propia meta."
+      },
+      "security_report": {
+        "label": "Informe de seguridad",
+        "source": "Política de Divulgación Responsable 2: acusar recibo en 3 días hábiles y compartir un plan en 10."
+      },
+      "personal_data_breach": {
+        "label": "Violación de datos personales",
+        "source": "Acuerdo de Tratamiento de Datos 9.1: avisar a los clientes en 48 horas. RGPD artículo 33: avisar a los reguladores en 72 horas cuando GHXSTSHIP sea responsable."
+      },
+      "accessibility_report": {
+        "label": "Informe de accesibilidad",
+        "source": "Declaración de Accesibilidad 5: responder en 5 días hábiles."
+      },
+      "accessibility_review": {
+        "label": "Solicitud de revisión de accesibilidad",
+        "source": "Declaración de Accesibilidad 6: responder en 10 días hábiles, tras revisar de nuevo la queja y registrar las razones."
+      },
+      "government_request": {
+        "label": "Solicitud de datos del gobierno",
+        "source": "Acuerdo de Tratamiento de Datos 13.6: avisar al cliente salvo que la ley lo prohíba, para lo cual los 2 días hábiles son nuestra propia meta. El documento fija la fecha de vencimiento."
+      },
+      "omitted_data_return": {
+        "label": "Devolución de datos que la exportación omite",
+        "source": "Acuerdo de Tratamiento de Datos 10.2 y Términos 11.2: devolverlos en 30 días. Al agregarlo se aplica una retención legal a la organización, así que su eliminación espera hasta que este elemento se cierre."
+      },
+      "customer_privacy_help": {
+        "label": "Pedido de ayuda de privacidad de un cliente",
+        "source": "Acuerdo de Tratamiento de Datos 8.3: ayuda razonable. Los 14 días son nuestra propia meta, para ajustarse al plazo de 30 días del cliente."
+      },
+      "other_promise": {
+        "label": "Otro compromiso escrito",
+        "source": "El documento que hace el compromiso. Ingresa su fecha."
+      },
+      "dsar_customer_register": {
+        "label": "Solicitud en el registro de un cliente",
+        "source": "El plazo del cliente (Acuerdo de Tratamiento de Datos 8.1): 30 días, o 90 con prórroga. XOS solo lo vigila."
+      },
+      "abuse_appeal": {
+        "label": "Apelación de una decisión de moderación, por correo",
+        "source": "Política de Uso Aceptable 7: una nueva revisión documentada, y se comunica el resultado a la persona. Los 30 días son nuestro propio objetivo."
+      },
+      "undelivered_notice": {
+        "label": "Resultado de moderación no entregado",
+        "source": "Política de Uso Aceptable 6 y 7: se comunica el resultado a la persona. Los 2 días hábiles son nuestro propio objetivo."
+      },
+      "queue_feed_failure": {
+        "label": "Fallo de alimentación de la cola",
+        "source": "Nuestro propio objetivo: la cola debe ver todo registro que inicie un plazo."
+      }
+    },
+    "fedTitles": {
+      "listing": "Anuncio del marketplace",
+      "repeat": "{count, plural, one {# aviso DMCA válido y no impugnado} other {# avisos DMCA válidos y no impugnados}}",
+      "undelivered": "Resultado de moderación no entregado",
+      "feed": "Falló la alimentación de {feed}"
+    },
+    "requestTypes": {
+      "Access": "Acceso",
+      "Rectification": "Rectificación",
+      "Erasure": "Supresión",
+      "Restriction": "Limitación",
+      "Portability": "Portabilidad",
+      "Objection": "Oposición",
+      "Opt Out of Sale": "Exclusión de la venta"
+    },
+    "feeds": {
+      "moderation_appeals": "apelaciones de moderación",
+      "listing_reports": "denuncias de anuncios",
+      "dsar_requests": "registros de Clientes",
+      "moderation_notices": "avisos de moderación",
+      "sources": "registros de origen"
+    },
+    "clocks": {
+      "First Response": "Primera respuesta",
+      "Due": "Fecha límite"
+    },
+    "alertSoon": "El plazo de {clock} termina el {when}.",
+    "alertOverdue": "El plazo de {clock} terminó el {when} y está vencido.",
+    "watched": {
+      "title": "Plazos de Clientes que vigilamos",
+      "intro": "{count} abiertos. Estos plazos son de cada Cliente. Siguen aquí hasta que el Cliente los cierre y nunca cuentan como trabajo vencido."
+    },
+    "undeliveredNote": "A esta persona no se le ha comunicado el resultado de una decisión o apelación de moderación. Avísale por otra vía, luego completa este elemento e indica cómo. Abajo aparece a quién iba dirigido y qué decía, si aún lo conservamos.",
+    "feedFailureNote": "Una de las alimentaciones automáticas de la cola está fallando, así que los registros de ese tipo no llegan a esta lista. Todo lo demás sigue funcionando, y este elemento se cierra solo cuando la alimentación vuelva a funcionar. Revisa el error de abajo y la migración más reciente."
+  },
+  "ratingDisputes": {
+    "title": "Impugnaciones de calificaciones",
+    "intro": "Personas que impugnan una calificación que les dio una organización. La puntuación no se muestra porque no puede decidir una impugnación. Acéptala solo por un motivo concreto; los motivos se envían a la persona y a la organización.",
+    "link": "Impugnaciones de calificaciones",
+    "backToListings": "Anuncios denunciados",
+    "none": "Ninguna impugnación espera una decisión.",
+    "noneDecided": "Aún no hay impugnaciones decididas.",
+    "person": "Persona",
+    "org": "Organización",
+    "ground": "Motivo indicado",
+    "state": "Estado",
+    "answered": "Respondió la organización",
+    "waiting": "Presentada",
+    "decidedAt": "Decidida",
+    "detailIntro": "{person} impugna una calificación de {org}, proyecto {project}, dada el {when}.",
+    "what": "Lo que dice la persona",
+    "comment": "El comentario de la calificación",
+    "noComment": "La calificación no tiene comentario.",
+    "reply": "La respuesta de la persona",
+    "orgAnswer": "La respuesta de la organización",
+    "noAnswer": "La organización no ha respondido.",
+    "decideTitle": "Decidir",
+    "outcome": "Resultado",
+    "uphold": "Aceptar y retirar la calificación",
+    "notUphold": "No aceptar; la calificación sigue",
+    "decisionGround": "Motivo para aceptar",
+    "statement": "Motivos enviados a la persona y a la organización",
+    "statementHelp": "Se envía tal como lo escribas. Di qué decidiste y por qué, sin usar la puntuación ni una opinión como motivo.",
+    "decide": "Registrar la decisión",
+    "decided": "Decisión registrada y enviada.",
+    "own": "Esta impugnación es tuya, o perteneces a la organización que dio la calificación, así que otro operador la decide.",
+    "decidedBy": "{state} el {when} por {name}"
+  },
+  "ratingDisputeGrounds": {
+    "Wrong Person": "Sobre la persona equivocada",
+    "False Statement": "Declaración falsa",
+    "Abusive Content": "Contenido ofensivo",
+    "Personal Data": "Datos personales",
+    "Other": "Otro"
+  },
+  "ratingDisputeStates": {
+    "Open": "Abierta",
+    "Upheld": "Aceptada",
+    "Not Upheld": "No aceptada"
+  },
+  "billingAlerts": {
+    "cancel_delayed": "Stripe no ha aceptado una cancelación",
+    "active_on_deleted_org": "Suscripción activa en una organización eliminada",
+    "active_after_cancel": "Suscripción activa después de una cancelación",
+    "charged_after_cancel": "Cargo después de una cancelación",
+    "deletion_blocked": "Eliminación en espera de Stripe",
+    "cancel_missing": "Stripe no reconoció una suscripción activa",
+    "notice_undelivered": "Aviso de facturación no enviado por correo"
   }
 }

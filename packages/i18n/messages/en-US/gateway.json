@@ -183,11 +183,24 @@
       "roster_entry_not_working": "This roster entry is withdrawn or its engagement is not active, so it takes no new time.",
       "roster_training_not_due": "This training is not due on your roster entry.",
       "sod_roster_training": "A person cannot verify their own training. Someone else at the production verifies it.",
+      "content_objectionable": "This contains language that is not allowed here. Change the wording and try again.",
+      "guest_note_sensitive": "Leave dietary and access needs out of the note. Use the guest's needs step, which records consent.",
+      "sensitive_consent_required": "Agree to the wording before saving this. Nothing else on the form needs it.",
+      "sensitive_attestation_required": "Confirm both statements to continue.",
+      "sensitive_person_only": "Only this person can enter this.",
+      "travel_note_sensitive": "Leave dietary and access needs out of the travel notes. Add a meal preference, or use Work Details, which record consent.",
+      "sensitive_notice_version": "This wording changed. Reload the page and read the current version.",
+      "rating_dispute_ground": "Choose why you dispute this rating.",
+      "rating_dispute_details": "Say what is wrong with this rating, in up to 4,000 characters.",
+      "rating_dispute_exists": "You have already disputed this rating. You can see where it stands under the rating.",
+      "rating_sharing_notice": "Reload the page and choose again, so we can record the notice you saw.",
       "quote_expired": "This quote expired, so it can no longer be accepted. Ask for a new version.",
       "quote_not_sent": "This quote version is no longer waiting for a signature.",
       "quote_client_engagement": "This quote's client engagement is closed, so it can no longer be accepted.",
       "document_text_sign_with_hash": "Read this document in Gateway and sign it there with your typed name.",
-      "registration_not_withdrawable": "This registration was already declined or withdrawn."
+      "registration_not_withdrawable": "This registration was already declined or withdrawn.",
+      "intake_account_country": "Choose the country where the company is established.",
+      "territory_not_offered": "XOS is not offered in your company's country, so we did not create this company account. If the organization that sent this link works with you, you do not need one: ask it to set you up."
     }
   },
   "common": {
@@ -262,6 +275,8 @@
         "closeOut": "Close-out"
       },
       "blocked": "This engagement is blocked until every required onboarding step passes. Open Onboarding to see what is left.",
+      "blockedCompliance": "This engagement is blocked until every required step passes. Open Compliance to see what is left.",
+      "blockedHere": "This engagement is blocked until every required step passes. What is left is listed on this page.",
       "rate": "Your rate",
       "rateHidden": "Shown while money is open on this engagement",
       "payBasis": "Pay basis",
@@ -469,7 +484,10 @@
     "compliance": {
       "empty": "No compliance items yet. Insurance and prequalification appear here.",
       "insurance": "Insurance certificates",
-      "noInsurance": "No insurance certificate on file. Upload one under Onboarding.",
+      "noInsurance": "No insurance certificate on file. When the organization asks for one, upload it under Compliance steps on this page.",
+      "noInsuranceYet": "No insurance certificate recorded yet.",
+      "uploadWaiting": "{names}: received and waiting for review. If this is your insurance certificate, the organization records it here after checking it.",
+      "uploadPassed": "{names}: reviewed and passed. If this is your insurance certificate, the organization still has to record it here.",
       "current": "Current",
       "expired": "Expired",
       "prequalification": "Prequalification",
@@ -682,7 +700,7 @@
         "done": "Rating sent. It appears when the organization rates too, or after 14 days."
       },
       "reply": {
-        "label": "Public reply",
+        "label": "Your reply",
         "submit": "Reply",
         "done": "Reply posted."
       },
@@ -690,7 +708,7 @@
         "title": "Add a guest",
         "name": "Guest name",
         "plusOnes": "Plus-ones",
-        "note": "Note for the production (optional)",
+        "note": "Note for the production (optional). Keep dietary and access needs out of it.",
         "submit": "Add guest",
         "done": "Guest added. The production confirms them before the show.",
         "email": "Email (optional)",
@@ -1472,6 +1490,18 @@
       "productionOffice": "Production office",
       "hospitalitySuite": "Hospitality suite",
       "other": "Other"
+    },
+    "ratingDisputeGround": {
+      "wrongPerson": "It is not about me",
+      "falseStatement": "It says something false",
+      "abusiveContent": "It is abusive",
+      "personalData": "It shows personal data",
+      "other": "Something else"
+    },
+    "ratingDisputeState": {
+      "open": "Open",
+      "upheld": "Upheld",
+      "notUpheld": "Not upheld"
     }
   },
   "explore": {
@@ -1782,6 +1812,8 @@
         "shiftAssigned": "New shift: {title}",
         "shiftChanged": "Shift changed: {title}",
         "messageReceived": "New message",
+        "crisisAlert": "Crisis alert at {project}: {title}. {message}",
+        "crisisAllClear": "All clear at {project}: {title}",
         "advanceReminder": "{reminder, select, overdue {Overdue: {title}} other {Reminder: {title}}} for {projectName}",
         "advanceReturned": "Your answer to {title} was returned",
         "submittalReturned": "Submittal returned: {title}",
@@ -1991,7 +2023,20 @@
     },
     "ratings": {
       "title": "Ratings",
-      "empty": "No ratings yet. Ratings appear after completed engagements, once both sides rate."
+      "empty": "No ratings yet. Ratings appear after completed engagements, once both sides rate.",
+      "who": "Only you and the organization that gave it can read a rating of you, unless you choose to show your ratings on your profile. A rating of a company you are the contact for can be read by anyone signed in.",
+      "whoAction": "Choose whether to show them on your profile.",
+      "dispute": {
+        "open": "Dispute this rating",
+        "help": "Tell us what is wrong. The organization can answer and our team decides. A rating comes down only if it is about the wrong person, false, abusive or shows personal data, never because it is low. It stays in place until then.",
+        "ground": "Why you dispute it",
+        "details": "What is wrong",
+        "submit": "Send dispute",
+        "standing": "Your dispute: {state}. {ground}.",
+        "removed": "A rating from {org} on {project} was removed after your dispute.",
+        "orgResponse": "The organization answered: {response}",
+        "decision": "Decision: {statement}"
+      }
     },
     "representation": {
       "title": "Representation",
@@ -2038,7 +2083,11 @@
       "organizations": "Worked with",
       "links": "Links",
       "ownerNote": "This is your profile as others see it. Visibility: {visibility}.",
-      "ownerAction": "Privacy settings"
+      "ownerAction": "Privacy settings",
+      "ratingsShared": "Shown because this person chose to. Every released rating is here, except any our platform team removed after a dispute. Not for deciding who to hire or book.",
+      "ratingsOwnerShared": "Signed-in people can read these here, unless they have hiring, booking or staffing access in XOS. Someone who hires outside XOS could still read them. Change this in your privacy settings.",
+      "ratingsOwnerPrivate": "Only you and the organization that rated you can read these. Nobody else sees them here.",
+      "disputed": "Disputed by this person"
     },
     "errors": {
       "handle": "Use 1 to 40 lowercase letters, numbers and hyphens for your handle.",
@@ -2052,6 +2101,8 @@
       "availability": "Choose a start date and an end date on or after it.",
       "name": "Enter your name, up to 200 characters.",
       "account": "Enter the company name and a web address of 2 to 48 lowercase letters, numbers and hyphens.",
+      "accountCountry": "Choose the country where the company is established.",
+      "territory_not_offered": "XOS is not offered in your company's country ({country}), so we did not create this company account. XOS is offered to organizations in {territories}. If an organization invited you to work with it, you do not need a company account: open your invitation. If your company has a signed contract, ask the organization or your contact at GHXSTSHIP to set it up.",
       "company": "Check the handle and visibility.",
       "website": "Enter a full web address starting with https://.",
       "email": "Enter an email address like team@company.com.",
@@ -2380,6 +2431,12 @@
         "references": "References",
         "links": "Links",
         "organizations": "Organizations"
+      },
+      "ratings": {
+        "title": "Ratings about you",
+        "body": "An organization's rating of you can be read only by that organization and by you. If you turn this on, signed-in people can read all your ratings on your profile page, low scores included. You cannot choose which ones. People with hiring, booking or staffing access in XOS still will not see them, and they never appear on an application, in search or on a crew screen. We cannot see who hires outside XOS, so someone like that with a free account could read them. Turn it off at any time and they stop showing at once. Only you can change this, from your own session; a connected app cannot.",
+        "choice": "Show all my ratings on my profile",
+        "save": "Save this choice"
       }
     },
     "account": {
@@ -2397,9 +2454,12 @@
       "leave": "Leave",
       "create": "Create a company account",
       "createBody": "Vendors, agencies, contractor firms and sponsors bid and invoice as a company. You become its Account Owner.",
+      "availability": "XOS is offered to organizations in {territories}. If an organization invited you to work with it, you do not need a company account: open your invitation.",
       "name": "Company name",
       "slug": "Web address",
       "slugHelp": "2 to 48 lowercase letters, numbers and hyphens.",
+      "country": "Country where the company is established",
+      "countryChoose": "Choose a country",
       "createSubmit": "Create account",
       "created": "Company account created. Act as it from the account menu."
     },
@@ -2415,7 +2475,7 @@
       "profileUnavailable": "The company profile is managed by the organization's Atlas administrators. Ask an Account Owner to set it up.",
       "remove": "Remove",
       "inviteNote": "An invited person signs in to Gateway with the address you invited and accepts on Home. Until then they are not rostered or assigned, and nothing about them is shared.",
-      "noInsurance": "No insurance certificates on file. Organizations request them during onboarding; upload them there.",
+      "noInsurance": "No insurance certificates on file. Organizations ask for them on an engagement; open the engagement and upload them under its Compliance tab.",
       "toEngagements": "See engagements",
       "noRepresentation": "Your agency represents no artists yet.",
       "proposeNote": "To represent an artist, ask the artist to share their Gateway profile with your agency; you then propose the representation and they accept it in Gateway.",
@@ -2616,7 +2676,9 @@
       "email": "Email",
       "password": "Password",
       "passwordHelp": "At least 12 characters, with letters and numbers. Avoid your name, your email and product names.",
-      "age": "I am 16 or older."
+      "age": "I am 18 or older",
+      "ageUnder": "I am under 18",
+      "ageLegend": "Your age"
     },
     "or": "or",
     "usePassword": "Use a password",
@@ -2640,7 +2702,9 @@
     "terms": {
       "title": "Accept the Worker Terms",
       "lead": "Your Gateway account was created when you signed in. Accept the Worker Terms to finish setting it up.",
-      "submit": "Continue"
+      "submit": "Continue",
+      "deleteInstead": "You do not have to accept them to delete your account.",
+      "deleteLink": "Delete my account instead"
     },
     "providers": {
       "continueWith": "Continue with {provider}",
@@ -2768,7 +2832,27 @@
       "password": "Enter a password of at least 12 characters with letters and numbers.",
       "passwordContext": "Choose a password that does not contain your name, your email or a product name such as Gateway.",
       "terms": "Accept the Worker Terms to create your account: tick the box above the button.",
-      "age": "Confirm that you are 16 or older. XOS accounts are for people 16 and over."
+      "age": "Choose the answer that is true for you."
+    },
+    "ageRefused": {
+      "title": "XOS accounts are for people 18 and older",
+      "sentence": "You told us you are under 18, so we did not create an account. We did not keep what you typed.",
+      "closed": "You told us you are under 18, so your account is closed. We deleted your sign-in, your profile and its files, your badge photos, your settings, what you sent our support team, and the answers and personal agreements you gave XOS. Any organization you worked with keeps the records the law requires, such as hours you worked, and a note with your email address that your account was deleted, and XOS keeps a record of that deletion with your account IDs but no name. XOS also keeps a monthly count of people under 18 it turned away, which does not identify you. Deleted data stays in backups until they expire.",
+      "held": "You told us you are under 18, but your account cannot be deleted yet: a legal hold, an open shift or being an organization's only owner stands in the way. We signed you out everywhere, you cannot use this account, and we will ask again when you sign in. Contact us and we will finish closing it.",
+      "minors": "If you are working or attending an event, the adult or organization responsible for you can keep your details in their own records. You do not need an account for that.",
+      "contact": "Contact us"
+    },
+    "ageQuestion": {
+      "title": "Confirm your age",
+      "lead": "XOS asks everyone who has not answered yet.",
+      "submit": "Continue",
+      "under": {
+        "title": "Confirm your answer",
+        "sentence": "XOS accounts are for people 18 and older. If you are under 18, we close this account.",
+        "consequences": "Closing it ends your memberships, cancels work under way and deletes your sign-in, your profile and its files, your badge photos, your settings, what you sent our support team, and the answers and personal agreements you gave XOS. It cannot be undone. Any organization you worked with keeps the records the law requires, such as hours you worked, and a note with your email address that your account was deleted, and XOS keeps a record of that deletion with your account IDs but no name. XOS also keeps a monthly count of people under 18 it turned away, which does not identify you. Deleted data stays in backups until they expire.",
+        "confirm": "I am under 18. Close my account",
+        "back": "Go back"
+      }
     }
   },
   "work": {
@@ -2850,7 +2934,18 @@
     }
   },
   "legal": {
-    "inReview": "Version {version} is in review and not yet in effect. The published text appears here when it takes effect.",
+    "draftTitle": "Draft, not yet in effect",
+    "draftNotice": "Version {version} of this document is a draft. It is not in effect, and no one may rely on it.",
+    "inEffect": "Version {version}, in effect from {date}",
+    "upcomingTitle": "Not yet in effect",
+    "upcomingNotice": "Version {version} of this document takes effect on {date}. It is shown here ahead of that day and is not in effect before it.",
+    "upcomingEarlier": "Until then, version {version} stays in effect, and the Contact Page lists where to ask for a copy of its text.",
+    "history": "Version history",
+    "versionDraft": "Version {version}: draft, not yet in effect",
+    "versionInEffect": "Version {version}: in effect from {date}",
+    "versionUpcoming": "Version {version}: takes effect on {date}",
+    "contents": "On this page",
+    "englishOnly": "This document is published in English.",
     "back": "Go to Gateway"
   },
   "diversity": {
