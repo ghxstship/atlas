@@ -113,7 +113,8 @@ test("show calling: TBC, inline calls, one-step moves, the console and Stream De
 
   // Department calls are added inline, without leaving the list.
   await page.getByRole("button", { name: "Edit Host Welcome" }).click();
-  const editor = page.getByRole("form", { name: "Edit cue Host Welcome" });
+  const editor = page.getByRole("group", { name: "Edit cue Host Welcome" });
+  await editor.getByRole("tab", { name: "Calls" }).click();
   await editor.getByLabel("Lighting call").fill("LX 14 GO, house to half");
   await editor.getByLabel("Audio call").fill("Host mic live");
   await editor.getByRole("button", { name: "Save" }).click();
@@ -126,7 +127,8 @@ test("show calling: TBC, inline calls, one-step moves, the console and Stream De
   // A failed save keeps the editor open with what was typed and says why: a call past 2000 characters is
   // refused by the action (the field's own limit is lifted to reach it).
   await page.getByRole("button", { name: "Edit Headliner On" }).click();
-  const failing = page.getByRole("form", { name: "Edit cue Headliner On" });
+  const failing = page.getByRole("group", { name: "Edit cue Headliner On" });
+  await failing.getByRole("tab", { name: "Calls" }).click();
   const video = failing.getByLabel("Video call");
   await video.evaluate((el) => el.removeAttribute("maxlength"));
   // No space at the end: the action trims a call before it measures it.

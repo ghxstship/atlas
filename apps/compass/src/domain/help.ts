@@ -47,6 +47,7 @@ export const HELP_SCREENS: Readonly<Record<string, string>> = {
   "/crew": "crew",
   "/clock-team": "clock-team",
   "/logistics": "logistics",
+  "/logistics-gate": "logistics.gate",
   "/show": "show",
   "/run-of-show": "run-of-show",
   "/profile": "profile",

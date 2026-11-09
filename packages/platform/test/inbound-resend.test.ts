@@ -267,7 +267,8 @@ describe("receiveResendEmail", () => {
       p_subject_line: "Rigging plot v4",
       p_message_id_header: MESSAGE_ID,
       p_dkim_verified: true,
-      p_body_text: "Updated plot attached.\nLoad in moves to 07:00.",
+      p_body_text:
+        "Updated plot attached.\nLoad in moves to 07:00.\n\nOn Thu, Oct 22, 2026 Dave wrote:\n> Can you send the new plot?",
       p_raw_object_path: RAW_PATH,
     });
   });

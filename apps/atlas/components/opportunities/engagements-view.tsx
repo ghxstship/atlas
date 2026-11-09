@@ -13,7 +13,13 @@ import {
   listRatings,
   type EngagementCard,
 } from "@xos/data/opportunities";
+import {
+  listBatchPeople,
+  listSignatureRequirements,
+  listTemplates,
+} from "@xos/data/engagement-document-batches";
 import { resolveSettings } from "@xos/data/settings";
+import { isNodeVisible } from "@xos/ia";
 import type { Route } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
@@ -31,7 +37,13 @@ import {
   verifyItemAction,
 } from "@/app/[org]/opportunities/actions";
 import { RecordHistory } from "@/components/history/record-history";
+import { ContractIntakeEntry } from "@/components/aurora/entry/intake-entry";
+import { IntakeRequestsAction } from "@/components/projects/outside-access/intake-requests-action";
+import { AllInCost } from "@/components/finance/all-in-cost";
 import { ActionForm } from "@/components/opportunities/action-form";
+import { nodeHref, sitemap } from "@/lib/shell/sitemap";
+import { DocumentActions } from "@/components/documents/document-actions";
+import { GenerateAgreements } from "@/components/opportunities/generate-agreements-lazy";
 import { ratingPromptsOn } from "@/lib/shell/org-settings";
 import { EngagementInsureds } from "@/components/opportunities/insured-checks";
 import {
@@ -50,7 +62,7 @@ import {
   TemplateCollection,
   TemplateRecord,
 } from "@/components/opportunities/ui";
-import { EmptyStateLink } from "@/components/ui";
+import { ButtonLink, EmptyStateLink } from "@/components/ui";
 import { SharedWorkDetailsSection } from "@/components/work-details/shared-work-details";
 import {
   deliverableIcon,
@@ -74,10 +86,13 @@ import * as enums from "@xos/data/enums";
 export async function EngagementsView({
   page,
   projectId,
+  intake,
   emptyHref,
 }: {
   page: PageSetup;
   projectId?: string;
+  /** The project tab only: Intake requests, from reusable vendor intake links (B2, ADR 0141). */
+  intake?: { readonly org: string; readonly projectKey: string };
   emptyHref: string;
 }) {
   const { ctx, t, param } = page;
@@ -101,12 +116,63 @@ export async function EngagementsView({
     settings.ok ? settings.data.get(key)?.value : undefined,
   );
   const open = (e: EngagementCard) => page.href({ id: e.id });
+  // B15 contract intake: a project's tab offers its own project, the org page each readable project.
+  const books = ctx.capabilities.has("opportunities.engagement.write");
+  const projects = books
+    ? projectId
+      ? [{ id: projectId, label: "" }]
+      : (
+          (
+            await ctx.viewer.db
+              .from("projects")
+              .select("id, name")
+              .is("deleted_at", null)
+              .order("name")
+          ).data ?? []
+        ).map((p) => ({ id: p.id, label: p.name }))
+    : [];
+  const importHref = isNodeVisible(sitemap, "import", ctx.nav)
+    ? (nodeHref("import", { org: ctx.org.slug }) ?? null)
+    : null;
+  const canGenerate = Boolean(projectId) && ctx.capabilities.has("opportunities.engagement.write");
+  const generating = canGenerate && param("generate") === "1";
   return (
     <TemplateCollection
       header={
         <PageHeader
           title={t("engagements.title")}
           count={rows.length}
+          actions={
+            intake || projects.length > 0 || (canGenerate && !generating) ? (
+              <>
+                {/* On the project tab Generate agreements joins Intake requests in one More menu (gate 27). */}
+                {canGenerate && !generating && !intake ? (
+                  <ButtonLink href={page.href({ generate: "1" })}>
+                    {t("agreementBatches.generate")}
+                  </ButtonLink>
+                ) : null}
+                {intake ? (
+                  <IntakeRequestsAction
+                    refs={intake}
+                    canCreate={ctx.capabilities.has("opportunities.engagement.write")}
+                    also={
+                      canGenerate && !generating
+                        ? [
+                            {
+                              label: t("agreementBatches.generate"),
+                              href: page.href({ generate: "1" }),
+                            },
+                          ]
+                        : []
+                    }
+                  />
+                ) : null}
+                {projects.length > 0 ? (
+                  <ContractIntakeEntry projects={projects} importHref={importHref} />
+                ) : null}
+              </>
+            ) : undefined
+          }
           views={
             <ViewSwitch
               label={t("views.label")}
@@ -118,6 +184,7 @@ export async function EngagementsView({
         />
       }
     >
+      {generating && projectId ? <GeneratePanel page={page} projectId={projectId} /> : null}
       {rows.length === 0 ? (
         <EmptyStateLink
           icon="Handshake"
@@ -261,17 +328,53 @@ function stageIndex(e: EngagementCard): number {
   }
 }
 
+async function GeneratePanel({ page, projectId }: { page: PageSetup; projectId: string }) {
+  const { ctx, t } = page;
+  const db = ctx.viewer.db;
+  const [templates, requirements, people] = await Promise.all([
+    listTemplates(db, ctx.org.id),
+    listSignatureRequirements(db, ctx.org.id),
+    listBatchPeople(db, projectId),
+  ]);
+  const usable = must(templates, "agreement templates");
+  return (
+    <Section id="generate-agreements" title={t("agreementBatches.generateTitle")}>
+      {usable.length === 0 ? (
+        <Muted>{t("agreementBatches.noTemplates")}</Muted>
+      ) : (
+        <GenerateAgreements
+          org={ctx.org.slug}
+          projectId={projectId}
+          templates={usable.map((x) => ({ id: x.id, name: x.name, usesRate: x.usesRate }))}
+          requirements={must(requirements, "signature requirements")}
+          people={must(people, "people to send to")}
+          canReadRates={ctx.capabilities.has("data.restricted.read.payroll")}
+        />
+      )}
+    </Section>
+  );
+}
+
 async function EngagementRecord({ page, e }: { page: PageSetup; e: EngagementCard }) {
   const { ctx, t } = page;
   const db = ctx.viewer.db;
-  const [rate, items, documents, deliverables, ratings, pools] = await Promise.all([
+  const [rate, items, documents, deliverables, ratings, pools, texts] = await Promise.all([
     getEngagementRate(db, e.id),
     listOnboardingStatus(db, { engagementId: e.id }),
     listEngagementDocuments(db, e.id),
     listDeliverables(db, e.id),
     listRatings(db, ctx.org.id),
     listPools(db, ctx.org.id),
+    db
+      .from("engagement_document_text_list")
+      .select("engagement_document_id, body_masked")
+      .eq("engagement_id", e.id),
   ]);
+  // A generated document is signed in Gateway with the hash of its text, so it has no signing link (B10); the value says
+  // whether its text is masked for this reader, who then gets no PDF either.
+  const texted = new Map(
+    (texts.data ?? []).map((x) => [x.engagement_document_id as string, x.body_masked === true]),
+  );
   const canWrite = ctx.capabilities.has("opportunities.engagement.write");
   const canVerify = ctx.capabilities.has("opportunities.onboarding.write") || canWrite;
   const canRate = ctx.capabilities.has("opportunities.rating.write");
@@ -495,7 +598,16 @@ async function EngagementRecord({ page, e }: { page: PageSetup; e: EngagementCar
                     compact
                   />
                 </div>
-                {canWrite && docMoves.length > 0 ? (
+                {/* A Quote document follows its quote (6553): it moves only through the quote, so it offers no action here. */}
+                {d.kind === "Quote" ? (
+                  <Link
+                    className="text-accent-text underline"
+                    href={`/${ctx.org.slug}/finance/quotes?document=${d.id}` as Route}
+                  >
+                    {t("engagements.openQuote")}
+                  </Link>
+                ) : null}
+                {canWrite && docMoves.length > 0 && d.kind !== "Quote" ? (
                   <ActionForm
                     action={transitionDocumentAction}
                     hidden={{ org: ctx.org.slug, documentId: d.id, expected: d.state }}
@@ -521,7 +633,14 @@ async function EngagementRecord({ page, e }: { page: PageSetup; e: EngagementCar
                     submitLabel={t("transitions.submit")}
                   />
                 ) : null}
-                {canWrite && d.state === "Sent" ? (
+                {texted.has(d.id) ? (
+                  texted.get(d.id) ? (
+                    <Muted>{t("agreementBatches.textMasked")}</Muted>
+                  ) : (
+                    <DocumentActions org={ctx.org.slug} kind="engagement-document" id={d.id} />
+                  )
+                ) : null}
+                {canWrite && d.state === "Sent" && !texted.has(d.id) && d.kind !== "Quote" ? (
                   <ActionForm
                     action={issueSigningLinkAction}
                     hidden={{ org: ctx.org.slug, documentId: d.id }}
@@ -699,6 +818,7 @@ async function EngagementRecord({ page, e }: { page: PageSetup; e: EngagementCar
           />
         ) : null}
       </Section>
+      <AllInCost ctx={ctx} projectId={e.projectId} projectKey={e.projectKey} engagementId={e.id} />
       <Section id="engagement-reengage" title={t("engagements.reengagement")}>
         {canPool && poolOptions.length > 0 && (e.personId || e.accountId) ? (
           <ActionForm

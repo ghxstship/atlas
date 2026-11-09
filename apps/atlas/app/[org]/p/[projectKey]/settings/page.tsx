@@ -1,4 +1,5 @@
 import { listMembers } from "@xos/data";
+import { listEventTypes } from "@xos/data/event-types";
 import { listProjectMembers, PROJECT_ROLE_ORDER } from "@xos/data/projects";
 import { isNodeVisible } from "@xos/ia";
 import { notFound } from "next/navigation";
@@ -6,6 +7,7 @@ import { getTranslations } from "next-intl/server";
 import { ProjectAccess } from "@/components/projects/project-access";
 import { ProjectApprovalRules } from "@/components/projects/project-approval-rules";
 import { ProjectInboxSettings } from "@/components/projects/project-inbox";
+import { OutsideAccessSection } from "@/components/projects/outside-access/outside-access-section";
 import { ProjectOfferings } from "@/components/projects/project-offerings";
 import { ProjectSettings } from "@/components/projects/project-settings";
 import { projectFormOptions } from "@/components/projects/projects-page";
@@ -19,8 +21,9 @@ import { CollectionPage } from "@/components/platform/collection-page";
 /**
  * Project Settings (Section 4.5.4): key, jurisdiction, region, tier, members, lifecycle, archive, and
  * (A52) extra project roles per member and the partner orgs the project is shared with, and (A84)
- * the project inbox address (Section 4.6.5), (R3) what the project offers the people it engages, and
- * (P9) the approval rules its passes, dock bookings and equipment requests wait on.
+ * the project inbox address (Section 4.6.5), (R3) what the project offers the people it engages,
+ * (P9) the approval rules its passes, dock bookings and equipment requests wait on, and (B2, ADR 0141)
+ * everything that reaches the project from outside the org, last and reachable at #outside-access.
  */
 export default async function SettingsPage({
   params,
@@ -32,12 +35,20 @@ export default async function SettingsPage({
   const db = ctx.org.viewer.db;
   const t = await getTranslations("projects");
   const canMembers = ctx.capabilities.has("projects.members.manage");
-  const [options, members, orgMembers, moves] = await Promise.all([
+  const [options, members, orgMembers, moves, types] = await Promise.all([
     projectFormOptions(ctx.org),
     listProjectMembers(db, ctx.project.id),
     canMembers ? listMembers(db, ctx.org.org.id) : Promise.resolve({ ok: true as const, data: [] }),
     loadTransitions(ctx),
+    listEventTypes(db, ctx.org.org.id, { includeArchived: true }),
   ]);
+  // An archived type stays listed only for the project that names it (B14, 6260).
+  const eventTypes = (types.ok ? types.data : [])
+    .filter((e) => e.archivedAt === null || e.id === ctx.project.eventTypeId)
+    .map((e) => ({
+      value: e.id,
+      label: e.archivedAt ? t("eventTypes.archivedName", { name: e.name }) : e.name,
+    }));
   const current = must(members, "project members");
   const onProject = new Set(current.map((m) => m.membershipId));
   const me = ctx.org.viewer.person?.id;
@@ -57,6 +68,7 @@ export default async function SettingsPage({
         canWrite={ctx.capabilities.has("projects.project.write")}
         canMembers={canMembers}
         canArchive={ctx.capabilities.has("projects.project.archive")}
+        eventTypes={eventTypes}
         roles={PROJECT_ROLE_ORDER}
         engagementsHref={
           isNodeVisible(sitemap, "project.engagements", ctx.org.nav)
@@ -68,6 +80,7 @@ export default async function SettingsPage({
       <ProjectInboxSettings ctx={ctx} />
       <ProjectOfferings ctx={ctx} />
       <ProjectApprovalRules ctx={ctx} />
+      <OutsideAccessSection ctx={ctx} />
     </CollectionPage>
   );
 }

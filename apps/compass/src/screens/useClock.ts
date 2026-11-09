@@ -72,7 +72,7 @@ export interface ClockModel {
   readonly shift: ShiftRow | null;
   readonly locationDenied: boolean;
   readonly refusal: (kind: PunchKind) => PunchRefusal | null;
-  readonly punch: (kind: PunchKind) => Promise<void>;
+  readonly punch: (kind: PunchKind, breakTypeId?: string | null) => Promise<void>;
   readonly now: number;
   /** Who punches and where, for punches made outside the app (the Live Activity); null before scope loads. */
   readonly context: PunchContext | null;
@@ -168,11 +168,11 @@ export function useClock(punching: boolean): ClockModel {
     now,
     refusal: (kind) => checkPunch(kind, snapshot, geofence, policy, shift !== null),
     context,
-    punch: async (kind) => {
+    punch: async (kind, breakTypeId) => {
       if (!context) return;
       const input = buildPunch(
         kind,
-        context,
+        breakTypeId ? { ...context, breakTypeId } : context,
         stampEvent(deviceClock, null),
         fix,
         geofences,

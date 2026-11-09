@@ -203,6 +203,25 @@ export interface CustomFieldChoice {
   readonly id: string;
   readonly key: string;
   readonly label: string;
+  /** The option's color (cat-1 to cat-7, the themed categorical tokens), or null (6240). */
+  readonly colorKey?: string | null;
+}
+
+interface ChoiceRow {
+  id: string;
+  choice_key: string;
+  label: string;
+  sort_order: number;
+  color_key?: string | null;
+  deleted_at: string | null;
+}
+
+/** A field's live choices in option order, with their colors. */
+export function liveChoices(rows: readonly ChoiceRow[] | null): CustomFieldChoice[] {
+  return (rows ?? [])
+    .filter((c) => c.deleted_at === null)
+    .sort((a, b) => a.sort_order - b.sort_order || a.label.localeCompare(b.label))
+    .map((c) => ({ id: c.id, key: c.choice_key, label: c.label, colorKey: c.color_key ?? null }));
 }
 
 export interface CustomField {
@@ -231,7 +250,7 @@ export async function listCustomFields(
   const { data, error } = await db
     .from("custom_field_definitions")
     .select(
-      "id, target_table, field_key, label, data_type, required, filterable, sort_order, custom_field_choices(id, choice_key, label, sort_order, deleted_at)",
+      "id, target_table, field_key, label, data_type, required, filterable, sort_order, custom_field_choices(id, choice_key, label, sort_order, color_key, deleted_at)",
     )
     .eq("org_id", orgId)
     .is("deleted_at", null)
@@ -239,7 +258,7 @@ export async function listCustomFields(
     .order("sort_order");
   if (error) return fail(toDataError(error));
   return ok(
-    data.map((r) => ({
+    ((data ?? []) as unknown as DefinitionRow[]).map((r) => ({
       id: r.id,
       targetTable: r.target_table,
       key: r.field_key,
@@ -248,12 +267,22 @@ export async function listCustomFields(
       required: r.required,
       filterable: r.filterable,
       sortOrder: r.sort_order,
-      choices: (r.custom_field_choices ?? [])
-        .filter((c) => c.deleted_at === null)
-        .sort((a, b) => a.sort_order - b.sort_order || a.label.localeCompare(b.label))
-        .map((c) => ({ id: c.id, key: c.choice_key, label: c.label })),
+      choices: liveChoices(r.custom_field_choices),
     })),
   );
+}
+
+/** A definition row with its choices, as the custom field readers select it. */
+export interface DefinitionRow {
+  id: string;
+  target_table: string;
+  field_key: string;
+  label: string;
+  data_type: CustomDataType;
+  required: boolean;
+  filterable: boolean;
+  sort_order: number;
+  custom_field_choices: ChoiceRow[] | null;
 }
 
 export interface CustomFieldInput {
@@ -308,6 +337,8 @@ export async function addCustomFieldChoice(
     readonly key: string;
     readonly label: string;
     readonly sortOrder: number;
+    /** cat-1 to cat-7, or null for no color (6240). */
+    readonly colorKey?: string | null;
   },
 ): Promise<Result<{ id: string }>> {
   const { data, error } = await db
@@ -318,11 +349,27 @@ export async function addCustomFieldChoice(
       choice_key: input.key,
       label: input.label,
       sort_order: input.sortOrder,
+      color_key: input.colorKey ?? null,
     })
     .select("id")
     .single();
   if (error) return fail(toDataError(error));
-  return ok({ id: data.id });
+  return ok({ id: (data as { id: string }).id });
+}
+
+/** Sets or clears (null) a choice's color; the database takes cat-1 to cat-7 only (6240). */
+export async function setCustomFieldChoiceColor(
+  db: XosClient,
+  choiceId: string,
+  colorKey: string | null,
+): Promise<Result<null>> {
+  const { data, error } = await db
+    .from("custom_field_choices")
+    .update({ color_key: colorKey })
+    .eq("id", choiceId)
+    .select("id");
+  if (error) return fail(toDataError(error));
+  return (data ?? []).length === 1 ? ok(null) : fail({ kind: "not-found" });
 }
 
 /** A field key from a label: lowercase letters, digits and underscores, starting with a letter. */

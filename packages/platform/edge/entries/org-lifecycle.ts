@@ -7,6 +7,6 @@ export {
   mailpitMailer,
   resendMailer,
   type ReportMailer,
-} from "../../../data/src/report-deliveries.ts";
+} from "../../../data/src/report-mailers.ts";
 export { lazyResendClient, readEmailEnv } from "@xos/email/env";
 export { recipientAllowed } from "@xos/email/transport";

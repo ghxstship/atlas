@@ -40,6 +40,11 @@ for (const { role } of activeRoles()) {
         const h1 = page.getByRole("heading", { level: 1 }).first();
         await h1.waitFor({ state: "visible", timeout: 10_000 }).catch(() => undefined);
         if (!(await h1.isVisible())) problems.push("structure: the page has no visible h1");
+        // Next streams a page's metadata after its body, so wait for the title before axe reads it;
+        // a page that never gets one still fails document-title below.
+        await page
+          .waitForFunction(() => document.title.trim() !== "", undefined, { timeout: 10_000 })
+          .catch(() => undefined);
         for (const theme of THEMES) {
           await setTheme(page, theme);
           problems.push(...(await axeProblems(page)).map((p) => `${theme}: ${p}`));

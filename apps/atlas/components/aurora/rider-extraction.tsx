@@ -123,7 +123,12 @@ export function RiderExtraction({ org, riderId }: { org: string; riderId: string
       return;
     }
     if (result.data.outcome === "failed") {
-      setPhase({ kind: "message", tone: "danger", text: t("failed") });
+      // A list cut off at the token limit stores nothing, rather than part of the rider (ADR 0154).
+      setPhase({
+        kind: "message",
+        tone: "danger",
+        text: t(result.data.failure_code === "model_output_invalid" ? "tooManyLines" : "failed"),
+      });
       return;
     }
     const lines = result.data.suggestions.filter((s) => s.operation_id === "riderLines.create");

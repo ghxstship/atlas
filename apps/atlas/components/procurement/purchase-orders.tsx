@@ -1,5 +1,6 @@
 import { nextStates } from "@xos/data/commercial-common";
-import { listBudgetLineRefs } from "@xos/data/finance";
+import { listBudgetLineRefs, listCounterparties } from "@xos/data/finance";
+import { listEngagementRefs, type EngagementRef } from "@xos/data/settlements";
 import {
   getPoAcknowledgment,
   getPoLineSupply,
@@ -66,6 +67,8 @@ import { DocumentActions } from "@/components/documents/document-actions";
 import * as enums from "@xos/data/enums";
 import { HIRE_WARNING_KEY } from "@/lib/procurement/hire";
 import { CollectionPage } from "@/components/platform/collection-page";
+import { MaterialQuickAddButton } from "@/components/quick-add/material-quick-add-button";
+import { PoLineActSheet, PoLookAlikes, PoPaymentSchedule } from "./po-payment-schedule";
 
 const VIEWS: readonly ViewKind[] = ["table", "list", "board"];
 const REFUSALS = "procurement.refusals";
@@ -179,6 +182,15 @@ export async function PurchaseOrdersSection({
         stateLabel={stateLabel}
         money={money}
         canWrite={canWrite}
+        recordHref={(extra) =>
+          withQuery(
+            path,
+            { ...state, baseQuery: dropKey(state.baseQuery, "lineAct") },
+            { peek: selected.id, full: "1", ...extra },
+          )
+        }
+        peekHref={(id) => withQuery(path, state, { peek: id, full: "1" })}
+        lineActId={typeof search["lineAct"] === "string" ? search["lineAct"] : null}
       />
     );
   }
@@ -324,6 +336,9 @@ async function PurchaseOrderRecord({
   stateLabel,
   money,
   canWrite,
+  recordHref,
+  peekHref,
+  lineActId,
 }: {
   ctx: OrgContext;
   order: PurchaseOrder;
@@ -334,6 +349,12 @@ async function PurchaseOrderRecord({
   stateLabel: (s: string) => string;
   money: (minor: number | null, currency: string) => string;
   canWrite: boolean;
+  /** This record's page with more query values. */
+  recordHref: (extra: Record<string, string>) => string;
+  /** Another order's record page. */
+  peekHref: (id: string) => string;
+  /** The line whose act the sheet is setting (`?lineAct=`). */
+  lineActId: string | null;
 }) {
   const db = ctx.viewer.db;
   const [format, lines, totals, ack, changes, receipts, submittals, supply, warnings, zone, refs] =
@@ -366,6 +387,22 @@ async function PurchaseOrderRecord({
       `${b.budgetName} · ${b.lineNumber} · ${b.description} (${b.currency})`,
     ]),
   );
+  // The acts a line can be for, by name (6547). Row level security returns none without the read, and the column
+  // then stays hidden. Names come through the one name resolution.
+  const [engagementRefs, parties] = await Promise.all([
+    listEngagementRefs(db, { orgId: ctx.org.id, projectId: order.projectId }),
+    listCounterparties(db, ctx.org.id),
+  ]);
+  const acts = engagementRefs.ok ? engagementRefs.data : [];
+  const partyById = new Map((parties.ok ? parties.data : []).map((p) => [p.id, p.name ?? ""]));
+  const partyName = (e: EngagementRef) =>
+    (e.counterpartyId && partyById.get(e.counterpartyId)) ||
+    e.personName ||
+    t("schedule.lineAct.unnamed");
+  const actName = new Map(acts.map((e) => [e.id, partyName(e)]));
+  const canSetAct =
+    canWrite && acts.length > 0 && ["Proposed", "Approved", "Sent"].includes(order.state);
+  const actLine = canSetAct ? lines.data.find((l) => l.id === lineActId) : undefined;
   const hireText = (from: string | null, to: string | null) =>
     from && to
       ? format.dateTimeRange(new Date(from), new Date(to), {
@@ -399,6 +436,7 @@ async function PurchaseOrderRecord({
       }
     >
       <PresenceFor table="purchase_orders" id={order.id} />
+      <PoLookAlikes ctx={ctx} order={order} t={t} hrefFor={peekHref} />
       <KitSection id="po-lines" title={t("orders.lines")}>
         {lines.data.length === 0 ? (
           <p className="m-0 text-text-13 text-text-secondary">{t("orders.noLines")}</p>
@@ -416,6 +454,9 @@ async function PurchaseOrderRecord({
                 ? [{ key: "budgetLine", label: t("orders.commitsLine"), wrap: true }]
                 : []),
               { key: "acquisition", label: t("lines.acquisition.label"), wrap: true },
+              ...(acts.length > 0
+                ? [{ key: "act", label: t("schedule.lineAct.column"), wrap: true }]
+                : []),
             ]}
             rows={lines.data.map((l) => ({
               n: l.lineNumber,
@@ -429,6 +470,7 @@ async function PurchaseOrderRecord({
               extended: money(l.extendedMinor, order.currencyCode),
               received: l.receivedQuantity,
               budgetLine: l.budgetLineId ? (budgetLineLabel.get(l.budgetLineId) ?? "") : "",
+              act: l.engagementId ? (actName.get(l.engagementId) ?? "") : "",
             }))}
             totals={{
               description: t("orders.total"),
@@ -448,6 +490,15 @@ async function PurchaseOrderRecord({
                   refusals={REFUSALS}
                 />
               ))}
+            </div>
+            <div className="flex flex-wrap gap-8">
+              <MaterialQuickAddButton
+                org={ctx.org.slug}
+                target={{ kind: "order", purchaseOrderId: order.id }}
+              />
+              <KitLink href={`/${ctx.org.slug}/import?target=po_lines&purchaseOrder=${order.id}`}>
+                {t("needs.import")}
+              </KitLink>
             </div>
             <PoLineForm
               org={ctx.org.slug}
@@ -473,7 +524,35 @@ async function PurchaseOrderRecord({
         ) : order.state === "Proposed" ? null : (
           <p className="m-0 text-text-12 text-text-secondary">{t("orders.linesLocked")}</p>
         )}
+        {canSetAct && lines.data.length > 0 ? (
+          <div className="flex flex-wrap gap-8">
+            {lines.data.map((l) => (
+              <KitLink key={l.id} href={recordHref({ lineAct: l.id })} size="sm">
+                {t("schedule.lineAct.set", { n: l.lineNumber })}
+              </KitLink>
+            ))}
+          </div>
+        ) : null}
       </KitSection>
+      {actLine ? (
+        <PoLineActSheet
+          ctx={ctx}
+          line={actLine}
+          engagements={acts}
+          t={t}
+          partyName={partyName}
+          closeHref={recordHref({})}
+        />
+      ) : null}
+
+      <PoPaymentSchedule
+        ctx={ctx}
+        order={order}
+        t={t}
+        money={money}
+        canWrite={canWrite}
+        zone={zone}
+      />
 
       {supply.ok && supply.data.length > 0 ? (
         <KitSection id="po-supply" title={t("supply.title")}>

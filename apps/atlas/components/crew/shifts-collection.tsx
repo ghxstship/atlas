@@ -1,14 +1,20 @@
 import {
   doubleBookings,
   getShift,
+  getShiftOutcome,
   getWageHourRule,
   listAgencyEngagements,
   listAssignableRosterEntries,
+  listPositions,
+  listLaborBudgetLines,
   listShifts,
   listTimeEntries,
   shiftMinutes,
+  shiftPolicyWarnings,
+  type PolicyWarning,
   type Shift,
 } from "@xos/data/crew";
+import { randomUUID } from "node:crypto";
 import { encodeWorker } from "@/lib/crew/workers";
 import { startOfDayIn, todayIn } from "@xos/data/calendar";
 import Link from "next/link";
@@ -33,6 +39,13 @@ import {
   updateShiftAction,
 } from "@/app/[org]/crew/actions";
 import {
+  confirmComingAction,
+  declineComingAction,
+  markNoShowAction,
+  withdrawNoShowAction,
+} from "@/app/[org]/crew/coverage-actions";
+import { policyTag } from "@/lib/crew/policy-tags";
+import {
   getCrewContext,
   getMembers,
   getProjects,
@@ -44,6 +57,7 @@ import { stateIcon } from "@/lib/crew/states";
 import {
   addDays,
   dayIn,
+  hasStarted,
   hoursFromMinutes,
   isIsoDate,
   isoToZoned,
@@ -73,7 +87,9 @@ import { CrewFrame, resolveView } from "./frame";
 import { ConfirmButton } from "./forms-confirm-button";
 import { type FieldSpec } from "./forms.types";
 import { CrewRecord } from "./record";
-import { ScheduleGrid } from "./schedule-grid";
+import { LANE_MODES, ScheduleGrid, type LaneMode } from "./schedule-grid";
+import { dayTagsByDate, dayTypeSlug, listProjectDays, type DayType } from "@xos/data/schedule-days";
+import { listProjectVenueIds, listVendorLanes, listZoneLanes } from "@xos/data/resource-lanes";
 import { InlineAlert } from "./ui";
 import { FilterSelect } from "./views-filter-select";
 // The table and calendar views and the drawers render only in some states (A24-009).
@@ -137,7 +153,7 @@ export async function ShiftsCollection(props: {
   const canWrite = crew.can("crew.shift.write");
   // Planners also read the org's shift templates, for "Plan from template", and the projects they may staff,
   // for the drag board (A132), alongside the shifts rather than after them.
-  const [result, templates, planning] = await Promise.all([
+  const [result, templates, planning, laborResult] = await Promise.all([
     listShifts(db, {
       orgId: crew.orgId,
       from: startOfDayIn(from, zone),
@@ -147,11 +163,24 @@ export async function ShiftsCollection(props: {
     }),
     canWrite ? listShiftTemplates(db, crew.orgId) : null,
     canWrite && view === "resource-schedule" ? listShiftPlanningProjectIds(db, crew.orgId) : null,
+    // Budget line options load with the shift form, or for the bulk bar of one project's shifts: a line
+    // belongs to one project, so an org-wide list never offers them and the key page reads nothing here.
+    // The create form lets a person choose another project, so it reads every project's lines.
+    canWrite && (search["create"] === "1" || search["edit"] || projectFilter)
+      ? listLaborBudgetLines(
+          db,
+          search["create"] === "1" ? (crew.project?.id ?? null) : (projectFilter?.id ?? null),
+        )
+      : null,
   ]);
   if (!result.ok) throw new Error(`Cannot list shifts: ${result.error.kind}`);
   if (planning && !planning.ok) {
     throw new Error(`Cannot read the projects to staff: ${planning.error.kind}`);
   }
+  const laborLines = laborResult?.ok ? laborResult.data : [];
+  const projectKeyOf = new Map(projects.map((p) => [p.id, p.key]));
+  const laborLineLabel = (l: (typeof laborLines)[number]) =>
+    `${projectKeyOf.get(l.projectId) ?? ""} · ${l.budgetName} · ${l.lineNumber} ${l.description}`;
   const staffable = planning?.ok ? planning.data : new Set<string>();
   // Needs review (B6, 5951): for writers, whether the people on the live staffed shifts still to come
   // were told of their changes. The month calendar can list more than 500, so the data layer chunks.
@@ -192,14 +221,19 @@ export async function ShiftsCollection(props: {
   const roleName = (code: string | null) =>
     code === null ? t("crew.common.noRole") : (roles.get(code)?.title ?? code);
   // An agency slot names the agency until it places someone from its roster (R12).
+  // A shift held for a project position says so until someone fills it (B9).
   const personName = (s: Shift) =>
     s.member
       ? (s.member.name ?? t("crew.common.unnamed"))
-      : s.agencySlot
-        ? s.agencySlot.accountName
-          ? t("crew.agency.slotLabel", { account: s.agencySlot.accountName })
-          : t("crew.agency.slotUnnamed")
-        : t("crew.shifts.open");
+      : s.positionTitle
+        ? s.positionFilled
+          ? t("crew.positions.openOnTitle", { title: s.positionTitle })
+          : t("crew.positions.unfilledTitle", { title: s.positionTitle })
+        : s.agencySlot
+          ? s.agencySlot.accountName
+            ? t("crew.agency.slotLabel", { account: s.agencySlot.accountName })
+            : t("crew.agency.slotUnnamed")
+          : t("crew.shifts.open");
   const when = (s: Shift) =>
     t("crew.common.range", {
       start: format.dateTime(new Date(s.startsAt), {
@@ -231,11 +265,14 @@ export async function ShiftsCollection(props: {
 
   // Peek and full record page.
   let peek = null;
+  // The opened shift can be outside the listed week: its Edit, swap and no-show drawers still open from this row.
+  let peeked: Shift | null = null;
   const peekId = search["peek"];
   if (peekId) {
     const detail = await getShift(db, peekId);
     if (detail.ok) {
       const s = detail.data;
+      peeked = s;
       const mine = s.member !== null && s.member.membershipId === crew.membershipId;
       const entries = await listTimeEntries(db, { orgId: crew.orgId, shiftId: s.id });
       const myOpen = entries.ok
@@ -251,12 +288,82 @@ export async function ShiftsCollection(props: {
       );
       const swapsAllowed =
         !scheduling.ok || scheduling.data.get("scheduling.allow_swaps")?.value !== false;
-      const open = s.member === null && s.state === "Published";
+      // A shift held for a position is not open to claims until someone fills the position (B9).
+      const open = s.member === null && !s.projectPositionId && s.state === "Published";
       const claims = open ? await listShiftClaims(db, s.id) : null;
       const waiting = claims?.ok ? claims.data : [];
       const myClaim = waiting.find((c) => c.member.membershipId === crew.membershipId) ?? null;
+      // What the record shows beside its state (B9): the no-show, the latest answers and the org's scheduling warnings.
+      const outcome = await getShiftOutcome(db, s.id);
+      const outcomeOf = outcome.ok ? outcome.data : null;
+      const viewerPerson = crew.ctx.viewer.person?.id ?? null;
+      const worker = s.member?.personId ?? null;
+      const asked =
+        outcomeOf?.reconfirmation?.answer === "Waiting" &&
+        outcomeOf.reconfirmation.personId === viewerPerson &&
+        !hasStarted(s.startsAt);
+      const clockOffered =
+        myOpen !== undefined ||
+        (mine && s.state === "Accepted" && crew.can("crew.time_entry.write"));
+      // A planner sees the worker's warnings; a person sees their own on their shift or on an open shift.
+      const warnFor =
+        worker !== null && (canWrite || worker === viewerPerson)
+          ? worker
+          : open
+            ? viewerPerson
+            : null;
+      const warned = warnFor ? await shiftPolicyWarnings(db, s.id, [warnFor]) : null;
+      const warnings: readonly PolicyWarning[] = warned?.ok
+        ? (warned.data.get(warnFor as string) ?? [])
+        : [];
+      // Claim approval shows each claimant's warnings; asked only of a planner with claims to decide.
+      const claimWarned =
+        canWrite && waiting.length > 0
+          ? await shiftPolicyWarnings(
+              db,
+              s.id,
+              waiting.flatMap((c) => (c.member.personId ? [c.member.personId] : [])),
+            )
+          : null;
+      const started = hasStarted(s.startsAt);
+      const noShowable =
+        canWrite &&
+        started &&
+        worker !== null &&
+        worker !== viewerPerson &&
+        (s.state === "Accepted" || s.state === "Published") &&
+        outcomeOf?.noShow === null &&
+        entries.ok &&
+        entries.data.length === 0;
       const actions = (
         <>
+          {asked ? (
+            <ConfirmButton
+              label={t("crew.reconfirm.coming")}
+              title={t("crew.reconfirm.comingTitle")}
+              defaultReason=""
+              reason={false}
+              action={confirmComingAction}
+              hidden={hidden}
+              variant={clockOffered ? "secondary" : "primary"}
+            />
+          ) : null}
+          {asked ? (
+            <ConfirmButton
+              label={t("crew.reconfirm.notComing")}
+              title={t("crew.reconfirm.notComingTitle")}
+              description={t("crew.reconfirm.notComingHelp")}
+              defaultReason=""
+              reasonOptional
+              action={declineComingAction}
+              hidden={hidden}
+            />
+          ) : null}
+          {noShowable ? (
+            <ButtonLink href={withParams(base, search, { noshow: s.id })} size="sm">
+              {t("crew.noShow.mark")}
+            </ButtonLink>
+          ) : null}
           {canWrite && s.state === "Draft" ? (
             <ConfirmButton
               label={t("crew.shifts.publish")}
@@ -320,6 +427,7 @@ export async function ShiftsCollection(props: {
           ) : null}
           {mine &&
           swapsAllowed &&
+          !s.projectPositionId &&
           (s.state === "Published" || s.state === "Accepted") &&
           crew.can("crew.swap.request") ? (
             <ButtonLink href={withParams(base, search, { swap: s.id })} size="sm">
@@ -401,8 +509,66 @@ export async function ShiftsCollection(props: {
               label: t("crew.fields.hours"),
               value: format.number(hoursFromMinutes(shiftMinutes(s))),
             },
+            ...(s.positionTitle
+              ? [{ label: t("crew.positions.position"), value: s.positionTitle }]
+              : []),
+            ...(outcomeOf?.offer
+              ? [
+                  {
+                    label: t("crew.reconfirm.offerLabel"),
+                    value: t(`crew.reconfirm.answers.${outcomeOf.offer.answer}`),
+                  },
+                ]
+              : []),
+            ...(outcomeOf?.reconfirmation
+              ? [
+                  {
+                    label: t("crew.reconfirm.askLabel"),
+                    value: t(`crew.reconfirm.answers.${outcomeOf.reconfirmation.answer}`),
+                  },
+                ]
+              : []),
           ]}
         >
+          {outcomeOf?.noShow ? (
+            <InlineAlert tone="warning" title={t("crew.noShow.bannerTitle")}>
+              <span className="flex flex-col items-start gap-8">
+                <span>{outcomeOf.noShow.reason}</span>
+                {outcomeOf.noShow.replacementShiftId ? (
+                  <Link
+                    href={
+                      withParams(base, search, {
+                        peek: outcomeOf.noShow.replacementShiftId,
+                        full: null,
+                      }) as Route
+                    }
+                    className="text-accent-text underline"
+                  >
+                    {t("crew.noShow.openReplacement")}
+                  </Link>
+                ) : null}
+                {canWrite ? (
+                  <ConfirmButton
+                    label={t("crew.noShow.withdraw")}
+                    title={t("crew.noShow.withdrawTitle")}
+                    defaultReason=""
+                    action={withdrawNoShowAction}
+                    hidden={{ org: crew.slug, id: outcomeOf.noShow.id }}
+                  />
+                ) : null}
+              </span>
+            </InlineAlert>
+          ) : null}
+          {warnings.length > 0 ? (
+            <ul
+              aria-label={t("crew.policy.title")}
+              className="m-0 flex list-none flex-wrap gap-8 p-0 text-text-12 text-warning-text"
+            >
+              {warnings.map((w) => (
+                <li key={w.code}>{policyTag(t, w)}</li>
+              ))}
+            </ul>
+          ) : null}
           {myClaim ? (
             <p role="status" className="m-0 text-text-13 text-text-secondary">
               {t("crew.claims.waiting")}
@@ -430,8 +596,18 @@ export async function ShiftsCollection(props: {
               <ul className="m-0 flex list-none flex-col gap-8 p-0">
                 {waiting.map((c) => (
                   <li key={c.id} className="flex flex-wrap items-center justify-between gap-8">
-                    <span className="text-text-13">
-                      {c.member.name ?? t("crew.common.unnamed")}
+                    <span className="flex flex-col gap-2">
+                      <span className="text-text-13">
+                        {c.member.name ?? t("crew.common.unnamed")}
+                      </span>
+                      {(claimWarned?.ok && c.member.personId
+                        ? (claimWarned.data.get(c.member.personId) ?? [])
+                        : []
+                      ).map((w) => (
+                        <span key={w.code} className="text-text-12 text-warning-text">
+                          {policyTag(t, w)}
+                        </span>
+                      ))}
                     </span>
                     <span className="flex flex-wrap gap-8">
                       {rule === "approval" ? (
@@ -499,7 +675,10 @@ export async function ShiftsCollection(props: {
 
   // Create, edit and swap drawers.
   const members = canWrite || search["swap"] ? await getMembers(crew.ctx) : [];
-  const editing = search["edit"] ? (shifts.find((s) => s.id === search["edit"]) ?? null) : null;
+  const opened = peeked;
+  const shiftOf = (id: string | undefined): Shift | null =>
+    id ? (shifts.find((s) => s.id === id) ?? (opened?.id === id ? opened : null)) : null;
+  const editing = shiftOf(search["edit"]);
   const defaultProject = projectFilter ?? projects[0] ?? null;
   // Agencies and their roster staff load only while the editor is open (R12), for the project it plans on.
   const editorOpen = canWrite && (search["create"] === "1" || editing !== null);
@@ -520,6 +699,19 @@ export async function ShiftsCollection(props: {
       : null;
   if (agencyStaff && !agencyStaff.ok)
     throw new Error(`Cannot read the agencies' staff: ${agencyStaff.error.kind}`);
+  // Positions load only while the editor is open (B9): the project's, or every project's off a project tab.
+  const positionList = editorOpen
+    ? await listPositions(db, {
+        orgId: crew.orgId,
+        ...(editing
+          ? { projectId: editing.projectId }
+          : crew.project
+            ? { projectId: crew.project.id }
+            : {}),
+      })
+    : null;
+  if (positionList && !positionList.ok)
+    throw new Error(`Cannot read the positions: ${positionList.error.kind}`);
   const agencyOptions = [
     ...(agencies?.ok ? agencies.data : []).map((a) => ({
       value: encodeWorker({ kind: "agency", engagementId: a.engagementId }),
@@ -610,6 +802,20 @@ export async function ShiftsCollection(props: {
         ],
       },
       {
+        kind: "select",
+        name: "projectPositionId",
+        label: t("crew.positions.position"),
+        value: s?.projectPositionId ?? "",
+        help: t("crew.positions.shiftHelp"),
+        options: [
+          { value: "", label: t("crew.positions.none") },
+          ...(positionList?.ok ? positionList.data : []).map((p) => ({
+            value: p.id,
+            label: s || crew.project ? p.title : `${p.projectKey} · ${p.title}`,
+          })),
+        ],
+      },
+      {
         kind: "datetime",
         name: "startsAt",
         label: t("crew.fields.startsAt", { zone }),
@@ -623,9 +829,51 @@ export async function ShiftsCollection(props: {
         value: s ? isoToZoned(s.endsAt, zone) : `${week}T16:00`,
         required: true,
       },
+      {
+        kind: "select",
+        name: "budgetLineId",
+        label: t("crew.fields.budgetLine"),
+        help: t("crew.shifts.budgetLineHelp"),
+        value: s?.budgetLineId ?? "",
+        // A new shift's project is still a choice, so its lines follow that select and the field resets
+        // with it. Once the project is fixed the lines are plain options.
+        ...(!s && !crew.project
+          ? {
+              dependsOn: {
+                field: "projectId",
+                optionsBy: Object.fromEntries(
+                  projects.map((p) => [
+                    p.id,
+                    laborLines
+                      .filter((l) => l.projectId === p.id)
+                      .map((l) => ({ value: l.id, label: laborLineLabel(l) })),
+                  ]),
+                ),
+              },
+            }
+          : {}),
+        options: [
+          { value: "", label: t("crew.shifts.noBudgetLine") },
+          ...laborLines
+            .filter((l) => l.projectId === (s?.projectId ?? crew.project?.id))
+            .map((l) => ({ value: l.id, label: laborLineLabel(l) })),
+          // The line it holds always shows, so a save never clears it.
+          ...(s?.budgetLineId && !laborLines.some((l) => l.id === s.budgetLineId)
+            ? [{ value: s.budgetLineId, label: t("crew.shifts.currentBudgetLine") }]
+            : []),
+        ],
+      },
     ];
   };
-  const swapShift = search["swap"] ? (shifts.find((s) => s.id === search["swap"]) ?? null) : null;
+  const swapShift = shiftOf(search["swap"]);
+  // scheduling.swap_reason_required (B9): the form says so before the database refuses.
+  const swapSettings = swapShift
+    ? await resolveSettings(db, { orgId: crew.orgId, projectId: swapShift.projectId })
+    : null;
+  const swapReasonRequired =
+    swapSettings?.ok === true &&
+    swapSettings.data.get("scheduling.swap_reason_required")?.value === true;
+  const noShowShift = shiftOf(search["noshow"]);
   // Shift templates the org keeps (Settings, Scheduling), for "Plan from template" (A132).
   const templateList = templates?.ok ? templates.data : [];
   const drawer =
@@ -711,6 +959,44 @@ export async function ShiftsCollection(props: {
               .filter((m) => m.membershipId !== crew.membershipId)
               .map((m) => ({ value: m.membershipId, label: m.name ?? t("crew.common.unnamed") })),
           },
+          {
+            kind: "textarea",
+            name: "reason",
+            label: t("crew.swaps.reason"),
+            required: swapReasonRequired,
+            help: t(swapReasonRequired ? "crew.swaps.reasonRequired" : "crew.swaps.reasonHelp"),
+          },
+        ]}
+      />
+    ) : noShowShift && canWrite ? (
+      <DrawerForm
+        title={t("crew.noShow.title", { name: personName(noShowShift) })}
+        submitLabel={t("crew.noShow.mark")}
+        action={markNoShowAction}
+        openKeys={["noshow"]}
+        fields={[
+          { kind: "hidden", name: "org", value: crew.slug },
+          { kind: "hidden", name: "shiftId", value: noShowShift.id },
+          // Chosen once per opening, so submitting twice is the same mark.
+          { kind: "hidden", name: "noShowId", value: randomUUID() },
+          {
+            kind: "textarea",
+            name: "reason",
+            label: t("crew.noShow.reason"),
+            required: true,
+            help: t("crew.noShow.reasonHelp"),
+          },
+          {
+            kind: "select",
+            name: "openReplacement",
+            label: t("crew.noShow.replacement"),
+            value: "no",
+            help: t("crew.noShow.replacementHelp"),
+            options: [
+              { value: "no", label: t("crew.noShow.replacementNo") },
+              { value: "yes", label: t("crew.noShow.replacementYes") },
+            ],
+          },
         ]}
       />
     ) : null;
@@ -766,6 +1052,11 @@ export async function ShiftsCollection(props: {
       {projects.length > 0 ? (
         <ButtonLink href={withParams(base, search, { poll: "1" })} size="sm">
           {t("crew.scheduling.polls.ask")}
+        </ButtonLink>
+      ) : null}
+      {node === "project.crew" && crew.project ? (
+        <ButtonLink href={`/${crew.slug}/crew/access-links?project=${crew.project.id}`} size="sm">
+          {t("crew.crewAccess.fromCrewTab")}
         </ButtonLink>
       ) : null}
       {projects.length > 0 && templateList.length > 0 ? (
@@ -939,11 +1230,49 @@ export async function ShiftsCollection(props: {
       staffableOpen.map((s) => s.id),
     );
     if (!claimed.ok) throw new Error(`Cannot read the waiting claims: ${claimed.error.kind}`);
+    // B4 (G-43): lanes by person, supplier or zone, and the projects' day types over the week.
+    const lanes: LaneMode = LANE_MODES.find((m) => m === search["lanes"]) ?? "people";
+    const inView = projectFilter ? [projectFilter.id] : projects.map((p) => p.id);
+    const weekEnd = addDays(week, 6);
+    const [projectDays, vendorLanes, zoneLanes] = await Promise.all([
+      listProjectDays(db, { orgId: crew.orgId, projectIds: inView, from: week, to: weekEnd }),
+      lanes === "vendors"
+        ? listVendorLanes(db, { projectIds: inView, from: week, to: weekEnd })
+        : Promise.resolve(null),
+      lanes === "zones"
+        ? listProjectVenueIds(db, inView).then((v) =>
+            v.ok
+              ? listZoneLanes(db, { projectIds: inView, venueIds: v.data, from: week, to: weekEnd })
+              : v,
+          )
+        : Promise.resolve(null),
+    ]);
+    const typed = projectDays.ok
+      ? dayTagsByDate(
+          projectDays.data.filter(
+            (d) => d.dayType === "Load In" || d.dayType === "Show" || d.dayType === "Load Out",
+          ),
+          (d) => d.label ?? t(`schedule.days.types.${dayTypeSlug(d.dayType)}`),
+          {
+            prefixKeys:
+              !projectFilter && new Set(projectDays.data.map((d) => d.projectId)).size > 1,
+          },
+        )
+      : new Map<string, { tags: { label: string; dayType: DayType }[]; more: number }>();
+    const band = new Map(
+      [...typed].map(([date, v]) => [
+        date,
+        { tags: v.tags.map((tag) => ({ label: tag.label, dayType: tag.dayType })), more: v.more },
+      ]),
+    );
     const boardShift = (s: Shift) => ({
       id: s.id,
       label: t("crew.common.pair", { a: roleName(s.roleCode), b: when(s) }),
       projectKey: s.projectKey,
     });
+    // A shift held for a position cannot take anyone until the position is filled (B9): listed apart, linked to it.
+    const held = staffableOpen.filter((s) => s.projectPositionId);
+    const free = staffableOpen.filter((s) => !s.projectPositionId);
     body = (
       <div className="flex flex-col gap-12">
         {canWrite ? (
@@ -952,10 +1281,19 @@ export async function ShiftsCollection(props: {
             weekStart={week}
             filled={fill.filled}
             total={fill.total}
-            openShifts={staffableOpen.filter((s) => !claimed.data.has(s.id)).map(boardShift)}
-            claimedShifts={staffableOpen
+            openShifts={free.filter((s) => !claimed.data.has(s.id)).map(boardShift)}
+            claimedShifts={free
               .filter((s) => claimed.data.has(s.id))
               .map((s) => ({ ...boardShift(s), href: peekHref(s.id) }))}
+            heldShifts={held.map((s) => ({
+              ...boardShift(s),
+              positionTitle: s.positionTitle ?? "",
+              // Someone holds the position, so the way forward is this shift's Edit, not the position.
+              filled: s.positionFilled === true,
+              href: s.positionFilled
+                ? withParams(base, search, { edit: s.id })
+                : `/${crew.slug}/crew/positions?peek=${s.projectPositionId}`,
+            }))}
           />
         ) : (
           <FillMeter
@@ -985,6 +1323,12 @@ export async function ShiftsCollection(props: {
               }),
             )
           }
+          lanes={lanes}
+          laneHref={(mode) => withParams(base, search, { lanes: mode === "people" ? null : mode })}
+          dayTypes={band}
+          {...(vendorLanes?.ok ? { vendorLanes: vendorLanes.data } : {})}
+          {...(zoneLanes?.ok ? { zoneLanes: zoneLanes.data } : {})}
+          drop={canWrite ? { org: crew.slug } : null}
         />
       </div>
     );
@@ -1056,6 +1400,20 @@ export async function ShiftsCollection(props: {
                       })),
                     ],
                   },
+                  ...(projectFilter
+                    ? [
+                        {
+                          key: "budget_line_id",
+                          label: t("crew.fields.budgetLine"),
+                          options: [
+                            { value: null, label: t("crew.shifts.noBudgetLine") },
+                            ...laborLines
+                              .filter((l) => l.projectId === projectFilter.id)
+                              .map((l) => ({ value: l.id, label: laborLineLabel(l) })),
+                          ],
+                        },
+                      ]
+                    : []),
                 ],
               }
             : null

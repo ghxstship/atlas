@@ -4,6 +4,7 @@ import {
   catchUpLine,
   lineSaveOutcome,
   LineSaves,
+  lineConflictFields,
   linesAfterSave,
   mergeLines,
   savedVersion,
@@ -48,6 +49,25 @@ function line(id: string, over: Partial<BudgetLine> = {}): BudgetLine {
     committedWithheld: false,
     poLineCount: 0,
     otherCurrencyPoLineCount: 0,
+    markupBp: null,
+    clientUnitPriceMinor: null,
+    excludedFromQuote: false,
+    etcMinor: null,
+    effectiveMarkupBp: null,
+    effectiveClientUnitPriceMinor: null,
+    clientExtendedMinor: null,
+    marginMinor: null,
+    currentBudgetMinor: 10_000,
+    remainingCommitmentMinor: 0,
+    forecastEtcMinor: 10_000,
+    etcSource: "Derived",
+    efcMinor: 10_000,
+    forwardExposureMinor: 10_000,
+    varianceAtCompletionMinor: 0,
+    forecastWithheld: false,
+    laborActualMinor: 0,
+    laborUnpricedMinutes: 0,
+    laborOtherCurrencyCount: 0,
     updatedAt: T0,
     ...over,
   };
@@ -265,5 +285,62 @@ describe("a line removed elsewhere while this person edits it", () => {
     const merged = mergeLines(lines, [line("a")], new Set(["b"]));
     expect(merged.lines.map((l) => l.id)).toEqual(["a"]);
     expect(merged.removedRows).toEqual([2]);
+  });
+});
+
+describe("lineConflictFields", () => {
+  const mineOf = (over: Partial<BudgetLineInput> = {}): BudgetLineInput =>
+    ({
+      budgetId: "b1",
+      lineNumber: 1,
+      description: "Stage deck",
+      lineType: "Cost",
+      urid: "5000.04.02",
+      costCenterId: null,
+      quantity: 2,
+      unitBasis: null,
+      unitPriceMinor: 1000,
+      markupBp: null,
+      clientUnitPriceMinor: null,
+      excludedFromQuote: false,
+      etcMinor: null,
+      ...over,
+    }) as BudgetLineInput;
+  const theirsOf = (over: Partial<BudgetLine> = {}) =>
+    line("l1", {
+      description: "Stage deck",
+      urid: "5000.04.02",
+      quantity: 2,
+      unitPriceMinor: 1000,
+      markupBp: null,
+      clientUnitPriceMinor: null,
+      excludedFromQuote: false,
+      etcMinor: null,
+      ...over,
+    });
+
+  it("lists nothing when the two agree", () => {
+    expect(lineConflictFields(mineOf(), theirsOf())).toEqual([]);
+  });
+
+  it("lists markup, client price, exclusion and ETC when they differ (journey 33)", () => {
+    expect(
+      lineConflictFields(
+        mineOf({
+          markupBp: 2500,
+          clientUnitPriceMinor: 1500,
+          excludedFromQuote: true,
+          etcMinor: 50,
+        }),
+        theirsOf(),
+      ),
+    ).toEqual(["markup", "clientPrice", "onQuote", "etc"]);
+  });
+
+  it("reads a field the save leaves out as blank, not as a difference", () => {
+    const partial: Record<string, unknown> = { ...mineOf() };
+    delete partial["markupBp"];
+    delete partial["etcMinor"];
+    expect(lineConflictFields(partial as unknown as BudgetLineInput, theirsOf())).toEqual([]);
   });
 });

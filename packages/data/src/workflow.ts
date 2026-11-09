@@ -599,6 +599,8 @@ export interface TemplateItem {
   readonly xyz: string | null;
   readonly phaseCode: string | null;
   readonly dueOffsetDays: number | null;
+  /** B14 (6264): records it creates need an approved review before they are Complete. */
+  readonly requiresReview?: boolean;
 }
 
 export interface TemplateVersion {
@@ -648,7 +650,7 @@ export async function listTemplates(db: XosClient, orgId: string): Promise<Resul
       u
         .from("template_items")
         .select(
-          "id, template_version_id, item_kind, sort_order, name, scope_kind, scope_code_suffix, record_kind, xyz, phase_code, due_offset_days",
+          "id, template_version_id, item_kind, sort_order, name, scope_kind, scope_code_suffix, record_kind, xyz, phase_code, due_offset_days, requires_review",
         )
         .eq("org_id", orgId)
         .is("deleted_at", null)
@@ -691,6 +693,7 @@ export async function listTemplates(db: XosClient, orgId: string): Promise<Resul
               xyz: strOrNull(i["xyz"])?.trim() ?? null,
               phaseCode: strOrNull(i["phase_code"]),
               dueOffsetDays: numOrNull(i["due_offset_days"]),
+              requiresReview: i["requires_review"] === true,
             })),
         })),
     })),
@@ -771,6 +774,7 @@ export async function createDraftVersion(
         xyz: i.xyz,
         phase_code: i.phaseCode,
         due_offset_days: i.dueOffsetDays,
+        requires_review: i.requiresReview ?? false,
       })),
     );
   return error ? fail(toDataError(error)) : version;
@@ -810,6 +814,8 @@ export interface TemplateItemInput {
   readonly xyz: "X" | "Y" | "Z" | null;
   readonly phaseCode: string | null;
   readonly dueOffsetDays: number | null;
+  /** Record items only (template_items_review_records). */
+  readonly requiresReview?: boolean;
 }
 
 export async function addTemplateItem(
@@ -841,6 +847,7 @@ export async function addTemplateItem(
         xyz: scope ? null : input.xyz,
         phase_code: scope ? null : input.phaseCode,
         due_offset_days: scope ? null : input.dueOffsetDays,
+        requires_review: scope ? false : (input.requiresReview ?? false),
       })
       .select("id")
       .single(),
@@ -1197,6 +1204,8 @@ export interface SubjectApproval {
   readonly subject: ApprovalRuleSubject;
   readonly credentialId: string | null;
   readonly dockSlotId: string | null;
+  /** Equipment rules: the asset allocation (a radio or cart request from an advance, R7) awaiting approval (6230). */
+  readonly advanceAllocationId: string | null;
   readonly requestedBy: string | null;
   readonly createdAt: string;
   readonly state: ApprovalState;
@@ -1212,7 +1221,7 @@ export interface SubjectApproval {
 }
 
 const SUBJECT_APPROVAL_COLUMNS =
-  "id, project_id, approval_rule_id, rule_name, subject, credential_id, dock_slot_id, requested_by, created_at, approval_state, current_step, current_step_name, current_step_has_approver, step_count, waiting_since, cancel_reason, viewer_may_decide, current_step_approver_names";
+  "id, project_id, approval_rule_id, rule_name, subject, credential_id, dock_slot_id, requested_by, created_at, approval_state, current_step, current_step_name, current_step_has_approver, step_count, waiting_since, cancel_reason, viewer_may_decide, current_step_approver_names, advance_allocation_id";
 
 export function toSubjectApproval(r: Raw): SubjectApproval {
   return {
@@ -1223,6 +1232,7 @@ export function toSubjectApproval(r: Raw): SubjectApproval {
     subject: str(r["subject"]) as ApprovalRuleSubject,
     credentialId: strOrNull(r["credential_id"]),
     dockSlotId: strOrNull(r["dock_slot_id"]),
+    advanceAllocationId: strOrNull(r["advance_allocation_id"]),
     requestedBy: strOrNull(r["requested_by"]),
     createdAt: str(r["created_at"]),
     state: str(r["approval_state"]) as ApprovalState,
@@ -1244,8 +1254,8 @@ const SUBJECT_ID_CHUNK = 100;
 
 /**
  * Subject approvals the viewer may read, newest first: the org's (the newest 200, as Approvals lists spend
- * approvals), or every approval of the given passes or dock slots (the credentials pages and the dock schedule show
- * their state as a chip), asked for 100 ids at a time.
+ * approvals), or every approval of the given passes, dock slots or allocations (the credentials pages, the dock
+ * schedule and Allocations show their state as a chip), asked for 100 ids at a time.
  */
 export async function listSubjectApprovals(
   db: XosClient,
@@ -1253,11 +1263,21 @@ export async function listSubjectApprovals(
     readonly orgId?: string;
     readonly credentialIds?: readonly string[];
     readonly dockSlotIds?: readonly string[];
+    readonly advanceAllocationIds?: readonly string[];
   },
 ): Promise<Result<SubjectApproval[]>> {
-  if (filter.credentialIds?.length === 0 || filter.dockSlotIds?.length === 0) return ok([]);
-  const ids = filter.credentialIds ?? filter.dockSlotIds;
-  const column = filter.credentialIds ? "credential_id" : "dock_slot_id";
+  if (
+    filter.credentialIds?.length === 0 ||
+    filter.dockSlotIds?.length === 0 ||
+    filter.advanceAllocationIds?.length === 0
+  )
+    return ok([]);
+  const ids = filter.credentialIds ?? filter.dockSlotIds ?? filter.advanceAllocationIds;
+  const column = filter.credentialIds
+    ? "credential_id"
+    : filter.dockSlotIds
+      ? "dock_slot_id"
+      : "advance_allocation_id";
   const read = (chunk: readonly string[] | null) => {
     let query = untyped(db).from("subject_approval_status").select(SUBJECT_APPROVAL_COLUMNS);
     if (filter.orgId) query = query.eq("org_id", filter.orgId);
@@ -1289,13 +1309,16 @@ export async function listSubjectApprovals(
   );
 }
 
-/** The latest approval of each pass or dock slot, keyed by its id; a canceled one counts only when nothing newer is. */
+/**
+ * The latest approval of each pass, dock slot or allocation, keyed by its id; a canceled one counts only when nothing
+ * newer is.
+ */
 export function approvalBySubject(
   approvals: readonly SubjectApproval[],
 ): ReadonlyMap<string, SubjectApproval> {
   const out = new Map<string, SubjectApproval>();
   for (const a of approvals) {
-    const key = a.credentialId ?? a.dockSlotId;
+    const key = a.credentialId ?? a.dockSlotId ?? a.advanceAllocationId;
     if (!key) continue;
     const held = out.get(key);
     if (!held || (held.state === "Canceled" && a.state !== "Canceled")) out.set(key, a);

@@ -165,6 +165,9 @@
       "roster_entries": "roster entries",
       "advance_allocations": "items assigned to you",
       "parking_passes": "parking passes",
+      "delivery_windows": "delivery windows",
+      "shift_no_shows": "no-shows",
+      "break_types": "break types",
       "itinerary_changes": "itinerary changes",
       "my_transfers": "Drives",
       "local_contacts": "Local contacts"
@@ -236,7 +239,8 @@
       "_me_notification_matrix": "Notification choice",
       "_me_notification_settings": "Quiet hours and digest",
       "_me_party_preferences": "Notification choice",
-      "_me_quiet_hours": "Quiet hours"
+      "_me_quiet_hours": "Quiet hours",
+      "weather_holds": "Weather hold"
     },
     "punchActions": {
       "in": "Clock in",
@@ -281,10 +285,30 @@
       "serverCue": "{label}, called at {time}",
       "serverGeneric": "The server holds a different version of this {kind}.",
       "expenseReceipt": "Expense: {description}, {day}",
-      "proofPhoto": "Proof of performance photo, {time}"
+      "noShow": "Mark a crew member as a no-show",
+      "proofPhoto": "Proof of performance photo, {time}",
+      "bookingArrival": "Record a booked vehicle's arrival at the gate",
+      "accessExit": "Exit scan at {time}",
+      "accessExitZone": "Exit scan at {zone}, {time}",
+      "accessOverride": "Override a denied scan: {reason}",
+      "weatherHold": "Call a weather hold",
+      "weatherAllClear": "Give the weather all-clear"
     },
     "refusedPermission": "The server refused this change: your role cannot do this on this project. Ask your supervisor to check your access.",
-    "refusedTechnical": "The server could not save this change. Send it again, or keep the server's version and tell your supervisor."
+    "refusedTechnical": "The server could not save this change. Send it again, or keep the server's version and tell your supervisor.",
+    "refusedScanNotDenied": "The server let this person in after all; no override was needed.",
+    "refusedScanOverrideRevoked": "A revoked badge is never let in.",
+    "refusedScanOverrideStale": "The denial was more than 15 minutes old. Scan the badge again.",
+    "refusedScanOverrideTaken": "Someone already overrode this denial.",
+    "refusedScanOverrideSelf": "Nobody overrides a denial of their own badge. Ask another supervisor.",
+    "refusedWeatherHoldOpen": "A weather hold was already open on this project.",
+    "refusedWeatherHoldClosed": "This weather hold already had its all-clear.",
+    "refusedWeatherHoldStale": "This all-clear was made more than 10 minutes before it reached the server and was not sent. Check the weather and give it again.",
+    "refusedWeatherHoldIdTaken": "Another hold already uses this id.",
+    "settledTitle": "Settled without you",
+    "settledScanNotDenied": "The server let this person in when the scan uploaded, so the override you queued was not needed and was not sent.",
+    "settledDismiss": "Dismiss",
+    "refusedScanOverrideNotApproved": "This pass is waiting on its approval, so it cannot be let in at the door."
   },
   "today": {
     "title": "Today",
@@ -422,7 +446,11 @@
     },
     "shortcut": {
       "clockedIn": "Clocked in at {project}. Break and Clock Out are on your lock screen."
-    }
+    },
+    "breakTypeTitle": "Which break?",
+    "breakTypeCancel": "Cancel",
+    "breakTypePaid": "{name} (paid)",
+    "breakTypeUnpaid": "{name} (unpaid)"
   },
   "schedule": {
     "title": "Schedule",
@@ -519,7 +547,19 @@
       "tagAdded": "Tag added",
       "tagSkipped": "Already tagged, or the line is full",
       "queued": "{count} received; it syncs when you are online"
-    }
+    },
+    "directionLabel": "Scan direction for this zone",
+    "in": "In",
+    "out": "Out",
+    "exitRecorded": "Exit recorded",
+    "insideNow": "Inside now: {count}",
+    "insideNowNote": "People scanned in at this zone. Clock-ins and guests checked in at doors are not counted here.",
+    "override": "Override",
+    "overrideTitle": "Let this person in",
+    "overrideReason": "Reason",
+    "overrideReasonHelp": "Say why, in 1 to 300 characters.",
+    "overrideSubmit": "Let in",
+    "overrideQueued": "Override recorded"
   },
   "incidents": {
     "title": "Incidents",
@@ -712,7 +752,15 @@
     "boardEmpty": "No one is clocked in on this project yet.",
     "late": "Late",
     "approvalsEmpty": "No timesheets waiting for approval.",
-    "coverageEmpty": "Every shift today is filled."
+    "coverageEmpty": "Every shift today is filled.",
+    "noShow": {
+      "mark": "Mark no-show",
+      "title": "Mark {name} as a no-show",
+      "cancel": "Cancel",
+      "submit": "Mark no-show",
+      "reason": "What happened",
+      "reasonHelp": "The worker and shift planners read this. It waits on this device if you are offline."
+    }
   },
   "profile": {
     "title": "Profile",
@@ -1008,7 +1056,11 @@
     "shiftDeclined": "Shift declined. The scheduler sees it back in Draft.",
     "offerAccepted": "Offer accepted. The organization sets up your engagement next.",
     "offerDeclined": "Offer declined.",
-    "replied": "Reply sent."
+    "replied": "Reply sent.",
+    "coming": "I'm coming",
+    "notComing": "Can't make it",
+    "reconfirmComing": "Confirmed. See you there.",
+    "reconfirmNotComing": "Your planner has been told."
   },
   "help": {
     "title": "Help",
@@ -1060,6 +1112,25 @@
   "systemBanner": {
     "details": "Details",
     "dismiss": "Dismiss"
+  },
+  "gateView": {
+    "title": "Gate",
+    "open": "Open gate view",
+    "find": "Find a booking",
+    "findHelp": "Reference code or plate.",
+    "notFound": "No booking matches. Check the code or plate.",
+    "selected": "Selected",
+    "empty": "No delivery windows at this gate today.",
+    "window": "{start} to {end}: {booked} of {limit} vehicles",
+    "noPlate": "No plate yet",
+    "arrived": "Arrived",
+    "arrivalQueued": "Arrival saved. It sends now, or when you're back online.",
+    "status": {
+      "expected": "Expected",
+      "waiting": "Waiting",
+      "released": "Released",
+      "checkedIn": "Checked In"
+    }
   },
   "drives": {
     "empty": "No drives today or ahead. Transfers you are assigned to drive show here.",

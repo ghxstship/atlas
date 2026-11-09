@@ -14,6 +14,7 @@ export function UndoToast({
   seconds = 8,
   onUndo,
   onExpire,
+  undoLabel,
 }: UndoToastProps): ReactElement {
   const t = useT();
   const inRegion = useContext(InToastRegion);
@@ -57,7 +58,7 @@ export function UndoToast({
           onUndo?.();
         }}
       >
-        {t("action.undo")}
+        {undoLabel ?? t("action.undo")}
       </Button>
       <span
         aria-hidden="true"

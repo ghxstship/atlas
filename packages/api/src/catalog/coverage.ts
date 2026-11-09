@@ -261,6 +261,7 @@ export const SECTION_COVERAGE: readonly CoverageEntry[] = [
     entity: "Budget lines",
     operations: [...crud("budgets"), ...crud("budgetLines"), "budgets.summary"],
   },
+  { module: "Finance", entity: "Client quotes", operations: read("quotes") },
   { module: "Finance", entity: "Expenses", operations: [...crud("expenses"), "expenses.approve"] },
   {
     module: "Finance",
@@ -665,6 +666,23 @@ export const SECTION_COVERAGE: readonly CoverageEntry[] = [
       "canonElementEconomics.list",
       "canonCrosswalkCoverage.list",
       "canonUrns.resolve",
+    ],
+  },
+  // Aurora intake and drafting extensions (B15, ADR 0154).
+  {
+    module: "Settings",
+    entity: "Aurora intake: itineraries, contracts, invoice lines and drafted advance answers",
+    operations: [
+      "aurora.intakeOptions",
+      "aurora.openProposals",
+      "aurora.invoiceLineProposals",
+      "aurora.applyItinerary",
+      "aurora.applyContractIntake",
+      "aurora.applyInvoiceLines",
+      "aurora.draftAdvanceAnswers",
+      "aurora.applyAdvanceAnswer",
+      "invoices.tieOut",
+      "invoices.lineHistory",
     ],
   },
 ];

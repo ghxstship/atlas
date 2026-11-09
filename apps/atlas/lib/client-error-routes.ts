@@ -6,6 +6,8 @@
  */
 export const CLIENT_ERROR_ROUTES: readonly string[] = [
   "/auth/invite/[token]",
+  "/share/pack/unsubscribe/[token]",
+  "/share/pack/[token]",
   "/auth",
   "/api",
   "/legal/[document]",

@@ -76,11 +76,12 @@ describe("redactString", () => {
   // A69-008: request logs keep the path, and bearer links carry their token in it.
   it("replaces the tokens of bearer links, in paths too", () => {
     const hex = "a".repeat(64);
-    for (const prefix of ["xadv", "xagr", "xcal", "xdoc", "xinv", "xlnk", "xos_scim"]) {
+    for (const prefix of ["xadv", "xagr", "xcal", "xcrw", "xdoc", "xinv", "xlnk", "xos_scim"]) {
       expect(redactString(`${prefix}_${hex}`), prefix).toBe("[token]");
     }
     expect(redactUrl(`/advance/xadv_${hex}?code=1`)).toBe("/advance/[token]");
     expect(redactUrl(`/sign/xdoc_${hex}`)).toBe("/sign/[token]");
+    expect(redactUrl(`/shifts/xcrw_${hex}`)).toBe("/shifts/[token]");
     expect(redactUrl(`/auth/invite/xinv_${hex}`)).toBe("/auth/invite/[token]");
     expect(redactString("xadv_short")).toBe("xadv_short");
   });
@@ -100,6 +101,9 @@ describe("redactString", () => {
       "xscr",
       "xlgr",
       "xlch",
+      "xscl",
+      "xcgr",
+      "xcch",
     ]) {
       expect(redactString(`${prefix}_${hex}`), prefix).toBe("[token]");
       expect(redactString(`${prefix.toUpperCase()}_${hex.toUpperCase()}`), prefix).toBe("[token]");
@@ -121,6 +125,24 @@ describe("redactString", () => {
       "GET /share/[token] 404",
     );
     expect(redactUrl("/share/abc")).toBe("/share/[token]");
+    // B2 (ADR 0141): stakeholder packs, intake links and public forms.
+    for (const prefix of ["xpkl", "xpkg", "xpku", "xvin", "xvig", "xfrm", "xfrg"]) {
+      expect(redactString(`${prefix}_${hex}`), prefix).toBe("[token]");
+    }
+    expect(redactUrl(`/share/pack/xpkl_${hex}`)).toBe("/share/pack/[token]");
+    expect(redactUrl(`/share/pack/not-a-token/open`)).toBe("/share/pack/[token]/open");
+    expect(redactUrl(`/share/pack/unsubscribe/abc`)).toBe("/share/pack/unsubscribe/[token]");
+    expect(redactUrl(`/onboard/abc`)).toBe("/onboard/[token]");
+    expect(redactUrl(`/forms/abc/open`)).toBe("/forms/[token]/open");
+    expect(redactString("GET https://gateway.example.test/forms/abc 200")).toBe(
+      "GET https://gateway.example.test/forms/[token] 200",
+    );
+    // Atlas's Knowledge forms stay: /forms/ there follows a path, not a host.
+    expect(redactUrl("/northwind/knowledge/forms")).toBe("/northwind/knowledge/forms");
+    expect(redactUrl("/northwind/knowledge/forms/abc")).toBe("/northwind/knowledge/forms/abc");
+    expect(redactString("GET https://atlas.example.test/northwind/onboard/abc 200")).toBe(
+      "GET https://atlas.example.test/northwind/onboard/abc 200",
+    );
     // P1 (ADR 0130): live links, their open handler, device grants and channel keys.
     expect(redactUrl(`/share/view/xshv_${hex}`)).toBe("/share/view/[token]");
     expect(redactUrl(`/share/screen/xscr_${hex}/open?reason=live_link_access_code`)).toBe(
@@ -136,6 +158,21 @@ describe("redactString", () => {
       "Set-Cookie: xos_link_grant=[token]; HttpOnly",
     );
     expect(redactString(`realtime join xlink:xlch_${hex}`)).toBe("realtime join xlink:[token]");
+    // B3 (ADR 0142): showcaller links, their open handler and clock, device grants and channel keys.
+    expect(redactUrl(`/share/showcaller/xscl_${hex}`)).toBe("/share/showcaller/[token]");
+    expect(redactUrl(`/share/showcaller/xscl_${hex}/open?reason=showcaller_link_access_code`)).toBe(
+      "/share/showcaller/[token]/open",
+    );
+    expect(redactUrl(`/share/showcaller/xscl_${hex}/clock`)).toBe(
+      "/share/showcaller/[token]/clock",
+    );
+    expect(redactString("POST /share/showcaller/MISTYPED-token 303")).toBe(
+      "POST /share/showcaller/[token] 303",
+    );
+    expect(redactString(`Set-Cookie: xos_showcaller_grant=xcgr_${hex}; HttpOnly`)).toBe(
+      "Set-Cookie: xos_showcaller_grant=[token]; HttpOnly",
+    );
+    expect(redactString(`realtime join xcall:xcch_${hex}`)).toBe("realtime join xcall:[token]");
     expect(redactString("/share/")).toBe("/share/");
     expect(redactString("at /usr/share/zoneinfo/UTC")).toBe("at /usr/share/zoneinfo/UTC");
     expect(redactString("at file:///usr/share/nodejs/undici/index.js:12:3")).toBe(

@@ -245,7 +245,7 @@ describe("after the purge", () => {
       worker: "w",
     });
     expect(rendered).toBe(0);
-    expect(new TextDecoder().decode(sent[0]?.attachment.content)).toBe("%PDF stored");
+    expect(new TextDecoder().decode(sent[0]?.attachment?.content)).toBe("%PDF stored");
   });
 
   it("keeps the certificate in Atlas when the former Owner has no address", async () => {

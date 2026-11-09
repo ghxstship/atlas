@@ -26,7 +26,7 @@ export function BudgetForm({
   projectId: string | null;
   currencies: readonly string[];
   defaultCurrency: string;
-  budget?: { id: string; name: string; isBaseline: boolean };
+  budget?: { id: string; name: string; isBaseline: boolean; defaultMarkupBp: number | null };
 }) {
   const t = useFinanceT();
   const [state, action, pending] = useActionState(saveBudgetAction, INITIAL);
@@ -73,6 +73,17 @@ export function BudgetForm({
           error={fieldError(t, state, "currency")}
         />
       ) : null}
+      <Input
+        id="budget-markup"
+        name="defaultMarkupPercent"
+        inputMode="decimal"
+        label={t("budgets.fields.defaultMarkup")}
+        help={t("budgets.fields.defaultMarkupHelp")}
+        defaultValue={
+          budget && budget.defaultMarkupBp !== null ? String(budget.defaultMarkupBp / 100) : ""
+        }
+        error={fieldError(t, state, "defaultMarkupPercent")}
+      />
       <Checkbox
         id="budget-baseline"
         name="isBaseline"

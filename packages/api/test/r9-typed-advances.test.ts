@@ -46,6 +46,7 @@ function world() {
           window_kind: null,
           max_lines: 5,
           per_person: false,
+          track: "General",
         }),
       ],
       advance_recipients: [
@@ -90,6 +91,7 @@ function world() {
         window_kind: null,
         max_lines: null,
         per_person: false,
+        track: "General",
       },
     },
   );

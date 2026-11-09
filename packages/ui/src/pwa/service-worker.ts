@@ -42,7 +42,7 @@ const SAVED_AT = "x-xos-saved-at";
 const MAX_PAGES = 30;
 const MAX_STATIC = 400;
 const FRESH_MS = 30 * 60 * 1000;
-const NEVER = /^\/(auth|api|advance|sign|ical|\.well-known|__xos)(\/|$)|^\/(sw\.js|manifest\.webmanifest)$/;
+const NEVER = /^\/(auth|api|advance|sign|shifts|onboard|forms|share|ical|\.well-known|__xos)(\/|$)|^\/(sw\.js|manifest\.webmanifest)$/;
 
 function sameOrigin(url) {
   return url.origin === self.location.origin;

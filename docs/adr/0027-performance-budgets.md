@@ -189,6 +189,11 @@ pages still over 200 KB: of 326 pages, 214 hold a ceiling. 96 pages were past A1
 measured plus 3 KB, 105 fell to it, 13 kept a lower one, and 15 pages now under 200 KB lost theirs. From here ceilings
 only fall: lower one when a page shrinks, never raise it, and a key page over 200 KB is a failure, never a ceiling.
 
+Merge train 10 follows the same rule for two pages it brings, neither a key page: Quotes (`finance/quotes`, B13) measured
+211,632 bytes and Needs (`procurement/needs`, B11) 235,457 bytes in its merged build of 2026-11-07, and each takes measured
+plus 3 KB as its first baseline (214,704 and 238,529). Their sibling pages already held ceilings of 216 to 246 KB. From
+here these two only fall, like the rest.
+
 The first CI run of `budget:js -- --served` on this train found Crew Shifts at 204 KB and Budgets at 208 KB of 200 KB:
 scripts fetched after hydration, which the build manifests cannot show. No limit was raised. The shell's key handler
 now loads with the first key press, which first-load code holds and answers (`first-press.ts`); the system banners' code
@@ -208,3 +213,7 @@ which stops at a quiet second, counted it only when idle came early: the same pa
 
 No other chunk gets this treatment, and no other limit changes. The nightly Lighthouse run still counts every script it
 sees, so a live page it catches with the client loaded can read about 19 KB more there.
+
+## Amendment (2026-11-06, merge train 9): the `ui` copy comes from the server in Atlas
+
+Merge train 9 adds its packages' routes and copy without raising a ceiling. @xos/ui bundled its whole en-US `ui` catalog as the fallback on every Atlas route, about 5 KB compressed. Atlas's browser build now resolves that import to an empty object, and the root layout passes the flat `ui` messages to `XOSProvider` for every locale, en-US included, which ADR 0010 D6 allows. Every component in Atlas renders under that provider; `global-error.tsx` uses its own generated extract. Gateway, Compass and the docs keep the fallback.

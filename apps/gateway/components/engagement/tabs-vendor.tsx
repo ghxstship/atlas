@@ -1,10 +1,13 @@
+import { randomUUID } from "node:crypto";
 import {
   APP_ENUMS,
   bidTotal,
   listMyApplications,
   listOnboardingItems,
+  listSubmittalFiles,
   onboardingStanding,
   readView,
+  type SubmittalFileVersion,
 } from "@xos/data/gateway";
 import { ActionOutcomeScope } from "@xos/ui/pwa/action-outcome";
 import { approvalBySubject, listSubjectApprovals } from "@xos/data/workflow";
@@ -16,6 +19,7 @@ import { hasArea, isLiveEngagement, tabHref } from "@/lib/engagement";
 import { formatDate, formatDateRange, formatDateTime, formatMoney } from "@/lib/format";
 import { enumLabelKey } from "@/lib/shell/translate";
 import { toneFor } from "@/lib/states";
+import { DeliveryBookingActions, DeliveryBookingForm } from "./delivery-forms";
 import { OnboardingUploadForm, SubmittalResponseForm, TaxFormForm } from "./forms";
 import { canUpload, isUpload } from "./tabs-common";
 import { AreaClosed, RowList, TabEmpty } from "./rows";
@@ -177,7 +181,19 @@ export async function DeliveriesTab({ view, t, locale, engagementKey }: TabProps
     dockSlotIds: docks.data.map((d) => d.id ?? "").filter((id) => id !== ""),
   });
   const approvalOf = approvalBySubject(approvals.ok ? approvals.data : []);
-  if (docks.data.length === 0 && deliveries.data.length === 0) {
+  // B11 (G-115): open windows of this project, and the shipments this vendor carries that a booking can name.
+  const windows = await readView(view.ctx.db, "delivery_windows", {
+    eq: { project_id: view.engagement.projectId },
+    order: ["starts_at", "asc"],
+  });
+  if (!windows.ok) return <RegionError />;
+  const shipments = deliveries.data.filter((d) => d.id);
+  const canBook =
+    isLiveEngagement(view.engagement.state) && windows.data.some((w) => (w.places_left ?? 0) > 0);
+  // A new id with each render: a second click on one form replays its booking, and the next booking is a new one.
+  const eventId = randomUUID();
+  // Windows that are all full leave nothing to book, so the tab still needs its sentence.
+  if (docks.data.length === 0 && deliveries.data.length === 0 && !canBook) {
     return (
       <TabEmpty
         icon="Truck"
@@ -189,6 +205,29 @@ export async function DeliveriesTab({ view, t, locale, engagementKey }: TabProps
   }
   return (
     <div className="flex flex-col gap-16">
+      {canBook ? (
+        <Section title={t("gateway.engagement.deliveries.book.title")}>
+          <DeliveryBookingForm
+            key={eventId}
+            eventId={eventId}
+            engagementId={view.engagement.id}
+            windows={windows.data
+              .filter((w) => (w.places_left ?? 0) > 0)
+              .map((w) => ({
+                value: w.id ?? "",
+                label: t("gateway.engagement.deliveries.book.windowLine", {
+                  gate: w.zone_name ?? w.zone_code ?? "",
+                  when: w.starts_at ? formatDateTime(locale, w.starts_at, w.time_zone) : "",
+                  places: w.places_left ?? 0,
+                }),
+              }))}
+            shipments={shipments.map((d) => ({
+              value: d.id ?? "",
+              label: d.tracking_identifier ?? d.project_name ?? "",
+            }))}
+          />
+        </Section>
+      ) : null}
       {docks.data.length > 0 ? (
         <Section title={t("gateway.engagement.deliveries.docks")}>
           <RowList
@@ -197,9 +236,13 @@ export async function DeliveriesTab({ view, t, locale, engagementKey }: TabProps
               id: d.id ?? "",
               title: d.zone_name ?? d.zone_code ?? "",
               meta: [
-                d.starts_at ? formatDateTime(locale, d.starts_at) : null,
-                d.ends_at ? formatDateTime(locale, d.ends_at) : null,
+                d.starts_at ? formatDateTime(locale, d.starts_at, d.time_zone) : null,
+                d.ends_at ? formatDateTime(locale, d.ends_at, d.time_zone) : null,
                 d.tracking_identifier,
+                d.reference_code
+                  ? t("gateway.engagement.deliveries.reference", { code: d.reference_code })
+                  : null,
+                d.vehicle_identifier,
                 (() => {
                   const state = approvalOf.get(d.id ?? "")?.state;
                   return state && state !== "Canceled"
@@ -215,6 +258,13 @@ export async function DeliveriesTab({ view, t, locale, engagementKey }: TabProps
                       label: t(enumLabelKey("shipmentDirection", d.direction)),
                       tone: "neutral" as const,
                     },
+                  }
+                : {}),
+              ...(d.delivery_window_id && d.id
+                ? {
+                    action: (
+                      <DeliveryBookingActions slotId={d.id} plate={d.vehicle_identifier ?? null} />
+                    ),
                   }
                 : {}),
             }))}
@@ -265,6 +315,13 @@ export async function SubmittalsTab({ view, t, locale, engagementKey }: TabProps
     : null;
   if (submittals && !submittals.ok) return <RegionError />;
   const rows = submittals?.ok ? submittals.data : [];
+  // B14 (6265): each submittal's files, version by version, with the org's decision and comment, never who decided.
+  const files = await listSubmittalFiles(
+    view.ctx.db,
+    rows.flatMap((s) => (s.id ? [s.id] : [])),
+  );
+  const filesOf = (id: string | null) =>
+    files.ok ? files.data.filter((f) => f.submittalId === id) : [];
   if (rows.length === 0) {
     return (
       <TabEmpty
@@ -294,9 +351,97 @@ export async function SubmittalsTab({ view, t, locale, engagementKey }: TabProps
               },
             }
           : {}),
-        detail: <SubmittalDetail row={s} t={t} />,
+        detail: (
+          <>
+            <SubmittalDetail row={s} t={t} />
+            <SubmittalFiles files={filesOf(s.id)} t={t} locale={locale} />
+          </>
+        ),
       }))}
     />
+  );
+}
+
+/** A submittal's files: each version, newest first, with Approved or Changes requested and the org's comment. */
+function SubmittalFiles({
+  files,
+  t,
+  locale,
+}: {
+  files: readonly SubmittalFileVersion[];
+  t: TabProps["t"];
+  locale: string;
+}) {
+  if (files.length === 0) return null;
+  const titles = [...new Set(files.map((f) => f.attachmentId))];
+  return (
+    <section
+      aria-label={t("gateway.engagement.submittals.files.title")}
+      className="flex flex-col gap-8"
+    >
+      <h3 className="m-0 text-text-13 font-semibold">
+        {t("gateway.engagement.submittals.files.title")}
+      </h3>
+      <ul className="m-0 flex list-none flex-col gap-8 p-0">
+        {titles.map((id) => {
+          const versions = files.filter((f) => f.attachmentId === id);
+          return (
+            <li key={id} className="flex flex-col gap-4 text-text-13">
+              <span className="font-medium">{versions[0]?.title ?? ""}</span>
+              <ol className="m-0 flex list-none flex-col gap-4 p-0">
+                {versions.map((v) => (
+                  <li key={v.versionId} className="flex flex-col gap-2">
+                    <span className="flex flex-wrap items-center gap-6">
+                      <span>
+                        {t("gateway.engagement.submittals.files.version", {
+                          n: v.versionNumber,
+                        })}
+                      </span>
+                      <span className="text-text-secondary">{v.filename}</span>
+                      {v.isCurrent ? (
+                        <span className="text-text-12 text-text-secondary">
+                          {t("gateway.engagement.submittals.files.current")}
+                        </span>
+                      ) : null}
+                      <Tag
+                        tone={
+                          v.reviewDecision === "Approved"
+                            ? "success"
+                            : v.reviewDecision === "Changes Requested"
+                              ? "warning"
+                              : "neutral"
+                        }
+                      >
+                        {v.reviewDecision === "Approved"
+                          ? t("gateway.engagement.submittals.files.approved")
+                          : v.reviewDecision === "Changes Requested"
+                            ? t("gateway.engagement.submittals.files.changesRequested")
+                            : t("gateway.engagement.submittals.files.unreviewed")}
+                      </Tag>
+                      {v.uploadedAt ? (
+                        <span className="text-text-12 text-text-secondary">
+                          {formatDateTime(locale, v.uploadedAt)}
+                        </span>
+                      ) : null}
+                    </span>
+                    {v.reviewComment ? (
+                      <span className="text-text-secondary">
+                        {v.reviewedAt
+                          ? t("gateway.engagement.submittals.files.reviewedOn", {
+                              date: formatDateTime(locale, v.reviewedAt),
+                            })
+                          : null}{" "}
+                        {v.reviewComment}
+                      </span>
+                    ) : null}
+                  </li>
+                ))}
+              </ol>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
   );
 }
 

@@ -94,6 +94,7 @@ export {
   type RecordKindChipProps,
   type PropertyChipProps,
   type TagProps,
+  type TagSwatch,
   type BadgeProps,
 } from "./Chips/Chips.tsx";
 export {
@@ -307,6 +308,7 @@ export {
   RunOfShowLive,
   CoordinateMatrix,
   AccessGridMatrix,
+  StatusHeatmap,
   resolveStep,
   type GateReadinessPanelProps,
   type ProvenanceBadgeProps,
@@ -318,6 +320,11 @@ export {
   type RunOfShowLiveProps,
   type CoordinateMatrixProps,
   type AccessGridMatrixProps,
+  type StatusHeatmapProps,
+  type StatusHeatmapRow,
+  type StatusHeatmapCol,
+  type StatusHeatmapCell,
+  type StatusHeatmapLegendItem,
 } from "./XOS/XOS.tsx";
 export type { EmergencyAuthority, GLAccount, GridColumn, BudgetLine } from "./types/reference";
 
@@ -447,11 +454,14 @@ export {
   type TimelineChange,
   type TimelineLink,
   type TimelinePreview,
+  type TimelineCategory,
+  type TimelineSegment,
   type ResourceScheduleProps,
   type OrgChartProps,
 } from "./Charts/Charts.tsx";
 export { Chart, foldSeries, type ChartProps } from "./Charts/Chart.tsx";
 export { Sparkline, type SparklineProps } from "./Charts/Sparkline.tsx";
+export { Heatmap, type HeatmapProps } from "./Charts/Heatmap.tsx";
 
 /* Editing */
 export {

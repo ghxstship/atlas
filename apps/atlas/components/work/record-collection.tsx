@@ -39,7 +39,7 @@ import { useRowMenu } from "@/components/menus/use-row-menu";
 import { ArchivedFilter } from "@/components/archive/archived-filter";
 import type { RecordQuickAddProps } from "@/components/quick-add/record-quick-add";
 import { Timeline } from "@/components/lazy-ui/timeline";
-import { timelineView } from "@/components/schedule/timeline-view";
+import { timelineView, type TimelineExtras } from "@/components/schedule/timeline-view";
 
 // Drag to reschedule on the timeline (A133), for people who may change it; loads with that view.
 const RescheduleTimeline = dynamic(() =>
@@ -99,6 +99,8 @@ export function RecordCollection({
   bulk,
   quickAdd,
   emptyAction,
+  dayTypes,
+  anchor,
 }: {
   title: string;
   label: string;
@@ -136,6 +138,10 @@ export function RecordCollection({
   quickAdd?: RecordQuickAddProps | null;
   /** Shown under either empty state, such as Aurora's draft of an empty risk list (P6). */
   emptyAction?: ReactNode;
+  /** Each date's day-type tags (B4), for the calendar and the timeline. */
+  dayTypes?: TimelineExtras["dayTypes"];
+  /** The project's anchor day (B4), drawn on the timeline as a gate the offsets count from. */
+  anchor?: TimelineExtras["anchor"];
 }) {
   const t = useCopy("work");
   const format = useFormatter();
@@ -501,6 +507,13 @@ export function RecordCollection({
           month={month}
           today={today}
           events={events}
+          {...(dayTypes
+            ? {
+                days: dayTypes
+                  .filter((d) => d.date.startsWith(month.slice(0, 7)))
+                  .map((d) => ({ date: d.date, tags: [...d.tags] })),
+              }
+            : {})}
           onEventSelect={(e) => {
             const r = e.id ? byId.get(e.id) : undefined;
             if (r) open(r.key);
@@ -520,9 +533,15 @@ export function RecordCollection({
       timeline && (timeline.bars.length > 0 || (canReschedule && backlog.length > 0)) ? (
         <div className="min-w-0">
           {canReschedule ? (
-            <RescheduleTimeline org={org} label={label} timeline={timeline} backlog={backlog} />
+            <RescheduleTimeline
+              org={org}
+              label={label}
+              timeline={timeline}
+              backlog={backlog}
+              extras={{ dayTypes, anchor }}
+            />
           ) : (
-            <Timeline label={label} {...timelineView(timeline, format)} />
+            <Timeline label={label} {...timelineView(timeline, format, { dayTypes, anchor })} />
           )}
         </div>
       ) : (

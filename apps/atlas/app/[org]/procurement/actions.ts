@@ -1,6 +1,7 @@
 "use server";
 
 import {
+  addPoInstalment,
   addPoLine,
   approveMatchedInvoice,
   approvePurchaseOrder,
@@ -18,15 +19,18 @@ import {
   getHireWindowWarnings,
   getRfq,
   inviteVendorToRfq,
+  linkPoInstalmentBill,
   listCurrencies,
   listRfqResponses,
   pricePoChangeOrder,
   recordGoodsReceipt,
   recordGoodsReturn,
   recordRfqResponse,
+  removePoInstalment,
   removePoLine,
   removeRfqInvitation,
   resolveInvoiceMatch,
+  setPoLineEngagement,
   transitionPurchaseOrder,
   transitionRfq,
   transitionSubmittal,
@@ -169,6 +173,7 @@ export async function recordResponseAction(_: ActionState, form: FormData): Prom
   const descriptions = form.getAll("lineDescription").map((v) => String(v).trim());
   const quantities = form.getAll("lineQuantity").map((v) => String(v).trim());
   const prices = form.getAll("linePrice").map((v) => String(v));
+  const asked = form.getAll("lineRfqLineId").map((v) => String(v));
   const lines = descriptions.flatMap((description, i) => {
     if (description === "") return [];
     const quantity = Number(quantities[i] ?? "");
@@ -181,7 +186,7 @@ export async function recordResponseAction(_: ActionState, form: FormData): Prom
       errors.add("lines", "money");
       return [];
     }
-    return [{ description, quantity, unitPriceMinor: price }];
+    return [{ description, quantity, unitPriceMinor: price, rfqLineId: asked[i] || null }];
   });
   if (lines.length === 0) errors.add("lines", "lines");
   if (rfqId === null) return { error: "notFound" };
@@ -346,6 +351,58 @@ export async function removePoLineAction(_: ActionState, form: FormData): Promis
   const id = uuid(form, "id");
   if (id === null) return { error: "notFound" };
   return finish(await removePoLine(ctx.viewer.db, id), ctx, MODULE);
+}
+
+export async function addPoInstalmentAction(_: ActionState, form: FormData): Promise<ActionState> {
+  const ctx = await actionContext(form);
+  const purchaseOrderId = uuid(form, "purchaseOrderId");
+  if (purchaseOrderId === null) return { error: "notFound" };
+  const errors = new FieldErrors();
+  const label = errors.need("label", requiredText(form, "label", 120));
+  const dueOn = errors.need("dueOn", isoDate(form, "dueOn"));
+  const amountMinor = moneyToMinor(
+    text(form, "amount"),
+    await exponentOf(ctx.viewer.db, text(form, "currencyCode")),
+  );
+  if (amountMinor === undefined || amountMinor === null || amountMinor <= 0) {
+    errors.add("amount", "money");
+  }
+  if (errors.any || !label || !dueOn || !amountMinor) return errors.state;
+  return finish(
+    await addPoInstalment(ctx.viewer.db, { purchaseOrderId, label, dueOn, amountMinor }),
+    ctx,
+    MODULE,
+  );
+}
+
+export async function removePoInstalmentAction(
+  _: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  const ctx = await actionContext(form);
+  const id = uuid(form, "id");
+  if (id === null) return { error: "notFound" };
+  return finish(await removePoInstalment(ctx.viewer.db, id), ctx, MODULE);
+}
+
+export async function linkPoBillAction(_: ActionState, form: FormData): Promise<ActionState> {
+  const ctx = await actionContext(form);
+  const id = uuid(form, "id");
+  const invoiceId = uuid(form, "invoiceId");
+  if (id === null) return { error: "notFound" };
+  if (invoiceId === null) return { fieldErrors: { invoiceId: "required" } };
+  return finish(await linkPoInstalmentBill(ctx.viewer.db, id, invoiceId), ctx, MODULE);
+}
+
+export async function setPoLineActAction(_: ActionState, form: FormData): Promise<ActionState> {
+  const ctx = await actionContext(form);
+  const id = uuid(form, "id");
+  if (id === null) return { error: "notFound" };
+  return finish(
+    await setPoLineEngagement(ctx.viewer.db, id, uuid(form, "engagementId")),
+    ctx,
+    MODULE,
+  );
 }
 
 export async function approvePoAction(_: ActionState, form: FormData): Promise<ActionState> {

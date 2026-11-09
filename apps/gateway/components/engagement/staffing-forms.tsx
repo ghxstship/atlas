@@ -1,9 +1,9 @@
 "use client";
 
-import { Select } from "@xos/ui";
+import { Select, Textarea } from "@xos/ui";
 import { useActionState } from "react";
 import type { FormResult } from "@/lib/actions/operations";
-import { assignRosterShiftAction } from "@/lib/actions/staffing";
+import { assignRosterShiftAction, markRosterNoShowAction } from "@/lib/actions/staffing";
 import { FormShell, useCopy } from "./forms";
 import type { Option } from "./roster-forms";
 
@@ -35,6 +35,37 @@ export function AssignRosterShiftForm(props: { shiftId: string; options: readonl
         label={t("staffing.person")}
         placeholder={t("staffing.personHint")}
         options={[...props.options]}
+      />
+    </FormShell>
+  );
+}
+
+/**
+ * Positions (B9): the agency's lead marks a person of its roster who did not arrive for a started shift. The id is chosen
+ * when the page renders, so submitting twice is the same mark.
+ */
+export function MarkNoShowForm(props: { shiftId: string; noShowId: string }) {
+  const t = useCopy();
+  const [state, action, pending] = useActionState<FormResult, FormData>(markRosterNoShowAction, {});
+  return (
+    <FormShell
+      row
+      state={state}
+      pending={pending}
+      action={action}
+      submitLabel={t("staffing.noShow")}
+      doneLabel={t("staffing.noShowDone")}
+      label={t("staffing.noShowTitle")}
+    >
+      <input type="hidden" name="shiftId" value={props.shiftId} />
+      <input type="hidden" name="noShowId" value={props.noShowId} />
+      <Textarea
+        id={`no-show-${props.shiftId}`}
+        name="reason"
+        label={t("staffing.noShowReason")}
+        required
+        maxLength={500}
+        rows={2}
       />
     </FormShell>
   );

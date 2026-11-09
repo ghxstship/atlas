@@ -183,6 +183,7 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
               { key: "in", label: t("crew.entries.clockIn") },
               { key: "out", label: t("crew.entries.clockOut") },
               { key: "break", label: t("crew.entries.break"), type: "number" },
+              { key: "paidBreak", label: t("crew.entries.paidBreak"), type: "number" },
               { key: "hours", label: t("crew.fields.hours"), type: "number" },
               ...(punchers.data.size > 0
                 ? [{ key: "clockedBy", label: t("crew.timesheets.clockedByColumn") }]
@@ -208,6 +209,7 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
                 ? format.dateTime(new Date(e.clockOut), { timeZone: zone, timeStyle: "short" })
                 : t("crew.time.clockedIn"),
               break: e.breakMinutes,
+              paidBreak: e.paidBreakMinutes ?? 0,
               hours: workedMinutes(e) === null ? null : hoursFromMinutes(workedMinutes(e) ?? 0),
             }))}
             totals={{ hours: hoursFromMinutes(s.workedMinutes) }}

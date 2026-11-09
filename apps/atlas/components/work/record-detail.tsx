@@ -1,6 +1,7 @@
 import { getFieldHistory, type HistoryEvent } from "@xos/data/field-history";
 import { FieldHistoryList } from "@/components/history/field-history-list";
 import { getActual, type Actual, type Dependency } from "@xos/data/schedule";
+import { getRecordAnchorPinned } from "@xos/data/anchor";
 import { getPunchItemForRecord } from "@xos/data/work-orders";
 import {
   getRecordByKey,
@@ -13,12 +14,15 @@ import {
   listRecurrences,
   listReplans,
   listScopeNodeRefs,
+  listEligibleReviewers,
+  listRecordReviews,
   listStateHistory,
   nextStates,
   replanShift,
   type Assignment,
   type ChecklistItem,
   type ExtensionValues,
+  type RecordReview as Review,
   type RecordSummary,
   type Recurrence,
   type ReplanEntry,
@@ -47,6 +51,7 @@ import {
 } from "./format";
 import { getShellSettings } from "@/lib/shell/org-settings";
 import { PresenceFor } from "@/components/presence/presence-for";
+import { DraftEntry } from "@/components/aurora/entry/draft-entry";
 import { kindFields } from "./kind-fields";
 import { capabilitySet, loadRecordMeta, must, type RecordMeta } from "./load";
 import { loadConversation, loadRelations, type Conversation } from "./record-sections";
@@ -65,6 +70,11 @@ import {
 import { recordHistoryItems } from "./record-history-items";
 import { RelatedRecords, type RecordRelations } from "./related-records";
 import { ArchiveControls } from "@/components/archive/archive-controls";
+import { AnchorPin } from "@/components/schedule/anchor-pin";
+import { RecordReview } from "./record-review";
+import { FileReviewControls } from "@/components/files/file-review";
+import { listVersionReviews, type VersionReview } from "@xos/data/attachments";
+import { RecordPositionButton } from "./record-position-button";
 
 /**
  * Everything the record peek and the record full page show (Record template, Section 11.6), read
@@ -110,9 +120,18 @@ export interface RecordDetail {
   /** Archive and Unarchive: records write, or for a punch item's record punch list write too (A124). */
   readonly canArchive: boolean;
   readonly canSchedule: boolean;
+  /** The record stays on its dates when the project's anchor moves (B4, G-44). */
+  readonly anchorPinned: boolean;
   readonly canRecur: boolean;
   /** How the viewer reads schedule times (me.time_zone_display and their own zone). */
   readonly scheduleView: ScheduleView;
+  /** B14 (6264): the record's reviews, latest first, and whether the viewer may turn Requires review off. */
+  readonly reviews: readonly Review[];
+  /** Who may be asked for a review: filled only for a writer on an Active record (app.eligible_record_reviewers). */
+  readonly reviewers: readonly { readonly personId: string; readonly name: string | null }[];
+  readonly canClearReviewFlag: boolean;
+  /** B14 (6265): reviews of the versions of the record's files, newest first. */
+  readonly fileReviews: readonly VersionReview[];
 }
 
 /** The record a display key names, with all it shows, or null when it is not visible. */
@@ -145,6 +164,7 @@ export async function loadRecordDetail(ctx: OrgContext, key: string): Promise<Re
     conversation,
     fieldHistory,
     shell,
+    pinned,
   ] = await Promise.all([
     loadRecordMeta(ctx),
     capabilitySet(ctx),
@@ -173,8 +193,23 @@ export async function loadRecordDetail(ctx: OrgContext, key: string): Promise<Re
     regionRead("record.conversation", () => loadConversation(ctx, subject)),
     getFieldHistory(db, "app.records", record.id),
     getShellSettings(db, ctx.org.id, null),
+    getRecordAnchorPinned(db, record.id),
     // The command menu's recent items (Section 11.7); beside the reads, so it adds no wait.
     rememberView(ctx, "records", record.id),
+  ]);
+  const versionIds = conversation.ok
+    ? conversation.data.attachments.flatMap((a) => a.versions.map((v) => v.id))
+    : [];
+  const canWrite = caps.has("work.record.write") && !record.deletedAt;
+  const [reviews, fileReviews, reviewers] = await Promise.all([
+    record.kind === "Approval"
+      ? Promise.resolve(null)
+      : listRecordReviews(db, record.id, record.projectId),
+    versionIds.length > 0 ? listVersionReviews(db, versionIds) : Promise.resolve(null),
+    // Only someone who may ask, about a record that can be asked about, needs the list (42501 otherwise).
+    canWrite && record.state === "Active" && record.kind !== "Approval"
+      ? listEligibleReviewers(db, record.id)
+      : Promise.resolve(null),
   ]);
   return {
     record,
@@ -205,14 +240,19 @@ export async function loadRecordDetail(ctx: OrgContext, key: string): Promise<Re
     actual: regionOf("record.actuals", () => must(actual, "actuals")),
     punch: regionOf("record.punch", () => must(punch, "punch item")),
     conversation,
-    canWrite: caps.has("work.record.write") && !record.deletedAt,
+    canWrite,
     canArchive:
       !record.deletedAt &&
       (caps.has("work.record.write") ||
         (must(punch, "punch item") !== null && caps.has("work.punch_list.write"))),
     canSchedule: caps.has("schedule.timeline.write") && !record.deletedAt,
+    anchorPinned: pinned.ok ? pinned.data : false,
     canRecur: caps.has("work.recurring.write") && !record.deletedAt,
     scheduleView: scheduleViewOf(shell.preferences, shell.viewerTimeZone),
+    reviews: reviews?.ok ? reviews.data : [],
+    reviewers: reviewers?.ok ? reviewers.data : [],
+    canClearReviewFlag: caps.has("projects.settings.write"),
+    fileReviews: fileReviews?.ok ? fileReviews.data : [],
   };
 }
 
@@ -403,6 +443,20 @@ export async function RecordBody({
           logsReplans={logsReplans}
         />
       ) : null}
+      {record.kind === "Approval" || record.deletedAt ? null : (
+        <RecordReview
+          org={org}
+          recordId={record.id}
+          state={record.state}
+          requiresReview={record.requiresReview ?? false}
+          reviews={detail.reviews}
+          reviewers={detail.reviewers}
+          me={me}
+          ownerId={record.ownerId}
+          canWrite={detail.canWrite}
+          canClearFlag={detail.canClearReviewFlag}
+        />
+      )}
       <RegionContent data={detail.attributes}>
         {(attributes) => (
           <ExtensionForm
@@ -413,6 +467,11 @@ export async function RecordBody({
             people={meta.people}
             currencies={attributes.currencies}
             canEdit={detail.canWrite}
+            draftEntry={
+              detail.canWrite && record.kind === "Document" && record.subtype ? (
+                <GovernanceDraft record={record} />
+              ) : null
+            }
           />
         )}
       </RegionContent>
@@ -440,6 +499,9 @@ export async function RecordBody({
           />
         )}
       </RegionContent>
+      {detail.canWrite && !record.deletedAt ? (
+        <RecordPositionButton org={org} recordId={record.id} projectId={record.projectId} />
+      ) : null}
       {record.deletedAt ? null : (
         <RegionContent data={detail.watchId}>
           {(watchId) => <WatchButton org={org} recordId={record.id} watchId={watchId} />}
@@ -467,6 +529,10 @@ export async function RecordBody({
       </RegionContent>
       {detail.canSchedule && (record.startsAt || record.endsAt || record.dueAt) ? (
         <RecordRetimeOpen org={org} recordId={record.id} />
+      ) : null}
+      {/* The pin saves on the record itself, so it needs record write as well as the timeline. */}
+      {detail.canSchedule && detail.canWrite ? (
+        <AnchorPin org={org} recordId={record.id} pinned={detail.anchorPinned} />
       ) : null}
       {dated ? (
         <RegionContent data={detail.actual}>
@@ -596,6 +662,17 @@ export async function RecordBody({
           />
         )}
       </RegionContent>
+      <RegionContent data={detail.conversation}>
+        {(conversation) => (
+          <FileReviewControls
+            org={org}
+            attachments={conversation.attachments}
+            reviews={detail.fileReviews}
+            me={me}
+            canReview={detail.canWrite}
+          />
+        )}
+      </RegionContent>
       {detail.canWrite ? <DuplicateButton org={org} recordId={record.id} /> : null}
       {record.deletedAt ? null : (
         <ArchiveControls
@@ -608,5 +685,30 @@ export async function RecordBody({
       )}
       {detail.canWrite || record.deletedAt ? <TrashControls org={org} record={record} /> : null}
     </div>
+  );
+}
+
+/** The governance kinds each Document subtype takes (B15); other subtypes show no entry. */
+const GOVERNANCE_KINDS: Readonly<
+  Record<string, readonly ("event_plan" | "waste_plan" | "event_brief" | "approval_pack")[]>
+> = {
+  Plan: ["event_plan", "waste_plan"],
+  Brief: ["event_brief"],
+  Package: ["approval_pack"],
+};
+
+function GovernanceDraft({ record }: { record: RecordSummary }) {
+  const kinds = GOVERNANCE_KINDS[record.subtype ?? ""];
+  const first = kinds?.[0];
+  if (!kinds || !first) return null;
+  return (
+    <DraftEntry
+      kind={first}
+      kinds={kinds}
+      target={{ collection: "records", id: record.id }}
+      fields={{ body: "body" }}
+      context={[]}
+      maxBody={100000}
+    />
   );
 }

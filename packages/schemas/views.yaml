@@ -123,6 +123,12 @@ views:
     requires: [measures]
     shells: [atlas, gateway, compass]
     alternative: true
+  - code: heatmap
+    saved_as: Heatmap
+    icon: Gauge
+    requires: [two_dimensions, measures]
+    shells: [atlas]
+    alternative: true
   - code: feed
     saved_as: Feed
     icon: Rss

@@ -4,6 +4,13 @@
  * repository; each has a key in both catalogs.
  */
 export const KNOWN_ERRORS: ReadonlySet<string> = new Set([
+  // R11 (6221, 6223): reminders by hand and track sign-off.
+  "advance_reminder_batch",
+  "advance_track_empty",
+  "advance_track_incomplete",
+  "advance_track_signed_off",
+  "advance_track_revoke_reason",
+  "advance_section_stale",
   "advance_packet_send",
   "advance_packet_sent",
   "advance_packet_no_sections",
@@ -28,6 +35,15 @@ export const KNOWN_ERRORS: ReadonlySet<string> = new Set([
   "guest_entry_state",
   "guest_entry_stamped",
   "sod_guest_requester",
+  // B8: guest passes and guest emails (migrations 6254 and 6255).
+  "guest_pass_category",
+  "guest_host_not_on_project",
+  "guest_entry_production_fields",
+  "guest_entry_checked_in",
+  "guest_email_batch",
+  "guest_email_rate",
+  "guest_email_message",
+  "guest_email_format",
   "sod_allocation_requester",
   // R9: typed sections, their choices, recipient engagements, dock slots from answers and the naming deadline
   // (migrations 4710 to 4716).
@@ -90,11 +106,14 @@ export const KNOWN_ERRORS: ReadonlySet<string> = new Set([
   "allocation_target_project",
   "allocation_target_required",
   "allocation_window",
+  "approval_rule_pending",
   "asset_class_held_for_reservations",
   "asset_reserved_for_other",
   "availability_window",
   "bulk_decision_final",
+  "credential_duplicate",
   "credential_self_issue",
+  "credential_training_incomplete",
   "credential_vehicle_not_holders",
   "credential_vehicle_not_parking",
   "custody_not_reserved_holder",

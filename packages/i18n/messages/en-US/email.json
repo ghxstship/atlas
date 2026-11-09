@@ -55,6 +55,18 @@
       "changed": {
         "subject": "Shift changed: {title}",
         "body": "Your shift {title} now starts {startsAt, date, full} at {startsAt, time, short}."
+      },
+      "reconfirm": {
+        "subject": "Still coming? {title}",
+        "body": "You are scheduled for {title} starting {startsAt, date, full} at {startsAt, time, short}. Are you still coming?"
+      },
+      "reconfirm_declined": {
+        "subject": "Someone can't make {title}",
+        "body": "{named, select, yes {{workerName}} other {The person on this shift}} said they can't make {title} starting {startsAt, date, full} at {startsAt, time, short}. {reopened, select, yes {The shift is open again.} other {They stay on it until you change it.}}"
+      },
+      "no_show": {
+        "subject": "Marked as a no-show: {title}",
+        "body": "You were marked as a no-show for {title} starting {startsAt, date, full} at {startsAt, time, short}. Clocking in withdraws it."
       }
     },
     "availability": {
@@ -201,6 +213,18 @@
       "alert": {
         "subject": "Weather alert: {level}",
         "body": "A {hazard} reading of {reading} met the {level} threshold. Follow the emergency plan."
+      },
+      "warning": {
+        "subject": "Official warning: {event}",
+        "body": "The National Weather Service issued a {severity} alert: {headline}. Follow the emergency plan."
+      },
+      "hold": {
+        "subject": "Weather hold: stop work now",
+        "body": "{message}{late, select, yes { Called at {called_at, time, short} on a device that was offline.} other {}}"
+      },
+      "all_clear": {
+        "subject": "All clear: the weather hold is over",
+        "body": "{message}"
       }
     },
     "access": {
@@ -355,12 +379,30 @@
       "project_facts_entered": {
         "subject": "{actorName} added your {kind, select, travel {travel details} uniform {uniform sizes} vehicle {vehicle details} other {project details}}",
         "body": "{actorName} entered them for {projectName}. Check them and correct anything that is wrong."
+      },
+      "removed": {
+        "subject": "You were taken off the {partyName} crew for {projectName}",
+        "body": "Your roster entry was withdrawn. Nothing more is needed from you for this crew."
+      },
+      "facts_requested": {
+        "subject": "{projectName} needs your {kind, select, uniform {uniform sizes} travel {travel request} vehicle {vehicle details} other {project details}}",
+        "body": "Enter them in Gateway before you arrive, so {partyName} and the production team can plan for you."
+      },
+      "share_revoked": {
+        "subject": "{personName} stopped sharing work details for {projectName}",
+        "body": "The work details {personName} shared on the {partyName} crew are no longer shared."
       }
     },
     "engagement": {
       "roster_lock_changed": {
         "subject": "The names lock for {projectName} changed",
         "body": "Open the crew roster to see when names close. After that, ask the producing organization to change the roster."
+      }
+    },
+    "advance_answer": {
+      "recorded": {
+        "subject": "{actorName} recorded your answer to {sectionTitle} for {projectName}",
+        "body": "They recorded it from your message or a file you sent. Ask them to return it if it needs changing."
       }
     },
     "allocation": {
@@ -379,6 +421,74 @@
       "withdrawn": {
         "subject": "Your {kind, select, credential {badge} parking_pass {parking pass} asset {{itemName}} catering {catering} lodging {room} travel {travel} per_diem {per diem} other {allocation}} for {projectName} was withdrawn",
         "body": "{cause, select, engagement_ended {The engagement ended.} entry_removed {You are no longer on the roster.} other {{orgName} withdrew it.}}"
+      }
+    },
+    "quote": {
+      "accepted": {
+        "subject": "Quote accepted: {quoteKey} v{version}",
+        "body": "{actorName} accepted quote {quoteKey}, version {version}, by electronic signature. It can no longer change; record later changes as a change order."
+      }
+    },
+    "rfq": {
+      "quote_reminder": {
+        "subject": "{orgName} asked you for a quote: {title}",
+        "body": "{orgName} asked you for a quote for {title} on {projectName}{dueDate, select, none {.} other {, by {dueDate}.}} Open it to see what they need."
+      },
+      "not_awarded": {
+        "subject": "{orgName} chose another supplier for {title}",
+        "body": "{orgName} chose another supplier for {title} on {projectName}. Thank you for your quote."
+      }
+    },
+    "crew_registration": {
+      "decided": {
+        "subject": "{outcome, select, approved {{orgName} approved your registration} other {{orgName} did not select you this time}}",
+        "body": "{outcome, select, approved {You are on the crew list for {title}. Watch Explore for work from {orgName}.} other {Thank you for registering on {title}. You can register again when the page opens.}}"
+      },
+      "invited": {
+        "subject": "{orgName} invites you to register: {title}",
+        "body": "Open the page in Gateway to register with {orgName}."
+      }
+    },
+    "engagement_document": {
+      "sent": {
+        "subject": "{orgName} sent you {title} to sign",
+        "body": "Read it in Gateway and sign it with your name, or decline it with a reason."
+      }
+    },
+    "vendor_intake": {
+      "submitted": {
+        "subject": "New intake request: {title}",
+        "body": "{requesterName} sent a request through {title} for {projectName}. Review it on the project's Engagements tab."
+      }
+    },
+    "guest": {
+      "arrived": {
+        "subject": "{guest_name} arrived",
+        "body": "Your guest {guest_name} was checked in{has_door, select, yes { at {door}} other {}} with {plus_ones_admitted, plural, =0 {no plus-ones} one {# plus-one} other {# plus-ones}}.{has_table, select, yes { Table: {table_label}.} other {}}"
+      }
+    },
+    "advance_packet": {
+      "reminder": {
+        "subject": "{reminder, select, overdue {Overdue: {title}} other {Reminder: {title}}} for {projectName}",
+        "body": "{outstanding, plural, one {# section is} other {# sections are}} still to answer for {orgName}. {due, select, set {{reminder, select, overdue {It was due {dueAt, date, medium}.} other {It is due {dueAt, date, medium} at {dueAt, time, short}.}}} other {Answer it in Gateway.}}"
+      }
+    },
+    "advance_submission": {
+      "returned": {
+        "subject": "Your answer to {title} was returned",
+        "body": "{packetTitle}: {reason} Answer the section again in Gateway."
+      }
+    },
+    "submittal": {
+      "returned": {
+        "subject": "Submittal returned: {title}",
+        "body": "{projectName}: {reason} Revise it and submit it again in Gateway."
+      }
+    },
+    "credential": {
+      "revoked": {
+        "subject": "Your {title} credential for {projectName} was revoked",
+        "body": "It no longer opens access. Ask the production team if you think this is a mistake."
       }
     },
     "accommodation_block": {
@@ -400,7 +510,8 @@
       "approve": "Approve",
       "reject": "Reject",
       "accept": "Accept",
-      "note": "Each button opens a page to confirm. It works once, for 7 days."
+      "note": "Each button opens a page to confirm. It works once, for 7 days.",
+      "confirmComing": "Confirm you're coming"
     }
   },
   "digest": {
@@ -475,6 +586,21 @@
     "accountSubject": "{inviterName} invites you to {accountName} on XOS",
     "rosterSubject": "{inviterName} invites you onto the {partyName} crew for {projectName}",
     "how": "Sign in to Gateway with this address and accept on Home by {expiresAt, date, long}. The company then sees your profile and project facts. Not expecting this? Ignore it.",
-    "action": "Sign in to Gateway"
+    "action": "Sign in to Gateway",
+    "poolSubject": "{inviterName} invites you to join the {orgName} crew list",
+    "poolRole": "Role: {jobTitle}",
+    "poolHow": "Sign in to Gateway with this address and accept on Home by {expiresAt, date, long}. Not expecting this? Ignore it."
+  },
+  "guest_message": {
+    "invitationSubject": "{orgName} invites you to {projectName}",
+    "passSubject": "Your pass for {projectName}",
+    "heading": "{projectName}",
+    "greeting": "Hi {name},",
+    "invitation": "{orgName} has put you on the guest list for {projectName}.",
+    "pass": "Your pass for {projectName} is attached. Show it at the door{plusOnes, plural, =0 {} one {; it admits # more guest} other {; it admits # more guests}}.",
+    "show": "Show: {showName}.",
+    "showOn": "Show: {showName}, {showDate, date, long}.",
+    "why": "You are receiving this email because you are on {orgName}'s guest list.",
+    "preferences": "Stop emails from this organization"
   }
 }

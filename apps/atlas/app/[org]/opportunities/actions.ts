@@ -2,7 +2,13 @@
 
 import type { Result } from "@xos/data";
 import * as repo from "@xos/data/opportunities";
+import { orgBaseCurrency } from "@xos/data/home";
+import type { NumberFormat } from "@xos/data/import-parse";
+import { parseRate } from "@xos/data/import-rate";
 import { applyQuestionTemplate } from "@xos/data/opportunity-templates";
+import * as invitations from "@xos/data/pool-invitations";
+import { readOrgLanguage } from "@xos/data/settings";
+import { regionFromLocale, toE164 } from "@xos/i18n/phone";
 import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
 import { z } from "zod";
@@ -649,4 +655,92 @@ export const setStandingAction: Action = action(
 
 export const removePoolMemberAction: Action = action(z.object({ memberId: uuid }), (ctx, v) =>
   repo.removePoolMember(ctx.viewer.db, v.memberId),
+);
+
+// Pool invitations (B10) ---------------------------------------------------------------------------------------------
+
+/** Reads a standing rate through the org's number format; the database decides who may set one. */
+async function standingRate(
+  ctx: OrgContext,
+  input: { rate: string | null; numberFormat: NumberFormat },
+): Promise<
+  | {
+      ok: true;
+      rate: { rateType: invitations.RateType; rateMinor: number; currency: string } | null;
+    }
+  | { ok: false; issue: string }
+> {
+  if (!input.rate) return { ok: true, rate: null };
+  const [currencies, base] = await Promise.all([
+    ctx.viewer.db.from("currencies").select("currency_code, minor_unit_exponent"),
+    orgBaseCurrency(ctx.viewer.db, ctx.org.id),
+  ]);
+  const exponents = new Map(
+    (currencies.data ?? []).map((c) => [
+      String(c.currency_code).trim(),
+      Number(c.minor_unit_exponent),
+    ]),
+  );
+  const parsed = parseRate(
+    input.rate,
+    input.numberFormat,
+    (code) => exponents.get(code),
+    base.ok ? base.data : null,
+  );
+  if (!parsed.ok) return { ok: false, issue: parsed.issue };
+  if (parsed.basis === null) return { ok: false, issue: "rate_type_required" };
+  return {
+    ok: true,
+    rate: { rateType: parsed.basis, rateMinor: parsed.minor, currency: parsed.currency },
+  };
+}
+
+export const invitePoolMemberAction: Action = async (_state, form) => {
+  const ctx = await contextFor(form);
+  const values = formValues(form);
+  const parsed = z
+    .object({
+      poolId: uuid,
+      email: z.email().max(320),
+      label: optionalText(200),
+      workPhone: optionalText(40),
+      roleCode: optionalText(40),
+      rate: optionalText(60),
+      note: optionalText(1000),
+      validFor: z.coerce.number().int().min(1).max(30),
+    })
+    .safeParse(values);
+  if (!parsed.success) return fieldErrors(parsed.error, values);
+  const v = parsed.data;
+  // The org's language says how it writes numbers and phones, whoever is signed in (C19). Reading it first means a
+  // viewer's own language never changes what 1,250 means.
+  const language = (await readOrgLanguage(ctx.viewer.db, ctx.org.id)) ?? "en-US";
+  const phone = v.workPhone ? toE164(v.workPhone, regionFromLocale(language)) : null;
+  if (v.workPhone && !phone) return { fieldErrors: { workPhone: "phone" }, values };
+  const rate = await standingRate(ctx, {
+    rate: v.rate,
+    numberFormat: invitations.numberFormatOfLocale(language),
+  });
+  if (!rate.ok) return { fieldErrors: { rate: rate.issue }, values };
+  const result = await invitations.inviteToPool(ctx.viewer.db, {
+    poolId: v.poolId,
+    email: v.email,
+    label: v.label,
+    workPhone: phone,
+    roleCode: v.roleCode,
+    rate: rate.rate,
+    note: v.note,
+    validForDays: v.validFor,
+  });
+  if (!result.ok) return errorState(result.error, values);
+  revalidatePath(`/${ctx.org.slug}/opportunities/pools`);
+  return { ok: true };
+};
+
+export const reissuePoolInvitationAction: Action = action(z.object({ id: uuid }), (ctx, v) =>
+  invitations.reissuePoolInvitation(ctx.viewer.db, v.id),
+);
+
+export const revokePoolInvitationAction: Action = action(z.object({ id: uuid }), (ctx, v) =>
+  invitations.revokePoolInvitation(ctx.viewer.db, v.id),
 );

@@ -42,15 +42,26 @@ const NOTHING: CustomFieldsStep = {
 
 /**
  * The custom fields step of a create action, from its FormData or from the inputs a typed action received
- * (`undefined` when the form showed none).
+ * (`undefined` when the form showed none). `requiredKeys` adds fields a form requires beyond the definitions' own
+ * required flag, such as an event type's required fields at intake (B14); a blank one is refused as `required`.
  */
 export async function customFieldsOf(
   ctx: OrgContext,
   table: CustomFieldTable,
   source: FormData | Readonly<Record<string, CustomFieldInput>> | undefined,
+  options: { readonly requiredKeys?: readonly string[] } = {},
 ): Promise<CustomFieldsStep> {
   if (source === undefined) return NOTHING;
   const inputs = source instanceof FormData ? customFieldInputsOf(source) : source;
+  const missing = (options.requiredKeys ?? []).filter((key) => !inputs[key]?.value.trim());
+  if (missing.length > 0) {
+    const problems = Object.fromEntries(missing.map((key) => [key, "required" as const]));
+    return {
+      problems,
+      fieldErrors: Object.fromEntries(missing.map((key) => [`cf.${key}`, "required"])),
+      save: async () => ({ ok: false, problems }),
+    };
+  }
   // A dry run on no row checks every input without writing; the row id comes after the create.
   const checked = await saveCustomFields(ctx, {
     table,

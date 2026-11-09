@@ -36,6 +36,9 @@ vi.mock("@xos/data/home", async (importOriginal) => ({
   listMyOverdueRecords: data.overdue,
   listMyRecordsBetween: data.due,
 }));
+vi.mock("@xos/data/anchor", () => ({
+  getRecordAnchorPinned: async () => ({ ok: true, data: false }),
+}));
 vi.mock("@xos/data/activity", () => ({
   listActivity: data.activity,
   labelActivity: async (_db: unknown, entries: unknown[]) => entries,
@@ -45,6 +48,8 @@ const work = vi.hoisted(() => ({
   getWatch: vi.fn(),
   listAssignments: vi.fn(),
   listChecklist: vi.fn(),
+  listRecordReviews: vi.fn(),
+  listEligibleReviewers: vi.fn(),
   listCurrencyOptions: vi.fn(),
   listRecords: vi.fn(),
   listRecurrences: vi.fn(),
@@ -58,6 +63,7 @@ vi.mock("@xos/data/work", () => ({
   replanShift: () => ({ moved: false, endShiftMs: 0 }),
   ...work,
 }));
+vi.mock("@xos/data/anchor", () => ({ getRecordAnchorPinned: async () => ok(false) }));
 vi.mock("@xos/data/field-history", () => ({ getFieldHistory: async () => ok([]) }));
 vi.mock("@xos/data/schedule", () => ({ getActual: async () => ok(null) }));
 vi.mock("@xos/data/work-orders", () => ({ getPunchItemForRecord: async () => ok(null) }));

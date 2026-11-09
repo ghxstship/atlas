@@ -5,8 +5,8 @@
  * checksums are validated on device. A code that resolves to nothing goes to the intake queue for a person
  * to resolve; it is never mapped automatically.
  */
-import { uuidv7, type MutationInput } from "@xos/sync";
 import type { Database } from "@xos/data/database.types";
+import { uuidv7, type MutationInput } from "@xos/sync";
 
 export type Symbology =
   "ean13" | "upc_a" | "ean8" | "itf14" | "gs1_128" | "code128" | "qr" | "datamatrix" | "nfc";
@@ -116,6 +116,8 @@ export type ScanCode =
       readonly batch?: string;
     }
   | { readonly kind: "credential"; readonly credentialNumber: string }
+  /** A guest pass (B8, 6254): XOSGP1:<pass code>, found in the door list by the code. */
+  | { readonly kind: "guest-pass"; readonly passCode: string }
   | { readonly kind: "lot"; readonly lotId: string }
   | { readonly kind: "code"; readonly value: string }
   | { readonly kind: "invalid"; readonly reason: "checksum" | "empty" | "unsupported" };
@@ -123,6 +125,8 @@ export type ScanCode =
 /** Credential QR: the printed number (CR-000123) or the wallet form XOSCR1:<number>. */
 const CREDENTIAL = /^(?:XOSCR1:)?(CR-\d{6,})$/;
 const LOT = /^LOT:([0-9a-f-]{36})$/i;
+/** Guest pass QR (B8, the guest-pass document): XOSGP1:GP- and 10 base32 characters, or the code as printed. */
+const GUEST_PASS = /^(?:XOSGP1:)?(GP-[A-Z2-7]{10})$/;
 
 export function classify(raw: string, symbology: Symbology | null): ScanCode {
   const value = raw.trim();
@@ -130,6 +134,8 @@ export function classify(raw: string, symbology: Symbology | null): ScanCode {
   if (symbology === null) return { kind: "invalid", reason: "unsupported" };
   const credential = CREDENTIAL.exec(value);
   if (credential?.[1]) return { kind: "credential", credentialNumber: credential[1] };
+  const pass = GUEST_PASS.exec(value);
+  if (pass?.[1]) return { kind: "guest-pass", passCode: pass[1] };
   const lot = LOT.exec(value);
   if (lot?.[1]) return { kind: "lot", lotId: lot[1].toLowerCase() };
   if (
@@ -239,6 +245,9 @@ export function decideGate(
     : { result: "Denied", reason: "outside-window", credential };
 }
 
+/** In or Out at a gate (B8, 6250). Exit is never refused, so an Out scan skips decideGate. */
+export type ScanDirection = Database["app"]["Enums"]["scan_direction"];
+
 export function buildAccessScan(
   credential: CredentialRow,
   zoneId: string,
@@ -246,16 +255,20 @@ export function buildAccessScan(
   deviceAt: string,
   nowMs: number,
   newId: (ms: number) => string = uuidv7,
+  direction: ScanDirection = "In",
 ): MutationInput {
   const id = newId(nowMs);
+  // An Out scan is always Granted; the device still sends its time, which 0470's guard needs with an offline result.
+  const offlineResult = direction === "Out" ? "Granted" : decision.result;
   const row = {
     id,
     credential_id: credential.id,
     zone_id: zoneId,
     device_scanned_at: deviceAt,
-    offline_result: decision.result,
+    offline_result: offlineResult,
+    direction,
   };
-  // app.record_scan (A14): the database decides the result; p_id makes a replay return the first answer.
+  // app.record_scan (A14, 6250): the database decides the result; p_id makes a replay return the first answer.
   return {
     op: "rpc",
     target: "record_scan",
@@ -266,11 +279,70 @@ export function buildAccessScan(
       p_credential_id: credential.id,
       p_id: id,
       p_device_scanned_at: deviceAt,
-      p_offline_result: decision.result,
+      p_offline_result: offlineResult,
+      p_direction: direction,
     },
     policy: "append",
     optimistic: row,
   };
+}
+
+/**
+ * A supervisor's override of a denial the device saw (app.override_access_scan, 6250), queued after the denied
+ * record_scan so it replays in order, by the denied scan's client id. Offered only after a device Denied that is not
+ * revoked, to a person whose cached capabilities hold credentials.credential.issue; the server checks again.
+ */
+export function buildScanOverride(
+  deniedScanId: string,
+  reason: string,
+  nowMs: number,
+  newId: (ms: number) => string = uuidv7,
+): MutationInput {
+  const id = newId(nowMs);
+  return {
+    op: "rpc",
+    target: "override_access_scan",
+    table: "access_scans",
+    rowId: id,
+    payload: { p_scan_id: deniedScanId, p_reason: reason.trim(), p_id: id },
+    policy: "append",
+    optimistic: {
+      id,
+      override_of_scan_id: deniedScanId,
+      override_reason: reason.trim(),
+      direction: "In",
+    },
+  };
+}
+
+/** A denial older than this cannot be overridden (the server's scan_override_stale, 6250). */
+export const OVERRIDE_WINDOW_MS = 15 * 60_000;
+
+/** How long Override stays offered for a denial made at deniedAtMs; zero or less once it has passed. */
+export function overrideTimeLeft(deniedAtMs: number, nowMs: number): number {
+  return deniedAtMs + OVERRIDE_WINDOW_MS - nowMs;
+}
+
+/** Where a scanned guest pass goes: its entry on the door list, opened by the pass code (6254). */
+export function guestPassRoute(passCode: string): {
+  readonly pathname: "/workforce/door";
+  readonly params: { readonly pass: string };
+} {
+  return { pathname: "/workforce/door", params: { pass: passCode } };
+}
+
+/** True when the device may offer Override: a denial other than revoked or unknown, and the issue capability. */
+export function canOverride(
+  decision: GateDecision,
+  capabilities: ReadonlySet<string> | null,
+): boolean {
+  return (
+    decision.result === "Denied" &&
+    decision.reason !== "revoked" &&
+    decision.reason !== "unknown" &&
+    capabilities?.has("credentials.credential.issue") === true &&
+    capabilities.has("credentials.scan_log.read")
+  );
 }
 
 // Continuous mode ------------------------------------------------------------------------------------------

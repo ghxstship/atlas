@@ -1,20 +1,30 @@
+import { listMyIntakeRequests } from "@xos/data/vendor-intake";
+import { submitIntakeInvoiceAction } from "@/lib/actions/intake";
 import { addCalendarDays } from "@xos/data/calendar";
 import { workflowMarker } from "@xos/data/workflow-signal";
 import { ActionOutcomeScope } from "@xos/ui/pwa/action-outcome";
+import { QuoteSignButton } from "./quote-sign-button";
 import {
   APP_ENUMS,
+  listDocumentTexts,
   listEngagementDocuments,
   listMessages,
   listOnboardingItems,
   listThreads,
   onboardingStanding,
   readView,
+  type DocumentText,
+  type EngagementDocument,
   type EngagementDocumentKind,
   type OnboardingItem,
+  listEngagementQuoteVersions,
+  type EngagementQuoteVersion,
 } from "@xos/data/gateway";
 import { ActionButton } from "@/components/actions/action-button";
 import { RegionError, Section } from "@/components/page/page";
+import { DocumentTextPanel } from "./document-text";
 import {
+  ButtonLink,
   Card,
   EngagementTimeline,
   InlineAlert,
@@ -30,6 +40,7 @@ import { onRoster } from "@/lib/roster-member";
 import { engagementTitle, overviewRows, type OverviewRow } from "@/lib/engagement-state";
 import { formatDate, formatDateRange, formatDateTime, formatMoney } from "@/lib/format";
 import { enumLabelKey } from "@/lib/shell/translate";
+import { signsInOneClick } from "@/lib/documents/links";
 import { toneFor } from "@/lib/states";
 import {
   InvoiceForm,
@@ -151,14 +162,19 @@ export async function OverviewTab({ view, t, locale, engagementKey }: TabProps) 
                   id: d.id,
                   title: t("gateway.home.needsYou.sign", { title: d.title }),
                   meta: [t(enumLabelKey("engagementDocumentKind", d.kind))],
-                  action: (
-                    <ActionButton
-                      action={signDocumentAction.bind(null, d.id)}
-                      label={t("gateway.common.sign")}
-                      variant="secondary"
-                      done={t("gateway.common.signed")}
-                    />
-                  ),
+                  // A quote is signed from the Documents tab, after its total and consent are shown.
+                  ...(signsInOneClick(d)
+                    ? {
+                        action: (
+                          <ActionButton
+                            action={signDocumentAction.bind(null, d.id)}
+                            label={t("gateway.common.sign")}
+                            variant="secondary"
+                            done={t("gateway.common.signed")}
+                          />
+                        ),
+                      }
+                    : { href: tabHref(engagementKey, "engagement.documents") }),
                 })),
                 ...(open.length > 0
                   ? [
@@ -279,9 +295,21 @@ export async function DocumentsTab({
       <RosterMemberDocuments view={view} t={t} locale={locale} engagementKey={engagementKey} />
     );
   }
-  const docs = await listEngagementDocuments(view.ctx.db, view.engagement.id);
-  if (!docs.ok) return <RegionError />;
+  const [docs, texts] = await Promise.all([
+    listEngagementDocuments(view.ctx.db, view.engagement.id),
+    listDocumentTexts(view.ctx.db, view.engagement.id),
+  ]);
+  if (!docs.ok || !texts.ok) return <RegionError />;
+  const textOf = new Map(texts.data.map((x) => [x.documentId, x]));
   const shown = kinds ? docs.data.filter((d) => kinds.includes(d.kind)) : docs.data;
+  // A Quote document's PDF and confirmation read its version (api_external.quote_versions).
+  const quotes = shown.some((d) => d.kind === "Quote")
+    ? await listEngagementQuoteVersions(
+        view.ctx.db,
+        shown.map((d) => d.id),
+      )
+    : null;
+  const quoteOf = new Map((quotes?.ok ? quotes.data : []).map((q) => [q.engagementDocumentId, q]));
   if (shown.length === 0) {
     return (
       <TabEmpty
@@ -307,20 +335,100 @@ export async function DocumentsTab({
             : null,
         ],
         tag: { label: t(enumLabelKey("engagementDocumentState", d.state)), tone: toneFor(d.state) },
-        ...(d.state === "Sent"
+        ...(d.kind === "Quote" && quoteOf.get(d.id)
           ? {
               action: (
-                <ActionButton
-                  action={signDocumentAction.bind(null, d.id)}
-                  label={t("gateway.common.sign")}
-                  variant="secondary"
-                  done={t("gateway.common.signed")}
+                <QuoteDocumentActions
+                  quote={quoteOf.get(d.id) as EngagementQuoteVersion}
+                  documentId={d.id}
+                  engagementKey={engagementKey}
+                  canSign={d.state === "Sent"}
+                  total={
+                    formatMoney(
+                      locale,
+                      quoteOf.get(d.id)?.totalMinor ?? null,
+                      quoteOf.get(d.id)?.currency ?? "USD",
+                    ) ?? ""
+                  }
+                  validUntil={formatDate(locale, quoteOf.get(d.id)?.validUntil ?? "")}
                 />
               ),
             }
-          : {}),
+          : // A generated document is read in full and signed with the hash of what was read (B10), never with one button.
+            documentAnswer(d, textOf.get(d.id), { t, engagementKey })),
       }))}
     />
+  );
+}
+
+function documentAnswer(
+  d: EngagementDocument,
+  text: DocumentText | undefined,
+  { t, engagementKey }: { t: TabProps["t"]; engagementKey: string },
+) {
+  if (text) {
+    if (text.bodyMasked || text.body === null || text.bodySha256 === null) {
+      return {
+        detail: (
+          <p className="m-0 text-text-13 text-text-secondary">
+            {t("gateway.documents.readAndSign.masked")}
+          </p>
+        ),
+      };
+    }
+    return {
+      detail: (
+        <div className="flex flex-col gap-8">
+          <DocumentTextPanel
+            documentId={d.id}
+            title={d.title}
+            body={text.body}
+            sha256={text.bodySha256}
+            canAnswer={d.state === "Sent"}
+            path={tabHref(engagementKey, "engagement.documents")}
+          />
+          <DocumentActions kind="engagement-document" id={d.id} engagementKey={engagementKey} />
+        </div>
+      ),
+    };
+  }
+  return signsInOneClick(d)
+    ? {
+        action: (
+          <ActionButton
+            action={signDocumentAction.bind(null, d.id)}
+            label={t("gateway.common.sign")}
+            variant="secondary"
+            done={t("gateway.common.signed")}
+          />
+        ),
+      }
+    : {};
+}
+
+/** A Quote row: its PDF, and Sign behind a confirmation while it waits for a signature. */
+function QuoteDocumentActions({
+  quote,
+  documentId,
+  engagementKey,
+  canSign,
+  total,
+  validUntil,
+}: {
+  quote: EngagementQuoteVersion;
+  documentId: string;
+  engagementKey: string;
+  canSign: boolean;
+  total: string;
+  validUntil: string;
+}) {
+  return (
+    <span className="inline-flex flex-wrap items-center gap-8">
+      <DocumentActions kind="quote" id={quote.id} engagementKey={engagementKey} />
+      {canSign ? (
+        <QuoteSignButton documentId={documentId} total={total} validUntil={validUntil} />
+      ) : null}
+    </span>
   );
 }
 
@@ -404,9 +512,19 @@ export async function OnboardingTab({ view, t, locale, engagementKey }: TabProps
                           }))}
                         />
                       ) : i.kind === "Electronic Signature" ? (
-                        <p className="m-0 text-text-13 text-text-secondary">
-                          {t("gateway.engagement.onboarding.signHint")}
-                        </p>
+                        <div className="flex flex-col gap-8">
+                          <p className="m-0 text-text-13 text-text-secondary">
+                            {t("gateway.engagement.onboarding.signHint")}
+                          </p>
+                          <div>
+                            <ButtonLink
+                              href={tabHref(engagementKey, "engagement.documents")}
+                              size="sm"
+                            >
+                              {t("nav.gateway.engagementTabs.documents")}
+                            </ButtonLink>
+                          </div>
+                        </div>
                       ) : i.kind === "Acknowledgment" ? (
                         // A training or briefing acknowledgment is the person's statement, no file
                         // (journey 42); the organization verifies it like any other step.
@@ -511,11 +629,24 @@ export async function InvoicesTab({ view, t, locale, engagementKey }: TabProps) 
   });
   if (!lines.ok) return <RegionError />;
   const agreement = selfBilling.data.find((a) => a.is_active);
+  const intake = await listMyIntakeRequests(view.ctx.db);
+  const intakeInvoice = intake.ok
+    ? intake.data.find((r) => r.engagementId === e.id && r.viewerCanSubmitInvoice)
+    : undefined;
   const currency = e.rateCurrency ?? "USD";
   const today = view.today;
   const due = addCalendarDays(view.today, 30);
   return (
     <div className="flex flex-col gap-16">
+      {intakeInvoice ? (
+        <span>
+          <ActionButton
+            action={submitIntakeInvoiceAction.bind(null, intakeInvoice.id)}
+            label={t("gateway.home.intake.submitInvoice")}
+            variant="secondary"
+          />
+        </span>
+      ) : null}
       {invoices.data.length === 0 ? (
         <p className="m-0 text-text-14 text-text-secondary">
           {t("gateway.engagement.invoices.empty")}

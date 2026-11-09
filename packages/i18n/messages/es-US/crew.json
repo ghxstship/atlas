@@ -57,7 +57,8 @@
     "communication_no_assignee": "Solo un turno vigente con alguien asignado se puede marcar como comunicado. Asigne el turno primero o déjelo fuera.",
     "communication_too_many": "Marque como máximo 500 turnos a la vez. Reduzca la lista a una semana o un proyecto e inténtelo de nuevo.",
     "communication_note_length": "La nota debe tener como máximo 300 caracteres.",
-    "worker": "Elige a alguien de la lista o deja el turno libre."
+    "worker": "Elige a alguien de la lista o deja el turno libre.",
+    "budgetLine": "Elige una línea de presupuesto de la lista."
   },
   "refusals": {
     "shift_accept_rpc": "Solo la persona del turno lo acepta, o un miembro del equipo lo reclama mientras está abierto.",
@@ -138,6 +139,7 @@
     "agreement_token_validity": "Un enlace de firma es válido de 1 a 90 días.",
     "credential_self_issue": "Nadie registra su propio certificado. Pida a otro verificador que lo registre.",
     "certification_holder_immutable": "Un registro de certificado conserva su titular, verificador y código. Quítelo y regístrelo de nuevo.",
+    "certification_holder_verifier_only": "Solo puede cambiar su consentimiento para la verificación pública. Pida a un verificador que corrija las fechas, o que elimine o restaure el registro.",
     "swap_not_allowed": "Este proyecto no permite cambios de turno. Pide a tu supervisor que cubra el turno.",
     "swap_needs_approval": "Un supervisor aprueba los cambios en este proyecto. Espera su decisión.",
     "shift_claim_waiting": "Ya reclamaste este turno. Un supervisor decide.",
@@ -175,7 +177,38 @@
     "roster_shift_not_assigned": "Nadie del equipo de una agencia tiene este turno.",
     "roster_entry_not_working": "Esta entrada del equipo está retirada o su contratación no está activa, así que no admite tiempo nuevo.",
     "sod_roster_training": "Una persona no puede verificar su propia formación. Pide a otra persona que la verifique.",
-    "sod_supervisor_punch": "Fichaste la entrada o la salida de esta persona, así que otra persona aprueba esta hoja de horas."
+    "sod_supervisor_punch": "Fichaste la entrada o la salida de esta persona, así que otra persona aprueba esta hoja de horas.",
+    "shift_budget_line_project": "Elige una línea vigente de un presupuesto del proyecto de este turno.",
+    "shift_budget_line_labor": "Un turno registra su tiempo en una línea de mano de obra.",
+    "shift_budget_line_posted": "El tiempo aprobado de este turno ya está en el presupuesto, así que moverlo requiere finance.budget.write.",
+    "per_diem_payment_rpc": "Un viático se marca como pagado desde Finanzas > Pagos.",
+    "per_diem_paid_locked": "Un viático pagado se conserva como se pagó. Quita primero su pago.",
+    "per_diem_payment_batch": "Marca de 1 a 500 viáticos como pagados a la vez.",
+    "per_diem_payment_date": "Indica la fecha en que se pagaron los viáticos.",
+    "per_diem_payment_reason": "Di por qué se quita el pago, en hasta 500 caracteres.",
+    "per_diem_already_paid": "Uno de estos viáticos ya está pagado.",
+    "per_diem_not_paid": "Este viático no tiene un pago que quitar.",
+    "sod_reimbursement_payee": "No puedes registrar un reembolso ni un pago de viáticos a tu nombre. Pídeselo a otra persona de finanzas.",
+    "shift_reconfirm_answered": "Este turno ya se confirmó, o ya nadie lo está preguntando.",
+    "shift_no_show_self": "No puedes marcarte como ausente. Avísale a tu supervisor.",
+    "shift_no_show_state": "Marca la ausencia cuando el turno haya empezado y haya alguien asignado.",
+    "shift_no_show_clocked_in": "Esta persona registró su entrada en el turno, así que no está ausente.",
+    "shift_no_show_reason": "Indica qué pasó.",
+    "shift_no_show_too_late": "Quedan menos de 15 minutos de este turno, muy poco para un reemplazo. Marca la ausencia sin reemplazo.",
+    "shift_no_show_frozen": "Este turno tiene una ausencia. Retírala antes de cambiar su persona, horario o estado, o cancela el turno.",
+    "no_show_id_conflict": "Esta ausencia ya se registró para otro turno. Abre el turno de nuevo y vuelve a intentarlo.",
+    "swap_reason_required": "Indica por qué pides cambiar este turno.",
+    "shift_policy_batch": "Consulta entre 1 y 200 personas a la vez.",
+    "shift_held_for_position": "Este turno está reservado para un puesto. Cubre el puesto o quita el turno de él primero.",
+    "position_holder_one": "Cubre un puesto con un miembro o con una persona de la lista de una agencia.",
+    "position_holder_kind": "Un puesto de miembro lo cubre un miembro, y un puesto de agencia, una persona de la lista de su propia agencia.",
+    "position_filled": "Alguien ocupa este puesto. Déjalo vacante primero.",
+    "position_vacant": "Nadie ocupa este puesto.",
+    "position_in_use": "Deja vacante el puesto y quita sus turnos y registros primero.",
+    "position_engagement_not_agency": "Un puesto de agencia indica la contratación de personal de una agencia de personal.",
+    "position_holder_rpc": "Cubre un puesto desde su registro y déjalo vacante también ahí.",
+    "break_type_unknown": "Ese tipo de descanso está retirado o pertenece a otra organización. Elige uno de los tipos de esta organización.",
+    "crew_shortages_range": "Elige un rango de 1 a 62 días."
   },
   "states": {
     "shift": {
@@ -238,7 +271,8 @@
     "rateCard": "Tabla de tarifas",
     "payPeriod": "Periodo de pago",
     "payrollRun": "Nómina",
-    "timeOff": "Tiempo libre"
+    "timeOff": "Tiempo libre",
+    "position": "Puesto"
   },
   "fields": {
     "project": "Proyecto",
@@ -249,7 +283,8 @@
     "hours": "Horas",
     "state": "Estado",
     "startsAt": "Inicio ({zone})",
-    "endsAt": "Fin ({zone})"
+    "endsAt": "Fin ({zone})",
+    "budgetLine": "Línea de presupuesto"
   },
   "common": {
     "unnamed": "Persona sin nombre",
@@ -336,7 +371,10 @@
   "swaps": {
     "requestTitle": "Pedir el intercambio de este turno",
     "request": "Enviar solicitud de intercambio",
-    "proposed": "Entregar el turno a"
+    "proposed": "Entregar el turno a",
+    "reason": "Motivo",
+    "reasonHelp": "Opcional. Indica por qué lo pides.",
+    "reasonRequired": "Obligatorio en este proyecto. Indica por qué lo pides."
   },
   "shifts": {
     "openRow": "Turnos abiertos",
@@ -409,7 +447,10 @@
         "when": "Indica cuándo empieza el turno, por ejemplo viernes 8am-4pm.",
         "role": "Ese rol no está en la biblioteca de roles."
       }
-    }
+    },
+    "budgetLineHelp": "El tiempo aprobado de este turno se registra en esta línea de mano de obra.",
+    "noBudgetLine": "Sin línea de presupuesto",
+    "currentBudgetLine": "Línea de presupuesto actual"
   },
   "swapsPage": {
     "title": "{from} a {to}",
@@ -476,7 +517,8 @@
       "Mobile": "Compass",
       "Kiosk": "Quiosco",
       "Supervisor": "Supervisor"
-    }
+    },
+    "paidBreak": "Descanso pagado (minutos)"
   },
   "sheets": {
     "title": "{name} · {hours} h",
@@ -737,6 +779,22 @@
       }
     }
   },
+  "lanes": {
+    "label": "Carriles",
+    "people": "Personas",
+    "vendors": "Proveedores",
+    "zones": "Zonas",
+    "vendor": "Proveedor o contratista",
+    "zone": "Zona",
+    "dayTypes": "Tipos de día",
+    "dayTypesOn": "Tipos de día del {day}",
+    "more": "+{n} más",
+    "noVendors": "Ningún proveedor o contratista está contratado en estos proyectos esta semana.",
+    "noZones": "Las sedes de estos proyectos todavía no tienen zonas.",
+    "engaged": "Contratado este día",
+    "dockSlot": "Muelle {label}, {project}",
+    "workOrder": "Orden de trabajo {label}, {project}"
+  },
   "scheduling": {
     "title": "Cubrir turnos abiertos",
     "help": "Arrastre a una persona a un turno abierto, o elija un turno y pulse Asignar. Las personas se ordenan para el turno elegido: primero quienes están libres a esa hora, luego por la disponibilidad que indicaron, luego quienes ya trabajaron el puesto y luego quienes tienen menos horas esta semana.",
@@ -840,6 +898,12 @@
         "duplicate": "Otra plantilla ya tiene este nombre. Elija otro."
       }
     },
+    "heldShifts": {
+      "title": "Reservados para un puesto ({count})",
+      "help": "Nadie entra en estos turnos hasta cubrir el puesto, y siguen contando como sin cubrir.",
+      "fill": "Cubrir {position} para {shift}",
+      "putHolder": "Asignar al titular de {position} a {shift}"
+    },
     "polls": {
       "ask": "Pedir disponibilidad",
       "title": "Pedir disponibilidad",
@@ -891,7 +955,9 @@
           "Unstated": "Sin indicar"
         }
       }
-    }
+    },
+    "laneAssigned": "{name} está en {shift}.",
+    "laneConflict": "{name} está en otro turno durante {shift}, así que no se asignó. Elija el turno en el tablero para ver la clasificación y presione Asignar para ponerlo de todos modos."
   },
   "perDiems": {
     "title": "Viáticos",
@@ -912,8 +978,13 @@
       "to": "Último día",
       "amount": "Monto por día",
       "currency": "Moneda",
-      "day": "Día"
-    }
+      "day": "Día",
+      "paidOn": "Pagado el",
+      "paidReference": "Referencia del pago"
+    },
+    "clearPayment": "Quitar pago",
+    "clearPaymentHelp": "Úsalo cuando el pago se registró por error. El viático vuelve a figurar sin pagar y tu motivo queda en el registro de auditoría.",
+    "paidOnLine": "Pagado el {day}"
   },
   "communication": {
     "changedFields": "Cambió desde entonces: {fields}",
@@ -961,5 +1032,234 @@
   "timesheets": {
     "clockedBy": "Fichado por {name}",
     "clockedByColumn": "Fichado por"
+  },
+  "crewAccess": {
+    "title": "Enlaces de acceso del equipo",
+    "viewsLabel": "Vistas",
+    "views": {
+      "list": "Lista",
+      "table": "Tabla"
+    },
+    "issueLinks": "Emitir enlaces",
+    "fromCrewTab": "Enlaces de acceso del equipo",
+    "filterProject": "Proyecto",
+    "allProjects": "Todos los proyectos",
+    "empty": "Aún no hay enlaces de acceso. Emite uno para que una persona vea y acepte sus turnos sin iniciar sesión.",
+    "noProjects": "No puedes programar personal en ningún proyecto de esta organización, así que no puedes emitir enlaces.",
+    "never": "Nunca",
+    "status": "Estado",
+    "expires": "Vence",
+    "lastOpened": "Última apertura",
+    "openCount": "Vistas",
+    "actions": "Acciones",
+    "listLine": "{project} · vence {expires} · última apertura {opened} · {count, plural, one {# vista} other {# vistas}}",
+    "revoke": "Revocar",
+    "statuses": {
+      "Live": "Activo",
+      "Locked": "Bloqueado",
+      "Expired": "Vencido",
+      "Revoked": "Revocado",
+      "Closed": "Cerrado"
+    },
+    "issue": {
+      "title": "Emitir enlaces",
+      "project": "Proyecto",
+      "workers": "Personas",
+      "chooseWorkers": "Elegir trabajadores",
+      "workersHelp": "Personas con un próximo turno publicado o aceptado en este proyecto.",
+      "workerWithLink": "{name} (tiene un enlace)",
+      "validFor": "Válido por",
+      "validDays": "{days, plural, one {# día} other {# días}}",
+      "printedCardHelp": "Una tarjeta impresa solo lleva el enlace y el código QR. Entrega el código de acceso por otro medio, para que una tarjeta olvidada no abra nada.",
+      "submit": "Emitir enlaces",
+      "cancel": "Cancelar",
+      "replaces": "Al emitir se reemplaza el enlace anterior de la persona.",
+      "errors": {
+        "input": "Elige un proyecto y al menos una persona.",
+        "notFound": "Este proyecto ya no existe o ya no puedes programar personal en él.",
+        "unexpected": "Algo salió mal al emitir los enlaces. Inténtalo de nuevo en un momento."
+      }
+    },
+    "result": {
+      "title": "{count, plural, one {# enlace emitido} other {# enlaces emitidos}}",
+      "once": "Copia o imprime esto ahora. Los enlaces y códigos no se vuelven a mostrar.",
+      "card": "{project} · hasta {expires}",
+      "code": "Código",
+      "qr": "Código QR que abre los turnos de {name}",
+      "copyLink": "Copiar enlace",
+      "copyCode": "Copiar código",
+      "copiedLink": "Enlace copiado.",
+      "copiedCode": "Código copiado.",
+      "print": "Imprimir tarjetas",
+      "close": "Cerrar",
+      "closeConfirm": "Los enlaces y códigos no se vuelven a mostrar después de cerrar. ¿Cerrar?",
+      "closeSure": "Cerrar y actualizar",
+      "keepOpen": "Mantener abierto",
+      "unnamed": "Persona sin nombre"
+    },
+    "refusals": {
+      "crew_access_batch": "Emite enlaces para 1 a 200 personas a la vez.",
+      "crew_access_worker": "No se pudo leer a una de las personas. Recarga y vuelve a elegirlas.",
+      "crew_access_not_working": "Una de las personas no tiene un próximo turno en este proyecto o ya no trabaja para la organización. Quítala e inténtalo de nuevo.",
+      "crew_access_validity": "Un enlace de acceso funciona de 1 hora a 30 días.",
+      "org_read_only": "Esta organización es de solo lectura, así que no puede emitir enlaces de acceso.",
+      "generic": "Los enlaces se rechazaron por la regla {rule}. Corrige lo que indica e inténtalo de nuevo."
+    },
+    "revokeFailed": "No se pudo revocar este enlace y sigue funcionando. Vuelve a cargar e inténtalo de nuevo."
+  },
+  "policy": {
+    "title": "Avisos de programación",
+    "tags": {
+      "shift_rest_short": "Menos de {hours} h de descanso",
+      "shift_day_over": "Más de {hours} h ese día",
+      "shift_week_over": "Más de {hours} h esa semana"
+    },
+    "ask": "{name} tiene avisos para {shift}: {warnings}. Asigna de todos modos o sigue buscando.",
+    "askTitle": "¿Asignar a {name} a {shift} de todos modos?",
+    "askHelp": "Son avisos de programación de tu organización, no reglas de pago ni de horas extra. Nada te impide asignar.",
+    "assignAnyway": "Asignar de todos modos",
+    "keepLooking": "Seguir buscando",
+    "notAssigned": "{name} no se asignó."
+  },
+  "noShow": {
+    "mark": "Marcar ausencia",
+    "title": "Marcar a {name} como ausente",
+    "reason": "Qué pasó",
+    "reasonHelp": "Lo leen la persona y quienes planifican los turnos.",
+    "replacement": "Reemplazo",
+    "replacementHelp": "Un reemplazo va desde ahora hasta el final del turno.",
+    "replacementNo": "Sin reemplazo",
+    "replacementYes": "Abrir un turno de reemplazo",
+    "bannerTitle": "Ausencia registrada",
+    "openReplacement": "Abrir el turno de reemplazo",
+    "withdraw": "Retirar ausencia",
+    "withdrawTitle": "¿Retirar esta ausencia?",
+    "errors": {
+      "reason": "Indica qué pasó, en hasta 500 caracteres."
+    }
+  },
+  "reconfirm": {
+    "coming": "Voy a ir",
+    "comingTitle": "¿Confirmas que vas a este turno?",
+    "notComing": "No puedo ir",
+    "notComingTitle": "¿Avisar a quien planifica que no puedes ir?",
+    "notComingHelp": "El turno puede quedar abierto para otra persona. El motivo es opcional.",
+    "offerLabel": "Oferta",
+    "askLabel": "¿Sigues yendo?",
+    "answers": {
+      "Waiting": "En espera",
+      "Accepted": "Aceptado",
+      "Declined": "Rechazado",
+      "No Answer": "Sin respuesta",
+      "Withdrawn": "Retirado"
+    }
+  },
+  "shortages": {
+    "from": "Desde",
+    "to": "Hasta",
+    "kind": "Tipo",
+    "allKinds": "Todos los tipos ({count})",
+    "kindCount": "{kind} ({count})",
+    "day": "Día",
+    "what": "Falta",
+    "who": "Quién",
+    "why": "Motivo",
+    "caption": "Faltantes",
+    "rangeTitle": "No se pueden leer estas fechas",
+    "empty": "Nada sin cubrir en estas fechas. Planifica turnos desde una plantilla.",
+    "emptyReader": "Nada sin cubrir en estas fechas.",
+    "emptyFiltered": "Nada de este tipo en estas fechas. Quita el filtro para ver todos los faltantes.",
+    "plan": "Planificar desde una plantilla",
+    "unnamedVendor": "Proveedor",
+    "unnamedPerson": "Alguien en el turno",
+    "quantity": "{count} × {line}",
+    "kinds": {
+      "open": "Turno abierto",
+      "agency_unfilled": "Plaza de agencia sin cubrir",
+      "awaiting_answer": "Esperando respuesta",
+      "not_reconfirmed": "Sin reconfirmar",
+      "reconfirm_declined": "Dijo que no puede ir",
+      "no_show": "Ausencia",
+      "vendor_unconfirmed": "Mano de obra de proveedor sin acuse"
+    }
+  },
+  "positions": {
+    "position": "Puesto",
+    "none": "Sin puesto",
+    "shiftHelp": "Un turno reservado para un puesto espera a quien lo cubra.",
+    "title": "Título",
+    "titleHelp": "El puesto, como Jefe de escena o Aparejador 2. Único en el proyecto.",
+    "agency": "Agencia",
+    "agencyHelp": "Para un puesto que una agencia de personal cubre desde su lista. Déjalo vacío para un miembro.",
+    "noAgency": "Puesto de miembro",
+    "holder": "Titular",
+    "holderMember": "Miembro",
+    "holderStaff": "Persona de la lista",
+    "unfilled": "Puesto sin cubrir",
+    "unfilledTitle": "Puesto sin cubrir: {title}",
+    "openOnTitle": "Turno abierto en {title}",
+    "filled": "Cubierto",
+    "shifts": "Turnos reservados",
+    "records": "Registros",
+    "caption": "Puestos",
+    "create": "Nuevo puesto",
+    "createTitle": "Nuevo puesto",
+    "editTitle": "Editar puesto",
+    "fill": "Cubrir puesto",
+    "fillTitle": "Cubrir {title}",
+    "fillHelp": "Los turnos reservados para este puesto y sus registros pasan a esta persona. Un aviso o un turno omitido nunca detiene el resto.",
+    "vacate": "Dejar vacante",
+    "vacateTitle": "¿Dejar vacante {title}?",
+    "vacateHelp": "Los turnos que no han empezado vuelven al puesto. Solo se quitan las asignaciones de registros que hizo la cobertura.",
+    "vacateReason": "Puesto vacante.",
+    "trashTitle": "¿Mover {title} a la papelera?",
+    "trashHelp": "Solo va a la papelera un puesto sin cubrir, sin turnos ni registros.",
+    "filledNotice": "Puesto cubierto",
+    "filledSummary": "{filled, plural, one {# turno cubierto} other {# turnos cubiertos}}, {skipped, plural, one {# omitido} other {# omitidos}}, {warned, plural, one {# aviso} other {# avisos}}, {records, plural, one {# registro asignado} other {# registros asignados}}.",
+    "empty": "Aún no hay puestos. Agrega un puesto y planifica turnos y registros con él.",
+    "emptyReader": "Aún no hay puestos en estos proyectos.",
+    "assignRecord": "Asignar un puesto",
+    "assignRecordSubmit": "Asignar",
+    "unassignRecord": "Quitar de {title}",
+    "recordPositions": "Puestos de este registro",
+    "noneToAssign": "Este proyecto no tiene otro puesto para asignar. Agrega uno en Crew, Puestos.",
+    "loading": "Cargando puestos.",
+    "loadFailed": "No se pudieron cargar estos puestos. Cierra esto y vuelve a intentarlo.",
+    "errors": {
+      "title": "Ponle nombre al puesto, en hasta 120 caracteres.",
+      "duplicate": "Este proyecto ya tiene un puesto con ese título.",
+      "holder": "Elige quién cubre el puesto.",
+      "position": "Elige un puesto.",
+      "alreadyAssigned": "Este registro ya está asignado a ese puesto."
+    }
+  },
+  "breakTypes": {
+    "title": "Tipos de descanso",
+    "description": "Los tipos de descanso que toma el equipo. Un descanso pagado es tiempo trabajado: sus minutos nunca se restan, así que la nómina los paga con tus códigos de pago. Son definiciones de tu organización, no reglas estatales de descansos o comidas.",
+    "empty": "Aún no hay tipos de descanso. Los descansos son sin pagar y sin tipo hasta que agregues uno.",
+    "name": "Nombre",
+    "paid": "Descanso pagado",
+    "paidLabel": "Pagado",
+    "unpaidLabel": "Sin pagar",
+    "plannedMinutes": "Minutos previstos",
+    "plannedHelp": "Opcional. De 1 a 240.",
+    "planned": "{minutes} min previstos",
+    "add": "Agregar tipo de descanso",
+    "addTitle": "Agregar un tipo de descanso",
+    "edit": "Editar {name}",
+    "save": "Guardar",
+    "saved": "Guardado.",
+    "added": "Agregado.",
+    "retire": "Retirar {name}",
+    "default": "Predeterminado",
+    "makeDefault": "Hacer {name} predeterminado",
+    "defaultHelp": "Un descanso toma el predeterminado cuando no se elige un tipo: la Live Activity, el quiosco y los registros de equipo.",
+    "loadFailed": "No se pudieron cargar estos tipos de descanso. Actualiza la página.",
+    "readOnly": "Un propietario o administrador edita los tipos de descanso.",
+    "errors": {
+      "name": "Ponle nombre al tipo de descanso, en hasta 80 caracteres.",
+      "planned": "Los minutos previstos van de 1 a 240.",
+      "taken": "Esta organización ya tiene un tipo de descanso con ese nombre."
+    }
   }
 }

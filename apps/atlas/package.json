@@ -7,7 +7,7 @@
   "type": "module",
   "scripts": {
     "dev": "next dev --port 3000",
-    "build": "NODE_OPTIONS=--max-old-space-size=8192 next build",
+    "build": "NODE_OPTIONS=--max-old-space-size=${XOS_BUILD_HEAP_MB:-$([ -n \"$VERCEL\" ] && echo 6144 || echo 8192)} next build",
     "start": "next start --port 3000",
     "lint": "eslint . --max-warnings 0",
     "typecheck": "next typegen && NODE_OPTIONS=--max-old-space-size=8192 tsc --noEmit",
@@ -55,6 +55,7 @@
     "@tailwindcss/postcss": "4.3.3",
     "@testing-library/dom": "10.4.2",
     "@testing-library/react": "16.3.3",
+    "@testing-library/user-event": "14.6.7",
     "@types/node": "22.20.5",
     "@types/pg": "8.23.1",
     "@types/react": "19.3.0",

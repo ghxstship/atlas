@@ -91,6 +91,33 @@ describe("SpreadsheetGrid", () => {
     expect(within(grid).queryByText("LRC-009")).toBeNull();
   });
 
+  it("leaves rows a column's totalIncludes refuses out of its total, even a blank one", () => {
+    const columns: GridColumn[] = [
+      { key: "id", label: "Line", type: "code" },
+      {
+        key: "amount",
+        label: "Amount",
+        type: "money",
+        total: true,
+        totalIncludes: (r) => r["off"] !== 1,
+      },
+    ];
+    render(
+      <SpreadsheetGrid
+        label="Lines"
+        columns={columns}
+        rows={[
+          { id: "a", amount: 100, off: 0 },
+          { id: "b", amount: 900, off: 1 },
+          { id: "c", amount: null, off: 1 },
+        ]}
+      />,
+    );
+    const footer = within(screen.getByRole("grid")).getAllByRole("row").at(-1) as HTMLElement;
+    expect(footer.textContent).toContain("100");
+    expect(footer.textContent).not.toContain("1,000");
+  });
+
   describe("with rowKey", () => {
     const lineColumns: GridColumn[] = [
       { key: "id", label: "Line", type: "code" },
@@ -169,6 +196,26 @@ describe("SpreadsheetGrid", () => {
         stage,
         { ...sound, description: "Sound package" },
       ]);
+    });
+
+    it("reports the selected row once a person picks it, following it when rows shift", () => {
+      const onSelectionChange = vi.fn();
+      const { rerender } = render(grid(lines, { onChange: vi.fn(), onSelectionChange }));
+      expect(onSelectionChange).not.toHaveBeenCalled();
+      fireEvent.pointerDown(cellOf("b", 1));
+      fireEvent.click(cellOf("b", 1));
+      expect(onSelectionChange).toHaveBeenLastCalledWith("b");
+      onSelectionChange.mockClear();
+      rerender(
+        grid([{ id: "z", description: "Rigging", amount: 10 }, { ...stage }, { ...sound }], {
+          onChange: vi.fn(),
+          onSelectionChange,
+        }),
+      );
+      expect(onSelectionChange).not.toHaveBeenCalled();
+      fireEvent.pointerDown(cellOf("a", 1));
+      fireEvent.click(cellOf("a", 1));
+      expect(onSelectionChange).toHaveBeenLastCalledWith("a");
     });
 
     it("drops the open cell when its row is removed", () => {

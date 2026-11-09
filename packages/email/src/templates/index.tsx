@@ -86,11 +86,14 @@ export interface TemplateProps {
    * into it, because the invitation is claimed by the confirmed email the person signs in with.
    */
   readonly party_invitation: {
-    readonly kind: "account" | "roster";
+    readonly kind: "account" | "roster" | "pool";
     readonly inviterName: string;
     readonly accountName: string;
     readonly projectName: string;
     readonly partyName: string;
+    /** A pool invitation names the org and the role, never the pool (B10). */
+    readonly orgName?: string;
+    readonly jobTitle?: string;
     readonly expiresAt: Date;
     readonly signInUrl: string;
   };
@@ -102,6 +105,23 @@ export interface TemplateProps {
     readonly code: string;
     readonly orgName: string;
     readonly expiresInMinutes: number;
+  };
+
+  /**
+   * An org's email to a guest on its guest list (B8, migration 6255, ADR 0147 decision 7): an invitation, the guest's
+   * pass (the guest-pass PDF goes as an attachment) or a message with its own subject and text. Never transactional:
+   * it carries the unsubscribe link and the postal address of decision 41.
+   */
+  readonly guest_message: {
+    /** app.guest_email_kind: Invitation, Pass or Message. */
+    readonly kind: string;
+    readonly guestName: string;
+    readonly projectName: string;
+    readonly showName?: string;
+    readonly showDate?: Date;
+    readonly plusOnes: number;
+    readonly subject?: string;
+    readonly body?: string;
   };
 }
 
@@ -119,15 +139,22 @@ function kindKey(kind: string, part: "subject" | "body"): string {
   return `kinds.${kind}.${part}`;
 }
 
+/** Kinds whose Accept button says what accepting means (B9: "Still coming?" accepts as Confirm you're coming). */
+const ACCEPT_LABELS: Readonly<Record<string, string>> = {
+  "shift.reconfirm": "notification.actions.confirmComing",
+};
+
 /**
  * The one-tap action buttons (A127): each opens the confirm page, so acting from an email takes two taps. Approve and
  * accept are filled; reject is outlined, after them.
  */
 function ActionLinks({
   actions,
+  kind,
   t,
 }: {
   readonly actions: readonly EmailAction[];
+  readonly kind: string;
   readonly t: Translate;
 }) {
   const ordered = EMAIL_ACTIONS.flatMap((name) => actions.filter((a) => a.action === name));
@@ -142,7 +169,11 @@ function ActionLinks({
             href={a.url}
             style={a.action === "reject" ? actionStyles.secondary : actionStyles.primary}
           >
-            {t(`notification.actions.${a.action}`)}
+            {t(
+              a.action === "accept" && ACCEPT_LABELS[kind]
+                ? ACCEPT_LABELS[kind]
+                : `notification.actions.${a.action}`,
+            )}
           </Button>,
         ])}
       </Text>
@@ -203,7 +234,7 @@ export const templates: { readonly [C in TemplateCode]: Template<TemplateProps[C
           >
             <Greeting ctx={ctx} />
             <Paragraph>{ctx.t(kindKey(item.kind, "body"), item.args)}</Paragraph>
-            <ActionLinks actions={item.actions ?? []} t={ctx.t} />
+            <ActionLinks actions={item.actions ?? []} kind={item.kind} t={ctx.t} />
           </Layout>
         ),
       };
@@ -416,11 +447,16 @@ export const templates: { readonly [C in TemplateCode]: Template<TemplateProps[C
               inviterName: p.inviterName,
               accountName: p.accountName,
             })
-          : ctx.t("party_invitation.rosterSubject", {
-              inviterName: p.inviterName,
-              partyName: p.partyName,
-              projectName: p.projectName,
-            });
+          : p.kind === "pool"
+            ? ctx.t("party_invitation.poolSubject", {
+                inviterName: p.inviterName,
+                orgName: p.orgName ?? "",
+              })
+            : ctx.t("party_invitation.rosterSubject", {
+                inviterName: p.inviterName,
+                partyName: p.partyName,
+                projectName: p.projectName,
+              });
       return {
         subject,
         element: (
@@ -433,7 +469,14 @@ export const templates: { readonly [C in TemplateCode]: Template<TemplateProps[C
             transactional
             action={{ label: ctx.t("party_invitation.action"), url: p.signInUrl }}
           >
-            <Paragraph>{ctx.t("party_invitation.how", { expiresAt: p.expiresAt })}</Paragraph>
+            {p.kind === "pool" && p.jobTitle ? (
+              <Paragraph>{ctx.t("party_invitation.poolRole", { jobTitle: p.jobTitle })}</Paragraph>
+            ) : null}
+            <Paragraph>
+              {ctx.t(p.kind === "pool" ? "party_invitation.poolHow" : "party_invitation.how", {
+                expiresAt: p.expiresAt,
+              })}
+            </Paragraph>
           </Layout>
         ),
       };
@@ -485,6 +528,61 @@ export const templates: { readonly [C in TemplateCode]: Template<TemplateProps[C
               {ctx.t("approval_link_code.expiry", { minutes: expiresInMinutes })}
             </Paragraph>
             <Paragraph>{ctx.t("approval_link_code.ignore")}</Paragraph>
+          </Layout>
+        ),
+      };
+    },
+  },
+  guest_message: {
+    transactional: false,
+    compose: (p, ctx) => {
+      const orgName = ctx.sender.orgName;
+      const subject =
+        p.kind === "Message" && p.subject !== undefined
+          ? p.subject
+          : ctx.t(
+              p.kind === "Pass" ? "guest_message.passSubject" : "guest_message.invitationSubject",
+              {
+                orgName,
+                projectName: p.projectName,
+              },
+            );
+      const show =
+        p.showName === undefined
+          ? null
+          : p.showDate === undefined
+            ? ctx.t("guest_message.show", { showName: p.showName })
+            : ctx.t("guest_message.showOn", { showName: p.showName, showDate: p.showDate });
+      return {
+        subject,
+        element: (
+          <Layout
+            locale={ctx.locale}
+            t={ctx.t}
+            sender={ctx.sender}
+            preview={subject}
+            heading={
+              p.kind === "Message"
+                ? subject
+                : ctx.t("guest_message.heading", { projectName: p.projectName })
+            }
+            transactional={false}
+            why={ctx.t("guest_message.why", { orgName })}
+            preferencesLabel={ctx.t("guest_message.preferences")}
+          >
+            <Paragraph>{ctx.t("guest_message.greeting", { name: p.guestName })}</Paragraph>
+            {p.kind === "Invitation" && (
+              <Paragraph>
+                {ctx.t("guest_message.invitation", { orgName, projectName: p.projectName })}
+              </Paragraph>
+            )}
+            {p.kind === "Pass" && (
+              <Paragraph>
+                {ctx.t("guest_message.pass", { projectName: p.projectName, plusOnes: p.plusOnes })}
+              </Paragraph>
+            )}
+            {show !== null && <Paragraph>{show}</Paragraph>}
+            {p.body !== undefined && <Paragraph>{p.body}</Paragraph>}
           </Layout>
         ),
       };

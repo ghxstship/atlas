@@ -2,6 +2,7 @@ import type { XosClient } from "./client.ts";
 import type { Database, Json } from "./database.types.ts";
 import { external, type ExternalRow, type ExternalView } from "./gateway-external.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
+import { untyped } from "./untyped.ts";
 
 /**
  * Gateway operations (A28b migrations 0760 to 0775, Section 8.7 areas): the party's own rows that
@@ -50,6 +51,67 @@ export async function readView<V extends ExternalView>(
   const { data, error } = await query;
   if (error) return fail(toDataError(error));
   return ok((data ?? []) as ExternalRow<V>[]);
+}
+
+/** One Clean version of a file on a submittal the caller's vendor account was asked for (B14, migration 6265). */
+export interface SubmittalFileVersion {
+  readonly submittalId: string;
+  readonly attachmentId: string;
+  readonly title: string;
+  readonly versionId: string;
+  readonly versionNumber: number;
+  readonly filename: string;
+  readonly contentType: string;
+  readonly sizeBytes: number;
+  readonly uploadedAt: string | null;
+  /** The newest Clean version of the file, the one the org reviews now. */
+  readonly isCurrent: boolean;
+  readonly reviewDecision: Database["app"]["Enums"]["file_review_decision"] | null;
+  /** What the org asked to change, or its comment on approval; written for the vendor. */
+  readonly reviewComment: string | null;
+  readonly reviewedAt: string | null;
+}
+
+const text = (v: unknown): string | null => (typeof v === "string" ? v : null);
+
+/**
+ * The files of the given submittals, version by version, newest first, with the org's latest decision
+ * and comment on each (api_external.submittal_files). Who reviewed never appears, nor any download
+ * path; files classified Confidential or Restricted are not listed.
+ */
+export async function listSubmittalFiles(
+  db: XosClient,
+  submittalIds: readonly string[],
+): Promise<Result<SubmittalFileVersion[]>> {
+  if (submittalIds.length === 0) return ok([]);
+  const { data, error } = await untyped(db)
+    .schema("api_external")
+    .from("submittal_files")
+    .select("*")
+    .in("submittal_id", [...submittalIds])
+    .order("version_number", { ascending: false });
+  if (error) return fail(toDataError(error));
+  return ok(
+    ((data ?? []) as Record<string, unknown>[]).map((r) => {
+      const decision = r["review_decision"];
+      return {
+        submittalId: text(r["submittal_id"]) ?? "",
+        attachmentId: text(r["attachment_id"]) ?? "",
+        title: text(r["title"]) ?? "",
+        versionId: text(r["version_id"]) ?? "",
+        versionNumber: typeof r["version_number"] === "number" ? r["version_number"] : 0,
+        filename: text(r["filename"]) ?? "",
+        contentType: text(r["content_type"]) ?? "",
+        sizeBytes: typeof r["size_bytes"] === "number" ? r["size_bytes"] : 0,
+        uploadedAt: text(r["uploaded_at"]),
+        isCurrent: r["is_current"] === true,
+        reviewDecision:
+          decision === "Approved" || decision === "Changes Requested" ? decision : null,
+        reviewComment: text(r["review_comment"]),
+        reviewedAt: text(r["reviewed_at"]),
+      };
+    }),
+  );
 }
 
 async function call(
@@ -470,4 +532,126 @@ export async function claimTokenSubmissions(
   if (error) return fail(toDataError(error));
   const row = data[0];
   return ok({ advance: row?.claimed_advance ?? 0, documents: row?.claimed_documents ?? 0 });
+}
+
+// Advance tracks (R11, migration 6223) ----------------------------------------------------------
+
+/** One of the caller's recipients' tracks, as Gateway reads it: no reviewer names (Section 8.7). */
+export interface ExternalTrackProgress {
+  readonly recipientId: string;
+  readonly packetId: string;
+  readonly track: string;
+  readonly sectionsTotal: number;
+  readonly sectionsDone: number;
+  /** Not Started, In Progress, Ready for Sign-off, Signed Off or Reopened. */
+  readonly state: string;
+  readonly signedOffAt: string | null;
+}
+
+/** The tracks of the caller's recipients on the given packets (api_external.advance_track_progress). */
+export async function listMyTrackProgress(
+  db: XosClient,
+  packetIds: readonly string[],
+): Promise<Result<ExternalTrackProgress[]>> {
+  if (packetIds.length === 0) return ok([]);
+  const { data, error } = await external(db)
+    .from("advance_track_progress")
+    .select(
+      "advance_recipient_id, advance_packet_id, track, sections_total, sections_done, track_state, signed_off_at",
+    )
+    .in("advance_packet_id", [...packetIds]);
+  if (error) return fail(toDataError(error));
+  return ok(
+    (data ?? []).map((r) => ({
+      recipientId: String(r.advance_recipient_id),
+      packetId: String(r.advance_packet_id),
+      track: r.track ?? "General",
+      sectionsTotal: r.sections_total ?? 0,
+      sectionsDone: r.sections_done ?? 0,
+      state: r.track_state ?? "Not Started",
+      signedOffAt: r.signed_off_at,
+    })),
+  );
+}
+
+/** The track of each of the caller's sections (api_external.advance_sections.track, 6223). */
+export async function listSectionTracks(
+  db: XosClient,
+  sectionIds: readonly string[],
+): Promise<Result<Map<string, string>>> {
+  const tracks = new Map<string, string>();
+  if (sectionIds.length === 0) return ok(tracks);
+  const { data, error } = await external(db)
+    .from("advance_sections")
+    .select("id, track")
+    .in("id", [...sectionIds]);
+  if (error) return fail(toDataError(error));
+  for (const r of data ?? []) {
+    if (r.id) tracks.set(r.id, r.track ?? "General");
+  }
+  return ok(tracks);
+}
+
+// Client cue fields (api_external.cue_field_values, B3 6240) ----------------------------------------
+
+/** A Client-audience custom value of a cue, as Gateway's running order shows it (ADR 0142). */
+export interface ClientCueField {
+  readonly cueId: string;
+  readonly key: string;
+  readonly label: string;
+  readonly dataType: string;
+  readonly sortOrder: number;
+  readonly text: string | null;
+  readonly number: number | null;
+  readonly date: string | null;
+  readonly timestamp: string | null;
+  readonly boolean: boolean | null;
+  readonly choiceLabel: string | null;
+  readonly choiceColorKey: string | null;
+}
+
+/**
+ * The Client-audience field values of the given cues. The view answers only a Client engaged on the cue's
+ * project; anyone else reads no rows. Untyped until the data types carry the view (6240).
+ */
+export async function readClientCueFields(
+  db: XosClient,
+  cueIds: readonly string[],
+): Promise<Result<ClientCueField[]>> {
+  if (cueIds.length === 0) return ok([]);
+  const view = (
+    external(db) as unknown as {
+      from(name: string): {
+        select(columns: string): {
+          in(
+            column: string,
+            values: readonly string[],
+          ): PromiseLike<{
+            data: unknown[] | null;
+            error: { code?: string; message: string } | null;
+          }>;
+        };
+      };
+    }
+  ).from("cue_field_values");
+  const { data, error } = await view.select("*").in("cue_id", cueIds);
+  if (error) return fail(toDataError(error));
+  return ok(
+    ((data ?? []) as Record<string, unknown>[])
+      .map((r) => ({
+        cueId: String(r["cue_id"] ?? ""),
+        key: String(r["field_key"] ?? ""),
+        label: String(r["label"] ?? ""),
+        dataType: String(r["data_type"] ?? "Text"),
+        sortOrder: typeof r["sort_order"] === "number" ? r["sort_order"] : 0,
+        text: typeof r["value_text"] === "string" ? r["value_text"] : null,
+        number: typeof r["value_number"] === "number" ? r["value_number"] : null,
+        date: typeof r["value_date"] === "string" ? r["value_date"] : null,
+        timestamp: typeof r["value_timestamp"] === "string" ? r["value_timestamp"] : null,
+        boolean: typeof r["value_boolean"] === "boolean" ? r["value_boolean"] : null,
+        choiceLabel: typeof r["choice_label"] === "string" ? r["choice_label"] : null,
+        choiceColorKey: typeof r["choice_color_key"] === "string" ? r["choice_color_key"] : null,
+      }))
+      .sort((a, b) => a.sortOrder - b.sortOrder || a.label.localeCompare(b.label)),
+  );
 }

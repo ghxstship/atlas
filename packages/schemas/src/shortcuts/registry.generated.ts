@@ -1119,6 +1119,17 @@ export const SHORTCUT_REGISTRY: ShortcutRegistry = {
           go: null,
         },
         {
+          id: "show.chat",
+          scope: "show",
+          group: "show",
+          keys: "M",
+          mac: null,
+          label: "help.shortcuts.show.chat",
+          fields: false,
+          fixed: false,
+          go: null,
+        },
+        {
           id: "show.deck.go",
           scope: "show",
           group: "show-deck",

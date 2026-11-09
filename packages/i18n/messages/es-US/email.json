@@ -55,6 +55,18 @@
       "changed": {
         "subject": "Turno modificado: {title}",
         "body": "Tu turno {title} ahora empieza el {startsAt, date, full} a las {startsAt, time, short}."
+      },
+      "reconfirm": {
+        "subject": "¿Sigues yendo? {title}",
+        "body": "Tienes programado {title} a partir del {startsAt, date, full} a las {startsAt, time, short}. ¿Sigues yendo?"
+      },
+      "reconfirm_declined": {
+        "subject": "Alguien no puede ir a {title}",
+        "body": "{named, select, yes {{workerName}} other {La persona de este turno}} dijo que no puede ir a {title} a partir del {startsAt, date, full} a las {startsAt, time, short}. {reopened, select, yes {El turno volvió a quedar abierto.} other {Sigue en él hasta que lo cambies.}}"
+      },
+      "no_show": {
+        "subject": "Marcado como ausente: {title}",
+        "body": "Te marcaron como ausente en {title} a partir del {startsAt, date, full} a las {startsAt, time, short}. Registrar tu entrada lo retira."
       }
     },
     "availability": {
@@ -201,6 +213,18 @@
       "alert": {
         "subject": "Alerta de clima: {level}",
         "body": "Una lectura de {hazard} de {reading} alcanzó el umbral de {level}. Sigue el plan de emergencia."
+      },
+      "warning": {
+        "subject": "Aviso oficial: {event}",
+        "body": "El Servicio Meteorológico Nacional emitió una alerta {severity}: {headline}. Sigue el plan de emergencia."
+      },
+      "hold": {
+        "subject": "Suspensión por clima: detenga el trabajo",
+        "body": "{message}{late, select, yes { Se declaró a las {called_at, time, short} en un dispositivo sin conexión.} other {}}"
+      },
+      "all_clear": {
+        "subject": "Fin de la suspensión: puede volver al trabajo",
+        "body": "{message}"
       }
     },
     "access": {
@@ -355,12 +379,30 @@
       "project_facts_entered": {
         "subject": "{actorName} agregó tus {kind, select, travel {datos de viaje} uniform {tallas de uniforme} vehicle {datos del vehículo} other {datos del proyecto}}",
         "body": "{actorName} los ingresó para {projectName}. Revísalos y corrige lo que esté mal."
+      },
+      "removed": {
+        "subject": "Ya no estás en el equipo de {partyName} para {projectName}",
+        "body": "Se retiró tu entrada de la lista. No necesitas hacer nada más para este equipo."
+      },
+      "facts_requested": {
+        "subject": "{projectName} necesita tus {kind, select, uniform {tallas de uniforme} travel {datos de viaje} vehicle {datos del vehículo} other {datos del proyecto}}",
+        "body": "Ingrésalos en Gateway antes de llegar, para que {partyName} y el equipo de producción se organicen."
+      },
+      "share_revoked": {
+        "subject": "{personName} dejó de compartir sus datos de trabajo para {projectName}",
+        "body": "Los datos de trabajo que {personName} compartió en el equipo de {partyName} ya no se comparten."
       }
     },
     "engagement": {
       "roster_lock_changed": {
         "subject": "Cambió el cierre de nombres de {projectName}",
         "body": "Abre la lista del equipo para ver cuándo se cierran los nombres. Después, pide a la organización productora que cambie la lista."
+      }
+    },
+    "advance_answer": {
+      "recorded": {
+        "subject": "{actorName} registró tu respuesta a {sectionTitle} para {projectName}",
+        "body": "La registró a partir de tu mensaje o de un archivo que enviaste. Pídele que la devuelva si necesita cambios."
       }
     },
     "allocation": {
@@ -379,6 +421,74 @@
       "withdrawn": {
         "subject": "Se retiró tu {kind, select, credential {credencial} parking_pass {pase de estacionamiento} asset {{itemName}} catering {catering} lodging {habitación} travel {viaje} per_diem {viático} other {asignación}} para {projectName}",
         "body": "{cause, select, engagement_ended {La contratación terminó.} entry_removed {Ya no estás en el equipo.} other {{orgName} la retiró.}}"
+      }
+    },
+    "quote": {
+      "accepted": {
+        "subject": "Cotización aceptada: {quoteKey} v{version}",
+        "body": "{actorName} aceptó la cotización {quoteKey}, versión {version}, mediante firma electrónica. Ya no puede cambiar; registra los cambios posteriores como una orden de cambio."
+      }
+    },
+    "rfq": {
+      "quote_reminder": {
+        "subject": "{orgName} te pidió una cotización: {title}",
+        "body": "{orgName} te pidió una cotización de {title} en {projectName}{dueDate, select, none {.} other {, antes del {dueDate}.}} Ábrela para ver lo que necesitan."
+      },
+      "not_awarded": {
+        "subject": "{orgName} eligió otro proveedor para {title}",
+        "body": "{orgName} eligió otro proveedor para {title} en {projectName}. Gracias por tu cotización."
+      }
+    },
+    "crew_registration": {
+      "decided": {
+        "subject": "{outcome, select, approved {{orgName} aprobó tu registro} other {{orgName} no te seleccionó esta vez}}",
+        "body": "{outcome, select, approved {Estás en la lista de equipo de {title}. Revisa Explorar para ver trabajos de {orgName}.} other {Gracias por registrarte en {title}. Puedes registrarte de nuevo cuando la página abra.}}"
+      },
+      "invited": {
+        "subject": "{orgName} te invita a registrarte: {title}",
+        "body": "Abre la página en Gateway para registrarte con {orgName}."
+      }
+    },
+    "engagement_document": {
+      "sent": {
+        "subject": "{orgName} te envió {title} para firmar",
+        "body": "Léelo en Gateway y fírmalo con tu nombre, o recházalo con un motivo."
+      }
+    },
+    "vendor_intake": {
+      "submitted": {
+        "subject": "Nueva solicitud de alta: {title}",
+        "body": "{requesterName} envió una solicitud por {title} para {projectName}. Revísala en la pestaña Contrataciones del proyecto."
+      }
+    },
+    "guest": {
+      "arrived": {
+        "subject": "Llegó {guest_name}",
+        "body": "Tu invitado {guest_name} se registró{has_door, select, yes { en {door}} other {}} con {plus_ones_admitted, plural, =0 {ningún acompañante} one {# acompañante} other {# acompañantes}}.{has_table, select, yes { Mesa: {table_label}.} other {}}"
+      }
+    },
+    "advance_packet": {
+      "reminder": {
+        "subject": "{reminder, select, overdue {Vencido: {title}} other {Recordatorio: {title}}} para {projectName}",
+        "body": "{outstanding, plural, one {Queda # sección} other {Quedan # secciones}} por responder para {orgName}. {due, select, set {{reminder, select, overdue {Venció el {dueAt, date, medium}.} other {Vence el {dueAt, date, medium} a las {dueAt, time, short}.}}} other {Respóndela en Gateway.}}"
+      }
+    },
+    "advance_submission": {
+      "returned": {
+        "subject": "Se devolvió tu respuesta a {title}",
+        "body": "{packetTitle}: {reason} Vuelve a responder la sección en Gateway."
+      }
+    },
+    "submittal": {
+      "returned": {
+        "subject": "Entregable devuelto: {title}",
+        "body": "{projectName}: {reason} Revísalo y vuelve a enviarlo en Gateway."
+      }
+    },
+    "credential": {
+      "revoked": {
+        "subject": "Se revocó tu credencial {title} para {projectName}",
+        "body": "Ya no da acceso. Consulta al equipo de producción si crees que es un error."
       }
     },
     "accommodation_block": {
@@ -400,7 +510,8 @@
       "approve": "Aprobar",
       "reject": "Rechazar",
       "accept": "Aceptar",
-      "note": "Cada botón abre una página para confirmar. Funciona una vez, durante 7 días."
+      "note": "Cada botón abre una página para confirmar. Funciona una vez, durante 7 días.",
+      "confirmComing": "Confirma que vas"
     }
   },
   "digest": {
@@ -475,6 +586,21 @@
     "accountSubject": "{inviterName} te invita a {accountName} en XOS",
     "rosterSubject": "{inviterName} te invita al equipo de {partyName} para {projectName}",
     "how": "Inicia sesión en Gateway con este correo y acepta en el Inicio antes del {expiresAt, date, long}. La empresa verá tu perfil y los datos del proyecto. ¿No lo esperabas? Ignóralo.",
-    "action": "Iniciar sesión en Gateway"
+    "action": "Iniciar sesión en Gateway",
+    "poolSubject": "{inviterName} te invita a unirte a la lista de equipo de {orgName}",
+    "poolRole": "Rol: {jobTitle}",
+    "poolHow": "Inicia sesión en Gateway con esta dirección y acepta en Inicio antes del {expiresAt, date, long}. ¿No lo esperabas? Ignóralo."
+  },
+  "guest_message": {
+    "invitationSubject": "{orgName} te invita a {projectName}",
+    "passSubject": "Tu pase para {projectName}",
+    "heading": "{projectName}",
+    "greeting": "Hola, {name}:",
+    "invitation": "{orgName} te agregó a la lista de invitados de {projectName}.",
+    "pass": "Adjuntamos tu pase para {projectName}. Muéstralo en la puerta{plusOnes, plural, =0 {} one {; admite # invitado más} other {; admite # invitados más}}.",
+    "show": "Función: {showName}.",
+    "showOn": "Función: {showName}, {showDate, date, long}.",
+    "why": "Recibes este correo porque estás en la lista de invitados de {orgName}.",
+    "preferences": "Dejar de recibir correos de esta organización"
   }
 }

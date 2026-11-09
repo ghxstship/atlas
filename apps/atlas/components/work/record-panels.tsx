@@ -27,7 +27,7 @@ import {
 import type { Route } from "next";
 import { useLocale } from "next-intl";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { undoStack, type UndoResult } from "@xos/ui/undo";
 import { ConflictDialog } from "@/components/undo/conflict-dialog";
 import {
@@ -528,7 +528,8 @@ export function EditRecordForm({
         </div>
       </MoreFields>
       <p className="m-0 text-text-12 text-text-secondary">{t("fields.zoneNote", { zone: tz })}</p>
-      {logsReplans ? (
+      {/* Asked once a date changes, so the form shows at most seven fields until then (gate 27). */}
+      {logsReplans && changesDates(changedFields(before, after).after) ? (
         <Textarea
           id="edit-replan"
           label={t("fields.replanReason")}
@@ -975,6 +976,7 @@ export function ExtensionForm({
   people,
   currencies,
   canEdit,
+  draftEntry,
 }: {
   org: string;
   record: RecordSummary;
@@ -983,6 +985,8 @@ export function ExtensionForm({
   people: readonly PersonRef[];
   currencies: readonly { code: string; exponent: number }[];
   canEdit: boolean;
+  /** "Draft with Aurora" for a Document record: it fills this form, and Save is the write. */
+  draftEntry?: ReactNode;
 }) {
   const t = useCopy("work");
   const locale = useLocale();
@@ -1098,6 +1102,7 @@ export function ExtensionForm({
       <h3 className="m-0 text-label-13 font-semibold">
         {t("extension.title", { kind: t(`kinds.${record.kind}`) })}
       </h3>
+      {draftEntry}
       <ActionErrorAlert error={edit.error} />
       <div className="grid grid-cols-2 gap-12 max-sm:grid-cols-1">
         {fields.map((f) => {
@@ -1132,6 +1137,7 @@ export function ExtensionForm({
                 <Textarea
                   key={f.column}
                   id={id}
+                  name={f.column}
                   label={label(f.column)}
                   value={text}
                   disabled={disabled}

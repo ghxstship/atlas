@@ -8,7 +8,14 @@ import {
   type OnboardingRequirement,
   type OnboardingStatus,
 } from "@xos/data/opportunities";
+import {
+  listBatches,
+  listTemplates,
+  type AgreementBatch,
+  type AgreementTemplate,
+} from "@xos/data/engagement-document-batches";
 import { ActionForm } from "@/components/opportunities/action-form";
+import { AgreementTemplateForm } from "@/components/opportunities/agreement-template-form";
 import { Muted, RowLink, Section, Table, ViewSwitch } from "@/components/opportunities/parts";
 import { Card, PageHeader, Tag, TemplateCollection } from "@/components/opportunities/ui";
 import { ButtonLink, EmptyStateLink } from "@/components/ui";
@@ -17,11 +24,18 @@ import { must, setupPage, type PageSetup, type SearchParams } from "@/lib/opport
 import { nodeHref } from "@/lib/shell/sitemap";
 import { createRequirementAction, verifyItemAction } from "../actions";
 import * as enums from "@xos/data/enums";
+import {
+  countersignAgreementBatchAction,
+  duplicateAgreementTemplateAction,
+  removeAgreementTemplateAction,
+  sendAgreementBatchAction,
+} from "../agreements-actions";
 
 /**
  * Onboarding (Section 4.4.4 stage 6): the onboarding packet requirements per role type and jurisdiction, and every open
  * item across the org's engagements to verify. An engagement becomes Active only when every blocking requirement that
- * applies passes or carries over (database-enforced, migration 0730); the reviewer is never the engaged party.
+ * applies passes or carries over (database-enforced, migration 0730); the reviewer is never the engaged party. Agreement
+ * templates and batches (B10) sit here too: every action in them is secondary, so the header's primary stays the only one.
  */
 export default async function OnboardingPage({
   params,
@@ -35,10 +49,12 @@ export default async function OnboardingPage({
   );
   const { ctx, t, param } = page;
   const db = ctx.viewer.db;
-  const [requirements, items, engagements] = await Promise.all([
+  const [requirements, items, engagements, templates, batches] = await Promise.all([
     listOnboardingRequirements(db, ctx.org.id),
     listOnboardingStatus(db, { orgId: ctx.org.id }),
     listEngagements(db, ctx.org.id, { states: ["Onboarding", "Blocked", "Active", "Closing"] }),
+    listTemplates(db, ctx.org.id),
+    listBatches(db, { orgId: ctx.org.id }),
   ]);
   const reqs = must(requirements, "requirements");
   const byEngagement = new Map(must(engagements, "engagements").map((e) => [e.id, e]));
@@ -135,6 +151,11 @@ export default async function OnboardingPage({
           />
         </Card>
       ) : null}
+      <AgreementSections
+        page={page}
+        templates={must(templates, "agreement templates")}
+        batches={must(batches, "agreement batches")}
+      />
       <Section id="onboarding-queue" title={t("onboarding.queue")}>
         {open.length === 0 ? (
           <EmptyStateLink
@@ -284,6 +305,133 @@ function QueueItem({
         <Muted>{t("onboarding.automatic")}</Muted>
       ) : null}
     </li>
+  );
+}
+
+function AgreementSections({
+  page,
+  templates,
+  batches,
+}: {
+  page: PageSetup;
+  templates: readonly AgreementTemplate[];
+  batches: readonly AgreementBatch[];
+}) {
+  const { ctx, t, param } = page;
+  const canEdit = ctx.capabilities.has("opportunities.engagement.write");
+  const hidden = { org: ctx.org.slug };
+  const used = new Set(batches.map((b) => b.templateId));
+  const editing = templates.find((x) => x.id === param("template")) ?? null;
+  const editable = editing && !used.has(editing.id) ? editing : null;
+  const adding = param("template") === "new";
+  return (
+    <>
+      <Section id="agreement-templates" title={t("agreementTemplates.title")}>
+        {templates.length === 0 ? <Muted>{t("agreementTemplates.empty")}</Muted> : null}
+        <ul className="m-0 flex list-none flex-col gap-8 p-0">
+          {templates.map((x) => (
+            <li
+              key={x.id}
+              className="flex flex-wrap items-center justify-between gap-8 rounded-card border border-border-subtle p-8 text-text-13"
+            >
+              <span className="flex flex-wrap items-center gap-8">
+                <span className="font-medium">{x.name}</span>
+                <Tag tone="neutral">{t(`agreementTemplates.kinds.${enumKey(x.kind)}`)}</Tag>
+                <Tag tone="neutral">{t(`agreementTemplates.languages.${enumKey(x.locale)}`)}</Tag>
+                {x.usesRate ? <Tag tone="warning">{t("agreementTemplates.usesRate")}</Tag> : null}
+              </span>
+              {canEdit ? (
+                <span className="flex flex-wrap items-center gap-8">
+                  {used.has(x.id) ? null : (
+                    <ButtonLink href={page.href({ template: x.id })}>
+                      {t("agreementTemplates.edit")}
+                    </ButtonLink>
+                  )}
+                  <ActionForm
+                    action={duplicateAgreementTemplateAction}
+                    hidden={{ ...hidden, id: x.id, name: x.name }}
+                    fields={[]}
+                    inline
+                    submitLabel={t("agreementTemplates.duplicate")}
+                  />
+                  <ActionForm
+                    action={removeAgreementTemplateAction}
+                    hidden={{ ...hidden, id: x.id }}
+                    fields={[]}
+                    inline
+                    variant="danger"
+                    submitLabel={t("remove")}
+                  />
+                </span>
+              ) : null}
+            </li>
+          ))}
+        </ul>
+        {canEdit && !adding && !editable ? (
+          <div>
+            <ButtonLink href={page.href({ template: "new" })}>
+              {t("agreementTemplates.new")}
+            </ButtonLink>
+          </div>
+        ) : null}
+        {canEdit && adding ? <AgreementTemplateForm org={ctx.org.slug} /> : null}
+        {canEdit && editable ? (
+          <AgreementTemplateForm key={editable.id} org={ctx.org.slug} template={editable} />
+        ) : null}
+      </Section>
+      <Section id="agreement-batches" title={t("agreementBatches.title")}>
+        {batches.length === 0 ? <Muted>{t("agreementBatches.empty")}</Muted> : null}
+        <ul className="m-0 flex list-none flex-col gap-8 p-0">
+          {batches.map((b) => (
+            <li
+              key={b.id}
+              className="flex flex-col gap-8 rounded-card border border-border-subtle p-8 text-text-13"
+            >
+              <div className="flex flex-wrap items-center justify-between gap-8">
+                <span className="font-medium">
+                  {t("agreementBatches.line", {
+                    project: b.projectName ?? "",
+                    template: b.templateName ?? "",
+                  })}
+                </span>
+                <span className="flex flex-wrap gap-4">
+                  {Object.entries(b.counts).map(([state, count]) => (
+                    <Tag key={state} tone="neutral">
+                      {t("agreementBatches.count", {
+                        state: t(`agreementBatches.states.${enumKey(state)}`),
+                        count,
+                      })}
+                    </Tag>
+                  ))}
+                </span>
+              </div>
+              {canEdit ? (
+                <div className="flex flex-wrap gap-8">
+                  {(b.counts.Proposed ?? 0) > 0 ? (
+                    <ActionForm
+                      action={sendAgreementBatchAction}
+                      hidden={{ ...hidden, batchId: b.id }}
+                      fields={[]}
+                      inline
+                      submitLabel={t("agreementBatches.send")}
+                    />
+                  ) : null}
+                  {(b.counts.Signed ?? 0) > 0 ? (
+                    <ActionForm
+                      action={countersignAgreementBatchAction}
+                      hidden={{ ...hidden, batchId: b.id }}
+                      fields={[]}
+                      inline
+                      submitLabel={t("agreementBatches.countersign")}
+                    />
+                  ) : null}
+                </div>
+              ) : null}
+            </li>
+          ))}
+        </ul>
+      </Section>
+    </>
   );
 }
 

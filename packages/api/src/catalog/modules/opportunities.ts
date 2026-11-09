@@ -22,6 +22,15 @@ import { Constants } from "@xos/data/database.types";
 const label = (values: readonly [string, ...string[]], description: string) =>
   z.enum(values).meta({ description, example: values[0] });
 
+/**
+ * The document kinds v1 answers. A Quote document (3023, B13) follows its quote and is read through
+ * /quotes; engagementDocuments omits it (handlers/opportunities.ts), so the frozen enum stays as
+ * released and never gains a value a v1 client cannot read (ADR 0003, ADR 0152).
+ */
+const V1_ENGAGEMENT_DOCUMENT_KINDS = Constants.app.Enums.engagement_document_kind.filter(
+  (kind) => kind !== "Quote",
+) as unknown as readonly [string, ...string[]];
+
 export const additions = defineAdditions("Opportunities", {
   actions: {
     engagements: [
@@ -336,7 +345,7 @@ export const additions = defineAdditions("Opportunities", {
         nullable: ["document_id"],
         add: {
           document_kind: {
-            schema: label(Constants.app.Enums.engagement_document_kind, "Kind of document."),
+            schema: label(V1_ENGAGEMENT_DOCUMENT_KINDS, "Kind of document."),
             create: "required",
             update: false,
           },

@@ -134,7 +134,8 @@
     "share": "Copiar o compartir el enlace",
     "linkHelp": "Copia o comparte el enlace ahora. Se muestra solo una vez; después de salir de esta pantalla solo podrás obtener uno nuevo.",
     "rotated": "Se emitió un enlace nuevo. El enlace anterior dejó de funcionar.",
-    "revoked": "Calendario revocado. Su enlace dejó de funcionar."
+    "revoked": "Calendario revocado. Su enlace dejó de funcionar.",
+    "cancelEdit": "Cancelar edición"
   },
   "connections": {
     "gone": "Eso ya no está. La lista está al día.",

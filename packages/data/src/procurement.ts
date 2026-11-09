@@ -1,4 +1,5 @@
 import type { Database, XosClient } from "./client.ts";
+import { parseTstzRange, type InstantRange } from "./ranges.ts";
 import {
   blankToNull,
   deletedNow,
@@ -226,6 +227,12 @@ export interface RfqResponseLine {
   /** Null when the vendor did not quote the line. */
   readonly unitPriceMinor: number | null;
   readonly currencyCode: string;
+  /** From the request line it answers (B11, G-97): a sub-hire's order line stays a rental for its need. */
+  readonly unitBasis: string | null;
+  readonly acquisitionKind: AcquisitionKind;
+  /** As PostgREST returns a tstzrange; null unless Rental. */
+  readonly hirePeriod: string | null;
+  readonly procurementNeedId: string | null;
 }
 
 export interface RfqResponse {
@@ -252,6 +259,15 @@ export function nullAwareTotal(amounts: readonly (number | null)[]): number | nu
   return (amounts as number[]).reduce((a, b) => a + b, 0);
 }
 
+/** The facts a quoted line takes from the request line it answers (B11, G-97). */
+interface RfqLineFacts {
+  element_id: string | null;
+  unit_basis: string | null;
+  acquisition_kind: AcquisitionKind;
+  hire_period: unknown;
+  procurement_need_id: string | null;
+}
+
 /**
  * Responses to an RFQ. Responses are sealed: row level security returns none until the RFQ is
  * Closed or Awarded, so an empty list on an Issued RFQ means sealed, not absent.
@@ -264,7 +280,7 @@ export async function listRfqResponses(
     db
       .from("rfq_responses")
       .select(
-        "id, vendor_id, submitted_at, valid_until, vendor:vendors(counterparty:counterparties(counterparty_name)), rfq_response_lines(id, description, element_id, quantity, unit_price_minor, currency_code, deleted_at)",
+        "id, vendor_id, submitted_at, valid_until, vendor:vendors(counterparty:counterparties(counterparty_name)), rfq_response_lines(id, description, element_id, quantity, unit_price_minor, currency_code, deleted_at, rfq_line:rfq_lines(element_id, unit_basis, acquisition_kind, hire_period, procurement_need_id))",
       )
       .eq("rfq_id", rfqId)
       .is("deleted_at", null)
@@ -272,14 +288,21 @@ export async function listRfqResponses(
     (row) => {
       const lines = (row.rfq_response_lines ?? [])
         .filter((l) => l.deleted_at === null)
-        .map((l) => ({
-          id: l.id,
-          description: l.description,
-          elementId: l.element_id,
-          quantity: l.quantity,
-          unitPriceMinor: l.unit_price_minor,
-          currencyCode: l.currency_code,
-        }));
+        .map((l) => {
+          const asked = (l as unknown as { rfq_line: RfqLineFacts | null }).rfq_line;
+          return {
+            id: l.id,
+            description: l.description,
+            elementId: l.element_id ?? asked?.element_id ?? null,
+            quantity: l.quantity,
+            unitPriceMinor: l.unit_price_minor,
+            currencyCode: l.currency_code,
+            acquisitionKind: asked?.acquisition_kind ?? ("Purchase" as AcquisitionKind),
+            hirePeriod: (asked?.hire_period as string | null | undefined) ?? null,
+            procurementNeedId: asked?.procurement_need_id ?? null,
+            unitBasis: asked?.unit_basis ?? null,
+          };
+        });
       return {
         id: row.id,
         vendorId: row.vendor_id,
@@ -294,6 +317,8 @@ export async function listRfqResponses(
 }
 
 export interface ResponseLineInput {
+  /** The request line this quoted line answers, when it answers one (B11, G-97). */
+  readonly rfqLineId?: string | null;
   readonly description: string;
   readonly quantity: number;
   readonly unitPriceMinor: number | null;
@@ -328,6 +353,7 @@ export async function recordRfqResponse(
         element_id: blankToNull(l.elementId),
         quantity: l.quantity,
         unit_price_minor: l.unitPriceMinor,
+        rfq_line_id: blankToNull(l.rfqLineId),
       })),
     }),
   );
@@ -452,22 +478,12 @@ export interface PoLine {
   /** Rental lines only: when the hire starts and ends (ISO instants). */
   readonly hireStartsAt: string | null;
   readonly hireEndsAt: string | null;
+  /** The act's engagement the line is bought for (6547). */
+  readonly engagementId: string | null;
 }
 
 /** A tstzrange as PostgREST returns it (`["2027-06-01 12:00:00+00","2027-06-05 12:00:00+00")`), split into its bounds. */
-export function parseHirePeriod(value: string | null | undefined): {
-  readonly startsAt: string | null;
-  readonly endsAt: string | null;
-} {
-  const match = value?.match(/^[[(]"?([^",]*)"?,"?([^",]*)"?[\])]$/);
-  if (!match) return { startsAt: null, endsAt: null };
-  const bound = (raw: string | undefined) => {
-    if (!raw) return null;
-    const at = new Date(raw.replace(" ", "T").replace(/([+-]\d\d)$/, "$1:00"));
-    return Number.isNaN(at.getTime()) ? null : at.toISOString();
-  };
-  return { startsAt: bound(match[1]), endsAt: bound(match[2]) };
-}
+export const parseHirePeriod: (value: string | null | undefined) => InstantRange = parseTstzRange;
 
 /** A hire period as a tstzrange literal, start included and end excluded; null unless both bounds are given. */
 export function hirePeriodLiteral(
@@ -488,7 +504,7 @@ export async function listPoLines(
     db
       .from("po_lines")
       .select(
-        "id, line_number, description, element_id, budget_line_id, quantity, unit_basis, unit_price_minor, acquisition_kind, hire_period, receipt_lines(quantity_received, deleted_at)",
+        "id, line_number, description, element_id, budget_line_id, quantity, unit_basis, unit_price_minor, acquisition_kind, hire_period, engagement_id, receipt_lines(quantity_received, deleted_at)",
       )
       .eq("purchase_order_id", purchaseOrderId)
       .is("deleted_at", null)
@@ -499,6 +515,7 @@ export async function listPoLines(
       description: row.description,
       elementId: row.element_id,
       budgetLineId: row.budget_line_id,
+      engagementId: row.engagement_id,
       quantity: row.quantity,
       unitBasis: row.unit_basis,
       unitPriceMinor: row.unit_price_minor,
@@ -616,6 +633,205 @@ export async function removePoLine(db: XosClient, id: string): Promise<Result<nu
   return touched(db.from("po_lines").update(deletedNow()).eq("id", id).select("id"));
 }
 
+/** Names the act a line is bought for; an Approved or Sent order's line may change this and nothing else (6547). */
+export async function setPoLineEngagement(
+  db: XosClient,
+  id: string,
+  engagementId: string | null,
+): Promise<Result<null>> {
+  return touched(
+    db.from("po_lines").update({ engagement_id: engagementId }).eq("id", id).select("id"),
+  );
+}
+
+// Payment schedule (B12, 6543) ----------------------------------------------------------------------------------
+
+export type PoInstalmentStatus = "Scheduled" | "Invoiced" | "Part paid" | "Paid";
+
+/**
+ * One instalment of an order's payment schedule (app.po_instalment_schedule). A Canceled or soft-deleted bill is no
+ * bill. Withheld columns are null with their flag: never partial.
+ */
+export interface PoInstalment {
+  readonly id: string;
+  readonly number: number;
+  readonly label: string;
+  readonly dueOn: string;
+  readonly amountMinor: number;
+  readonly currencyCode: string;
+  readonly invoiceId: string | null;
+  readonly invoiceNumber: string | null;
+  readonly invoiceTotalMinor: number | null;
+  readonly paidMinor: number | null;
+  readonly scheduledMinor: number | null;
+  readonly status: PoInstalmentStatus;
+  readonly isInvoiceWithheld: boolean;
+  readonly isPaymentWithheld: boolean;
+  readonly scheduleTotalMinor: number;
+  /** Lines, approved change orders, tax and shipping; null while a line is unpriced. */
+  readonly orderTotalMinor: number | null;
+}
+
+export async function listPoInstalments(
+  db: XosClient,
+  purchaseOrderId: string,
+): Promise<Result<PoInstalment[]>> {
+  return readRows(
+    db.rpc("po_instalment_schedule", { p_purchase_order_id: purchaseOrderId }),
+    (row) => ({
+      id: row.instalment_id,
+      number: row.instalment_number,
+      label: row.label,
+      dueOn: row.due_on,
+      amountMinor: row.amount_minor,
+      currencyCode: row.currency_code.trim(),
+      invoiceId: row.invoice_id,
+      invoiceNumber: row.invoice_number,
+      invoiceTotalMinor: row.invoice_total_minor,
+      paidMinor: row.paid_minor,
+      scheduledMinor: row.scheduled_minor,
+      status: row.status as PoInstalmentStatus,
+      isInvoiceWithheld: row.is_invoice_withheld,
+      isPaymentWithheld: row.is_payment_withheld,
+      scheduleTotalMinor: row.schedule_total_minor,
+      orderTotalMinor: row.order_total_minor,
+    }),
+  );
+}
+
+/** Adds an instalment at the next number of the live schedule. */
+export async function addPoInstalment(
+  db: XosClient,
+  input: {
+    readonly purchaseOrderId: string;
+    readonly label: string;
+    readonly dueOn: string;
+    readonly amountMinor: number;
+  },
+): Promise<Result<{ id: string }>> {
+  const last = await db
+    .from("po_payment_instalments")
+    .select("instalment_number")
+    .eq("purchase_order_id", input.purchaseOrderId)
+    .is("deleted_at", null)
+    .order("instalment_number", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (last.error) return fail(toDataError(last.error));
+  return insertedId(
+    db
+      .from("po_payment_instalments")
+      .insert({
+        purchase_order_id: input.purchaseOrderId,
+        instalment_number: (last.data?.instalment_number ?? 0) + 1,
+        label: input.label.trim(),
+        due_on: input.dueOn,
+        amount_minor: input.amountMinor,
+      } as Tables["po_payment_instalments"]["Insert"])
+      .select("id")
+      .single(),
+  );
+}
+
+export async function removePoInstalment(db: XosClient, id: string): Promise<Result<null>> {
+  return touched(db.from("po_payment_instalments").update(deletedNow()).eq("id", id).select("id"));
+}
+
+/** Links a vendor bill to an unbilled instalment; the guard refuses a bill it does not accept (po_instalment_invoice). */
+export async function linkPoInstalmentBill(
+  db: XosClient,
+  id: string,
+  invoiceId: string,
+): Promise<Result<null>> {
+  return touched(
+    db.from("po_payment_instalments").update({ invoice_id: invoiceId }).eq("id", id).select("id"),
+  );
+}
+
+export interface LinkableBill {
+  readonly id: string;
+  readonly number: string | null;
+}
+
+/**
+ * The bills an order's instalment can link, exactly as the guard accepts them: live, non-Canceled payables of the
+ * order's project, vendor and currency, not matched to another order and linked to no live instalment. A reader without
+ * finance.invoice.read gets none, and the select stays hidden.
+ */
+export async function listLinkableBills(
+  db: XosClient,
+  order: {
+    readonly id: string;
+    readonly projectId: string;
+    readonly vendorId: string;
+    readonly currencyCode: string;
+  },
+): Promise<Result<LinkableBill[]>> {
+  const vendor = await db
+    .from("vendors")
+    .select("counterparty_id")
+    .eq("id", order.vendorId)
+    .maybeSingle();
+  if (vendor.error) return fail(toDataError(vendor.error));
+  if (!vendor.data?.counterparty_id) return ok([]);
+  const bills = await db
+    .from("invoices")
+    .select("id, invoice_number")
+    .eq("project_id", order.projectId)
+    .eq("direction", "Payable")
+    .eq("counterparty_id", vendor.data.counterparty_id)
+    .eq("currency_code", order.currencyCode)
+    .neq("invoice_state", "Canceled")
+    .is("deleted_at", null);
+  if (bills.error) return fail(toDataError(bills.error));
+  const ids = bills.data.map((b) => b.id);
+  if (ids.length === 0) return ok([]);
+  const [matches, linked] = await Promise.all([
+    db
+      .from("invoice_matches")
+      .select("invoice_id")
+      .in("invoice_id", ids)
+      .neq("purchase_order_id", order.id)
+      .is("deleted_at", null),
+    db
+      .from("po_payment_instalments")
+      .select("invoice_id")
+      .in("invoice_id", ids)
+      .is("deleted_at", null),
+  ]);
+  if (matches.error) return fail(toDataError(matches.error));
+  if (linked.error) return fail(toDataError(linked.error));
+  const taken = new Set(
+    [...matches.data, ...linked.data].flatMap((r) => (r.invoice_id ? [r.invoice_id] : [])),
+  );
+  return ok(
+    bills.data.filter((b) => !taken.has(b.id)).map((b) => ({ id: b.id, number: b.invoice_number })),
+  );
+}
+
+/** A look-alike of an order (6546): a warning, never a refusal. */
+export interface PurchaseOrderDuplicate {
+  readonly candidateId: string;
+  readonly sameVendor: boolean;
+  readonly totalDeltaMinor: number;
+  readonly dayGap: number;
+}
+
+export async function listPurchaseOrderDuplicates(
+  db: XosClient,
+  purchaseOrderId: string,
+): Promise<Result<PurchaseOrderDuplicate[]>> {
+  return readRows(
+    db.rpc("purchase_order_duplicate_candidates", { p_purchase_order_ids: [purchaseOrderId] }),
+    (row) => ({
+      candidateId: row.candidate_id,
+      sameVendor: row.same_vendor,
+      totalDeltaMinor: row.total_delta_minor,
+      dayGap: row.day_gap,
+    }),
+  );
+}
+
 /**
  * Approves a Proposed order (app.approve_purchase_order): never by its creator, fully priced,
  * within spend authority. `approved` is false while a second approver is still needed.
@@ -673,6 +889,11 @@ export async function createPurchaseOrderFromResponse(
         element_id: l.elementId,
         quantity: l.quantity,
         unit_price_minor: l.unitPriceMinor,
+        // B11 (G-97): a sub-hire stays a rental at its hire period, and serves its need once approved.
+        unit_basis: l.unitBasis,
+        acquisition_kind: l.acquisitionKind,
+        hire_period: l.hirePeriod,
+        procurement_need_id: l.procurementNeedId,
       }) as Tables["po_lines"]["Insert"],
   );
   const inserted = await readRows(db.from("po_lines").insert(lines).select("id"), (r) => r);

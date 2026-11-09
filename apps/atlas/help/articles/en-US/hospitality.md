@@ -47,3 +47,7 @@ The Matrix view of accommodation blocks shows each block's rooms assigned of hel
 ## Rooming list
 
 The project's Rooming section lists the people of the travel party who need a room: the stays their passes or travel dates suggest, the rooms they hold, the nights still uncovered and what they cost. Filter to Missing, Partial or No dates. Assign room opens the allocation to issue when the person has one approved, and otherwise the room form filled in with the suggested stay; nothing is saved until you confirm. Each read of the list is recorded in each person's access log, so it loads only when you ask, and it cannot be exported.
+
+## Read itineraries with Aurora
+
+On a Travel fulfillment, **Read Itineraries** reads up to 25 confirmations. Each file is one Aurora request from this month's allowance. You choose who each passenger is, and you confirm each zone, because Aurora infers zones from the airport or city. A year the confirmation does not print is the next time that date comes, and it says so. A line matching a segment already booked starts unchecked. Lines you leave stay open for 7 days, so you can come back to them.

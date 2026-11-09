@@ -35,12 +35,15 @@
     "lineChosen": "{number}. {line} ({budget})",
     "photo": "The receipt photo",
     "retake": "Retake the photo",
-    "save": "Save expense"
+    "save": "Save expense",
+    "paidMyself": "I paid this myself",
+    "paidMyselfHelp": "Turn this on if it came out of your own pocket, so finance can reimburse you."
   },
   "list": {
     "empty": "No expenses yet. Add one from a receipt.",
     "title": "Your expenses",
-    "waiting": "Waiting to upload"
+    "waiting": "Waiting to upload",
+    "credit": "Credit"
   },
   "problem": {
     "amount": "Enter an amount above zero.",
@@ -56,5 +59,11 @@
     "paid": "Paid",
     "proposed": "Submitted",
     "rejected": "Rejected"
+  },
+  "reimbursement": {
+    "recorded": "Recorded",
+    "owed": "Owed to you",
+    "paid": "Paid to you",
+    "notOwed": "Not owed"
   }
 }

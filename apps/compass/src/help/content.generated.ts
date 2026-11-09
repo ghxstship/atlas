@@ -719,7 +719,9 @@ export const COMPASS_HELP: HelpContent = {
                 { t: "strong", v: "budget line" },
                 { t: "text", v: " the expense posts to, and tap " },
                 { t: "strong", v: "Save expense" },
-                { t: "text", v: "." },
+                { t: "text", v: ". If it came out of your own pocket, turn on " },
+                { t: "strong", v: "I paid this myself" },
+                { t: "text", v: " first." },
               ],
             ],
           },
@@ -748,6 +750,28 @@ export const COMPASS_HELP: HelpContent = {
               {
                 t: "text",
                 v: "Your expenses list shows each one's state, such as Submitted or Approved. Someone else approves it; you cannot approve your own.",
+              },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              { t: "text", v: "An expense you paid yourself also shows where it stands: " },
+              { t: "strong", v: "Recorded" },
+              { t: "text", v: " until it is approved, " },
+              { t: "strong", v: "Owed to you" },
+              { t: "text", v: " once approved, and " },
+              { t: "strong", v: "Paid to you" },
+              { t: "text", v: " once finance records the reimbursement. " },
+              { t: "strong", v: "Not owed" },
+              {
+                t: "text",
+                v: " means it was rejected or canceled. Compass cannot see credits finance recorded against your expense, so one credited in full can still say ",
+              },
+              { t: "strong", v: "Owed to you" },
+              {
+                t: "text",
+                v: "; ask finance if the amount looks wrong. XOS records the reimbursement and moves no money.",
               },
             ],
           },
@@ -1060,6 +1084,58 @@ export const COMPASS_HELP: HelpContent = {
               },
               { t: "strong", v: "Forget this kiosk" },
               { t: "text", v: " and enters the new device key." },
+            ],
+          },
+        ],
+      },
+      {
+        slug: "logistics-gate",
+        title: "Gate",
+        summary:
+          "Find a delivery booking at the gate and move it through arrival, release and check-in.",
+        kind: "workflow",
+        nodes: ["logistics.gate"],
+        order: 2,
+        body: [
+          {
+            t: "ul",
+            items: [
+              [
+                { t: "strong", v: "Pick a gate" },
+                {
+                  t: "text",
+                  v: " to see today's delivery windows, in the project's time zone, with how many vehicles are booked.",
+                },
+              ],
+              [
+                { t: "strong", v: "Find a booking" },
+                {
+                  t: "text",
+                  v: " by its reference code or plate. The search runs on this phone, so it works with no signal.",
+                },
+              ],
+              [
+                { t: "strong", v: "Arrived" },
+                {
+                  t: "text",
+                  v: ": the vehicle is at the gate. Enter the plate when the booking has none.",
+                },
+              ],
+              [
+                { t: "strong", v: "Release" },
+                { t: "text", v: " lets a waiting vehicle into the site, and " },
+                { t: "strong", v: "Check In" },
+                { t: "text", v: " records it at the dock." },
+              ],
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Every change works offline and sends once when you reconnect. Choose a project first.",
+              },
             ],
           },
         ],
@@ -1542,6 +1618,45 @@ export const COMPASS_HELP: HelpContent = {
               { t: "text", v: " puts a found item's asset tag on a blank NFC sticker." },
             ],
           },
+          { t: "h2", v: "In and Out" },
+          {
+            t: "p",
+            c: [
+              { t: "text", v: "In Credential mode, choose " },
+              { t: "strong", v: "In" },
+              { t: "text", v: " or " },
+              { t: "strong", v: "Out" },
+              {
+                t: "text",
+                v: " for the access point. This device remembers your choice. Out is never refused. A denied scan says why.",
+              },
+            ],
+          },
+          { t: "p", c: [{ t: "text", v: "A guest's pass opens that guest at the door." }] },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "If you may issue badges and read the scan log, a denial other than a revoked badge offers ",
+              },
+              { t: "strong", v: "Override" },
+              {
+                t: "text",
+                v: " for 15 minutes: say why, then confirm. Offline, it waits after the scan; if the scan uploads as granted, the queue says the override was not needed.",
+              },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              { t: "strong", v: "Inside now" },
+              {
+                t: "text",
+                v: " counts the people scanned in at the access point. It needs the scan log.",
+              },
+            ],
+          },
           { t: "h2", v: "Your badge" },
           {
             t: "p",
@@ -1733,6 +1848,14 @@ export const COMPASS_HELP: HelpContent = {
           {
             t: "ul",
             items: [
+              [
+                {
+                  t: "text",
+                  v: "Give a feed a name, which your calendar shows, and choose what it shows: shifts, meetings, milestones, deadlines and cues, such as your set times. ",
+                },
+                { t: "strong", v: "Edit" },
+                { t: "text", v: " changes them without changing the link." },
+              ],
               [
                 { t: "strong", v: "Add a feed" },
                 { t: "text", v: " makes a new link. It's shown only once: tap " },
@@ -2887,6 +3010,15 @@ export const COMPASS_HELP: HelpContent = {
               },
             ],
           },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Scan a guest's pass on the Scan tab, in Credential mode, or type the code printed on it here, to open that guest with their pass type, table and host. A pass that is not on tonight's list says so, and a pass already used says who came in with it and when. When a guest checks in, their host hears that they arrived.",
+              },
+            ],
+          },
         ],
       },
       {
@@ -3267,6 +3399,31 @@ export const COMPASS_HELP: HelpContent = {
             ],
           },
           { t: "p", c: [{ t: "text", v: "Thresholds are set in Atlas." }] },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "For a US venue with the official feed on, Weather also shows the National Weather Service warnings for the venue.",
+              },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              { t: "text", v: "A dispatcher can " },
+              { t: "strong", v: "Call hold" },
+              {
+                t: "text",
+                v: ": write or keep the message and send it. It reaches the alert-role people, the dispatchers and everyone inside the project's zones. ",
+              },
+              { t: "strong", v: "All clear" },
+              {
+                t: "text",
+                v: " ends it. Offline, both wait in the Offline Queue. A hold sent late still goes out and says when you called it; an all-clear that reaches the server more than 10 minutes after you gave it is not sent, so check the weather and give it again.",
+              },
+            ],
+          },
         ],
       },
       {
@@ -4054,6 +4211,8 @@ export const COMPASS_HELP: HelpContent = {
                 { t: "strong", v: "partida del presupuesto" },
                 { t: "text", v: " en la que se registra el gasto y toca " },
                 { t: "strong", v: "Guardar gasto" },
+                { t: "text", v: ". Si salió de tu bolsillo, activa antes " },
+                { t: "strong", v: "Lo pagué yo" },
                 { t: "text", v: "." },
               ],
             ],
@@ -4083,6 +4242,28 @@ export const COMPASS_HELP: HelpContent = {
               {
                 t: "text",
                 v: "Tu lista de gastos muestra el estado de cada uno, como Enviado o Aprobado. Otra persona lo aprueba; no puedes aprobar el tuyo.",
+              },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              { t: "text", v: "Un gasto que pagaste tú también muestra cómo va: " },
+              { t: "strong", v: "Registrado" },
+              { t: "text", v: " hasta que se aprueba, " },
+              { t: "strong", v: "Te lo deben" },
+              { t: "text", v: " una vez aprobado y " },
+              { t: "strong", v: "Te lo pagaron" },
+              { t: "text", v: " cuando finanzas registra el reembolso. " },
+              { t: "strong", v: "No adeudado" },
+              {
+                t: "text",
+                v: " significa que se rechazó o se canceló. Compass no ve los créditos que finanzas registró contra tu gasto, así que uno acreditado por completo puede seguir diciendo ",
+              },
+              { t: "strong", v: "Te lo deben" },
+              {
+                t: "text",
+                v: "; pregunta a finanzas si el importe no parece correcto. XOS registra el reembolso y no mueve dinero.",
               },
             ],
           },
@@ -4402,6 +4583,58 @@ export const COMPASS_HELP: HelpContent = {
               },
               { t: "strong", v: "Olvidar este quiosco" },
               { t: "text", v: " y escribe la nueva clave del dispositivo." },
+            ],
+          },
+        ],
+      },
+      {
+        slug: "logistics-gate",
+        title: "Puerta",
+        summary:
+          "Busca una reserva de entrega en la puerta y llévala por la llegada, la liberación y el registro.",
+        kind: "workflow",
+        nodes: ["logistics.gate"],
+        order: 2,
+        body: [
+          {
+            t: "ul",
+            items: [
+              [
+                { t: "strong", v: "Elige una puerta" },
+                {
+                  t: "text",
+                  v: " para ver las franjas de entrega de hoy, en la zona horaria del proyecto, con cuántos vehículos hay reservados.",
+                },
+              ],
+              [
+                { t: "strong", v: "Busca una reserva" },
+                {
+                  t: "text",
+                  v: " por su código de referencia o su placa. La búsqueda se hace en este teléfono, así que funciona sin señal.",
+                },
+              ],
+              [
+                { t: "strong", v: "Llegó" },
+                {
+                  t: "text",
+                  v: ": el vehículo está en la puerta. Escribe la placa si la reserva no la tiene.",
+                },
+              ],
+              [
+                { t: "strong", v: "Liberar" },
+                { t: "text", v: " deja entrar a un vehículo en espera, y " },
+                { t: "strong", v: "Registrar" },
+                { t: "text", v: " lo anota en el muelle." },
+              ],
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Cada cambio funciona sin conexión y se envía una vez cuando vuelves a conectarte. Primero elige un proyecto.",
+              },
             ],
           },
         ],
@@ -4867,7 +5100,7 @@ export const COMPASS_HELP: HelpContent = {
                 { t: "strong", v: "Acreditación" },
                 {
                   t: "text",
-                  v: ": elige el punto de acceso y escanea una credencial. Compass indica si se concede o se niega el acceso, con el motivo.",
+                  v: ": elige el punto de acceso y escanea una credencial. Compass concede o niega el acceso, con el motivo.",
                 },
               ],
               [
@@ -4892,6 +5125,45 @@ export const COMPASS_HELP: HelpContent = {
               {
                 t: "text",
                 v: " pone la etiqueta del equipo encontrado en un adhesivo NFC en blanco.",
+              },
+            ],
+          },
+          { t: "h2", v: "Entrada y Salida" },
+          {
+            t: "p",
+            c: [
+              { t: "text", v: "Elige " },
+              { t: "strong", v: "Entrada" },
+              { t: "text", v: " o " },
+              { t: "strong", v: "Salida" },
+              {
+                t: "text",
+                v: " para el punto de acceso. Este dispositivo recuerda tu elección. La salida nunca se niega.",
+              },
+            ],
+          },
+          { t: "p", c: [{ t: "text", v: "El pase de un invitado lo abre en la puerta." }] },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Si puedes emitir credenciales y leer el registro de escaneos, una denegación (salvo una credencial revocada) ofrece ",
+              },
+              { t: "strong", v: "Anular" },
+              {
+                t: "text",
+                v: " 15 minutos: di por qué y confirma. Sin conexión espera tras el escaneo; si este se sube concedido, la cola indica que no hacía falta.",
+              },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              { t: "strong", v: "Adentro ahora" },
+              {
+                t: "text",
+                v: " cuenta quién entró con escaneo en el punto. Requiere el registro de escaneos.",
               },
             ],
           },
@@ -5102,6 +5374,14 @@ export const COMPASS_HELP: HelpContent = {
           {
             t: "ul",
             items: [
+              [
+                {
+                  t: "text",
+                  v: "Dale un nombre a un calendario, que tu aplicación muestra, y elige qué muestra: turnos, reuniones, hitos, fechas límite y cues, como tus horarios de presentación. ",
+                },
+                { t: "strong", v: "Editar" },
+                { t: "text", v: " los cambia sin cambiar el enlace." },
+              ],
               [
                 { t: "strong", v: "Agregar un calendario" },
                 { t: "text", v: " crea un enlace nuevo. Se muestra solo una vez: toca " },
@@ -6300,6 +6580,15 @@ export const COMPASS_HELP: HelpContent = {
               },
             ],
           },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Escanea el pase de un invitado en la pestaña Escanear, en el modo Acreditación, o escribe aquí el código impreso en él, para abrir a ese invitado con su tipo de pase, su mesa y su anfitrión. Un pase que no está en la lista de esta noche lo indica, y un pase ya usado dice quién entró con él y cuándo. Cuando un invitado se registra, su anfitrión recibe aviso de que llegó.",
+              },
+            ],
+          },
         ],
       },
       {
@@ -6716,6 +7005,31 @@ export const COMPASS_HELP: HelpContent = {
             ],
           },
           { t: "p", c: [{ t: "text", v: "Los umbrales se definen en Atlas." }] },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "En un recinto de EE. UU. con el servicio oficial activado, Clima también muestra los avisos del Servicio Meteorológico Nacional para el recinto.",
+              },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              { t: "text", v: "Quien despacha puede elegir " },
+              { t: "strong", v: "Suspender por clima" },
+              {
+                t: "text",
+                v: ": escribe o deja el mensaje y envíalo. Llega a las personas de los roles de alerta, a quienes despachan y a todos los que están dentro de las zonas del proyecto. ",
+              },
+              { t: "strong", v: "Fin de la suspensión" },
+              {
+                t: "text",
+                v: " la termina. Sin conexión, ambos esperan en la Cola sin conexión. Una suspensión que llega tarde se envía igual y dice cuándo la declaraste; un fin de suspensión que llega al servidor más de 10 minutos después de darlo no se envía, así que revisa el clima y dalo de nuevo.",
+              },
+            ],
+          },
         ],
       },
       {

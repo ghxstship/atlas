@@ -101,10 +101,12 @@
       "pay_max_minor": "Pay up to",
       "pay_min_minor": "Pay from",
       "price_minor": "Fare",
+      "printed_total_minor": "Printed total",
       "proposed_fee_minor": "Proposed fee",
       "rate_minor": "Rate",
       "shipping_minor": "Shipping",
-      "tax_minor": "Tax"
+      "tax_minor": "Tax",
+      "printed_total_minor": "Printed total"
     }
   },
   "coedit": {

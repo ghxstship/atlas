@@ -209,7 +209,12 @@ describe("preview of what a request sends", () => {
         [{ collection: "projects", id: PROJECT }],
         [
           { id: PROJECT, table: "app.projects", data: { id: PROJECT, name: "Northwind Summer" } },
-          { id: PROJECT, table: "app.gate_criteria_status", data: { gate_readiness: [] } },
+          {
+            id: PROJECT,
+            table: "app.gate_criteria_status",
+            data: { gate_readiness: [] },
+            composed: true,
+          },
         ],
         catalog,
         neverSend,

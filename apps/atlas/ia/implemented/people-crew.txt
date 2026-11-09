@@ -2,6 +2,8 @@
 crew.schedule
 crew.shifts
 crew.swaps
+crew.shortages
+crew.positions
 crew.time-entries
 crew.timesheets
 crew.rate-cards

@@ -10,6 +10,7 @@
     "./client": "./src/client.ts",
     "./entry": "./src/entry.ts",
     "./lists": "./src/lists.ts",
+    "./intake": "./src/intake.ts",
     "./conversation": "./src/conversation.ts",
     "./embeddings": "./src/embeddings.ts",
     "./anthropic": "./src/anthropic.ts",

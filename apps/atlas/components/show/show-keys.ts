@@ -1,4 +1,4 @@
-import { isCharacterKey } from "@xos/schemas/shortcuts/keys";
+import { isCharacterKey, type Platform } from "@xos/schemas/shortcuts/keys";
 
 /**
  * The showcaller console's keys (ADR 0131): which console action a chord pressed in the console makes,
@@ -8,7 +8,15 @@ import { isCharacterKey } from "@xos/schemas/shortcuts/keys";
  */
 
 export type ShowAction =
-  "go" | "standby" | "previous" | "next" | "jump" | "nudge-later" | "nudge-earlier" | "department";
+  | "go"
+  | "standby"
+  | "previous"
+  | "next"
+  | "jump"
+  | "nudge-later"
+  | "nudge-earlier"
+  | "department"
+  | "chat";
 
 const ACTIONS: readonly ShowAction[] = [
   "go",
@@ -19,6 +27,8 @@ const ACTIONS: readonly ShowAction[] = [
   "nudge-later",
   "nudge-earlier",
   "department",
+  // show.chat: the console hands focus to the show channel's message box beside it (B3, ADR 0142).
+  "chat",
 ];
 
 /** The console action a registry id names: show.next and show.deck.next are both Next. */
@@ -65,4 +75,28 @@ export function stepTarget(
   return direction === 1
     ? uncalled.find((i) => i > from)
     : [...uncalled].reverse().find((i) => i < from);
+}
+
+/**
+ * The show scope's default keys by registry id, for the showcaller portal (B3, ADR 0142), which runs outside the
+ * Atlas shell and so has no person whose bindings to read. The registry is the source, as in the shell.
+ */
+export function defaultShowKeys(
+  shell: {
+    readonly shortcuts: readonly {
+      readonly id: string;
+      readonly scope: string;
+      readonly keys: string | null;
+      readonly mac: string | null;
+    }[];
+  },
+  platform: Platform,
+): Readonly<Record<string, string>> {
+  const out: Record<string, string> = {};
+  for (const shortcut of shell.shortcuts) {
+    if (shortcut.scope !== "show") continue;
+    const keys = platform === "mac" && shortcut.mac !== null ? shortcut.mac : shortcut.keys;
+    if (keys !== null) out[shortcut.id] = keys;
+  }
+  return out;
 }

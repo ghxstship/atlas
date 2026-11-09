@@ -44,8 +44,27 @@ const INTERNAL_SOURCES: readonly Source[] = [
     schema: "app",
     relation: "shifts",
     select:
-      "id,org_id,project_id,membership_id,engagement_id,roster_entry_id,role_code,starts_at,ends_at,time_zone,shift_state,scope_node_id",
+      "id,org_id,project_id,membership_id,engagement_id,roster_entry_id,project_position_id,role_code,starts_at,ends_at,time_zone,shift_state,scope_node_id",
     projectColumn: "project_id",
+  },
+  {
+    // No-shows of the project's shifts (B9), so the Crew tab leaves out who was marked. Never the reason: it is
+    // Confidential, and the device only needs to know the mark exists. A withdrawn mark comes down with its deleted_at
+    // and stays on the device, since a project's pull removes nothing, so the Crew tab reads live marks only.
+    table: "shift_no_shows",
+    schema: "app",
+    relation: "shift_no_shows",
+    select: "id,org_id,project_id,shift_id,recorded_at,deleted_at",
+    projectColumn: "project_id",
+  },
+  {
+    // The org's break types (B9), so Break offers them offline. A retired type is still readable and the device drops
+    // it: a punch naming it is refused break_type_unknown.
+    table: "break_types",
+    schema: "app",
+    relation: "break_types",
+    select: "id,org_id,name,paid,planned_minutes,is_default,deleted_at",
+    map: (r) => (r["deleted_at"] ? {} : r),
   },
   {
     table: "clock_punches",
@@ -175,14 +194,22 @@ const INTERNAL_SOURCES: readonly Source[] = [
     schema: "app",
     relation: "dock_slots",
     select:
-      "id,org_id,project_id,zone_id,shipment_id,starts_at,ends_at,checked_in_at,engagement_id",
+      "id,org_id,project_id,zone_id,shipment_id,starts_at,ends_at,checked_in_at,engagement_id,delivery_window_id,reference_code,vehicle_identifier",
+    projectColumn: "project_id",
+  },
+  {
+    table: "delivery_windows",
+    schema: "app",
+    relation: "delivery_windows",
+    select: "id,org_id,project_id,zone_id,starts_at,ends_at,vehicle_limit,is_open",
     projectColumn: "project_id",
   },
   {
     table: "gate_queue",
     schema: "app",
     relation: "gate_queue",
-    select: "id,org_id,project_id,shipment_id,vehicle_identifier,arrived_at,released_at",
+    select:
+      "id,org_id,project_id,shipment_id,vehicle_identifier,arrived_at,released_at,dock_slot_id",
     projectColumn: "project_id",
   },
   {
@@ -257,7 +284,7 @@ const INTERNAL_SOURCES: readonly Source[] = [
     schema: "app",
     relation: "expenses",
     select:
-      "id,org_id,budget_line_id,submitter_person_id,description,incurred_on,amount_minor,currency_code,expense_state,created_at,deleted_at",
+      "id,org_id,budget_line_id,submitter_person_id,description,incurred_on,amount_minor,currency_code,expense_state,created_at,is_reimbursable,credit_of_expense_id,deleted_at",
     personColumn: "submitter_person_id",
     map: (r) => (r["deleted_at"] ? {} : { ...r, amount_minor: Number(r["amount_minor"]) }),
   },
@@ -374,8 +401,16 @@ const EXTERNAL_SOURCES: readonly Source[] = [
     // Agency staff's own roster shifts, and for a staffing agency's lead its slots and its roster's shifts with the
     // holder's name (R12), so the lead clocks the team in offline.
     select:
-      "id,engagement_id,roster_entry_id,holder_name,is_agency_slot,project_id,project_name,role_code,job_title,starts_at,ends_at,time_zone,shift_state",
+      "id,engagement_id,roster_entry_id,holder_name,is_agency_slot,project_position_id,has_no_show,project_id,project_name,role_code,job_title,starts_at,ends_at,time_zone,shift_state",
     projectColumn: "project_id",
+  },
+  {
+    // The break types of the orgs the person works for (B9): crew and staff take breaks.
+    table: "break_types",
+    schema: "api_external",
+    relation: "break_types",
+    select: "id,org_id,name,paid,planned_minutes,is_default",
+    audiences: ["crew", "staff"],
   },
   {
     table: "time_entries",
@@ -420,7 +455,7 @@ const EXTERNAL_SOURCES: readonly Source[] = [
     schema: "api_external",
     relation: "dock_slots",
     select:
-      "id,project_id,project_name,zone_code,zone_name,shipment_id,direction,tracking_identifier,starts_at,ends_at,engagement_id",
+      "id,project_id,project_name,zone_code,zone_name,shipment_id,direction,tracking_identifier,starts_at,ends_at,engagement_id,reference_code",
     projectColumn: "project_id",
   },
   // The external More screens (Section 4.5.7 role table, A92), each for the role types whose menu lists it. Parents

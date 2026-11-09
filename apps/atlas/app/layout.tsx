@@ -13,6 +13,7 @@ import { localeDirection } from "@/i18n/negotiate";
 import { clientMessages, negotiatedLocale, uiMessages } from "@/i18n/request";
 import { PATH_HEADER } from "@/lib/auth/assurance";
 import { productAnalyticsConsent } from "@/lib/privacy/product-analytics";
+import { hidesCookieBanner, isPublicLivePath } from "@/lib/shell/public-live-path";
 import { THEME_COOKIE, themeFromCookie } from "@/lib/theme";
 import { PREFERENCES_COOKIE, decodePreferences, documentAttributes } from "@xos/ui/preferences";
 import "./globals.css";
@@ -41,11 +42,12 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
     productAnalyticsConsent(),
     headers(),
   ]);
-  // Public live link pages (P1, ADR 0130) set only the strictly necessary grant cookie and load no product
-  // analytics; a display screen also keeps the cookie banner off, so it never covers the timer on a TV.
+  // Public live link pages (P1, ADR 0130), stakeholder packs (B2, ADR 0141) and the showcaller portal (B3, ADR 0142) set
+  // only the strictly necessary grant cookie and load no product analytics; a display screen and the portal also keep
+  // the cookie banner off. A pack's own display item keeps the banner: the layout sees only the path, not the item.
   const path = requestHeaders.get(PATH_HEADER) ?? "";
-  const publicLive = /^\/share\/(view|screen)\//.test(path);
-  const screen = path.startsWith("/share/screen/");
+  const publicLive = isPublicLivePath(path);
+  const bannerOff = hidesCookieBanner(path);
   const theme = themeFromCookie(cookieStore.get(THEME_COOKIE)?.value);
   // The person's display preferences (A65-001), kept in a cookie the shell syncs from their settings.
   const preferences = decodePreferences(cookieStore.get(PREFERENCES_COOKIE)?.value);
@@ -59,12 +61,8 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
     >
       <body>
         <NextIntlClientProvider messages={clientMessages(locale)}>
-          <XOSProvider
-            locale={formatting}
-            preferences={preferences}
-            {...(overrides ? { messages: overrides } : {})}
-          >
-            {screen ? null : <CookieBanner />}
+          <XOSProvider locale={formatting} preferences={preferences} messages={overrides}>
+            {bannerOff ? null : <CookieBanner />}
             {children}
             <PwaRuntime analytics={analytics && !publicLive} />
           </XOSProvider>

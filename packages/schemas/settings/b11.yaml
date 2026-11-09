@@ -1,0 +1,45 @@
+# Settings registry: B11 (quote chasing, RRR-235, gap G-196, ADR 0150). Section 4.5.6. Field reference: see a30.yaml.
+# Labels live in the workflow message namespace.
+#
+# Vendors invited to an Issued RFQ who have not answered are reminded every interval, until the limit or the due date,
+# with one last reminder inside the final 24 hours. The hourly sweep (private.send_rfq_supplier_notices) reads these
+# through private.rfq_chase_settings.
+contributor: b11
+settings:
+  - key: procurement.quote_chase_enabled
+    type: boolean
+    default: true
+    scopes: [organization]
+    capability: procurement.rfq.issue
+    label: workflow.settings.quoteChaseEnabled.label
+    help: workflow.settings.quoteChaseEnabled.help
+    pages: { org: settings.approval-policies }
+    enforced_by:
+      - consumer: supabase/migrations/6538_rfq_quote_chase.sql#private.rfq_chase_settings
+        test: supabase/tests/6538_rfq_quote_chase.test.sql
+  - key: procurement.quote_chase_interval_hours
+    type: integer
+    default: 48
+    min: 12
+    max: 168
+    scopes: [organization]
+    capability: procurement.rfq.issue
+    label: workflow.settings.quoteChaseInterval.label
+    help: workflow.settings.quoteChaseInterval.help
+    pages: { org: settings.approval-policies }
+    enforced_by:
+      - consumer: supabase/migrations/6538_rfq_quote_chase.sql#private.rfq_chase_settings
+        test: supabase/tests/6538_rfq_quote_chase.test.sql
+  - key: procurement.quote_chase_limit
+    type: integer
+    default: 3
+    min: 1
+    max: 10
+    scopes: [organization]
+    capability: procurement.rfq.issue
+    label: workflow.settings.quoteChaseLimit.label
+    help: workflow.settings.quoteChaseLimit.help
+    pages: { org: settings.approval-policies }
+    enforced_by:
+      - consumer: supabase/migrations/6538_rfq_quote_chase.sql#private.rfq_chase_settings
+        test: supabase/tests/6538_rfq_quote_chase.test.sql

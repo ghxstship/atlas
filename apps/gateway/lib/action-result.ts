@@ -11,6 +11,12 @@ export type ActionResult = { readonly ok: true } | { readonly ok: false; readonl
 
 /** Refusal rules with their own copy in `gateway.outcomes.refusals`. */
 export const KNOWN_REFUSALS = [
+  // B11: delivery self-booking (migration 6536).
+  "delivery_window_full",
+  "delivery_window_closed",
+  "delivery_booking_locked",
+  "delivery_booking_shipment",
+  "booking_event_reused",
   "application_deadline_passed",
   "opportunity_not_available",
   "application_not_editable",
@@ -34,6 +40,26 @@ export const KNOWN_REFUSALS = [
   "cross_org_reference",
   "supplier_diversity_no_program",
   "time_zone_unknown",
+  // B2: reusable vendor intake links and requests (migrations 6504 and 6505).
+  "payout_reference_bank_number",
+  "payout_reference_length",
+  "vendor_intake_account",
+  "vendor_intake_tax_form",
+  "vendor_intake_payout",
+  "vendor_intake_signature",
+  "vendor_intake_invoice_draft",
+  "vendor_intake_invoice_not_collected",
+  "vendor_intake_rate_limited",
+  "vendor_intake_pending",
+  "vendor_intake_not_pending",
+  "intake_link_full",
+  "intake_link_invalid",
+  "intake_link_expired",
+  "intake_link_ended",
+  "intake_link_rate_limited",
+  "intake_grant",
+  "intake_invoice_used",
+  "intake_invoice_none",
   // R1: an advance section takes one answer until it is returned (migration 2604).
   "advance_answer_pending",
   // R2: the vendor submits a Proposed submittal or resubmits a Returned one, with a note (migration 2610).
@@ -108,6 +134,8 @@ export const KNOWN_REFUSALS = [
   "credential_names_closed",
   // R10: the advance link's typed sections, uploads, guests and crew roster (migrations 4730 and 4731).
   "advance_token_invalid",
+  "advance_link_ended",
+  "document_link_ended",
   "advance_token_locked",
   "advance_token_expired",
   "advance_access_code",
@@ -133,6 +161,11 @@ export const KNOWN_REFUSALS = [
   "roster_entry_not_working",
   "roster_training_not_due",
   "sod_roster_training",
+  "guest_email_format",
+  // B13: a client signs a quote from Gateway's Documents tab (migration 6554).
+  "quote_expired",
+  "quote_not_sent",
+  "quote_client_engagement",
   // A86 settings surfaces: personal API tokens, step-up, company ownership and notification defaults.
   "personal_tokens_off",
   "personal_token_scope_not_held",
@@ -142,13 +175,6 @@ export const KNOWN_REFUSALS = [
   "step_up_required",
   "sole_account_owner",
   "notification_channel_outside",
-  // A127 one-tap email links and push actions.
-  "notification_action_used",
-  "notification_action_expired",
-  "notification_action_not_yours",
-  "notification_action_invalid",
-  "notification_action_reason",
-  "notification_action_elsewhere",
   // P5 badge photos (5822): the holder records a photo from their own folder while they hold a live credential.
   "credential_photo_path",
   "credential_photo_no_credential",
@@ -166,6 +192,30 @@ export const KNOWN_REFUSALS = [
   // P8: an availability poll takes answers until it closes, for its own days only (migration 6123).
   "availability_poll_closed",
   "availability_poll_answer",
+  // B14: reusing a roster from a past event (migration 6267).
+  "roster_copy_source",
+  // A127 one-tap email links and push actions.
+  "notification_action_used",
+  "notification_action_expired",
+  "notification_action_not_yours",
+  "notification_action_invalid",
+  "notification_action_reason",
+  "notification_action_elsewhere",
+  // B9: an agency's lead marks a no-show (migration 6512), and a held or marked shift keeps its worker (6512, 6514);
+  // "Still coming?" takes one answer, before the shift starts (6511).
+  "shift_no_show_self",
+  "shift_no_show_state",
+  "shift_no_show_clocked_in",
+  "shift_no_show_reason",
+  "shift_no_show_frozen",
+  "no_show_id_conflict",
+  "shift_held_for_position",
+  "shift_reconfirm_answered",
+  // B10: a generated document signs with the hash of its text, a registration withdraws once, an invitation answers once.
+  "document_text_sign_with_hash",
+  "registration_not_withdrawable",
+  "invitation_closed",
+  "invitation_not_yours",
 ] as const;
 
 /** The outcome key of a refusal rule: its own copy when it has some, else the generic refusal. */

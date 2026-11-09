@@ -2,12 +2,14 @@ import {
   APP_ENUMS,
   listEngagementDocuments,
   listSharedRecords,
+  readClientCueFields,
   readView,
   recordDate,
+  type ClientCueField,
   type RecordKind,
 } from "@xos/data/gateway";
 import { RegionError, Section } from "@/components/page/page";
-import { Calendar } from "@/components/ui";
+import { Calendar, Tag } from "@/components/ui";
 import { hasArea, tabHref } from "@/lib/engagement";
 import { formatDate, formatDateTime, formatMoney, formatScheduleTime } from "@/lib/format";
 import { enumLabelKey } from "@/lib/shell/translate";
@@ -244,6 +246,24 @@ export async function RunOfShowTab({ view, t, locale, engagementKey }: TabProps)
     order: ["position", "asc"],
   });
   if (!cues.ok) return <RegionError />;
+  // The Client-audience custom fields of the cues (B3, ADR 0142); the view answers nobody else.
+  const fields = await readClientCueFields(
+    view.ctx.db,
+    cues.data.flatMap((c) => (c.id ? [c.id] : [])),
+  );
+  if (!fields.ok) return <RegionError />;
+  const fieldsOf = (cueId: string | null) => fields.data.filter((f) => f.cueId === cueId);
+  const fieldText = (f: ClientCueField) =>
+    f.choiceLabel ??
+    (f.boolean !== null
+      ? t(f.boolean ? "gateway.engagement.runOfShow.yes" : "gateway.engagement.runOfShow.no")
+      : f.number !== null
+        ? String(f.number)
+        : f.timestamp !== null
+          ? formatDateTime(locale, f.timestamp)
+          : f.date !== null
+            ? formatDate(locale, f.date)
+            : (f.text ?? ""));
   if (shows.data.length === 0) {
     return (
       <TabEmpty
@@ -302,6 +322,39 @@ export async function RunOfShowTab({ view, t, locale, engagementKey }: TabProps)
                         label: t("gateway.engagement.runOfShow.mySet"),
                         tone: "accent" as const,
                       },
+                    }
+                  : {}),
+                ...(fieldsOf(c.id).length > 0
+                  ? {
+                      detail: (
+                        <span
+                          className="flex flex-wrap gap-4"
+                          aria-label={t("gateway.engagement.runOfShow.fields")}
+                        >
+                          {fieldsOf(c.id).map((f) => (
+                            <Tag
+                              key={f.key}
+                              {...(f.choiceColorKey && /^cat-[1-7]$/.test(f.choiceColorKey)
+                                ? {
+                                    swatch: f.choiceColorKey as
+                                      | "cat-1"
+                                      | "cat-2"
+                                      | "cat-3"
+                                      | "cat-4"
+                                      | "cat-5"
+                                      | "cat-6"
+                                      | "cat-7",
+                                  }
+                                : {})}
+                            >
+                              {t("gateway.engagement.runOfShow.fieldValue", {
+                                label: f.label,
+                                value: fieldText(f),
+                              })}
+                            </Tag>
+                          ))}
+                        </span>
+                      ),
                     }
                   : {}),
               }))}

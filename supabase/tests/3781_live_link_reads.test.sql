@@ -9,7 +9,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(48);
+select plan(53);
 
 create temporary table k (key text primary key, id uuid, val text);
 grant select, insert, update, delete on k to public;
@@ -156,6 +156,38 @@ select is(pg_temp.open('v', pg_temp.val('v'), case when pg_temp.val('v:code') = 
 select is((select failed_attempts::int from app.live_links where id = pg_temp.id_k('v')), 1, 'and counted on the link');
 select is(pg_temp.open('v', pg_temp.val('v'), pg_temp.val('v:code')), 'ok', 'the correct code opens the link');
 select matches(pg_temp.val('v:grant'), '^xlgr_[0-9a-f]{64}$', 'and earns a device grant');
+
+-- A link ends with its project (owner decision of 2026-11-06, ADR 0142).
+select pg_temp.as_platform();
+create function pg_temp.end_project(p_id uuid, p_state text) returns void language plpgsql as $f$
+begin
+  perform set_config('t.state', (select project_state::text from app.projects where id = p_id), true);
+  set local session_replication_role = replica;
+  update app.projects set project_state = p_state::app.project_state where id = p_id;
+  set local session_replication_role = origin;
+end $f$;
+create function pg_temp.reopen_project(p_id uuid) returns void language plpgsql as $f$
+begin
+  set local session_replication_role = replica;
+  update app.projects set project_state = current_setting('t.state')::app.project_state, archived_at = null, deleted_at = null where id = p_id;
+  set local session_replication_role = origin;
+end $f$;
+select pg_temp.end_project(pg_temp.id('prj_a'), 'Complete');
+select is(pg_temp.open('v', pg_temp.val('v'), pg_temp.val('v:code')), 'live_link_ended', 'a live link stops opening when its project is Complete');
+select is(pg_temp.read('v') ->> 'reason', 'live_link_ended', 'and a device grant reads nothing');
+select pg_temp.reopen_project(pg_temp.id('prj_a'));
+select pg_temp.end_project(pg_temp.id('prj_a'), 'Canceled');
+select is(pg_temp.read('v') ->> 'reason', 'live_link_ended', 'nor when it is Canceled');
+select pg_temp.reopen_project(pg_temp.id('prj_a'));
+set local session_replication_role = replica;
+update app.projects set archived_at = now() where id = pg_temp.id('prj_a');
+set local session_replication_role = origin;
+select is(pg_temp.read('v') ->> 'reason', 'live_link_ended', 'nor when it is archived');
+select pg_temp.reopen_project(pg_temp.id('prj_a'));
+select isnt(pg_temp.read('v') ->> 'reason', 'live_link_ended', 'reopening the project lets the link open again');
+
+select pg_temp.as_platform();
+
 select results_eq($$select open_count, last_opened_at is not null from app.live_links where id = (select id from k where key = 'v')$$,
   $$values (1, true)$$, 'the open is counted');
 select ok((select expires_at <= now() + interval '7 days' from private.live_link_grants where grant_hash = extensions.digest(pg_temp.val('v:grant'), 'sha256')),

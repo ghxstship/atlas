@@ -1,10 +1,10 @@
 import type { XosClient } from "../client.ts";
 import { readView } from "../gateway-operations.ts";
-import { fail, ok, type Result } from "../result.ts";
+import { fail, ok, toDataError, type Result } from "../result.ts";
 import { intervalSeconds } from "../show.ts";
 import type { DocumentKind } from "./model.ts";
 import { credentialBadgePhoto } from "./sources.ts";
-import type { DocumentDataMap, DocumentProject } from "./templates.ts";
+import type { DocumentDataMap, DocumentProject, QuoteDocument } from "./templates.ts";
 
 /**
  * Document data for Gateway (ADR 0031). External parties read records only through the
@@ -21,6 +21,8 @@ export const EXTERNAL_DOCUMENT_KINDS = [
   "change-order",
   "run-of-show",
   "credential-badge",
+  "engagement-document",
+  "quote",
 ] as const satisfies readonly DocumentKind[];
 
 export type ExternalDocumentKind = (typeof EXTERNAL_DOCUMENT_KINDS)[number];
@@ -33,6 +35,18 @@ export interface ExternalDocument<K extends ExternalDocumentKind> {
   readonly data: DocumentDataMap[K];
   readonly orgId: string;
   readonly orgName: string;
+  /**
+   * The brand fields a record carries itself, for readers who cannot read app.org_brands (a quote's
+   * client or a signing link). Absent, the brand loads from the org.
+   */
+  readonly brand?: QuoteBrandFields;
+}
+
+/** The brand fields of api_external.quote_versions and api_public.token_quote (6554). */
+export interface QuoteBrandFields {
+  readonly legalEntityName: string | null;
+  readonly accentHex: string | null;
+  readonly logoPath: string | null;
 }
 
 const NOT_FOUND = { kind: "not-found" } as const;
@@ -97,6 +111,7 @@ const LOADERS: { readonly [K in ExternalDocumentKind]: Loader<K> } = {
       acquisitionKind: "Purchase" as const,
       hireStartsAt: null,
       hireEndsAt: null,
+      engagementId: null,
     }));
     const number = po.po_number ?? 0;
     return ok({
@@ -258,6 +273,13 @@ const LOADERS: { readonly [K in ExternalDocumentKind]: Loader<K> } = {
       calledByName: null,
       startTbc: c.start_tbc === true,
       standbyAt: null,
+      // A party's PDF never carries the segment, the description, the script or who called a cue.
+      segment: null,
+      description: null,
+      script: null,
+      segmentInstanceId: null,
+      calledViaLink: null,
+      updatedAt: "",
     }));
     return ok({
       orgId: project.data.orgId,
@@ -321,7 +343,141 @@ const LOADERS: { readonly [K in ExternalDocumentKind]: Loader<K> } = {
       },
     });
   },
+  // The party's own generated document through the view that masks it (B10): a masked reader answers not found.
+  "engagement-document": async (db, id) => {
+    const found = await db
+      .schema("api_external")
+      .from("engagement_document_texts")
+      .select(
+        "id, engagement_id, title, body, body_sha256, body_masked, signed_name, signed_at, created_at",
+      )
+      .eq("id", id)
+      .maybeSingle();
+    if (found.error) return fail(toDataError(found.error));
+    const row = found.data;
+    if (!row?.engagement_id || row.body_masked || row.body === null || !row.created_at) {
+      return fail(NOT_FOUND);
+    }
+    const documents = await readView(db, "engagement_documents", { eq: { id }, limit: 1 });
+    if (!documents.ok) return documents;
+    const engagements = await readView(db, "engagements", {
+      eq: { id: row.engagement_id },
+      limit: 1,
+    });
+    if (!engagements.ok) return engagements;
+    const engagement = engagements.data[0];
+    if (!engagement?.org_id || !engagement.project_id) return fail(NOT_FOUND);
+    const project = await externalProject(db, engagement.project_id, engagement.project_name);
+    if (!project.ok) return project;
+    return ok({
+      orgId: engagement.org_id,
+      orgName: engagement.org_name ?? project.data.orgName,
+      data: {
+        project: project.data,
+        document: {
+          id,
+          title: row.title ?? "",
+          kind: documents.data[0]?.document_kind ?? "Agreement",
+          state: documents.data[0]?.engagement_document_state ?? "",
+          body: row.body,
+          signedName: row.signed_name,
+          signedAt: row.signed_at,
+          sha256: row.body_sha256,
+          createdAt: row.created_at,
+        },
+      },
+    });
+  },
+
+  /** A quote the caller's engagement may read; a Draft never appears (api_external.quote_versions). */
+  quote: async (db, id) => {
+    const found = await readView(db, "quote_versions", { eq: { id }, limit: 1 });
+    if (!found.ok) return found;
+    const v = found.data[0];
+    if (!v?.id || !v.project_id || !v.org_id) return fail(NOT_FOUND);
+    const lines = await readView(db, "quote_version_lines", {
+      eq: { quote_version_id: id },
+      order: ["line_number", "asc"],
+    });
+    if (!lines.ok) return lines;
+    return ok({
+      orgId: v.org_id,
+      orgName: v.org_name ?? "",
+      brand: {
+        legalEntityName: v.legal_entity_name,
+        accentHex: v.brand_accent_hex,
+        logoPath: v.brand_logo_path,
+      },
+      data: quoteDataFromFields(v, lines.data),
+    });
+  },
 };
+
+/** Maps the client-facing fields shared by the external view and the token reader onto the template data. */
+export function quoteDataFromFields(
+  v: {
+    readonly id?: string | null;
+    readonly project_id?: string | null;
+    readonly project_name?: string | null;
+    readonly project_time_zone?: string | null;
+    readonly quote_key?: string | null;
+    readonly version_number?: number | null;
+    readonly title?: string | null;
+    readonly client_name?: string | null;
+    readonly currency_code?: string | null;
+    readonly valid_until?: string | null;
+    readonly terms?: string | null;
+    readonly quote_version_state?: string | null;
+    readonly sent_at?: string | null;
+    readonly content_sha256?: string | null;
+    readonly total_minor?: number | null;
+    readonly accepted_at?: string | null;
+    readonly accepted_name?: string | null;
+    readonly accepted_email?: string | null;
+  },
+  lines: readonly {
+    readonly line_number?: number | null;
+    readonly description?: string | null;
+    readonly quantity?: number | null;
+    readonly unit_basis?: string | null;
+    readonly unit_price_minor?: number | null;
+    readonly amount_minor?: number | null;
+  }[],
+): DocumentDataMap["quote"] {
+  const quote: QuoteDocument = {
+    key: v.quote_key ?? "",
+    versionNumber: v.version_number ?? 1,
+    title: v.title ?? "",
+    clientName: v.client_name ?? null,
+    currency: v.currency_code ?? "USD",
+    validUntil: v.valid_until ?? "",
+    terms: v.terms ?? null,
+    state: v.quote_version_state ?? "Sent",
+    issuedAt: v.sent_at ?? "",
+    contentSha256: v.content_sha256 ?? null,
+    lines: lines.map((l) => ({
+      lineNumber: l.line_number ?? 0,
+      description: l.description ?? "",
+      quantity: Number(l.quantity ?? 0),
+      unitBasis: l.unit_basis ?? null,
+      unitPriceMinor: l.unit_price_minor ?? null,
+      amountMinor: l.amount_minor ?? null,
+    })),
+    totalMinor: v.total_minor ?? null,
+    acceptedAt: v.accepted_at ?? null,
+    acceptedName: v.accepted_name ?? null,
+    acceptedEmail: v.accepted_email ?? null,
+  };
+  return {
+    project: {
+      id: v.project_id ?? "",
+      key: "",
+      name: v.project_name ?? "",
+      timeZone: v.project_time_zone ?? "UTC",
+    },
+    quote,
+  };
+}
 
 export function loadExternalDocumentData<K extends ExternalDocumentKind>(
   db: XosClient,

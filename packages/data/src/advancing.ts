@@ -1,6 +1,7 @@
 import type { XosClient } from "./client.ts";
-import { fail, ok, toDataError, type DataError, type Result } from "./result.ts";
+import { Constants } from "./database.types.ts";
 import type { Database } from "./database.types.ts";
+import { fail, ok, toDataError, type DataError, type Result } from "./result.ts";
 import * as enums from "./enums.generated.ts";
 
 /**
@@ -314,6 +315,14 @@ export type AdvanceSectionKind = (typeof ADVANCE_SECTION_KINDS)[number];
 export const ADVANCE_WINDOW_KINDS = enums.advanceWindowKind;
 export type AdvanceWindowKind = (typeof ADVANCE_WINDOW_KINDS)[number];
 
+/** The track a section is grouped under (app.advance_track, R11 migration 6223). */
+export const ADVANCE_TRACKS = Constants.app.Enums.advance_track;
+export type AdvanceTrack = (typeof ADVANCE_TRACKS)[number];
+
+function isTrack(value: unknown): value is AdvanceTrack {
+  return typeof value === "string" && (ADVANCE_TRACKS as readonly string[]).includes(value);
+}
+
 /** The most lines each kind lets an answer hold, as advance_sections_kind_fields checks it. */
 export const SECTION_LINE_LIMITS: Readonly<Partial<Record<AdvanceSectionKind, number>>> = {
   File: 10,
@@ -344,6 +353,8 @@ export interface AdvanceSection extends SectionConfig {
   readonly title: string;
   readonly prompt: string | null;
   readonly choices: readonly SectionChoice[];
+  /** Track the section is grouped under (R11); General unless set. */
+  readonly track: AdvanceTrack;
 }
 
 export interface AdvanceRecipient {
@@ -510,11 +521,18 @@ export async function getPacket(
   ]);
   if (sections.error) return fail(toDataError(sections.error));
   if (recipients.error) return fail(toDataError(recipients.error));
-  const choices = await sectionChoices(
-    db,
-    sections.data.map((s) => s.id),
-  );
+  const [choices, tracks] = await Promise.all([
+    sectionChoices(
+      db,
+      sections.data.map((s) => s.id),
+    ),
+    sectionTracks(
+      db,
+      sections.data.map((s) => s.id),
+    ),
+  ]);
   if (!choices.ok) return fail(choices.error);
+  if (!tracks.ok) return fail(tracks.error);
   const names = await partyNames(
     db,
     recipients.data.flatMap((r) => (r.person_id ? [r.person_id] : [])),
@@ -569,6 +587,7 @@ export async function getPacket(
       maxLines: s.max_lines,
       perPerson: s.per_person,
       choices: choices.data.get(s.id) ?? [],
+      track: tracks.data.get(s.id) ?? "General",
     }))
     .sort(byPosition);
   const progress = packetProgress(
@@ -591,6 +610,22 @@ export async function getPacket(
     recipients: recipientList,
     submissions,
   });
+}
+
+/** The track of each section (6223). */
+async function sectionTracks(
+  db: XosClient,
+  sectionIds: readonly string[],
+): Promise<Result<Map<string, AdvanceTrack>>> {
+  const tracks = new Map<string, AdvanceTrack>();
+  if (sectionIds.length === 0) return ok(tracks);
+  const { data, error } = await db
+    .from("advance_sections")
+    .select("id, track")
+    .in("id", [...sectionIds]);
+  if (error) return fail(toDataError(error));
+  for (const row of data ?? []) tracks.set(row.id, row.track);
+  return ok(tracks);
 }
 
 function cleanTitle(title: string): string | null {
@@ -785,6 +820,8 @@ export async function addSection(
     readonly prompt: string | null;
     /** The kind and its configuration (R9); Text when left out. */
     readonly config?: SectionConfig;
+    /** The track (R11); General when left out. */
+    readonly track?: AdvanceTrack;
   },
 ): Promise<Result<{ id: string }>> {
   const title = cleanTitle(input.title);
@@ -817,6 +854,7 @@ export async function addSection(
       window_kind: config.windowKind,
       max_lines: config.maxLines,
       per_person: config.perPerson,
+      ...(input.track ? { track: input.track } : {}),
     })
     .select("id")
     .single();
@@ -2116,6 +2154,14 @@ export interface GuestEntry {
   readonly checkedInAt: string | null;
   readonly createdAt: string;
   readonly createdBy: string | null;
+  /** The pass (B8, 6254): an Access category of the project, set by the production. */
+  readonly passCategoryId: string | null;
+  readonly tableLabel: string | null;
+  readonly hostPersonId: string | null;
+  /** Confidential; where the guest's pass and messages go. */
+  readonly guestEmail: string | null;
+  /** Stamped by the database on approval; printed as XOSGP1:<code>. */
+  readonly passCode: string | null;
 }
 
 /** A show or other scope node a guest can attend. */
@@ -2140,6 +2186,29 @@ export async function listProjectScopes(
   return ok(data.map((n) => ({ id: n.id, code: n.scope_code, name: n.name })));
 }
 
+/** A guest list row as listGuests reads it; the pass columns (6254) are newer than the generated types. */
+interface GuestRow {
+  id: string;
+  project_id: string;
+  scope_node_id: string | null;
+  person_id: string | null;
+  counterparty_id: string | null;
+  engagement_id: string | null;
+  guest_name: string;
+  plus_ones: number;
+  note: string | null;
+  entry_state: GuestState;
+  decided_at: string | null;
+  checked_in_at: string | null;
+  created_at: string;
+  created_by: string | null;
+  pass_category_id: string | null;
+  table_label: string | null;
+  host_person_id: string | null;
+  guest_email: string | null;
+  pass_code: string | null;
+}
+
 /** The guest list of the org or one project, oldest request first, optionally in one state. */
 export async function listGuests(
   db: XosClient,
@@ -2148,14 +2217,15 @@ export async function listGuests(
   let query = db
     .from("guest_list_entries")
     .select(
-      "id, project_id, scope_node_id, person_id, counterparty_id, engagement_id, guest_name, plus_ones, note, entry_state, decided_at, checked_in_at, created_at, created_by",
+      "id, project_id, scope_node_id, person_id, counterparty_id, engagement_id, guest_name, plus_ones, note, entry_state, decided_at, checked_in_at, created_at, created_by, pass_category_id, table_label, host_person_id, guest_email, pass_code",
     )
     .eq("org_id", filter.orgId)
     .is("deleted_at", null);
   if (filter.projectId !== undefined) query = query.eq("project_id", filter.projectId);
   if (filter.state !== undefined) query = query.eq("entry_state", filter.state);
-  const { data, error } = await query.order("created_at");
+  const { data: raw, error } = await query.order("created_at");
   if (error) return fail(toDataError(error));
+  const data = (raw ?? []) as GuestRow[];
   const names = await partyNames(
     db,
     data.flatMap((g) => (g.person_id ? [g.person_id] : [])),
@@ -2196,6 +2266,11 @@ export async function listGuests(
       checkedInAt: g.checked_in_at,
       createdAt: g.created_at,
       createdBy: g.created_by,
+      passCategoryId: g.pass_category_id,
+      tableLabel: g.table_label,
+      hostPersonId: g.host_person_id,
+      guestEmail: g.guest_email,
+      passCode: g.pass_code,
     })),
   );
 }
@@ -2227,10 +2302,14 @@ export async function addGuest(
     readonly orgId: string;
     readonly projectId: string;
     readonly approve?: boolean;
+    /** The pass fields (B8, 6254), set by the production with the guest. */
+    readonly pass?: GuestPassInput;
   },
 ): Promise<Result<{ id: string }>> {
   const guest = cleanGuest(input);
   if (guest === null) return fail({ kind: "invalid", message: "guest" });
+  const pass = input.pass ? cleanGuestPass(input.pass) : null;
+  if (pass === undefined) return fail({ kind: "invalid", message: "guest_pass" });
   const { data, error } = await db
     .from("guest_list_entries")
     .insert({
@@ -2241,11 +2320,19 @@ export async function addGuest(
       plus_ones: guest.plusOnes,
       note: guest.note,
       entry_state: input.approve === true ? "Approved" : "Requested",
+      ...(pass
+        ? {
+            pass_category_id: pass.passCategoryId,
+            table_label: pass.tableLabel,
+            host_person_id: pass.hostPersonId,
+            guest_email: pass.guestEmail,
+          }
+        : {}),
     })
     .select("id")
     .single();
   if (error) return fail(toDataError(error));
-  return ok({ id: data.id });
+  return ok({ id: (data as { id: string }).id });
 }
 
 /** Changes a requested guest; a decided guest keeps its guest (0431 guard). */
@@ -2269,6 +2356,288 @@ export async function updateGuest(
     .select("id");
   if (error) return fail(toDataError(error));
   return data.length === 0 ? fail(NOT_FOUND) : ok(null);
+}
+
+/** A guest's pass fields (B8, 6254), set by the production in any state but Checked In. */
+export interface GuestPassInput {
+  readonly passCategoryId: string | null;
+  readonly tableLabel: string | null;
+  readonly hostPersonId: string | null;
+  readonly guestEmail: string | null;
+}
+
+/** The pattern and length app.guest_list_entries_guest_email checks (1382's address rule). */
+export function cleanGuestEmail(value: string | null | undefined): string | null | undefined {
+  const email = (value ?? "").trim().toLowerCase();
+  if (email === "") return null;
+  return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email) && email.length <= 320 ? email : undefined;
+}
+
+/**
+ * Sets a guest's pass type, table, host and email. The database checks the pass type is an Access category of the
+ * project (guest_pass_category), the host a project person (guest_host_not_on_project), and keeps them once the
+ * guest is checked in (guest_entry_checked_in).
+ */
+/** The pass fields trimmed and checked, or undefined when one is out of range. */
+function cleanGuestPass(input: GuestPassInput): GuestPassInput | undefined {
+  const tableLabel = input.tableLabel?.trim() ? input.tableLabel.trim() : null;
+  const guestEmail = cleanGuestEmail(input.guestEmail);
+  if ((tableLabel !== null && tableLabel.length > 40) || guestEmail === undefined) return undefined;
+  return {
+    passCategoryId: input.passCategoryId,
+    tableLabel,
+    hostPersonId: input.hostPersonId,
+    guestEmail,
+  };
+}
+
+export async function updateGuestPass(
+  db: XosClient,
+  guestId: string,
+  input: GuestPassInput,
+): Promise<Result<null>> {
+  const pass = cleanGuestPass(input);
+  if (pass === undefined) return fail({ kind: "invalid", message: "guest_pass" });
+  const { data, error } = await db
+    .from("guest_list_entries")
+    .update({
+      pass_category_id: pass.passCategoryId,
+      table_label: pass.tableLabel,
+      host_person_id: pass.hostPersonId,
+      guest_email: pass.guestEmail,
+    })
+    .eq("id", guestId)
+    .is("deleted_at", null)
+    .select("id");
+  if (error) return fail(toDataError(error));
+  return (data ?? []).length === 0 ? fail(NOT_FOUND) : ok(null);
+}
+
+/** What a guest pass prints (B8, the guest-pass document): an Approved or Checked In guest with a pass code. */
+export interface GuestPass {
+  readonly id: string;
+  readonly projectId: string;
+  readonly guestName: string;
+  readonly plusOnes: number;
+  readonly state: "Approved" | "Checked In";
+  readonly passCode: string;
+  readonly passCategoryCode: string | null;
+  readonly passCategoryName: string | null;
+  readonly tableLabel: string | null;
+  /** The show the guest attends (the entry's scope node), or null for the whole project. */
+  readonly showName: string | null;
+  /** The project's first day (YYYY-MM-DD), printed as the show's date. */
+  readonly showDay: string | null;
+  /** When the guest was approved: the pass's issue time, which picks its template version. */
+  readonly decidedAt: string;
+}
+
+/**
+ * A guest's pass, read as the caller (advancing.packet.read on the project, through row level security). A guest who
+ * is not Approved or Checked In, or has no pass code yet, answers not found, so a Requested guest has no pass.
+ */
+export async function getGuestPass(db: XosClient, guestId: string): Promise<Result<GuestPass>> {
+  const { data: raw, error } = await db
+    .from("guest_list_entries")
+    .select(
+      "id, project_id, scope_node_id, guest_name, plus_ones, entry_state, pass_code, pass_category_id, table_label, decided_at",
+    )
+    .eq("id", guestId)
+    .is("deleted_at", null)
+    .maybeSingle();
+  if (error) return fail(toDataError(error));
+  const g = raw as {
+    id: string;
+    project_id: string;
+    scope_node_id: string | null;
+    guest_name: string;
+    plus_ones: number;
+    entry_state: GuestState;
+    pass_code: string | null;
+    pass_category_id: string | null;
+    table_label: string | null;
+    decided_at: string | null;
+  } | null;
+  if (
+    !g ||
+    g.pass_code === null ||
+    g.decided_at === null ||
+    (g.entry_state !== "Approved" && g.entry_state !== "Checked In")
+  ) {
+    return fail(NOT_FOUND);
+  }
+  const [category, scope, project] = await Promise.all([
+    g.pass_category_id
+      ? db
+          .from("credential_categories")
+          .select("code, name")
+          .eq("id", g.pass_category_id)
+          .maybeSingle()
+      : Promise.resolve({ data: null, error: null }),
+    g.scope_node_id
+      ? db.from("scope_nodes").select("name").eq("id", g.scope_node_id).maybeSingle()
+      : Promise.resolve({ data: null, error: null }),
+    db.from("projects").select("starts_on").eq("id", g.project_id).maybeSingle(),
+  ]);
+  for (const r of [category, scope, project]) if (r.error) return fail(toDataError(r.error));
+  return ok({
+    id: g.id,
+    projectId: g.project_id,
+    guestName: g.guest_name,
+    plusOnes: g.plus_ones,
+    state: g.entry_state,
+    passCode: g.pass_code,
+    passCategoryCode: category.data?.code ?? null,
+    passCategoryName: category.data?.name ?? null,
+    tableLabel: g.table_label,
+    showName: scope.data?.name ?? null,
+    showDay: project.data?.starts_on ?? null,
+    decidedAt: g.decided_at,
+  });
+}
+
+export type GuestEmailKind = Database["app"]["Enums"]["guest_email_kind"];
+export type GuestEmailState = Database["app"]["Enums"]["guest_email_state"];
+export type GuestEmailSkipReason = Database["app"]["Enums"]["guest_email_skip_reason"];
+
+export interface GuestEmailSummary {
+  readonly queued: number;
+  readonly sending: number;
+  readonly sent: number;
+  readonly failed: number;
+  readonly suppressed: number;
+  readonly skipped: number;
+  readonly skippedNoEmail: number;
+  readonly skippedNotLive: number;
+  readonly skippedNoPass: number;
+}
+
+/**
+ * Queues an email to the selected guests (app.queue_guest_emails, 6255; advancing.rider.write). Refusals:
+ * guest_email_batch (1 to 500), guest_email_rate (2,000 a day per org), guest_email_message. Returns the send id;
+ * the counts come from guestEmailSendSummary.
+ */
+export async function queueGuestEmails(
+  db: XosClient,
+  input: {
+    readonly projectId: string;
+    readonly guestIds: readonly string[];
+    readonly kind: GuestEmailKind;
+    readonly subject?: string | null;
+    readonly body?: string | null;
+    readonly locale: "en-US" | "es-US";
+  },
+): Promise<Result<{ sendId: string }>> {
+  const { data, error } = await db.rpc("queue_guest_emails", {
+    p_project_id: input.projectId,
+    p_entry_ids: [...input.guestIds],
+    p_kind: input.kind,
+    ...(input.subject ? { p_subject: input.subject } : {}),
+    ...(input.body ? { p_body: input.body } : {}),
+    p_locale: input.locale,
+  });
+  if (error) return fail(toDataError(error));
+  return ok({ sendId: String(data) });
+}
+
+/** A send's rows counted by state and skip reason (app.guest_email_send_summary). */
+export async function guestEmailSendSummary(
+  db: XosClient,
+  sendId: string,
+): Promise<Result<GuestEmailSummary>> {
+  const { data, error } = await db.rpc("guest_email_send_summary", { p_send_id: sendId });
+  if (error) return fail(toDataError(error));
+  const r = (data as Record<string, number>[] | null)?.[0];
+  if (!r) return fail(NOT_FOUND);
+  return ok({
+    queued: r["queued"] ?? 0,
+    sending: r["sending"] ?? 0,
+    sent: r["sent"] ?? 0,
+    failed: r["failed"] ?? 0,
+    suppressed: r["suppressed"] ?? 0,
+    skipped: r["skipped"] ?? 0,
+    skippedNoEmail: r["skipped_no_email"] ?? 0,
+    skippedNotLive: r["skipped_not_live"] ?? 0,
+    skippedNoPass: r["skipped_no_pass"] ?? 0,
+  });
+}
+
+export interface GuestEmailRow {
+  readonly guestListEntryId: string;
+  readonly state: GuestEmailState;
+  readonly skipReason: GuestEmailSkipReason | null;
+  readonly sentAt: string | null;
+}
+
+export interface GuestEmailSend {
+  readonly id: string;
+  readonly kind: GuestEmailKind;
+  readonly subject: string | null;
+  readonly locale: "en-US" | "es-US";
+  readonly createdAt: string;
+  readonly createdBy: string | null;
+  readonly rows: readonly GuestEmailRow[];
+}
+
+/** A project's guest email sends, newest first, each with its rows' states (advancing.packet.read). */
+export async function listGuestEmailSends(
+  db: XosClient,
+  projectId: string,
+  limit = 20,
+): Promise<Result<GuestEmailSend[]>> {
+  const { data, error } = await db
+    .from("guest_email_sends")
+    .select(
+      "id, email_kind, subject, locale, created_at, created_by, guest_emails(guest_list_entry_id, send_state, skip_reason, sent_at)",
+    )
+    .eq("project_id", projectId)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error) return fail(toDataError(error));
+  const rows = (data ?? []) as unknown as {
+    id: string;
+    email_kind: GuestEmailKind;
+    subject: string | null;
+    locale: "en-US" | "es-US";
+    created_at: string;
+    created_by: string | null;
+    guest_emails: {
+      guest_list_entry_id: string;
+      send_state: GuestEmailState;
+      skip_reason: GuestEmailRow["skipReason"];
+      sent_at: string | null;
+    }[];
+  }[];
+  return ok(
+    rows.map((r) => ({
+      id: r.id,
+      kind: r.email_kind,
+      subject: r.subject,
+      locale: r.locale,
+      createdAt: r.created_at,
+      createdBy: r.created_by,
+      rows: (r.guest_emails ?? []).map((e) => ({
+        guestListEntryId: e.guest_list_entry_id,
+        state: e.send_state,
+        skipReason: e.skip_reason,
+        sentAt: e.sent_at,
+      })),
+    })),
+  );
+}
+
+/**
+ * Why a guest would get no email of this kind, before it is queued: no address, or, for a Pass, not approved with a
+ * code. The database decides again when it queues (6255) and also suppresses addresses on the org's list.
+ */
+export function guestEmailSkip(
+  guest: Pick<GuestEntry, "guestEmail" | "state" | "passCode">,
+  kind: GuestEmailKind,
+): GuestEmailSkipReason | null {
+  if (guest.state === "Declined") return "Not Live";
+  if (!guest.guestEmail) return "No Email";
+  if (kind === "Pass" && (guest.state === "Requested" || guest.passCode === null)) return "No Pass";
+  return null;
 }
 
 async function moveGuest(
@@ -2319,4 +2688,397 @@ export async function removeGuest(
     .select("id");
   if (error) return fail(toDataError(error));
   return data.length === 0 ? fail(NOT_FOUND) : ok(null);
+}
+
+// Progress, readiness, reminders and tracks (R11, migrations 6220 to 6223) ------------------------------------------
+
+/** Where a recipient stands on one section (app.advance_progress.cell_state). */
+export const ADVANCE_CELL_STATES = [
+  "Missing",
+  "Awaiting Review",
+  "Accepted",
+  "Returned",
+  "Complete",
+  "Not Applicable",
+] as const;
+export type AdvanceCellState = (typeof ADVANCE_CELL_STATES)[number];
+
+/** One cell of the packets heatmap: a recipient of a sent packet on one section. */
+export interface AdvanceProgressCell {
+  readonly packetId: string;
+  readonly packetTitle: string;
+  readonly dueAt: string | null;
+  readonly recipientId: string;
+  readonly recipientEngagementId: string | null;
+  readonly recipientLabel: string | null;
+  readonly sectionId: string;
+  readonly position: number;
+  readonly sectionTitle: string;
+  readonly sectionKind: AdvanceSectionKind;
+  readonly latestSubmissionId: string | null;
+  readonly submittedAt: string | null;
+  readonly state: AdvanceCellState;
+  readonly overdue: boolean;
+  /** False once the recipient's engagement is Complete or Canceled: it can no longer answer, so nothing is outstanding. */
+  readonly recipientOpen: boolean;
+}
+
+type Raw = Record<string, unknown>;
+
+function text(v: unknown): string | null {
+  return typeof v === "string" ? v : null;
+}
+
+function count(v: unknown): number {
+  const n = typeof v === "number" ? v : Number(v);
+  return Number.isFinite(n) ? n : 0;
+}
+
+/** Rows one PostgREST call answers at most (max_rows in supabase/config.toml); it says nothing when it cuts more. */
+const ROWS_PAGE = 1000;
+
+/**
+ * Every row of a grid's read, a page at a time: a project's grid runs past one call on a realistic roster (ten rows a
+ * person, packets by recipients by sections). `read` must order by a unique key, so that the pages do not overlap.
+ */
+async function everyRow(
+  read: (
+    from: number,
+    to: number,
+  ) => PromiseLike<{ data: unknown; error: Parameters<typeof toDataError>[0] | null }>,
+): Promise<Result<Raw[]>> {
+  const out: Raw[] = [];
+  for (let from = 0; ; from += ROWS_PAGE) {
+    const { data, error } = await read(from, from + ROWS_PAGE - 1);
+    if (error) return fail(toDataError(error));
+    const page = (data ?? []) as Raw[];
+    out.push(...page);
+    if (page.length < ROWS_PAGE) return ok(out);
+  }
+}
+
+/**
+ * The packets heatmap of a project, from app.advance_progress (6220): every live sent packet, recipient and section
+ * with its computed cell state, optionally for one packet. Computed in the database; nothing is stored.
+ */
+export async function listAdvanceProgress(
+  db: XosClient,
+  projectId: string,
+  packetId?: string,
+): Promise<Result<AdvanceProgressCell[]>> {
+  const rows = await everyRow((from, to) => {
+    let query = db
+      .from("advance_progress")
+      .select(
+        "advance_packet_id, packet_title, due_at, advance_recipient_id, recipient_engagement_id, recipient_label, advance_section_id, position, section_title, section_kind, latest_submission_id, submitted_at, cell_state, overdue, recipient_open",
+      )
+      .eq("project_id", projectId);
+    if (packetId) query = query.eq("advance_packet_id", packetId);
+    return query
+      .order("due_at", { ascending: true, nullsFirst: false })
+      .order("advance_packet_id")
+      .order("position")
+      .order("advance_recipient_id")
+      .order("advance_section_id")
+      .range(from, to);
+  });
+  if (!rows.ok) return rows;
+  return ok(
+    rows.data.map((r) => ({
+      packetId: String(r["advance_packet_id"]),
+      packetTitle: text(r["packet_title"]) ?? "",
+      dueAt: text(r["due_at"]),
+      recipientId: String(r["advance_recipient_id"]),
+      recipientEngagementId: text(r["recipient_engagement_id"]),
+      recipientLabel: text(r["recipient_label"]),
+      sectionId: String(r["advance_section_id"]),
+      position: count(r["position"]),
+      sectionTitle: text(r["section_title"]) ?? "",
+      sectionKind: (text(r["section_kind"]) ?? "Text") as AdvanceSectionKind,
+      latestSubmissionId: text(r["latest_submission_id"]),
+      submittedAt: text(r["submitted_at"]),
+      state: (text(r["cell_state"]) ?? "Missing") as AdvanceCellState,
+      overdue: r["overdue"] === true,
+      recipientOpen: r["recipient_open"] !== false,
+    })),
+  );
+}
+
+/** A crew readiness category (app.roster_readiness, 6220), in grid order. */
+export const READINESS_CATEGORIES = [
+  "Acceptance",
+  "Contact",
+  "Emergency Contacts",
+  "Dietary Needs",
+  "Accessibility Needs",
+  "Allergies",
+  "Passport",
+  "Uniform",
+  "Travel",
+  "Vehicle",
+] as const;
+export type ReadinessCategory = (typeof READINESS_CATEGORIES)[number];
+
+/** A readiness state: presence and sharing only, never a value (owner decision 5). */
+export type ReadinessState =
+  | "Accepted"
+  | "Awaiting Person"
+  | "Declined"
+  | "On File"
+  | "Missing"
+  | "Not Shared"
+  | "Shared"
+  | "Submitted"
+  | "Not Offered"
+  | "Hidden";
+
+export interface ReadinessCell {
+  readonly rosterEntryId: string;
+  readonly engagementId: string;
+  readonly partyLabel: string | null;
+  readonly personLabel: string | null;
+  readonly roleCode: string | null;
+  readonly entryState: string;
+  readonly category: ReadinessCategory;
+  readonly state: ReadinessState;
+}
+
+/**
+ * The crew readiness grid of a project (app.roster_readiness, 6220): one cell per live roster entry and category,
+ * Hidden where the caller lacks the category's capability. The function returns no value, so nothing is logged. It
+ * orders its own rows, down to the entry and the category, so each page reads on from the last.
+ */
+export async function listRosterReadiness(
+  db: XosClient,
+  projectId: string,
+): Promise<Result<ReadinessCell[]>> {
+  const rows = await everyRow((from, to) =>
+    db.rpc("roster_readiness", { p_project_id: projectId }).range(from, to),
+  );
+  if (!rows.ok) return rows;
+  return ok(
+    rows.data.map((r) => ({
+      rosterEntryId: String(r["roster_entry_id"]),
+      engagementId: String(r["engagement_id"]),
+      partyLabel: text(r["party_label"]),
+      personLabel: text(r["person_label"]),
+      roleCode: text(r["role_code"]),
+      entryState: text(r["entry_state"]) ?? "Draft",
+      category: text(r["category"]) as ReadinessCategory,
+      state: (text(r["cell_state"]) ?? "Hidden") as ReadinessState,
+    })),
+  );
+}
+
+/** What one party's engagement is allocated of one offering (app.advance_allocation_heat, 6220). */
+export interface AllocationHeatCell {
+  readonly engagementId: string | null;
+  readonly partyLabel: string | null;
+  readonly kind: string;
+  readonly offering: string | null;
+  readonly requested: number;
+  readonly approved: number;
+  readonly onOrder: number;
+  readonly received: number;
+  readonly reserved: number;
+  readonly issued: number;
+  readonly returned: number;
+  readonly lost: number;
+  readonly allocations: number;
+}
+
+/** The allocation heatmap of a project: R7's computed status summed per party and offering. */
+export async function listAllocationHeat(
+  db: XosClient,
+  projectId: string,
+): Promise<Result<AllocationHeatCell[]>> {
+  const rows = await everyRow((from, to) =>
+    db
+      .from("advance_allocation_heat")
+      .select(
+        "engagement_id, party_label, kind, offering, requested_quantity, approved_quantity, on_order_quantity, received_quantity, reserved_quantity, issued_quantity, returned_quantity, lost_quantity, allocation_count",
+      )
+      .eq("project_id", projectId)
+      .order("engagement_id")
+      .order("kind")
+      .order("offering")
+      .range(from, to),
+  );
+  if (!rows.ok) return rows;
+  return ok(
+    rows.data.map((r) => ({
+      engagementId: text(r["engagement_id"]),
+      partyLabel: text(r["party_label"]),
+      kind: text(r["kind"]) ?? "",
+      offering: text(r["offering"]),
+      requested: count(r["requested_quantity"]),
+      approved: count(r["approved_quantity"]),
+      onOrder: count(r["on_order_quantity"]),
+      received: count(r["received_quantity"]),
+      reserved: count(r["reserved_quantity"]),
+      issued: count(r["issued_quantity"]),
+      returned: count(r["returned_quantity"]),
+      lost: count(r["lost_quantity"]),
+      allocations: count(r["allocation_count"]),
+    })),
+  );
+}
+
+/** Most recipients one manual reminder takes (advance_reminder_batch, 6221). */
+export const REMINDER_BATCH_LIMIT = 200;
+
+/**
+ * Reminds chosen recipients of a sent packet now (app.send_advance_reminder_now, 6221): at most once a day each, and
+ * only those with something outstanding. Needs advancing.packet.send on the project.
+ */
+export async function sendAdvanceReminderNow(
+  db: XosClient,
+  packetId: string,
+  recipientIds: readonly string[],
+): Promise<Result<{ sent: number; skipped: number }>> {
+  const ids = [...new Set(recipientIds)];
+  if (ids.length === 0 || ids.length > REMINDER_BATCH_LIMIT) {
+    return refuse("advance_reminder_batch", "Remind 1 to 200 recipients at a time.");
+  }
+  const { data, error } = await db.rpc("send_advance_reminder_now", {
+    p_packet_id: packetId,
+    p_recipient_ids: ids,
+  });
+  if (error) return fail(toDataError(error));
+  const row = (Array.isArray(data) ? data[0] : data) as Raw | undefined;
+  return ok({ sent: count(row?.["sent"]), skipped: count(row?.["skipped"]) });
+}
+
+/** A track's computed state (app.advance_track_progress.track_state, 6223). */
+export const TRACK_STATES = [
+  "Not Started",
+  "In Progress",
+  "Ready for Sign-off",
+  "Signed Off",
+  "Reopened",
+] as const;
+export type TrackState = (typeof TRACK_STATES)[number];
+
+/** One recipient's track of a sent packet. */
+export interface TrackProgress {
+  readonly packetId: string;
+  readonly recipientId: string;
+  readonly recipientLabel: string | null;
+  readonly track: AdvanceTrack;
+  readonly sectionsTotal: number;
+  readonly sectionsDone: number;
+  readonly overdue: boolean;
+  readonly signoffId: string | null;
+  readonly signedOffAt: string | null;
+  readonly signedOffByName: string | null;
+  readonly state: TrackState;
+}
+
+/** The Tracks pane of a project (app.advance_track_progress, 6223), optionally for one packet. */
+export async function listTrackProgress(
+  db: XosClient,
+  projectId: string,
+  packetId?: string,
+): Promise<Result<TrackProgress[]>> {
+  const rows = await everyRow((from, to) => {
+    let query = db
+      .from("advance_track_progress")
+      .select(
+        "advance_packet_id, advance_recipient_id, recipient_label, track, sections_total, sections_done, overdue, signoff_id, signed_off_at, signed_off_by_name, track_state",
+      )
+      .eq("project_id", projectId);
+    if (packetId) query = query.eq("advance_packet_id", packetId);
+    return query
+      .order("advance_packet_id")
+      .order("advance_recipient_id")
+      .order("track")
+      .range(from, to);
+  });
+  if (!rows.ok) return rows;
+  return ok(
+    rows.data.flatMap((r) => {
+      const track = r["track"];
+      if (!isTrack(track)) return [];
+      return [
+        {
+          packetId: String(r["advance_packet_id"]),
+          recipientId: String(r["advance_recipient_id"]),
+          recipientLabel: text(r["recipient_label"]),
+          track,
+          sectionsTotal: count(r["sections_total"]),
+          sectionsDone: count(r["sections_done"]),
+          overdue: r["overdue"] === true,
+          signoffId: text(r["signoff_id"]),
+          signedOffAt: text(r["signed_off_at"]),
+          signedOffByName: text(r["signed_off_by_name"]),
+          state: (text(r["track_state"]) ?? "Not Started") as TrackState,
+        },
+      ];
+    }),
+  );
+}
+
+/**
+ * Signs off one recipient's track (app.sign_off_advance_track, 6223): every live section on it Accepted, Complete or
+ * Not Applicable, and no live sign-off. Refusals come back as advance_track_empty, advance_track_incomplete,
+ * advance_track_signed_off or advance_packet_unsent. Returns the sign-off id.
+ */
+export async function signOffTrack(
+  db: XosClient,
+  recipientId: string,
+  track: AdvanceTrack,
+): Promise<Result<{ id: string }>> {
+  const { data, error } = await db.rpc("sign_off_advance_track", {
+    p_recipient_id: recipientId,
+    p_track: track,
+  });
+  if (error) return fail(toDataError(error));
+  return ok({ id: String(data) });
+}
+
+/** Revokes a live track sign-off with a reason of 1 to 500 characters (app.revoke_advance_track_signoff, 6223). */
+export async function revokeTrackSignoff(
+  db: XosClient,
+  signoffId: string,
+  reason: string,
+): Promise<Result<null>> {
+  const trimmed = reason.trim();
+  if (trimmed.length < 1 || trimmed.length > 500) {
+    return refuse(
+      "advance_track_revoke_reason",
+      "Say why the sign-off is revoked, in 1 to 500 characters.",
+    );
+  }
+  const { error } = await db.rpc("revoke_advance_track_signoff", {
+    p_signoff_id: signoffId,
+    p_reason: trimmed,
+  });
+  return error ? fail(toDataError(error)) : ok(null);
+}
+
+/**
+ * Moves a section to another track (6223). The track is a grouping label and stays editable after the packet is sent.
+ * With `version`, the section's updated_at, the change applies only to that version and a stale one is refused.
+ */
+export async function setSectionTrack(
+  db: XosClient,
+  sectionId: string,
+  track: AdvanceTrack,
+  version?: string | null,
+): Promise<Result<null>> {
+  let query = db
+    .from("advance_sections")
+    .update({ track })
+    .eq("id", sectionId)
+    .is("deleted_at", null);
+  if (version) query = query.eq("updated_at", version);
+  const { data, error } = await query.select("id");
+  if (error) return fail(toDataError(error));
+  if ((data ?? []).length > 0) return ok(null);
+  return version
+    ? refuse(
+        "advance_section_stale",
+        "The section changed since it was read. Reload it and try again.",
+      )
+    : fail(NOT_FOUND);
 }

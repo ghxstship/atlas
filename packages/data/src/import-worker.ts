@@ -11,6 +11,7 @@ import {
   sheetLayout,
   suggestWithSources,
   type DataRow,
+  type NumberFormat,
   type PlaybookColumn,
   type PlaybookSheet,
   type Sheet,
@@ -27,30 +28,18 @@ import {
 import type { Database } from "./database.types.ts";
 
 /**
- * The import worker (A36; Section 4.6.2 steps 2, 4, 5 and 7), run with the service role like A35's
- * report.run worker: it claims import.detect, import.validate and import.commit jobs from A18's queue.
- *   * detect: reads the uploaded spreadsheet, records its columns with a suggested field each, and marks
- *     the import Mapped for the person to confirm
- *   * validate: checks every row against the target (required fields, canon values, references by name),
- *     records the row states with per-cell issues, matches strong keys exactly and sends name plus address
- *     to the fuzzy match (0.85, merge review), and marks the import Validated
- *   * commit: writes each Valid row in the batch the person's commit opened: a create, an update of the
- *     strong key match, or a merge into the candidate the person chose, each recorded with the batch id
- *   * fetch (A83): reads a Google Sheets link through the org's Google Drive connection and saves it to the
- *     imports bucket, where it is scanned like an upload; its Clean verdict queues detection
- * Detection reads every sheet of the workbook (A83, finding A65-025): it records each sheet with its header row,
- * data range and a proposed target, and the import reads one sheet; another sheet is imported as its own import.
- * Suggestions come from a saved profile, the Playbook column map and header similarity, each with its source.
- * A failed attempt goes back to the queue while attempts remain, then the import is marked Failed.
- * A spreadsheet is parsed only once its virus scan is Clean (owner decision 10, migration 1240): the
- * database queues detection on the Clean verdict, and every step checks again before reading.
- * When validation or a commit finishes, the person who started or committed the import is sent import.finished
- * (A104, migration 2051) with a link to review it in Atlas; the database counts the rows.
- * Cues and guest list entries (P3, 5800 to 5802) import into the running order or project the import names: every
- * lookup, strong-key match and write stays inside it, numbered cues are written before unnumbered ones are appended,
- * a row that repeats an earlier row of the file is Invalid, and detection records three sample cells per column for
- * the uploader's mapping preview.
- * Not exported from the package index: only the worker entry points load it, with its .xlsx reader.
+ * The import worker (A36; Section 4.6.2 steps 2, 4, 5 and 7), run with the service role like A35's report.run worker:
+ *   * detect: records a spreadsheet's sheets and columns with suggestions (a saved profile, the Playbook column map, header
+ *     similarity), and marks the import Mapped for the person to confirm
+ *   * validate: checks every row against the target, records row states and per-cell issues, matches strong keys exactly,
+ *     sends name plus address to the fuzzy match (0.85, merge review), and marks the import Validated
+ *   * commit: writes each Valid row in the batch the person's commit opened, recorded with the batch id
+ *   * fetch (A83): saves a Google Sheets link to the imports bucket through the org's Drive connection, to be scanned
+ * A failed attempt goes back to the queue while attempts remain, then the import is marked Failed. A spreadsheet is parsed
+ * only once its virus scan is Clean (owner decision 10, migration 1240). A finished step sends import.finished (A104, 2051).
+ * Cues and guest list entries (P3, 5800 to 5802) stay inside the running order or project the import names, and a row that
+ * repeats an earlier row is Invalid. Pool invitations (B10), needs and order lines (B11) and budget lines (B13) load their
+ * own target modules.
  */
 
 export const IMPORT_JOB_KINDS = [
@@ -85,12 +74,48 @@ export interface ImportJobRecord {
   readonly projectId?: string | null;
   /** The running order a cue import writes into (P3). */
   readonly runOfShowId?: string | null;
+  /** The pool a pool invitation import puts rows without a pool name into (B10). */
+  readonly talentPoolId?: string | null;
+  /** How the file writes amounts (B10). */
+  readonly numberFormat?: NumberFormat;
+  /** Who created the import: the inviter of its pool invitations (B10). */
+  readonly createdBy?: string | null;
+  /** The order an order line import writes into; projectId then holds its project (B11, 6537). */
+  readonly purchaseOrderId?: string | null;
+  /** The budget a budget line import writes into (B13). */
+  readonly budgetId?: string | null;
 }
 
 /** Where a cue or guest list import writes (P3): its running order or its project. */
 export interface ImportDestination {
   readonly runOfShow?: RunOfShowContext;
   readonly project?: { readonly id: string };
+  readonly pools?: PoolInvitationContext;
+  /** The import, for catalogue matching of needs and order lines (B11). */
+  readonly jobId?: string;
+  readonly budget?: BudgetDestination;
+}
+
+/** What validating a pool invitation row needs (B10). */
+export interface PoolInvitationContext {
+  /** The import's own pool, for rows without a pool name. */
+  readonly talentPoolId: string | null;
+  readonly numberFormat: NumberFormat;
+  /** True when the import's creator holds payroll org-wide (app.import_job_can_write_rates). */
+  readonly canWriteRates: boolean;
+  /** The org's language setting, whose region is the default phone region. */
+  readonly language: string | null;
+  /** The org's base currency, for a bare currency symbol or a rate with no currency. */
+  readonly baseCurrency: string | null;
+  readonly exponents: ReadonlyMap<string, number>;
+}
+
+/** What validating and numbering a budget line needs from its budget (B13). */
+export interface BudgetDestination {
+  readonly id: string;
+  /** Digits after the point in the budget's currency, to read typed amounts. */
+  readonly exponent: number;
+  readonly maxLineNumber: number;
 }
 
 /** What validating a cue needs from its running order. */
@@ -186,6 +211,11 @@ export interface ImportStore {
   }): Promise<string>;
   recordCellIssues(rowId: string, issues: readonly CellIssue[]): Promise<void>;
   recordMatch(rowId: string, targetId: string): Promise<void>;
+  recordMaterialMatch(
+    rowId: string,
+    match: "Matched" | "Unmatched",
+    note: string | null,
+  ): Promise<void>;
   validRows(jobId: string): Promise<ValidRow[]>;
   commitWrite(input: {
     rowId: string;
@@ -195,6 +225,10 @@ export interface ImportStore {
     before: Row | null;
   }): Promise<void>;
   refuseRow(rowId: string, reason: string): Promise<void>;
+  /** Marks a Valid row Skipped with the reason, and writes nothing (B10). */
+  skipRow(rowId: string, reason: string): Promise<void>;
+  /** Adds a reason to a row that was written, such as a rate left as it was (B10). */
+  noteRow(rowId: string, reason: string): Promise<void>;
   finishBatch(batchId: string): Promise<void>;
   /** The org's slug, the first segment of its Atlas paths. */
   orgSlug(orgId: string): Promise<string | null>;
@@ -212,6 +246,12 @@ export interface TargetLookups {
   jurisdictionExists(id: string): Promise<boolean>;
   vendorIdByName(orgId: string, name: string): Promise<string | null>;
   elementExists(id: string): Promise<boolean>;
+  /** The canon discipline or category exists (a budget line's URID). */
+  uridExists(urid: string): Promise<boolean>;
+  /** The category's own XYZ tag; null for a discipline, whose lines declare one. */
+  uridXyz(urid: string): Promise<"X" | "Y" | "Z" | null>;
+  /** A live cost center of the org by its code; null for none. */
+  costCenterId(orgId: string, code: string): Promise<string | null>;
   assetClassId(orgId: string, idOrName: string): Promise<string | null>;
   venueId(orgId: string, idOrName: string): Promise<string | null>;
   strongKeyMatch(
@@ -239,8 +279,46 @@ export interface TargetLookups {
   ): Promise<string | null>;
   /** The position after the highest live cue of the running order (1 when it has none). */
   nextCuePosition(runOfShowId: string): Promise<number>;
+  /** The budget a budget line import writes into: its currency's exponent and its highest line number. */
+  budgetDestination(budgetId: string): Promise<BudgetDestination | null>;
+  /** A budget line's URID and how its XYZ tag was set, so an update never overwrites a declared tag. */
+  budgetLineTag(id: string): Promise<{ urid: string; xyzBasis: string | null } | null>;
   /** True when the cue was already called; an import never rewrites a called cue (C11). */
   cueCalled(id: string): Promise<boolean>;
+  /** A live Talent pool of the org by name, trimmed and case-insensitive; null for none or two (B10). */
+  talentPoolIdByName(orgId: string, name: string): Promise<string | null>;
+  /** A Roles Library code by the code itself or a job title; null for none or two (B10). */
+  roleCode(codeOrTitle: string): Promise<string | null>;
+  /** What the import's pool invitation rows are checked against (B10). */
+  poolInvitationContext(job: ImportJobRecord): Promise<PoolInvitationContext>;
+  /** A pending pool invitation's expiry and whether it holds a rate; null when it is gone (B10). */
+  poolInvitation(id: string): Promise<{ expiresAt: string; hasRate: boolean } | null>;
+  /** True when a budget line's grade, phase or tier is one canon lists (B13). */
+  canonCodeExists(kind: "grade" | "phase" | "tier", code: string): Promise<boolean>;
+  /** True when the unit is one canon lists (B11). */
+  unitExists(unit: string): Promise<boolean>;
+  /** Catalogue matching of a need or order line (app.import_material_match, B11, 6537); null for none. */
+  materialMatch(
+    importJobId: string,
+    vendorSku: string | null,
+    text: string | null,
+  ): Promise<MaterialMatch | null>;
+  /** The time zone of a project, for the need's dates (B11). */
+  projectTimeZone(projectId: string): Promise<string>;
+  /** The order's state, or null when it is gone (B11). */
+  purchaseOrderState(id: string): Promise<string | null>;
+  /** The number after the highest live line of the order (B11). */
+  nextPoLineNumber(purchaseOrderId: string): Promise<number>;
+}
+
+/** What catalogue matching found: a SKU among the vendor's products, or a class by name (private.material_match). */
+export interface MaterialMatch {
+  readonly source: "vendor_sku" | "asset_class";
+  readonly elementId: string | null;
+  readonly assetClassId: string | null;
+  readonly unitPriceMinor: number | null;
+  readonly currencyCode: string | null;
+  readonly orderCurrencyCode: string | null;
 }
 
 export interface ImportJobResult {
@@ -355,6 +433,9 @@ export interface Validated {
   readonly strongKeys: Record<string, string>;
   readonly matchName: string | null;
   readonly matchAddress: string | null;
+  /** Needs and order lines: whether the catalogue named the row, and why a price stayed blank (B11). */
+  readonly materialMatch?: "Matched" | "Unmatched";
+  readonly matchNote?: "price_currency_differs" | null;
 }
 
 /** The longest text each cue and guest field holds (the column checks of 0350, 1180 and 0431). */
@@ -364,7 +445,14 @@ const MAX_LENGTH: Readonly<Record<string, number>> = {
   description: 2000,
   guest_name: 200,
   note: 500,
+  table_label: 40,
 };
+
+/** A guest email as the guest list stores it (6254): trimmed, lowercased, the 1382 pattern, at most 320 characters. */
+export function importGuestEmail(value: string): string | null {
+  const email = value.trim().toLowerCase();
+  return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email) && email.length <= 320 ? email : null;
+}
 
 /**
  * Checks one row against its target; cell issues name the column and an issue code from the catalogs. A cue or guest
@@ -412,6 +500,8 @@ export async function validateRow(
       issues.push({ columnIndex: columnOf(field), issue: "too_long" });
     else values[field] = v;
   };
+  let materialMatch: "Matched" | "Unmatched" | undefined;
+  let matchNote: "price_currency_differs" | null = null;
 
   switch (targetCode) {
     case "counterparties":
@@ -483,7 +573,8 @@ export async function validateRow(
     }
     case "guest_list_entries": {
       const projectId = destination.project?.id ?? null;
-      for (const f of ["guest_name", "note"]) bounded(f);
+      for (const f of ["guest_name", "note", "table_label"]) bounded(f);
+      await set("guest_email", importGuestEmail, "invalid_email");
       await set(
         "plus_ones",
         (v) => {
@@ -500,6 +591,54 @@ export async function validateRow(
       await set("counterparty_id", (v) => lookups.counterpartyIdByName(orgId, v), "unknown_party");
       break;
     }
+    case "pool_invitations": {
+      // Loaded only for this target, which keeps import-run's boot under its ceiling.
+      const { checkPoolInvitationRow } = await import("./import-pool-target.ts");
+      await checkPoolInvitationRow({
+        orgId,
+        raw,
+        columnOf,
+        pools: destination.pools,
+        lookups,
+        values,
+        issues,
+      });
+      break;
+    }
+    case "procurement_needs":
+    case "po_lines": {
+      // Loaded only for these targets, which keeps import-run's boot under its ceiling.
+      const { checkMaterialRow } = await import("./import-material-target.ts");
+      const found = await checkMaterialRow({
+        targetCode,
+        orgId,
+        destination,
+        lookups,
+        text,
+        set,
+        columnOf,
+        values,
+        issues,
+      });
+      materialMatch = found.materialMatch;
+      matchNote = found.matchNote;
+      break;
+    }
+    case "budget_lines": {
+      const { checkBudgetLineRow } = await import("./import-budget-target.ts");
+      await checkBudgetLineRow({
+        destination,
+        lookups,
+        text,
+        set,
+        bounded,
+        orgId,
+        columnOf,
+        values,
+        issues,
+      });
+      break;
+    }
     default:
       issues.push({ columnIndex: 0, issue: "target_not_importable" });
   }
@@ -512,8 +651,14 @@ export async function validateRow(
   const fuzzy =
     targetCode === "venues" ||
     targetCode === "counterparties" ||
-    targetCode === "guest_list_entries";
-  const nameField = targetCode === "guest_list_entries" ? "guest_name" : "name";
+    targetCode === "guest_list_entries" ||
+    targetCode === "pool_invitations";
+  const nameField =
+    targetCode === "guest_list_entries"
+      ? "guest_name"
+      : targetCode === "pool_invitations"
+        ? "invitee_name"
+        : "name";
   const matchName = fuzzy ? text(nameField).trim() : "";
   return {
     state: issues.length === 0 ? "Valid" : "Invalid",
@@ -527,11 +672,19 @@ export async function validateRow(
             .filter(Boolean)
             .join(" ") || null
         : null,
+    ...(materialMatch ? { materialMatch, matchNote } : {}),
   };
 }
 
-/** Targets whose imports name a running order or a project (P3). */
-const DESTINATION_TARGETS: ReadonlySet<string> = new Set(["cues", "guest_list_entries"]);
+/** Targets matched through app.import_strong_key_match (P3, B10, B11, B13). */
+const DESTINATION_TARGETS: ReadonlySet<string> = new Set([
+  "cues",
+  "guest_list_entries",
+  "pool_invitations",
+  "procurement_needs",
+  "po_lines",
+  "budget_lines",
+]);
 
 /**
  * The strong keys of a cue or guest row, from its checked values (C9, C10): a cue's position, or without one its
@@ -554,6 +707,20 @@ function destinationStrongKeys(targetCode: string, values: Row): Record<string, 
     const guest_name = name.trim().toLowerCase();
     return show === null ? { guest_name } : { guest_name, scope_node_id: show };
   }
+  if (targetCode === "pool_invitations") {
+    const email = str("email");
+    const pool = str("talent_pool_id");
+    return email === null || pool === null ? {} : { email, talent_pool_id: pool };
+  }
+  if (targetCode === "procurement_needs") {
+    const description = str("description");
+    return description === null ? {} : { description: description.trim().toLowerCase() };
+  }
+  if (targetCode === "po_lines" || targetCode === "budget_lines") {
+    return typeof values["line_number"] === "number"
+      ? { line_number: String(values["line_number"]) }
+      : {};
+  }
   return null;
 }
 
@@ -562,6 +729,9 @@ const DUPLICATE_COLUMN_FIELD: Readonly<Record<string, string>> = {
   position: "position",
   label: "label",
   guest_name: "guest_name",
+  email: "email",
+  description: "description",
+  line_number: "line_number",
 };
 
 /**
@@ -603,6 +773,20 @@ async function destinationOf(store: ImportStore, job: ImportJobRecord): Promise<
   }
   if (job.targetCode === "guest_list_entries" && job.projectId) {
     return { project: { id: job.projectId } };
+  }
+  if (job.targetCode === "pool_invitations") {
+    return { pools: await store.lookups.poolInvitationContext(job) };
+  }
+  if (job.targetCode === "procurement_needs" && job.projectId) {
+    return { project: { id: job.projectId }, jobId: job.id };
+  }
+  if (job.targetCode === "po_lines" && job.purchaseOrderId) {
+    return { jobId: job.id };
+  }
+  if (job.targetCode === "budget_lines" && job.budgetId) {
+    const budget = await store.lookups.budgetDestination(job.budgetId);
+    if (budget === null) throw new Error(`The budget of import ${job.id} no longer exists.`);
+    return { budget };
   }
   return {};
 }
@@ -861,6 +1045,9 @@ async function validate(
     });
     if (result.issues.length > 0) await store.recordCellIssues(rowId, result.issues);
     if (match) await store.recordMatch(rowId, match);
+    // B11: the preview shows whether the catalogue named the row; the person confirms at commit.
+    if (result.materialMatch)
+      await store.recordMaterialMatch(rowId, result.materialMatch, result.matchNote ?? null);
   }
   await store.setStatus(job.id, "Validated");
   return notifyFinished(store, job, null, options);
@@ -891,10 +1078,12 @@ async function commit(
   // Numbered cues and updates are written first; unnumbered new cues are then appended in sheet order, so an
   // appended cue never takes a position a later numbered row needs (C10).
   const appended = (v: ValidRow) =>
-    job.targetCode === "cues" &&
     v.mergeInto === null &&
     v.matchedId === null &&
-    typeof byNumber.get(v.rowNumber)?.values["position"] !== "number";
+    ((job.targetCode === "cues" &&
+      typeof byNumber.get(v.rowNumber)?.values["position"] !== "number") ||
+      (job.targetCode === "budget_lines" &&
+        typeof byNumber.get(v.rowNumber)?.values["line_number"] !== "number"));
   const ordered = [...valids.filter((v) => !appended(v)), ...valids.filter(appended)];
   for (const valid of ordered) {
     const checked = byNumber.get(valid.rowNumber);
@@ -906,10 +1095,38 @@ async function commit(
       await store.refuseRow(valid.id, checked.issues.map((i) => i.issue).join(", "));
       continue;
     }
+    // An order that left Proposed since the import began refuses its rows, one by one, and the batch goes on (C6).
+    if (
+      job.targetCode === "po_lines" &&
+      job.purchaseOrderId &&
+      (await store.lookups.purchaseOrderState(job.purchaseOrderId)) !== "Proposed"
+    ) {
+      await store.refuseRow(valid.id, "import_po_not_proposed");
+      continue;
+    }
     try {
       const target = valid.mergeInto?.id ?? valid.matchedId;
+      if (job.targetCode === "pool_invitations" && target) {
+        const { commitPoolMatch } = await import("./import-pool-target.ts");
+        await commitPoolMatch({
+          store,
+          batchId,
+          valid,
+          values: updateChanges(job.targetCode, checked.values),
+          refuse: (message) => new ImportWriteError(message),
+        });
+        continue;
+      }
       if (target) {
         const changes = updateChanges(job.targetCode, checked.values);
+        // The URID's own tag never replaces a declared one unless the sheet moves the line to another URID.
+        if (job.targetCode === "budget_lines" && changes["xyz_basis"] === "Category") {
+          const current = await store.lookups.budgetLineTag(target);
+          if (current?.xyzBasis === "Declared" && current.urid === changes["urid"]) {
+            delete changes["xyz"];
+            delete changes["xyz_basis"];
+          }
+        }
         if (job.targetCode === "cues" && (await store.lookups.cueCalled(target))) {
           throw new ImportWriteError("This cue was already called");
         }
@@ -934,7 +1151,11 @@ async function commit(
       }
     } catch (error) {
       if (!(error instanceof ImportWriteError)) throw error;
-      await store.refuseRow(valid.id, error.message.slice(0, 1000));
+      // Someone who declined within 12 months is not invited again, which is not a failure of the row. A pool refusal keeps
+      // its code alone, so the wizard says it in the reader's language.
+      const pool = /^(pool_invitation_[a-z_]+):/.exec(error.message)?.[1];
+      if (pool === "pool_invitation_declined") await store.skipRow(valid.id, pool);
+      else await store.refuseRow(valid.id, pool ?? error.message.slice(0, 1000));
     }
   }
   await store.finishBatch(batchId);
@@ -950,6 +1171,10 @@ function updateChanges(targetCode: string, values: Row): Row {
     counterparties: ["name"],
     cues: ["run_of_show_id", "project_id", "position"],
     guest_list_entries: ["project_id", "guest_name", "scope_node_id"],
+    pool_invitations: ["talent_pool_id", "email", "invited_by"],
+    procurement_needs: ["project_id", "description"],
+    po_lines: ["purchase_order_id", "line_number"],
+    budget_lines: ["budget_id", "line_number"],
   };
   const keep = kept[targetCode] ?? [];
   return Object.fromEntries(Object.entries(values).filter(([key]) => !keep.includes(key)));
@@ -969,6 +1194,36 @@ async function createValues(store: ImportStore, job: ImportJobRecord, values: Ro
   }
   if (job.targetCode === "guest_list_entries" && job.projectId) {
     return { ...values, project_id: job.projectId, entry_state: "Requested" };
+  }
+  if (job.targetCode === "pool_invitations") {
+    if (!job.createdBy) throw new ImportWriteError("This import has no inviter.");
+    return { ...values, invited_by: job.createdBy };
+  }
+  if (job.targetCode === "procurement_needs" && job.projectId) {
+    return { ...values, project_id: job.projectId };
+  }
+  if (job.targetCode === "po_lines" && job.purchaseOrderId) {
+    const line_number =
+      typeof values["line_number"] === "number"
+        ? values["line_number"]
+        : await store.lookups.nextPoLineNumber(job.purchaseOrderId);
+    return { ...values, purchase_order_id: job.purchaseOrderId, line_number };
+  }
+  if (job.targetCode === "budget_lines" && job.budgetId) {
+    // Unnumbered rows are written last, in sheet order, each after the highest number at that moment.
+    const budget = await store.lookups.budgetDestination(job.budgetId);
+    const line_number =
+      typeof values["line_number"] === "number"
+        ? values["line_number"]
+        : (budget?.maxLineNumber ?? 0) + 1;
+    return {
+      quantity: 1,
+      unit_price_minor: null,
+      line_type: "Cost",
+      ...values,
+      budget_id: job.budgetId,
+      line_number,
+    };
   }
   return values;
 }
@@ -1062,6 +1317,10 @@ const TABLES: Readonly<Record<string, string>> = {
   asset_units: "asset_units",
   cues: "cues",
   guest_list_entries: "guest_list_entries",
+  pool_invitations: "talent_pool_invitations",
+  procurement_needs: "procurement_needs",
+  po_lines: "po_lines",
+  budget_lines: "budget_lines",
 };
 
 /** Trimmed, lower-case text for a name match, as the database compares names (private.fuzzy_candidates). */
@@ -1106,6 +1365,17 @@ export function supabaseImportStore(client: SupabaseClient): ImportStore {
     const { error } = await query;
     if (error) throw new Error(`${what}: ${error.message}`);
   };
+  const setRow = (rowId: string, values: Row) =>
+    exec(app.from("import_row_results").update(values).eq("id", rowId), "import_row_results");
+  const poolStore = async () =>
+    (await import("./import-pool-target.ts")).poolLookups({
+      app,
+      canon,
+      call,
+      one,
+      onlyMatch,
+      text,
+    });
   const lookups: TargetLookups = {
     async counterpartyTypeExists(type) {
       return (
@@ -1142,6 +1412,40 @@ export function supabaseImportStore(client: SupabaseClient): ImportStore {
         );
       });
       return match ? text(match, "id") : null;
+    },
+    async uridExists(urid) {
+      const [discipline, category] = await Promise.all([
+        one(
+          canon.from("dim_discipline").select("disc_code").eq("disc_code", urid.trim()).limit(1),
+          "dim_discipline",
+        ),
+        one(
+          canon.from("dim_category").select("cat_urid").eq("cat_urid", urid.trim()).limit(1),
+          "dim_category",
+        ),
+      ]);
+      return discipline !== null || category !== null;
+    },
+    async uridXyz(urid) {
+      const row = await one(
+        canon.from("dim_category").select("xyz").eq("cat_urid", urid.trim()).limit(1),
+        "dim_category",
+      );
+      const tag = typeof row?.["xyz"] === "string" ? row["xyz"].trim() : null;
+      return tag === "X" || tag === "Y" || tag === "Z" ? tag : null;
+    },
+    async costCenterId(orgId, code) {
+      const row = await one(
+        app
+          .from("cost_centers")
+          .select("id")
+          .eq("org_id", orgId)
+          .eq("code", code.trim().toUpperCase())
+          .is("deleted_at", null)
+          .limit(1),
+        "cost_centers",
+      );
+      return typeof row?.["id"] === "string" ? row["id"] : null;
     },
     async elementExists(id) {
       return (
@@ -1294,6 +1598,74 @@ export function supabaseImportStore(client: SupabaseClient): ImportStore {
       });
       return typeof id === "string" ? id : null;
     },
+    async canonCodeExists(kind, code) {
+      const [table, column] = {
+        grade: ["grade", "code"],
+        phase: ["dim_phase", "phase_code"],
+        tier: ["dim_tier", "tier_code"],
+      }[kind] as [string, string];
+      const row = await one(canon.from(table).select(column).eq(column, code).limit(1), table);
+      return row !== null;
+    },
+    async unitExists(unit) {
+      const row = await one(
+        canon.from("dim_unit_alias").select("alias").eq("alias", unit.trim()).limit(1),
+        "dim_unit_alias",
+      );
+      return row !== null;
+    },
+    async materialMatch(importJobId, vendorSku, matchText) {
+      const row = await call("import_material_match", {
+        p_import_job_id: importJobId,
+        p_vendor_sku: vendorSku,
+        p_text: matchText,
+      });
+      const first = (Array.isArray(row) ? row[0] : null) as Row | undefined;
+      if (!first) return null;
+      return {
+        source: first["match_source"] === "vendor_sku" ? "vendor_sku" : "asset_class",
+        elementId: (first["element_id"] as string | null) ?? null,
+        assetClassId: (first["asset_class_id"] as string | null) ?? null,
+        unitPriceMinor: (first["unit_price_minor"] as number | null) ?? null,
+        currencyCode: (first["currency_code"] as string | null) ?? null,
+        orderCurrencyCode: (first["order_currency_code"] as string | null) ?? null,
+      };
+    },
+    async projectTimeZone(projectId) {
+      const row = await one(
+        app.from("projects").select("time_zone").eq("id", projectId),
+        "projects",
+      );
+      return typeof row?.["time_zone"] === "string" ? row["time_zone"] : "UTC";
+    },
+    async purchaseOrderState(id) {
+      const row = await one(
+        app.from("purchase_orders").select("po_state").eq("id", id).is("deleted_at", null),
+        "purchase_orders",
+      );
+      return typeof row?.["po_state"] === "string" ? row["po_state"] : null;
+    },
+    async nextPoLineNumber(purchaseOrderId) {
+      const row = await one(
+        app
+          .from("po_lines")
+          .select("line_number")
+          .eq("purchase_order_id", purchaseOrderId)
+          .is("deleted_at", null)
+          .order("line_number", { ascending: false })
+          .limit(1),
+        "po_lines",
+      );
+      return (typeof row?.["line_number"] === "number" ? row["line_number"] : 0) + 1;
+    },
+    async budgetLineTag(id) {
+      const { readBudgetLineTag } = await import("./import-budget-target.ts");
+      return readBudgetLineTag(app, one, id);
+    },
+    async budgetDestination(budgetId) {
+      const { readBudgetDestination } = await import("./import-budget-target.ts");
+      return readBudgetDestination(app, one, budgetId);
+    },
     async nextCuePosition(runOfShowId) {
       const row = await one(
         app
@@ -1311,6 +1683,10 @@ export function supabaseImportStore(client: SupabaseClient): ImportStore {
       const row = await one(app.from("cues").select("called_at").eq("id", id), "cues");
       return typeof row?.["called_at"] === "string";
     },
+    talentPoolIdByName: async (o, n) => (await poolStore()).talentPoolIdByName(o, n),
+    roleCode: async (v) => (await poolStore()).roleCode(v),
+    poolInvitationContext: async (j) => (await poolStore()).poolInvitationContext(j),
+    poolInvitation: async (id) => (await poolStore()).poolInvitation(id),
     async update(targetCode, id, values) {
       const table = TABLES[targetCode];
       if (!table) throw new ImportWriteError(`${targetCode} is not an import target.`);
@@ -1350,7 +1726,7 @@ export function supabaseImportStore(client: SupabaseClient): ImportStore {
         app
           .from("import_jobs")
           .select(
-            "id, org_id, target_code, source, storage_object_path, original_filename, import_status, import_mapping_profile_id, sheet_name, source_url, project_id, run_of_show_id",
+            "id, org_id, target_code, source, storage_object_path, original_filename, import_status, import_mapping_profile_id, sheet_name, source_url, project_id, run_of_show_id, purchase_order_id, budget_id, talent_pool_id, number_format, created_by",
           )
           .eq("id", id)
           .is("deleted_at", null),
@@ -1371,6 +1747,11 @@ export function supabaseImportStore(client: SupabaseClient): ImportStore {
             sourceUrl: optional("source_url"),
             projectId: optional("project_id"),
             runOfShowId: optional("run_of_show_id"),
+            talentPoolId: optional("talent_pool_id"),
+            numberFormat: (optional("number_format") as NumberFormat | null) ?? "comma-dot",
+            createdBy: optional("created_by"),
+            purchaseOrderId: optional("purchase_order_id"),
+            budgetId: optional("budget_id"),
           }
         : null;
     },
@@ -1594,6 +1975,15 @@ export function supabaseImportStore(client: SupabaseClient): ImportStore {
         "import_cell_issues",
       );
     },
+    async recordMaterialMatch(rowId, match, note) {
+      await exec(
+        app
+          .from("import_row_results")
+          .update({ material_match: match, match_note: note })
+          .eq("id", rowId),
+        "import_row_results",
+      );
+    },
     async recordMatch(rowId, targetId) {
       await exec(
         app.from("import_row_matches").insert({ import_row_result_id: rowId, target_id: targetId }),
@@ -1643,6 +2033,8 @@ export function supabaseImportStore(client: SupabaseClient): ImportStore {
         "import_row_results",
       );
     },
+    skipRow: (rowId, reason) => setRow(rowId, { row_state: "Skipped", reason }),
+    noteRow: (rowId, reason) => setRow(rowId, { reason }),
     async finishBatch(batchId) {
       await call("finish_import_batch", { p_import_batch_id: batchId });
     },

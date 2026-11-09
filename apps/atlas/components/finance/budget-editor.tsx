@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import type { BudgetLine, BudgetLineInput } from "@xos/data/finance";
-import { accountForUrid, mergeSavedLine, xyzFor } from "@xos/data/finance";
+import { accountForUrid, clientUnitPrice, mergeSavedLine, xyzFor } from "@xos/data/finance";
 import { Button, SpreadsheetGrid, ToastRegion, UndoToast, type GridColumn } from "@xos/ui";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
@@ -23,13 +23,17 @@ import {
   typedLine,
 } from "@/lib/finance/live-lines";
 import { BudgetPresence } from "./budget-presence";
+import { MoreActions } from "@/components/shell/more-actions";
 import { propertyEdit, softDelete, versionChain } from "@/components/undo/entries";
 import { undoStack, type UndoResult } from "@xos/ui/undo";
+// Drawer and dialog bodies load when opened; the toolbar's buttons stay in this chunk.
+import { BudgetVersionsDrawer, LineTransactionsDrawer, QuoteLinesDialog } from "./lazy";
 import {
   submit,
   toMajor,
   toMinor,
   type BudgetEditorProps as Props,
+  type Cell,
   type GridRow,
 } from "./budget-editor-shared";
 import { ActionFeedback } from "./kit-action-feedback";
@@ -69,6 +73,7 @@ const DrawDialog = dynamic(() => dialog().then((m) => m.DrawDialog));
 
 /** Lodging on linked lines (B5) loads with the editor only when there are lines, and reads on request. */
 const BudgetLodging = dynamic(() => import("./budget-lodging").then((m) => m.BudgetLodging));
+export type { BudgetColumnSet } from "./budget-editor-shared";
 
 function inputOf(line: BudgetLine): BudgetLineInput {
   return {
@@ -83,8 +88,18 @@ function inputOf(line: BudgetLine): BudgetLineInput {
     unitPriceMinor: line.unitPriceMinor,
     xyz: line.xyz,
     xyzBasis: line.xyzBasis,
+    markupBp: line.markupBp,
+    clientUnitPriceMinor: line.clientUnitPriceMinor,
+    excludedFromQuote: line.excludedFromQuote,
+    etcMinor: line.etcMinor,
   };
 }
+
+/** A percent typed in the grid as basis points; blank is null, never zero. */
+const toBp = (percent: Cell): number | null =>
+  percent === null || percent === "" ? null : Math.round(Number(percent) * 100);
+const validBp = (bp: number | null) =>
+  bp === null || (Number.isFinite(bp) && bp >= 0 && bp <= 100000);
 
 export function BudgetEditor(props: Props) {
   const t = useFinanceT();
@@ -195,8 +210,20 @@ export function BudgetEditor(props: Props) {
     return answer;
   };
   const [sheet, setSheet] = useState<
-    "add" | "catalog" | "paste" | "delete" | "draw" | "fields" | null
+    | "add"
+    | "catalog"
+    | "paste"
+    | "delete"
+    | "draw"
+    | "fields"
+    | "versions"
+    | "transactions"
+    | "quoteLines"
+    | null
   >(null);
+  const [selectedLine, setSelectedLine] = useState<string | null>(null);
+  const columnSet = props.columnSet ?? "cost";
+  const defaultMarkup = props.defaultMarkupBp ?? null;
   const [editingId, setEditingId] = useState<string | null>(null);
   const custom = useCustomFieldColumns();
   const allLines = props.allLines ?? lines;
@@ -248,11 +275,27 @@ export function BudgetEditor(props: Props) {
   );
   const known = useMemo(() => new Set(props.urids.map((u) => u.urid)), [props.urids]);
 
+  // The client price in force, from what this tab holds, so a typed markup shows at once.
+  const clientPriceOf = (l: BudgetLine) =>
+    l.clientUnitPriceMinor ?? clientUnitPrice(l.unitPriceMinor, l.markupBp ?? defaultMarkup);
+
   // One array per change of the lines, so the grid merges rows only when they change.
   const rows: GridRow[] = useMemo(
     () =>
       lines.map((l) => ({
         id: l.id,
+        markupPercent: l.markupBp === null ? null : l.markupBp / 100,
+        clientUnitPrice: toMajor(clientPriceOf(l), props.exponent),
+        onQuote: l.excludedFromQuote ? t("common.no") : t("common.yes"),
+        // Not a column: the client totals below leave these lines out (acceptance 6).
+        excludedFromQuote: l.excludedFromQuote ? 1 : 0,
+        remaining: l.forecastWithheld ? null : toMajor(l.remainingCommitmentMinor, props.exponent),
+        etc: toMajor(l.etcMinor, props.exponent),
+        derivedEtc: l.forecastWithheld ? null : toMajor(l.forecastEtcMinor, props.exponent),
+        efc: l.forecastWithheld ? null : toMajor(l.efcMinor, props.exponent),
+        varianceAtCompletion: l.forecastWithheld
+          ? null
+          : toMajor(l.varianceAtCompletionMinor, props.exponent),
         description: l.description,
         urid: l.urid,
         lineType: t(`budgets.lineTypes.${l.lineType}`),
@@ -265,15 +308,110 @@ export function BudgetEditor(props: Props) {
         actual: toMajor(l.actualMinor, props.exponent),
         ...custom.cells(l.id),
       })),
-    [lines, centerCode, props.exponent, t, custom],
+    // clientPriceOf reads only these lines and the budget's default.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [lines, centerCode, props.exponent, t, custom, defaultMarkup],
   );
   const withheld = lines.some((l) => l.committedWithheld);
+  const forecastWithheld = lines.some((l) => l.forecastWithheld);
+  const unpricedHours = lines.reduce((sum, l) => sum + l.laborUnpricedMinutes, 0) / 60;
+  const otherCurrencyPostings = lines.reduce((sum, l) => sum + l.laborOtherCurrencyCount, 0);
   const otherCurrencyLines = lines.flatMap((l, i) =>
     l.otherCurrencyPoLineCount > 0 ? [i + 1] : [],
   );
   const editingLine = editingId ? lines.findIndex((l) => l.id === editingId) + 1 || null : null;
 
-  const columns: GridColumn[] = [
+  const descriptionColumn: GridColumn = {
+    key: "description",
+    label: t("budgets.columns.description"),
+    editable: props.canWrite,
+    width: 260,
+  };
+  const moneyColumn = (
+    key: string,
+    label: string,
+    extra: Partial<GridColumn> = {},
+  ): GridColumn => ({
+    key,
+    label,
+    type: "money",
+    currency: props.currency,
+    width: 128,
+    ...extra,
+  });
+  const onQuote = (r: GridRow) => r["excludedFromQuote"] !== 1;
+  const defaultHint =
+    defaultMarkup === null
+      ? null
+      : t("budgets.columns.markupDefault", { percent: defaultMarkup / 100 });
+  const clientColumns: GridColumn[] = [
+    descriptionColumn,
+    { key: "urid", label: t("budgets.columns.urid"), type: "code", width: 120 },
+    { key: "lineType", label: t("budgets.columns.lineType"), width: 110 },
+    {
+      key: "quantity",
+      label: t("budgets.columns.quantity"),
+      type: "number",
+      editable: props.canWrite,
+      width: 96,
+    },
+    moneyColumn("unitPrice", t("budgets.columns.unitPrice"), { editable: props.canWrite }),
+    {
+      key: "markupPercent",
+      label: t("budgets.columns.markup"),
+      type: "number",
+      editable: props.canWrite,
+      width: 96,
+      blankHint: () => defaultHint,
+    },
+    moneyColumn("clientUnitPrice", t("budgets.columns.clientUnitPrice"), {
+      editable: props.canWrite,
+      width: 144,
+    }),
+    moneyColumn("clientAmount", t("budgets.columns.clientAmount"), {
+      total: true,
+      totalIncludes: onQuote,
+      width: 136,
+      derive: (r) =>
+        r["clientUnitPrice"] === null ||
+        r["clientUnitPrice"] === undefined ||
+        r["clientUnitPrice"] === ""
+          ? null
+          : Number(r["quantity"] ?? 0) * Number(r["clientUnitPrice"]),
+    }),
+    moneyColumn("margin", t("budgets.columns.margin"), {
+      total: true,
+      totalIncludes: onQuote,
+      derive: (r) =>
+        r["clientUnitPrice"] === null ||
+        r["clientUnitPrice"] === undefined ||
+        r["clientUnitPrice"] === "" ||
+        r["unitPrice"] === null ||
+        r["unitPrice"] === undefined ||
+        r["unitPrice"] === ""
+          ? null
+          : Number(r["quantity"] ?? 0) * (Number(r["clientUnitPrice"]) - Number(r["unitPrice"])),
+    }),
+    { key: "onQuote", label: t("budgets.columns.onQuote"), width: 96 },
+  ];
+  const forecastColumns: GridColumn[] = [
+    descriptionColumn,
+    { key: "lineType", label: t("budgets.columns.lineType"), width: 110 },
+    moneyColumn("actual", t("budgets.columns.actual"), { total: true }),
+    moneyColumn("committed", t("budgets.columns.committed"), { total: true }),
+    moneyColumn("remaining", t("budgets.columns.remaining"), { total: true, width: 144 }),
+    moneyColumn("etc", t("budgets.columns.etc"), {
+      editable: props.canWrite,
+      width: 144,
+      blankHint: (r) => (r["derivedEtc"] === null ? null : String(r["derivedEtc"])),
+    }),
+    moneyColumn("efc", t("budgets.columns.efc"), { total: true, width: 144 }),
+    moneyColumn("varianceAtCompletion", t("budgets.columns.varianceAtCompletion"), {
+      total: true,
+      width: 160,
+    }),
+  ];
+  const costColumns: GridColumn[] = [
     {
       key: "description",
       label: t("budgets.columns.description"),
@@ -355,6 +493,12 @@ export function BudgetEditor(props: Props) {
       width: 140,
     })),
   ];
+  const columns =
+    columnSet === "client"
+      ? clientColumns
+      : columnSet === "forecast"
+        ? forecastColumns
+        : costColumns;
 
   /**
    * Saves a line against the version it was read at. The typed values show at once; a refusal puts
@@ -412,7 +556,16 @@ export function BudgetEditor(props: Props) {
       if (!line) continue;
       const urid = String(row["urid"] ?? "");
       const code = row["costCenter"] === null ? null : String(row["costCenter"]).toUpperCase();
+      const markupBp = toBp(row["markupPercent"] ?? null);
+      const typedClient = toMinor(row["clientUnitPrice"] ?? null, props.exponent);
+      const etcMinor = toMinor(row["etc"] ?? null, props.exponent);
+      // A client price left as the markup gives it stays derived; clearing an override returns to it.
+      const inForce = clientPriceOf(line);
+      const override = typedClient === inForce ? line.clientUnitPriceMinor : typedClient;
       const changed =
+        markupBp !== line.markupBp ||
+        override !== line.clientUnitPriceMinor ||
+        etcMinor !== line.etcMinor ||
         row["description"] !== line.description ||
         urid !== line.urid ||
         (code ?? null) !==
@@ -429,8 +582,14 @@ export function BudgetEditor(props: Props) {
       if (code !== null && !centerId.has(code)) return problem("costCenter");
       const xyz = xyzFor(urid, props.urids, line.xyzBasis === "Declared" ? line.xyz : null);
       if (!xyz) return problem("xyz");
+      if (!validBp(markupBp)) return problem("markup");
+      if (override !== null && !(override >= 0)) return problem("clientPrice");
+      if (etcMinor !== null && !(etcMinor >= 0)) return problem("etc");
       const input: BudgetLineInput = {
         ...inputOf(line),
+        markupBp,
+        clientUnitPriceMinor: override,
+        etcMinor,
         description: String(row["description"]),
         urid,
         costCenterId: code === null ? null : (centerId.get(code) ?? null),
@@ -455,36 +614,58 @@ export function BudgetEditor(props: Props) {
 
   return (
     <div className="flex flex-col gap-12">
-      {props.canWrite ? (
-        <div role="toolbar" aria-label={t("budgets.toolbar")} className="flex flex-wrap gap-8">
-          <Button icon="Plus" onClick={() => setSheet("add")}>
-            {t("budgets.addLine")}
-          </Button>
-          <Button icon="Package" onClick={() => setSheet("catalog")}>
-            {t("budgets.addFromCatalog")}
-          </Button>
-          <Button icon="ClipboardPaste" onClick={() => setSheet("paste")}>
-            {t("budgets.pasteRows")}
-          </Button>
-          <Button icon="Trash2" onClick={() => setSheet("delete")} disabled={lines.length === 0}>
-            {t("budgets.deleteLines")}
-          </Button>
-          {allLines.some((l) => l.lineType === "Contingency") ? (
-            <Button icon="ArrowRightLeft" onClick={() => setSheet("draw")}>
-              {t("budgets.drawContingency")}
+      <div role="toolbar" aria-label={t("budgets.toolbar")} className="flex flex-wrap gap-8">
+        {/* Four actions and More keep the toolbar within five (gate 27); the rest sit in More. */}
+        {props.canWrite ? (
+          <>
+            <Button icon="Plus" onClick={() => setSheet("add")}>
+              {t("budgets.addLine")}
             </Button>
-          ) : null}
-          {props.lineFields ? (
-            <Button
-              icon="SlidersHorizontal"
-              onClick={() => setSheet("fields")}
-              disabled={allLines.length === 0}
-            >
-              {t("budgets.lineFields")}
+            <Button icon="ClipboardPaste" onClick={() => setSheet("paste")}>
+              {t("budgets.pasteRows")}
             </Button>
-          ) : null}
-        </div>
-      ) : null}
+          </>
+        ) : null}
+        <Button icon="Clock" onClick={() => setSheet("versions")}>
+          {t("budgets.versions.open")}
+        </Button>
+        <Button
+          icon="Receipt"
+          onClick={() => setSheet("transactions")}
+          disabled={selectedLine === null}
+        >
+          {t("budgets.transactions.open")}
+        </Button>
+        {props.canWrite ? (
+          <MoreActions
+            label={t("budgets.more")}
+            items={[
+              { label: t("budgets.addFromCatalog"), onSelect: () => setSheet("catalog") },
+              props.importHref ? { label: t("budgets.importLines"), href: props.importHref } : null,
+              {
+                label: t("budgets.deleteLines"),
+                onSelect: () => setSheet("delete"),
+                disabled: lines.length === 0,
+              },
+              allLines.some((l) => l.lineType === "Contingency")
+                ? { label: t("budgets.drawContingency"), onSelect: () => setSheet("draw") }
+                : null,
+              props.lineFields
+                ? {
+                    label: t("budgets.lineFields"),
+                    onSelect: () => setSheet("fields"),
+                    disabled: allLines.length === 0,
+                  }
+                : null,
+              {
+                label: t("budgets.quoteLines"),
+                onSelect: () => setSheet("quoteLines"),
+                disabled: allLines.length === 0,
+              },
+            ]}
+          />
+        ) : null}
+      </div>
       {props.me ? (
         <BudgetPresence budgetId={props.budgetId} me={props.me} editingLine={editingLine} />
       ) : null}
@@ -512,8 +693,22 @@ export function BudgetEditor(props: Props) {
           rowKey="id"
           onChange={onChange}
           onEditingChange={onEditingChange}
+          onSelectionChange={setSelectedLine}
         />
       )}
+      {unpricedHours > 0 ? (
+        <p role="status" className="m-0 text-text-12 text-warning-text">
+          {t("budgets.unpricedHours", { hours: Math.round(unpricedHours * 100) / 100 })}
+        </p>
+      ) : null}
+      {otherCurrencyPostings > 0 ? (
+        <p role="status" className="m-0 text-text-12 text-warning-text">
+          {t("budgets.laborOtherCurrency", { count: otherCurrencyPostings })}
+        </p>
+      ) : null}
+      {columnSet === "forecast" && forecastWithheld ? (
+        <p className="m-0 text-text-12 text-text-secondary">{t("budgets.committedWithheld")}</p>
+      ) : null}
       {lines.length > 0 && withheld ? (
         <p className="m-0 text-text-12 text-text-secondary">{t("budgets.committedWithheld")}</p>
       ) : null}
@@ -581,6 +776,26 @@ export function BudgetEditor(props: Props) {
       ) : null}
       {sheet === "fields" ? (
         <LineFieldsDialog lines={allLines} onClose={() => setSheet(null)} />
+      ) : null}
+      {sheet === "versions" ? (
+        <BudgetVersionsDrawer
+          org={props.org}
+          budgetId={props.budgetId}
+          canWrite={props.canWrite}
+          onClose={() => setSheet(null)}
+        />
+      ) : null}
+      {sheet === "transactions" && selectedLine ? (
+        <LineTransactionsDrawer
+          org={props.org}
+          lineId={selectedLine}
+          currency={props.currency}
+          exponent={props.exponent}
+          onClose={() => setSheet(null)}
+        />
+      ) : null}
+      {sheet === "quoteLines" ? (
+        <QuoteLinesDialog org={props.org} lines={allLines} onClose={() => setSheet(null)} />
       ) : null}
       <ToastRegion label={t("common.notifications")}>
         {undo ? (

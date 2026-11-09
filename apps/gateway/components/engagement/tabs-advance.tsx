@@ -1,4 +1,10 @@
+import { ADVANCE_TRACKS } from "@xos/data/advancing";
 import { readView, type ExternalRow } from "@xos/data/gateway";
+import {
+  listMyTrackProgress,
+  listSectionTracks,
+  type ExternalTrackProgress,
+} from "@xos/data/gateway-operations";
 import {
   listEngagementAllocations,
   namesClosed,
@@ -6,6 +12,8 @@ import {
 } from "@xos/data/gateway-allocations";
 import { listEngagementOfferings } from "@xos/data/offerings";
 import { listEngagementRoster, type RosterEntry } from "@xos/data/roster";
+import { workflowMarker } from "@xos/data/workflow-signal";
+import { ActionOutcomeScope } from "@xos/ui/pwa/action-outcome";
 import type { Route } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
@@ -21,6 +29,7 @@ import { AdvanceFileForm, AdvanceLinesForm, GuestListConfirmForm } from "./advan
 import { AdvanceAnswerForm } from "./forms";
 import { GuestRequestForm } from "./party-forms";
 import { RowList, TabEmpty } from "./rows";
+import { Tag } from "@/components/ui";
 import type { TabProps } from "./tab-context";
 
 /**
@@ -29,8 +38,17 @@ import type { TabProps } from "./tab-context";
  * bucket; Schedule Window proposes windows; Item Request and Credential Request ask for the section's
  * choices, which become allocations the producer's review decides; Crew Roster reads the roster;
  * Guest List keeps the guest list and its cap. Contractors and sponsors get the same tab without a
- * guest list (ADR 0100, prompt lines 917 to 926). Each line shows its allocation's computed stage.
+ * guest list (ADR 0100, prompt lines 917 to 926). Each line shows its allocation's computed stage. Sections group by
+ * track (R11, G-176) when a packet uses more than General, each with its computed state and when it was signed off
+ * (api_external.advance_track_progress, which names no reviewer).
  */
+
+function trackTone(state: string): "success" | "accent" | "warning" | "danger" | "neutral" {
+  if (state === "Signed Off") return "success";
+  if (state === "Ready for Sign-off") return "accent";
+  if (state === "Reopened") return "warning";
+  return "neutral";
+}
 
 type SectionRow = ExternalRow<"advance_sections">;
 type SubmissionRow = ExternalRow<"advance_submissions">;
@@ -91,6 +109,11 @@ export async function AdvanceTab({ view, t, locale, engagementKey }: TabProps) {
   ]);
   if (!sections.ok || !submissions.ok) return <RegionError />;
   const sectionIds = sections.data.flatMap((s) => (s.id ? [s.id] : []));
+  const [tracks, trackProgress] = await Promise.all([
+    listSectionTracks(db, sectionIds),
+    listMyTrackProgress(db, packetIds),
+  ]);
+  if (!tracks.ok || !trackProgress.ok) return <RegionError />;
   const submissionIds = submissions.data.flatMap((s) => (s.id ? [s.id] : []));
   const typed = sections.data.some((s) => s.section_kind !== "Text");
   const [choices, lines, files, allocations, roster, offerings, guests] = await Promise.all([
@@ -150,29 +173,109 @@ export async function AdvanceTab({ view, t, locale, engagementKey }: TabProps) {
       offered: guestOffer !== undefined && guestOffer.mode !== "Not Offered",
     },
   };
+  // A typed answer's form leaves with its result, so the scope hears of it (A146): the token is the answers shown.
+  const answers = submissions.data.map((a) => `${a.id}:${a.reviewed_at ?? ""}`).join(",");
   return (
-    <div className="flex flex-col gap-24">
-      {packets.data.map((packet) => {
-        // The recipient this engagement answers as: the one linked to it, else the packet's only one.
-        const mine = recipients.data.filter((r) => r.advance_packet_id === packet.id);
-        const recipient =
-          mine.find((r) => r.engagement_id === engagement.id) ??
-          mine.find((r) => r.engagement_id === null);
-        const ctx: Context = { ...base, recipient };
+    <ActionOutcomeScope token={answers}>
+      <div
+        className="flex flex-col gap-24"
+        {...workflowMarker("gateway.advance_typed_answer:start")}
+      >
+        {packets.data.map((packet) => {
+          // The recipient this engagement answers as: the one linked to it, else the packet's only one.
+          const mine = recipients.data.filter((r) => r.advance_packet_id === packet.id);
+          const recipient =
+            mine.find((r) => r.engagement_id === engagement.id) ??
+            mine.find((r) => r.engagement_id === null);
+          const ctx: Context = { ...base, recipient };
+          return (
+            <Section key={packet.id ?? ""} id={`packet-${packet.id}`} title={packet.title ?? ""}>
+              {packet.due_at ? (
+                <p className="m-0 text-text-13 text-text-secondary">
+                  {t("gateway.engagement.due", { date: formatDateTime(locale, packet.due_at) })}
+                </p>
+              ) : null}
+              <TrackGroups
+                label={packet.title ?? ""}
+                sections={sections.data.filter((s) => s.advance_packet_id === packet.id)}
+                tracks={tracks.data}
+                progress={trackProgress.data.filter(
+                  (p) => p.packetId === packet.id && p.recipientId === recipient?.id,
+                )}
+                render={(s) => sectionRow(s, submissions.data, ctx)}
+                t={t}
+                locale={locale}
+              />
+            </Section>
+          );
+        })}
+      </div>
+    </ActionOutcomeScope>
+  );
+}
+
+/**
+ * A packet's sections, grouped by track when it uses more than General: each track names its computed state and,
+ * once signed off, when (R11). A packet on General alone reads as one list, as before tracks.
+ */
+function TrackGroups({
+  label,
+  sections,
+  tracks,
+  progress,
+  render,
+  t,
+  locale,
+}: {
+  label: string;
+  sections: readonly SectionRow[];
+  tracks: ReadonlyMap<string, string>;
+  progress: readonly ExternalTrackProgress[];
+  render: (s: SectionRow) => ReturnType<typeof sectionRow>;
+  t: Translate;
+  locale: string;
+}) {
+  const trackOf = (s: SectionRow) => tracks.get(s.id ?? "") ?? "General";
+  const used = ADVANCE_TRACKS.filter((tr) => sections.some((s) => trackOf(s) === tr));
+  if (used.length <= 1 && used[0] === "General") {
+    return <RowList label={label} items={sections.map(render)} />;
+  }
+  return (
+    <div className="flex flex-col gap-16">
+      {used.map((tr) => {
+        const name = t(enumLabelKey("advanceTrack", tr));
+        const state = progress.find((p) => p.track === tr);
         return (
-          <Section key={packet.id ?? ""} id={`packet-${packet.id}`} title={packet.title ?? ""}>
-            {packet.due_at ? (
-              <p className="m-0 text-text-13 text-text-secondary">
-                {t("gateway.engagement.due", { date: formatDateTime(locale, packet.due_at) })}
-              </p>
-            ) : null}
+          <div key={tr} className="flex flex-col gap-8">
+            <div className="flex flex-wrap items-center gap-8">
+              <h3 className="m-0 text-heading-14 font-semibold">
+                {t("gateway.engagement.advance.tracks.label", { track: name })}
+              </h3>
+              {state ? (
+                <Tag tone={trackTone(state.state)}>
+                  {t(`gateway.engagement.advance.tracks.states.${enumKey(state.state)}`)}
+                </Tag>
+              ) : null}
+              {state?.signedOffAt ? (
+                <span className="text-text-13 text-text-secondary">
+                  {t("gateway.engagement.advance.tracks.signedOffOn", {
+                    date: formatDateTime(locale, state.signedOffAt),
+                  })}
+                </span>
+              ) : state ? (
+                <span className="text-text-13 text-text-secondary">
+                  {t("gateway.engagement.advance.tracks.progress", {
+                    done: state.sectionsDone,
+                    total: state.sectionsTotal,
+                  })}
+                </span>
+              ) : null}
+            </div>
             <RowList
-              label={packet.title ?? ""}
-              items={sections.data
-                .filter((s) => s.advance_packet_id === packet.id)
-                .map((s) => sectionRow(s, submissions.data, ctx))}
+              label={t("gateway.engagement.advance.tracks.label", { track: name })}
+              items={sections.filter((s) => trackOf(s) === tr).map(render)}
             />
-          </Section>
+          </div>
         );
       })}
     </div>
@@ -210,8 +313,18 @@ function sectionRow(s: SectionRow, submissions: readonly SubmissionRow[], ctx: C
           </p>
         ) : null}
         {latest && kind !== "Text" ? <AnswerDetail answer={latest} kind={kind} ctx={ctx} /> : null}
+        {latest?.recorded_by_producer ? (
+          // B15 (ADR 0154 D1): an answer the org recorded from an Aurora draft says so.
+          <p className="m-0 text-text-12 text-text-secondary" data-testid="recorded-by-producer">
+            {t("gateway.engagement.advance.recordedBy", { org: ctx.orgName })}
+          </p>
+        ) : null}
         {returned && latest?.return_reason ? (
           <p className="m-0 text-text-13 text-danger-text">{latest.return_reason}</p>
+        ) : null}
+        {/* A typed section's form is the step of gateway.advance_typed_answer (A146, R11 6225). */}
+        {open && kind !== "Text" ? (
+          <span hidden {...workflowMarker("gateway.advance_typed_answer:step1")} />
         ) : null}
         <KindBody section={s} kind={kind} open={open} ctx={ctx} />
       </div>

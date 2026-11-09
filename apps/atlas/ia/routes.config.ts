@@ -70,6 +70,8 @@ export const SHELL_ROUTES: Readonly<Record<string, string>> = {
     "Route handler: a generated document as tagged PDF/UA (Section 11.9, ADR 0031).",
   "/{org}/documents/badges":
     "Route handler: up to 100 credential badges in one streamed PDF/UA file, on Letter, A4, A6 or CR80 (P5, ADR 0031 amendment).",
+  "/{org}/documents/books/{id}":
+    "Route handler: a tour or production book, its cover, contents and up to 100 documents, in one streamed PDF/UA file on Letter or A4 (B7, ADR 0146).",
   "/{org}/deletion-certificates/{id}":
     "Route handler: a deletion certificate PDF for the former Owner it was issued to (A79, Section 14.7).",
   "/{org}/forms/{form}/{id}":
@@ -86,6 +88,26 @@ export const SHELL_ROUTES: Readonly<Record<string, string>> = {
     "Display screen: a running order as a room clock, presenter timer or backstage screen; no session needed (P1, ADR 0130).",
   "/share/screen/{token}/open":
     "Route handler: opens a display screen link with its access code and sets the device grant (P1, ADR 0130).",
+  "/share/showcaller/{token}":
+    "Public frame: a showcaller link's portal for a signed-in person on the project, calling and editing one running order with its access code and device grant; no session needed (B3, ADR 0142).",
+  "/share/showcaller/{token}/open":
+    "Route handler: opens a showcaller link with its access code and sets the device grant (B3, ADR 0142).",
+  "/share/showcaller/{token}/clock":
+    "Display screen: a showcaller portal's pop-out room clock and presenter timer, fed by the portal's own read (B3, ADR 0142).",
+  "/share/pack/{token}":
+    "Public frame: a stakeholder pack with its recipient's access code and device grant; no session needed (B2, ADR 0141).",
+  "/share/pack/{token}/open":
+    "Route handler: opens a stakeholder pack with the code or a device grant, and sets the grant (B2, ADR 0141).",
+  "/share/pack/{token}/items/{itemId}":
+    "Public frame: one live item of a stakeholder pack, read as the live link's creator (B2, ADR 0141).",
+  "/share/pack/{token}/items/{itemId}/file":
+    "Route handler: downloads a stakeholder pack's file item by a single-use ticket (B2, ADR 0141).",
+  "/share/pack/{token}/items/{itemId}/sign":
+    "Route handler: records a typed-name acknowledgement of a stakeholder pack item (B2, ADR 0141).",
+  "/share/pack/unsubscribe/{token}":
+    "Public frame: confirm stopping a stakeholder pack's emails; opening never acts (B2, ADR 0141).",
+  "/share/pack/unsubscribe/{token}/confirm":
+    "Route handler: stops a stakeholder pack's emails on the confirm button's POST (B2, ADR 0141).",
   "/files/{version}":
     "Route handler: a Confidential or Restricted file, logged, held to the export capability and watermarked (Section 8.6).",
   "/files/party/{version}":

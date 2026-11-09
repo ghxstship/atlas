@@ -119,6 +119,35 @@ Enfoque una tarjeta y pulse **Espacio** para tomarla, las flechas para llevarla 
 
 Mientras llama un espectáculo en vivo, **J** y **K** mueven la espera, **S** pone en espera la señal seleccionada, **T** salta a una señal, **[** y **]** ajustan un minuto el plan restante y **D** cambia el departamento. **Espacio** en la lista de señales llama la señal. Un Stream Deck envía **F13** a **F20** (Go, En espera, Anterior, Siguiente, Retrasar, Adelantar, Saltar y Departamento); asigne a cada tecla una acción **Hotkey**.
 
+El canal del show junto al cue en curso responde a **M**, que lleva a su cuadro de mensaje.
+
+<!-- shortcuts atlas show -->
+
+- **Espacio**: Llamar el cue seleccionado
+- **J**: Pasar la espera al cue siguiente
+- **K**: Pasar la espera al cue anterior
+- **S**: Poner en espera el cue seleccionado
+- **T**: Saltar a un cue
+- **]**: Retrasar un minuto el plan restante
+- **[**: Adelantar un minuto el plan restante
+- **D**: Mostrar las llamadas del siguiente departamento
+- **M**: Ir al cuadro de mensaje del canal del show
+
+<!-- /shortcuts -->
+
+<!-- shortcuts atlas show-deck -->
+
+- **F13**: Llamar el cue seleccionado
+- **F14**: Poner en espera el cue seleccionado
+- **F15**: Pasar la espera al cue anterior
+- **F16**: Pasar la espera al cue siguiente
+- **F17**: Retrasar un minuto el plan restante
+- **F18**: Adelantar un minuto el plan restante
+- **F19**: Saltar a un cue
+- **F20**: Mostrar las llamadas del siguiente departamento
+
+<!-- /shortcuts -->
+
 ## Adapte las teclas
 
 En **Yo, Atajos de teclado**, elija **Cambiar** junto a un atajo y pulse las teclas nuevas; para una secuencia, pulse una letra y luego otra tecla. Atlas rechaza las teclas que ya usa otro atajo y las que pertenecen al navegador, a la computadora o a un lector de pantalla. **Restablecer** devuelve el valor predeterminado. Desactive allí **Atajos de teclado** para detener todos los atajos de teclas de carácter sin **Mod**, **Ctrl** o **Alt**; las teclas de función **F13** a **F20** siguen funcionando, porque no escriben ningún carácter.

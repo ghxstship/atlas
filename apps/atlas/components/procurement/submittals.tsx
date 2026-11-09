@@ -1,3 +1,4 @@
+import { listAttachments, listVersionReviews } from "@xos/data/attachments";
 import { nextStates } from "@xos/data/commercial-common";
 import {
   listPurchaseOrders,
@@ -14,6 +15,7 @@ import {
   updateSubmittalAction,
 } from "@/app/[org]/procurement/actions";
 import { CollabPanels } from "@/components/collection-kit/collab";
+import { FileReviewControls } from "@/components/files/file-review";
 import { CollectionView } from "@/components/collection-kit/collection-view";
 import { emptyFor } from "@/components/collection-kit/empty";
 import { StateHistory } from "@/components/collection-kit/history";
@@ -39,6 +41,33 @@ import { CollectionPage } from "@/components/platform/collection-page";
 
 const VIEWS: readonly ViewKind[] = ["table", "list", "board", "calendar"];
 const REFUSALS = "procurement.refusals";
+
+/** B14 (6265): a submittal's files are reviewed version by version, by someone other than the uploader. */
+async function SubmittalFileReviews({
+  ctx,
+  submittalId,
+}: {
+  ctx: OrgContext;
+  submittalId: string;
+}) {
+  const db = ctx.viewer.db;
+  const attachments = await listAttachments(db, { table: "app.submittals", id: submittalId });
+  if (!attachments.ok || attachments.data.length === 0) return null;
+  const reviews = await listVersionReviews(
+    db,
+    attachments.data.flatMap((a) => a.versions.map((v) => v.id)),
+  );
+  return (
+    <FileReviewControls
+      org={ctx.org.slug}
+      attachments={attachments.data}
+      reviews={reviews.ok ? reviews.data : []}
+      me={ctx.viewer.person?.id ?? null}
+      canReview={ctx.capabilities.has("procurement.po.write")}
+      vendorSees
+    />
+  );
+}
 const STATES: readonly ReviewState[] = enums.reviewState;
 const RECORD_STATE: Record<ReviewState, KitState["state"]> = {
   Proposed: "proposed",
@@ -200,7 +229,9 @@ export async function SubmittalsSection({
           id={selected.id}
           stateLabel={(x) => t(`reviewStates.${x}`)}
         />
-        <CollabPanels ctx={ctx} table="app.submittals" id={selected.id} />
+        <CollabPanels ctx={ctx} table="app.submittals" id={selected.id}>
+          <SubmittalFileReviews ctx={ctx} submittalId={selected.id} />
+        </CollabPanels>
       </RecordPage>
     );
   }

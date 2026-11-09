@@ -2,6 +2,7 @@ import type { Row } from "@xos/sync";
 import * as Brightness from "expo-brightness";
 import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
+import * as SecureStore from "expo-secure-store";
 import { useEffect, useRef, useState, type ReactElement } from "react";
 import { useTranslation } from "react-i18next";
 import { Keyboard, View } from "react-native";
@@ -12,9 +13,13 @@ import {
   type ScanMode,
   type ScanModeGrant,
 } from "../../src/domain/access";
+import { zoneCountsLive, zoneTotals } from "@xos/data/credentials";
+import type { XosClient } from "@xos/data/client";
 import {
   addScannedTag,
   buildAccessScan,
+  buildScanOverride,
+  canOverride,
   assetScanAction,
   buildAssetScan,
   buildIntake,
@@ -23,6 +28,8 @@ import {
   custodyBlocked,
   decideGate,
   gateScanTitle,
+  guestPassRoute,
+  overrideTimeLeft,
   resolveAsset,
   type AccessGridRow,
   type AssetIdentifierRow,
@@ -30,8 +37,11 @@ import {
   type CredentialRow,
   type CustodyRow,
   type ReceiveSheet,
+  type ScanDirection,
   type Symbology,
 } from "../../src/domain/scan";
+import { loadGateDirection, saveGateDirection } from "../../src/domain/gate-direction";
+import { useProjectCapabilities } from "../../src/domain/project-capabilities";
 import { scanAnnouncement } from "../../src/domain/announce";
 import { hapticsOn } from "../../src/domain/settings";
 import { codeFromTag, encodeTextMessage } from "../../src/domain/nfc";
@@ -64,6 +74,18 @@ interface Last {
   readonly ok: boolean;
   readonly title: string;
   readonly code: string;
+}
+
+const directionStore = {
+  getItem: (key: string) => SecureStore.getItemAsync(key),
+  setItem: (key: string, value: string) => SecureStore.setItemAsync(key, value),
+};
+
+/** A denial the person may override: the denied scan's client id, whose badge it was, and when (15 minutes, 6250). */
+interface Denied {
+  readonly scanId: string;
+  readonly name: string;
+  readonly at: number;
 }
 
 const DENY_KEY = {
@@ -231,7 +253,7 @@ function LiveScan({
   const { t } = useTranslation();
   const theme = useTheme();
   const router = useRouter();
-  const { resolved, projectId, enqueue, settings, orgSettings } = useCompass();
+  const { resolved, projectId, enqueue, settings, orgSettings, client } = useCompass();
   const identity = resolved?.identity;
   const [last, setLastState] = useState<Last | undefined>(undefined);
   // Each result is announced as well as shown: iOS has no live regions (A23-004).
@@ -240,6 +262,57 @@ function LiveScan({
     announce(scanAnnouncement(next));
   };
   const [zoneId, setZoneId] = useState<string | null>(null);
+  // In or Out, remembered on this device across restarts (B8): a gate that only lets people out stays on Out.
+  const [direction, setDirectionState] = useState<ScanDirection>("In");
+  const setDirection = (next: ScanDirection) => {
+    setDirectionState(next);
+    void saveGateDirection(directionStore, next);
+  };
+  useEffect(() => {
+    let live = true;
+    void loadGateDirection(directionStore).then((stored) => {
+      if (live) setDirectionState(stored);
+    });
+    return () => {
+      live = false;
+    };
+  }, []);
+  // Override (B8, 6250): offered after a denial other than revoked, to a person who holds credentials.credential.issue
+  // and credentials.scan_log.read on the project by the answer read online once per project.
+  const capabilities = useProjectCapabilities(projectId);
+  const [denied, setDenied] = useState<Denied | null>(null);
+  const [overrideOpen, setOverrideOpen] = useState(false);
+  const [overrideReason, setOverrideReason] = useState("");
+  // The offer leaves with the 15 minutes the server allows, so a late press never queues a call it would refuse.
+  useEffect(() => {
+    if (!denied) return;
+    const timer = setTimeout(
+      () => {
+        setDenied(null);
+        setOverrideOpen(false);
+      },
+      Math.max(0, overrideTimeLeft(denied.at, Date.now())),
+    );
+    return () => clearTimeout(timer);
+  }, [denied]);
+  // Inside now for the chosen zone (app.zone_counts_live), read online after each scan; hidden offline and from anyone
+  // without credentials.scan_log.read, under which the counts are read.
+  const [inside, setInside] = useState<number | null>(null);
+  const [insideTick, setInsideTick] = useState(0);
+  const readsScanLog = capabilities?.has("credentials.scan_log.read") === true;
+  useEffect(() => {
+    if (grant.mode !== "credential" || !projectId || !zoneId || !readsScanLog) {
+      setInside(null);
+      return;
+    }
+    let live = true;
+    void zoneCountsLive(client as unknown as XosClient, projectId, zoneId).then((counts) => {
+      if (live) setInside(counts.ok ? (zoneTotals(counts.data).get(zoneId) ?? 0) : null);
+    });
+    return () => {
+      live = false;
+    };
+  }, [client, grant.mode, projectId, zoneId, insideTick, readsScanLog]);
   const batch = useRef(new ContinuousScan());
   const [count, setCount] = useState(0);
   // NFC beside the camera (A92): a tag held to the phone is one more code. Lookup can also write a found
@@ -322,6 +395,13 @@ function LiveScan({
       return;
     }
     if (grant.mode === "credential") {
+      // A guest pass is not a badge: it opens that guest's entry at the door, whichever zone is chosen.
+      if (code.kind === "guest-pass") {
+        haptic(true);
+        setDenied(null);
+        router.navigate(guestPassRoute(code.passCode));
+        return;
+      }
       if (code.kind !== "credential" || !zoneId) {
         haptic(false);
         setLast({
@@ -329,6 +409,38 @@ function LiveScan({
           title: t(zoneId ? "compass.scan.deny.unknown" : "compass.scan.chooseZone"),
           code: raw,
         });
+        return;
+      }
+      if (direction === "Out") {
+        // Exit is never refused (6250): the scan is recorded as Out without the device deciding anything.
+        const credential = credentials.find((c) => c.credential_number === code.credentialNumber);
+        setDenied(null);
+        if (!credential) {
+          haptic(false);
+          setLast({
+            ok: false,
+            title: t("compass.scan.deny.unknown"),
+            code: code.credentialNumber,
+          });
+          return;
+        }
+        haptic(true);
+        setLast({
+          ok: true,
+          title: gateScanTitle(t("compass.scan.exitRecorded"), credential.holder_name),
+          code: code.credentialNumber,
+        });
+        void enqueue(
+          buildAccessScan(
+            credential,
+            zoneId,
+            { result: "Granted", credential },
+            new Date().toISOString(),
+            Date.now(),
+            undefined,
+            "Out",
+          ),
+        ).then(() => setInsideTick((n) => n + 1));
         return;
       }
       const decision = decideGate(code.credentialNumber, zoneId, credentials, grid, Date.now());
@@ -341,16 +453,27 @@ function LiveScan({
             : gateScanTitle(t("compass.scan.denied"), t(DENY_KEY[decision.reason])),
         code: code.credentialNumber,
       });
-      if (decision.credential)
-        void enqueue(
-          buildAccessScan(
-            decision.credential,
-            zoneId,
-            decision,
-            new Date().toISOString(),
-            Date.now(),
-          ),
+      if (decision.credential) {
+        const scan = buildAccessScan(
+          decision.credential,
+          zoneId,
+          decision,
+          new Date().toISOString(),
+          Date.now(),
         );
+        void enqueue(scan).then(() => setInsideTick((n) => n + 1));
+        setDenied(
+          canOverride(decision, capabilities)
+            ? {
+                scanId: scan.rowId,
+                name: decision.credential.holder_name ?? code.credentialNumber,
+                at: Date.now(),
+              }
+            : null,
+        );
+      } else {
+        setDenied(null);
+      }
       return;
     }
     const found = resolveAsset(code, units, identifiers, custody);
@@ -502,8 +625,77 @@ function LiveScan({
             options={zonesInGrid.map((z) => ({ value: z.id, label: z.name }))}
             onChange={setZoneId}
           />
+          <SegmentedControl
+            testID="scan-direction"
+            label={t("compass.scan.directionLabel")}
+            value={direction}
+            options={[
+              { value: "In", label: t("compass.scan.in") },
+              { value: "Out", label: t("compass.scan.out") },
+            ]}
+            onChange={(value) => setDirection(value === "Out" ? "Out" : "In")}
+          />
+          {inside !== null ? (
+            <>
+              <Text variant="label13" tone="secondary" testID="scan-inside-now">
+                {t("compass.scan.insideNow", { count: inside })}
+              </Text>
+              <Text variant="text13" tone="tertiary">
+                {t("compass.scan.insideNowNote")}
+              </Text>
+            </>
+          ) : null}
+          {denied ? (
+            <Button
+              testID="scan-override"
+              variant="secondary"
+              icon="key-round"
+              block
+              label={t("compass.scan.override")}
+              onPress={() => {
+                setOverrideReason("");
+                setOverrideOpen(true);
+              }}
+            />
+          ) : null}
         </View>
       ) : null}
+      <Sheet
+        open={overrideOpen && denied !== null}
+        title={t("compass.scan.overrideTitle")}
+        closeLabel={t("compass.common.close")}
+        onClose={() => setOverrideOpen(false)}
+        footer={
+          <Button
+            testID="scan-override-submit"
+            variant="primary"
+            block
+            label={t("compass.scan.overrideSubmit")}
+            disabled={overrideReason.trim().length === 0 || overrideReason.trim().length > 300}
+            onPress={() => {
+              if (!denied) return;
+              void enqueue(buildScanOverride(denied.scanId, overrideReason, Date.now()));
+              haptic(true);
+              setLast({
+                ok: true,
+                title: gateScanTitle(t("compass.scan.overrideQueued"), denied.name),
+                code: "",
+              });
+              setDenied(null);
+              setOverrideOpen(false);
+            }}
+          />
+        }
+      >
+        <TextField
+          testID="scan-override-reason"
+          label={t("compass.scan.overrideReason")}
+          help={t("compass.scan.overrideReasonHelp")}
+          value={overrideReason}
+          multiline
+          onChangeText={setOverrideReason}
+        />
+      </Sheet>
       {canReceiveOrder ? (
         <View style={{ paddingHorizontal: theme.space["16"] }}>
           <Button

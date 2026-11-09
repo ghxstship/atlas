@@ -49,7 +49,7 @@ begin
   insert into app.organizations (id, slug, name, organization_type, created_by)
   values (a_brand, 'demo-activation-brand', 'Demo Activation Brand', 'For-Profit', p_sponsor)
   on conflict (id) do nothing;
-  insert into app.account_memberships (id, org_id, person_id) values (m_owner, a_brand, p_sponsor) on conflict (id) do nothing;
+  insert into app.account_memberships (id, org_id, person_id, accepted_at) values (m_owner, a_brand, p_sponsor, now()) on conflict (id) do nothing;
   insert into app.account_membership_roles (account_membership_id, account_role, granted_by)
   select m_owner, 'Account Owner', null
   where not exists (select 1 from app.account_membership_roles r

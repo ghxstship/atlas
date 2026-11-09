@@ -22,6 +22,7 @@ const TOKEN_REFUSALS = [
   "advance_token_invalid",
   "advance_token_locked",
   "advance_token_expired",
+  "advance_link_ended",
   "advance_access_code",
   "advance_section_open",
   "advance_answer_pending",

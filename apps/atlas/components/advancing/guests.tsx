@@ -1,24 +1,32 @@
 import {
   GUEST_STATES,
+  guestEmailSkip,
+  listGuestEmailSends,
   listGuests,
   listProjectScopes,
   type GuestEntry,
   type GuestState,
 } from "@xos/data/advancing";
+import { listCredentialCategories } from "@xos/data/credentials";
+import { Constants } from "@xos/data/database.types";
 import type { RecordState } from "@xos/ui";
 import Link from "next/link";
 import type { Route } from "next";
 import { notFound } from "next/navigation";
-import { getFormatter } from "next-intl/server";
+import { getFormatter, getLocale } from "next-intl/server";
+import { documentHref } from "@/lib/documents/links";
+import { projectPeople, projectPersonLabel } from "@/lib/people/project-people";
 import { collectionPeek } from "@/components/shell/collection-peek";
 import { getTranslate } from "@/lib/shell/translate";
 import type { AdvancingContext } from "./context";
+import { GuestEmailTrigger } from "./guest-email-trigger";
 import { AddGuestDialog, GuestActions } from "./guest-forms";
 import { RecordCollab } from "./record-collab";
 import { isRowId, partyLabel, pickView, withQuery, type Search } from "./shared";
 import { PageHeader, StateChip, Tag } from "./ui";
 import { PeekPanel, PeekTable, SelectFilter, ViewSwitcher } from "./views";
 import { CollectionPage } from "@/components/platform/collection-page";
+import { ResultRegion } from "@/components/operations/result-region";
 import { importLinkHref } from "@/lib/imports/import-link";
 
 const VIEWS = ["list", "table"] as const;
@@ -35,7 +43,9 @@ const stateKey = (s: GuestState) => s.replace(" ", "");
 /**
  * The project's guest list (0431): Requested guests wait for a reviewer who did not request them,
  * approved guests are checked in at the door, and engaged artists add theirs from Gateway. List and
- * table views with a state filter, a peek with comments and attachments, and totals with plus-ones.
+ * table views with a state filter, a peek with comments and attachments, and totals with plus-ones. B8 (6254, 6255):
+ * each guest's pass (type, table, host, email and the code stamped on approval), the pass PDF for an approved guest,
+ * and bulk guest emails with what each send did.
  */
 export async function GuestList({
   actx,
@@ -54,13 +64,17 @@ export async function GuestList({
   const t = await getTranslate();
   const format = await getFormatter();
   const stateFilter = GUEST_STATES.find((s) => s === search["filter"]);
-  const [guests, scopes] = await Promise.all([
+  const [guests, scopes, categories, people, sends, locale] = await Promise.all([
     listGuests(ctx.viewer.db, {
       orgId: ctx.org.id,
       projectId: project.id,
       ...(stateFilter ? { state: stateFilter } : {}),
     }),
     listProjectScopes(ctx.viewer.db, project.id),
+    listCredentialCategories(ctx.viewer.db, { orgId: ctx.org.id, projectId: project.id }),
+    can.rider ? projectPeople(ctx, project.id) : Promise.resolve([]),
+    listGuestEmailSends(ctx.viewer.db, project.id),
+    getLocale(),
   ]);
   if (!guests.ok) throw new Error(`Cannot list guests: ${JSON.stringify(guests.error)}`);
   if (!scopes.ok) throw new Error(`Cannot list scopes: ${JSON.stringify(scopes.error)}`);
@@ -85,7 +99,34 @@ export async function GuestList({
     plusOnes: g.plusOnes,
     note: g.note,
     scopeNodeId: g.scopeNodeId,
+    passCategoryId: g.passCategoryId,
+    tableLabel: g.tableLabel,
+    hostPersonId: g.hostPersonId,
+    guestEmail: g.guestEmail,
   });
+  // Pass types are the project's Access categories; hosts are its people (members and the engaged).
+  const accessCategories = (categories.ok ? categories.data : []).filter(
+    (c) => c.kind === "Access",
+  );
+  const passTypeName = (id: string | null) => {
+    const c = accessCategories.find((x) => x.id === id);
+    return c ? `${c.code} · ${c.name}` : "";
+  };
+  const hostOptions = people.map((p) => ({
+    value: p.personId,
+    label: projectPersonLabel(t, p, t("credentials.common.unnamed")),
+  }));
+  const choices = {
+    passTypes: accessCategories.map((c) => ({ value: c.id, label: `${c.code} · ${c.name}` })),
+    hosts: hostOptions,
+  };
+  const hostName = (id: string | null) =>
+    id
+      ? (hostOptions.find((h) => h.value === id)?.label ?? t("advancing.guests.pass.someHost"))
+      : null;
+  const hasPass = (g: GuestEntry) =>
+    (g.state === "Approved" || g.state === "Checked In") && g.passCode !== null;
+  const guestName = (id: string) => guests.data.find((g) => g.id === id)?.guestName ?? "";
   const importHref = importLinkHref(ctx.org.slug, ctx.nav, can.rider, {
     target: "guest_list_entries",
     projectId: project.id,
@@ -108,10 +149,28 @@ export async function GuestList({
                         {t("advancing.guests.import")}
                       </Link>
                     ) : null}
+                    {guests.data.length > 0 ? (
+                      <GuestEmailTrigger
+                        kinds={Constants.app.Enums.guest_email_kind}
+                        org={ctx.org.slug}
+                        projectId={project.id}
+                        projectName={project.name}
+                        locale={locale === "es-US" ? "es-US" : "en-US"}
+                        guests={guests.data.map((g) => ({
+                          id: g.id,
+                          name: g.guestName,
+                          skip: {
+                            any: guestEmailSkip(g, "Invitation"),
+                            pass: guestEmailSkip(g, "Pass"),
+                          },
+                        }))}
+                      />
+                    ) : null}
                     <AddGuestDialog
                       org={ctx.org.slug}
                       projectId={project.id}
                       scopes={scopeOptions}
+                      choices={choices}
                       canApprove={can.review}
                     />
                   </>
@@ -136,89 +195,101 @@ export async function GuestList({
           {t("advancing.guests.admitted", { count: admitted })}
         </p>
       </div>
-      {guests.data.length === 0 ? (
-        <p className="m-0 rounded-card border border-border-subtle p-16 text-text-13 text-text-secondary">
-          {stateFilter
-            ? t("advancing.guests.emptyFiltered", { state: label(stateFilter) })
-            : can.rider
-              ? t("advancing.guests.empty")
-              : t("advancing.guests.emptyReadOnly")}
-        </p>
-      ) : view === "table" ? (
-        <PeekTable
-          caption={title}
-          columns={[
-            { key: "guest", label: t("advancing.guests.columns.guest") },
-            { key: "plusOnes", label: t("advancing.guests.columns.plusOnes"), type: "number" },
-            { key: "show", label: t("advancing.guests.columns.show") },
-            { key: "from", label: t("advancing.guests.columns.from") },
-            { key: "state", label: t("advancing.common.state") },
-          ]}
-          full={false}
-          bulk={
-            can.rider
-              ? {
-                  org: ctx.org.slug,
-                  resource: "guest_list_entries",
-                  // The guest list guard decides each move: review authority, never the requester.
-                  fields: [
-                    {
-                      key: "entry_state",
-                      label: t("advancing.common.state"),
-                      options: GUEST_STATES.filter((s) => s !== "Requested").map((s) => ({
-                        value: s,
-                        label: label(s),
-                      })),
-                    },
-                  ],
-                }
-              : null
-          }
-          rows={guests.data.map((g) => ({
-            id: g.id,
-            label: g.guestName,
-            guest: g.guestName,
-            plusOnes: g.plusOnes,
-            show: scopeName(g.scopeNodeId),
-            from: from(g),
-            state: label(g.state),
-          }))}
-        />
-      ) : (
-        <ul
-          aria-label={title}
-          className="m-0 flex list-none flex-col divide-y divide-border-subtle rounded-card border border-border-subtle p-0"
-        >
-          {guests.data.map((g) => (
-            <li key={g.id} className="flex flex-wrap items-center justify-between gap-8 px-16 py-8">
-              <div className="flex min-w-0 flex-wrap items-center gap-8">
-                <StateChip state={GUEST_RECORD_STATE[g.state]} label={label(g.state)} compact />
-                <Link
-                  href={withQuery(path, search, { peek: g.id }) as Route}
-                  className="text-text-14 text-text-primary hover:underline"
-                >
-                  {g.guestName}
-                </Link>
-                <span className="text-text-12 text-text-secondary">
-                  {t("advancing.guests.plusOnes", { count: g.plusOnes })} ·{" "}
-                  {scopeName(g.scopeNodeId)} · {from(g)}
-                </span>
-                {g.engagementId ? (
-                  <Tag tone="accent">{t("advancing.guests.viaGateway")}</Tag>
-                ) : null}
-              </div>
-              <GuestActions
-                org={ctx.org.slug}
-                guest={item(g)}
-                state={g.state}
-                scopes={scopeOptions}
-                canEdit={can.rider}
-                canReview={can.review}
-              />
-            </li>
-          ))}
-        </ul>
-      )}
+      <ResultRegion>
+        {guests.data.length === 0 ? (
+          <p className="m-0 rounded-card border border-border-subtle p-16 text-text-13 text-text-secondary">
+            {stateFilter
+              ? t("advancing.guests.emptyFiltered", { state: label(stateFilter) })
+              : can.rider
+                ? t("advancing.guests.empty")
+                : t("advancing.guests.emptyReadOnly")}
+          </p>
+        ) : view === "table" ? (
+          <PeekTable
+            caption={title}
+            columns={[
+              { key: "guest", label: t("advancing.guests.columns.guest") },
+              { key: "plusOnes", label: t("advancing.guests.columns.plusOnes"), type: "number" },
+              { key: "show", label: t("advancing.guests.columns.show") },
+              { key: "from", label: t("advancing.guests.columns.from") },
+              { key: "passType", label: t("advancing.guests.columns.passType") },
+              { key: "table", label: t("advancing.guests.columns.table") },
+              { key: "state", label: t("advancing.common.state") },
+            ]}
+            full={false}
+            bulk={
+              can.rider
+                ? {
+                    org: ctx.org.slug,
+                    resource: "guest_list_entries",
+                    // The guest list guard decides each move: review authority, never the requester.
+                    fields: [
+                      {
+                        key: "entry_state",
+                        label: t("advancing.common.state"),
+                        options: GUEST_STATES.filter((s) => s !== "Requested").map((s) => ({
+                          value: s,
+                          label: label(s),
+                        })),
+                      },
+                    ],
+                  }
+                : null
+            }
+            rows={guests.data.map((g) => ({
+              id: g.id,
+              label: g.guestName,
+              guest: g.guestName,
+              plusOnes: g.plusOnes,
+              show: scopeName(g.scopeNodeId),
+              from: from(g),
+              passType: passTypeName(g.passCategoryId),
+              table: g.tableLabel ?? "",
+              state: label(g.state),
+            }))}
+          />
+        ) : (
+          <ul
+            aria-label={title}
+            className="m-0 flex list-none flex-col divide-y divide-border-subtle rounded-card border border-border-subtle p-0"
+          >
+            {guests.data.map((g) => (
+              <li
+                key={g.id}
+                className="flex flex-wrap items-center justify-between gap-8 px-16 py-8"
+              >
+                <div className="flex min-w-0 flex-wrap items-center gap-8">
+                  <StateChip state={GUEST_RECORD_STATE[g.state]} label={label(g.state)} compact />
+                  <Link
+                    href={withQuery(path, search, { peek: g.id }) as Route}
+                    className="text-text-14 text-text-primary hover:underline"
+                  >
+                    {g.guestName}
+                  </Link>
+                  <span className="text-text-12 text-text-secondary">
+                    {t("advancing.guests.plusOnes", { count: g.plusOnes })} ·{" "}
+                    {scopeName(g.scopeNodeId)} · {from(g)}
+                    {g.passCategoryId ? ` · ${passTypeName(g.passCategoryId)}` : ""}
+                    {g.tableLabel ? ` · ${g.tableLabel}` : ""}
+                  </span>
+                  {g.engagementId ? (
+                    <Tag tone="accent">{t("advancing.guests.viaGateway")}</Tag>
+                  ) : null}
+                </div>
+                <GuestActions
+                  org={ctx.org.slug}
+                  guest={item(g)}
+                  state={g.state}
+                  scopes={scopeOptions}
+                  choices={choices}
+                  canEdit={can.rider}
+                  canReview={can.review}
+                />
+              </li>
+            ))}
+          </ul>
+        )}
+      </ResultRegion>
       {collectionPeek(
         peekId,
         peek ? (
@@ -239,8 +310,52 @@ export async function GuestList({
                 }),
               },
               ...(peek.note ? [{ label: t("advancing.guests.form.note"), value: peek.note }] : []),
+              ...(peek.passCategoryId
+                ? [
+                    {
+                      label: t("advancing.guests.pass.type"),
+                      value: passTypeName(peek.passCategoryId),
+                    },
+                  ]
+                : []),
+              ...(peek.tableLabel
+                ? [{ label: t("advancing.guests.pass.table"), value: peek.tableLabel }]
+                : []),
+              ...(peek.hostPersonId
+                ? [
+                    {
+                      label: t("advancing.guests.pass.host"),
+                      value: hostName(peek.hostPersonId) ?? "",
+                    },
+                  ]
+                : []),
+              ...(peek.guestEmail
+                ? [{ label: t("advancing.guests.pass.email"), value: peek.guestEmail }]
+                : []),
+              {
+                label: t("advancing.guests.pass.code"),
+                value: peek.passCode ?? t("advancing.guests.pass.notApproved"),
+              },
             ]}
           >
+            {hasPass(peek) ? (
+              <div className="flex flex-wrap gap-8">
+                <Link
+                  href={`${documentHref(ctx.org.slug, "guest-pass", peek.id)}?paper=a6` as Route}
+                  target="_blank"
+                  className="text-text-13 text-accent-text underline"
+                >
+                  {t("advancing.guests.pass.print")}
+                </Link>
+                <a
+                  href={`${documentHref(ctx.org.slug, "guest-pass", peek.id)}?paper=a6`}
+                  download
+                  className="text-text-13 text-accent-text underline"
+                >
+                  {t("advancing.guests.pass.download")}
+                </a>
+              </div>
+            ) : null}
             <RecordCollab
               actx={actx}
               table="app.guest_list_entries"
@@ -250,6 +365,51 @@ export async function GuestList({
           </PeekPanel>
         ) : null,
       )}
+      {sends.ok && sends.data.length > 0 ? (
+        <section aria-labelledby="guest-email-sends" className="flex flex-col gap-8">
+          <h2 id="guest-email-sends" className="m-0 text-text-14 font-semibold">
+            {t("advancing.guests.email.sendsTitle")}
+          </h2>
+          <ul className="m-0 flex list-none flex-col divide-y divide-border-subtle rounded-card border border-border-subtle p-0">
+            {sends.data.map((send) => (
+              <li key={send.id} className="px-16 py-8">
+                <details>
+                  <summary className="cursor-pointer text-text-13">
+                    {t(`advancing.guests.email.kinds.${send.kind}`)}
+                    {send.subject ? ` · ${send.subject}` : ""} ·{" "}
+                    {format.dateTime(new Date(send.createdAt), {
+                      dateStyle: "medium",
+                      timeStyle: "short",
+                    })}{" "}
+                    ·{" "}
+                    {t("advancing.guests.email.sent", {
+                      count: send.rows.filter(
+                        (r) => r.state !== "Skipped" && r.state !== "Suppressed",
+                      ).length,
+                    })}
+                  </summary>
+                  <ul className="m-0 flex list-none flex-col gap-2 p-0 pt-8 text-text-13">
+                    {send.rows.map((r) => (
+                      <li key={r.guestListEntryId} className="flex flex-wrap justify-between gap-8">
+                        <span>
+                          {guestName(r.guestListEntryId) ||
+                            t("advancing.guests.email.removedGuest")}
+                        </span>
+                        <span className="text-text-secondary">
+                          {t(`advancing.guests.email.states.${r.state}`)}
+                          {r.skipReason
+                            ? ` · ${t(`advancing.guests.email.skipReasons.${r.skipReason.replace(/ /g, "")}`)}`
+                            : ""}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </details>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
     </CollectionPage>
   );
 }

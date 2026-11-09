@@ -22,10 +22,18 @@ import type { NotificationKindRegistry } from "./model.ts";
  * approval.reminder and approval.link_code with its approval_link_code email (ADR 0138) and carries 5829's. 6059 adds
  * B16's subscription pause notices billing.paused and billing.resumed (6051) and agent.change_proposed (6052), which
  * reaches only the Inbox and a push (ADR 0155), and carries 5869's; train 7 adds B5's accommodation_block.release_due
- * and transfer.assigned (5947) to it. 6129 adds P8's availability.requested (6123) and carries 6059's.
+ * and transfer.assigned (5947) to it. 6129 adds P8's availability.requested (6123) and carries 6059's. 6499 (merge
+ * train 9, ADR 0022 amendment) adds R11's advance_packet.reminder, advance_submission.returned, submittal.returned,
+ * roster_entry.removed, roster_entry.facts_requested, roster_entry.share_revoked and credential.revoked (6221, 6222),
+ * B8's guest.arrived (6254) and three weather kinds (6256, 6257) and guest_message email, and B15's
+ * advance_answer.recorded (6273), and carries 6129's. 6799 (merge train 10) adds B2's vendor_intake.submitted (6505),
+ * B9's shift.reconfirm, shift.reconfirm_declined and shift.no_show (6511, 6512), B10's crew_registration.decided,
+ * crew_registration.invited and engagement_document.sent (6522, 6524), B11's rfq.quote_reminder and rfq.not_awarded
+ * (6538) and B13's quote.accepted (6554), and carries 6499's. Each sits at the top of its train's block so the highest
+ * seed carries every kind.
  */
 export const NOTIFICATION_KIND_SEED_MIGRATION =
-  "supabase/migrations/6129_notification_kind_seed.sql";
+  "supabase/migrations/6799_notification_kind_seed.sql";
 
 /** The pgTAP drift test of the seed, named for its migration. */
 export const NOTIFICATION_KIND_DRIFT_TEST = NOTIFICATION_KIND_SEED_MIGRATION.replace(

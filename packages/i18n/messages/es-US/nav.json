@@ -23,7 +23,10 @@
         "calendar": "Calendario",
         "milestones": "Hitos",
         "baselines": "Líneas base",
-        "events": "Eventos"
+        "events": "Eventos",
+        "days": "Días",
+        "workload": "Carga de trabajo",
+        "clashes": "Conflictos"
       },
       "work": {
         "allRecords": "Todos los registros",
@@ -36,6 +39,7 @@
         "runOfShow": "Escaleta",
         "daySheets": "Hojas del día",
         "callSheets": "Hojas de llamado",
+        "segments": "Biblioteca de segmentos",
         "showDay": "Día del show"
       },
       "advancing": {
@@ -110,7 +114,8 @@
         "onboarding": "Incorporación",
         "engagements": "Contrataciones",
         "ratings": "Calificaciones",
-        "marketplaceSettings": "Configuración del mercado"
+        "marketplaceSettings": "Configuración del mercado",
+        "registrationPages": "Páginas de registro"
       },
       "crew": {
         "schedule": "Programación",
@@ -122,7 +127,10 @@
         "payPeriods": "Periodos de pago",
         "payrollExports": "Exportaciones de nómina",
         "timeOff": "Ausencias",
-        "perDiems": "Viáticos"
+        "perDiems": "Viáticos",
+        "accessLinks": "Enlaces de acceso del equipo",
+        "shortages": "Faltantes",
+        "positions": "Puestos"
       },
       "finance": {
         "budgets": "Presupuestos",
@@ -135,14 +143,16 @@
         "universalPostingLineExport": "Exportación de la línea de registro universal",
         "chartOfAccounts": "Catálogo de cuentas",
         "costCenters": "Centros de costos",
-        "yearEnd": "Cierre del año"
+        "yearEnd": "Cierre del año",
+        "quotes": "Cotizaciones"
       },
       "procurement": {
         "rfqs": "Solicitudes de cotización",
         "purchaseOrders": "Órdenes de compra",
         "receipts": "Recepciones",
         "invoiceMatching": "Conciliación de facturas",
-        "catalog": "Catálogo"
+        "catalog": "Catálogo",
+        "needs": "Necesidades"
       },
       "vendors": {
         "directory": "Directorio",
@@ -194,7 +204,8 @@
         "occupancy": "Aforo",
         "weather": "Clima",
         "guestCheckIn": "Registro de invitados",
-        "lostAndFound": "Objetos perdidos"
+        "lostAndFound": "Objetos perdidos",
+        "muster": "Lista de Evacuación"
       }
     },
     "items": {
@@ -439,7 +450,8 @@
       "upcoming": "Próximos",
       "engagements": "Contrataciones",
       "applications": "Postulaciones",
-      "engagement": "Contratación"
+      "engagement": "Contratación",
+      "quoteRequests": "Solicitudes de cotización"
     },
     "money": {
       "overview": "Resumen",
@@ -455,7 +467,12 @@
       "personProfile": "Perfil de persona",
       "companyProfile": "Perfil de empresa",
       "advanceForm": "Formulario de coordinación previa",
-      "agreementSigning": "Firma de acuerdo"
+      "agreementSigning": "Firma de acuerdo",
+      "crewShifts": "Enlace de mis turnos",
+      "registration": "Registro de equipo",
+      "vendorIntake": "Alta de Proveedor",
+      "publicForm": "Formulario Público",
+      "guestUnsubscribe": "Dejar de Recibir Correos"
     },
     "profile": {
       "badgePhotos": "Fotos de credencial"
@@ -488,6 +505,7 @@
       "profile": "Perfil y certificaciones",
       "settings": "Configuración",
       "projectDetails": "Datos del proyecto",
+      "logisticsGate": "Puerta",
       "drives": "Traslados que conduzco"
     },
     "reference": {

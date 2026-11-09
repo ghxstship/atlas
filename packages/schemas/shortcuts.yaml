@@ -19,8 +19,9 @@
 #   id      Stable id. Personal bindings (app.shortcut_bindings) store it, so never rename one.
 #   scope   Where the keys work. `global` answers anywhere in the shell; any other scope answers only
 #           while focus is in that kind of region. Two shortcuts conflict when they share keys, or one
-#           is the first step of the other's sequence, and their scopes meet (the same scope, or either
-#           one global).
+#           is the first step of the other's sequence, and their scopes meet (the same scope, either
+#           one global, or either one list, since a list can sit in any region except the showcaller
+#           console's show scope, which holds none: model.ts LISTLESS_SCOPES).
 #   group   The shortcut sheet section.
 #   keys    Default keys. Omit them for an action with no default that a person may bind.
 #   mac     Default keys on macOS, only when they differ from `keys`.
@@ -511,6 +512,13 @@ shells:
         group: show
         keys: D
         label: help.shortcuts.show.department
+      # The show channel beside the running cue (B3, ADR 0142): M focuses its message box. C is the global
+      # create menu's and G starts sequences, so the show scope takes M, free in both.
+      - id: show.chat
+        scope: show
+        group: show
+        keys: M
+        label: help.shortcuts.show.chat
       # Stream Deck: Hotkey actions send F13 to F20, which answer even with single-key shortcuts off.
       - id: show.deck.go
         scope: show

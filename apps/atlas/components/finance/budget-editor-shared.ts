@@ -10,6 +10,8 @@ export interface CostCenterOption {
   readonly name: string;
 }
 
+export type BudgetColumnSet = "cost" | "client" | "forecast";
+
 export type Cell = string | number | null;
 export type GridRow = Record<string, Cell>;
 
@@ -33,6 +35,12 @@ export interface BudgetEditorProps {
   readonly costCenters: readonly CostCenterOption[];
   readonly grades: readonly Grade[];
   readonly canWrite: boolean;
+  /** Which columns the grid shows (?columns=), server-rendered links beside the toolbar. */
+  readonly columnSet?: BudgetColumnSet;
+  /** The budget's default markup in basis points, shown in a line's blank Markup cell. */
+  readonly defaultMarkupBp?: number | null;
+  /** The import wizard for this budget (Import lines), or null when hidden. */
+  readonly importHref?: string | null;
 }
 
 export const toMajor = (minor: number | null, exponent: number) =>

@@ -1,4 +1,5 @@
 import { getReportDefinition, type ReportDefinition } from "@xos/data/report-builder";
+import { standardReportOf } from "@xos/data/report-builder-standard";
 import { listMyRuns, listSavedReports } from "@xos/data/reports";
 import type { Route } from "next";
 import Link from "next/link";
@@ -13,14 +14,18 @@ import { ReportBuilder } from "./report-builder";
 /**
  * Reports > Saved reports > Builder (Section 4.6.4, A33 on A18's report definitions and runs, 0550):
  * build or edit a report and preview it as the viewer; save it, share it and queue runs. The list of
- * reports the viewer may open sits beside the builder, with their latest runs.
+ * reports the viewer may open sits beside the builder, with their latest runs. `?standard=<code>` opens one of the
+ * code-defined standard crew reports unsaved (B9, ADR 0148 decision 5): nothing is stored until Save as my report makes
+ * the viewer's own editable copy, and the preview runs under the viewer's access like any other.
  */
 export async function ReportBuilderView({
   ctx,
   reportId,
+  standardCode = null,
 }: {
   ctx: OrgContext;
   reportId: string | null;
+  standardCode?: string | null;
 }) {
   const t = (await getTranslations("workflow")) as unknown as (
     key: string,
@@ -58,6 +63,10 @@ export async function ReportBuilderView({
       );
     }
   }
+  const standard = reportId === null && standardCode ? standardReportOf(standardCode) : undefined;
+  if (standard) {
+    initial = { ...standard.definition, name: t(`builder.standard.${standard.code}`) };
+  }
   if (!reports.ok || !runs.ok) {
     return (
       <TemplateCollection header={<PageHeader title={title} />}>
@@ -75,6 +84,7 @@ export async function ReportBuilderView({
   const recent = initial
     ? runs.data.filter((r) => r.reportDefinitionId === initial.id).slice(0, 5)
     : [];
+  const kept = initial !== null && !standard;
 
   return (
     <TemplateCollection
@@ -97,18 +107,20 @@ export async function ReportBuilderView({
       <div className="flex flex-col gap-24">
         {missing ? <InlineAlert tone="warning">{t("builder.missing")}</InlineAlert> : null}
         {!canWrite ? <InlineAlert tone="info">{t("builder.readOnly")}</InlineAlert> : null}
+        {standard ? <InlineAlert tone="info">{t("builder.standardHelp")}</InlineAlert> : null}
         {initial && !initial.mine ? (
           <InlineAlert tone="info">{t("builder.sharedReadOnly")}</InlineAlert>
         ) : null}
         <ReportBuilder
-          key={initial?.id ?? "new"}
+          key={initial?.id ?? standard?.code ?? "new"}
           org={org}
           initial={initial}
           editable={editable}
+          standard={Boolean(standard)}
           canExport={ctx.capabilities.has("reports.report.export")}
           exponents={Object.fromEntries(exponents)}
         />
-        {initial ? (
+        {kept ? (
           <section aria-labelledby="builder-runs" className="flex flex-col gap-8">
             <h2 id="builder-runs" className="m-0 text-heading-16 font-semibold">
               {t("builder.runs.title")}

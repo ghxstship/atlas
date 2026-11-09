@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { allRows } from "./all-rows.ts";
 import type { Database, XosClient } from "./client.ts";
 import { csvField } from "./csv.ts";
 import { fillPersonNames } from "./person-names.ts";
@@ -44,6 +45,7 @@ export const NEXT_STATES = {
     Proposed: ["Approved", "Rejected", "Canceled"],
     Rejected: ["Proposed"],
     Approved: ["Paid"],
+    // Paid returns to Approved only through app.void_expense_reimbursement (6542), never as a transition offered here.
     Paid: [],
     Canceled: [],
   },
@@ -810,6 +812,8 @@ export interface BudgetSummary {
   readonly name: string;
   readonly currency: string;
   readonly isBaseline: boolean;
+  /** The default markup of the budget's lines in basis points; null is no default. */
+  readonly defaultMarkupBp: number | null;
   readonly lineCount: number;
   readonly unpricedCount: number;
   readonly pricedTotalMinor: number | null;
@@ -829,7 +833,7 @@ export async function listBudgets(
   let query = db
     .from("budgets")
     .select(
-      "id, project_id, name, currency_code, is_baseline, updated_at, project:projects(project_key, name)",
+      "id, project_id, name, currency_code, is_baseline, default_markup_bp, updated_at, project:projects(project_key, name)",
     )
     .eq("org_id", input.orgId)
     .is("deleted_at", null)
@@ -862,6 +866,7 @@ export async function listBudgets(
         name: str(b["name"]),
         currency: str(b["currency_code"]).trim(),
         isBaseline: b["is_baseline"] === true,
+        defaultMarkupBp: numOrNull(b["default_markup_bp"]),
         lineCount: num(t["line_count"]),
         unpricedCount: num(t["unpriced_count"]),
         pricedTotalMinor: numOrNull(t["priced_total_minor"]),
@@ -907,16 +912,61 @@ export interface BudgetLine {
   readonly poLineCount: number;
   /** Lines of approved orders in another currency drawing on the line: counted, never summed. */
   readonly otherCurrencyPoLineCount: number;
+  /** The line's own markup in basis points (2500 is 25 percent); null uses the budget's default. */
+  readonly markupBp: number | null;
+  /** The entered client unit price, an override of the markup; null derives it. */
+  readonly clientUnitPriceMinor: number | null;
+  /** An internal line that never appears on a quote or in a client total. */
+  readonly excludedFromQuote: boolean;
+  /** The entered estimate to complete; null derives it. */
+  readonly etcMinor: number | null;
+  /** The markup in force: the line's, else the budget's default (app.budget_line_prices). */
+  readonly effectiveMarkupBp: number | null;
+  /** The client unit price in force: the override, else the marked-up cost price; null is unpriced. */
+  readonly effectiveClientUnitPriceMinor: number | null;
+  readonly clientExtendedMinor: number | null;
+  readonly marginMinor: number | null;
+  /** Forecast figures (app.budget_line_forecasts, 6557), blank together when forecastWithheld. */
+  readonly currentBudgetMinor: number | null;
+  readonly remainingCommitmentMinor: number | null;
+  readonly forecastEtcMinor: number | null;
+  readonly etcSource: "Entered" | "Derived" | null;
+  readonly efcMinor: number | null;
+  readonly forwardExposureMinor: number | null;
+  readonly varianceAtCompletionMinor: number | null;
+  readonly forecastWithheld: boolean;
+  /** Approved crew time in Actual, and the approved minutes left out of it for want of a rate (6556). */
+  readonly laborActualMinor: number;
+  readonly laborUnpricedMinutes: number;
+  /** Postings in another currency than the budget's: counted, never summed into Actual. */
+  readonly laborOtherCurrencyCount: number;
   /** The version the row was read at, for conflict checks on save. */
   readonly updatedAt: string;
 }
 
 const LINE_COLUMNS =
-  "id, budget_id, line_number, description, line_type, urid, cost_center_id, grade_code, element_id, quantity, unit_basis, unit_price_minor, xyz, xyz_basis, updated_at";
+  "id, budget_id, line_number, description, line_type, urid, cost_center_id, grade_code, element_id, quantity, unit_basis, unit_price_minor, xyz, xyz_basis, markup_bp, client_unit_price_minor, excluded_from_quote, etc_minor, updated_at";
 
-function toLine(r: Raw, amounts?: Raw, commitment?: Raw): BudgetLine {
+/**
+ * A cost unit price marked up by basis points, rounded half away from zero as app.budget_line_prices
+ * rounds (6550). Null when either is null: an unpriced line or a missing markup has no client price.
+ */
+export function clientUnitPrice(
+  unitPriceMinor: number | null,
+  markupBp: number | null,
+): number | null {
+  if (unitPriceMinor === null || markupBp === null) return null;
+  const raw = (unitPriceMinor * (10000 + markupBp)) / 10000;
+  return Math.sign(raw) * Math.round(Math.abs(raw));
+}
+
+function toLine(r: Raw, amounts?: Raw, commitment?: Raw, price?: Raw, forecast?: Raw): BudgetLine {
   const quantity = num(r["quantity"]);
   const unitPrice = numOrNull(r["unit_price_minor"]);
+  const markupBp = numOrNull(r["markup_bp"]);
+  const override = numOrNull(r["client_unit_price_minor"]);
+  const effectivePrice = price ? numOrNull(price["client_unit_price_minor"]) : override;
+  const etcSource = forecast ? strOrNull(forecast["etc_source"]) : null;
   return {
     id: str(r["id"]),
     budgetId: str(r["budget_id"]),
@@ -943,6 +993,29 @@ function toLine(r: Raw, amounts?: Raw, commitment?: Raw): BudgetLine {
     committedWithheld: commitment ? commitment["is_committed_withheld"] === true : false,
     poLineCount: commitment ? num(commitment["po_line_count"]) : 0,
     otherCurrencyPoLineCount: commitment ? num(commitment["other_currency_po_line_count"]) : 0,
+    markupBp,
+    clientUnitPriceMinor: override,
+    excludedFromQuote: r["excluded_from_quote"] === true,
+    etcMinor: numOrNull(r["etc_minor"]),
+    effectiveMarkupBp: price ? numOrNull(price["effective_markup_bp"]) : markupBp,
+    effectiveClientUnitPriceMinor: effectivePrice,
+    clientExtendedMinor: price
+      ? numOrNull(price["client_extended_minor"])
+      : extendedMinor(quantity, effectivePrice),
+    marginMinor: price ? numOrNull(price["margin_minor"]) : null,
+    currentBudgetMinor: forecast ? numOrNull(forecast["current_budget_minor"]) : null,
+    remainingCommitmentMinor: forecast ? numOrNull(forecast["remaining_commitment_minor"]) : null,
+    forecastEtcMinor: forecast ? numOrNull(forecast["etc_minor"]) : null,
+    etcSource: etcSource === "Entered" || etcSource === "Derived" ? etcSource : null,
+    efcMinor: forecast ? numOrNull(forecast["efc_minor"]) : null,
+    forwardExposureMinor: forecast ? numOrNull(forecast["forward_exposure_minor"]) : null,
+    varianceAtCompletionMinor: forecast
+      ? numOrNull(forecast["variance_at_completion_minor"])
+      : null,
+    forecastWithheld: forecast ? forecast["is_withheld"] === true : false,
+    laborActualMinor: amounts ? num(amounts["labor_actual_minor"]) : 0,
+    laborUnpricedMinutes: amounts ? num(amounts["labor_unpriced_minutes"]) : 0,
+    laborOtherCurrencyCount: amounts ? num(amounts["labor_other_currency_count"]) : 0,
     updatedAt: str(r["updated_at"]),
   };
 }
@@ -968,6 +1041,10 @@ export function mergeSavedLine(previous: BudgetLine, saved: BudgetLine): BudgetL
     xyzBasis: saved.xyzBasis,
     lineNumber: saved.lineNumber,
     extendedMinor: extendedMinor(saved.quantity, saved.unitPriceMinor),
+    markupBp: saved.markupBp,
+    clientUnitPriceMinor: saved.clientUnitPriceMinor,
+    excludedFromQuote: saved.excludedFromQuote,
+    etcMinor: saved.etcMinor,
     updatedAt: saved.updatedAt,
   };
 }
@@ -997,9 +1074,19 @@ export function budgetCommittedTotal(lines: readonly BudgetLine[]): BudgetCommit
   return { totalMinor, committedLineCount, otherCurrencyLineCount };
 }
 
+/** A budget's forecast totals (app.budget_forecast_totals, 6557), with approved changes on no line. */
+export interface BudgetForecastTotals {
+  readonly efcMinor: number | null;
+  readonly forwardExposureMinor: number | null;
+  readonly unallocatedChangeMinor: number;
+  readonly isWithheld: boolean;
+}
+
 export interface BudgetDetail {
   readonly budget: BudgetSummary;
   readonly lines: readonly BudgetLine[];
+  /** Null when the view returned no row, which reads as withheld. */
+  readonly forecast: BudgetForecastTotals | null;
 }
 
 /** One budget with its live lines in line order and their derived amounts. */
@@ -1019,41 +1106,63 @@ export async function getBudget(
     (r) => r,
   );
   if (!head.ok) return head;
-  const [summaries, lines, amounts, commitments] = await Promise.all([
-    listBudgets(db, { orgId, projectId: str(head.data["project_id"]) }),
-    rows(
-      db
-        .from("budget_lines")
-        .select(LINE_COLUMNS)
-        .eq("budget_id", budgetId)
-        .is("deleted_at", null)
-        .order("line_number"),
-      (r) => r,
-    ),
-    rows(db.from("budget_line_amounts").select("*").eq("budget_id", budgetId), (r) => r),
-    rows(
-      db
-        .from("budget_line_commitments")
-        .select(
-          "budget_line_id, committed_minor, po_line_count, other_currency_po_line_count, is_committed_withheld",
-        )
-        .eq("budget_id", budgetId),
-      (r) => r,
-    ),
-  ]);
+  const [summaries, lines, amounts, commitments, prices, forecasts, forecastTotals] =
+    await Promise.all([
+      listBudgets(db, { orgId, projectId: str(head.data["project_id"]) }),
+      rows(
+        db
+          .from("budget_lines")
+          .select(LINE_COLUMNS)
+          .eq("budget_id", budgetId)
+          .is("deleted_at", null)
+          .order("line_number"),
+        (r) => r,
+      ),
+      rows(db.from("budget_line_amounts").select("*").eq("budget_id", budgetId), (r) => r),
+      rows(
+        db
+          .from("budget_line_commitments")
+          .select(
+            "budget_line_id, committed_minor, po_line_count, other_currency_po_line_count, is_committed_withheld",
+          )
+          .eq("budget_id", budgetId),
+        (r) => r,
+      ),
+      rows(db.from("budget_line_prices").select("*").eq("budget_id", budgetId), (r) => r),
+      rows(db.from("budget_line_forecasts").select("*").eq("budget_id", budgetId), (r) => r),
+      rows(
+        db
+          .from("budget_forecast_totals")
+          .select("efc_minor, forward_exposure_minor, unallocated_change_minor, is_withheld")
+          .eq("budget_id", budgetId),
+        (r): BudgetForecastTotals => ({
+          efcMinor: numOrNull(r["efc_minor"]),
+          forwardExposureMinor: numOrNull(r["forward_exposure_minor"]),
+          unallocatedChangeMinor: num(r["unallocated_change_minor"]),
+          isWithheld: r["is_withheld"] === true,
+        }),
+      ),
+    ]);
   if (!summaries.ok) return summaries;
   if (!lines.ok) return lines;
   if (!amounts.ok) return amounts;
   if (!commitments.ok) return commitments;
+  if (!prices.ok) return prices;
+  if (!forecasts.ok) return forecasts;
+  if (!forecastTotals.ok) return forecastTotals;
   const budget = summaries.data.find((b) => b.id === budgetId);
   if (!budget) return fail({ kind: "not-found" });
   const byLine = new Map(amounts.data.map((a) => [str(a["budget_line_id"]), a]));
   const committedBy = new Map(commitments.data.map((c) => [str(c["budget_line_id"]), c]));
+  const priceBy = new Map(prices.data.map((p) => [str(p["budget_line_id"]), p]));
+  const forecastBy = new Map(forecasts.data.map((f) => [str(f["budget_line_id"]), f]));
   return ok({
     budget,
-    lines: lines.data.map((l) =>
-      toLine(l, byLine.get(str(l["id"])), committedBy.get(str(l["id"]))),
-    ),
+    lines: lines.data.map((l) => {
+      const id = str(l["id"]);
+      return toLine(l, byLine.get(id), committedBy.get(id), priceBy.get(id), forecastBy.get(id));
+    }),
+    forecast: forecastTotals.data[0] ?? null,
   });
 }
 
@@ -1062,6 +1171,8 @@ export interface BudgetInput {
   readonly name: string;
   readonly currency: string;
   readonly isBaseline: boolean;
+  /** The budget's default markup in basis points; null is no default. */
+  readonly defaultMarkupBp?: number | null;
 }
 
 /** Creates a budget. Needs finance.budget.write on the project; one baseline per project. */
@@ -1079,6 +1190,7 @@ export async function createBudget(
         name: input.name.trim(),
         currency_code: input.currency,
         is_baseline: input.isBaseline,
+        default_markup_bp: input.defaultMarkupBp ?? null,
       })
       .select("id")
       .single(),
@@ -1089,12 +1201,22 @@ export async function createBudget(
 export async function updateBudget(
   db: XosClient,
   budgetId: string,
-  input: { readonly name: string; readonly isBaseline: boolean },
+  input: {
+    readonly name: string;
+    readonly isBaseline: boolean;
+    readonly defaultMarkupBp?: number | null;
+  },
 ): Promise<Result<null>> {
   return done(
     db
       .from("budgets")
-      .update({ name: input.name.trim(), is_baseline: input.isBaseline })
+      .update({
+        name: input.name.trim(),
+        is_baseline: input.isBaseline,
+        ...(input.defaultMarkupBp !== undefined
+          ? { default_markup_bp: input.defaultMarkupBp }
+          : {}),
+      })
       .eq("id", budgetId),
   );
 }
@@ -1116,6 +1238,11 @@ export interface BudgetLineInput {
   readonly unitPriceMinor: number | null;
   readonly xyz: XyzTag;
   readonly xyzBasis: Database["app"]["Enums"]["xyz_basis"];
+  /** Left out, a new line takes the database's default and a save keeps the value it has. */
+  readonly markupBp?: number | null | undefined;
+  readonly clientUnitPriceMinor?: number | null | undefined;
+  readonly excludedFromQuote?: boolean | undefined;
+  readonly etcMinor?: number | null | undefined;
 }
 
 /**
@@ -1145,6 +1272,14 @@ const lineRow = (input: BudgetLineInput) => ({
   unit_price_minor: input.unitPriceMinor,
   xyz: input.xyz,
   xyz_basis: input.xyzBasis,
+  ...(input.markupBp !== undefined ? { markup_bp: input.markupBp } : {}),
+  ...(input.clientUnitPriceMinor !== undefined
+    ? { client_unit_price_minor: input.clientUnitPriceMinor }
+    : {}),
+  ...(input.excludedFromQuote !== undefined
+    ? { excluded_from_quote: input.excludedFromQuote }
+    : {}),
+  ...(input.etcMinor !== undefined ? { etc_minor: input.etcMinor } : {}),
 });
 
 /**
@@ -1335,10 +1470,51 @@ export interface Expense {
   readonly currency: string;
   readonly state: ExpenseState;
   readonly createdAt: string;
+  /** The charge this credit refunds or credits (6540); null for a charge. A credit's amount stays positive. */
+  readonly creditOfExpenseId: string | null;
+  /** True when the submitter paid out of pocket and is owed the amount (6540). */
+  readonly isReimbursable: boolean;
+  readonly reimbursementId: string | null;
+  /** The act's engagement the cost is for (6547). */
+  readonly engagementId: string | null;
+  /** From app.expense_balances (6541); null when the view returned no row. */
+  readonly balance: ExpenseBalance | null;
+}
+
+export type ReimbursementStatus = "Recorded" | "Owed" | "Paid" | "Not owed";
+
+/**
+ * What an expense's credits have taken back and what its payer is owed (app.expense_balances). A reader without
+ * finance.expense.read on the project cannot read the credits finance recorded, so `withheld` is true and the
+ * figures that depend on them are null, never partial.
+ */
+export interface ExpenseBalance {
+  readonly withheld: boolean;
+  readonly creditedMinor: number | null;
+  readonly pendingCreditMinor: number | null;
+  /** The amount less approved credits for a charge; the negative amount for a credit. */
+  readonly netMinor: number | null;
+  /** What a new credit may still take; null for a credit. */
+  readonly creditableMinor: number | null;
+  readonly reimbursementStatus: ReimbursementStatus | null;
+  readonly owedMinor: number | null;
 }
 
 const EXPENSE_COLUMNS =
-  "id, budget_line_id, counterparty_id, submitter_person_id, description, incurred_on, amount_minor, currency_code, expense_state, created_at, line:budget_lines(description, budget_id, budget:budgets(project_id))";
+  "id, budget_line_id, counterparty_id, submitter_person_id, description, incurred_on, amount_minor, currency_code, expense_state, created_at, credit_of_expense_id, is_reimbursable, reimbursement_id, engagement_id, line:budget_lines(description, budget_id, budget:budgets(project_id))";
+
+export function toExpenseBalance(r: Raw): ExpenseBalance {
+  const status = strOrNull(r["reimbursement_status"]);
+  return {
+    withheld: r["is_balance_withheld"] === true,
+    creditedMinor: numOrNull(r["credited_minor"]),
+    pendingCreditMinor: numOrNull(r["pending_credit_minor"]),
+    netMinor: numOrNull(r["net_minor"]),
+    creditableMinor: numOrNull(r["creditable_minor"]),
+    reimbursementStatus: (status as ReimbursementStatus | null) ?? null,
+    owedMinor: numOrNull(r["owed_minor"]),
+  };
+}
 
 function toExpense(r: Raw): Expense {
   const line = obj(r["line"]);
@@ -1357,10 +1533,37 @@ function toExpense(r: Raw): Expense {
     currency: str(r["currency_code"]).trim(),
     state: str(r["expense_state"]) as ExpenseState,
     createdAt: str(r["created_at"]),
+    creditOfExpenseId: strOrNull(r["credit_of_expense_id"]),
+    isReimbursable: r["is_reimbursable"] === true,
+    reimbursementId: strOrNull(r["reimbursement_id"]),
+    engagementId: strOrNull(r["engagement_id"]),
+    balance: null,
   };
 }
 
-/** Expenses the viewer may read, newest first, optionally for one project. */
+const BALANCE_COLUMNS =
+  "expense_id, is_balance_withheld, credited_minor, pending_credit_minor, net_minor, creditable_minor, reimbursement_status, owed_minor";
+
+/** The balances of the given expenses (app.expense_balances, 6541), keyed by expense id, read in chunks. */
+export async function listExpenseBalances(
+  db: XosClient,
+  expenseIds: readonly string[],
+): Promise<Result<Map<string, ExpenseBalance>>> {
+  const out = new Map<string, ExpenseBalance>();
+  for (let i = 0; i < expenseIds.length; i += 150) {
+    const chunk = expenseIds.slice(i, i + 150);
+    const { data, error } = await db
+      .from("expense_balances")
+      .select(BALANCE_COLUMNS)
+      .in("expense_id", chunk);
+    if (error) return fail(toDataError(error));
+    for (const r of (data as Raw[] | null) ?? [])
+      out.set(str(r["expense_id"]), toExpenseBalance(r));
+  }
+  return ok(out);
+}
+
+/** Expenses the viewer may read, newest first, optionally for one project, each with its balance. */
 export async function listExpenses(
   db: XosClient,
   input: { readonly orgId: string; readonly projectId?: string | null },
@@ -1374,8 +1577,16 @@ export async function listExpenses(
       .order("incurred_on", { ascending: false }),
     toExpense,
   );
-  if (!result.ok || !input.projectId) return result;
-  return ok(result.data.filter((e) => e.projectId === input.projectId));
+  if (!result.ok) return result;
+  const listed = input.projectId
+    ? result.data.filter((e) => e.projectId === input.projectId)
+    : result.data;
+  const balances = await listExpenseBalances(
+    db,
+    listed.map((e) => e.id),
+  );
+  if (!balances.ok) return balances;
+  return ok(listed.map((e) => ({ ...e, balance: balances.data.get(e.id) ?? null })));
 }
 
 export interface ExpenseInput {
@@ -1385,6 +1596,10 @@ export interface ExpenseInput {
   readonly incurredOn: string;
   readonly amountMinor: number;
   readonly currency: string;
+  /** Paid out of the submitter's pocket (6540); fixed once the expense leaves Proposed. */
+  readonly isReimbursable?: boolean;
+  /** The act's engagement the cost is for (6547). */
+  readonly engagementId?: string | null;
 }
 
 /** Submits an expense against exactly one budget line (invariant 12); the submitter is the session. */
@@ -1404,11 +1619,155 @@ export async function createExpense(
         incurred_on: input.incurredOn,
         amount_minor: input.amountMinor,
         currency_code: input.currency,
+        is_reimbursable: input.isReimbursable ?? false,
+        engagement_id: input.engagementId ?? null,
       })
       .select("id")
       .single(),
     (r) => ({ id: str(r["id"]) }),
   );
+}
+
+export interface ExpenseCreditInput {
+  readonly originalId: string;
+  readonly amountMinor: number;
+  readonly incurredOn: string;
+  readonly description: string;
+}
+
+/** The row a credit is written as: the original's line and currency, positive amount, the original named. */
+export function expenseCreditRow(
+  orgId: string,
+  original: { readonly budgetLineId: string; readonly currency: string },
+  input: ExpenseCreditInput,
+): Database["app"]["Tables"]["expenses"]["Insert"] {
+  return {
+    org_id: orgId,
+    budget_line_id: original.budgetLineId,
+    credit_of_expense_id: input.originalId,
+    description: input.description.trim(),
+    incurred_on: input.incurredOn,
+    amount_minor: input.amountMinor,
+    currency_code: original.currency,
+  };
+}
+
+/**
+ * Records a credit (refund or vendor credit) against an Approved or Paid charge (6540): on the charge's budget line,
+ * in its currency, with a positive amount. The database sets its counterparty and refuses a credit beyond what is
+ * left, against a reimbursed expense, or by a person who neither approves expenses nor records payments.
+ */
+export async function createExpenseCredit(
+  db: XosClient,
+  orgId: string,
+  input: ExpenseCreditInput,
+): Promise<Result<{ id: string }>> {
+  const original = await one(
+    db
+      .from("expenses")
+      .select("id, budget_line_id, currency_code")
+      .eq("id", input.originalId)
+      .maybeSingle(),
+    (r) => ({ budgetLineId: str(r["budget_line_id"]), currency: str(r["currency_code"]).trim() }),
+  );
+  if (!original.ok) return original;
+  return one(
+    db
+      .from("expenses")
+      .insert(expenseCreditRow(orgId, original.data, input))
+      .select("id")
+      .single(),
+    (r) => ({ id: str(r["id"]) }),
+  );
+}
+
+/**
+ * Edits a Proposed credit: its amount, date and description. A credit never sends is_reimbursable or engagement_id,
+ * which its check constraint and expense_credit_engagement refuse, and keeps its vendor (expense_credit_immutable).
+ */
+export async function updateExpenseCredit(
+  db: XosClient,
+  creditId: string,
+  input: {
+    readonly amountMinor: number;
+    readonly incurredOn: string;
+    readonly description: string;
+  },
+): Promise<Result<null>> {
+  return done(
+    db
+      .from("expenses")
+      .update({
+        amount_minor: input.amountMinor,
+        incurred_on: input.incurredOn,
+        description: input.description.trim(),
+      })
+      .eq("id", creditId),
+  );
+}
+
+/** A look-alike of an expense (6546): a warning, never a refusal. */
+export interface ExpenseDuplicate {
+  readonly expenseId: string | null;
+  readonly candidateId: string;
+  readonly sameVendor: boolean;
+  readonly amountDeltaMinor: number;
+  readonly dayGap: number;
+}
+
+export function toExpenseDuplicate(r: Raw): ExpenseDuplicate {
+  return {
+    expenseId: strOrNull(r["expense_id"]),
+    candidateId: str(r["candidate_id"]),
+    sameVendor: r["same_vendor"] === true,
+    amountDeltaMinor: num(r["amount_delta_minor"]),
+    dayGap: num(r["day_gap"]),
+  };
+}
+
+/** Look-alikes of an expense not yet saved (app.find_expense_duplicates), among rows the viewer can read. */
+export async function findExpenseDuplicates(
+  db: XosClient,
+  input: {
+    readonly budgetLineId: string;
+    readonly counterpartyId: string | null;
+    readonly amountMinor: number;
+    readonly incurredOn: string;
+    readonly excludeExpenseId?: string | null;
+  },
+): Promise<Result<ExpenseDuplicate[]>> {
+  return rows(
+    db.rpc("find_expense_duplicates", {
+      p_budget_line_id: input.budgetLineId,
+      p_counterparty_id: input.counterpartyId as string,
+      p_amount_minor: input.amountMinor,
+      p_incurred_on: input.incurredOn,
+      ...(input.excludeExpenseId ? { p_exclude_expense_id: input.excludeExpenseId } : {}),
+    }),
+    toExpenseDuplicate,
+  );
+}
+
+/** Look-alikes of saved Proposed or Approved charges (app.expense_duplicate_candidates), keyed by expense id. */
+export async function listExpenseDuplicates(
+  db: XosClient,
+  expenseIds: readonly string[],
+): Promise<Result<Map<string, ExpenseDuplicate[]>>> {
+  const out = new Map<string, ExpenseDuplicate[]>();
+  for (let i = 0; i < expenseIds.length; i += 500) {
+    const result = await rows(
+      db.rpc("expense_duplicate_candidates", {
+        p_expense_ids: [...expenseIds.slice(i, i + 500)],
+      }),
+      toExpenseDuplicate,
+    );
+    if (!result.ok) return result;
+    for (const d of result.data) {
+      const key = d.expenseId ?? "";
+      out.set(key, [...(out.get(key) ?? []), d]);
+    }
+  }
+  return ok(out);
 }
 
 /** Edits a Proposed expense; the database refuses amount and date changes after submission review. */
@@ -1426,6 +1785,8 @@ export async function updateExpense(
         incurred_on: input.incurredOn,
         amount_minor: input.amountMinor,
         currency_code: input.currency,
+        ...(input.isReimbursable === undefined ? {} : { is_reimbursable: input.isReimbursable }),
+        ...(input.engagementId === undefined ? {} : { engagement_id: input.engagementId }),
       })
       .eq("id", expenseId),
   );
@@ -1867,6 +2228,8 @@ export interface InvoiceInput {
   readonly issuedOn: string | null;
   readonly dueOn: string | null;
   readonly currency: string;
+  /** The total the document printed, when Aurora read one (B15). */
+  readonly printedTotalMinor?: number | null;
 }
 
 export async function createInvoice(
@@ -1886,6 +2249,7 @@ export async function createInvoice(
         issued_on: input.issuedOn,
         due_on: input.dueOn,
         currency_code: input.currency,
+        printed_total_minor: input.printedTotalMinor ?? null,
       })
       .select("id")
       .single(),
@@ -1896,7 +2260,7 @@ export async function createInvoice(
 export async function updateInvoice(
   db: XosClient,
   id: string,
-  input: Pick<InvoiceInput, "number" | "issuedOn" | "dueOn">,
+  input: Pick<InvoiceInput, "number" | "issuedOn" | "dueOn" | "printedTotalMinor">,
 ): Promise<Result<null>> {
   return done(
     db
@@ -1905,6 +2269,10 @@ export async function updateInvoice(
         invoice_number: input.number?.trim() || null,
         issued_on: input.issuedOn,
         due_on: input.dueOn,
+        // An absent value leaves the stored total unchanged.
+        ...(input.printedTotalMinor === undefined
+          ? {}
+          : { printed_total_minor: input.printedTotalMinor }),
       })
       .eq("id", id),
   );
@@ -2639,4 +3007,352 @@ export function projectUpl(
  */
 export function toCsv(header: readonly string[], body: readonly (readonly string[])[]): string {
   return [header, ...body].map((r) => r.map(csvField).join(",")).join("\r\n") + "\r\n";
+}
+
+// Payments due (B12, 6545) ------------------------------------------------------------------------------------------
+
+export type PaymentDueKind =
+  "invoice" | "instalment" | "settlement" | "per_diem" | "reimbursement" | "expense";
+
+/** One outstanding payable of app.payments_due: what the org owes, to whom and when. */
+export interface PaymentDue {
+  readonly kind: PaymentDueKind;
+  readonly sourceId: string;
+  /** The order an instalment pays; null for every other kind. */
+  readonly purchaseOrderId: string | null;
+  readonly projectId: string;
+  readonly projectKey: string;
+  /** Today on the project's calendar: a row's bucket is decided by its own project's day. */
+  readonly projectToday: string;
+  readonly counterpartyId: string | null;
+  readonly counterpartyName: string | null;
+  readonly payeePersonId: string | null;
+  /** From app.person_names; null while the person stays hidden, and the id is kept. */
+  readonly payeeName: string | null;
+  readonly label: string | null;
+  readonly dueOn: string | null;
+  readonly currency: string;
+  /** Outstanding, net of what bills already claim; null only when unpriced (Section 3.7). */
+  readonly amountMinor: number | null;
+  /** What Proposed payments will apply. */
+  readonly scheduledMinor: number;
+  /** What the bills of an engagement or order took off the row; null when that is unknown. */
+  readonly billedOffsetMinor: number | null;
+  readonly sourceState: string | null;
+}
+
+export function toPaymentDue(r: Raw): PaymentDue {
+  return {
+    kind: str(r["kind"]) as PaymentDueKind,
+    sourceId: str(r["source_id"]),
+    purchaseOrderId: strOrNull(r["purchase_order_id"]),
+    projectId: str(r["project_id"]),
+    projectKey: str(r["project_key"]),
+    projectToday: str(r["project_today"]),
+    counterpartyId: strOrNull(r["counterparty_id"]),
+    counterpartyName: strOrNull(r["counterparty_name"]),
+    payeePersonId: strOrNull(r["payee_person_id"]),
+    payeeName: null,
+    label: strOrNull(r["label"]),
+    dueOn: strOrNull(r["due_on"]),
+    currency: str(r["currency_code"]).trim(),
+    amountMinor: numOrNull(r["amount_minor"]),
+    scheduledMinor: num(r["scheduled_minor"]),
+    billedOffsetMinor: numOrNull(r["billed_offset_minor"]),
+    sourceState: strOrNull(r["source_state"]),
+  };
+}
+
+/** Whether the viewer reads the ledger (app.can_read_payments_due): all five capabilities at organization reach. */
+export async function canReadPaymentsDue(db: XosClient, orgId: string): Promise<boolean> {
+  const r = await rpcValue<boolean>(db.rpc("can_read_payments_due", { p_org_id: orgId }));
+  return r.ok && r.data === true;
+}
+
+/** The org's outstanding payables (app.payments_due), optionally one project, with payees named. */
+export async function listPaymentsDue(
+  db: XosClient,
+  input: { readonly orgId: string; readonly projectId?: string | null },
+): Promise<Result<PaymentDue[]>> {
+  const result = await allRows(
+    (from, to) =>
+      db
+        .rpc("payments_due", {
+          p_org_id: input.orgId,
+          ...(input.projectId ? { p_project_id: input.projectId } : {}),
+        })
+        .range(from, to),
+    toPaymentDue,
+  );
+  if (!result.ok) return result;
+  return ok(
+    await fillPersonNames(
+      db,
+      result.data,
+      (d) => d.payeePersonId,
+      (d) => d.payeeName,
+      (d, payeeName) => ({ ...d, payeeName }),
+    ),
+  );
+}
+
+export type PaymentDueBucket = "overdue" | "thisWeek" | "later" | "undated";
+export const PAYMENT_DUE_BUCKETS: readonly PaymentDueBucket[] = [
+  "overdue",
+  "thisWeek",
+  "later",
+  "undated",
+];
+
+/** A currency's subtotal in a bucket, NULL-aware: the total is null while any row is unpriced. */
+export interface CurrencySubtotal {
+  readonly currency: string;
+  readonly total: number | null;
+  readonly priced: number | null;
+  readonly unpricedCount: number;
+  readonly scheduled: number;
+}
+
+export interface PaymentDueGroup {
+  readonly bucket: PaymentDueBucket;
+  readonly rows: readonly PaymentDue[];
+  readonly subtotals: readonly CurrencySubtotal[];
+}
+
+/** The last day of the week that holds `today` (YYYY-MM-DD), for a week starting on day 0 (Sunday) or 1 (Monday). */
+export function endOfWeek(today: string, weekStart: 0 | 1): string {
+  const d = new Date(`${today}T00:00:00Z`);
+  const offset = (d.getUTCDay() - weekStart + 7) % 7;
+  d.setUTCDate(d.getUTCDate() + (6 - offset));
+  return d.toISOString().slice(0, 10);
+}
+
+/** Which bucket a due date falls in on a project's `today`, with the org's payroll week. */
+export function paymentDueBucket(
+  dueOn: string | null,
+  today: string,
+  weekStart: 0 | 1,
+): PaymentDueBucket {
+  if (dueOn === null) return "undated";
+  if (dueOn < today) return "overdue";
+  return dueOn <= endOfWeek(today, weekStart) ? "thisWeek" : "later";
+}
+
+/**
+ * Groups the ledger into Overdue (before today), This week (today to the end of the org's week, payroll.week_start),
+ * Later and No due date, each with per-currency subtotals through nullAwareSum. Each row is compared with its own
+ * project's day (project_today), never an org-wide one, so a project on Pacific time and one in Sydney each read their
+ * own date. Rows stay in the order given within a bucket. Pure.
+ */
+export function groupPaymentsDue(due: readonly PaymentDue[], weekStart: 0 | 1): PaymentDueGroup[] {
+  const buckets = new Map<PaymentDueBucket, PaymentDue[]>(PAYMENT_DUE_BUCKETS.map((b) => [b, []]));
+  for (const row of due)
+    buckets.get(paymentDueBucket(row.dueOn, row.projectToday, weekStart))?.push(row);
+  return PAYMENT_DUE_BUCKETS.map((bucket) => {
+    const list = buckets.get(bucket) ?? [];
+    const currencies = [...new Set(list.map((r) => r.currency))].sort();
+    return {
+      bucket,
+      rows: list,
+      subtotals: currencies.map((currency) => {
+        const inCurrency = list.filter((r) => r.currency === currency);
+        const sum = nullAwareSum(inCurrency.map((r) => r.amountMinor));
+        return {
+          currency,
+          total: sum.total,
+          priced: sum.priced,
+          unpricedCount: sum.unpricedCount,
+          scheduled: inCurrency.reduce((n, r) => n + r.scheduledMinor, 0),
+        };
+      }),
+    };
+  });
+}
+
+// Reimbursements (B12, 6542) ---------------------------------------------------------------------------------------
+
+export interface ReimbursementBalance {
+  readonly payeePersonId: string;
+  /** From app.person_names; null while the person stays hidden, and the id is kept. */
+  readonly payeeName: string | null;
+  readonly currency: string;
+  readonly recordedCount: number;
+  readonly recordedMinor: number;
+  readonly owedCount: number;
+  readonly owedMinor: number;
+  readonly paidMinor: number;
+  readonly lastPaidOn: string | null;
+}
+
+/** Whether the viewer reads reimbursements (app.can_read_reimbursements): both capabilities at organization reach. */
+export async function canReadReimbursements(db: XosClient, orgId: string): Promise<boolean> {
+  const r = await rpcValue<boolean>(db.rpc("can_read_reimbursements", { p_org_id: orgId }));
+  return r.ok && r.data === true;
+}
+
+/**
+ * Recorded, Owed and Paid per payee and currency (app.reimbursement_balances): most owed first, then by name, with
+ * names filled through app.person_names.
+ */
+export async function listReimbursementBalances(
+  db: XosClient,
+  input: { readonly orgId: string; readonly projectId?: string | null },
+): Promise<Result<ReimbursementBalance[]>> {
+  const result = await allRows(
+    (from, to) =>
+      db
+        .rpc("reimbursement_balances", {
+          p_org_id: input.orgId,
+          ...(input.projectId ? { p_project_id: input.projectId } : {}),
+        })
+        .range(from, to),
+    (r): ReimbursementBalance => ({
+      payeePersonId: str(r["payee_person_id"]),
+      payeeName: null,
+      currency: str(r["currency_code"]).trim(),
+      recordedCount: num(r["recorded_count"]),
+      recordedMinor: num(r["recorded_minor"]),
+      owedCount: num(r["owed_count"]),
+      owedMinor: num(r["owed_minor"]),
+      paidMinor: num(r["paid_minor"]),
+      lastPaidOn: strOrNull(r["last_paid_on"]),
+    }),
+  );
+  if (!result.ok) return result;
+  const named = await fillPersonNames(
+    db,
+    result.data,
+    (b) => b.payeePersonId,
+    (b) => b.payeeName,
+    (b, payeeName) => ({ ...b, payeeName }),
+  );
+  return ok(
+    named.sort(
+      (a, b) =>
+        b.owedMinor - a.owedMinor ||
+        (a.payeeName ?? "").localeCompare(b.payeeName ?? "") ||
+        a.payeePersonId.localeCompare(b.payeePersonId),
+    ),
+  );
+}
+
+export interface OwedExpense {
+  readonly expenseId: string;
+  readonly projectKey: string;
+  readonly description: string;
+  readonly incurredOn: string;
+  readonly currency: string;
+  readonly netMinor: number;
+  /** What Proposed credits would take: recording this charge is refused until they are decided. */
+  readonly pendingCreditMinor: number;
+}
+
+/** The Approved reimbursable charges a payee is owed (app.owed_reimbursable_expenses), each with net above zero. */
+export async function listOwedExpenses(
+  db: XosClient,
+  input: {
+    readonly orgId: string;
+    readonly payeePersonId: string;
+    readonly projectId?: string | null;
+  },
+): Promise<Result<OwedExpense[]>> {
+  return allRows(
+    (from, to) =>
+      db
+        .rpc("owed_reimbursable_expenses", {
+          p_org_id: input.orgId,
+          p_payee_person_id: input.payeePersonId,
+          ...(input.projectId ? { p_project_id: input.projectId } : {}),
+        })
+        .range(from, to),
+    (r) => ({
+      expenseId: str(r["expense_id"]),
+      projectKey: str(r["project_key"]),
+      description: str(r["description"]),
+      incurredOn: str(r["incurred_on"]),
+      currency: str(r["currency_code"]).trim(),
+      netMinor: num(r["net_minor"]),
+      pendingCreditMinor: num(r["pending_credit_minor"]),
+    }),
+  );
+}
+
+export interface Reimbursement {
+  readonly id: string;
+  readonly payeePersonId: string;
+  readonly currency: string;
+  readonly paidMinor: number;
+  readonly paidOn: string;
+  readonly reference: string | null;
+  readonly voidedAt: string | null;
+  readonly voidReason: string | null;
+}
+
+/** Reimbursements recorded to a payee, newest first. The payee and finance.payment.read holders read them. */
+export async function listReimbursements(
+  db: XosClient,
+  input: { readonly orgId: string; readonly payeePersonId: string },
+): Promise<Result<Reimbursement[]>> {
+  return rows(
+    db
+      .from("expense_reimbursements")
+      .select(
+        "id, payee_person_id, currency_code, paid_minor, paid_on, reference_identifier, voided_at, void_reason",
+      )
+      .eq("org_id", input.orgId)
+      .eq("payee_person_id", input.payeePersonId)
+      .is("deleted_at", null)
+      .order("paid_on", { ascending: false }),
+    (r) => ({
+      id: str(r["id"]),
+      payeePersonId: str(r["payee_person_id"]),
+      currency: str(r["currency_code"]).trim(),
+      paidMinor: num(r["paid_minor"]),
+      paidOn: str(r["paid_on"]),
+      reference: strOrNull(r["reference_identifier"]),
+      voidedAt: strOrNull(r["voided_at"]),
+      voidReason: strOrNull(r["void_reason"]),
+    }),
+  );
+}
+
+/** Records that a payee was reimbursed for Approved reimbursable expenses (decision 20: XOS moves no money). */
+export async function recordExpenseReimbursement(
+  db: XosClient,
+  input: {
+    readonly payeePersonId: string;
+    readonly expenseIds: readonly string[];
+    readonly paidOn: string;
+    readonly reference: string | null;
+  },
+): Promise<Result<{ id: string }>> {
+  const r = await rpcValue<string>(
+    db.rpc("record_expense_reimbursement", {
+      p_payee_person_id: input.payeePersonId,
+      p_expense_ids: [...input.expenseIds],
+      p_paid_on: input.paidOn,
+      ...(input.reference === null ? {} : { p_reference: input.reference }),
+    }),
+  );
+  return r.ok ? ok({ id: r.data }) : r;
+}
+
+/** Voids a reimbursement recorded in error; its expenses are Owed again. */
+export async function voidExpenseReimbursement(
+  db: XosClient,
+  input: { readonly id: string; readonly reason: string },
+): Promise<Result<null>> {
+  const r = await rpcValue(
+    db.rpc("void_expense_reimbursement", {
+      p_reimbursement_id: input.id,
+      p_reason: input.reason,
+    }),
+  );
+  return r.ok ? ok(null) : r;
+}
+
+/** Whether the viewer records payments in the org (app.can_record_payments): for showing controls only. */
+export async function canRecordPayments(db: XosClient, orgId: string): Promise<boolean> {
+  const r = await rpcValue<boolean>(db.rpc("can_record_payments", { p_org_id: orgId }));
+  return r.ok && r.data === true;
 }

@@ -108,7 +108,12 @@ test.describe("Budgets (journeys 3, 33, 34 and 37)", () => {
     await newBudget(page, `Journey 3 ${id}`);
     await expectAccessibleInBothThemes(page);
 
-    await page.getByRole("button", { name: "Add from catalog" }).click();
+    // Add from catalog sits in the toolbar's More menu (gate 27: five actions at most).
+    await page
+      .getByRole("toolbar", { name: "Budget actions" })
+      .getByRole("button", { name: "More" })
+      .click();
+    await page.getByRole("menuitem", { name: "Add from catalog" }).click();
     const catalog = page.getByRole("dialog", { name: "Add from catalog" });
     await catalog.getByLabel("Search the catalog").fill("4000.01.01");
     await catalog.getByRole("button", { name: "Search" }).click();
@@ -365,6 +370,48 @@ test.describe("Invoice and settlement lines (A118)", () => {
     await expect(status(page, `Undone: Removed ${description}.`)).toBeVisible();
     await expect(lines).toContainText(description);
     await expect(lines).toContainText("$500.00");
+  });
+
+  test("a client price saved by someone else opens the conflict dialog and names the field", async ({
+    page,
+    browser,
+  }) => {
+    const id = uniqueId();
+    await signIn(page, "producer@example.com");
+    const budget = await newBudget(page, `Journey 33 client ${id}`);
+    await addLine(page, "Delay towers", "1500.00");
+
+    const path = `/${ORG}/finance/budgets?project=${PROJECT}&budget=${budget}&columns=client`;
+    await page.goto(path);
+    const other = await asPerson(browser, "owner@example.com");
+    await other.goto(path);
+    await settle(page);
+    await settle(other);
+
+    const grid = (p: Page) => p.getByRole("grid", { name: "Budget lines" });
+    // Client unit price is the seventh data column, after Description, URID, Type, Quantity, Unit price and Markup %
+    // (B13).
+    const clientPrice = (p: Page) =>
+      grid(p)
+        .getByRole("row", { name: /Delay towers/ })
+        .getByRole("gridcell")
+        .nth(7);
+    await clientPrice(page).dblclick();
+    await page.keyboard.press("ControlOrMeta+a");
+    await page.keyboard.type("1800");
+
+    await clientPrice(other).dblclick();
+    await other.keyboard.press("ControlOrMeta+a");
+    await other.keyboard.type("2100");
+    await other.keyboard.press("Enter");
+    await settle(other);
+
+    await page.keyboard.press("Enter");
+    const dialog = page.getByRole("dialog", { name: "This line changed while you edited it" });
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByRole("rowheader", { name: "Client unit price" })).toBeVisible();
+    await dialog.getByRole("button", { name: "Take theirs" }).click();
+    await expect(grid(page)).toContainText("$2,100.00");
   });
 });
 

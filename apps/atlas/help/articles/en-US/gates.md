@@ -28,4 +28,8 @@ Gate 8 holds the **Measurement**: record waste, energy, water, transport, attend
 
 Hover over or focus any gate or phase chip to see its definition from the XOS canon. The glossary in Help lists every term.
 
+## Required documents and details
+
+When a project has an event type, its gates also check what the type requires. Each Required document type due by the gate needs a project document of that type with at least one version, and each required detail needs a value. Under each gate, **Required documents and details** lists what is done and what is missing, and the pass button names what is missing. Recommended items show in the list and on the Overview's Setup card, but never stop a gate. A project without an event type passes its gates exactly as before.
+
 Related: [Glossary](help:glossary).

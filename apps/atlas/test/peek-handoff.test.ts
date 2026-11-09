@@ -37,7 +37,7 @@ const OWN_NOT_FOUND: Readonly<Record<string, string>> = {
     "assets.units.notFound in the peek and on the full page",
   // Credentials and incidents show RecordMissing (credentials.common.recordMissing) with Back to list.
   "components/credentials/sections.tsx#CategoriesSection": "CategoryRecord shows RecordMissing",
-  "components/credentials/sections.tsx#IssuedSection": "CredentialRecord shows RecordMissing",
+  "components/credentials/issued-section.tsx#IssuedSection": "CredentialRecord shows RecordMissing",
   "components/incidents/sections.tsx#DispatchBoardSection": "IncidentRecord shows RecordMissing",
   "components/incidents/sections.tsx#EmergencyCodesSection": "CodeRecord shows RecordMissing",
   "components/incidents/sections.tsx#IncidentsSection": "IncidentRecord shows RecordMissing",
@@ -129,6 +129,8 @@ const KIND_NOT_FOUND: Readonly<Record<string, string>> = {
   "components/logistics-hospitality/transfers.tsx#TransfersSection":
     "finds the id by key (findIdByKey)",
   "components/schedule/schedule-pages.tsx#BaselinesPage": "reads a baseline only for a UUID key",
+  "components/show/segment-library-page.tsx#SegmentLibraryPage":
+    "reads a library segment only for a UUID key",
   "components/show/show-pages.tsx#RunsPage": "reads a running order only for a UUID key",
   // Its comparison is about the door list's read, not the `?peek` row, which it finds in the list.
   "components/workforce/guest-check-in.tsx#GuestCheckInSection": "finds the guest in its list",

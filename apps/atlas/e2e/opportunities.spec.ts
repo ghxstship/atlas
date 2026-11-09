@@ -184,8 +184,9 @@ test.describe("Opportunities, org side", () => {
     await moveTo.getByRole("button", { name: "Move" }).click();
     await expect(page.getByText("Active").first()).toBeVisible();
     // A signing link for the Sent agreement, shown once.
-    await page.getByLabel("Recipient email").fill("crew@example.com");
-    await page.getByRole("button", { name: "Issue signing link" }).click();
+    // Other journeys can leave Sent documents on the demo crew engagement; this one is the first by title.
+    await page.getByLabel("Recipient email").first().fill("crew@example.com");
+    await page.getByRole("button", { name: "Issue signing link" }).first().click();
     // The link shows in full when GATEWAY_SITE_URL names Gateway, as a path otherwise.
     await expect(page.getByText(/^(https?:\/\/[^/\s]+)?\/sign\/xdoc_/)).toBeVisible();
     await expect(page.getByText(/Access code: \d{6}/)).toBeVisible();

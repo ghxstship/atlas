@@ -8,7 +8,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(101);
+select plan(102);
 
 create temporary table tokens (key text primary key, token text not null, code text not null);
 grant select, insert on tokens to public;
@@ -217,6 +217,28 @@ select is((select count(*)::int from api_public.read_agreement((select token fro
 select is((select count(*)::int from api_public.read_agreement('xagr_unknown', (select code from tokens where key = 'agr1'))), 0, 'an unknown token reads nothing');
 select is((select title from api_public.read_agreement((select token from tokens where key = 'agr1'), (select code from tokens where key = 'agr1'))),
   'Production Manager Offer Letter', 'inv_08_token_rpcs_hashed_secrets: the token and access code read the agreement');
+
+-- A link ends with its project (owner decision of 2026-11-06, ADR 0142).
+select pg_temp.as_platform();
+create temporary table agr_project as select project_id from app.agreements where id = pg_temp.id('agr1');
+create function pg_temp.end_project(p_id uuid, p_state text) returns void language plpgsql as $f$
+begin
+  perform set_config('t.state', (select project_state::text from app.projects where id = p_id), true);
+  set local session_replication_role = replica;
+  update app.projects set project_state = p_state::app.project_state where id = p_id;
+  set local session_replication_role = origin;
+end $f$;
+create function pg_temp.reopen_project(p_id uuid) returns void language plpgsql as $f$
+begin
+  set local session_replication_role = replica;
+  update app.projects set project_state = current_setting('t.state')::app.project_state, archived_at = null, deleted_at = null where id = p_id;
+  set local session_replication_role = origin;
+end $f$;
+select pg_temp.end_project((select project_id from agr_project), 'Complete');
+select is((select count(*)::int from api_public.read_agreement((select token from tokens where key = 'agr1'), (select code from tokens where key = 'agr1'))), 0, 'a token agreement reads nothing once its project ends');
+select pg_temp.reopen_project((select project_id from agr_project));
+select pg_temp.as_anon();
+
 select is(api_public.sign_agreement((select token from tokens where key = 'agr1'), (select code from tokens where key = 'agr1'), 'Nina Patel', repeat('0', 64)),
   false, 'a signature over other text is refused');
 select is(api_public.sign_agreement((select token from tokens where key = 'agr1'), (select code from tokens where key = 'agr1'), 'Nina Patel',

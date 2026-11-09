@@ -471,6 +471,38 @@ export const HELP_BODIES: HelpBodies = {
         ],
       },
     ],
+    "crew-shifts": [
+      { t: "h2", v: "Opening your shifts" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Your crew lead can send you a link and a 6-digit code. Open the link, type the code, and you see your own shifts on that project for the next 14 days, with the times in each shift's own time zone, your job title and the venue. Your device remembers the code on this link for up to 12 hours. Choose Forget this code on a shared phone.",
+          },
+        ],
+      },
+      { t: "h2", v: "Accepting a shift" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Choose Accept shift on a Published shift. Your crew lead sees it at once. Declining and punching in stay in your account and in Compass, so choose Sign in to see all your work for those.",
+          },
+        ],
+      },
+      { t: "h2", v: "When a link stops working" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "A link stops working when it expires, when your crew lead revokes it or issues a new one, when your work on the project ends, or after five wrong codes. Ask your crew lead for a new one.",
+          },
+        ],
+      },
+    ],
     documents: [
       {
         t: "p",
@@ -500,7 +532,10 @@ export const HELP_BODIES: HelpBodies = {
             v: "Each shows its title, kind, organization, expiry date and state. A document waiting for your signature has ",
           },
           { t: "strong", v: "Sign" },
-          { t: "text", v: ". Open one to go to its engagement's Documents tab." },
+          {
+            t: "text",
+            v: ". A generated agreement or a quote is read first: open it to read and sign on its engagement's Documents tab. Open one to go to its engagement's Documents tab.",
+          },
         ],
       },
       { t: "h2", v: "Signed by link" },
@@ -528,6 +563,16 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "Show documents as a table or a list. Documents to sign also appear on Home under Needs you.",
+          },
+        ],
+      },
+      { t: "h2", v: "Reading and signing an agreement" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Some agreements are written for you from the organization's own wording. Open it on the engagement's Documents tab, read the full text and type your full name to sign. Your name signs exactly that text, and the document records its fingerprint. If you do not agree, choose Decline and say why. The organization then countersigns, and the PDF is yours to download.",
           },
         ],
       },
@@ -594,6 +639,21 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "Artists send their rider and hospitality needs through the advance. An artist's representative with the Advance scope answers for the artist.",
+          },
+        ],
+      },
+      { t: "h2", v: "Answers your organization recorded" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "When you answer by email or send a tour book, the organization may record your answer for you from what you sent. Such an answer says ",
+          },
+          { t: "strong", v: "Recorded by" },
+          {
+            t: "text",
+            v: " the organization, and you are told when it happens. If it needs changing, ask them to return it, then answer again.",
           },
         ],
       },
@@ -882,6 +942,21 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Reuse a roster from a past event" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "If you managed the roster of a past event with the same organization, for the same company or artist, ",
+          },
+          { t: "strong", v: "Reuse a roster from a past event" },
+          {
+            t: "text",
+            v: " adds those people here. Preview first: it lists who is added, which email addresses are invited again and who is skipped and why. People are added as drafts with their arrival moved to the new dates; each person accepts again, and you still submit the roster for the organization's review. Invitations are emailed only when you choose Add to roster.",
+          },
+        ],
+      },
     ],
     "engagement-deliverables": [
       {
@@ -972,6 +1047,25 @@ export const HELP_BODIES: HelpBodies = {
           { t: "text", v: " in its row." },
         ],
       },
+      { t: "h2", v: "Accept a quote" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "A quote is signed on its own. Choose " },
+          { t: "strong", v: "Sign" },
+          { t: "text", v: " in its row to see its total and the date it is valid until, then " },
+          { t: "strong", v: "Accept quote" },
+          {
+            t: "text",
+            v: ". Download its PDF first to read the lines and terms. Accepting records your name, the date and a fingerprint of the exact content on the PDF. If you got a signing link instead, open it, enter the access code, read the quote, type your name and choose ",
+          },
+          { t: "strong", v: "Accept quote" },
+          {
+            t: "text",
+            v: ". A quote past its valid-until date can no longer be accepted; ask for a new version.",
+          },
+        ],
+      },
       {
         t: "p",
         c: [
@@ -1055,6 +1149,26 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "This tab opens when the engagement becomes Active, after onboarding, and closes when it completes or is canceled.",
+          },
+        ],
+      },
+      { t: "h2", v: "The guest's email" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Add the guest's email if you have it. The production sends their pass there, with their table and how many they bring, once it approves them. Each email carries a link to stop the organization's emails to that address.",
+          },
+        ],
+      },
+      { t: "h2", v: "Stop guest emails" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "A guest who opens the stop link in an email is asked first, then stops every email from that organization to their address. Nothing changes until they confirm.",
           },
         ],
       },
@@ -1935,6 +2049,19 @@ export const HELP_BODIES: HelpBodies = {
             t: "text",
             v: "This tab opens when the engagement becomes Active, after onboarding, and closes when it completes or is canceled.",
           },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Each submittal lists its files, version by version, with the organization's decision: ",
+          },
+          { t: "strong", v: "Approved" },
+          { t: "text", v: " or " },
+          { t: "strong", v: "Changes requested" },
+          { t: "text", v: ", with what to change. A new version starts unreviewed." },
         ],
       },
     ],
@@ -3150,6 +3277,48 @@ export const HELP_BODIES: HelpBodies = {
         ],
       },
     ],
+    "quote-requests": [
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "When a company invites your account to quote, the request shows here for your account's Owner and Admins, with what is asked for, how many and by when.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "This page is read only. Send your quote to the contact it names, and they record it. A request leaves this page once the company closes it.",
+          },
+        ],
+      },
+    ],
+    registration: [
+      { t: "h2", v: "Registering" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "An organization shares a registration page to find crew and volunteers. Sign up or sign in, then answer its questions. Your work phone comes first and saves to your settings. You confirm the page's minimum age, and you can share chosen sections of your profile with that organization only. Your account stays yours.",
+          },
+        ],
+      },
+      { t: "h2", v: "What happens next" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "The organization approves or declines, and you hear either way. Once approved you are on its crew list and can see the work it offers that list in Explore. You can withdraw from the page at any time.",
+          },
+        ],
+      },
+    ],
     "settings-accessibility": [
       {
         t: "ul",
@@ -3281,6 +3450,19 @@ export const HELP_BODIES: HelpBodies = {
           { t: "text", v: "To add one item, use " },
           { t: "strong", v: "Add to calendar" },
           { t: "text", v: " on the Up next card on Home." },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "To keep your calendar up to date instead, " },
+          { t: "strong", v: "Add a feed" },
+          {
+            t: "text",
+            v: " here. Give it a name, which your calendar shows, and choose what it shows: shifts, meetings, milestones, deadlines and cues, such as your set times. ",
+          },
+          { t: "strong", v: "Edit" },
+          { t: "text", v: " changes a feed's name and content without changing its link." },
         ],
       },
       {
@@ -4510,6 +4692,38 @@ export const HELP_BODIES: HelpBodies = {
         ],
       },
     ],
+    "crew-shifts": [
+      { t: "h2", v: "Abrir tus turnos" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Tu jefe de equipo puede enviarte un enlace y un código de 6 dígitos. Abre el enlace, escribe el código y verás tus propios turnos en ese proyecto durante los próximos 14 días, con las horas en la zona horaria de cada turno, tu puesto y el lugar. Tu dispositivo recuerda el código en este enlace hasta por 12 horas. Elige Olvidar este código en un teléfono compartido.",
+          },
+        ],
+      },
+      { t: "h2", v: "Aceptar un turno" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Elige Aceptar turno en un turno publicado. Tu jefe de equipo lo ve de inmediato. Rechazar y registrar tiempo siguen en tu cuenta y en Compass, así que elige Inicia sesión para ver todo tu trabajo para eso.",
+          },
+        ],
+      },
+      { t: "h2", v: "Cuando un enlace deja de funcionar" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Un enlace deja de funcionar cuando vence, cuando tu jefe de equipo lo revoca o emite uno nuevo, cuando termina tu trabajo en el proyecto o después de cinco códigos incorrectos. Pide uno nuevo a tu jefe de equipo.",
+          },
+        ],
+      },
+    ],
     documents: [
       {
         t: "p",
@@ -4539,7 +4753,10 @@ export const HELP_BODIES: HelpBodies = {
             v: "Cada uno muestra su título, tipo, organización, fecha de vencimiento y estado. Un documento que espera tu firma tiene ",
           },
           { t: "strong", v: "Firmar" },
-          { t: "text", v: ". Abre uno para ir a la pestaña Documentos de su contratación." },
+          {
+            t: "text",
+            v: ". Un acuerdo generado o una cotización se lee primero: ábrelo para leer y firmar en la pestaña Documentos de su contratación. Abre uno para ir a la pestaña Documentos de su contratación.",
+          },
         ],
       },
       { t: "h2", v: "Firmados por enlace" },
@@ -4567,6 +4784,16 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "Muestra los documentos como tabla o lista. Los documentos por firmar también aparecen en Inicio, en Te necesita.",
+          },
+        ],
+      },
+      { t: "h2", v: "Leer y firmar un acuerdo" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Algunos acuerdos se redactan para ti a partir del texto de la organización. Ábrelo en la pestaña Documentos de la contratación, lee el texto completo y escribe tu nombre completo para firmar. Tu nombre firma exactamente ese texto, y el documento registra su huella. Si no estás de acuerdo, elige Rechazar y di por qué. Luego la organización refrenda, y el PDF queda disponible para que lo descargues.",
           },
         ],
       },
@@ -4633,6 +4860,16 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "Los artistas envían su rider y sus necesidades de hospitalidad por la coordinación previa. Un representante de artista con el alcance Avance responde por el artista.",
+          },
+        ],
+      },
+      { t: "h2", v: "Respuestas que registró tu organización" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Cuando respondes por correo o envías un libro de gira, la organización puede registrar tu respuesta a partir de lo que enviaste. Esa respuesta indica quién la registró, y se te avisa cuando ocurre. Si necesita cambios, pídele que la devuelva y responde de nuevo.",
           },
         ],
       },
@@ -4934,6 +5171,21 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Reutilizar una lista de un evento anterior" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Si administró la lista de un evento anterior con la misma organización, para la misma empresa o artista, ",
+          },
+          { t: "strong", v: "Reutilizar una lista de un evento anterior" },
+          {
+            t: "text",
+            v: " agrega aquí a esas personas. Primero vea la vista previa: muestra a quién se agrega, qué direcciones de correo se invitan de nuevo y a quién se omite y por qué. Las personas se agregan como borradores con su llegada movida a las nuevas fechas; cada persona acepta de nuevo y usted todavía envía la lista para que la organización la revise. Las invitaciones se envían por correo solo cuando elige Agregar a la lista.",
+          },
+        ],
+      },
     ],
     "engagement-deliverables": [
       {
@@ -5025,6 +5277,28 @@ export const HELP_BODIES: HelpBodies = {
           { t: "text", v: " en su fila." },
         ],
       },
+      { t: "h2", v: "Aceptar una cotización" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Una cotización se firma por separado. Elige " },
+          { t: "strong", v: "Firmar" },
+          {
+            t: "text",
+            v: " en su fila para ver su total y la fecha hasta la que es válida, y luego ",
+          },
+          { t: "strong", v: "Aceptar la cotización" },
+          {
+            t: "text",
+            v: ". Antes descarga su PDF para leer las líneas y los términos. Al aceptar se registran tu nombre, la fecha y una huella del contenido exacto en el PDF. Si recibiste un enlace de firma, ábrelo, escribe el código de acceso, lee la cotización, escribe tu nombre y elige ",
+          },
+          { t: "strong", v: "Aceptar la cotización" },
+          {
+            t: "text",
+            v: ". Una cotización vencida ya no se puede aceptar; pide una versión nueva.",
+          },
+        ],
+      },
       {
         t: "p",
         c: [
@@ -5112,6 +5386,26 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "Esta pestaña se abre cuando la contratación pasa a Activa, después de la incorporación, y se cierra cuando se completa o se cancela.",
+          },
+        ],
+      },
+      { t: "h2", v: "El correo del invitado" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Agregue el correo del invitado si lo tiene. La producción le envía ahí su pase, con su mesa y cuántas personas lo acompañan, cuando lo aprueba. Cada correo incluye un enlace para dejar de recibir los correos de la organización en esa dirección.",
+          },
+        ],
+      },
+      { t: "h2", v: "Dejar de recibir correos" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Un invitado que abre el enlace para darse de baja en un correo primero recibe una pregunta y luego deja de recibir todos los correos de esa organización en su dirección. Nada cambia hasta que confirma.",
           },
         ],
       },
@@ -6010,6 +6304,19 @@ export const HELP_BODIES: HelpBodies = {
             t: "text",
             v: "Esta pestaña se abre cuando la contratación pasa a Activa, después de la incorporación, y se cierra cuando se completa o se cancela.",
           },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Cada envío muestra sus archivos, versión por versión, con la decisión de la organización: ",
+          },
+          { t: "strong", v: "Aprobado" },
+          { t: "text", v: " o " },
+          { t: "strong", v: "Cambios solicitados" },
+          { t: "text", v: ", con lo que hay que cambiar. Una versión nueva empieza sin revisar." },
         ],
       },
     ],
@@ -7260,6 +7567,48 @@ export const HELP_BODIES: HelpBodies = {
         ],
       },
     ],
+    "quote-requests": [
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Cuando una empresa invita a tu cuenta a cotizar, la solicitud aparece aquí para los propietarios y administradores de tu cuenta, con lo que se pide, cuánto y para cuándo.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Esta página es de solo lectura. Envía tu cotización al contacto que indica y esa persona la registra. Una solicitud sale de esta página cuando la empresa la cierra.",
+          },
+        ],
+      },
+    ],
+    registration: [
+      { t: "h2", v: "Registrarte" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Una organización comparte una página de registro para encontrar equipo y voluntarios. Regístrate o inicia sesión, y responde sus preguntas. Tu teléfono de trabajo va primero y se guarda en tu configuración. Confirmas la edad mínima de la página, y puedes compartir solo con esa organización las secciones de tu perfil que elijas. Tu cuenta sigue siendo tuya.",
+          },
+        ],
+      },
+      { t: "h2", v: "Qué sigue" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "La organización aprueba o rechaza, y te avisa en ambos casos. Una vez aprobado estás en su lista de equipo y puedes ver en Explorar el trabajo que ofrece a esa lista. Puedes retirarte de la página en cualquier momento.",
+          },
+        ],
+      },
+    ],
     "settings-accessibility": [
       {
         t: "ul",
@@ -7396,6 +7745,19 @@ export const HELP_BODIES: HelpBodies = {
           { t: "text", v: "Para agregar un solo elemento, usa " },
           { t: "strong", v: "Agregar al calendario" },
           { t: "text", v: " en la tarjeta A continuación de Inicio." },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Para mantener tu calendario al día, " },
+          { t: "strong", v: "Agrega un calendario" },
+          {
+            t: "text",
+            v: " aquí. Dale un nombre, que tu calendario muestra, y elige qué muestra: turnos, reuniones, hitos, fechas límite y cues, como tus horarios de presentación. ",
+          },
+          { t: "strong", v: "Editar" },
+          { t: "text", v: " cambia el nombre y el contenido sin cambiar el enlace." },
         ],
       },
       {

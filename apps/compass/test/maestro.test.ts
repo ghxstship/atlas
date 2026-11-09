@@ -19,10 +19,16 @@ function sources(dir: string): string[] {
   );
 }
 
-const code = [...sources(join(root, "app")), ...sources(join(root, "src"))].join("\n");
+// The Workforce Suite screens Compass mounts (app/workforce) render from @xos/workforce-native, so their ids count.
+const code = [
+  ...sources(join(root, "app")),
+  ...sources(join(root, "src")),
+  ...sources(join(root, "../../packages/workforce-native/src")),
+].join("\n");
 
 /** Test ids built at runtime from a prefix and a value (tabs, menu rows, options, keypad keys). */
 const DYNAMIC = [
+  "crew-no-show-",
   "tab-",
   "more-",
   "scan-mode-",
@@ -31,6 +37,8 @@ const DYNAMIC = [
   "punch-",
   "project-",
   "template-",
+  // B7's feed contents: one switch per source.
+  "settings-feeds-source-",
   "incident-type-",
   "shift-",
   "batch-",
@@ -56,6 +64,13 @@ const DYNAMIC = [
   "proof-photo-",
   // P2's department picker: one option per app.cue_call_kind slug, and All (SegmentedControl testID-value).
   "show-department-",
+  // B11's gate view: a booking's card and its actions, by dock slot.
+  "gate-booking-",
+  "gate-arrived-",
+  "gate-release-",
+  "gate-check-in-",
+  // A feed's source choices: one per calendar source.
+  "settings-feeds-source-",
 ];
 
 function ids(node: unknown, out: string[] = []): string[] {

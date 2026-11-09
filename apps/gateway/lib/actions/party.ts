@@ -19,22 +19,30 @@ export async function requestGuestAction(_: FormResult, form: FormData): Promise
       guestName: z.string().trim().min(1).max(200),
       plusOnes: z.coerce.number().int().min(0).max(20),
       note: z.string().trim().max(500),
+      guestEmail: z.union([z.literal(""), z.email().max(320)]),
     })
     .safeParse({
       engagementId: form.get("engagementId"),
       guestName: form.get("guestName"),
       plusOnes: form.get("plusOnes") ?? 0,
       note: form.get("note") ?? "",
+      guestEmail: String(form.get("guestEmail") ?? "")
+        .trim()
+        .toLowerCase(),
     });
   if (!parsed.success) {
     const field = parsed.error.issues[0]?.path[0];
-    return { fieldError: field === "plusOnes" ? "plusOnes" : "guestName" };
+    return {
+      fieldError:
+        field === "plusOnes" ? "plusOnes" : field === "guestEmail" ? "guestEmail" : "guestName",
+    };
   }
   const result = await requestEngagedGuest(await createServerSupabase(), {
     engagementId: parsed.data.engagementId,
     guestName: parsed.data.guestName,
     plusOnes: parsed.data.plusOnes,
     note: parsed.data.note.length > 0 ? parsed.data.note : null,
+    guestEmail: parsed.data.guestEmail.length > 0 ? parsed.data.guestEmail : null,
   });
   return result.ok ? { done: true } : { outcome: outcomeFor(result.error) };
 }

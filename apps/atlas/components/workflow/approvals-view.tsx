@@ -1,6 +1,4 @@
-import { myModuleCapabilities } from "@xos/data/credentials";
 import { listProjects } from "@xos/data/finance";
-import { getOperationsAccess } from "@xos/data/logistics";
 import {
   canDecide,
   listApprovalPolicies,
@@ -26,6 +24,7 @@ import type { OrgContext } from "@/lib/shell/context";
 import { sitemap } from "@/lib/shell/sitemap";
 import { CancelForm, DecisionForm, SubmitForm } from "./approvals-client";
 import { EmptyPanel, ErrorPanel, PageStatus } from "./kit";
+import { subjectWithdrawal } from "./subject-withdrawal";
 
 // Remind approvers loads on demand (P9): only a requester or a policy administrator with a pending approval uses it.
 const RemindApprovers = dynamic(() => import("./remind-approvers").then((m) => m.RemindApprovers));
@@ -44,53 +43,6 @@ const RemindApprovers = dynamic(() => import("./remind-approvers").then((m) => m
  */
 
 type Tab = "waiting" | "mine" | "all";
-
-/**
- * Who sees Withdraw on a subject approval in review, as app.cancel_subject_approval allows: its requester, a rule
- * writer (org.approval_policies.write, or projects.settings.write at organization reach) on every row, and the
- * subject's writer on the rows of projects where they issue or revoke passes or book dock slots. A row whose
- * requester is gone (C10) or whose step no one may decide (C11) is withdrawn by a rule writer. It only shapes the
- * control: the function decides, and a failed capability read hides Withdraw rather than the page.
- */
-async function subjectWithdrawal(
-  ctx: OrgContext,
-  subjects: readonly SubjectApproval[],
-  personId: string,
-): Promise<(s: SubjectApproval) => boolean> {
-  const inReview = (s: SubjectApproval) => s.state === "In Review";
-  if (
-    ctx.capabilities.has("org.approval_policies.write") ||
-    ctx.capabilities.has("projects.settings.write")
-  ) {
-    return inReview;
-  }
-  const others = subjects.filter((s) => inReview(s) && s.requestedBy !== personId);
-  const passProjects = [
-    ...new Set(others.filter((s) => s.credentialId !== null).map((s) => s.projectId)),
-  ];
-  const db = ctx.viewer.db;
-  const [held, operations] = await Promise.all([
-    Promise.all(passProjects.map(async (id) => [id, await myModuleCapabilities(db, id)] as const)),
-    others.some((s) => s.dockSlotId !== null) ? getOperationsAccess(db, ctx.org.id) : null,
-  ]);
-  const passWriter = new Set(
-    held
-      .filter(
-        ([, caps]) =>
-          caps.ok &&
-          (caps.data.has("credentials.credential.issue") ||
-            caps.data.has("credentials.credential.revoke")),
-      )
-      .map(([id]) => id),
-  );
-  return (s) =>
-    inReview(s) &&
-    (s.requestedBy === personId ||
-      (s.credentialId !== null && passWriter.has(s.projectId)) ||
-      (s.dockSlotId !== null &&
-        operations?.ok === true &&
-        operations.data.can(s.projectId, "logistics.dock_slot.write")));
-}
 
 const CHIP: Record<Approval["state"], "in-review" | "complete" | "canceled" | "blocked"> = {
   "In Review": "in-review",
@@ -432,10 +384,11 @@ export async function ApprovalsView({
   );
 }
 
-/** Where a pass or dock booking opens in Atlas (P9); equipment requests open from their advance. */
+/** Where a pass, dock booking or equipment request (an allocation, 6230) opens in Atlas (P9). */
 function subjectHref(org: string, a: SubjectApproval): string | null {
   if (a.credentialId) return `/${org}/credentials/issued?peek=${a.credentialId}`;
   if (a.dockSlotId) return `/${org}/logistics/dock-schedule?peek=${a.dockSlotId}`;
+  if (a.advanceAllocationId) return `/${org}/advancing/allocations?peek=${a.advanceAllocationId}`;
   return null;
 }
 
@@ -511,7 +464,14 @@ function SubjectApprovalItem({
         </section>
       ) : null}
       {reminders}
-      {mayWithdraw ? <CancelForm org={org} id={a.id} kind="subject" /> : null}
+      {mayWithdraw ? (
+        <CancelForm
+          org={org}
+          id={a.id}
+          kind="subject"
+          withdrawsRequest={a.advanceAllocationId !== null}
+        />
+      ) : null}
     </li>
   );
 }

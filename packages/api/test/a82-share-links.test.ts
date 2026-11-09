@@ -24,7 +24,7 @@ function link(extra: Row = {}): Row {
     attachment_id: FILE,
     attachment_version_id: VERSION,
     classification: "Internal",
-    access_code_required: false,
+    access_code_required: true,
     recipient_email: null,
     note: "Stage plot for the venue",
     expires_at: "2026-10-27T23:59:59Z",
@@ -48,7 +48,7 @@ function world() {
           {
             share_link_id: id(4),
             token: TOKEN,
-            access_code: args["p_access_code_required"] ? "042424" : null,
+            access_code: "042424",
             classification: "Internal",
             expires_at: args["p_expires_at"] ?? null,
           },
@@ -84,7 +84,6 @@ describe("Platform: share links", () => {
     const response = await success(
       http.post("/share-links", {
         attachment_id: FILE,
-        access_code_required: true,
         expires_at: "2026-10-27T23:59:59Z",
         recipient_email: "ana@venue.test",
       }),
@@ -97,7 +96,6 @@ describe("Platform: share links", () => {
     expect(made.access_code).toBe("042424");
     expect(db.calls.find((c) => c.name === "create_share_link")?.args).toEqual({
       p_attachment_id: FILE,
-      p_access_code_required: true,
       p_expires_at: "2026-10-27T23:59:59Z",
       p_recipient_email: "ana@venue.test",
     });

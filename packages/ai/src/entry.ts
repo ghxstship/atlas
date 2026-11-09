@@ -37,6 +37,9 @@ export function featureAvailability(
  * - `offline`: the request did not reach the API.
  * - `forbidden`: the person may not do this.
  * - `list-not-empty`: a drafted run of show or risk assessment found its list no longer empty.
+ * - `itinerary-duplicate`: a line repeats a live travel segment of the same person (B15).
+ * - `fee-restricted`: a fee came from someone who may not read pay (B15).
+ * - `source-unverified`: an advance answer's mail is not verified mail of the project's inbox (B15).
  * - `refused`: the API refused with a rule, named in the detail.
  * - `unexpected`: anything else.
  */
@@ -49,6 +52,9 @@ export type AuroraProblemKind =
   | "offline"
   | "forbidden"
   | "list-not-empty"
+  | "itinerary-duplicate"
+  | "fee-restricted"
+  | "source-unverified"
   | "refused"
   | "unexpected";
 
@@ -66,6 +72,12 @@ export function problemKind(problem: AuroraProblem): AuroraProblemKind {
       return "not-configured";
     case "aurora_draft_list_not_empty":
       return "list-not-empty";
+    case "aurora_itinerary_duplicate":
+      return "itinerary-duplicate";
+    case "aurora_fee_restricted":
+      return "fee-restricted";
+    case "aurora_advance_source_unverified":
+      return "source-unverified";
     default:
       break;
   }

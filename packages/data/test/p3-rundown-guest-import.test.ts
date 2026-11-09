@@ -69,6 +69,11 @@ function lookups(writes: Row[] = [], called: ReadonlySet<string> = new Set()): T
     counterpartyTypeExists: async () => false,
     jurisdictionExists: async () => false,
     vendorIdByName: async () => null,
+    uridExists: async () => false,
+    uridXyz: async () => null,
+    costCenterId: async () => null,
+    budgetDestination: async () => null,
+    budgetLineTag: async () => null,
     elementExists: async () => false,
     assetClassId: async () => null,
     venueId: async () => null,
@@ -89,7 +94,24 @@ function lookups(writes: Row[] = [], called: ReadonlySet<string> = new Set()): T
     nextCuePosition: async () =>
       Math.max(1, ...writes.map((w) => (typeof w["position"] === "number" ? w["position"] : 0))) +
       1,
+    talentPoolIdByName: async () => null,
+    roleCode: async () => null,
+    poolInvitationContext: async () => ({
+      talentPoolId: null,
+      numberFormat: "comma-dot",
+      canWriteRates: false,
+      language: null,
+      baseCurrency: null,
+      exponents: new Map(),
+    }),
+    poolInvitation: async () => null,
     cueCalled: async (id) => called.has(id),
+    canonCodeExists: async () => true,
+    unitExists: async () => true,
+    materialMatch: async () => null,
+    projectTimeZone: async () => "UTC",
+    purchaseOrderState: async () => "Proposed",
+    nextPoLineNumber: async () => 1,
     async create(_o, target, values) {
       writes.push({ op: "create", target, ...values });
       return `new-${writes.length}`;
@@ -518,6 +540,7 @@ function memoryStore(
       samples.push(...list);
     },
     insertSheets: async () => {},
+    recordMaterialMatch: async () => {},
     async setSheet(_id, name) {
       job.sheetName = name;
     },
@@ -560,6 +583,8 @@ function memoryStore(
       const r = rows.find((x) => x.id === input.rowId);
       if (r) r.written = { action: input.action, target: input.targetId };
     },
+    async skipRow() {},
+    async noteRow() {},
     async refuseRow(rowId, reason) {
       const r = rows.find((x) => x.id === rowId);
       if (r) Object.assign(r, { state: "Refused", reason });

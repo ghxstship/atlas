@@ -62,16 +62,14 @@ describe("notification kind registry (Section 3.15, A65-021)", () => {
     // allocation kinds (4698), A127's offer.sent (5200), P5's badge photo request (5822), P9's approval.reminder
     // and approval.link_code (5862, 5861), and B16's billing.paused, billing.resumed and agent.change_proposed
     // (6051, 6052), B5's accommodation_block.release_due and transfer.assigned (5947), and P8's
-    // availability.requested (6123).
-    expect(registry.kinds).toHaveLength(74);
+    // availability.requested (6123), R11's seven advancing reminders and notices (6221, 6222), and B8's guest.arrived (6254) and
+    // three weather kinds (6256, 6257), B15's advance_answer.recorded (6273), B2's vendor_intake.submitted (6505), B9's
+    // shift.reconfirm, shift.reconfirm_declined and shift.no_show (6511, 6512), and B10's crew registration and agreement kinds (2999).
+    expect(registry.kinds).toHaveLength(96);
     expect(notificationKind("approval.requested")).toMatchObject({
       category: "approvals",
       emailTemplate: "notification",
       pushCategory: "approval_request",
-      copy: {
-        subject: "kinds.approval.requested.subject",
-        body: "kinds.approval.requested.body",
-      },
     });
     expect(notificationKind("export.ready")?.emailTemplate).toBe("export_ready");
     // P9: a reminder offers Approve and Reject on the lock screen as the request does; the access code goes by email.
@@ -87,7 +85,7 @@ describe("notification kind registry (Section 3.15, A65-021)", () => {
     });
     // ADR 0033 decision 35: a short, reviewable bypass list; mandatory or urgent categories alone never bypass.
     // ADR 0033 decision 62 adds a new shift within 12 hours, security changes (with a recovery code used) and
-    // emergency access.
+    // emergency access. B8 (ADR 0147) adds the official weather warning, the weather hold and its all-clear.
     expect(
       registry.kinds
         .filter((k) => k.quietHoursBypass !== null)
@@ -95,9 +93,14 @@ describe("notification kind registry (Section 3.15, A65-021)", () => {
     ).toEqual([
       ["shift.assigned", 12],
       ["shift.changed", 12],
+      // B9 (ADR 0148): "Still coming?" about a shift starting within 12 hours, like a shift assigned or changed.
+      ["shift.reconfirm", 12],
       ["incident.reported", null],
       ["occupancy.threshold", null],
       ["weather.alert", null],
+      ["weather.warning", null],
+      ["weather.hold", null],
+      ["weather.all_clear", null],
       ["account.security_changed", null],
       ["account.recovery_code_used", null],
       ["access.break_glass_started", null],
@@ -144,7 +147,7 @@ describe("notification kind registry (Section 3.15, A65-021)", () => {
     // kind that names fewer channels. Kinds are never deleted.
     expect(sql.match(/\bdelete\b/g)).toHaveLength(2);
     expect(sql).toContain(
-      "delete from private.notification_templates\nwhere (kind = 'agent.change_proposed' and channel not in ('In App', 'Push'))\n   or (kind = 'approval.link_code' and channel not in ('In App', 'Email'))\n   or (kind = 'report.delivered' and channel not in ('In App', 'Push'))\n   or (kind = 'opportunity.matched' and channel not in ('In App', 'Email', 'Push'))\n   or (kind = 'offer.sent' and channel not in ('In App', 'Email', 'Push'));",
+      "delete from private.notification_templates\nwhere (kind = 'agent.change_proposed' and channel not in ('In App', 'Push'))\n   or (kind = 'rfq.quote_reminder' and channel not in ('In App', 'Email'))\n   or (kind = 'rfq.not_awarded' and channel not in ('In App', 'Email'))\n   or (kind = 'approval.link_code' and channel not in ('In App', 'Email'))\n   or (kind = 'report.delivered' and channel not in ('In App', 'Push'))\n   or (kind = 'opportunity.matched' and channel not in ('In App', 'Email', 'Push'))\n   or (kind = 'offer.sent' and channel not in ('In App', 'Email', 'Push'))\n   or (kind = 'vendor_intake.submitted' and channel not in ('In App', 'Email'))\n   or (kind = 'crew_registration.invited' and channel not in ('In App', 'Email', 'Push'));",
     );
     const drift = renderNotificationDriftTest(registry);
     expect(drift).toContain("select plan(5);");
@@ -162,6 +165,7 @@ describe("notification kind registry (Section 3.15, A65-021)", () => {
       "invoice.submitted",
       "invoice.scheduled",
       "invoice.paid",
+      "quote.accepted",
     ]);
     expect(matrix.map((r) => r.order)).toEqual(
       [...matrix.map((r) => r.order)].sort((a, b) => a - b),

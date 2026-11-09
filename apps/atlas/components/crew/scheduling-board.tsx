@@ -14,6 +14,7 @@ import {
 } from "@/app/[org]/crew/scheduling-actions";
 import { candidateKey, type BoardCandidate } from "@/lib/crew/board-candidates";
 import { FillMeter } from "./fill-meter";
+import { SHIFT_MIME } from "./shift-drop-mime";
 
 export interface BoardShift {
   readonly id: string;
@@ -28,6 +29,16 @@ export interface ClaimedShift extends BoardShift {
 }
 
 /**
+ * A shift held for a project position (B9): nobody but its holder goes on it. Unfilled, it links to the position;
+ * `filled` means a holder exists and was not put on this shift, so it links to the shift.
+ */
+export interface HeldShift extends BoardShift {
+  readonly href: string;
+  readonly positionTitle: string;
+  readonly filled?: boolean;
+}
+
+/**
  * The schedule's drag board (A132, ADR 0063, Section 11.11 crew fill): the week's open shifts on one side and the
  * org's members ranked for the chosen shift on the other (app.rank_shift_candidates: free of an overlapping shift,
  * then stated availability, then the role worked before, then the fewest hours that week), with the accepted people
@@ -38,18 +49,23 @@ export interface ClaimedShift extends BoardShift {
  * shift other than the chosen one is checked against that shift's ranking first: one who is on an overlapping shift
  * is not assigned, and the shift is chosen so the planner sees the warning and decides. Shifts with claims waiting
  * are listed apart, linked to the shift where the claims are decided (app.assign_open_shift refuses them). Every
- * assignment is announced, and the fill-rate meter moves at once, before the schedule rereads. Loaded on demand
- * (lazy-scheduling.tsx), so the schedule page carries none of it until a planner sees it.
+ * assignment is announced, and the fill-rate meter moves at once, before the schedule rereads. Shifts held for an
+ * unfilled position are listed apart too, linked to the position, and still count as unfilled. A person the org's
+ * scheduling policies warn about (B9, rest and daily and weekly hours) shows the tags, and Assign or a drop first asks
+ * "Assign anyway": warnings are never refusals. Loaded on demand (lazy-scheduling.tsx), so the schedule page carries none
+ * of it until a planner sees it.
  */
 export function SchedulingBoard(props: {
   org: string;
   weekStart: string;
   openShifts: readonly BoardShift[];
   claimedShifts: readonly ClaimedShift[];
+  heldShifts?: readonly HeldShift[];
   filled: number;
   total: number;
 }) {
   const t = useTranslations("crew.scheduling");
+  const policy = useTranslations("crew.policy");
   const router = useRouter();
   const [assigned, setAssigned] = useState<ReadonlySet<string>>(() => new Set());
   const [chosen, setChosen] = useState<string | null>(null);
@@ -58,6 +74,13 @@ export function SchedulingBoard(props: {
   const [announcement, setAnnouncement] = useState("");
   const [over, setOver] = useState<string | null>(null);
   const dragged = useRef<BoardCandidate | null>(null);
+  // The person the org's policies warn about, waiting on "Assign anyway".
+  const [asking, setAsking] = useState<{ shiftId: string; person: BoardCandidate } | null>(null);
+
+  // The question takes the keyboard's focus, so it is operable where the person just pressed Assign.
+  useEffect(() => {
+    if (asking) document.getElementById("board-assign-anyway-button")?.focus();
+  }, [asking]);
 
   // Shifts assigned here leave the board and count as filled at once; the server's lists win as soon as the
   // schedule rereads (live updates, ADR 0044), since a shift it no longer lists as open is no longer pending.
@@ -87,8 +110,12 @@ export function SchedulingBoard(props: {
   const nameOf = (c: BoardCandidate) =>
     c.name ?? (c.kind === "staff" ? t("unnamedStaff") : t("unnamed"));
 
+  const tagOf = (w: NonNullable<BoardCandidate["warnings"]>[number]) =>
+    policy(`tags.${w.code}`, { hours: Math.round((w.limitMinutes / 60) * 2) / 2 });
+
   const assign = async (shiftId: string, person: BoardCandidate) => {
     if (busy) return;
+    setAsking(null);
     setBusy(true);
     const label = shiftLabel(shiftId);
     const outcome =
@@ -115,11 +142,26 @@ export function SchedulingBoard(props: {
     router.refresh();
   };
 
+  // A warned person is asked about first, from a click, the keyboard or a drop alike; nothing here ever refuses.
+  const request = (shiftId: string, person: BoardCandidate) => {
+    const warnings = person.warnings ?? [];
+    if (warnings.length === 0) return assign(shiftId, person);
+    setAsking({ shiftId, person });
+    setAnnouncement(
+      policy("ask", {
+        name: nameOf(person),
+        shift: shiftLabel(shiftId),
+        warnings: warnings.map(tagOf).join(", "),
+      }),
+    );
+    return undefined;
+  };
+
   // A drop on a shift other than the chosen one: rank that shift first, so a double booking is warned of before it
   // is made (Section 11.11), not found on the schedule after.
   const dropOn = async (shiftId: string, person: BoardCandidate) => {
     if (busy) return;
-    if (shiftId === selected) return assign(shiftId, person);
+    if (shiftId === selected) return request(shiftId, person);
     setBusy(true);
     const target =
       ranked[shiftId] ?? (await rankCandidatesAction(props.org, shiftId, props.weekStart));
@@ -141,7 +183,7 @@ export function SchedulingBoard(props: {
       );
       return;
     }
-    await assign(shiftId, there);
+    await request(shiftId, there);
   };
 
   const dropProps = (shiftId: string) => ({
@@ -185,6 +227,48 @@ export function SchedulingBoard(props: {
           valueText={meterText}
         />
       </div>
+      {asking ? (
+        <div
+          role="group"
+          aria-labelledby="board-assign-anyway"
+          data-testid="board-assign-anyway"
+          className="flex flex-col gap-8 rounded-control border border-border-subtle bg-bg-subtle p-12"
+        >
+          <p id="board-assign-anyway" className="m-0 text-text-13 font-medium">
+            {policy("askTitle", {
+              name: nameOf(asking.person),
+              shift: shiftLabel(asking.shiftId),
+            })}
+          </p>
+          <ul className="m-0 flex list-none flex-col gap-2 p-0 text-text-12 text-warning-text">
+            {(asking.person.warnings ?? []).map((w) => (
+              <li key={w.code}>{tagOf(w)}</li>
+            ))}
+          </ul>
+          <p className="m-0 text-text-12 text-text-secondary">{policy("askHelp")}</p>
+          <div className="flex flex-wrap gap-8">
+            <Button
+              id="board-assign-anyway-button"
+              size="sm"
+              variant="secondary"
+              disabled={busy}
+              onClick={() => void assign(asking.shiftId, asking.person)}
+            >
+              {policy("assignAnyway")}
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => {
+                setAsking(null);
+                setAnnouncement(policy("notAssigned", { name: nameOf(asking.person) }));
+              }}
+            >
+              {policy("keepLooking")}
+            </Button>
+          </div>
+        </div>
+      ) : null}
       {open.length === 0 ? (
         // Say which it is: nothing planned, everything staffed, or open shifts this board cannot staff.
         <p className="m-0 text-text-13 text-text-secondary">
@@ -204,6 +288,16 @@ export function SchedulingBoard(props: {
                 <li
                   key={s.id}
                   {...dropProps(s.id)}
+                  // B4: an open shift also drags onto a person's lane of the schedule below (shift-drop.tsx).
+                  draggable={!busy}
+                  onDragStart={(event) => {
+                    if (dragged.current) return;
+                    event.dataTransfer.effectAllowed = "move";
+                    event.dataTransfer.setData(
+                      SHIFT_MIME,
+                      JSON.stringify({ id: s.id, label: s.label }),
+                    );
+                  }}
                   data-testid="board-open-shift"
                   className={cx(
                     "rounded-control border border-dashed",
@@ -284,6 +378,11 @@ export function SchedulingBoard(props: {
                         {c.conflict ? (
                           <span className="text-danger-text">{t("conflict")}</span>
                         ) : null}
+                        {(c.warnings ?? []).map((w) => (
+                          <span key={w.code} className="text-warning-text">
+                            {tagOf(w)}
+                          </span>
+                        ))}
                         {c.workedRole ? <span>{t("workedRole")}</span> : null}
                         <span className="tabular-nums">
                           {t("weekHours", { hours: Math.round((c.weekMinutes / 60) * 10) / 10 })}
@@ -294,7 +393,7 @@ export function SchedulingBoard(props: {
                       size="sm"
                       variant="secondary"
                       disabled={!selected || busy}
-                      onClick={() => selected && void assign(selected, c)}
+                      onClick={() => selected && void request(selected, c)}
                       aria-label={
                         selected
                           ? t("assignTo", { name: nameOf(c), shift: shiftLabel(selected) })
@@ -328,6 +427,32 @@ export function SchedulingBoard(props: {
                   className="flex flex-col items-start gap-2 rounded-control border border-border-subtle px-8 py-6 text-text-13 hover:bg-bg-hover"
                 >
                   <span>{t("claimsWaiting.decide", { shift: s.label })}</span>
+                  <span className="text-text-12 text-text-secondary">{s.projectKey}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+      {(props.heldShifts ?? []).length > 0 ? (
+        <div className="flex flex-col gap-4" data-testid="board-held-shifts">
+          <h3 id="board-held-shifts" className="m-0 text-text-13 font-medium">
+            {t("heldShifts.title", { count: (props.heldShifts ?? []).length })}
+          </h3>
+          <p className="m-0 text-text-12 text-text-secondary">{t("heldShifts.help")}</p>
+          <ul aria-labelledby="board-held-shifts" className="m-0 flex list-none flex-col gap-4 p-0">
+            {(props.heldShifts ?? []).map((s) => (
+              <li key={s.id}>
+                <Link
+                  href={s.href as Route}
+                  className="flex flex-col items-start gap-2 rounded-control border border-border-subtle px-8 py-6 text-text-13 hover:bg-bg-hover"
+                >
+                  <span>
+                    {t(s.filled ? "heldShifts.putHolder" : "heldShifts.fill", {
+                      position: s.positionTitle,
+                      shift: s.label,
+                    })}
+                  </span>
                   <span className="text-text-12 text-text-secondary">{s.projectKey}</span>
                 </Link>
               </li>

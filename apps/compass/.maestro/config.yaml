@@ -27,6 +27,9 @@ executionOrder:
     - field-resumable-upload
     - field-inspection-walk
     - field-gate-scan
+    - field-gate-in-out-override
+    - field-door-guest-pass
+    - field-gate-view
     - field-receive-batch
     - field-receive-order
     - field-asset-scan
@@ -42,6 +45,7 @@ executionOrder:
     - crew-external-today
     - roster-member-today
     - clock-team
+    - b9-no-show
     - crew-external-work
     - itinerary-changes
     - project-details

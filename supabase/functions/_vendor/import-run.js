@@ -177,6 +177,7 @@ var FIELD_SYNONYMS = {
   asset_tag: ["tag", "assettag", "barcode"],
   asset_class_id: ["assetclass", "class", "category"],
   home_venue_id: ["homevenue", "venue", "location"],
+  line_number: ["line", "lineno", "linenum"],
   position: ["cue", "cueno", "cuenumber", "cueid", "number", "no"],
   label: ["scene", "title", "cuename", "item"],
   segment: ["act", "section", "segment", "block"],
@@ -188,6 +189,14 @@ var FIELD_SYNONYMS = {
   note: ["notes", "comment", "access"],
   scope_node_id: ["show", "night", "scope"],
   counterparty_id: ["list", "company", "onlistof", "sponsor", "client"],
+  email: ["mail", "emailaddress", "correo"],
+  pool_name: ["pool", "crewlist", "lista"],
+  invitee_name: ["name", "fullname", "nombre"],
+  work_phone: ["phone", "mobile", "cell", "telefono", "celular"],
+  role: ["jobtitle", "position", "puesto", "rol"],
+  rate: ["dayrate", "hourlyrate", "tarifa"],
+  rate_currency: ["currency", "moneda"],
+  rate_type: ["basis", "paybasis"],
 };
 /** The target field a header names by its own name or a synonym; a header of only '#' is the cue number. */
 function similarField(header, fields) {
@@ -221,6 +230,9 @@ var IMPORT_TARGET_TABLES = {
   asset_units: "app.asset_units",
   cues: "app.cues",
   guest_list_entries: "app.guest_list_entries",
+  procurement_needs: "app.procurement_needs",
+  po_lines: "app.po_lines",
+  budget_lines: "app.budget_lines",
 };
 /** Playbook targets that land in an import field of another table: a counterparty's name is its organization's. */
 var PLAYBOOK_ALIASES = { counterparties: { "app.organizations.name": "name" } };
@@ -472,30 +484,18 @@ async function readGoogleSheet(fetchImpl, token, link) {
 //#endregion
 //#region ../data/src/import-worker.ts
 /**
- * The import worker (A36; Section 4.6.2 steps 2, 4, 5 and 7), run with the service role like A35's
- * report.run worker: it claims import.detect, import.validate and import.commit jobs from A18's queue.
- *   * detect: reads the uploaded spreadsheet, records its columns with a suggested field each, and marks
- *     the import Mapped for the person to confirm
- *   * validate: checks every row against the target (required fields, canon values, references by name),
- *     records the row states with per-cell issues, matches strong keys exactly and sends name plus address
- *     to the fuzzy match (0.85, merge review), and marks the import Validated
- *   * commit: writes each Valid row in the batch the person's commit opened: a create, an update of the
- *     strong key match, or a merge into the candidate the person chose, each recorded with the batch id
- *   * fetch (A83): reads a Google Sheets link through the org's Google Drive connection and saves it to the
- *     imports bucket, where it is scanned like an upload; its Clean verdict queues detection
- * Detection reads every sheet of the workbook (A83, finding A65-025): it records each sheet with its header row,
- * data range and a proposed target, and the import reads one sheet; another sheet is imported as its own import.
- * Suggestions come from a saved profile, the Playbook column map and header similarity, each with its source.
- * A failed attempt goes back to the queue while attempts remain, then the import is marked Failed.
- * A spreadsheet is parsed only once its virus scan is Clean (owner decision 10, migration 1240): the
- * database queues detection on the Clean verdict, and every step checks again before reading.
- * When validation or a commit finishes, the person who started or committed the import is sent import.finished
- * (A104, migration 2051) with a link to review it in Atlas; the database counts the rows.
- * Cues and guest list entries (P3, 5800 to 5802) import into the running order or project the import names: every
- * lookup, strong-key match and write stays inside it, numbered cues are written before unnumbered ones are appended,
- * a row that repeats an earlier row of the file is Invalid, and detection records three sample cells per column for
- * the uploader's mapping preview.
- * Not exported from the package index: only the worker entry points load it, with its .xlsx reader.
+ * The import worker (A36; Section 4.6.2 steps 2, 4, 5 and 7), run with the service role like A35's report.run worker:
+ *   * detect: records a spreadsheet's sheets and columns with suggestions (a saved profile, the Playbook column map, header
+ *     similarity), and marks the import Mapped for the person to confirm
+ *   * validate: checks every row against the target, records row states and per-cell issues, matches strong keys exactly,
+ *     sends name plus address to the fuzzy match (0.85, merge review), and marks the import Validated
+ *   * commit: writes each Valid row in the batch the person's commit opened, recorded with the batch id
+ *   * fetch (A83): saves a Google Sheets link to the imports bucket through the org's Drive connection, to be scanned
+ * A failed attempt goes back to the queue while attempts remain, then the import is marked Failed. A spreadsheet is parsed
+ * only once its virus scan is Clean (owner decision 10, migration 1240). A finished step sends import.finished (A104, 2051).
+ * Cues and guest list entries (P3, 5800 to 5802) stay inside the running order or project the import names, and a row that
+ * repeats an earlier row is Invalid. Pool invitations (B10), needs and order lines (B11) and budget lines (B13) load their
+ * own target modules.
  */
 var IMPORT_JOB_KINDS = ["import.fetch", "import.detect", "import.validate", "import.commit"];
 /**
@@ -582,7 +582,13 @@ var MAX_LENGTH = {
   description: 2e3,
   guest_name: 200,
   note: 500,
+  table_label: 40,
 };
+/** A guest email as the guest list stores it (6254): trimmed, lowercased, the 1382 pattern, at most 320 characters. */
+function importGuestEmail(value) {
+  const email = value.trim().toLowerCase();
+  return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email) && email.length <= 320 ? email : null;
+}
 /**
  * Checks one row against its target; cell issues name the column and an issue code from the catalogs. A cue or guest
  * list row is checked inside its destination (P3): the running order's show date, time zone and venue, or the project.
@@ -627,6 +633,8 @@ async function validateRow(orgId, targetCode, fields, columns, row, lookups, des
       });
     else values[field] = v;
   };
+  let materialMatch;
+  let matchNote = null;
   switch (targetCode) {
     case "counterparties":
       if (text("name")) values["name"] = text("name");
@@ -699,7 +707,8 @@ async function validateRow(orgId, targetCode, fields, columns, row, lookups, des
     }
     case "guest_list_entries": {
       const projectId = destination.project?.id ?? null;
-      for (const f of ["guest_name", "note"]) bounded(f);
+      for (const f of ["guest_name", "note", "table_label"]) bounded(f);
+      await set("guest_email", importGuestEmail, "invalid_email");
       await set(
         "plus_ones",
         (v) => {
@@ -714,6 +723,52 @@ async function validateRow(orgId, targetCode, fields, columns, row, lookups, des
         "unknown_show",
       );
       await set("counterparty_id", (v) => lookups.counterpartyIdByName(orgId, v), "unknown_party");
+      break;
+    }
+    case "pool_invitations": {
+      const { checkPoolInvitationRow } = await import("./chunks/data-import-pool-target.js");
+      await checkPoolInvitationRow({
+        orgId,
+        raw,
+        columnOf,
+        pools: destination.pools,
+        lookups,
+        values,
+        issues,
+      });
+      break;
+    }
+    case "procurement_needs":
+    case "po_lines": {
+      const { checkMaterialRow } = await import("./chunks/data-import-material-target.js");
+      const found = await checkMaterialRow({
+        targetCode,
+        orgId,
+        destination,
+        lookups,
+        text,
+        set,
+        columnOf,
+        values,
+        issues,
+      });
+      materialMatch = found.materialMatch;
+      matchNote = found.matchNote;
+      break;
+    }
+    case "budget_lines": {
+      const { checkBudgetLineRow } = await import("./chunks/data-import-budget-target.js");
+      await checkBudgetLineRow({
+        destination,
+        lookups,
+        text,
+        set,
+        bounded,
+        orgId,
+        columnOf,
+        values,
+        issues,
+      });
       break;
     }
     default:
@@ -731,8 +786,15 @@ async function validateRow(orgId, targetCode, fields, columns, row, lookups, des
   const matchName =
     targetCode === "venues" ||
     targetCode === "counterparties" ||
-    targetCode === "guest_list_entries"
-      ? text(targetCode === "guest_list_entries" ? "guest_name" : "name").trim()
+    targetCode === "guest_list_entries" ||
+    targetCode === "pool_invitations"
+      ? text(
+          targetCode === "guest_list_entries"
+            ? "guest_name"
+            : targetCode === "pool_invitations"
+              ? "invitee_name"
+              : "name",
+        ).trim()
       : "";
   return {
     state: issues.length === 0 ? "Valid" : "Invalid",
@@ -746,10 +808,23 @@ async function validateRow(orgId, targetCode, fields, columns, row, lookups, des
             .filter(Boolean)
             .join(" ") || null
         : null,
+    ...(materialMatch
+      ? {
+          materialMatch,
+          matchNote,
+        }
+      : {}),
   };
 }
-/** Targets whose imports name a running order or a project (P3). */
-var DESTINATION_TARGETS = /* @__PURE__ */ new Set(["cues", "guest_list_entries"]);
+/** Targets matched through app.import_strong_key_match (P3, B10, B11, B13). */
+var DESTINATION_TARGETS = /* @__PURE__ */ new Set([
+  "cues",
+  "guest_list_entries",
+  "pool_invitations",
+  "procurement_needs",
+  "po_lines",
+  "budget_lines",
+]);
 /**
  * The strong keys of a cue or guest row, from its checked values (C9, C10): a cue's position, or without one its
  * label and planned time; a guest's trimmed, lower-case name and show. A missing time or show is left out, which
@@ -781,6 +856,24 @@ function destinationStrongKeys(targetCode, values) {
           scope_node_id: show,
         };
   }
+  if (targetCode === "pool_invitations") {
+    const email = str("email");
+    const pool = str("talent_pool_id");
+    return email === null || pool === null
+      ? {}
+      : {
+          email,
+          talent_pool_id: pool,
+        };
+  }
+  if (targetCode === "procurement_needs") {
+    const description = str("description");
+    return description === null ? {} : { description: description.trim().toLowerCase() };
+  }
+  if (targetCode === "po_lines" || targetCode === "budget_lines")
+    return typeof values["line_number"] === "number"
+      ? { line_number: String(values["line_number"]) }
+      : {};
   return null;
 }
 /** The column whose cell a duplicate-in-file issue points at. */
@@ -788,6 +881,9 @@ var DUPLICATE_COLUMN_FIELD = {
   position: "position",
   label: "label",
   guest_name: "guest_name",
+  email: "email",
+  description: "description",
+  line_number: "line_number",
 };
 /**
  * Marks every row whose strong key repeats an earlier row of the file Invalid with duplicate_in_file (C10): a cue's
@@ -829,6 +925,19 @@ async function destinationOf(store, job) {
   }
   if (job.targetCode === "guest_list_entries" && job.projectId)
     return { project: { id: job.projectId } };
+  if (job.targetCode === "pool_invitations")
+    return { pools: await store.lookups.poolInvitationContext(job) };
+  if (job.targetCode === "procurement_needs" && job.projectId)
+    return {
+      project: { id: job.projectId },
+      jobId: job.id,
+    };
+  if (job.targetCode === "po_lines" && job.purchaseOrderId) return { jobId: job.id };
+  if (job.targetCode === "budget_lines" && job.budgetId) {
+    const budget = await store.lookups.budgetDestination(job.budgetId);
+    if (budget === null) throw new Error(`The budget of import ${job.id} no longer exists.`);
+    return { budget };
+  }
   return {};
 }
 /** Every data row of a sheet checked against the target, with repeats within the file marked. */
@@ -1038,6 +1147,8 @@ async function validate(store, jobId, options) {
     });
     if (result.issues.length > 0) await store.recordCellIssues(rowId, result.issues);
     if (match) await store.recordMatch(rowId, match);
+    if (result.materialMatch)
+      await store.recordMaterialMatch(rowId, result.materialMatch, result.matchNote ?? null);
   }
   await store.setStatus(job.id, "Validated");
   return notifyFinished(store, job, null, options);
@@ -1061,10 +1172,12 @@ async function commit(store, batchId, options) {
   const byNumber = new Map(rows.map((r, i) => [r.rowNumber, checkedRows[i]]));
   const valids = await store.validRows(job.id);
   const appended = (v) =>
-    job.targetCode === "cues" &&
     v.mergeInto === null &&
     v.matchedId === null &&
-    typeof byNumber.get(v.rowNumber)?.values["position"] !== "number";
+    ((job.targetCode === "cues" &&
+      typeof byNumber.get(v.rowNumber)?.values["position"] !== "number") ||
+      (job.targetCode === "budget_lines" &&
+        typeof byNumber.get(v.rowNumber)?.values["line_number"] !== "number"));
   const ordered = [...valids.filter((v) => !appended(v)), ...valids.filter(appended)];
   for (const valid of ordered) {
     const checked = byNumber.get(valid.rowNumber);
@@ -1076,10 +1189,36 @@ async function commit(store, batchId, options) {
       await store.refuseRow(valid.id, checked.issues.map((i) => i.issue).join(", "));
       continue;
     }
+    if (
+      job.targetCode === "po_lines" &&
+      job.purchaseOrderId &&
+      (await store.lookups.purchaseOrderState(job.purchaseOrderId)) !== "Proposed"
+    ) {
+      await store.refuseRow(valid.id, "import_po_not_proposed");
+      continue;
+    }
     try {
       const target = valid.mergeInto?.id ?? valid.matchedId;
+      if (job.targetCode === "pool_invitations" && target) {
+        const { commitPoolMatch } = await import("./chunks/data-import-pool-target.js");
+        await commitPoolMatch({
+          store,
+          batchId,
+          valid,
+          values: updateChanges(job.targetCode, checked.values),
+          refuse: (message) => new ImportWriteError(message),
+        });
+        continue;
+      }
       if (target) {
         const changes = updateChanges(job.targetCode, checked.values);
+        if (job.targetCode === "budget_lines" && changes["xyz_basis"] === "Category") {
+          const current = await store.lookups.budgetLineTag(target);
+          if (current?.xyzBasis === "Declared" && current.urid === changes["urid"]) {
+            delete changes["xyz"];
+            delete changes["xyz_basis"];
+          }
+        }
         if (job.targetCode === "cues" && (await store.lookups.cueCalled(target)))
           throw new ImportWriteError("This cue was already called");
         const before = await store.lookups.update(job.targetCode, target, changes);
@@ -1103,7 +1242,9 @@ async function commit(store, batchId, options) {
       }
     } catch (error) {
       if (!(error instanceof ImportWriteError)) throw error;
-      await store.refuseRow(valid.id, error.message.slice(0, 1e3));
+      const pool = /^(pool_invitation_[a-z_]+):/.exec(error.message)?.[1];
+      if (pool === "pool_invitation_declined") await store.skipRow(valid.id, pool);
+      else await store.refuseRow(valid.id, pool ?? error.message.slice(0, 1e3));
     }
   }
   await store.finishBatch(batchId);
@@ -1119,6 +1260,10 @@ function updateChanges(targetCode, values) {
       counterparties: ["name"],
       cues: ["run_of_show_id", "project_id", "position"],
       guest_list_entries: ["project_id", "guest_name", "scope_node_id"],
+      pool_invitations: ["talent_pool_id", "email", "invited_by"],
+      procurement_needs: ["project_id", "description"],
+      po_lines: ["purchase_order_id", "line_number"],
+      budget_lines: ["budget_id", "line_number"],
     }[targetCode] ?? [];
   return Object.fromEntries(Object.entries(values).filter(([key]) => !keep.includes(key)));
 }
@@ -1144,6 +1289,44 @@ async function createValues(store, job, values) {
       project_id: job.projectId,
       entry_state: "Requested",
     };
+  if (job.targetCode === "pool_invitations") {
+    if (!job.createdBy) throw new ImportWriteError("This import has no inviter.");
+    return {
+      ...values,
+      invited_by: job.createdBy,
+    };
+  }
+  if (job.targetCode === "procurement_needs" && job.projectId)
+    return {
+      ...values,
+      project_id: job.projectId,
+    };
+  if (job.targetCode === "po_lines" && job.purchaseOrderId) {
+    const line_number =
+      typeof values["line_number"] === "number"
+        ? values["line_number"]
+        : await store.lookups.nextPoLineNumber(job.purchaseOrderId);
+    return {
+      ...values,
+      purchase_order_id: job.purchaseOrderId,
+      line_number,
+    };
+  }
+  if (job.targetCode === "budget_lines" && job.budgetId) {
+    const budget = await store.lookups.budgetDestination(job.budgetId);
+    const line_number =
+      typeof values["line_number"] === "number"
+        ? values["line_number"]
+        : (budget?.maxLineNumber ?? 0) + 1;
+    return {
+      quantity: 1,
+      unit_price_minor: null,
+      line_type: "Cost",
+      ...values,
+      budget_id: job.budgetId,
+      line_number,
+    };
+  }
   return values;
 }
 /** A row the database refused to write; the row is marked Refused with the reason and the batch goes on. */
@@ -1201,6 +1384,10 @@ var TABLES = {
   asset_units: "asset_units",
   cues: "cues",
   guest_list_entries: "guest_list_entries",
+  pool_invitations: "talent_pool_invitations",
+  procurement_needs: "procurement_needs",
+  po_lines: "po_lines",
+  budget_lines: "budget_lines",
 };
 /** Trimmed, lower-case text for a name match, as the database compares names (private.fuzzy_candidates). */
 var nameKey = (v) => v.trim().toLowerCase();
@@ -1235,6 +1422,17 @@ function supabaseImportStore(client) {
     const { error } = await query;
     if (error) throw new Error(`${what}: ${error.message}`);
   };
+  const setRow = (rowId, values) =>
+    exec(app.from("import_row_results").update(values).eq("id", rowId), "import_row_results");
+  const poolStore = async () =>
+    (await import("./chunks/data-import-pool-target.js")).poolLookups({
+      app,
+      canon,
+      call,
+      one,
+      onlyMatch,
+      text,
+    });
   return {
     lookups: {
       async counterpartyTypeExists(type) {
@@ -1272,6 +1470,40 @@ function supabaseImportStore(client) {
           );
         });
         return match ? text(match, "id") : null;
+      },
+      async uridExists(urid) {
+        const [discipline, category] = await Promise.all([
+          one(
+            canon.from("dim_discipline").select("disc_code").eq("disc_code", urid.trim()).limit(1),
+            "dim_discipline",
+          ),
+          one(
+            canon.from("dim_category").select("cat_urid").eq("cat_urid", urid.trim()).limit(1),
+            "dim_category",
+          ),
+        ]);
+        return discipline !== null || category !== null;
+      },
+      async uridXyz(urid) {
+        const row = await one(
+          canon.from("dim_category").select("xyz").eq("cat_urid", urid.trim()).limit(1),
+          "dim_category",
+        );
+        const tag = typeof row?.["xyz"] === "string" ? row["xyz"].trim() : null;
+        return tag === "X" || tag === "Y" || tag === "Z" ? tag : null;
+      },
+      async costCenterId(orgId, code) {
+        const row = await one(
+          app
+            .from("cost_centers")
+            .select("id")
+            .eq("org_id", orgId)
+            .eq("code", code.trim().toUpperCase())
+            .is("deleted_at", null)
+            .limit(1),
+          "cost_centers",
+        );
+        return typeof row?.["id"] === "string" ? row["id"] : null;
       },
       async elementExists(id) {
         return (
@@ -1436,6 +1668,76 @@ function supabaseImportStore(client) {
         });
         return typeof id === "string" ? id : null;
       },
+      async canonCodeExists(kind, code) {
+        const [table, column] = {
+          grade: ["grade", "code"],
+          phase: ["dim_phase", "phase_code"],
+          tier: ["dim_tier", "tier_code"],
+        }[kind];
+        return (
+          (await one(canon.from(table).select(column).eq(column, code).limit(1), table)) !== null
+        );
+      },
+      async unitExists(unit) {
+        return (
+          (await one(
+            canon.from("dim_unit_alias").select("alias").eq("alias", unit.trim()).limit(1),
+            "dim_unit_alias",
+          )) !== null
+        );
+      },
+      async materialMatch(importJobId, vendorSku, matchText) {
+        const row = await call("import_material_match", {
+          p_import_job_id: importJobId,
+          p_vendor_sku: vendorSku,
+          p_text: matchText,
+        });
+        const first = Array.isArray(row) ? row[0] : null;
+        if (!first) return null;
+        return {
+          source: first["match_source"] === "vendor_sku" ? "vendor_sku" : "asset_class",
+          elementId: first["element_id"] ?? null,
+          assetClassId: first["asset_class_id"] ?? null,
+          unitPriceMinor: first["unit_price_minor"] ?? null,
+          currencyCode: first["currency_code"] ?? null,
+          orderCurrencyCode: first["order_currency_code"] ?? null,
+        };
+      },
+      async projectTimeZone(projectId) {
+        const row = await one(
+          app.from("projects").select("time_zone").eq("id", projectId),
+          "projects",
+        );
+        return typeof row?.["time_zone"] === "string" ? row["time_zone"] : "UTC";
+      },
+      async purchaseOrderState(id) {
+        const row = await one(
+          app.from("purchase_orders").select("po_state").eq("id", id).is("deleted_at", null),
+          "purchase_orders",
+        );
+        return typeof row?.["po_state"] === "string" ? row["po_state"] : null;
+      },
+      async nextPoLineNumber(purchaseOrderId) {
+        const row = await one(
+          app
+            .from("po_lines")
+            .select("line_number")
+            .eq("purchase_order_id", purchaseOrderId)
+            .is("deleted_at", null)
+            .order("line_number", { ascending: false })
+            .limit(1),
+          "po_lines",
+        );
+        return (typeof row?.["line_number"] === "number" ? row["line_number"] : 0) + 1;
+      },
+      async budgetLineTag(id) {
+        const { readBudgetLineTag } = await import("./chunks/data-import-budget-target.js");
+        return readBudgetLineTag(app, one, id);
+      },
+      async budgetDestination(budgetId) {
+        const { readBudgetDestination } = await import("./chunks/data-import-budget-target.js");
+        return readBudgetDestination(app, one, budgetId);
+      },
       async nextCuePosition(runOfShowId) {
         const row = await one(
           app
@@ -1456,6 +1758,10 @@ function supabaseImportStore(client) {
           ] === "string"
         );
       },
+      talentPoolIdByName: async (o, n) => (await poolStore()).talentPoolIdByName(o, n),
+      roleCode: async (v) => (await poolStore()).roleCode(v),
+      poolInvitationContext: async (j) => (await poolStore()).poolInvitationContext(j),
+      poolInvitation: async (id) => (await poolStore()).poolInvitation(id),
       async update(targetCode, id, values) {
         const table = TABLES[targetCode];
         if (!table) throw new ImportWriteError(`${targetCode} is not an import target.`);
@@ -1501,7 +1807,7 @@ function supabaseImportStore(client) {
         app
           .from("import_jobs")
           .select(
-            "id, org_id, target_code, source, storage_object_path, original_filename, import_status, import_mapping_profile_id, sheet_name, source_url, project_id, run_of_show_id",
+            "id, org_id, target_code, source, storage_object_path, original_filename, import_status, import_mapping_profile_id, sheet_name, source_url, project_id, run_of_show_id, purchase_order_id, budget_id, talent_pool_id, number_format, created_by",
           )
           .eq("id", id)
           .is("deleted_at", null),
@@ -1522,6 +1828,11 @@ function supabaseImportStore(client) {
             sourceUrl: optional("source_url"),
             projectId: optional("project_id"),
             runOfShowId: optional("run_of_show_id"),
+            talentPoolId: optional("talent_pool_id"),
+            numberFormat: optional("number_format") ?? "comma-dot",
+            createdBy: optional("created_by"),
+            purchaseOrderId: optional("purchase_order_id"),
+            budgetId: optional("budget_id"),
           }
         : null;
     },
@@ -1752,6 +2063,18 @@ function supabaseImportStore(client) {
         "import_cell_issues",
       );
     },
+    async recordMaterialMatch(rowId, match, note) {
+      await exec(
+        app
+          .from("import_row_results")
+          .update({
+            material_match: match,
+            match_note: note,
+          })
+          .eq("id", rowId),
+        "import_row_results",
+      );
+    },
     async recordMatch(rowId, targetId) {
       await exec(
         app.from("import_row_matches").insert({
@@ -1811,6 +2134,12 @@ function supabaseImportStore(client) {
         "import_row_results",
       );
     },
+    skipRow: (rowId, reason) =>
+      setRow(rowId, {
+        row_state: "Skipped",
+        reason,
+      }),
+    noteRow: (rowId, reason) => setRow(rowId, { reason }),
     async finishBatch(batchId) {
       await call("finish_import_batch", { p_import_batch_id: batchId });
     },

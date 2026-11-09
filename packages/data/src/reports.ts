@@ -108,6 +108,12 @@ export interface VarianceRow {
   readonly committedWithheldCount: number;
   /** Purchase order lines in another currency drawing on the group's lines: counted, never summed. */
   readonly committedOtherCurrencyCount: number;
+  /**
+   * Estimated final cost of the group's lines (app.budget_line_forecasts, 6557); null by the silence
+   * rule when any line is unknown or withheld from the viewer.
+   */
+  readonly efcMinor: number | null;
+  readonly efcWithheld: boolean;
   /** Budget lines behind the row, for drill-through. */
   readonly budgetLineIds: readonly string[];
 }
@@ -236,6 +242,7 @@ function groupVariance(
   keyOfLine: (l: LineFact) => string,
   keyOfChange: (c: ChangeFact) => string,
   currencyOfBudget: ReadonlyMap<string, string>,
+  forecasts: ReadonlyMap<string, { readonly efc: number | null; readonly withheld: boolean }>,
 ): VarianceRow[] {
   const groups = new Map<
     string,
@@ -250,6 +257,8 @@ function groupVariance(
       withheld: number;
       otherCurrency: number;
       ids: string[];
+      efc: number | null;
+      efcWithheld: boolean;
     }
   >();
   const groupFor = (key: string, currency: string) => {
@@ -265,6 +274,8 @@ function groupVariance(
       withheld: 0,
       otherCurrency: 0,
       ids: [],
+      efc: 0,
+      efcWithheld: false,
     };
     groups.set(id, g);
     return g;
@@ -280,6 +291,13 @@ function groupVariance(
         : g.committed + l.committedMinor;
     g.otherCurrency += l.committedOtherCurrencyCount;
     g.ids.push(l.budgetLineId);
+    // NULL-aware and withheld like Committed: one unknown line blanks its group, never a partial sum.
+    const forecast = forecasts.get(l.budgetLineId);
+    if (forecast?.withheld) g.efcWithheld = true;
+    g.efc =
+      g.efc === null || forecast === undefined || forecast.efc === null
+        ? null
+        : g.efc + forecast.efc;
   }
   for (const c of changes) {
     const g = groupFor(keyOfChange(c), currencyOfBudget.get(c.budgetId) ?? "");
@@ -304,6 +322,8 @@ function groupVariance(
         committedMinor: g.committed,
         committedWithheldCount: g.withheld,
         committedOtherCurrencyCount: g.otherCurrency,
+        efcMinor: g.efcWithheld ? null : g.efc,
+        efcWithheld: g.efcWithheld,
         budgetLineIds: g.ids,
       };
     })
@@ -335,6 +355,22 @@ export async function budgetVersusActual(
   const lines = facts.data.filter((f) => working.has(f.budgetId));
   const currencyOfBudget = new Map(lines.map((l) => [l.budgetId, l.currency]));
   const applied = changes.data.filter((c) => currencyOfBudget.has(c.budgetId));
+  const forecastRows =
+    lines.length === 0
+      ? ok([] as Raw[])
+      : await rows(
+          db
+            .from("budget_line_forecasts")
+            .select("budget_line_id, efc_minor, is_withheld")
+            .in("budget_id", [...currencyOfBudget.keys()]),
+        );
+  if (!forecastRows.ok) return forecastRows;
+  const forecasts = new Map(
+    forecastRows.data.map((f) => [
+      str(f["budget_line_id"]),
+      { efc: numOrNull(f["efc_minor"]), withheld: f["is_withheld"] === true },
+    ]),
+  );
   const keyOfProject = new Map(projects.data.map((p) => [p.id, p.key]));
   const codeOfCostCenter = new Map<string, string>();
   const unassigned = "";
@@ -366,6 +402,7 @@ export async function budgetVersusActual(
     byLine[input.dimension],
     byChange[input.dimension],
     currencyOfBudget,
+    forecasts,
   );
   return ok({
     rows: result,
@@ -375,6 +412,7 @@ export async function budgetVersusActual(
       () => "",
       () => "",
       currencyOfBudget,
+      forecasts,
     ),
   });
 }
@@ -708,9 +746,39 @@ export interface PayrollRunRow {
   readonly lineCount: number;
 }
 
+const OFF_BUDGET_LIMIT = 200;
+
+/** Approved crew time per team (app.labor_posting_team_totals): own team, each agency, engaged individuals. */
+export interface LaborTeamRow {
+  readonly projectId: string;
+  readonly teamKind: string;
+  readonly teamName: string | null;
+  readonly currency: string | null;
+  readonly minutes: number;
+  readonly unpricedMinutes: number;
+  /** Null when masked (no data.restricted.read.payroll) or unpriced. */
+  readonly amountMinor: number | null;
+  readonly isMasked: boolean;
+}
+
+/** Approved time on no budget line: its shift names none, or it has no shift. */
+export interface LaborOffBudgetRow {
+  readonly postingId: string;
+  readonly projectId: string;
+  readonly shiftId: string | null;
+  readonly person: string | null;
+  readonly workDate: string;
+  readonly minutes: number;
+}
+
 export interface LaborReport {
   readonly projects: readonly LaborRow[];
   readonly payrollRuns: readonly PayrollRunRow[];
+  /** Readable with crew.timesheet.read; empty otherwise. */
+  readonly postedByTeam: readonly LaborTeamRow[];
+  /** True when more time on no budget line exists than offBudget lists. */
+  readonly offBudgetMore: boolean;
+  readonly offBudget: readonly LaborOffBudgetRow[];
 }
 
 /** Labor: budgeted labor, worked time from timesheets, and payroll run amounts (masked when restricted). */
@@ -721,7 +789,7 @@ export async function laborReport(
   const projects = await projectsOf(db, input.orgId, input.projectId);
   if (!projects.ok) return projects;
   const ids = projects.data.map((p) => p.id);
-  const [facts, hours, payroll] = await Promise.all([
+  const [facts, hours, payroll, teams, offBudget] = await Promise.all([
     lineFacts(db, ids),
     ids.length === 0
       ? Promise.resolve(ok([] as Raw[]))
@@ -739,10 +807,26 @@ export async function laborReport(
             .select("payroll_run_id, hours, amount_minor, is_masked")
             .eq("org_id", input.orgId),
         ),
+    ids.length === 0
+      ? Promise.resolve(ok([] as Raw[]))
+      : rows(db.from("labor_posting_team_totals").select("*").in("project_id", ids)),
+    ids.length === 0
+      ? Promise.resolve(ok([] as Raw[]))
+      : rows(
+          db
+            .from("labor_cost_posting_details")
+            .select("posting_id, project_id, shift_id, person_name, work_date, minutes")
+            .in("project_id", ids)
+            .is("budget_line_id", null)
+            .order("work_date", { ascending: false })
+            .limit(OFF_BUDGET_LIMIT + 1),
+        ),
   ]);
   if (!facts.ok) return facts;
   if (!hours.ok) return hours;
   if (!payroll.ok) return payroll;
+  if (!teams.ok) return teams;
+  if (!offBudget.ok) return offBudget;
   const working = workingBudgetIds(facts.data);
   const labor = facts.data.filter((f) => working.has(f.budgetId) && f.lineType === "Labor");
   const runs = new Map<
@@ -782,6 +866,25 @@ export async function laborReport(
         openEntryCount: sheets.filter((h) => h["has_open_entry"] === true).length,
       };
     }),
+    postedByTeam: teams.data.map((r): LaborTeamRow => ({
+      projectId: str(r["project_id"]),
+      teamKind: str(r["team_kind"]),
+      teamName: strOrNull(r["team_name"]),
+      currency: strOrNull(r["currency_code"]),
+      minutes: num(r["minutes"]),
+      unpricedMinutes: num(r["unpriced_minutes"]),
+      amountMinor: numOrNull(r["amount_minor"]),
+      isMasked: r["is_masked"] === true,
+    })),
+    offBudgetMore: offBudget.data.length > OFF_BUDGET_LIMIT,
+    offBudget: offBudget.data.slice(0, OFF_BUDGET_LIMIT).map((r): LaborOffBudgetRow => ({
+      postingId: str(r["posting_id"]),
+      projectId: str(r["project_id"]),
+      shiftId: strOrNull(r["shift_id"]),
+      person: strOrNull(r["person_name"]),
+      workDate: str(r["work_date"]),
+      minutes: num(r["minutes"]),
+    })),
     payrollRuns: [...runs.entries()].map(([id, run]) => ({
       payrollRunId: id,
       currency: currencies.get(id) ?? null,

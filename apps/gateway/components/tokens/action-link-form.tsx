@@ -16,7 +16,16 @@ type Translate = (key: string, values?: Record<string, string | number>) => stri
  * The confirm step of a one-tap email link in Gateway (A127, ADR 0106): one button to accept, or the reason and Reject.
  * A refusal keeps the typed reason. Works before hydration.
  */
-export function ActionLinkForm({ token, action }: { token: string; action: LinkAction }) {
+export function ActionLinkForm({
+  token,
+  action,
+  confirmKey,
+}: {
+  token: string;
+  action: LinkAction;
+  /** The button's wording when the kind says what accepting means ("Confirm you're coming", B9). */
+  confirmKey?: string;
+}) {
   const t = useTranslations("gateway.auth.actionLink") as unknown as Translate;
   const [state, confirm, pending] = useActionState<ActionLinkState, FormData>(
     confirmActionLinkAction,
@@ -47,7 +56,7 @@ export function ActionLinkForm({ token, action }: { token: string; action: LinkA
           disabled={pending}
           aria-busy={pending}
         >
-          {t(`confirm.${action}`)}
+          {t(`confirm.${confirmKey ?? action}`)}
         </Button>
         <NextLink href={"/home" as Route} className="text-text-14 text-accent-text underline">
           {t("home")}

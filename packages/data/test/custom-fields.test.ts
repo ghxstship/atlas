@@ -72,9 +72,10 @@ const EMPTY_ROW = {
 };
 
 describe("custom field tables", () => {
-  it("lists the twelve built-in tables orgs may extend (0540, budget lines from 3872, spaces and signs from B1)", () => {
-    expect(CUSTOM_FIELD_TABLES).toHaveLength(12);
+  it("lists the thirteen built-in tables orgs may extend (0540, budget lines from 3872, spaces and signs from B1, cues from B3)", () => {
+    expect(CUSTOM_FIELD_TABLES).toHaveLength(13);
     expect(isCustomFieldTable("app.budget_lines")).toBe(true);
+    expect(isCustomFieldTable("app.cues")).toBe(true);
     expect(CUSTOM_FIELD_TABLES).toEqual(
       expect.arrayContaining(["app.venues", "app.asset_units", "app.spaces", "app.signs"]),
     );
@@ -108,7 +109,14 @@ describe("reading definitions", () => {
                 sort_order: 0,
                 deleted_at: "2026-01-01",
               },
-              { id: "c1", choice_key: "gold", label: "Gold", sort_order: 1, deleted_at: null },
+              {
+                id: "c1",
+                choice_key: "gold",
+                label: "Gold",
+                sort_order: 1,
+                color_key: "cat-4",
+                deleted_at: null,
+              },
             ],
           },
         ]),
@@ -128,8 +136,8 @@ describe("reading definitions", () => {
           filterable: true,
           sortOrder: 10,
           choices: [
-            { id: "c1", key: "gold", label: "Gold" },
-            { id: "c2", key: "silver", label: "Silver" },
+            { id: "c1", key: "gold", label: "Gold", colorKey: "cat-4" },
+            { id: "c2", key: "silver", label: "Silver", colorKey: null },
           ],
         },
       ],

@@ -33,8 +33,10 @@ import {
   type InvoiceState,
   type PeriodState,
 } from "@xos/data/finance";
+import { getInvoiceTieOut, vendorLineHistory } from "@xos/data/ai";
 import { listForm1099NecRows } from "@xos/data/form-1099";
-import { conflict, refused } from "../problem.ts";
+import { getQuote } from "@xos/data/quotes";
+import { conflict, notFound, refused } from "../problem.ts";
 import type { RequestContext } from "../runtime/context.ts";
 import { requireOrg } from "../runtime/context.ts";
 import { defineHandlers, ok } from "../runtime/handler.ts";
@@ -93,6 +95,12 @@ const reasonOf = (body: { reason?: string | undefined }) => body.reason ?? "";
 // Resources --------------------------------------------------------------------------------------------
 
 const budgets = tableResource("budgets");
+const quotes = tableResource("quotes", {
+  key: "id",
+  aliases: { id: "quote_id" },
+  softDelete: false,
+  derived: ["cost_total_minor", "versions", "lines"],
+});
 const budgetLines = tableResource("budgetLines", {
   derived: ["line_total_minor", "actual_minor", "account_code"],
   // The line's GL account and actual spend, from app.budget_line_facts (A54-002).
@@ -334,6 +342,37 @@ export const handlers = defineHandlers("Finance", {
   ...handlersFor("Finance", fxRates),
   ...handlersFor("Finance", tableResource("priceBooks")),
 
+  ...handlersFor("Finance", quotes),
+  "quotes.get": async ({ params }, context) => {
+    const head = await quotes.read(context, params.id);
+    // Versions and lines come with one quote; lists leave them null. The lines and cost stay on the
+    // version head names, so they agree with its client total and margin while a Draft waits beside it.
+    const detail = unwrap(await getQuote(context.db, params.id, { follow: "current" }));
+    return ok({
+      ...head,
+      cost_total_minor: detail.costTotalMinor,
+      versions: detail.versions.map((v) => ({
+        id: v.id,
+        version_number: v.versionNumber,
+        quote_version_state: v.state,
+        valid_until: v.validUntil,
+        terms: v.terms,
+        content_sha256: v.contentSha256,
+        sent_at: v.sentAt,
+        accepted_at: v.acceptedAt,
+        accepted_name: v.acceptedName,
+      })),
+      lines: detail.lines.map((l) => ({
+        line_number: l.lineNumber,
+        description: l.description,
+        quantity: l.quantity,
+        unit_basis: l.unitBasis,
+        unit_price_minor: l.clientUnitPriceMinor,
+        amount_minor: l.clientAmountMinor,
+      })),
+    } as never);
+  },
+
   "budgets.summary": async ({ params }, context) =>
     ok((await budgetSummary(context, params.id)) as never),
 
@@ -475,6 +514,13 @@ export const handlers = defineHandlers("Finance", {
     ok((await bulkEdit(context, "invoices", body, true)) as never),
   "invoices.bulkUpdate": async ({ body }, context) =>
     ok((await bulkEdit(context, "invoices", body, false)) as never),
+  "invoices.tieOut": async ({ params }, context) => {
+    const row = unwrap(await getInvoiceTieOut(context.db, params.id));
+    if (!row) throw notFound("The invoice is not visible to you.");
+    return ok(row);
+  },
+  "invoices.lineHistory": async ({ params, body }, context) =>
+    ok({ data: [...unwrap(await vendorLineHistory(context.db, params.id, body.descriptions))] }),
   "invoices.fieldHistory": async ({ params, query }, context) =>
     ok((await fieldHistory(context, "app.invoices", params.id, query.limit)) as never),
 });

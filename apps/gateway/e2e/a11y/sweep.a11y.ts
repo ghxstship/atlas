@@ -69,6 +69,16 @@ test.describe("anonymous", () => {
     await checkPage(page, info, "agreement-signing", "token", false);
   });
 
+  test("token /shifts/{token}", async ({ page }, info) => {
+    await page.goto(`/shifts/xcrw_${"a".repeat(64)}`);
+    await checkPage(page, info, "crew-shifts", "token", false);
+  });
+
+  test("public /join/{orgSlug}/{pageSlug}", async ({ page }, info) => {
+    await page.goto("/join/demo-productions/no-such-page");
+    await checkPage(page, info, "registration", "public", false);
+  });
+
   test("token /advance/{token}", async ({ page }, info) => {
     const link = await issueAdvanceLink();
     await page.goto(`/advance/${link.token}`);

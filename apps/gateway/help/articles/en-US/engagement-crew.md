@@ -17,3 +17,7 @@ The roster opens while the engagement is onboarding and closes when it completes
 The organization can set a names lock: a date and time after which your company names no new crew for the engagement. Crew shows when names lock, and after that Add, Invite and Submit of new names are closed. A returned entry stays editable and can still be submitted again, and you can still withdraw entries. To add someone after the lock, ask the organization to move or clear it.
 
 Each row shows whether the person's travel, uniform sizes and vehicle are on file for the project. Project details opens them; like View profile, each time you open it the person can see that you did. When the organization allows it, you can enter a kind the person has not entered yet; they are told and can correct it. What the person entered themselves only they change.
+
+## Reuse a roster from a past event
+
+If you managed the roster of a past event with the same organization, for the same company or artist, **Reuse a roster from a past event** adds those people here. Preview first: it lists who is added, which email addresses are invited again and who is skipped and why. People are added as drafts with their arrival moved to the new dates; each person accepts again, and you still submit the roster for the organization's review. Invitations are emailed only when you choose Add to roster.

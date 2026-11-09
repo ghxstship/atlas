@@ -315,7 +315,24 @@
     "stillNeeded": "Falta completar",
     "submittedTitle": "Enviado",
     "submittedBody": "Recibimos tu formulario. Llénalo de nuevo para otra revisión.",
-    "submit": "Enviar formulario"
+    "submit": "Enviar formulario",
+    "publicLink": {
+      "title": "Enlace público",
+      "badge": "Enlace público",
+      "by": "{name} ({email}), enlace público",
+      "create": "Nuevo enlace público",
+      "unsupported": "Los formularios con fotos, firmas o ubicación GPS solo los llenan los miembros.",
+      "description": "Personas fuera de la organización abren este formulario con un código de acceso y luego inician sesión o crean una cuenta para responder.",
+      "close": "Cerrar",
+      "project": "Proyecto",
+      "projectHelp": "Una respuesta aprobada se vuelve un registro en este proyecto.",
+      "chooseProject": "Elige un proyecto",
+      "expiresOn": "Disponible hasta",
+      "dailyCap": "Máximo de respuestas en cualquier periodo de 24 horas",
+      "onePerEmail": "Una respuesta por correo",
+      "submit": "Crear enlace",
+      "expiresHelp": "Termina al final de este día en {zone}."
+    }
   },
   "training": {
     "title": "Capacitación",
@@ -689,7 +706,77 @@
     "time": "Hora",
     "by": "Registrada por",
     "alerts": "Alertas",
-    "cleared": "Despejada"
+    "cleared": "Despejada",
+    "readingSource": {
+      "Manual": "Registrada en el sitio",
+      "NWS": "Servicio Meteorológico Nacional"
+    },
+    "feed": {
+      "title": "Feed oficial",
+      "what": "Lecturas, avisos y el pronóstico del Servicio Meteorológico Nacional de EE. UU. para la sede de este proyecto, cada 10 minutos desde tres días antes de que empiece hasta el día después de que termine.",
+      "turnOn": "Activar el feed oficial",
+      "turnOff": "Desactivar el feed oficial",
+      "unsupported": "El feed oficial cubre sedes de EE. UU. con ubicación.",
+      "lastUpdate": "Última actualización: {time}",
+      "lastFailure": "El último intento falló {time}: {error}",
+      "failuresSince": "{count, plural, one {# intento fallido desde la última actualización} other {# intentos fallidos desde la última actualización}}",
+      "never": "Aún no hay actualizaciones.",
+      "turnedOn": "El feed oficial está activo. Su primera lectura llega en menos de 10 minutos.",
+      "turnedOff": "El feed oficial está desactivado."
+    },
+    "warnings": {
+      "title": "Avisos activos",
+      "empty": "No hay avisos oficiales activos.",
+      "until": "Hasta {time}",
+      "issuedBy": "Emitido por el Servicio Meteorológico Nacional, en inglés",
+      "severities": {
+        "Extreme": "Extremo",
+        "Severe": "Grave",
+        "Moderate": "Moderado",
+        "Minor": "Menor",
+        "Unknown": "Desconocido"
+      },
+      "more": "Detalles"
+    },
+    "forecast": {
+      "title": "Próximas 12 horas",
+      "temperature": "{value} °F",
+      "wind": "{value} mph",
+      "precipitation": "{value} % de lluvia",
+      "empty": "Aún no hay pronóstico.",
+      "rain": "Lluvia",
+      "summary": "Pronóstico"
+    },
+    "holds": {
+      "call": "Suspender",
+      "callTitle": "Suspender por clima",
+      "callBody": "Las personas de los roles de alerta, los despachadores y todos los que están dentro de las zonas del proyecto lo reciben de inmediato.",
+      "message": "Mensaje",
+      "messageHelp": "De 1 a 1,000 caracteres.",
+      "callSubmit": "Enviar suspensión",
+      "open": "Suspensión por clima desde las {time}",
+      "allClear": "Fin de la suspensión",
+      "allClearTitle": "Dar fin a la suspensión",
+      "allClearSubmit": "Enviar fin de la suspensión",
+      "sent": "Enviado a todos",
+      "holdSent": "Suspensión por clima enviada a todas las personas que alcanza.",
+      "allClearSent": "Fin de la suspensión enviado a todas las personas que alcanza.",
+      "cancel": "Cancelar",
+      "hazard": "Peligro",
+      "noHazard": "Sin peligro indicado",
+      "warning": "Aviso oficial",
+      "noWarning": "Sin aviso indicado"
+    },
+    "templates": {
+      "title": "Mensajes de suspensión y de fin",
+      "hold": "Mensaje de suspensión",
+      "allClear": "Mensaje de fin",
+      "save": "Guardar mensajes",
+      "defaultHold": "Suspensión por clima: deja de trabajar ahora y ve al refugio más cercano. Espera el aviso de fin.",
+      "defaultHoldHazard": "Suspensión por clima por {hazard}: deja de trabajar ahora y ve al refugio más cercano. Espera el aviso de fin.",
+      "defaultAllClear": "Fin de la suspensión: terminó la suspensión por clima. Vuelve al trabajo cuando tu responsable lo indique.",
+      "defaultHoldWarning": "Suspensión por clima por {event}: deja de trabajar ahora y ve al refugio más cercano. Espera el aviso de fin."
+    }
   },
   "guests": {
     "title": "Registro de invitados",
@@ -717,7 +804,12 @@
     "admittedLine": "Admitido con {plusOnes, plural, =0 {ningún acompañante} one {# acompañante} other {# acompañantes}} en {door}.",
     "checkedInCount": "Registrados de {expected}",
     "peopleIn": "Personas adentro",
-    "emptyAction": "Abrir la lista de invitados"
+    "emptyAction": "Abrir la lista de invitados",
+    "passType": "Tipo de pase",
+    "table": "Mesa",
+    "host": "Anfitrión",
+    "passCode": "Código de pase",
+    "search": "Nombre o código de pase"
   },
   "lostFound": {
     "title": "Objetos perdidos",
@@ -781,6 +873,7 @@
     "feed_post_publish_past": "Elige una hora futura, o déjala en blanco para publicar ahora.",
     "feed_post_not_author": "Solo el autor o un administrador de comunicación puede cambiar esta publicación.",
     "audience_target": "Elige el proyecto, equipo, rol o grupo de la audiencia.",
+    "show_channel_audience": "Un canal del show es solo para su chat; elige otra audiencia.",
     "poll_options": "Una encuesta necesita de 2 a 10 opciones.",
     "poll_closed": "Esta encuesta ya cerró.",
     "poll_already_voted": "Ya votaste en esta encuesta.",
@@ -839,7 +932,15 @@
     "block_self": "No puedes bloquearte a ti mismo.",
     "content_moderation_own": "Otro moderador decide las denuncias sobre tu propia publicación, comentario o mensaje.",
     "content_moderation_nothing_open": "Ya se decidieron todas las denuncias sobre esto.",
-    "content_moderation_authority": "Revisar contenido denunciado requiere permiso para gestionar la comunicación."
+    "content_moderation_authority": "Revisar contenido denunciado requiere permiso para gestionar la comunicación.",
+    "weather_feed_unsupported": "El feed oficial cubre sedes de EE. UU. con ubicación. Ubica la sede primero.",
+    "weather_feed_worker_fields": "El feed define su propia estación, URL de pronóstico y hora de verificación.",
+    "weather_feed_payload": "El feed oficial envió algo que no pudimos leer. Lo intentará de nuevo.",
+    "weather_hold_open": "Ya hay una suspensión por clima abierta en este proyecto. Da primero el fin de la suspensión.",
+    "weather_hold_closed": "Esta suspensión por clima ya tiene su fin.",
+    "weather_hold_message": "Escribe un mensaje de 1 a 1,000 caracteres.",
+    "weather_hold_stale": "Este fin de suspensión se hizo hace más de 10 minutos y no se envió. Revisa el clima y dalo de nuevo.",
+    "weather_hold_id_taken": "Otra persona ya lo envió. Recarga para ver la suspensión."
   },
   "settingsPanels": {
     "groupsTitle": "Espacios de grupo",
@@ -1132,7 +1233,26 @@
       },
       "alertLine": "{hazard}: {level} · {time}",
       "readingLine": "{value} {unit} · {time}",
-      "thresholdLine": "{level} con {value} {unit} ({source})"
+      "thresholdLine": "{level} con {value} {unit} ({source})",
+      "holdSince": "Suspensión por clima desde {time}",
+      "warnings": "Avisos oficiales",
+      "noWarnings": "No hay avisos oficiales.",
+      "issuedBy": "Emitido por el Servicio Meteorológico Nacional, en inglés",
+      "severities": {
+        "extreme": "Extremo",
+        "severe": "Grave",
+        "moderate": "Moderado",
+        "minor": "Menor",
+        "unknown": "Desconocido"
+      },
+      "callHold": "Suspender por clima",
+      "allClear": "Fin de la suspensión",
+      "message": "Mensaje",
+      "messageHelp": "De 1 a 1,000 caracteres. Lo reciben las personas de los roles de alerta, los despachadores y todos los que están dentro de las zonas del proyecto.",
+      "send": "Enviar",
+      "defaultHold": "Suspensión por clima: detenga el trabajo ahora y vaya al refugio más cercano. Espere el aviso de fin.",
+      "defaultHoldHazard": "Suspensión por clima por {hazard}: detenga el trabajo ahora y vaya al refugio más cercano. Espere el aviso de fin.",
+      "defaultAllClear": "Fin de la suspensión: terminó la suspensión por clima. Vuelva al trabajo cuando su líder lo indique."
     },
     "door": {
       "title": "Registro de invitados",
@@ -1148,7 +1268,16 @@
       "more": "Uno más",
       "fewer": "Uno menos",
       "admitted": "Ingresó con {plusOnes} acompañantes · {time}",
-      "admittedAt": "Ingresó con {plusOnes} acompañantes por {door} · {time}"
+      "admittedAt": "Ingresó con {plusOnes} acompañantes por {door} · {time}",
+      "pass": "Pase de invitado",
+      "passHelp": "Escanee el pase o escriba el código impreso, como GP-ABCDEFGHIJ.",
+      "checkPass": "Buscar al invitado",
+      "passNotListed": "Este pase no está en la lista de esta noche.",
+      "passOffline": "Conéctese para revisar los pases.",
+      "passUsed": "{name} ya registró su entrada con este pase.",
+      "passUsedAt": "{name} ya registró su entrada con este pase: {time}.",
+      "passType": "Pase: {name}",
+      "table": "Mesa {table}"
     },
     "lostFound": {
       "title": "Objetos perdidos",
@@ -1243,5 +1372,46 @@
     "statement": "Declaración de motivos",
     "statementHelp": "Se envía a quienes lo denunciaron y, si lo eliminas, a quien lo escribió.",
     "submit": "Registrar decisión"
+  },
+  "muster": {
+    "title": "Lista de evacuación",
+    "what": "Todas las personas ubicadas ahora en una zona por un escaneo de entrada o un registro de entrada dentro de la geocerca, y los invitados registrados en las últimas 24 horas, en una puerta o en bloque. Solo muestra a las personas que puedes ver; alguien cuyo escaneo más reciente no puedes ver puede aparecer en la última zona que sí puedes ver. Los invitados solo aparecen para quien puede leer la lista de invitados, y su puerta y acompañantes solo para quien registra invitados en las puertas.",
+    "noAccess": "La lista de evacuación necesita el registro de escaneos, los registros de horas o la lista de invitados del proyecto.",
+    "empty": "No hay nadie dentro de una zona de este proyecto.",
+    "project": "Proyecto",
+    "zone": "Zona",
+    "allZones": "Todas las zonas",
+    "noZone": "Registrado en una puerta",
+    "name": "Nombre",
+    "since": "Desde",
+    "source": "Origen",
+    "sources": {
+      "Scan": "Escaneo de entrada",
+      "ClockIn": "Registro de entrada",
+      "GuestCheckIn": "Registro de invitado"
+    },
+    "category": "Categoría",
+    "party": "Grupo",
+    "door": "Puerta",
+    "guestAt": "Registrado en {door}",
+    "zoneCount": "{count, plural, one {# persona} other {# personas}}",
+    "print": "Imprimir",
+    "updated": "Actualizado {time}",
+    "pause": "Pausar actualizaciones",
+    "resume": "Reanudar actualizaciones",
+    "views": "Vistas de la lista de evacuación",
+    "view": {
+      "table": "Tabla",
+      "list": "Lista"
+    },
+    "hiddenLabel": "No se te muestra",
+    "hiddenScans": "No se muestran los escaneos de entrada: requieren el registro de escaneos del proyecto.",
+    "hiddenClockIns": "No se muestran los registros de entrada: requieren los registros de horas del proyecto.",
+    "hiddenGuests": "No se muestran los invitados: requieren la lista de invitados del proyecto.",
+    "hiddenDoors": "No se muestran la puerta ni los acompañantes de los invitados: requieren el registro de invitados en las puertas.",
+    "plusOnes": "Acompañantes",
+    "plusOnesLine": "{count, plural, one {# acompañante} other {# acompañantes}}",
+    "truncated": "Esta lista se detiene en {count} filas y hay más personas presentes. Filtra por zona o exporta la lista para ver todas las filas.",
+    "stale": "No se pudo volver a leer la lista en este momento, así que esta es la última leída. Se vuelve a intentar cada 30 segundos."
   }
 }

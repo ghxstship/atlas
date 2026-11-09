@@ -15,6 +15,7 @@ import {
   rankShiftCandidates,
   removeAvailabilityPeriod,
   sendAvailabilityPoll,
+  shiftPolicyWarnings,
   trashShiftTemplate,
   type AvailabilityKind,
   type PollAnswerResult,
@@ -23,7 +24,7 @@ import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 import type { CrewActionState } from "@/lib/crew/action-state";
-import { mergeCandidates, type BoardCandidate } from "@/lib/crew/board-candidates";
+import { mergeCandidates, withWarnings, type BoardCandidate } from "@/lib/crew/board-candidates";
 import { errorMessage } from "@/lib/crew/errors";
 import { zonedToIso } from "@/lib/crew/time";
 import { getOrgContext } from "@/lib/shell/context";
@@ -123,7 +124,17 @@ export async function rankCandidatesAction(
   ]);
   if (!members.ok) return { ok: false, error: errorMessage(t, members.error) };
   if (!staff.ok) return { ok: false, error: errorMessage(t, staff.error) };
-  return { ok: true, candidates: mergeCandidates(members.data, staff.data) };
+  const candidates = mergeCandidates(members.data, staff.data);
+  // Warnings come with the ranking (B9). They only ever ask, so a failed read leaves the ranking as it is.
+  const warnings = await shiftPolicyWarnings(
+    db,
+    shiftId,
+    candidates.slice(0, 200).map((c) => c.personId),
+  );
+  return {
+    ok: true,
+    candidates: warnings.ok ? withWarnings(candidates, warnings.data) : candidates,
+  };
 }
 
 /**

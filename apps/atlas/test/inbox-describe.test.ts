@@ -111,6 +111,7 @@ const ARGS: Readonly<Record<string, Record<string, string>>> = {
   },
   "incident.reported": { title: "NWS-32 Slip at dock" },
   "invoice.approved": { title: "INV-0042" },
+  "quote.accepted": { quoteKey: "NWF26-Q-14", version: "1", actorName: "Cleo Marsh" },
   "invoice.submitted": { title: "INV-0042" },
   "invoice.scheduled": { title: "INV-0042" },
   "invoice.paid": { title: "INV-0042" },
@@ -149,6 +150,11 @@ const ARGS: Readonly<Record<string, Record<string, string>>> = {
   "engagement.roster_lock_changed": {
     projectName: "Northwind Summer Series",
     locksAt: "2027-03-01T17:00:00Z",
+  },
+  // B15: an answer recorded for a recipient from an Aurora draft (6273).
+  "advance_answer.recorded": {
+    sectionTitle: "Load In",
+    projectName: "Northwind Summer Series",
   },
   // R7: advance allocations (4693, 4694), as private.allocation_notification_args stores them.
   "allocation.decided": {
@@ -189,6 +195,73 @@ const ARGS: Readonly<Record<string, Record<string, string>>> = {
     quantity: "2",
     cause: "engagement_ended",
   },
+  // R11 advancing reminders and notices (6221, 6222), as their emitters store them.
+  "advance_packet.reminder": {
+    title: "Production advance",
+    reminder: "overdue",
+    due: "set",
+    dueAt: "2027-03-01T17:00:00Z",
+    outstanding: "2",
+    orgName: "Northwind Live",
+    projectName: "Northwind Summer Series",
+  },
+  "advance_submission.returned": {
+    title: "Power requirements",
+    packetTitle: "Production advance",
+    reason: "Add the amperage per circuit.",
+  },
+  "submittal.returned": {
+    title: "Rigging plot",
+    reason: "Show the load per point.",
+    projectName: "Northwind Summer Series",
+  },
+  "roster_entry.removed": {
+    personName: "Kai Morgan",
+    partyName: "Bayside Audio",
+    projectName: "Northwind Summer Series",
+    orgName: "Northwind Live",
+  },
+  "roster_entry.facts_requested": {
+    personName: "Kai Morgan",
+    partyName: "Bayside Audio",
+    projectName: "Northwind Summer Series",
+    orgName: "Northwind Live",
+    kind: "uniform",
+    missing: "uniform",
+  },
+  "roster_entry.share_revoked": {
+    personName: "Kai Morgan",
+    partyName: "Bayside Audio",
+    projectName: "Northwind Summer Series",
+    orgName: "Northwind Live",
+    projectKey: "NWS",
+  },
+  "credential.revoked": { title: "All Access", projectName: "Northwind Summer Series" },
+  "shift.reconfirm": { title: "Stagehand", startsAt: "2026-11-03T14:00:00Z" },
+  "shift.reconfirm_declined": {
+    title: "Stagehand",
+    startsAt: "2026-11-03T14:00:00Z",
+    workerName: "Dana Lee",
+    named: "yes",
+    reopened: "yes",
+  },
+  "shift.no_show": { title: "Stagehand", startsAt: "2026-11-03T14:00:00Z" },
+  "crew_registration.decided": {
+    orgName: "Northwind Live",
+    title: "Summer Crew",
+    outcome: "approved",
+    gatewayPath: "/join/northwind-live/summer-crew",
+  },
+  "crew_registration.invited": {
+    orgName: "Northwind Live",
+    title: "Summer Crew",
+    gatewayPath: "/join/northwind-live/summer-crew",
+  },
+  "engagement_document.sent": {
+    orgName: "Northwind Live",
+    title: "Crew Agreement",
+    gatewayPath: "/work/engagements/ENG-1/documents",
+  },
   "shift.assigned": { title: "Stagehand · Load-in", startsAt: "2027-03-08T07:00:00Z" },
   "shift.changed": { title: "Stagehand · Load-in", startsAt: "2027-03-08T08:00:00Z" },
   // P8 (6123): the poll's project and days.
@@ -203,6 +276,29 @@ const ARGS: Readonly<Record<string, Record<string, string>>> = {
   "survey.opened": { title: "Load-In Pulse", anonymous: "true" },
   "training.assigned": { title: "Rigging Basics for Crew", due_on: "2026-10-27" },
   "weather.alert": { level: "Monitor", hazard: "Wind", reading: "24" },
+  // B8: the official feed's warnings (6256), holds and the all-clear (6257), and a host's guest arriving (6254).
+  "weather.warning": {
+    event: "Severe Thunderstorm Warning",
+    severity: "Severe",
+    headline: "Severe Thunderstorm Warning until 9:45 PM EDT",
+    ends_at: "2027-06-04T01:45:00Z",
+  },
+  // A hold queued offline that reached the server late says when it was called.
+  "weather.hold": {
+    message: "Lightning within 8 miles: stop work and shelter.",
+    hazard: "Lightning",
+    called_at: "2027-06-04T01:20:00Z",
+    late: "yes",
+  },
+  "weather.all_clear": { message: "All clear: resume work.", hazard: "Lightning" },
+  "guest.arrived": {
+    guest_name: "Sasha Bell",
+    plus_ones_admitted: "1",
+    door: "North Gate",
+    has_door: "yes",
+    table_label: "Table 4",
+    has_table: "yes",
+  },
   // A79's org lifecycle kinds (1350 to 1355), as their notify calls store them (dates as epoch milliseconds).
   "billing.trial_ending": { days: "3", plan: "pro", ends_at: "1795000000000" },
   "billing.trial_ended": { plan: "pro" },
@@ -216,6 +312,22 @@ const ARGS: Readonly<Record<string, Record<string, string>>> = {
   "partner.client_left": { org: "Tidewater Events" },
   // A89: marketplace matches and expiry reminders (1462, 1463).
   "offer.sent": { title: "Festival Truss Riggers", orgName: "Demo Productions" },
+  "vendor_intake.submitted": {
+    title: "Audio vendors",
+    requesterName: "Bayside Audio",
+    projectName: "Summer Headline Weekend",
+  },
+  "rfq.quote_reminder": {
+    title: "Stage cable",
+    orgName: "Demo Productions",
+    projectName: "Northwind Summer Series",
+    dueDate: "2027-06-01",
+  },
+  "rfq.not_awarded": {
+    title: "Stage cable",
+    orgName: "Demo Productions",
+    projectName: "Northwind Summer Series",
+  },
   "opportunity.matched": {
     title: "Festival Truss Riggers",
     orgName: "Demo Productions",
@@ -447,6 +559,22 @@ describe("Inbox item copy", () => {
     expect(committed.detail).toBe(
       "Crew import terminó: 12 filas escritas, 1 rechazada y 0 omitidas.",
     );
+    expect(
+      inboxTarget("demo", {
+        subjectTable: "engagement_roster_entries",
+        kind: "roster_entry.share_revoked",
+        subjectId: "x1",
+        args: { projectKey: "NWS" },
+      }),
+    ).toBe("/demo/p/NWS/advancing?section=crew&peek=x1");
+    expect(
+      inboxTarget("demo", {
+        subjectTable: "engagement_roster_entries",
+        kind: "roster_entry.share_revoked",
+        subjectId: "x1",
+        args: {},
+      }),
+    ).toBeNull();
     expect(inboxTarget("demo", { subjectTable: "app.import_jobs", kind: "import.finished" })).toBe(
       "/demo/import",
     );
@@ -552,6 +680,31 @@ describe("Inbox item copy", () => {
         actorName: "Demo Owner",
       });
       expect(out.href, kind).toBe(`/demo/r/${args["recordKey"]}`);
+    }
+  });
+
+  it("describes a record review's request and decision with the record key, in every locale (B14, 6264)", () => {
+    const review = { title: "Rig the follow spots", recordKey: "NWL-12", actorName: "Carol Reyes" };
+    for (const locale of locales) {
+      const requested = describeInboxItem(
+        { ...item("approval.requested", review), subjectTable: "app.records" },
+        copyFor(locale),
+        { org: "demo", orgName: "Demo Productions", actorName: null },
+      );
+      expect(requested.href).toBe("/demo/r/NWL-12");
+      expect(requested.summary).toContain("Rig the follow spots");
+      expect(requested.detail).toContain("Carol Reyes");
+      const decided = describeInboxItem(
+        {
+          ...item("approval.decided", { ...review, decision: "rejected" }),
+          subjectTable: "app.records",
+        },
+        copyFor(locale),
+        { org: "demo", orgName: "Demo Productions", actorName: null },
+      );
+      expect(decided.href).toBe("/demo/r/NWL-12");
+      expect(decided.summary).toContain("Rig the follow spots");
+      expect(`${decided.summary} ${decided.detail}`).not.toMatch(/[{}]|undefined/);
     }
   });
 });

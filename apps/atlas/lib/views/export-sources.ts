@@ -704,6 +704,15 @@ export const EXPORT_SOURCES: Readonly<Record<string, ExportEntry>> = {
   ),
   "crew/schedule": shifts,
   "crew/shifts": shifts,
+  "crew/positions": source("app.project_positions", [
+    "project_id",
+    "title",
+    "role_code",
+    "engagement_id",
+    "membership_id",
+    "roster_entry_id",
+    "filled_at",
+  ]),
   "crew/swaps": source(
     "app.shift_swaps",
     [
@@ -712,6 +721,7 @@ export const EXPORT_SOURCES: Readonly<Record<string, ExportEntry>> = {
       "requested_by_membership_id",
       "proposed_membership_id",
       "swap_state",
+      "reason",
     ],
     { filters: { state: "swap_state" } },
   ),
@@ -721,6 +731,7 @@ export const EXPORT_SOURCES: Readonly<Record<string, ExportEntry>> = {
     "clock_in",
     "clock_out",
     "break_minutes",
+    "paid_break_minutes",
     "source",
     "needs_review",
   ]),
@@ -744,6 +755,21 @@ export const EXPORT_SOURCES: Readonly<Record<string, ExportEntry>> = {
     "total_minor",
     "revised_total_minor",
     "actual_minor",
+  ]),
+  "finance/quotes": source("app.quote_statuses", [
+    "quote_key",
+    "title",
+    "project_id",
+    "client_name",
+    "current_version_number",
+    "display_state",
+    "client_total_minor",
+    "margin_minor",
+    "currency_code",
+    "valid_until",
+    "sent_at",
+    "accepted_at",
+    "has_draft",
   ]),
   "finance/change_orders": source("app.change_orders", [
     "change_order_number",
@@ -770,6 +796,9 @@ export const EXPORT_SOURCES: Readonly<Record<string, ExportEntry>> = {
     "amount_minor",
     "currency_code",
     "expense_state",
+    "credit_of_expense_id",
+    "is_reimbursable",
+    "engagement_id",
   ]),
   "finance/invoices": source("app.invoices", [
     "invoice_number",
@@ -1030,6 +1059,16 @@ export const EXPORT_SOURCES: Readonly<Record<string, ExportEntry>> = {
   ]),
   "procurement/purchase_orders": purchaseOrders,
   "procurement/receipts": receipts,
+  "procurement/needs": source("app.procurement_need_status", [
+    "need_number",
+    "description",
+    "need_status",
+    "quantity",
+    "requested_quantity",
+    "drafted_quantity",
+    "ordered_quantity",
+    "received_quantity",
+  ]),
   "procurement/rfqs": rfqs,
 
   projects,
@@ -1109,6 +1148,17 @@ export const EXPORT_SOURCES: Readonly<Record<string, ExportEntry>> = {
     "created_at",
   ]),
   "schedule/calendar": records,
+  // B4 (G-38): the projects' day types.
+  "schedule/days": source("app.project_days", [
+    "day_on",
+    "day_type",
+    "sort_order",
+    "label",
+    "location_text",
+    "time_zone",
+    "team_code",
+    "project_id",
+  ]),
   "schedule/events": source("app.workforce_events", [
     "event_kind",
     "title",
@@ -1144,6 +1194,25 @@ export const EXPORT_SOURCES: Readonly<Record<string, ExportEntry>> = {
     "storage_location",
     "project_id",
   ]),
+  // B8's muster list (6251, G-149), with the names on screen, filtered by the page's project and zone.
+  "site_ops/muster": source(
+    "app.muster_list",
+    [
+      "full_name",
+      "guest_name",
+      "zone_code",
+      "zone_name",
+      "entered_at",
+      "source",
+      "category_code",
+      "credential_number",
+      "party_name",
+      "plus_ones",
+      "door",
+      "project_id",
+    ],
+    { filters: { zone: "zone_id" } },
+  ),
   "site_ops/occupancy": source("app.occupancy_counters", [
     "name",
     "current_count",
@@ -1238,10 +1307,21 @@ export const EXPORT_SOURCES: Readonly<Record<string, ExportEntry>> = {
  * this list instead of asking these pages for a source.
  */
 export const NOT_EXPORTED: Readonly<Record<string, string>> = {
+  "crew/shortages":
+    "Computed at read time by app.crew_shortages across shifts and order lines (B9): no one table holds it.",
   // ADR 0033 decision 57: nobody is told who reported, and the queue reads through content_moderation_queue,
   // which shows a moderator what they need to decide and nothing to carry away.
   "people/moderation":
     "Reported content stays in the moderation queue; an export would carry it out.",
+  // ADR 0143 decision 5: computed when read, never stored, so there is no relation to export from.
+  "schedule/workload":
+    "Hours are worked out from shifts and estimates as the page is read; nothing is stored to export.",
+  "schedule/clashes":
+    "Clashes are worked out as the page is read and shown only to someone who reads both sides; nothing is stored to export.",
+  // B3 (ADR 0142): a library segment is a template of cues, not a record of the show; the running orders that copy
+  // it export with show/run_of_show and its PDF.
+  "show/segments":
+    "Library segments are templates copied into running orders; the running orders export instead.",
 };
 
 export function exportEntryFor(collectionKey: string | null): ExportEntry | null {

@@ -28,10 +28,12 @@ import { viewsHelpSupportHandlers } from "./parts/views-help-support.ts";
 import { a36Handlers } from "./parts/a36.ts";
 import { a79PlatformHandlers } from "./parts/a79.ts";
 import { a84Handlers } from "./parts/a84.ts";
+import { b7PlatformHandlers } from "./parts/b7.ts";
 import { automationHandlers } from "./parts/automations.ts";
 import { workflowHandlers } from "./parts/workflow.ts";
 import { shareLinkHandlers } from "./parts/share-links.ts";
 import { liveLinkHandlers } from "./parts/live-links.ts";
+import { outsideAccessHandlers } from "./parts/outside-access.ts";
 import { from, handlersFor, rpc, run, tableResource, unwrap } from "./support/table.ts";
 import type { Row } from "./support/table.ts";
 
@@ -186,6 +188,11 @@ export const handlers = defineHandlers("Platform", {
   ...handlersFor("Platform", tableResource("customObjectRelations")),
   ...handlersFor("Platform", tableResource("customFieldDefinitions")),
   ...handlersFor("Platform", tableResource("customFieldValues")),
+  // Who a cue field is for (6240, ADR 0142); the database refuses Person, Money and Email outside the crew.
+  ...handlersFor(
+    "Platform",
+    tableResource("cueFieldAudiences", { verbs: ["list", "create", "delete"] }),
+  ),
 
   "objects.list": async ({ params, query }, context) => {
     const typeId = await objectType(context.db, params.object_key);
@@ -269,7 +276,9 @@ export const handlers = defineHandlers("Platform", {
   ...(a79PlatformHandlers as unknown as HandlerSet<"Platform">),
   ...shareLinkHandlers,
   ...liveLinkHandlers,
+  ...outsideAccessHandlers,
   ...(a84Handlers as unknown as HandlerSet<"Platform">),
+  ...(b7PlatformHandlers as unknown as HandlerSet<"Platform">),
   ...(automationHandlers as unknown as HandlerSet<"Platform">),
 
   ...handlersFor("Platform", commentThreads),

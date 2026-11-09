@@ -1,5 +1,6 @@
 "use server";
 
+import { NUMBER_FORMATS, type NumberFormat } from "@xos/data/import-parse";
 import {
   cancelImport,
   checkImportUpload,
@@ -17,6 +18,7 @@ import {
 } from "@xos/data/imports";
 import type { Route } from "next";
 import { revalidatePath } from "next/cache";
+import { applySuggestions, suggestionIds } from "@/lib/aurora/suggestions";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { done, field, inputError, type PlatformActionState } from "@/lib/platform/state";
@@ -34,17 +36,53 @@ import { getTranslate } from "@/lib/shell/translate";
 
 const TARGET = z.string().regex(/^[a-z][a-z0-9_]{1,60}$/);
 
-/** The destination fields of a form: at most a running order or a project, each a uuid. Null when malformed. */
-function destinationOf(
-  form: FormData,
-): { runOfShowId: string | null; projectId: string | null } | null {
-  const runOfShow = field(form, "runOfShow");
-  const project = field(form, "project");
+/**
+ * The destination fields of a form: at most a running order, a project, a purchase order or a budget, each a uuid, and for a pool
+ * invitation import its optional pool and number format (B10). Null when malformed.
+ */
+function destinationOf(form: FormData): {
+  runOfShowId: string | null;
+  projectId: string | null;
+  purchaseOrderId: string | null;
+  budgetId: string | null;
+  talentPoolId: string | null;
+  numberFormat: NumberFormat | null;
+} | null {
   const parsed = z
-    .object({ runOfShow: z.uuid().nullable(), project: z.uuid().nullable() })
-    .safeParse({ runOfShow: runOfShow || null, project: project || null });
-  if (!parsed.success || (parsed.data.runOfShow && parsed.data.project)) return null;
-  return { runOfShowId: parsed.data.runOfShow, projectId: parsed.data.project };
+    .object({
+      runOfShow: z.uuid().nullable(),
+      project: z.uuid().nullable(),
+      purchaseOrder: z.uuid().nullable(),
+      budget: z.uuid().nullable(),
+      pool: z.uuid().nullable(),
+      numberFormat: z.enum(NUMBER_FORMATS).nullable(),
+    })
+    .safeParse({
+      runOfShow: field(form, "runOfShow") || null,
+      project: field(form, "project") || null,
+      purchaseOrder: field(form, "purchaseOrder") || null,
+      budget: field(form, "budget") || null,
+      pool: field(form, "pool") || null,
+      numberFormat: field(form, "numberFormat") || null,
+    });
+  if (
+    !parsed.success ||
+    [
+      parsed.data.runOfShow,
+      parsed.data.project,
+      parsed.data.purchaseOrder,
+      parsed.data.budget,
+    ].filter(Boolean).length > 1
+  )
+    return null;
+  return {
+    runOfShowId: parsed.data.runOfShow,
+    projectId: parsed.data.project,
+    purchaseOrderId: parsed.data.purchaseOrder,
+    budgetId: parsed.data.budget,
+    talentPoolId: parsed.data.pool,
+    numberFormat: parsed.data.numberFormat,
+  };
 }
 
 export async function createImportAction(
@@ -108,6 +146,15 @@ export async function createPastedImportAction(
     objectPath: importObjectPath(person.id, crypto.randomUUID(), "csv"),
     ...destination,
   });
+  // Rows read from a document (B11): creating the pasted import is the person's confirmation, so its suggestions close.
+  if (result.ok) {
+    await applySuggestions(
+      ctx.viewer.db,
+      suggestionIds(form),
+      result.data,
+      "Confirmed in the import wizard after review.",
+    );
+  }
   if (!result.ok) return fromDataError(result.error);
   revalidatePath(`/${ctx.org.slug}/import`);
   return done(result.data);

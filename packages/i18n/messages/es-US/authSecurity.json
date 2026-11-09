@@ -273,7 +273,8 @@
     "heading": {
       "approve": "¿Aprobar {title}?",
       "reject": "¿Rechazar {title}?",
-      "accept": "¿Aceptar {title}?"
+      "accept": "¿Aceptar {title}?",
+      "confirmComing": "¿Sigues yendo a {title}?"
     },
     "untitled": "este elemento",
     "org": "De {org}. No pasa nada hasta que confirmes.",
@@ -281,7 +282,8 @@
     "confirm": {
       "approve": "Aprobar",
       "reject": "Rechazar",
-      "accept": "Aceptar"
+      "accept": "Aceptar",
+      "confirmComing": "Confirma que vas"
     },
     "reason": "¿Por qué lo rechazas?",
     "reasonHelp": "Quien lo pidió ve tu motivo.",

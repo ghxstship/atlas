@@ -85,6 +85,9 @@
     "approval_approver_capability": "Approving this document needs its approval capability.",
     "approval_one_step_per_approver": "You already decided a step of this approval. The next step needs another approver.",
     "approval_rejection_reason": "Say why when you reject an approval.",
+    "approval_not_eligible": "Only someone who may edit this project's records can decide its approvals.",
+    "record_review_note_required": "Say what to change when you ask for changes.",
+    "sod_record_review_owner": "You own this record, so someone else reviews it.",
     "sod_approval_requester": "You requested this approval, so someone else decides it.",
     "calendar_feed_limit": "You have 20 calendar feeds. Revoke one before you add another.",
     "calendar_feed_revoked": "A revoked calendar feed stays revoked. Add a new feed instead.",
@@ -127,6 +130,7 @@
     "approval_subject_beneficiary": "This approval is for you, so someone else decides it.",
     "approval_step_no_approver": "Nobody this step names has an XOS account to receive approval emails.",
     "approval_rule_pending": "This request waits on its approval rule. Approve it once every step is approved.",
+    "approval_rule_class_no_offering": "Requests come only for Radios and Carts, so a rule on this class would never apply. Choose one of those classes.",
     "approval_link_email_off": "Approval emails are turned off, so no code can be sent. Sign in to decide instead.",
     "approval_reminder_too_soon": "The approvers were notified less than 4 hours ago. Try again later.",
     "approval_reminder_limit": "Every reminder this step allows has been sent.",
@@ -135,15 +139,49 @@
     "import_destination_unknown": "That running order or project no longer exists.",
     "import_target_outside_destination": "A row would have landed outside the running order or project this import names, so it was not written.",
     "import_paste_empty": "Paste a header row and at least one row below it.",
+    "import_po_not_proposed": "Lines import only into an order that is still a draft.",
+    "import_pool_unexpected": "Only a pool invitation import names a pool.",
+    "import_pool_unknown": "That pool no longer exists. Choose a live Talent pool of the organization.",
     "earning_code_taken": "Another earning code already uses this code. Choose a different code.",
     "time_off_policy_taken": "Another time off policy already has this name. Choose a different name.",
     "holiday_calendar_taken": "Another holiday calendar already has this name. Choose a different name.",
     "holiday_calendar_applies_taken": "Another calendar already applies across the org for this state, or for no state. Change that one, or leave Applies across the org unchecked.",
     "holiday_day_taken": "This calendar already has a holiday on that day. Remove it first, or choose another day.",
     "holiday_venue_taken": "That venue already has a holiday calendar. Unassign it there first.",
+    "shift_reconfirm_answered": "This shift was already confirmed, or nobody is asking any more.",
+    "shift_no_show_self": "You cannot mark yourself as a no-show. Tell your supervisor.",
+    "shift_no_show_state": "Mark a no-show once the shift has started and someone is on it.",
+    "shift_no_show_clocked_in": "This person clocked in on the shift, so they are not a no-show.",
+    "shift_no_show_reason": "Say what happened.",
+    "shift_no_show_too_late": "Less than 15 minutes of this shift are left, too little for a replacement. Mark the no-show without one.",
+    "shift_no_show_frozen": "This shift has a no-show. Withdraw the no-show before changing its worker, times or state, or cancel the shift.",
+    "no_show_id_conflict": "This no-show was already recorded for another shift. Open the shift again and retry.",
+    "swap_reason_required": "Say why you are asking to swap this shift.",
+    "shift_policy_batch": "Ask about 1 to 200 people at a time.",
+    "shift_held_for_position": "This shift is held for a position. Fill the position, or take the shift off it first.",
+    "position_holder_one": "Fill a position with one member or one person of an agency's roster.",
+    "position_holder_kind": "A member position is filled by a member, and an agency position by a person of its own agency's roster.",
+    "position_filled": "Someone holds this position. Vacate it first.",
+    "position_vacant": "Nobody holds this position.",
+    "position_in_use": "Vacate the position and move its shifts and records off it first.",
+    "position_engagement_not_agency": "An agency position names a staffing agency's Staff engagement.",
+    "position_holder_rpc": "Fill a position from its record, and vacate it there too.",
+    "break_type_unknown": "That break type is retired or belongs to another organization. Pick one of this organization's break types.",
+    "crew_shortages_range": "Pick a range of 1 to 62 days.",
+    "break_type_taken": "This organization already has a break type with that name.",
     "holiday_preset_unknown": "Choose the US federal holidays.",
     "holiday_preset_year": "Choose a year from 2021 to 2100.",
-    "holiday_preset_names": "A holiday name is 1 to 100 characters."
+    "holiday_preset_names": "A holiday name is 1 to 100 characters.",
+    "event_type_taken": "An event type with this name already exists.",
+    "document_type_taken": "A document type with this name already exists.",
+    "event_type_in_use": "Archive the event type instead; projects still use it.",
+    "document_type_in_use": "Remove the event types' requirements for this document type first.",
+    "event_type_template_kind": "Choose a live project template.",
+    "event_type_template_type_immutable": "A template rule stays with its event type.",
+    "event_type_field_target": "Choose a live custom field of projects.",
+    "event_type_field_immutable": "A field of a type keeps its type and field; remove it and add another.",
+    "event_type_requirement_document_type": "Choose a live document type.",
+    "event_type_requirement_immutable": "A requirement keeps its type and document type; remove it and add another."
   },
   "partner": {
     "sections": "Partner console sections",
@@ -307,7 +345,13 @@
       "destinationRun": "Running order",
       "destinationProject": "Project",
       "destinationHelp": "Rows are added to this running order or project.",
-      "sourcePaste": "Pasted rows"
+      "sourcePaste": "Pasted rows",
+      "destinationBudget": "Budget",
+      "destinationOrder": "Purchase order",
+      "sourceDocument": "Document",
+      "destinationPool": "Pool",
+      "destinationPoolHelp": "For rows that name no pool.",
+      "destinationPoolNone": "Use the pool named in each row"
     },
     "paste": {
       "label": "Rows",
@@ -332,7 +376,11 @@
       "vendor_products": "Vendor products",
       "asset_units": "Asset units",
       "cues": "Run of show cues",
-      "guest_list_entries": "Guest list"
+      "guest_list_entries": "Guest list",
+      "budget_lines": "Budget lines",
+      "procurement_needs": "Procurement needs",
+      "po_lines": "Purchase order lines",
+      "pool_invitations": "Freelancers and crew to invite"
     },
     "steps": {
       "upload": "Upload",
@@ -425,7 +473,31 @@
       "plus_ones": "Plus-ones",
       "note": "Note for the door",
       "scope_node_id": "Show",
-      "counterparty_id": "On the list of"
+      "counterparty_id": "On the list of",
+      "line_number": "Line number",
+      "urid": "URID",
+      "quantity": "Quantity",
+      "unit_price": "Unit price",
+      "line_type": "Type",
+      "cost_center": "Cost center",
+      "unit_basis": "Unit",
+      "grade_code": "Grade",
+      "phase_code": "Phase",
+      "tier_code": "Tier",
+      "xyz": "XYZ",
+      "markup_percent": "Markup %",
+      "client_unit_price": "Client unit price",
+      "excluded_from_quote": "Off the quote",
+      "email": "Email",
+      "pool_name": "Pool name",
+      "invitee_name": "Name",
+      "work_phone": "Work phone",
+      "role": "Role",
+      "rate": "Standing rate",
+      "rate_currency": "Rate currency",
+      "rate_type": "Rate type",
+      "guest_email": "Guest email",
+      "table_label": "Table"
     },
     "dryRun": {
       "title": "Dry run",
@@ -444,7 +516,9 @@
       "mergeLabel": "Merge row {row}",
       "keepLabel": "Keep row {row} separate",
       "merged": "Merged into the existing record.",
-      "kept": "Kept as a new record."
+      "kept": "Kept as a new record.",
+      "mergedPool": "Skipped: already invited or in a pool.",
+      "poolHelp": "Merged means this row is skipped, because the person is already invited or in a pool. Keep separate sends a new invitation."
     },
     "issues": {
       "title": "Rows with problems",
@@ -452,7 +526,17 @@
       "row": "Row",
       "state": "State",
       "cells": "Problems",
-      "cell": "{column}: {issue}"
+      "cell": "{column}: {issue}",
+      "unknown_urid": "not a canon discipline or category",
+      "invalid_line_number": "not a whole line number",
+      "invalid_quantity": "not a quantity of zero or more",
+      "invalid_price": "not an amount, or the word Unpriced",
+      "invalid_line_type": "not Cost, Labor, Fee or Contingency",
+      "unknown_cost_center": "no cost center of this org has this code",
+      "invalid_xyz": "not X, Y or Z",
+      "xyz_required": "a discipline needs an XYZ tag in this row",
+      "invalid_markup": "not 0 to 1000 percent",
+      "invalid_boolean": "not yes or no"
     },
     "rowStates": {
       "Valid": "Valid",
@@ -467,6 +551,10 @@
       "unknown_jurisdiction": "not a known jurisdiction",
       "unknown_time_zone": "not a time zone",
       "unknown_vendor": "no vendor of this org has this name",
+      "unknown_unit": "not a unit in the catalog",
+      "unknown_grade": "not a price grade",
+      "unknown_phase": "not a phase",
+      "unknown_tier": "not a tier",
       "unknown_element": "not a catalog element",
       "invalid_amount": "not a whole number of cents",
       "invalid_currency": "not a currency code",
@@ -484,7 +572,26 @@
       "unknown_party": "no company of this org has this name",
       "too_long": "too long",
       "duplicate_in_file": "repeats an earlier row",
-      "other": "not accepted"
+      "other": "not accepted",
+      "invalid_email": "not one email address",
+      "pool_required": "name a pool in this column, or choose one for the import",
+      "unknown_pool": "no Talent pool of the organization has this name",
+      "invalid_phone": "not a phone number",
+      "unknown_role": "no role has this code or job title",
+      "invalid_rate": "not an amount in the chosen number format",
+      "rate_currency_required": "add the currency: a code, or a symbol your base currency uses",
+      "rate_type_required": "say how it is paid: per hour, per day or flat",
+      "rate_type_conflict": "the rate and its type disagree",
+      "rate_not_permitted": "setting a rate needs the payroll capability",
+      "pool_merged_in_review": "skipped: already invited or in a pool, merged in review",
+      "pool_invitation_pool": "refused: the pool is no longer a live Talent pool of the organization",
+      "pool_invitation_phone": "refused: enter the work phone in international format, for example +13105550100",
+      "pool_invitation_duplicate": "refused: this address already has a pending invitation to the pool, so reissue it instead",
+      "pool_invitation_answered": "refused: a new invitation starts pending",
+      "pool_invitation_fixed": "refused: an invitation keeps its pool, address and inviter, so revoke it and invite again",
+      "pool_invitation_declined": "skipped: this address declined an invitation to this list in the last 12 months",
+      "pool_invitation_daily_limit": "refused: the organization reached its 2,000 invitation emails for the day, so import this row tomorrow",
+      "pool_rate_kept": "updated, with the rate left as it was: the rate in this file was not applied"
     },
     "commit": {
       "title": "Commit",
@@ -526,6 +633,40 @@
       "failed": "Aurora could not suggest mappings. Map the columns yourself.",
       "applied": "{count, plural, one {Aurora suggested # column. Check it before you confirm.} other {Aurora suggested # columns. Check them before you confirm.}}",
       "none": "Aurora found nothing to add to the current suggestions."
+    },
+    "material": {
+      "title": "Catalogue matches",
+      "help": "Review what the catalogue named before you commit. An unmatched row is written as free text.",
+      "match": "Match",
+      "note": "Note",
+      "matched": "Matched",
+      "unmatched": "Unmatched",
+      "notes": {
+        "price_currency_differs": "The vendor's price is in another currency, so the price stays blank."
+      }
+    },
+    "document": {
+      "intro": "Aurora reads the list into rows you can correct. Nothing is written until you continue and commit.",
+      "file": "PDF of the list",
+      "read": "Read the document",
+      "tooLarge": "This file is over 10 MB. Choose a smaller one.",
+      "failed": "Aurora could not read this document. Paste the rows instead.",
+      "review": "{count, plural, one {# row read. Correct it before you continue.} other {# rows read. Correct them before you continue.}}",
+      "row": "Row {n}",
+      "description": "Item",
+      "quantity": "Quantity",
+      "unit": "Unit",
+      "sku": "Vendor SKU",
+      "noQuantity": "The document does not state this. Enter it to continue.",
+      "continue": "Continue to review"
+    },
+    "numberFormat": {
+      "label": "Number format",
+      "help": "How amounts are written in this file. It sets the separators only.",
+      "comma-dot": "1,234.56",
+      "dot-comma": "1.234,56",
+      "space-comma": "1 234,56",
+      "apostrophe-dot": "1'234.56"
     }
   },
   "objects": {
@@ -729,7 +870,10 @@
       },
       "shift": {
         "assigned": "Shift assigned",
-        "changed": "Shift changed"
+        "changed": "Shift changed",
+        "reconfirm": "Still coming?",
+        "reconfirm_declined": "Can't make a shift",
+        "no_show": "Marked as a no-show"
       },
       "availability": {
         "requested": "Availability requested"
@@ -741,7 +885,10 @@
         "assigned": "Training assigned"
       },
       "weather": {
-        "alert": "Weather alert"
+        "alert": "Weather alert",
+        "warning": "Official weather warning",
+        "hold": "Weather hold",
+        "all_clear": "Weather all-clear"
       },
       "opportunity": {
         "matched": "New opportunity match"
@@ -776,7 +923,10 @@
         "invited": "Put on a crew roster",
         "returned": "Roster entry returned",
         "declined": "Roster entry declined",
-        "project_facts_entered": "Project details entered for you"
+        "project_facts_entered": "Project details entered for you",
+        "removed": "Taken off a crew roster",
+        "facts_requested": "Project details needed",
+        "share_revoked": "Work details no longer shared"
       },
       "engagement": {
         "roster_lock_changed": "Names lock changed"
@@ -786,6 +936,41 @@
         "assigned": "Allocation given to you",
         "issued": "Allocation handed over",
         "withdrawn": "Allocation withdrawn"
+      },
+      "quote": {
+        "accepted": "Quote accepted"
+      },
+      "rfq": {
+        "quote_reminder": "Quote requested",
+        "not_awarded": "Supplier not chosen"
+      },
+      "crew_registration": {
+        "decided": "Crew registration decided",
+        "invited": "Invited to register"
+      },
+      "engagement_document": {
+        "sent": "Agreement sent to sign"
+      },
+      "vendor_intake": {
+        "submitted": "New intake request"
+      },
+      "advance_answer": {
+        "recorded": "Answer recorded for you"
+      },
+      "guest": {
+        "arrived": "Your guest arrived"
+      },
+      "advance_packet": {
+        "reminder": "Advance reminder"
+      },
+      "advance_submission": {
+        "returned": "Advance answer returned"
+      },
+      "submittal": {
+        "returned": "Submittal returned"
+      },
+      "credential": {
+        "revoked": "Credential revoked"
       },
       "accommodation_block": {
         "release_due": "Block release coming up"
@@ -963,12 +1148,54 @@
     "copied": "Link copied.",
     "openInCalendar": "Open in my calendar app",
     "revoked": "Feed revoked.",
+    "nameLabel": "Name",
+    "nameHelp": "Up to 80 characters. Your calendar app shows the feed under this name.",
+    "contentLabel": "Shows",
+    "sources": {
+      "shifts": "Shifts",
+      "meetings": "Meetings",
+      "milestones": "Milestones",
+      "deadlines": "Deadlines",
+      "cues": "Cues"
+    },
+    "audienceLabel": "Audience",
+    "audienceHelp": "A feed never shows more than you may see.",
+    "audience": {
+      "everyone": "Everyone I can see",
+      "people": "People",
+      "team": "Team",
+      "department": "Department"
+    },
+    "peopleLabel": "People",
+    "peopleHelp": "Up to 50 members of this organization.",
+    "teamLabel": "Team",
+    "departmentLabel": "Department",
+    "showDepartmentLabel": "Show department",
+    "showDepartmentHelp": "Only cues with a call for this department, with its instruction.",
+    "showDepartmentAny": "Any department",
+    "showDepartments": {
+      "audio": "Audio calls",
+      "lighting": "Lighting calls",
+      "video": "Video calls",
+      "sfx": "Special effects calls",
+      "stage": "Stage calls"
+    },
+    "edit": "Edit",
+    "editLabel": "Edit {feed}",
+    "editTitle": "Edit feed",
+    "save": "Save",
+    "filterSummary": "Shows {sources}",
     "errors": {
       "calendar_feed_limit": "You have 20 feeds. Revoke one before you add another.",
       "calendar_feed_revoked": "This feed was revoked. Add a new feed instead.",
       "denied": "That feed or project is not available to you.",
       "invalid": "Choose a project for a project feed.",
-      "unexpected": "Something went wrong. Try again."
+      "unexpected": "Something went wrong. Try again.",
+      "calendar_feed_name": "Give the feed a name of 1 to 80 characters that none of your other feeds uses.",
+      "calendar_feed_filter_scope": "Cues, an audience and a show department are for project feeds only.",
+      "calendar_feed_audience": "Choose one audience: people, a team or a department of this organization.",
+      "calendar_feed_people_limit": "A feed can follow at most 50 people.",
+      "calendar_feed_sources": "Choose at least one thing for the feed to show."
     }
   },
   "projectInbox": {

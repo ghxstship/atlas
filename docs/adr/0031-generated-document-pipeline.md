@@ -133,3 +133,59 @@ signage decisions behind them.
    the plan's peek, or the project's signage page.
 6. **veraPDF** also renders, per locale, site plans with a landscape and a portrait drawing and a legacy plan without
    one, with the kinds and items legends, and build sheets with and without artwork, on Letter and A4.
+
+## Amendment (B7, ADR 0146): the wrap-up report and books
+
+The owner approved the deferred parity themes on 2026-10-28; package B7 (RRR-231) adds a thirteenth record document and
+compiled books.
+
+1. **Thirteen record documents.** `DOCUMENT_KINDS` adds `wrap-up-report`, so decision 6's per-kind loop renders thirteen
+   templates. Its row in decision 3's table: issue time the debrief's `completed_at`, else the generation time
+   (computed live, like the final cost report). Each of its sections is read only when the reader holds its capability
+   and otherwise prints "Not included" (ADR 0146 decision 5).
+2. **Books are compiled documents.** `COMPILED_DOCUMENT_KINDS` holds `document-book`, classified Internal: a book's cover
+   with its contents, rendered by `streamBookPdf` over the per-document drawing P5's batch file uses. Its row in decision
+   3's table: issue time the book's `created_at`, which picks the version of `BOOK_COVER_TEMPLATES`; each document in a
+   book keeps the version its own issue time picks. A book has one `Document` root, the cover `Sect` with a `TOC` and a
+   `TOCI` per document, a `Sect` per document and an outline item per section; footers number the whole book (ADR 0146
+   decision 4).
+3. **A version may print for an audience.** `TemplateVersion.audiences` marks a version that prints a copy for a team or
+   a department; `templateFor` considers only such versions when one is asked for, so a filtered day sheet always renders
+   day sheet version 2 (ADR 0146 decision 3).
+
+## Amendment (B8, RRR-232, G-68 and G-71): the guest pass
+
+ADR 0147 decision 6 gives guests passes, not credentials. These decisions extend the pipeline for the guest pass only.
+
+1. **A new kind, `guest-pass`.** It is keyed by the guest list entry, so it is served at
+   `/{org}/documents/guest-pass/{id}` through the existing `[kind]/[id]` route. Its loader reads the entry as the
+   caller (`advancing.packet.read` through row level security) and answers not found unless the guest is Approved or
+   Checked In, so a Requested or Declined guest has no pass.
+2. **Card papers, as the badge.** `printSizesFor("guest-pass")` is the badge's four sizes with A6 as the default; the
+   guest-email worker attaches the A6 pass. The card layout (`render-card.ts`) places its blocks by kind: the guest's
+   name as the heading, the scan code `XOSGP1:<pass code>` as the only QR, and compact paragraphs for the pass type,
+   the show and its date in the project's time zone, "Admits {n} more" when plus-ones are over 0, and the table.
+   There is no portrait.
+3. **Classification and version.** It prints a name, a pass code and a table, so it is Internal. Version 1 takes
+   effect at a fixed instant no earlier than the planned release of the package that ships it, as P5's
+   `BADGE_V2_FROM`; the record key in its facts line is the pass code.
+4. **veraPDF** renders the guest pass on A6 and CR80 in en-US and es-US (four more files).
+
+## Amendment (2026-11-06, B13, RRR-237): the client quote
+
+- **A fourteenth record document.** `quote` is keyed by the quote version id, so it is served at
+  `/{org}/documents/quote/{quoteVersionId}` and, for a client, `/documents/quote/{quoteVersionId}?engagement={key}`.
+- **Classification and version.** Internal. Its issue time is `sent_at`; a Draft preview uses the version's `created_at`,
+  prints "Draft: not sent" in its facts and has no fingerprint (ADR 0152).
+- **Sources.** Atlas reads as the viewer with `finance.budget.read`: a Draft reads live prices, Sent and later the frozen
+  capture. Gateway reads `api_external.quote_versions` and `quote_version_lines`. A signing link's Download PDF is built
+  only from what `api_public.token_quote` returned, after it re-resolves the link and code, posted in the form body. Its
+  printed record link and QR code open Gateway's Documents page, never the link: the token is one of the link's two secrets
+  and the PDF is meant to be forwarded.
+- **Brand.** Externals and anon cannot read `app.org_brands`, so a quote's readers build the brand from fields the view and
+  the token reader carry: legal entity, accent and logo path. The org-brand bucket is public, so anon can fetch the logo.
+- **Delivery.** Atlas's quote peek and Gateway's engagement Documents tab. The QR code opens the quote or that tab.
+- **Certificate.** An accepted quote's PDF carries a Signature block: name as signed, date and time in the project's zone,
+  how signed, the content fingerprint and the statement (S14.5-01). It has no ledger table, because reasons are internal.
+- **veraPDF.** The gate now renders fourteen templates. With the two papers and two locales that is 56 record files (52
+  before).

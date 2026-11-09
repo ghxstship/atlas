@@ -5,9 +5,12 @@ import { z } from "zod";
 //#region src/inbound/parse.ts
 /**
  * Inbound mail (Section 4.6.5). The mail provider verifies DKIM and posts a parsed message (or, for Resend, the
- * inbound-email function reads it from Resend's API, ./resend.ts); this module strips quoted text and hands the
- * result to app.receive_inbound_email, which files project inbox mail and accepts replies only from signed addresses.
+ * inbound-email function reads it from Resend's API, ./resend.ts); this module strips quoted text from replies and
+ * hands the result to app.receive_inbound_email, which files project inbox mail and accepts replies only from signed
+ * addresses.
  */
+/** A reply address, as app.receive_inbound_email reads it (0550). Other local parts are project inboxes. */
+var REPLY_LOCAL_PART = /^r-[0-9a-f]{32}-/;
 var QUOTE_MARKERS = [
   /^On .{1,200} wrote:\s*$/i,
   /^El .{1,200} escribió:\s*$/i,
@@ -59,7 +62,8 @@ async function inboundMessageId(messageId) {
 }
 /**
  * Files one inbound message: its id, or null when it was not for XOS or was ignored. Each field is made to fit the row,
- * so a provider never retries a message the database would refuse.
+ * so a provider never retries a message the database would refuse. Only a reply loses its quoted text: mail to a
+ * project inbox keeps all of it, because a forward's whole message sits below a "From:" line.
  */
 async function receiveInbound(store, message, inboundDomain) {
   const localPart = localPartFor(message.to, inboundDomain);
@@ -68,13 +72,19 @@ async function receiveInbound(store, message, inboundDomain) {
   const from = (/<([^>]+)>/.exec(sender)?.[1] ?? sender).trim().toLowerCase();
   const fromLength = Array.from(from).length;
   if (fromLength < 3 || fromLength > 320) return null;
+  const text = postgresText(message.text);
   return store.receive({
     localPart,
     from,
     subject: postgresText(message.subject),
     messageId: await inboundMessageId(message.messageId),
     dkimVerified: message.dkimPass,
-    bodyText: clip(stripQuotedText(postgresText(message.text)), MAX_INBOUND_BODY_CHARS),
+    bodyText: clip(
+      REPLY_LOCAL_PART.test(localPart)
+        ? stripQuotedText(text)
+        : text.replace(/\r\n?/g, "\n").trim(),
+      MAX_INBOUND_BODY_CHARS,
+    ),
     rawObjectPath: postgresText(message.rawObjectPath),
   });
 }

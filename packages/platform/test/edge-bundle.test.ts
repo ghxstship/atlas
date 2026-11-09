@@ -35,6 +35,7 @@ const CORE_ONLY: readonly string[] = [
   "email-unsubscribe",
   "file-download",
   "fx-rates-ecb",
+  "weather-feed",
 ];
 
 /**
@@ -53,7 +54,18 @@ const PACKAGES: Record<string, { boot: string[]; lazy: string[] }> = {
   "export-render": { boot: ["@supabase/supabase-js"], lazy: ["exceljs", "pdfkit"] },
   "file-download": { boot: ["@supabase/supabase-js"], lazy: [] },
   "fx-rates-ecb": { boot: [], lazy: [] },
-  "import-run": { boot: ["@supabase/supabase-js"], lazy: ["exceljs"] },
+  "guest-email": {
+    boot: [],
+    lazy: [
+      "@react-email/components",
+      "intl-messageformat",
+      "pdfkit",
+      "react/jsx-runtime",
+      "resend",
+      "zod",
+    ],
+  },
+  "import-run": { boot: ["@supabase/supabase-js"], lazy: ["exceljs", "libphonenumber-js"] },
   "inbound-email": { boot: ["zod"], lazy: [] },
   "integration-inbound": { boot: ["@supabase/supabase-js"], lazy: [] },
   "integration-worker": { boot: ["@supabase/supabase-js"], lazy: [] },
@@ -64,7 +76,7 @@ const PACKAGES: Record<string, { boot: string[]; lazy: string[] }> = {
   },
   "org-lifecycle": {
     boot: ["@supabase/supabase-js", "zod"],
-    lazy: ["exceljs", "pdfkit", "resend"],
+    lazy: ["pdfkit", "resend"],
   },
   "report-run": { boot: ["@supabase/supabase-js", "zod"], lazy: ["exceljs", "pdfkit", "resend"] },
   scim: { boot: ["@supabase/supabase-js"], lazy: [] },
@@ -75,11 +87,13 @@ const PACKAGES: Record<string, { boot: string[]; lazy: string[] }> = {
   "storage-browse": { boot: ["@supabase/supabase-js"], lazy: [] },
   "stripe-webhook": { boot: [], lazy: ["stripe"] },
   "subprocessor-notices": {
-    boot: ["intl-messageformat", "zod"],
-    lazy: ["@react-email/components", "react/jsx-runtime", "resend"],
+    boot: [],
+    lazy: ["@react-email/components", "intl-messageformat", "react/jsx-runtime", "resend", "zod"],
   },
   "upload-scan": { boot: ["@supabase/supabase-js"], lazy: [] },
   "wallet-pass": { boot: [], lazy: [] },
+  // B8 (ADR 0147): the NWS weather feed is plain fetch to api.weather.gov and PostgREST, no package.
+  "weather-feed": { boot: [], lazy: [] },
   "webhook-dispatch": { boot: [], lazy: [] },
 };
 
@@ -100,6 +114,9 @@ const BOOT_BUDGET_KB: Record<string, number> = {
   "export-render": 100,
   "file-download": 64,
   "fx-rates-ecb": 64,
+  // B8 (ADR 0147): the shared email and notification store chunks it reaches at boot came to 120.0 KB on 2026-10-31;
+  // merge train 10 loads its email worker on demand (guest-email-worker.ts), so 132 holds without a raise.
+  "guest-email": 132,
   // P3: pasted rows and import destinations (cues and guest lists into a running order or project) add about 17.5 KB
   // of its own code, and A127's action links about 2 KB of shared stores; 122.1 KB in merge train 6, about 10 percent
   // above that.
@@ -148,6 +165,8 @@ const BOOT_BUDGET_KB: Record<string, number> = {
   // A93: the pass builders and Web Crypto signers (about 30 KB) and the design tokens chunk (about 33 KB). A127's
   // action links in the shared stores (about 2 KB) bring it to 121.1 KB in merge train 6; about 10 percent above that.
   "wallet-pass": 133,
+  // B8 (ADR 0147): the shared core; its NWS reader loads on demand.
+  "weather-feed": 64,
   "webhook-dispatch": 70,
 };
 

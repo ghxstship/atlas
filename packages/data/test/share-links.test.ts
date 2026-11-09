@@ -125,7 +125,6 @@ describe("share links", () => {
     const result = await createShareLink(db, {
       attachmentId: "a1",
       expiresAt: "2026-10-27T00:00:00Z",
-      accessCodeRequired: true,
       recipientEmail: "ana@venue.test",
       note: null,
     });
@@ -142,7 +141,6 @@ describe("share links", () => {
     expect(calls[0]?.steps[0]?.[1][0]).toEqual({
       p_attachment_id: "a1",
       p_expires_at: "2026-10-27T00:00:00Z",
-      p_access_code_required: true,
       p_recipient_email: "ana@venue.test",
     });
   });
@@ -160,7 +158,6 @@ describe("share links", () => {
     const result = await createShareLink(db, {
       attachmentId: "a1",
       expiresAt: null,
-      accessCodeRequired: false,
       recipientEmail: null,
       note: null,
     });

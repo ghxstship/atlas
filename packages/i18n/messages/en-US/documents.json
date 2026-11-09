@@ -19,9 +19,13 @@
     "final-cost-report": "Final cost report",
     "agreement-certificate": "Signature certificate",
     "deletion-certificate": "Deletion certificate",
+    "wrap-up-report": "Wrap-up report",
+    "document-book": "Book",
     "site-plan": "Site plan",
     "signage-build-sheet": "Signage build sheet",
-    "radio-handout": "Radio hand-out"
+    "radio-handout": "Radio hand-out",
+    "quote": "Quote",
+    "engagement-document": "Generated agreement"
   },
   "facts": {
     "recordKey": "Record key",
@@ -114,6 +118,27 @@
     "title": "Day sheet {project}, {day}",
     "body": "Notes for the day",
     "emptyBody": "This day sheet has no notes yet.",
+    "titleFor": "Day sheet {project}, {day}, for {audience}",
+    "for": "For",
+    "department": "Show department",
+    "notes": "Notes for the day",
+    "calls": "Calls",
+    "schedule": "Schedule",
+    "cues": "Cues",
+    "cuesOf": "Cues: {name}",
+    "open": "Open",
+    "noCalls": "No calls on this day.",
+    "noRecords": "No meetings, milestones or deadlines on this day.",
+    "noCues": "No cues on this day.",
+    "time": "Time",
+    "kind": "Kind",
+    "item": "Item",
+    "canceled": "{title} (Canceled)",
+    "kinds": {
+      "Meeting": "Meeting",
+      "Milestone": "Milestone",
+      "Deadline": "Deadline"
+    },
     "localContacts": "Local contacts",
     "contactRole": "Role",
     "contactName": "Name",
@@ -154,6 +179,7 @@
     "calledAt": "Called",
     "calledBy": "Called by",
     "notCalled": "Not called",
+    "calledViaLink": "{caller} (showcaller link)",
     "noCues": "This running order has no cues.",
     "curfew": "Curfew",
     "tbc": "TBC",
@@ -288,7 +314,8 @@
       "Signed": "Signed",
       "Superseded": "Superseded",
       "Expired": "Expired",
-      "Canceled": "Canceled"
+      "Canceled": "Canceled",
+      "Executed": "Executed"
     }
   },
   "deletionCertificate": {
@@ -499,6 +526,118 @@
     "a6": "A6",
     "cr80": "CR80 card"
   },
+  "book": {
+    "contents": "Contents",
+    "kind": "Kind",
+    "dates": "Dates",
+    "range": "{from} to {to}",
+    "wholeProject": "Whole project",
+    "sections": "Sections",
+    "documents": "Documents",
+    "noDocuments": "This book holds no documents.",
+    "leftOutUnreadable": "Records you cannot open, left out: {count}.",
+    "leftOutUnpublished": "Day and call sheets not yet published, left out: {count}.",
+    "kinds": {
+      "TourBook": "Tour Book",
+      "ProductionBook": "Production Book"
+    },
+    "sectionKinds": {
+      "daysheet": "Day sheets",
+      "callsheet": "Call sheets",
+      "runofshow": "Runs of show",
+      "beo": "Banquet event orders",
+      "inspectionreport": "Inspection reports",
+      "incidentreport": "Incident reports",
+      "finalcostreport": "Final cost report",
+      "wrapupreport": "Wrap-up report"
+    }
+  },
+  "wrapUp": {
+    "title": "Wrap-up report {project}",
+    "state": "Debrief",
+    "states": {
+      "notStarted": "Not started",
+      "open": "Open",
+      "completed": "Completed"
+    },
+    "completedBy": "Completed by",
+    "completedOn": "Completed on",
+    "sections": {
+      "summary": "Management summary",
+      "budget": "Budget against actuals",
+      "attendance": "Attendance",
+      "sustainability": "Sustainability and carbon",
+      "incidents": "Incidents",
+      "debrief": "Debrief"
+    },
+    "aiReviewed": "Drafted with Aurora and reviewed by {name} on {date}",
+    "writtenBy": "Written by {name} on {date}",
+    "noSummary": "No management summary yet.",
+    "notIncluded": "Not included: you cannot read {section}.",
+    "unmeasured": "Unmeasured",
+    "figure": "{value} {unit}",
+    "metric": "Measure",
+    "target": "Target",
+    "measured": "Measured",
+    "outcome": "Outcome",
+    "noMeasurements": "No measures in this family.",
+    "severity": "Severity",
+    "count": "Count",
+    "totalIncidents": "Total",
+    "openIncidents": "Open",
+    "noIncidents": "No incidents were reported.",
+    "area": "Area",
+    "kind": "Kind",
+    "point": "Point",
+    "owner": "Owner",
+    "noOwner": "No owner",
+    "noPoints": "No debrief points yet.",
+    "outcomes": {
+      "Met": "Met",
+      "NotMet": "Not met",
+      "Incomplete": "Incomplete",
+      "Unmeasured": "Unmeasured"
+    },
+    "metrics": {
+      "waste_generated": "Waste generated",
+      "waste_diverted": "Waste diverted",
+      "energy_used": "Energy used",
+      "water_used": "Water used",
+      "transport_emissions": "Transport emissions",
+      "attendance": "Attendance",
+      "online_audience": "Online audience"
+    },
+    "units": {
+      "kg": "kg",
+      "t": "t",
+      "lb": "lb",
+      "short_ton": "short tons",
+      "l": "L",
+      "m3": "m³",
+      "gal": "gal",
+      "kwh": "kWh",
+      "mwh": "MWh",
+      "kg_co2e": "kg CO2e",
+      "t_co2e": "t CO2e",
+      "count": "people",
+      "percent": "%"
+    },
+    "areas": {
+      "schedule": "Schedule",
+      "budget": "Budget",
+      "safety": "Safety",
+      "audience": "Audience",
+      "sustainability": "Sustainability",
+      "crew": "Crew",
+      "vendors": "Vendors",
+      "other": "Other"
+    },
+    "kinds": {
+      "wentWell": "Went well",
+      "toImprove": "To improve",
+      "action": "Action"
+    }
+  },
   "sitePlan": {
     "title": "Site plan {title}",
     "venue": "Venue",
@@ -626,5 +765,46 @@
       "Declined": "Declined",
       "Withdrawn": "Withdrawn"
     }
+  },
+  "quote": {
+    "title": "Quote {key}",
+    "key": "Quote",
+    "version": "Version",
+    "client": "Client",
+    "issued": "Date issued",
+    "validUntil": "Valid until",
+    "draftNotSent": "Draft: not sent",
+    "linesCaption": "Lines of quote {key}",
+    "unit": "Unit",
+    "terms": "Notes and terms",
+    "taxNote": "Prices exclude tax, which is added on the invoice where it applies.",
+    "fingerprint": "Content fingerprint (SHA-256)",
+    "signature": "Signature",
+    "nameAsSigned": "Name as signed",
+    "signed": "Signed",
+    "howSigned": "How signed",
+    "signedByLink": "Signing link with access code, sent to {email}",
+    "signedIn": "Signed in to Gateway",
+    "signatureStatement": "The signer typed their name to accept the exact quote above. XOS fixed the SHA-256 of its content when it was sent; any change to the content changes the fingerprint."
+  },
+  "engagementDocument": {
+    "text": "Agreement text",
+    "kinds": {
+      "Agreement": "Agreement",
+      "StatementofWork": "Statement of work",
+      "NonDisclosureAgreement": "Non-disclosure agreement"
+    }
+  },
+  "guestPass": {
+    "title": "Guest pass: {name}",
+    "guest": "Guest",
+    "passType": "{name} ({code})",
+    "showOn": "{show}, {date}",
+    "admitsOne": "Admits 1 more",
+    "admitsOther": "Admits {count} more",
+    "table": "Table: {table}",
+    "scanAlt": "Door code for guest pass {code}",
+    "scanCaption": "Scan at the door",
+    "scanNote": "Show this pass at the door. A scan finds the guest on tonight's list, so a pass for a guest who was removed lets nobody in."
   }
 }

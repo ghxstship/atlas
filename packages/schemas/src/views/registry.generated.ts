@@ -179,6 +179,14 @@ export const VIEW_REGISTRY: ViewRegistry = {
       alternative: true,
     },
     {
+      code: "heatmap",
+      savedAs: "Heatmap",
+      icon: "Gauge",
+      requires: ["two_dimensions", "measures"],
+      shells: ["atlas"],
+      alternative: true,
+    },
+    {
       code: "feed",
       savedAs: "Feed",
       icon: "Rss",

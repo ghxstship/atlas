@@ -5,6 +5,7 @@ import {
   assignRosterShift,
   unassignRosterShift,
 } from "@xos/data/gateway";
+import { markNoShow } from "@xos/data/crew";
 import { z } from "zod";
 import { outcomeFor, toAction, type ActionResult } from "@/lib/action-result";
 import type { FormResult } from "@/lib/actions/operations";
@@ -29,6 +30,31 @@ export async function assignRosterShiftAction(_: FormResult, form: FormData): Pr
     parsed.data.shiftId,
     parsed.data.rosterEntryId,
   );
+  return result.ok ? { done: true } : { outcome: outcomeFor(result.error) };
+}
+
+/**
+ * The agency's lead marks their roster staff on a started shift as a no-show (B9, migration 6512). The client id comes
+ * with the form, so a retry returns the same mark; the database decides who may and when.
+ */
+export async function markRosterNoShowAction(_: FormResult, form: FormData): Promise<FormResult> {
+  const parsed = z
+    .object({
+      noShowId: z.uuid(),
+      shiftId: z.uuid(),
+      reason: z.string().trim().min(1).max(500),
+    })
+    .safeParse({
+      noShowId: form.get("noShowId"),
+      shiftId: form.get("shiftId"),
+      reason: form.get("reason"),
+    });
+  if (!parsed.success) return { fieldError: "noShowReason" };
+  const result = await markNoShow(await createServerSupabase(), {
+    id: parsed.data.noShowId,
+    shiftId: parsed.data.shiftId,
+    reason: parsed.data.reason,
+  });
   return result.ok ? { done: true } : { outcome: outcomeFor(result.error) };
 }
 

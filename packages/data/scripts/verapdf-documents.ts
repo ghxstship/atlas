@@ -7,7 +7,8 @@ import { certifiedPayrollModel } from "../src/certified-payroll.ts";
 import { buildDeletionCertificateModel } from "../src/documents/deletion-certificate.ts";
 import { buildDocumentModel, sharedImageModel, watermarkText } from "../src/documents/generate.ts";
 import { DOCUMENT_KINDS, PAPERS, type PrintSize } from "../src/documents/model.ts";
-import { renderDocumentPdf, renderDocumentsPdf } from "../src/documents/render.ts";
+import { bookCoverModel } from "../src/documents/books.ts";
+import { renderBookPdf, renderDocumentPdf, renderDocumentsPdf } from "../src/documents/render.ts";
 import { osha300Model, osha300aModel, osha301Model } from "../src/osha.ts";
 import {
   CASES,
@@ -17,8 +18,10 @@ import {
   TOTALS,
 } from "../test/documents/compliance-fixtures.ts";
 import {
+  ACCEPTED_QUOTES,
   BADGE_V2,
   BRAND,
+  DAY_SHEET_V3,
   DELETION_CERTIFICATE,
   DRAWING_TALL,
   FIXTURES,
@@ -37,9 +40,13 @@ import { DESCRIBE } from "../src/documents/templates.ts";
  * shared image), so the watermark keeps the files compliant, and the Section 14.5 compliance forms
  * (OSHA Forms 300, 300A and 301 and the WH-347, ADR 0041), and the P5 credential badges: CR80 and A6 cards
  * with and without a photo, version 2 on Letter and A4 with a photo, and 3-badge batches on CR80 and Letter
- * (8 files per locale). The per-kind loop keeps the version 1 badge, issued before BADGE_V2_FROM. B1 adds site plans
- * with a wide (landscape) and a tall (portrait) drawing and a legacy plan without one, with the kinds and items
- * legends, and build sheets with and without artwork, on Letter and A4. Exits 1 when any file is not compliant or
+ * (8 files per locale), and the B8 guest pass on A6 and CR80 cards (the per-kind loop renders it on Letter and A4).
+ * The per-kind loop keeps the version 1 badge, issued before BADGE_V2_FROM, and holds the
+ * wrap-up report (B7). B1 adds site plans with a wide (landscape) and a tall (portrait) drawing and a legacy plan
+ * without one, with the kinds and items legends, and build sheets with and without artwork, on Letter and A4. B7 adds,
+ * per locale, day sheet version 3 unfiltered on Letter and filtered for a team with a show department on A4, a Tour
+ * Book on Letter (cover, contents, 3 day sheets, a call sheet and a run of show) and a Production Book on A4 (with the
+ * final cost report and the wrap-up). Exits 1 when any file is not compliant or
  * veraPDF cannot run.
  *
  *   pnpm --filter @xos/data documents:verapdf [--keep]
@@ -179,6 +186,123 @@ for (const locale of LOCALES) {
       writeFileSync(join(dir, name), await renderDocumentPdf(model, { paper, orientation }), {
         mode: 0o644,
       });
+      files.push(name);
+    }
+  }
+
+  // B7: day sheet version 3, unfiltered and for an audience, and both kinds of book.
+  const doc = (kind: Parameters<typeof buildDocumentModel>[0], data: unknown, paper: PrintSize) =>
+    buildDocumentModel(kind, data as never, {
+      locale,
+      messages,
+      brand: BRAND,
+      recordUrl: `https://atlas.example.test/northwind/documents/${kind}`,
+      now: NOW,
+      paper,
+    });
+  for (const [name, model, paper] of [
+    [`day-sheet-v3.${locale}.letter.pdf`, doc("day-sheet", DAY_SHEET_V3, "letter"), "letter"],
+    [
+      `day-sheet-v3-team-lighting.${locale}.a4.pdf`,
+      doc(
+        "day-sheet",
+        { ...DAY_SHEET_V3, audience: { label: "Load-In Crew", showDepartment: "Lighting" } },
+        "a4",
+      ),
+      "a4",
+    ],
+  ] as const) {
+    writeFileSync(join(dir, name), await renderDocumentPdf(model, { paper }), { mode: 0o644 });
+    files.push(name);
+  }
+  const days = ["2026-10-22", "2026-10-23", "2026-10-24"];
+  for (const [kind, paper, sections] of [
+    [
+      "Tour Book",
+      "letter",
+      [
+        ...days.map((day) =>
+          doc("day-sheet", { ...DAY_SHEET_V3, sheet: { ...DAY_SHEET_V3.sheet, day } }, "letter"),
+        ),
+        doc("call-sheet", FIXTURES["call-sheet"], "letter"),
+        doc("run-of-show", FIXTURES["run-of-show"], "letter"),
+      ],
+    ],
+    [
+      "Production Book",
+      "a4",
+      [
+        doc("day-sheet", DAY_SHEET_V3, "a4"),
+        doc("final-cost-report", FIXTURES["final-cost-report"], "a4"),
+        doc("wrap-up-report", FIXTURES["wrap-up-report"], "a4"),
+      ],
+    ],
+  ] as const) {
+    const cover = bookCoverModel(
+      {
+        project: FIXTURES["day-sheet"].project,
+        book: {
+          id: "b0000000-0000-4000-8000-000000000001",
+          name: `${kind}: Northwind Festival`,
+          kind,
+          startsOn: kind === "Tour Book" ? "2026-10-22" : null,
+          endsOn: kind === "Tour Book" ? "2026-10-24" : null,
+          sections:
+            kind === "Tour Book"
+              ? ["day-sheet", "call-sheet", "run-of-show"]
+              : ["day-sheet", "final-cost-report", "wrap-up-report"],
+          createdAt: "2026-10-01T00:00:00Z",
+        },
+        contents: sections.map((m) => ({ title: m.title, recordKey: m.facts.recordKey, page: 0 })),
+        unreadable: 1,
+        unpublished: 1,
+      },
+      {
+        locale,
+        messages,
+        brand: BRAND,
+        now: NOW,
+        paper,
+        recordUrl: "https://atlas.example.test/northwind/p/NWF26/documents?book=b0000000",
+      },
+    );
+    const name = `book-${kind === "Tour Book" ? "tour" : "production"}.${locale}.${paper}.pdf`;
+    writeFileSync(
+      join(dir, name),
+      await renderBookPdf(cover, sections, { paper, title: cover.title, lang: locale }),
+      {
+        mode: 0o644,
+      },
+    );
+    files.push(name);
+  }
+
+  // B8 guest passes on the two cards: the card layout without a portrait, the door code centred.
+  for (const paper of ["a6", "cr80"] as const) {
+    const name = `guest-pass.${locale}.${paper}.pdf`;
+    const model = buildDocumentModel("guest-pass", FIXTURES["guest-pass"], {
+      locale,
+      messages,
+      brand: BRAND,
+      recordUrl: "https://atlas.example.test/northwind/documents/guest-pass",
+      now: NOW,
+      paper,
+    });
+    writeFileSync(join(dir, name), await renderDocumentPdf(model, { paper }), { mode: 0o644 });
+    files.push(name);
+  }
+  // An Accepted quote's Signature block (S14.5-01), signed through a link and signed in.
+  for (const [variant, data] of Object.entries(ACCEPTED_QUOTES)) {
+    const model = buildDocumentModel("quote", data, {
+      locale,
+      messages,
+      brand: BRAND,
+      recordUrl: "https://atlas.example.test/northwind/documents/quote",
+      now: NOW,
+    });
+    for (const paper of PAPERS) {
+      const name = `${variant}.${locale}.${paper}.pdf`;
+      writeFileSync(join(dir, name), await renderDocumentPdf(model, { paper }), { mode: 0o644 });
       files.push(name);
     }
   }

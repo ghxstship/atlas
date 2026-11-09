@@ -12,8 +12,8 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 /**
- * A share link (Section 8.6, finding A65-016): the visitor enters the access code when the link has
- * one, and the form POSTs to the file route, which opens the link and sends the file. The code
+ * A share link (Section 8.6, finding A65-016; ADR 0142): the visitor enters the link's access code, and
+ * the form POSTs to the file route, which opens the link and sends the file. The code
  * travels only in the form body, never in the address. Refusals come back as `?reason=`.
  */
 export default async function SharePage({ params, searchParams }: PageProps<"/share/[token]">) {

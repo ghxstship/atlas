@@ -44,7 +44,7 @@ export function MultiSelect({
             data-combobox={fieldId}
             className={cx(
               controlClass,
-              "relative flex flex-wrap items-center gap-4 h-auto min-h-control-md py-2 ps-4 pe-24",
+              "relative flex flex-wrap items-center gap-4 h-auto! min-h-control-md py-2 ps-4 pe-24",
             )}
           >
             {chosen.map((o) => (

@@ -11,6 +11,7 @@ import type {
 import { BUDGET_LINE_TYPES, xyzFor } from "@xos/data/finance";
 import { Button, Combobox, Dialog, Drawer, Input, Select, Textarea } from "@xos/ui";
 import { useRouter } from "next/navigation";
+import { useLocale } from "next-intl";
 import { useActionState, useEffect, useMemo, useState, useTransition } from "react";
 import {
   addBudgetLinesAction,
@@ -20,6 +21,7 @@ import {
   type ActionState,
 } from "@/app/[org]/finance/actions";
 import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
+import { lineConflictFields, type LineConflictField } from "@/lib/finance/live-lines";
 import { parsePastedLines } from "@/lib/finance/paste";
 import { submit, type BudgetEditorProps as Props } from "./budget-editor-shared";
 import { ActionFeedback } from "./kit-action-feedback";
@@ -51,30 +53,61 @@ export function ConflictDialog({
   onTakeTheirs: () => void;
 }) {
   const t = useFinanceT();
+  const locale = useLocale();
   const money = (minor: number | null) =>
     minor === null
       ? t("common.unpriced")
-      : new Intl.NumberFormat(undefined, { style: "currency", currency }).format(
+      : new Intl.NumberFormat(locale, { style: "currency", currency }).format(
           minor / 10 ** exponent,
         );
-  const fields: { label: string; mine: string; theirs: string }[] = [
-    {
+  const percent = (bp: number | null) =>
+    bp === null
+      ? t("common.none")
+      : new Intl.NumberFormat(locale, { style: "percent", maximumFractionDigits: 2 }).format(
+          bp / 10000,
+        );
+  const quantity = new Intl.NumberFormat(locale);
+  const onQuoteLabel = (excluded: boolean) => (excluded ? t("common.no") : t("common.yes"));
+  const { mine, theirs } = conflict;
+  const row: Record<LineConflictField, { label: string; mine: string; theirs: string }> = {
+    description: {
       label: t("budgets.columns.description"),
-      mine: conflict.mine.description,
-      theirs: conflict.theirs.description,
+      mine: mine.description,
+      theirs: theirs.description,
     },
-    { label: t("budgets.columns.urid"), mine: conflict.mine.urid, theirs: conflict.theirs.urid },
-    {
+    urid: { label: t("budgets.columns.urid"), mine: mine.urid, theirs: theirs.urid },
+    quantity: {
       label: t("budgets.columns.quantity"),
-      mine: String(conflict.mine.quantity),
-      theirs: String(conflict.theirs.quantity),
+      mine: quantity.format(mine.quantity),
+      theirs: quantity.format(theirs.quantity),
     },
-    {
+    unitPrice: {
       label: t("budgets.columns.unitPrice"),
-      mine: money(conflict.mine.unitPriceMinor),
-      theirs: money(conflict.theirs.unitPriceMinor),
+      mine: money(mine.unitPriceMinor),
+      theirs: money(theirs.unitPriceMinor),
     },
-  ].filter((f) => f.mine !== f.theirs);
+    markup: {
+      label: t("budgets.columns.markup"),
+      mine: percent(mine.markupBp ?? null),
+      theirs: percent(theirs.markupBp),
+    },
+    clientPrice: {
+      label: t("budgets.columns.clientUnitPrice"),
+      mine: money(mine.clientUnitPriceMinor ?? null),
+      theirs: money(theirs.clientUnitPriceMinor),
+    },
+    onQuote: {
+      label: t("budgets.columns.onQuote"),
+      mine: onQuoteLabel(mine.excludedFromQuote ?? false),
+      theirs: onQuoteLabel(theirs.excludedFromQuote),
+    },
+    etc: {
+      label: t("budgets.columns.etc"),
+      mine: money(mine.etcMinor ?? null),
+      theirs: money(theirs.etcMinor),
+    },
+  };
+  const fields = lineConflictFields(mine, theirs).map((field) => row[field]);
   return (
     <Dialog
       open

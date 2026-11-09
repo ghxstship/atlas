@@ -7,7 +7,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(39);
+select plan(43);
 
 -- Assets --------------------------------------------------------------------------------------------------
 select pg_temp.as_user('carol');
@@ -93,6 +93,27 @@ select pg_temp.as_user('frank');
 select lives_ok($$update app.certification_holders set public_verification_consented = true where id = (select id from world where key = 'holder')$$, 'the holder consents');
 select pg_temp.as_anon();
 select is((select holder_name from api_public.verify_certification((select verification_code from code))), 'Frank Adeyemi', 'inv_21_no_self_issue: with consent it verifies publicly, showing only the rendered fields');
+
+-- A link ends with its project (owner decision of 2026-11-06, ADR 0142).
+select pg_temp.as_platform();
+select is(pg_get_function_result('api_public.verify_certification(text)'::regprocedure),
+  'TABLE(holder_name text, certification text, issuing_body text, expires_on date)', 'the certificate check answers only name, certification, issuing body and expiry');
+select pg_temp.as_anon();
+select results_eq($$select array_agg(k order by k) from api_public.verify_certification((select verification_code from code)) v, jsonb_object_keys(to_jsonb(v)) k$$,
+  $$values (array['certification', 'expires_on', 'holder_name', 'issuing_body'])$$, 'anon gets exactly those four fields');
+select is((select count(*)::int from api_public.verify_certification('not-the-code')), 0, 'anon gets nothing for a wrong code');
+select pg_temp.as_platform();
+create temporary table erased as select person_id from app.certification_holders where id = pg_temp.id('holder');
+set local session_replication_role = replica;
+update app.people set deleted_at = now() where id = (select person_id from erased);
+set local session_replication_role = origin;
+select is((select count(*)::int from api_public.verify_certification((select verification_code from code))), 0, 'a removed person no longer confirms');
+set local session_replication_role = replica;
+update app.people set deleted_at = null where id = (select person_id from erased);
+set local session_replication_role = origin;
+
+select pg_temp.as_anon();
+
 select pg_temp.as_platform();
 
 select * from finish();

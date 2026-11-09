@@ -78,7 +78,7 @@ export type Outcome<A> =
       readonly kind: "answer";
       readonly answer: A;
       readonly model: string | null;
-      /** The logged request, which a drafted list is confirmed by. */
+      /** The logged request (app.ai_requests): a drafted list is confirmed by it, and a saved draft names it (B7). */
       readonly requestId: string | null;
       readonly suggestions: readonly AuroraProposalSummary[];
     }

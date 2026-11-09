@@ -115,8 +115,15 @@ export async function dispatchPlatformEmails(
               ...common,
               template: "party_invitation",
               props: {
-                kind: claim.args["kind"] === "roster" ? "roster" : "account",
+                kind:
+                  claim.args["kind"] === "roster"
+                    ? "roster"
+                    : claim.args["kind"] === "pool"
+                      ? "pool"
+                      : "account",
                 inviterName: text(claim.args["inviter_name"]),
+                orgName: text(claim.args["org_name"]),
+                jobTitle: text(claim.args["job_title"]),
                 accountName: text(claim.args["account_name"]),
                 projectName: text(claim.args["project_name"]),
                 partyName: text(claim.args["party_name"]),

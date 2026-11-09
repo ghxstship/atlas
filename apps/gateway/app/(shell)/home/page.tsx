@@ -28,11 +28,15 @@ import type { ReactNode } from "react";
 import { getLocale } from "next-intl/server";
 import { ActionButton } from "@/components/actions/action-button";
 import { HomeSearch } from "@/components/page/home-search";
+import { StillComingDecline } from "@/components/home/still-coming-decline";
+import { confirmStillComingAction } from "@/lib/actions/still-coming";
+import { listStillComing } from "@xos/data/notification-actions";
 import { OpportunityLinkCard } from "@/components/page/opportunity-card";
 import { PageTitle, RegionError, Section, pickView, ViewSwitcher } from "@/components/page/page";
 import { ButtonLink, Card, EmptyStateLink, Icon, PropertyList } from "@/components/ui";
 import { UpNextActions } from "@/components/page/up-next-actions";
 import { ForYourInformation } from "@/components/page/for-your-information";
+import { IntakeRequestsCard } from "@/components/outside/intake-requests-card";
 import { acceptRepresentationAction, signDocumentAction } from "@/lib/actions/engagement";
 import {
   acceptAccountMembershipAction,
@@ -62,6 +66,8 @@ import { lensApplications, lensEngagements, lensRepresentations } from "@/lib/sh
 import { requireNode, sitemap } from "@/lib/shell/sitemap";
 import { getNode } from "@xos/ia";
 import { enumLabelKey, getTranslate, type Translate } from "@/lib/shell/translate";
+import { signsInOneClick } from "@/lib/documents/links";
+import { tabHref } from "@/lib/engagement";
 import { engagementTitle } from "@/lib/engagement-state";
 import { RosterFactsButton } from "@/components/roster/roster-facts-button";
 
@@ -119,6 +125,7 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
     memberships,
     rosterEntries,
     rosterEngagements,
+    stillComing,
   ] = await Promise.all([
     listSharedRecords(ctx.db, {
       projectIds: [...new Set(current.map((e) => e.projectId))],
@@ -136,6 +143,7 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
     listMyUnconfirmedMemberships(ctx.db, ctx.personId),
     listMyRosterEntries(ctx.db),
     listMyRosterEngagements(ctx.db),
+    listStillComing(ctx.db),
   ]);
   const rostered = rosterEngagements.ok ? rosterEngagements.data : [];
   const upNext = records.ok ? pickUpNext(records.data, current, now, rostered) : null;
@@ -155,6 +163,7 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
     invitations: invitations.ok ? invitations.data : [],
     memberships: memberships.ok ? memberships.data : [],
     rosterEntries: rosterEntries.ok ? rosterEntries.data : [],
+    stillComing: stillComing.ok ? stillComing.data : [],
     personId: ctx.personId,
     now,
   });
@@ -167,7 +176,8 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
     !invitations.ok ||
     !memberships.ok ||
     !rosterEntries.ok ||
-    !rosterEngagements.ok;
+    !rosterEngagements.ok ||
+    !stillComing.ok;
   const firstName = (ctx.personName ?? "").split(" ")[0] ?? "";
 
   return (
@@ -206,6 +216,15 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
 
       <Section title={t("gateway.home.needsYou.title")}>
         {failed ? <RegionError /> : null}
+        {query["answered"] === "coming" || query["answered"] === "declined" ? (
+          <p role="status" className="m-0 text-text-13 text-success-text">
+            {t(
+              query["answered"] === "coming"
+                ? "gateway.home.needsYou.stillComingConfirmed"
+                : "gateway.home.needsYou.stillComingDeclined",
+            )}
+          </p>
+        ) : null}
         {feed.length === 0 && !failed ? (
           <EmptyStateLink
             icon="Inbox"
@@ -222,6 +241,8 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
           </ul>
         )}
       </Section>
+
+      <IntakeRequestsCard db={ctx.db} t={t} locale={locale} />
 
       <ForYourInformation db={ctx.db} t={t} locale={locale} />
 
@@ -346,6 +367,8 @@ function detailItems(
 
 function feedKey(item: FeedItem): string {
   switch (item.kind) {
+    case "stillComing":
+      return `still-coming-${item.ask.id}`;
     case "sign":
       return `sign-${item.document.id}`;
     case "offer":
@@ -487,17 +510,44 @@ function FeedRow({ item, locale, t }: { item: FeedItem; locale: string; t: Trans
     </li>
   );
   switch (item.kind) {
+    case "stillComing":
+      return row(
+        "CalendarClock",
+        t("gateway.home.needsYou.stillComing", { title: item.ask.args["title"] ?? "" }),
+        item.ask.args["startsAt"] ? formatDateTime(locale, item.ask.args["startsAt"]) : "",
+        <span className="flex flex-wrap items-start gap-8">
+          <ActionButton
+            action={confirmStillComingAction.bind(null, item.ask.id)}
+            label={t("gateway.home.needsYou.stillComingYes")}
+            variant="secondary"
+          />
+          <StillComingDecline notificationId={item.ask.id} />
+        </span>,
+      );
     case "sign":
       return row(
         "FileSignature",
         t("gateway.home.needsYou.sign", { title: item.document.title }),
         `${item.engagement.orgName} · ${t(enumLabelKey("engagementDocumentKind", item.document.kind))}`,
-        <ActionButton
-          action={signDocumentAction.bind(null, item.document.id)}
-          label={t("gateway.common.sign")}
-          variant="secondary"
-          done={t("gateway.common.signed")}
-        />,
+        // A quote and a generated agreement are signed from the engagement's Documents tab, once read.
+        !signsInOneClick(item.document) ? (
+          <ButtonLink
+            href={tabHref(item.engagement.key, "engagement.documents")}
+            variant="secondary"
+            size="sm"
+          >
+            {item.document.kind === "Quote"
+              ? t("gateway.home.needsYou.reviewQuote")
+              : t("gateway.home.needsYou.readAndSign")}
+          </ButtonLink>
+        ) : (
+          <ActionButton
+            action={signDocumentAction.bind(null, item.document.id)}
+            label={t("gateway.common.sign")}
+            variant="secondary"
+            done={t("gateway.common.signed")}
+          />
+        ),
       );
     case "offer": {
       const o = item.application.opportunity;
@@ -560,10 +610,12 @@ function FeedRow({ item, locale, t }: { item: FeedItem; locale: string; t: Trans
         "Mail",
         i.kind === "account"
           ? t("gateway.home.feed.invitation.account", { account: i.accountName ?? "" })
-          : t("gateway.home.feed.invitation.roster", {
-              party: i.partyName ?? "",
-              project: i.projectName ?? "",
-            }),
+          : i.kind === "pool"
+            ? t("gateway.home.feed.invitation.pool", { org: i.orgName ?? "" })
+            : t("gateway.home.feed.invitation.roster", {
+                party: i.partyName ?? "",
+                project: i.projectName ?? "",
+              }),
         [
           i.kind === "account" && i.accountRole
             ? t(enumLabelKey("accountRole", i.accountRole))

@@ -120,11 +120,13 @@ export function sortInbox(items: readonly InboxItem[]): InboxItem[] {
 /**
  * True when an item can be approved or rejected from the Inbox now: an approval request or reminder (P9) about an
  * approval in review, a submitted timesheet (migration 1140; its request leaves the Inbox once the timesheet is
- * decided) or a pass, dock booking or equipment approval in review (5860).
+ * decided), a pass, dock booking or equipment approval in review (5860), or a record review (B14, 6264: the subject is
+ * the review's Approval record, and its request leaves the Inbox once the review is decided).
  */
 export function isActionableApproval(item: InboxItem): boolean {
   if (item.kind !== "approval.requested" && item.kind !== "approval.reminder") return false;
-  if (item.subjectTable === "timesheets") return item.subjectId !== null;
+  if (item.subjectTable === "timesheets" || item.subjectTable === "app.records")
+    return item.subjectId !== null;
   if (item.subjectTable === "subject_approvals") return item.subjectApproval?.state === "In Review";
   return item.approval?.state === "In Review";
 }

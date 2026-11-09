@@ -104,6 +104,10 @@
       "callSheets": {
         "empty": "Aún no hay hojas de llamado. Envía horarios de llamado al equipo y talento.",
         "action": "Nueva hoja"
+      },
+      "segments": {
+        "empty": "Aún no hay segmentos en la biblioteca. Guarde un bloque que usa en muchos shows.",
+        "action": "Segmento nuevo"
       }
     },
     "advancing": {

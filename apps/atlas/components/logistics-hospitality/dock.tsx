@@ -4,22 +4,28 @@ import {
   listDockSlots,
   listShipments,
   listZoneOptions,
+  slotOutsideSiteWindows,
   type DockSlot,
   type Shipment,
   type ZoneOption,
 } from "@xos/data/logistics";
 import type { EngagementOption } from "@xos/data/project-people";
 import { approvalBySubject, listSubjectApprovals } from "@xos/data/workflow";
+import { getSiteWindows, type SiteWindows } from "@xos/data/projects";
 import type { RecordState } from "@xos/ui";
 import type { Route } from "next";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import type { ReactNode } from "react";
+import { listDeliveryWindows, type DeliveryWindow } from "@xos/data/delivery-windows";
 import {
   bookDockSlotAction,
+  cancelDeliveryBookingAction,
   cancelDockSlotAction,
   checkInDockSlotAction,
+  createDeliveryWindowsAction,
   restoreDockSlotAction,
+  setDeliveryWindowOpenAction,
 } from "@/app/[org]/logistics/actions";
 import { ButtonLink, EmptyStateLink } from "@/components/ui";
 import { engagementOptions } from "@/lib/people/project-people";
@@ -46,7 +52,9 @@ import { PageHeader, RefusalNotice, StateIcon, TemplateCollection } from "./ui";
  * resource schedule by dock and day (the default), a calendar, a list and a table, where the week's
  * slots select and move to another dock in bulk (Section 11.7). A slot opens in the side peek
  * (`?peek={slot id}`; dock slots carry no display key), where it is checked in, moved or canceled.
- * Slots at one dock never overlap (dock_slot_overlap).
+ * Slots at one dock never overlap (dock_slot_overlap). A delivery window (B11, ADR 0150) renders as one block, "3 of 5
+ * vehicles", not one per booking, and its peek lists the bookings; Add delivery windows is secondary and only on a
+ * project's tab, so its form holds seven fields. The org-level page lists windows and links to the project's tab.
  */
 
 export const DOCK_VIEWS = ["resource-schedule", "calendar", "list", "table"] as const;
@@ -97,9 +105,14 @@ export async function DockSection({
     view === "calendar"
       ? { from: `${cal.previous}-20T00:00:00Z`, to: `${cal.next}-10T00:00:00Z` }
       : { from: `${isoDay(monday - 1)}T00:00:00Z`, to: `${isoDay(monday + 8)}T00:00:00Z` };
-  const [zones, slots, shipments] = await Promise.all([
+  const [zones, allSlots, windowsRead, shipments, siteWindows] = await Promise.all([
     listZoneOptions(db, venueIds),
     listDockSlots(db, {
+      orgId: scope.ctx.org.id,
+      ...(scope.project ? { projectId: scope.project.id } : {}),
+      ...window,
+    }),
+    listDeliveryWindows(db, {
       orgId: scope.ctx.org.id,
       ...(scope.project ? { projectId: scope.project.id } : {}),
       ...window,
@@ -108,13 +121,42 @@ export async function DockSection({
       orgId: scope.ctx.org.id,
       ...(scope.project ? { projectId: scope.project.id } : {}),
     }),
+    // B14 (6263): one project's bump-in and bump-out, computed from its Load In and Load Out days.
+    scope.project ? getSiteWindows(db, scope.project.id) : Promise.resolve(null),
   ]);
+  const bump: SiteWindows | null = siteWindows?.ok ? siteWindows.data : null;
+  /** The local days a window covers: from its first day to the day before it ends (it ends at 00:00). */
+  const windowDays = (range: SiteWindows["bumpIn"]) => {
+    if (!range?.startsAt || !range.endsAt) return new Set<string>();
+    const out = new Set<string>();
+    const first = isoDateIn(range.startsAt, timeZone);
+    const last = isoDateIn(new Date(Date.parse(range.endsAt) - 1).toISOString(), timeZone);
+    for (
+      let d = Date.parse(`${first}T00:00:00Z`);
+      d <= Date.parse(`${last}T00:00:00Z`);
+      d += DAY_MS
+    ) {
+      out.add(new Date(d).toISOString().slice(0, 10));
+    }
+    return out;
+  };
+  const bumpInDays = windowDays(bump?.bumpIn ?? null);
+  const bumpOutDays = windowDays(bump?.bumpOut ?? null);
+  const band = (day: string) =>
+    bumpInDays.has(day) ? t("dock.bumpIn") : bumpOutDays.has(day) ? t("dock.bumpOut") : null;
+  /** A warning, never a refusal (as R7a's hire warnings): the slot meets neither window. */
+  const outside = (slot: DockSlot) => (bump ? slotOutsideSiteWindows(slot, bump) : false);
   if (!zones.ok) throw new Error(`Cannot read docks: ${JSON.stringify(zones.error)}`);
-  if (!slots.ok) throw new Error(`Cannot read dock slots: ${JSON.stringify(slots.error)}`);
+  if (!allSlots.ok) throw new Error(`Cannot read dock slots: ${JSON.stringify(allSlots.error)}`);
+  if (!windowsRead.ok)
+    throw new Error(`Cannot read delivery windows: ${JSON.stringify(windowsRead.error)}`);
+  // A window is one block, so its bookings do not show as slots of their own.
+  const slots = { data: allSlots.data.filter((s) => s.deliveryWindowId === null) };
+  const windows = windowsRead.data;
   if (!shipments.ok) throw new Error(`Cannot read shipments: ${JSON.stringify(shipments.error)}`);
   const shipmentById = new Map(shipments.data.map((s) => [s.id, s]));
   // P9: a booking a project's approval rule holds shows Awaiting approval, Approved or Rejected (5860); it is not gated.
-  const approvals = await listSubjectApprovals(db, { dockSlotIds: slots.data.map((s) => s.id) });
+  const approvals = await listSubjectApprovals(db, { dockSlotIds: allSlots.data.map((s) => s.id) });
   const approvalOf = approvalBySubject(approvals.ok ? approvals.data : []);
   const approvalLabel = (id: string): string | null => {
     const a = approvalOf.get(id);
@@ -144,13 +186,14 @@ export async function DockSection({
     const shipment = slot.shipmentId ? shipmentById.get(slot.shipmentId) : undefined;
     const start = format.time(slot.startsAt, slot.timeZone);
     const end = format.time(slot.endsAt, slot.timeZone);
-    return shipment
+    const label = shipment
       ? t("dock.slotWithShipment", {
           start,
           end,
           shipment: `${shipment.key} ${shipmentTitle(shipment)}`,
         })
       : t("dock.slot", { start, end });
+    return outside(slot) ? `${label} · ${t("dock.outsideWindows")}` : label;
   };
 
   const fieldsFor = (slot?: DockSlot): FieldSpec[] => {
@@ -229,8 +272,59 @@ export async function DockSection({
     ];
   };
 
+  const windowHref = (id: string) => hrefWith(base, search, { window: id, peek: null, full: null });
+  const windowLabel = (w: DeliveryWindow) =>
+    t("dock.windows.block", {
+      start: format.time(w.startsAt, w.timeZone),
+      end: format.time(w.endsAt, w.timeZone),
+      booked: w.bookings.length,
+      limit: w.vehicleLimit,
+    });
+  const project = scope.project;
+  const canAddWindows =
+    project && writable.some((p) => p.id === project.id) && zones.data.length > 0;
+
   let overlay: ReactNode = null;
-  if (param(search, "create") === "1") {
+  if (param(search, "createWindows") === "1" && canAddWindows) {
+    const zoneChoices = zones.data.filter((z) => !project.venueId || z.venueId === project.venueId);
+    overlay = (
+      <FormDrawer
+        title={t("dock.windows.add")}
+        hidden={{ org: scope.ctx.org.slug, projectId: project.id }}
+        action={createDeliveryWindowsAction}
+        submitLabel={t("dock.windows.add")}
+        closeHref={listHref}
+        fields={[
+          {
+            name: "zoneId",
+            label: t("dock.windows.gate"),
+            kind: "select",
+            required: true,
+            defaultValue: zoneChoices[0]?.id ?? "",
+            options: zoneChoices.map((z) => ({ value: z.id, label: `${z.code} ${z.name}` })),
+          },
+          { name: "firstDay", label: t("dock.windows.firstDay"), kind: "date", required: true },
+          { name: "lastDay", label: t("dock.windows.lastDay"), kind: "date", required: true },
+          { name: "fromTime", label: t("dock.windows.from"), kind: "time", required: true },
+          { name: "toTime", label: t("dock.windows.to"), kind: "time", required: true },
+          {
+            name: "slotMinutes",
+            label: t("dock.windows.slotLength"),
+            kind: "number",
+            required: true,
+            defaultValue: "60",
+          },
+          {
+            name: "vehicleLimit",
+            label: t("dock.windows.vehicleLimit"),
+            kind: "number",
+            required: true,
+            defaultValue: "5",
+          },
+        ]}
+      />
+    );
+  } else if (param(search, "create") === "1") {
     overlay =
       writable.length === 0 ? (
         <RefusalNotice
@@ -251,8 +345,82 @@ export async function DockSection({
   }
 
   const peekId = param(search, "peek");
+  const windowId = param(search, "window");
+  const openWindow = windowId ? windows.find((w) => w.id === windowId) : undefined;
   let record: ReactNode = null;
-  if (peekId) {
+  if (openWindow) {
+    const org = scope.ctx.org.slug;
+    const canManage = scope.access.can(openWindow.projectId, "logistics.dock_slot.write");
+    const projectTab = nodeHref("project.logistics", {
+      ...scope.params,
+      projectKey: openWindow.projectKey,
+    });
+    record = (
+      <RecordView
+        mode="peek"
+        kindLabel={t("dock.windows.kind")}
+        recordKey={openWindow.projectKey}
+        title={`${openWindow.zoneName ?? ""}, ${format.dateTime(openWindow.startsAt, openWindow.timeZone)}`}
+        state={openWindow.isOpen ? "scheduled" : "complete"}
+        stateLabel={openWindow.isOpen ? t("dock.windows.open") : t("dock.windows.closed")}
+        propertiesLabel={t("common.properties")}
+        backHref={listHref}
+        backLabel={t("common.backToList", { section: t("dock.title") })}
+        properties={[
+          { label: t("dock.fields.project"), value: openWindow.projectKey },
+          { label: t("dock.windows.gate"), value: openWindow.zoneName ?? "" },
+          { label: t("dock.windows.vehicles"), value: windowLabel(openWindow) },
+        ]}
+        actions={
+          <>
+            {canManage ? (
+              <ActionButton
+                label={openWindow.isOpen ? t("dock.windows.close") : t("dock.windows.reopen")}
+                run={setDeliveryWindowOpenAction.bind(null, org, openWindow.id, !openWindow.isOpen)}
+              />
+            ) : null}
+            {!scope.project && projectTab ? (
+              <ButtonLink href={projectTab} size="sm">
+                {t("dock.windows.openProject")}
+              </ButtonLink>
+            ) : null}
+          </>
+        }
+      >
+        {openWindow.bookings.length === 0 ? (
+          <p className="m-0 text-text-13 text-text-secondary">{t("dock.windows.noBookings")}</p>
+        ) : (
+          <ul
+            aria-label={t("dock.windows.bookings")}
+            className="m-0 flex list-none flex-col gap-8 p-0 text-text-13"
+          >
+            {openWindow.bookings.map((b) => (
+              <li key={b.id} className="flex flex-wrap items-center justify-between gap-8">
+                <span>
+                  {[
+                    b.referenceCode,
+                    b.vendorName ?? t("dock.noVendor"),
+                    b.vehicleIdentifier ?? t("dock.windows.noPlate"),
+                    approvalLabel(b.id),
+                    b.checkedInAt ? t("dock.state.checkedIn") : null,
+                  ]
+                    .filter(Boolean)
+                    .join(" · ")}
+                </span>
+                {canManage && !b.checkedInAt ? (
+                  <ActionButton
+                    label={t("dock.windows.cancelBooking")}
+                    variant="ghost"
+                    run={cancelDeliveryBookingAction.bind(null, org, b.id)}
+                  />
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        )}
+      </RecordView>
+    );
+  } else if (peekId) {
     const found = UUID.test(peekId) ? await getDockSlot(db, peekId) : null;
     if (found && !found.ok && found.error.kind !== "not-found") {
       throw new Error(`Cannot read dock slot: ${JSON.stringify(found.error)}`);
@@ -414,9 +582,16 @@ export async function DockSection({
       }
       actions={
         writable.length > 0 && zones.data.length > 0 ? (
-          <ButtonLink href={createHref} variant="primary">
-            {t("dock.book")}
-          </ButtonLink>
+          <>
+            {canAddWindows ? (
+              <ButtonLink href={hrefWith(base, search, { createWindows: "1", peek: null })}>
+                {t("dock.windows.add")}
+              </ButtonLink>
+            ) : null}
+            <ButtonLink href={createHref} variant="primary">
+              {t("dock.book")}
+            </ButtonLink>
+          </>
         ) : undefined
       }
     />
@@ -452,6 +627,26 @@ export async function DockSection({
     const day = Math.floor(Date.parse(`${isoDateIn(s.startsAt, s.timeZone)}T00:00:00Z`) / DAY_MS);
     return day >= monday && day < monday + 7;
   });
+  const weekWindows = windows.filter((w) => {
+    const day = Math.floor(Date.parse(`${isoDateIn(w.startsAt, w.timeZone)}T00:00:00Z`) / DAY_MS);
+    return day >= monday && day < monday + 7;
+  });
+  const windowsPart =
+    view === "resource-schedule" || view === "calendar" || weekWindows.length === 0 ? null : (
+      <OperationsList
+        label={t("dock.windows.title")}
+        openLabel={t("common.open")}
+        items={weekWindows.map((w) => ({
+          key: w.id,
+          href: windowHref(w.id),
+          state: w.isOpen ? ("scheduled" as const) : ("complete" as const),
+          stateLabel: w.isOpen ? t("dock.windows.open") : t("dock.windows.closed"),
+          title: `${w.zoneName ?? ""} ${windowLabel(w)}`,
+          chips: [w.projectKey],
+          next: format.dateTime(w.startsAt, w.timeZone) ?? "",
+        }))}
+      />
+    );
 
   let body: ReactNode;
   if (zones.data.length === 0) {
@@ -472,15 +667,30 @@ export async function DockSection({
         nextMonth={cal.next}
         previousLabel={t("common.previousMonth")}
         nextLabel={t("common.nextMonth")}
-        items={slots.data.map((s) => ({
-          date: isoDateIn(s.startsAt, s.timeZone),
-          label: `${s.zoneCode ?? ""} ${slotLabel(s)}`,
-          state: slotState(s),
-          href: peekHref(s.id),
-        }))}
+        items={[
+          // The bump windows as labelled days; selecting one opens that week's schedule.
+          ...[...bumpInDays, ...bumpOutDays].map((d) => ({
+            date: d,
+            label: band(d) ?? "",
+            state: "scheduled" as RecordState,
+            href: hrefWith(base, search, { view: "resource-schedule", week: d, month: null }),
+          })),
+          ...slots.data.map((s) => ({
+            date: isoDateIn(s.startsAt, s.timeZone),
+            label: `${s.zoneCode ?? ""} ${slotLabel(s)}`,
+            state: slotState(s),
+            href: peekHref(s.id),
+          })),
+          ...windows.map((w) => ({
+            date: isoDateIn(w.startsAt, w.timeZone),
+            label: `${w.zoneName ?? ""} ${windowLabel(w)}`,
+            state: (w.isOpen ? "scheduled" : "complete") as RecordState,
+            href: windowHref(w.id),
+          })),
+        ]}
       />
     );
-  } else if (weekSlots.length === 0) {
+  } else if (weekSlots.length === 0 && weekWindows.length === 0) {
     body = (
       <>
         {weekNav}
@@ -616,10 +826,17 @@ export async function DockSection({
                   <th
                     key={d}
                     scope="col"
-                    className="h-control-lg px-12 text-start text-text-12 font-medium bg-bg-surface border-b border-border-subtle"
+                    className={`h-control-lg px-12 text-start text-text-12 font-medium border-b border-border-subtle ${
+                      band(d) ? "bg-bg-hover" : "bg-bg-surface"
+                    }`}
                   >
                     <span className="text-text-secondary">{format.weekday(d)}</span>{" "}
                     <span className="tabular-nums">{format.date(d)}</span>
+                    {band(d) ? (
+                      <span className="mt-2 block w-fit rounded-chip border border-border-subtle px-6 text-text-12 font-semibold text-text-primary">
+                        {band(d)}
+                      </span>
+                    ) : null}
                   </th>
                 ))}
               </tr>
@@ -638,7 +855,7 @@ export async function DockSection({
                   {days.map((d) => (
                     <td
                       key={d}
-                      className="px-8 py-8 align-top border-b border-s border-border-subtle"
+                      className={`px-8 py-8 align-top border-b border-s border-border-subtle ${band(d) ? "bg-bg-hover" : ""}`}
                     >
                       <ul className="m-0 flex list-none flex-col gap-4 p-0">
                         {weekSlots
@@ -654,6 +871,22 @@ export async function DockSection({
                               >
                                 <StateIcon state={slotState(s)} size={12} />
                                 <span>{slotLabel(s)}</span>
+                              </Link>
+                            </li>
+                          ))}
+                        {weekWindows
+                          .filter(
+                            (w) => w.zoneId === z.id && isoDateIn(w.startsAt, w.timeZone) === d,
+                          )
+                          .map((w) => (
+                            <li key={w.id}>
+                              <Link
+                                href={windowHref(w.id) as Route}
+                                scroll={false}
+                                className="flex items-start gap-4 rounded-chip bg-bg-surface px-6 py-4 text-text-12"
+                              >
+                                <StateIcon state={w.isOpen ? "scheduled" : "complete"} size={12} />
+                                <span>{windowLabel(w)}</span>
                               </Link>
                             </li>
                           ))}
@@ -689,6 +922,7 @@ export async function DockSection({
       }
     >
       {body}
+      {windowsPart}
     </TemplateCollection>
   );
 }

@@ -7,8 +7,10 @@ import {
   listRoleOptions,
   rosterLocked,
   type RosterEntry,
+  rosterCopySources,
 } from "@xos/data/roster";
 import { listRosterFactStatus, rosterFactChip } from "@xos/data/roster-facts";
+import { workflowMarker } from "@xos/data/workflow-signal";
 import dynamic from "next/dynamic";
 import { ActionButton } from "@/components/actions/action-button";
 import { RegionError, Section } from "@/components/page/page";
@@ -19,7 +21,7 @@ import {
   unassignEngagementMemberAction,
   withdrawRosterEntryAction,
 } from "@/lib/actions/roster";
-import { formatDateTime } from "@/lib/format";
+import { formatDate, formatDateTime } from "@/lib/format";
 import { enumLabelKey } from "@/lib/shell/translate";
 import { toneFor } from "@/lib/states";
 import {
@@ -31,6 +33,7 @@ import {
 import { RosterFactsButton } from "@/components/roster/roster-facts-button";
 import { chipState } from "@/lib/roster-facts-steps";
 import { CrewAllocations, EntryItems } from "./crew-allocations";
+import { RosterCopyPanel } from "./roster-copy";
 import { RosterProfileButton } from "./roster-profile";
 import { RowList, TabEmpty } from "./rows";
 import type { TabProps } from "./tab-context";
@@ -58,14 +61,18 @@ const ConfirmButton = dynamic(() =>
  */
 export async function CrewTab({ view, t, locale }: TabProps) {
   const { engagement } = view;
-  const [roster, talent, roles, factStatus, allocations, requestable] = await Promise.all([
-    listEngagementRoster(view.ctx.db, engagement.id),
-    listAccountTalent(view.ctx.db, engagement.accountId),
-    listRoleOptions(view.ctx.db, engagement.roleCode),
-    listRosterFactStatus(view.ctx.db, engagement.id),
-    listEngagementAllocations(view.ctx.db, engagement.id),
-    listRequestableItems(view.ctx.db, engagement.id),
-  ]);
+  const [roster, talent, roles, factStatus, allocations, requestable, copySources] =
+    await Promise.all([
+      listEngagementRoster(view.ctx.db, engagement.id),
+      listAccountTalent(view.ctx.db, engagement.accountId),
+      listRoleOptions(view.ctx.db, engagement.roleCode),
+      listRosterFactStatus(view.ctx.db, engagement.id),
+      listEngagementAllocations(view.ctx.db, engagement.id),
+      listRequestableItems(view.ctx.db, engagement.id),
+      // B14 (6267): refused (42501) for anyone who does not manage this roster, who then sees no reuse.
+      rosterCopySources(view.ctx.db, engagement.id),
+    ]);
+  const reusable = copySources.ok ? copySources.data.filter((s) => s.entries > 0) : [];
   if (!roster.ok || !talent.ok || !roles.ok || !factStatus.ok || !allocations.ok || !requestable.ok)
     return <RegionError />;
   const statusOf = new Map(factStatus.data.map((s) => [s.rosterEntryId, s]));
@@ -124,8 +131,14 @@ export async function CrewTab({ view, t, locale }: TabProps) {
           end: formatDateTime(locale, e.arrivalEndsAt, e.arrivalTimeZone),
         })
       : t("gateway.engagement.crew.noArrival");
+  // Workflow funnel markers (A146, R11 6225): the roster went for review, and every entry was accepted.
+  const others = entries.filter((e) => !e.isSelf);
+  const submitted = others.some((e) => e.entryState === "Submitted");
+  const allAccepted = others.length > 0 && others.every((e) => e.entryState === "Accepted");
   return (
     <div className="flex flex-col gap-16">
+      {submitted ? <span hidden {...workflowMarker("gateway.crew_roster:step1")} /> : null}
+      {allAccepted ? <span hidden {...workflowMarker("gateway.crew_roster:done")} /> : null}
       {engagement.rosterLocksAt ? (
         <InlineAlert tone={locked ? "warning" : "info"}>
           {locked ? lockedSentence : t("gateway.engagement.crew.locksOn", { date: lockDate })}
@@ -279,6 +292,23 @@ export async function CrewTab({ view, t, locale }: TabProps) {
         t={t}
         locale={locale}
       />
+      {reusable.length > 0 && !locked ? (
+        <RosterCopyPanel
+          engagementId={engagement.id}
+          sources={reusable}
+          format={Object.fromEntries(
+            reusable.map((s) => [
+              s.engagementId,
+              s.startsOn
+                ? t("gateway.engagement.roster.copy.sourceLine", {
+                    project: s.projectName,
+                    date: formatDate(locale, s.startsOn),
+                  })
+                : s.projectName,
+            ]),
+          )}
+        />
+      ) : null}
       <Section id="crew-add" title={t("gateway.engagement.crew.addTitle")}>
         {locked ? (
           <p className="m-0 text-text-14 text-text-secondary">{lockedSentence}</p>

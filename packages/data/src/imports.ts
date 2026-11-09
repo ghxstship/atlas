@@ -13,7 +13,7 @@ import {
 } from "./platform-common.ts";
 import { untyped } from "./untyped.ts";
 import type { Database } from "./database.types.ts";
-import { parsePasted, rowsToCsv } from "./import-parse.ts";
+import { parsePasted, rowsToCsv, type NumberFormat } from "./import-parse.ts";
 
 /**
  * The import wizard's side of imports (A36 on A18's 0530 and A36's 1061; Section 4.6.2): upload a
@@ -39,7 +39,8 @@ export interface ImportTargetField {
 }
 
 /** The import column that names where a target's rows go: none for an org-wide target. */
-export type ImportDestinationKind = "run_of_show_id" | "project_id";
+export type ImportDestinationKind =
+  "run_of_show_id" | "project_id" | "purchase_order_id" | "budget_id";
 
 export interface ImportTarget {
   readonly code: string;
@@ -75,7 +76,10 @@ export async function listImportTargets(db: XosClient): Promise<Result<ImportTar
       writeCapability: str(t["write_capability"]) as CapabilityCode,
       fuzzyMatch: t["fuzzy_match"] === true,
       destination:
-        t["destination"] === "run_of_show_id" || t["destination"] === "project_id"
+        t["destination"] === "run_of_show_id" ||
+        t["destination"] === "project_id" ||
+        t["destination"] === "purchase_order_id" ||
+        t["destination"] === "budget_id"
           ? t["destination"]
           : null,
       fields: fields.data
@@ -137,17 +141,28 @@ export function importObjectPath(personId: string, uploadId: string, ext: string
   return `${personId}/${uploadId}.${ext}`;
 }
 
-/** Where a cue or guest list import writes: one of the two, as its target names (P3). */
+/**
+ * Where a cue or guest list import writes: one of the two, as its target names (P3). A pool invitation import names an
+ * optional pool and how its file writes amounts (B10), fixed once the import exists.
+ */
 export interface ImportDestinationInput {
   readonly projectId?: string | null;
   readonly runOfShowId?: string | null;
+  readonly talentPoolId?: string | null;
+  readonly numberFormat?: NumberFormat | null;
+  readonly purchaseOrderId?: string | null;
+  readonly budgetId?: string | null;
 }
 
-/** The destination columns of a new import; an org-wide target sends neither. */
+/** The destination columns of a new import; an org-wide target sends none of them. */
 function destinationColumns(input: ImportDestinationInput): Record<string, string> {
   return {
     ...(input.projectId ? { project_id: input.projectId } : {}),
     ...(input.runOfShowId ? { run_of_show_id: input.runOfShowId } : {}),
+    ...(input.talentPoolId ? { talent_pool_id: input.talentPoolId } : {}),
+    ...(input.numberFormat ? { number_format: input.numberFormat } : {}),
+    ...(input.purchaseOrderId ? { purchase_order_id: input.purchaseOrderId } : {}),
+    ...(input.budgetId ? { budget_id: input.budgetId } : {}),
   };
 }
 
@@ -233,12 +248,16 @@ export async function createPastedImport(
     contentType: "text/csv",
     projectId: input.projectId ?? null,
     runOfShowId: input.runOfShowId ?? null,
+    talentPoolId: input.talentPoolId ?? null,
+    numberFormat: input.numberFormat ?? null,
+    purchaseOrderId: input.purchaseOrderId ?? null,
+    budgetId: input.budgetId ?? null,
   });
 }
 
 /** A running order or project a person may import cues or guests into (app.import_destinations, P3). */
 export interface ImportDestination {
-  /** The running order (cues) or project (guest list entries). */
+  /** The running order (cues), project (guest list entries) or budget (budget lines). */
   readonly id: string;
   readonly projectId: string;
   /** Project key · name. */
@@ -345,6 +364,8 @@ export function importDetectedSheet(
       p_target_code: input.targetCode,
       p_project_id: input.projectId ?? null,
       p_run_of_show_id: input.runOfShowId ?? null,
+      p_purchase_order_id: input.purchaseOrderId ?? null,
+      p_budget_id: input.budgetId ?? null,
     },
     str,
   );
@@ -418,6 +439,14 @@ export interface RowIssue {
   readonly cells: readonly { columnIndex: number; issue: string }[];
 }
 
+/** Whether the catalogue named a need or order line row (B11, 6537); the person confirms at commit. */
+export interface MaterialRowMatch {
+  readonly rowNumber: number;
+  readonly match: "Matched" | "Unmatched";
+  /** price_currency_differs when the vendor's price is in another currency, so the price stayed blank. */
+  readonly note: string | null;
+}
+
 export interface MergeReview {
   readonly id: string;
   readonly rowId: string;
@@ -464,6 +493,8 @@ export interface ImportDetail extends ImportSummary {
   readonly projectId: string | null;
   /** The running order a cue import writes into (P3). */
   readonly runOfShowId: string | null;
+  /** The budget a budget line import writes into (B13). */
+  readonly budgetId: string | null;
   /** The running order or project, as project key · name, when the caller can read it. */
   readonly destinationLabel: string | null;
   /** Every sheet of the workbook, listed on the import detection read first. */
@@ -475,6 +506,7 @@ export interface ImportDetail extends ImportSummary {
   readonly scanStatus: UploadScanStatus | null;
   readonly columns: readonly ImportColumn[];
   readonly issues: readonly RowIssue[];
+  readonly materialMatches: readonly MaterialRowMatch[];
   readonly reviews: readonly MergeReview[];
   readonly dryRun: DryRun | null;
   readonly batches: readonly ImportBatch[];
@@ -498,7 +530,7 @@ export async function getImport(db: XosClient, id: string): Promise<Result<Impor
     untyped(db)
       .from("import_jobs")
       .select(
-        "id, target_code, original_filename, import_status, created_at, mapping_confirmed_at, storage_object_path, source, sheet_name, source_url, failure_code, import_job_sheet_id, project_id, run_of_show_id",
+        "id, target_code, original_filename, import_status, created_at, mapping_confirmed_at, storage_object_path, source, sheet_name, source_url, failure_code, import_job_sheet_id, project_id, run_of_show_id, budget_id",
       )
       .eq("id", id)
       .is("deleted_at", null)
@@ -523,7 +555,7 @@ export async function getImport(db: XosClient, id: string): Promise<Result<Impor
       untyped(db)
         .from("import_row_results")
         .select(
-          "id, sheet_name, row_number, row_state, reason, import_batch_id, undo_outcome, undo_reason, import_cell_issues (column_index, issue_code)",
+          "id, sheet_name, row_number, row_state, reason, material_match, match_note, import_batch_id, undo_outcome, undo_reason, import_cell_issues (column_index, issue_code)",
         )
         .eq("import_job_id", id)
         .is("deleted_at", null)
@@ -569,6 +601,7 @@ export async function getImport(db: XosClient, id: string): Promise<Result<Impor
     db,
     strOrNull(head["project_id"]),
     strOrNull(head["run_of_show_id"]),
+    strOrNull(head["budget_id"]),
   );
   if (!destination.ok) return destination;
   const scan = await uploadScanStatus(db, head);
@@ -583,6 +616,7 @@ export async function getImport(db: XosClient, id: string): Promise<Result<Impor
     failureCode: strOrNull(head["failure_code"]),
     projectId: strOrNull(head["project_id"]),
     runOfShowId: strOrNull(head["run_of_show_id"]),
+    budgetId: strOrNull(head["budget_id"]),
     destinationLabel: destination.data,
     sheets: sheets.data.map((sheet) =>
       sheet.name === strOrNull(head["sheet_name"]) && sheet.importId === null
@@ -599,12 +633,21 @@ export async function getImport(db: XosClient, id: string): Promise<Result<Impor
       suggestedFieldName: strOrNull(c["suggested_field_name"]),
       suggestionSource: strOrNull(c["suggestion_source"]) as ImportColumn["suggestionSource"],
     })),
+    materialMatches: results.data
+      .filter((r) => r["material_match"] === "Matched" || r["material_match"] === "Unmatched")
+      .map((r) => ({
+        rowNumber: num(r["row_number"]),
+        match: r["material_match"] as "Matched" | "Unmatched",
+        note: strOrNull(r["match_note"]),
+      })),
+    // A written row is listed only when it carries a note, such as a rate left as it was.
     issues: results.data
       .filter(
         (r) =>
           r["row_state"] === "Invalid" ||
           r["row_state"] === "Refused" ||
-          r["row_state"] === "Skipped",
+          r["row_state"] === "Skipped" ||
+          (r["row_state"] === "Written" && strOrNull(r["reason"]) !== null),
       )
       .map((r) => ({
         id: str(r["id"]),
@@ -725,7 +768,22 @@ async function destinationLabel(
   db: XosClient,
   projectId: string | null,
   runOfShowId: string | null,
+  budgetId: string | null = null,
 ): Promise<Result<string | null>> {
+  if (budgetId !== null) {
+    const budget = await rows(
+      untyped(db)
+        .from("budgets")
+        .select("name, projects (project_key)")
+        .eq("id", budgetId)
+        .limit(1),
+    );
+    if (!budget.ok) return budget;
+    const head = budget.data[0];
+    if (!head) return ok(null);
+    const key = strOrNull(((head["projects"] as Raw | null) ?? {})["project_key"]);
+    return ok(key ? `${key} · ${str(head["name"])}` : str(head["name"]));
+  }
   if (runOfShowId !== null) {
     const run = await rows(
       untyped(db)
@@ -751,7 +809,10 @@ async function destinationLabel(
   return ok(null);
 }
 
-/** Display names of merge candidates, read as the caller: venues by name, counterparties by company, guests by name. */
+/**
+ * Display names of merge candidates, read as the caller: venues by name, counterparties by company, guests by name, pool
+ * invitations by the org's label or address (B10), pool members through app.pool_member_names.
+ */
 async function candidateNames(
   db: XosClient,
   reviews: readonly Raw[],
@@ -762,6 +823,35 @@ async function candidateNames(
   const venues = ids("app.venues");
   const counterparties = ids("app.counterparties");
   const guests = ids("app.guest_list_entries");
+  const invitations = ids("app.talent_pool_invitations");
+  const members = ids("app.pool_members");
+  if (invitations.length > 0) {
+    const result = await rows(
+      untyped(db)
+        .from("talent_pool_invitations")
+        .select("id, invitee_name, email")
+        .in("id", invitations),
+    );
+    if (!result.ok) return result;
+    for (const r of result.data) {
+      names.set(
+        str(r["id"]),
+        typeof r["invitee_name"] === "string" ? r["invitee_name"] : str(r["email"]),
+      );
+    }
+  }
+  if (members.length > 0) {
+    const result = await rows(
+      untyped(db)
+        .from("pool_member_names")
+        .select("pool_member_id, full_name")
+        .in("pool_member_id", members),
+    );
+    if (!result.ok) return result;
+    for (const r of result.data) {
+      if (typeof r["full_name"] === "string") names.set(str(r["pool_member_id"]), r["full_name"]);
+    }
+  }
   if (guests.length > 0) {
     const result = await rows(
       untyped(db).from("guest_list_entries").select("id, guest_name").in("id", guests),

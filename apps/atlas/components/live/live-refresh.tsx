@@ -9,7 +9,7 @@ import { forgetWaitingRefresh, holdLiveRefresh, refreshWhenFree } from "./live-h
  * Forms on the page holding input not yet saved. A refresh then would re-render a form's hidden
  * version field (`expectedUpdatedAt`) with someone else's newer save, and the person's save would
  * overwrite it unseen; holding the refresh keeps the stale-save check, so no change is lost
- * silently (Section 11.7). Search boxes do not count. Submitting saves through the action, whose
+ * silently (Section 11.7). Search boxes and forms marked data-live-refresh-free do not count. Submitting saves through the action, whose
  * revalidation rereads the page anyway, and a form that leaves the page stops counting.
  */
 const dirtyForms = new Set<HTMLFormElement>();
@@ -25,6 +25,8 @@ function trackForms(): void {
       if (!(target instanceof HTMLElement)) return;
       const form = target.closest("form");
       if (!form || form.getAttribute("role") === "search") return;
+      // A draft held in client state, such as the show channel's composer, loses nothing to a refresh.
+      if (form.hasAttribute("data-live-refresh-free")) return;
       if (target instanceof HTMLInputElement && target.type === "search") return;
       dirtyForms.add(form);
     },

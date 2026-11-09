@@ -6,6 +6,7 @@ import { getPurchaseOrder } from "@xos/data/procurement";
 import { Tag } from "@xos/ui";
 import Link from "next/link";
 import type { Route } from "next";
+import { listMaintenanceDue } from "@xos/data/asset-maintenance-plans";
 import { getFormatter } from "next-intl/server";
 import type { ReactNode } from "react";
 import { Money, PropertyList, StateIcon, TemplateRecord } from "@/components/assets/ui";
@@ -46,6 +47,9 @@ export async function UnitRecord({
   compact?: boolean;
 }) {
   const format = await getFormatter();
+  // B11 (G-95): the next due date is read from the schedule, never stored on the unit.
+  const due = await listMaintenanceDue(db, { unitId: unit.id });
+  const nextDue = due.ok ? (due.data.find((d) => d.dueOn !== null) ?? null) : null;
   const when = (iso: string) =>
     format.dateTime(new Date(iso), { dateStyle: "medium", timeStyle: "short" });
   const day = (iso: string) =>
@@ -186,6 +190,11 @@ export async function UnitRecord({
         </ol>
       </Section>
       <Section title={t("assets.units.sections.maintenance")}>
+        {nextDue?.dueOn ? (
+          <p className="m-0 text-text-13">
+            {t("assets.schedule.nextDue", { title: nextDue.title, date: day(nextDue.dueOn) })}
+          </p>
+        ) : null}
         {unit.maintenance.length === 0 ? (
           <Empty>{t("assets.units.none.maintenance")}</Empty>
         ) : (

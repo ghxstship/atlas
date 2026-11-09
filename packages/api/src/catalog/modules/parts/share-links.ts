@@ -1,7 +1,7 @@
 /**
  * Share links (A82, migration 1380, Section 8.6, finding A65-016): links that open one version of a
  * file without an account. Public files may have a link without an expiry, Internal links need an
- * expiry, Confidential links need an expiry, an access code and the recipient's email, and
+ * expiry, Confidential links need an expiry and the recipient's email, every link has an access code, and
  * Restricted files never get one. catalog/modules/platform.ts spreads these into the Platform
  * additions. The anonymous open is not an API operation: it is the api_public.open_share_link token
  * RPC, which the web shells call.
@@ -36,7 +36,7 @@ const ShareLink = editDefinition(
       ),
       classification: Classification,
       access_code_required: fields.bool(
-        "True when the link asks for a 6-digit access code; always true for a Confidential file.",
+        "Always true: every link asks for a 6-digit access code (ADR 0142). Still accepted on create, where any value is ignored, so v1 callers that send it keep working.",
         false,
       ),
       recipient_email: orNull(
@@ -55,7 +55,8 @@ const ShareLink = editDefinition(
       revoked_by: orNull(fields.ref("person who revoked the link")),
     },
   }),
-  // An anonymous open counts on the row, so the last updater can be nobody.
+  // An anonymous open counts on the row, so the last updater can be nobody. v1 is additive only: create
+  // still accepts `access_code_required` (ignored, every link has a code), as it did before ADR 0142.
   { nullable: ["created_by", "updated_by"], optionalOnCreate: ["access_code_required"] },
 );
 
@@ -75,8 +76,7 @@ const ShareLinkToken = z
         .string()
         .regex(/^[0-9]{6}$/)
         .meta({
-          description:
-            "The 6-digit access code, or null when the link asks for none. Shown once; send it apart from the link.",
+          description: "The 6-digit access code. Shown once; send it apart from the link.",
           example: "042424",
         }),
     ),

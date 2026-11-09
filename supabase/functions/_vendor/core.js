@@ -151,7 +151,7 @@ var VALUE_PATTERNS = [
   },
   {
     pattern:
-      /(?:xadv|xagr|xcal|xdlt|xdoc|xinv|xkio|xlch|xlgr|xlnk|xscr|xshr|xshv|xspn|xspu|xos_pat|xos_scim)_[0-9a-f]{16,}\b/gi,
+      /(?:xadv|xagr|xcal|xcch|xcgr|xcrw|xdlt|xdoc|xfrg|xfrm|xinv|xkio|xlch|xlgr|xlnk|xpkg|xpkl|xpku|xscl|xscr|xshr|xshv|xspn|xspu|xvig|xvin|xos_pat|xos_scim)_[0-9a-f]{16,}\b/gi,
     replace: "[token]",
   },
   {
@@ -160,7 +160,12 @@ var VALUE_PATTERNS = [
   },
   {
     pattern:
-      /(?=\/share\/)(?<=^|[\s"'(<=,]|(?<!\/)\/\/[^/?#\s"'<>]+)(\/share\/(?:view\/|screen\/)?)[^/?#\s"'<>]+/gi,
+      /(?=\/share\/)(?<=^|[\s"'(<=,]|(?<!\/)\/\/[^/?#\s"'<>]+)(\/share\/(?:view\/|screen\/|showcaller\/|pack\/(?:unsubscribe\/)?)?)[^/?#\s"'<>]+/gi,
+    replace: (_m, prefix) => `${prefix}[token]`,
+  },
+  {
+    pattern:
+      /(?=\/(?:onboard|forms)\/)(?<=^|[\s"'(<=,]|(?<!\/)\/\/[^/?#\s"'<>]+)(\/(?:onboard|forms)\/)[^/?#\s"'<>]+/gi,
     replace: (_m, prefix) => `${prefix}[token]`,
   },
   {

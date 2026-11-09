@@ -64,13 +64,75 @@ const EXPLAINED = new Set([
   "same_project",
   "sod_approval_requester",
   "approval_decided",
+  "approval_subject_immutable",
   "approval_not_eligible",
   "time_zone_unknown",
+  // B4 scheduling depth (migrations 6200 to 6206).
+  "project_day_split_limit",
+  "project_day_scope_kind",
+  "project_day_time_zone",
+  "project_day_project_immutable",
+  "grid_empty",
+  "grid_too_large",
+  "grid_incomplete",
+  "grid_kind",
+  "bulk_stale",
+  "day_template_title",
+  "day_template_too_large",
+  "day_template_item_window",
+  "day_template_run_ambiguous",
+  "day_template_run_unknown",
+  "day_template_unknown",
+  "anchor_unset",
+  "anchor_set",
+  "anchor_too_large",
+  "anchor_show_started",
+  "anchor_sheet_collision",
+  "anchor_pinned_pushed",
+  // B3 (ADR 0142): segments, show channels and showcaller links.
+  "segment_insert_before_called",
+  "segment_insert_cue_limit",
+  "segment_library_empty",
+  "segment_publish_runs",
+  "segment_library_cue_limit",
+  "segment_color_key",
+  "segment_color_segment",
+  "show_channel_client",
+  "showcaller_link_capability",
+  "showcaller_link_limit",
+  "showcaller_link_expiry_range",
+  "showcaller_link_caller_name",
+  "showcaller_link_revoked",
+  "org_read_only",
+  // B14 record reviews and file reviews (migrations 6264 and 6265).
+  "record_review_required",
+  "record_review_pending",
+  "record_review_changes_requested",
+  "record_review_flag_locked",
+  "record_review_kind",
+  "record_review_undecided",
+  "record_review_state",
+  "record_review_open",
+  "record_review_note_required",
+  "sod_record_review_owner",
+  "sod_file_review_uploader",
+  "file_review_not_clean",
+  "file_review_subject",
+  "file_review_note_required",
 ]);
 
 /** Refusals whose database sentence is the correction the person needs. */
 /* reschedule_locked names the record that would move, which the view may not draw. */
-const WITH_DETAIL = new Set(["record_title_grammar", "record_xyz_basis", "reschedule_locked"]);
+const WITH_DETAIL = new Set([
+  "record_title_grammar",
+  "record_xyz_basis",
+  "reschedule_locked",
+  // B4: the item or date the database names.
+  "day_template_title",
+  "day_template_item_window",
+  "anchor_sheet_collision",
+  "anchor_pinned_pushed",
+]);
 
 export function toActionError(error: DataError): ActionError {
   switch (error.kind) {

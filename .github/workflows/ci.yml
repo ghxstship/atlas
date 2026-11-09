@@ -38,7 +38,8 @@ jobs:
     name: Migrations and pgTAP
     runs-on: ubuntu-latest
     # About 14 minutes on a good runner; run 42168681 needed more than 30 with 466 of 485 suites done.
-    timeout-minutes: 45
+    # Raised to 75 on 2026-11-08: trains 9 and 10 took pgTAP past 45 minutes while every suite still passed.
+    timeout-minutes: 75
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1

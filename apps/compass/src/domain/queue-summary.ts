@@ -95,6 +95,8 @@ export function summarizeMutation(
         return shift("shiftAccept", m.base, ctx);
       case "app.claim_open_shift":
         return shift("shiftClaim", m.base, ctx);
+      case "app.mark_shift_no_show":
+        return { key: "noShow", values: {} };
       case "app.report_incident": {
         const title = text(a["p_title"]);
         const at = text(a["p_occurred_at"]);
@@ -142,10 +144,25 @@ export function summarizeMutation(
         const zone = text(a["p_zone_id"]) ? ctx.zoneName(String(a["p_zone_id"])) : null;
         const at = text(a["p_device_scanned_at"]);
         const time = at ? ctx.time(at) : ctx.time(m.queuedAt);
+        if (a["p_direction"] === "Out") {
+          return zone
+            ? { key: "accessExitZone", values: { zone, time } }
+            : { key: "accessExit", values: { time } };
+        }
         return zone
           ? { key: "accessScanZone", values: { zone, time } }
           : { key: "accessScan", values: { time } };
       }
+      case "override_access_scan":
+      case "app.override_access_scan": {
+        // B8 (6250): a supervisor lets in someone the gate denied; the reason is shown as typed.
+        const reason = text(a["p_reason"]);
+        return reason ? { key: "accessOverride", values: { reason } } : generic(m, ctx);
+      }
+      case "app.call_weather_hold":
+        return { key: "weatherHold", values: {} };
+      case "app.give_weather_all_clear":
+        return { key: "weatherAllClear", values: {} };
       case "app.apply_asset_scan": {
         const code = text(a["p_code"]) ?? "";
         return {
@@ -165,6 +182,8 @@ export function summarizeMutation(
         const vehicle = text(a["p_vehicle_identifier"]);
         return vehicle ? { key: "gateArrival", values: { vehicle } } : generic(m, ctx);
       }
+      case "app.record_booking_arrival":
+        return { key: "bookingArrival", values: {} };
       case "app.release_vehicle":
         return { key: "vehicleRelease", values: {} };
       case "app.check_in_dock_slot":
@@ -208,6 +227,26 @@ const TECHNICAL =
  * sentence. A permission refusal (42501) and any raw database wording get a plain sentence instead (on
  * the simulator the queue printed 'new row violates row-level security policy for table "inspections"').
  */
+/**
+ * Refusals of B8's queued gate overrides and weather holds (6250, 6257) that Compass words itself, in the device's
+ * language. A hold made offline is sent however late it arrives (a late stop-work errs safe), but an all-clear made
+ * more than 10 minutes before it arrives is refused rather than sent late. An override the server no longer needs
+ * (scan_not_denied) never reaches the queue as a refusal: the uploader drops it with an informational line
+ * (domain/settled-notes.ts).
+ */
+const RULE_KEYS: Readonly<Record<string, string>> = {
+  scan_not_denied: "refusedScanNotDenied",
+  scan_override_revoked: "refusedScanOverrideRevoked",
+  scan_override_not_approved: "refusedScanOverrideNotApproved",
+  scan_override_stale: "refusedScanOverrideStale",
+  scan_override_taken: "refusedScanOverrideTaken",
+  scan_override_self: "refusedScanOverrideSelf",
+  weather_hold_open: "refusedWeatherHoldOpen",
+  weather_hold_closed: "refusedWeatherHoldClosed",
+  weather_hold_stale: "refusedWeatherHoldStale",
+  weather_hold_id_taken: "refusedWeatherHoldIdTaken",
+};
+
 export function refusalReason(error: {
   readonly code: string;
   readonly message: string;
@@ -215,6 +254,9 @@ export function refusalReason(error: {
   if (error.code === "42501" || /row-level security|permission denied/i.test(error.message)) {
     return { key: "refusedPermission", values: {} };
   }
+  const rule = /^([a-z][a-z0-9_]*):\s+/.exec(error.message)?.[1];
+  const ruleKey = rule ? RULE_KEYS[rule] : undefined;
+  if (ruleKey) return { key: ruleKey, values: {} };
   const sentence = error.message.replace(/^[a-z][a-z0-9_]*:\s+/, "").trim();
   if (!sentence || TECHNICAL.test(sentence)) return { key: "refusedTechnical", values: {} };
   return { key: "refusedReason", values: { reason: sentence } };

@@ -1,6 +1,9 @@
 "use client";
 
-import { parsePasted } from "@xos/data/import-parse";
+import { NUMBER_FORMATS, parsePasted } from "@xos/data/import-parse";
+import { useAiFeature } from "@/components/aurora/ai-features";
+import { onDemand, useOnDemand } from "@/components/shell/on-demand";
+import { SUGGESTION_FIELD } from "@/lib/aurora/suggestion-field";
 import type {
   ColumnSample,
   ImportDestinationKind,
@@ -58,7 +61,7 @@ function stepOf(status: ImportStatus, confirmed: boolean): number {
 
 // Destinations (P3) ----------------------------------------------------------------------------------------
 
-/** The running orders or projects a destination target may import into, as the page listed them. */
+/** The running orders, projects or budgets a destination target may import into, as the page listed them. */
 export interface TargetDestinations {
   readonly kind: ImportDestinationKind;
   readonly options: readonly { id: string; label: string }[];
@@ -66,7 +69,13 @@ export interface TargetDestinations {
 
 /** The form field that carries a destination: the action reads runOfShow or project. */
 const destinationField = (kind: ImportDestinationKind) =>
-  kind === "run_of_show_id" ? "runOfShow" : "project";
+  kind === "run_of_show_id"
+    ? "runOfShow"
+    : kind === "purchase_order_id"
+      ? "purchaseOrder"
+      : kind === "budget_id"
+        ? "budget"
+        : "project";
 
 /** The hidden destination field of a target, or nothing for an org-wide target. */
 function destinationHidden(
@@ -79,7 +88,7 @@ function destinationHidden(
   return dest && id ? { [destinationField(dest.kind)]: id } : {};
 }
 
-/** The destination Select of a target with one: Running order for cues, Project for guest list entries. */
+/** The destination Select of a target with one: Running order for cues, Project for guest list entries, Budget for budget lines. */
 function DestinationSelect({
   destinations,
   target,
@@ -103,7 +112,11 @@ function DestinationSelect({
         t(
           dest.kind === "run_of_show_id"
             ? "imports.new.destinationRun"
-            : "imports.new.destinationProject",
+            : dest.kind === "purchase_order_id"
+              ? "imports.new.destinationOrder"
+              : dest.kind === "budget_id"
+                ? "imports.new.destinationBudget"
+                : "imports.new.destinationProject",
         )
       }
       help={t("imports.new.destinationHelp")}
@@ -114,8 +127,49 @@ function DestinationSelect({
   );
 }
 
+/** The targets a document can feed (B11, G-106). */
+const MATERIAL_TARGETS: ReadonlySet<string> = new Set(["procurement_needs", "po_lines"]);
+
+/** The document panel, fetched the first time someone picks Document as the source. */
+const documentPanel = onDemand(() => import("./import-document"));
+
 /** How many pasted rows the live preview shows. */
 const PASTE_PREVIEW_ROWS = 5;
+
+/** The pool invitation target's own fields (B10): how the file writes amounts, and the pool for rows without one. */
+function PoolInvitationFields({
+  pools,
+  pool,
+  onPool,
+}: {
+  pools: readonly { id: string; label: string }[];
+  pool: string;
+  onPool: (id: string) => void;
+}) {
+  const t = usePlatformT();
+  return (
+    <>
+      <Select
+        name="numberFormat"
+        label={t("imports.numberFormat.label")}
+        help={t("imports.numberFormat.help")}
+        value="comma-dot"
+        options={NUMBER_FORMATS.map((f) => ({ value: f, label: t(`imports.numberFormat.${f}`) }))}
+      />
+      <Select
+        name="pool"
+        label={t("imports.new.destinationPool")}
+        help={t("imports.new.destinationPoolHelp")}
+        value={pool}
+        options={[
+          { value: "", label: t("imports.new.destinationPoolNone") },
+          ...pools.map((o) => ({ value: o.id, label: o.label })),
+        ]}
+        onChange={(e) => onPool(e.target.value)}
+      />
+    </>
+  );
+}
 
 /** The pasted rows the preview shows: the header row and the first rows with text. */
 function pastedPreview(text: string): string[][] {
@@ -131,6 +185,7 @@ export function ImportList({
   targets,
   destinations = {},
   initial,
+  pools = [],
   googleSheets = false,
   imports,
 }: {
@@ -140,6 +195,8 @@ export function ImportList({
   destinations?: Readonly<Record<string, TargetDestinations>>;
   /** The target and destination a link preselects (?target=, ?runOfShow= or ?project=). */
   initial?: { target: string; destination: string | null } | undefined;
+  /** The live Talent pools a pool invitation import may name (B10). */
+  pools?: readonly { id: string; label: string }[];
   /** The imports.google_sheets flag: offer a Google Sheets link next to a file (A83). */
   googleSheets?: boolean;
   imports: readonly (ImportSummary & { when: string })[];
@@ -148,13 +205,23 @@ export function ImportList({
   const router = useRouter();
   const pathname = usePathname();
   const [target, setTarget] = useState(initial?.target ?? targets[0] ?? "");
-  const [source, setSource] = useState<"file" | "paste" | "sheets">("file");
+  const [source, setSource] = useState<"file" | "paste" | "sheets" | "document">("file");
+  const extractionOn = useAiFeature("extraction");
+  // Document reading feeds only the material targets (B11, G-106): it proposes rows for the paste path.
+  const canReadDocument = extractionOn && MATERIAL_TARGETS.has(target);
+  const [suggestions, setSuggestions] = useState<readonly string[]>([]);
+  const document = useOnDemand(documentPanel, source === "document" && canReadDocument);
   const [picked, setPicked] = useState<Record<string, string>>(() => {
     const start = initial?.destination;
     const known = initial && destinations[initial.target]?.options.some((o) => o.id === start);
     return initial && start && known ? { [initial.target]: start } : {};
   });
   const [pasted, setPasted] = useState("");
+  const [pool, setPool] = useState(
+    initial?.target === "pool_invitations" && pools.some((o) => o.id === initial.destination)
+      ? (initial.destination ?? "")
+      : "",
+  );
   const preview = pastedPreview(pasted);
   const open = (state: PlatformActionState) => {
     if (state.id) router.push(`${pathname}?import=${state.id}` as Route);
@@ -178,6 +245,9 @@ export function ImportList({
         value={picked[target]}
         onChange={(id) => setPicked((prev) => ({ ...prev, [target]: id }))}
       />
+      {target === "pool_invitations" ? (
+        <PoolInvitationFields pools={pools} pool={pool} onPool={setPool} />
+      ) : null}
     </>
   );
   return (
@@ -195,14 +265,32 @@ export function ImportList({
               { value: "file", label: t("imports.new.sourceFile") },
               { value: "paste", label: t("imports.new.sourcePaste") },
               ...(googleSheets ? [{ value: "sheets", label: t("imports.new.sourceSheets") }] : []),
+              ...(canReadDocument
+                ? [{ value: "document", label: t("imports.new.sourceDocument") }]
+                : []),
             ]}
             onChange={(value) =>
-              setSource(value === "sheets" ? "sheets" : value === "paste" ? "paste" : "file")
+              setSource(
+                value === "sheets" || value === "paste" || value === "document" ? value : "file",
+              )
             }
           />
         ) : null}
         {targets.length === 0 ? (
           <InlineAlert tone="info">{t("imports.new.noTargets")}</InlineAlert>
+        ) : source === "document" && canReadDocument ? (
+          <div className="flex flex-col gap-12">
+            {choose}
+            {document ? (
+              <document.ImportDocument
+                onContinue={(text, ids) => {
+                  setPasted(text);
+                  setSuggestions(ids);
+                  setSource("paste");
+                }}
+              />
+            ) : null}
+          </div>
         ) : source === "paste" ? (
           <ActionForm
             action={createPastedImportAction}
@@ -213,6 +301,9 @@ export function ImportList({
             onDone={open}
           >
             {choose}
+            {suggestions.map((id) => (
+              <input key={id} type="hidden" name={SUGGESTION_FIELD} value={id} />
+            ))}
             <Textarea
               id="import-paste"
               name="text"
@@ -497,9 +588,12 @@ function SheetsSection({
               : sheet.proposedFromPlaybook
                 ? t("imports.sheets.fromPlaybook", { target: t(`imports.targets.${proposed}`) })
                 : t(`imports.targets.${proposed}`);
-          const choices = targets.includes(proposed ?? "")
-            ? [proposed as string, ...targets.filter((code) => code !== proposed)]
-            : targets;
+          // Pool invitations need a number format and a pool, which only the upload asks for: read with neither, a European
+          // sheet's rates would all fail. That sheet goes in through its own upload.
+          const sheetTargets = targets.filter((code) => code !== "pool_invitations");
+          const choices = sheetTargets.includes(proposed ?? "")
+            ? [proposed as string, ...sheetTargets.filter((code) => code !== proposed)]
+            : sheetTargets;
           return (
             <li
               key={sheet.id}
@@ -796,6 +890,11 @@ function ReviewStep({ org, detail }: { org: string; detail: ImportDetail }) {
                     percent: Math.round(r.similarity * 100),
                   })}
                 </p>
+                {r.decision === "Pending" && detail.targetCode === "pool_invitations" ? (
+                  <p className="m-0 text-text-12 text-text-secondary">
+                    {t("imports.duplicates.poolHelp")}
+                  </p>
+                ) : null}
                 {r.decision === "Pending" ? (
                   <div className="flex flex-wrap gap-8">
                     <ActionForm
@@ -818,7 +917,9 @@ function ReviewStep({ org, detail }: { org: string; detail: ImportDetail }) {
                   <p className="m-0 text-text-12 text-text-secondary">
                     {t(
                       r.decision === "Merged"
-                        ? "imports.duplicates.merged"
+                        ? detail.targetCode === "pool_invitations"
+                          ? "imports.duplicates.mergedPool"
+                          : "imports.duplicates.merged"
                         : "imports.duplicates.kept",
                     )}
                   </p>
@@ -859,11 +960,39 @@ function ReviewStep({ org, detail }: { org: string; detail: ImportDetail }) {
                         }),
                       )
                       .join("; ")
-                  : (i.reason ?? ""),
+                  : reasonText(t, i.reason ?? ""),
             }))}
           />
         )}
       </section>
+
+      {detail.materialMatches.length > 0 ? (
+        <section
+          aria-labelledby="material-step"
+          className="flex flex-col gap-8 rounded-card border border-border-subtle p-16"
+        >
+          <h2 id="material-step" className="m-0 text-text-15 font-semibold">
+            {t("imports.material.title")}
+          </h2>
+          <p className="m-0 text-text-13 text-text-secondary">{t("imports.material.help")}</p>
+          <DataTable
+            caption={t("imports.material.title")}
+            label={t("imports.material.title")}
+            height="auto"
+            columns={[
+              { key: "row", label: t("imports.issues.row"), type: "number" },
+              { key: "match", label: t("imports.material.match") },
+              { key: "note", label: t("imports.material.note") },
+            ]}
+            rows={detail.materialMatches.map((m) => ({
+              id: String(m.rowNumber),
+              row: m.rowNumber,
+              match: t(`imports.material.${m.match === "Matched" ? "matched" : "unmatched"}`),
+              note: m.note ? t(`imports.material.notes.${m.note}`) : "",
+            }))}
+          />
+        </section>
+      ) : null}
 
       <section
         aria-labelledby="commit-step"
@@ -889,6 +1018,14 @@ function ReviewStep({ org, detail }: { org: string; detail: ImportDetail }) {
   );
 }
 
+/** A row's reason: codes the catalog knows are said in the reader's language, and anything else is shown as written. */
+function reasonText(t: ReturnType<typeof usePlatformT>, reason: string): string {
+  const codes = reason.split(", ");
+  return codes.every((code) => t.has(`imports.issueCodes.${code}`))
+    ? codes.map((code) => t(`imports.issueCodes.${code}`)).join("; ")
+    : reason;
+}
+
 function issueText(t: ReturnType<typeof usePlatformT>, code: string): string {
   const key = `imports.issueCodes.${code}`;
   return t.has(key) ? t(key) : t("imports.issueCodes.other");
@@ -906,11 +1043,31 @@ function UndoStep({
   const t = usePlatformT();
   const batch = detail.batches[0];
   if (!batch) return null;
+  // A row the commit passed over would otherwise leave no trace once the review step is gone.
+  const notWritten = detail.issues.filter((i) => i.state === "Skipped" || i.state === "Refused");
   return (
     <section aria-labelledby="undo-step" className="flex flex-col gap-12">
       <h2 id="undo-step" className="m-0 text-text-15 font-semibold">
         {batch.undoneAt ? t("imports.undo.doneTitle") : t("imports.undo.title")}
       </h2>
+      {notWritten.length > 0 ? (
+        <DataTable
+          caption={t("imports.issues.title")}
+          label={t("imports.issues.title")}
+          height="auto"
+          columns={[
+            { key: "row", label: t("imports.issues.row"), type: "number" },
+            { key: "state", label: t("imports.issues.state") },
+            { key: "cells", label: t("imports.issues.cells"), wrap: true },
+          ]}
+          rows={notWritten.map((i) => ({
+            id: i.id,
+            row: i.rowNumber,
+            state: t(`imports.rowStates.${i.state}`),
+            cells: reasonText(t, i.reason ?? ""),
+          }))}
+        />
+      ) : null}
       <p className="m-0 text-text-13">
         {t("imports.undo.summary", { written: batch.written, when: committedAt ?? "" })}
       </p>

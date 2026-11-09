@@ -436,7 +436,7 @@ export const allocationResources: readonly ResourceSpec[] = [
       itemAction("decide", {
         summary: "Approve or decline an allocation",
         description:
-          "Decides a Requested allocation through `app.decide_allocation`, never by its requester (422 sod_allocation_requester). Declining needs a reason (allocation_reason_required); approving holds an asset's stock (allocation_sources_required, reservation_over_capacity) and, above the allowance with overflow at review, needs a reason that goes in the ledger (allocation_over_allowance_reason).",
+          "Decides a Requested allocation through `app.decide_allocation`, never by its requester (422 sod_allocation_requester). Declining needs a reason (allocation_reason_required); approving waits on the Equipment approval rule the request matched (approval_rule_pending), holds an asset's stock (allocation_sources_required, reservation_over_capacity) and, above the allowance with overflow at review, needs a reason that goes in the ledger (allocation_over_allowance_reason).",
         body: Decision,
         rpc: "app.decide_allocation",
       }),

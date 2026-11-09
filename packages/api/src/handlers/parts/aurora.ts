@@ -25,9 +25,14 @@ import {
   askAssistant,
   buildFilter,
   draft,
+  draftAdvanceAnswers,
   draftList,
+  isGovernanceKind,
   isListDraftKind,
   extractDocument,
+  withholdIdentity,
+  type DocumentKind,
+  type GovernanceKind,
   loadModelConfig,
   NeverSendList,
   scrubRecord,
@@ -41,17 +46,31 @@ import {
   type VocabularyTerm,
 } from "@xos/ai";
 import {
+  advanceDraftScope,
+  applyContractIntake,
   applyDraftedList,
+  applyInvoiceLineSuggestions,
+  applyItineraryLines,
+  auroraIntakeScope,
+  contractIntakeOptions,
   createAuroraStore,
   draftedListIsEmpty,
   getAiAllowance,
+  itineraryTravelerCandidates,
   listAiNeverSend,
   listEnabledAiFeatures,
+  listInvoiceLineProposals,
+  listOpenProposals,
+  recordDraftedAdvanceAnswer,
   saveAiSettings,
   transitionAiSuggestion,
+  type ContractIntakeItem,
+  type OpenProposal,
 } from "@xos/data/ai";
 import { todayIn } from "@xos/data/calendar";
+import { getMyOrganization, listRoleCapabilities } from "@xos/data/identity";
 import { readOrgTimeZone } from "@xos/data/settings";
+import type { CapabilityCode } from "@xos/schemas/capabilities/codes";
 import { z } from "zod";
 import type { ResourceSpec } from "../../catalog/types.ts";
 import {
@@ -70,6 +89,13 @@ import {
   type ErasedResult,
 } from "../../runtime/handler.ts";
 import { from, run, tableResource, unwrap, type Row } from "../support/table.ts";
+
+import {
+  governanceDraftItems,
+  governanceTarget,
+  readInboxMessage,
+  type GovernanceItem,
+} from "./aurora-intake.ts";
 
 export interface AuroraDeps {
   /** The model client for one request. */
@@ -285,8 +311,8 @@ async function readItems(
   api: PublicApi,
   specs: readonly ResourceSpec[],
   items: readonly { collection: string; id: string }[],
-): Promise<{ id: string; table: string; data: Row }[]> {
-  const out: { id: string; table: string; data: Row }[] = [];
+): Promise<{ id: string; table: string; data: Row; composed?: true }[]> {
+  const out: { id: string; table: string; data: Row; composed?: true }[] = [];
   for (const item of items) {
     const spec = specs.find((s) => s.path === `/${item.collection}`);
     if (!spec) continue;
@@ -403,13 +429,77 @@ async function readRiskCategories(context: RequestContext): Promise<string[]> {
   return rows.map((r) => String(r.record_subtype));
 }
 
-type SummaryKind = "record_activity" | "project_week" | "gate_readiness";
+type SummaryKind = "record_activity" | "project_week" | "gate_readiness" | "project_wrap_up";
+
+/** A record read for a summary. `composed` marks facts the summary adds under the subject's id (never the subject). */
+type ReadItem = { id: string; table: string; data: Row; composed?: true };
+
+/** The tables whose rows make up the final cost report: never-send on any of them keeps its figures back (B7). */
+const BUDGET_SOURCES = [
+  "app.budgets",
+  "app.budget_lines",
+  "app.posting_lines",
+  "app.change_orders",
+];
+
+/** The capabilities on the project that decide the wrap-up's facts, as the wrap-up report's sections use them. */
+const WRAP_UP_CAPABILITIES = ["finance.budget.read", "projects.gate.read", "safety.incident.read"];
+
+/** Which of the wrap-up's facts the caller may read (B7, ADR 0146 decision 5). */
+interface WrapUpReads {
+  readonly budget: boolean;
+  readonly measurements: boolean;
+  readonly incidents: boolean;
+}
 
 /**
- * What a summary reads: the named items, and for a project's gate readiness the criteria of its next
- * gate with whether evidence satisfies each (projects.gateReadiness), cited by the project's id.
+ * Which wrap-up facts the caller may read, decided the way the wrap-up report decides its sections, never from
+ * whether a list answers 200: the API enforces scopes, not capabilities, and row level security turns a read the
+ * caller lacks into an empty page, which the model would take for "no incidents" or "nothing spent".
+ * - The measurements need projects.gate.read on the project, the incidents safety.incident.read
+ *   (app.my_capabilities_on_project, 6215).
+ * - The budget needs finance.budget.read on the project and finance.journal.read across the org: posted actuals
+ *   are ledger rows, so without the ledger the actual reads 0 and the variance is the whole revised budget. The org
+ *   check is the one Atlas makes from the caller's roles (listRoleCapabilities, organization reach).
+ * Anything that cannot be read answers false.
+ */
+async function wrapUpReads(context: RequestContext, project: string): Promise<WrapUpReads> {
+  const [held, ledger] = await Promise.all([
+    context.db.rpc("my_capabilities_on_project", {
+      p_project_id: project,
+      p_capabilities: WRAP_UP_CAPABILITIES,
+    }),
+    holdsOrgWide(context, "finance.journal.read"),
+  ]);
+  const can = new Set(held.error ? [] : ((held.data ?? []) as string[]));
+  return {
+    budget: can.has("finance.budget.read") && ledger,
+    measurements: can.has("projects.gate.read"),
+    incidents: can.has("safety.incident.read"),
+  };
+}
+
+/** Whether the caller holds a capability across the active org through the roles of their membership. */
+async function holdsOrgWide(context: RequestContext, code: CapabilityCode): Promise<boolean> {
+  if (context.org === null || context.personId === null) return false;
+  const org = await getMyOrganization(context.db, context.personId, context.org.slug);
+  if (!org.ok || org.data.id !== context.org.id) return false;
+  const reach = await listRoleCapabilities(
+    context.db,
+    org.data.roles.map((r) => r.id),
+  );
+  return reach.ok && reach.data.get(code) === "organization";
+}
+
+/**
+ * What a summary reads: the named items; for a project's gate readiness the criteria of its next gate with
+ * whether evidence satisfies each (projects.gateReadiness); and for a project's wrap-up (B7) the final cost report,
+ * the incident counts and the measurement summary, each cited by the project's id under its real relation, so the
+ * org's never-send list applies to it, and each only when the caller holds its capabilities (wrapUpReads) and the
+ * read answers 200.
  */
 async function summaryItems(
+  context: RequestContext,
   api: PublicApi,
   specs: readonly ResourceSpec[],
   body: {
@@ -418,8 +508,9 @@ async function summaryItems(
     subject_id?: string | undefined;
     items: readonly { collection: string; id: string }[];
   },
-): Promise<{ id: string; table: string; data: Row }[]> {
-  const items = await readItems(api, specs, body.items);
+  neverSend: NeverSendList,
+): Promise<ReadItem[]> {
+  const items: ReadItem[] = await readItems(api, specs, body.items);
   if (body.kind === "gate_readiness" && body.subject_collection === "projects" && body.subject_id) {
     const readiness = await api.get(`/projects/${body.subject_id}/gate-readiness`, {});
     const rows = (readiness.body as { data?: unknown } | null)?.data;
@@ -428,8 +519,47 @@ async function summaryItems(
         id: body.subject_id,
         table: "app.gate_criteria_status",
         data: { gate_readiness: rows as unknown[] },
+        composed: true,
       });
     }
+  }
+  if (
+    body.kind === "project_wrap_up" &&
+    body.subject_collection === "projects" &&
+    body.subject_id
+  ) {
+    const project = body.subject_id;
+    const reads = await wrapUpReads(context, project);
+    const none = Promise.resolve(null);
+    const [budget, incidents, measurements] = await Promise.all([
+      reads.budget && !BUDGET_SOURCES.some((t) => neverSend.excludesTable(t))
+        ? api.get("/reports/final-cost-report", { project_id: project })
+        : none,
+      reads.incidents ? api.get("/reports/incident-rates", { project_id: project }) : none,
+      reads.measurements
+        ? api.get("/project-measurement-summary", {
+            "filter[project_id][eq]": project,
+            limit: "100",
+          })
+        : none,
+    ]);
+    const add = (
+      table: string,
+      key: string,
+      response: { status: number; body: unknown } | null,
+    ) => {
+      if (response === null || response.status !== 200) return;
+      const page = (response.body as { data?: unknown } | null)?.data;
+      items.push({
+        id: project,
+        table,
+        data: { [key]: Array.isArray(page) ? page : response.body },
+        composed: true,
+      });
+    };
+    add("app.budgets", "final_cost_report", budget);
+    add("app.incidents", "incident_counts", incidents);
+    add("app.project_measurement_summary", "measurements", measurements);
   }
   return items;
 }
@@ -455,15 +585,14 @@ async function readVocabulary(api: PublicApi): Promise<VocabularyTerm[]> {
 /** Each named record as the model would see it: the fields sent, the fields withheld, the values. */
 export function previewRecords(
   named: readonly { collection: string; id: string }[],
-  read: readonly { id: string; table: string; data: Row }[],
+  read: readonly { id: string; table: string; data: Row; composed?: true }[],
   specs: readonly ResourceSpec[],
   neverSend: NeverSendList,
 ) {
-  // The gate readiness a gate summary adds carries the project's id; it never stands in for the
-  // project record the request names.
-  const byId = new Map(
-    read.filter((r) => r.table !== "app.gate_criteria_status").map((r) => [r.id, r]),
-  );
+  // The facts a summary adds (gate readiness, the wrap-up's figures) carry the project's id; they never stand in
+  // for the project record the request names. They are marked, not recognised by table: the wrap-up's tables are
+  // real collections too.
+  const byId = new Map(read.filter((r) => r.composed !== true).map((r) => [r.id, r]));
   const preview = (
     collection: string,
     record: { id: string; table: string; data: Row } | undefined,
@@ -487,9 +616,11 @@ export function previewRecords(
     ...preview(item.collection, byId.get(item.id)),
     id: item.id,
   }));
-  // The gate readiness a gate summary adds is cited by the project's id but is its own record.
-  for (const extra of read.filter((r) => r.table === "app.gate_criteria_status")) {
-    const spec = specs.find((s) => s.def.table === "app.projects");
+  // The facts a summary adds are cited by the project's id but are their own records.
+  for (const extra of read.filter((r) => r.composed === true)) {
+    const spec =
+      specs.find((s) => s.def.table === extra.table) ??
+      specs.find((s) => s.def.table === "app.projects");
     out.push({ ...preview(spec ? spec.path.slice(1) : "projects", extra), id: extra.id });
   }
   return out;
@@ -557,6 +688,37 @@ const TRANSITIONS: Readonly<Record<string, Transition>> = {
   apply: { expected: "Confirmed", next: "Applied" },
   reopen: { expected: "Confirmed", next: "Proposed" },
 };
+
+/** A document as the model takes it: a text file decoded, anything else kept in base64. */
+function documentOf(body: {
+  media_type: "application/pdf" | "text/plain" | "image/png" | "image/jpeg" | "image/webp";
+  content_base64: string;
+}) {
+  return {
+    type: "document" as const,
+    mediaType: body.media_type,
+    data:
+      body.media_type === "text/plain"
+        ? Buffer.from(body.content_base64, "base64").toString("utf8")
+        : body.content_base64,
+  };
+}
+
+/** An open proposal as the API answers it, each field with its provenance. */
+const proposalBody = (p: OpenProposal) => ({
+  ...p,
+  proposed_fields: p.proposed_fields.map((f) => ({
+    ...f,
+    confidence: f.confidence === null ? null : Number(f.confidence),
+    provenance: "agent" as const,
+  })),
+});
+
+/** The governance items named for a preview: gate readiness is its own record, cited by the project. */
+const namedItems = (read: readonly GovernanceItem[]) =>
+  read
+    .filter((r) => r.table !== "app.gate_criteria_status")
+    .map((r) => ({ collection: r.collection, id: r.id }));
 
 /** The Aurora handler set, keyed by operationId, for the Settings module file to spread. */
 export function auroraHandlers(
@@ -653,6 +815,47 @@ export function auroraHandlers(
     });
   };
 
+  /** Today in a project's zone, for dates printed without a year; never the org's or UTC's. */
+  const projectZone = async (context: RequestContext, projectId: string) => {
+    const project = (
+      await run<Row[]>(from(context.db, "projects").select("time_zone").eq("id", projectId))
+    )[0];
+    const zone = project?.["time_zone"];
+    return typeof zone === "string" && zone !== "" ? zone : await deps.timeZone(context);
+  };
+
+  /** An event plan, brief, approval pack or waste plan for a Document record's editor (B15, G-240). */
+  const draftGovernance = async (
+    context: RequestContext,
+    kind: GovernanceKind,
+    body: {
+      instructions: string;
+      target?: { collection: string; id: string };
+      context?: { collection: string; id: string }[];
+      verbiage?: { term: string; preferred: string }[];
+    },
+  ) => {
+    const { neverSend, specs, api } = await readSetup(context);
+    const target = await governanceTarget(api, kind, body.target);
+    // Before any model call or metering: work.record.write on the record's project, 404 otherwise.
+    unwrap(await auroraIntakeScope(context.db, "governance", target.projectId));
+    const [records, vocabulary] = await Promise.all([
+      governanceDraftItems(api, specs, kind, target, body.context ?? []),
+      readVocabulary(api),
+    ]);
+    return toResponse(
+      await draft(await modelSetup(context), {
+        kind,
+        instructions: body.instructions,
+        context: records,
+        verbiage: body.verbiage ?? [],
+        vocabulary,
+        neverSend,
+        subject: { table: "app.records", id: target.id },
+      }),
+    );
+  };
+
   const handlers: Record<string, ErasedHandler> = {
     ...settings.handlers,
     ...requests.handlers,
@@ -743,23 +946,50 @@ export function auroraHandlers(
 
     "aurora.extract": async (request, context) => {
       const body = request.body as {
-        kind: "rider" | "insurance_certificate" | "invoice" | "receipt" | "quote";
+        kind: DocumentKind;
         document_id?: string | null;
+        project_id?: string;
         media_type: "application/pdf" | "text/plain" | "image/png" | "image/jpeg" | "image/webp";
         content_base64: string;
         file_name: string;
       };
+      requireOrg(context);
+      requirePerson(context);
+      const intake = body.kind === "itinerary" || body.kind === "contract" ? body.kind : null;
+      if (intake && !body.project_id) {
+        throw refused(
+          "REFUSE",
+          "An itinerary or a contract is read for a project.",
+          "aurora_intake_project_required",
+        );
+      }
+      // Before any model call or metering: the write capability of the intake on the project.
+      const scope =
+        intake && body.project_id
+          ? unwrap(await auroraIntakeScope(context.db, intake, body.project_id))
+          : null;
+      const projectToday =
+        body.kind === "itinerary" && scope
+          ? todayIn(await projectZone(context, scope.project_id))
+          : null;
       const { ctx } = await setup(context);
-      const data =
-        body.media_type === "text/plain"
-          ? Buffer.from(body.content_base64, "base64").toString("utf8")
-          : body.content_base64;
+      const document = documentOf(body);
       return toResponse(
         await extractDocument(ctx, {
           kind: body.kind,
-          document: { type: "document", mediaType: body.media_type, data },
+          // Passport and known traveler values never go to the model (ADR 0033 item 38).
+          document:
+            intake && document.mediaType === "text/plain"
+              ? { ...document, data: withholdIdentity(document.data) }
+              : document,
           fileName: body.file_name,
-          subject: body.document_id ? { table: "app.documents", id: body.document_id } : null,
+          subject: scope
+            ? { table: "app.projects", id: scope.project_id }
+            : body.document_id
+              ? { table: "app.documents", id: body.document_id }
+              : null,
+          ...(scope?.fee_visible !== undefined ? { feeVisible: scope.fee_visible } : {}),
+          ...(projectToday ? { projectToday } : {}),
         }),
       );
     },
@@ -772,13 +1002,15 @@ export function auroraHandlers(
           | "email"
           | "day_sheet"
           | "change_order_description"
-          | ListDraftKind;
+          | ListDraftKind
+          | GovernanceKind;
         instructions: string;
         target?: { collection: string; id: string };
         context?: { collection: string; id: string }[];
         verbiage?: { term: string; preferred: string }[];
       };
       if (isListDraftKind(body.kind)) return draftIntoList(context, body.kind, body);
+      if (isGovernanceKind(body.kind)) return draftGovernance(context, body.kind, body);
       const kind = body.kind;
       const { ctx, neverSend, specs, api } = await setup(context);
       const [records, vocabulary] = await Promise.all([
@@ -801,8 +1033,10 @@ export function auroraHandlers(
     "aurora.preview": async (request, context) => {
       const body = request.body as {
         feature: "drafting" | "summaries";
-        draft_kind?: ListDraftKind;
+        draft_kind?: ListDraftKind | GovernanceKind | "advance_answers";
         target?: { collection: string; id: string };
+        advance_recipient_id?: string;
+        inbound_message_id?: string;
         kind?: SummaryKind;
         subject_collection?: string;
         subject_id?: string;
@@ -810,7 +1044,72 @@ export function auroraHandlers(
       };
       const { neverSend, specs, api } = await readSetup(context);
       const drafting = body.feature === "drafting";
-      if (drafting && body.draft_kind) {
+      if (drafting && body.draft_kind === "advance_answers") {
+        // Exactly what drafted answers send (B15): the open sections and the mail, never the roster.
+        const scope = unwrap(
+          await advanceDraftScope(context.db, String(body.advance_recipient_id)),
+        );
+        const message = body.inbound_message_id
+          ? await readInboxMessage(context, body.inbound_message_id, scope.project_id)
+          : null;
+        return ok({
+          records: [
+            ...scope.sections.map((s) => ({
+              collection: "advance-sections",
+              id: s.id,
+              sent: true,
+              fields: ["title", "prompt", "kind", "window_kind", "max_lines", "choices"],
+              withheld: [],
+              data: {
+                title: s.title,
+                prompt: s.prompt,
+                kind: s.kind,
+                window_kind: s.window_kind,
+                max_lines: s.max_lines,
+                choices: s.choices,
+              },
+            })),
+            ...(message
+              ? [
+                  {
+                    collection: "inbound-messages",
+                    id: message.id,
+                    sent: true,
+                    fields: ["from_address", "body_text"],
+                    withheld: [],
+                    data: {
+                      from_address: message.fromAddress,
+                      body_text: withholdIdentity(
+                        String(
+                          scrubRecord(
+                            "app.inbound_messages",
+                            { body_text: message.body },
+                            neverSend,
+                          )?.["body_text"] ?? "",
+                        ),
+                      ),
+                    },
+                  },
+                ]
+              : []),
+          ],
+          vocabulary_terms: 0,
+        });
+      }
+      if (drafting && body.draft_kind && isGovernanceKind(body.draft_kind)) {
+        // Exactly what the governance draft reads and sends (B15).
+        const target = await governanceTarget(api, body.draft_kind, body.target);
+        unwrap(await auroraIntakeScope(context.db, "governance", target.projectId));
+        const [read, vocabulary] = await Promise.all([
+          governanceDraftItems(api, specs, body.draft_kind, target, body.items),
+          readVocabulary(api),
+        ]);
+        return ok({
+          records: previewRecords(namedItems(read), read, specs, neverSend),
+          vocabulary_terms: vocabulary.length,
+        });
+      }
+      if (drafting && body.draft_kind && isListDraftKind(body.draft_kind)) {
         // Exactly what the drafted list reads and sends (P6, S4.7, A95).
         const kind = body.draft_kind;
         const target = listTarget(kind, body.target);
@@ -831,7 +1130,9 @@ export function auroraHandlers(
         });
       }
       const [read, vocabulary] = await Promise.all([
-        drafting ? readItems(api, specs, body.items) : summaryItems(api, specs, body),
+        drafting
+          ? readItems(api, specs, body.items)
+          : summaryItems(context, api, specs, body, neverSend),
         drafting ? readVocabulary(api) : Promise.resolve([]),
       ]);
       return ok({
@@ -849,7 +1150,7 @@ export function auroraHandlers(
       };
       const { ctx, neverSend, specs, api } = await setup(context);
       const subjectSpec = specs.find((s) => s.path === `/${body.subject_collection}`);
-      const items = await summaryItems(api, specs, body);
+      const items = await summaryItems(context, api, specs, body, neverSend);
       return toResponse(
         await summarize(ctx, {
           kind: body.kind,
@@ -872,6 +1173,179 @@ export function auroraHandlers(
           await applyDraftedList(context.db, { requestId: body.request_id, items: body.items }),
         ),
       );
+    },
+
+    "aurora.intakeOptions": async (request, context) => {
+      requireOrg(context);
+      requirePerson(context);
+      const query = request.query as { kind: "itinerary" | "contract"; project_id: string };
+      const scope = unwrap(await auroraIntakeScope(context.db, query.kind, query.project_id));
+      if (query.kind === "itinerary") {
+        return ok({
+          fee_visible: false,
+          can_write_riders: false,
+          travelers: unwrap(await itineraryTravelerCandidates(context.db, query.project_id)),
+          segments: await run<Row[]>(
+            from(context.db, "travel_segments")
+              .select("person_id, service_identifier, departs_at")
+              .eq("project_id", query.project_id)
+              .is("deleted_at", null)
+              .limit(1000),
+          ),
+          parties: [],
+          rate_cards: [],
+        });
+      }
+      const options = unwrap(await contractIntakeOptions(context.db, query.project_id));
+      return ok({
+        fee_visible: scope.fee_visible === true,
+        can_write_riders: scope.can_write_riders === true,
+        travelers: [],
+        segments: [],
+        parties: options.parties,
+        rate_cards: options.rate_cards,
+      });
+    },
+
+    "aurora.openProposals": async (request, context) => {
+      requireOrg(context);
+      const personId = requirePerson(context);
+      const query = request.query as { project_id: string; operation_id: string };
+      const kind = query.operation_id === "travelSegments.create" ? "itinerary" : "contract";
+      unwrap(await auroraIntakeScope(context.db, kind, query.project_id));
+      const proposals = unwrap(
+        await listOpenProposals(context.db, {
+          personId,
+          projectId: query.project_id,
+          operationId: query.operation_id,
+        }),
+      );
+      return ok({ data: proposals.map(proposalBody) });
+    },
+
+    "aurora.invoiceLineProposals": async (request, context) => {
+      requireOrg(context);
+      const personId = requirePerson(context);
+      const query = request.query as { invoice_id: string };
+      const proposals = unwrap(
+        await listInvoiceLineProposals(context.db, query.invoice_id, personId),
+      );
+      return ok({ data: proposals.map(proposalBody) });
+    },
+
+    "aurora.applyItinerary": async (request, context) => {
+      requireOrg(context);
+      requirePerson(context);
+      const body = request.body as {
+        project_id: string;
+        fulfillment_id?: string | null;
+        items: { suggestion_id: string; values: Record<string, unknown> }[];
+      };
+      return ok(
+        unwrap(
+          await applyItineraryLines(context.db, {
+            projectId: body.project_id,
+            fulfillmentId: body.fulfillment_id ?? null,
+            items: body.items,
+          }),
+        ),
+      );
+    },
+
+    "aurora.applyContractIntake": async (request, context) => {
+      requireOrg(context);
+      requirePerson(context);
+      const body = request.body as { project_id: string; items: ContractIntakeItem[] };
+      return ok(
+        unwrap(
+          await applyContractIntake(context.db, { projectId: body.project_id, items: body.items }),
+        ),
+      );
+    },
+
+    "aurora.applyInvoiceLines": async (request, context) => {
+      requireOrg(context);
+      requirePerson(context);
+      const body = request.body as {
+        invoice_id: string;
+        items: { suggestion_id: string; values: Record<string, unknown> }[];
+      };
+      return ok(unwrap(await applyInvoiceLineSuggestions(context.db, body.invoice_id, body.items)));
+    },
+
+    "aurora.draftAdvanceAnswers": async (request, context) => {
+      const body = request.body as {
+        advance_recipient_id: string;
+        inbound_message_id?: string;
+        media_type?: "application/pdf" | "text/plain" | "image/png" | "image/jpeg" | "image/webp";
+        content_base64?: string;
+        file_name?: string;
+        verbiage?: { term: string; preferred: string }[];
+      };
+      requireOrg(context);
+      requirePerson(context);
+      const hasFile = body.content_base64 !== undefined;
+      if (
+        hasFile === (body.inbound_message_id !== undefined) ||
+        (hasFile && (!body.media_type || !body.file_name))
+      ) {
+        throw refused(
+          "REFUSE",
+          "Name one source: a message from the project's inbox, or a file.",
+          "aurora_advance_source_required",
+        );
+      }
+      // Every refusal comes before any model call or metering.
+      const scope = unwrap(await advanceDraftScope(context.db, body.advance_recipient_id));
+      const message = body.inbound_message_id
+        ? await readInboxMessage(context, body.inbound_message_id, scope.project_id)
+        : null;
+      const { ctx, neverSend } = await setup(context);
+      const result = await draftAdvanceAnswers(ctx, {
+        recipientId: body.advance_recipient_id,
+        sections: scope.sections,
+        timeZone: scope.time_zone,
+        projectToday: todayIn(scope.time_zone),
+        source: message
+          ? { kind: "Project Inbox", messageId: message.id, body: message.body }
+          : {
+              kind: "File",
+              fileName: String(body.file_name),
+              document: documentOf({
+                media_type: body.media_type ?? "text/plain",
+                content_base64: String(body.content_base64),
+              }),
+            },
+        verbiage: body.verbiage ?? [],
+        neverSend,
+      });
+      if (result.kind !== "answer") return toResponse(result);
+      // Answers and their suggestions come in the same order.
+      return toResponse({
+        ...result,
+        value: {
+          ...result.value,
+          source: message
+            ? { kind: "Project Inbox", from_address: message.fromAddress }
+            : { kind: "File", file_name: body.file_name },
+          sections: scope.sections.map((s) => ({ id: s.id, title: s.title, choices: s.choices })),
+          answers: result.value.answers.map((a, i) => ({
+            suggestion_id: result.proposals[i]?.suggestionId ?? null,
+            ...a,
+          })),
+        },
+      });
+    },
+
+    "aurora.applyAdvanceAnswer": async (request, context) => {
+      requireOrg(context);
+      requirePerson(context);
+      const body = request.body as { suggestion_id: string; values?: Record<string, unknown> };
+      return ok({
+        submission_id: unwrap(
+          await recordDraftedAdvanceAnswer(context.db, body.suggestion_id, body.values ?? {}),
+        ),
+      });
     },
 
     "aurora.mapColumns": async (request, context) => {

@@ -149,7 +149,18 @@ function Paragraph({ children }) {
  * brand adds its logo above the heading and paints the call to action in its accent; an accent that
  * fails the contrast check keeps the platform accent.
  */
-function Layout({ locale, t, sender, preview, heading, transactional, action, children }) {
+function Layout({
+  locale,
+  t,
+  sender,
+  preview,
+  heading,
+  transactional,
+  action,
+  why,
+  preferencesLabel,
+  children,
+}) {
   const accent = brandAccent(sender.brand?.accentHex);
   const button =
     accent === null
@@ -199,9 +210,11 @@ function Layout({ locale, t, sender, preview, heading, transactional, action, ch
               children: [
                 /* @__PURE__ */ jsx(Text, {
                   style: styles.footer,
-                  children: transactional
-                    ? t("common.whyTransactional")
-                    : t("common.whyNotification", { orgName: sender.orgName }),
+                  children:
+                    why ??
+                    (transactional
+                      ? t("common.whyTransactional")
+                      : t("common.whyNotification", { orgName: sender.orgName })),
                 }),
                 /* @__PURE__ */ jsx(Text, {
                   style: styles.footer,
@@ -216,7 +229,7 @@ function Layout({ locale, t, sender, preview, heading, transactional, action, ch
                     /* @__PURE__ */ jsx(Link, {
                       href: sender.preferencesUrl,
                       style: styles.link,
-                      children: t("common.managePreferences"),
+                      children: preferencesLabel ?? t("common.managePreferences"),
                     }),
                     !transactional &&
                       sender.unsubscribeUrl !== void 0 &&
@@ -251,11 +264,13 @@ function kindKey(kind, part) {
     throw new Error(`Invalid notification kind ${kind}`);
   return `kinds.${kind}.${part}`;
 }
+/** Kinds whose Accept button says what accepting means (B9: "Still coming?" accepts as Confirm you're coming). */
+var ACCEPT_LABELS = { "shift.reconfirm": "notification.actions.confirmComing" };
 /**
  * The one-tap action buttons (A127): each opens the confirm page, so acting from an email takes two taps. Approve and
  * accept are filled; reject is outlined, after them.
  */
-function ActionLinks({ actions, t }) {
+function ActionLinks({ actions, kind, t }) {
   const ordered = EMAIL_ACTIONS.flatMap((name) => actions.filter((a) => a.action === name));
   if (ordered.length === 0) return null;
   return /* @__PURE__ */ jsxs(Section, {
@@ -269,7 +284,11 @@ function ActionLinks({ actions, t }) {
             {
               href: a.url,
               style: a.action === "reject" ? actionStyles.secondary : actionStyles.primary,
-              children: t(`notification.actions.${a.action}`),
+              children: t(
+                a.action === "accept" && ACCEPT_LABELS[kind]
+                  ? ACCEPT_LABELS[kind]
+                  : `notification.actions.${a.action}`,
+              ),
             },
             a.action,
           ),
@@ -343,6 +362,7 @@ var templates = {
             }),
             /* @__PURE__ */ jsx(ActionLinks, {
               actions: item.actions ?? [],
+              kind: item.kind,
               t: ctx.t,
             }),
           ],
@@ -599,14 +619,19 @@ var templates = {
               inviterName: p.inviterName,
               accountName: p.accountName,
             })
-          : ctx.t("party_invitation.rosterSubject", {
-              inviterName: p.inviterName,
-              partyName: p.partyName,
-              projectName: p.projectName,
-            });
+          : p.kind === "pool"
+            ? ctx.t("party_invitation.poolSubject", {
+                inviterName: p.inviterName,
+                orgName: p.orgName ?? "",
+              })
+            : ctx.t("party_invitation.rosterSubject", {
+                inviterName: p.inviterName,
+                partyName: p.partyName,
+                projectName: p.projectName,
+              });
       return {
         subject,
-        element: /* @__PURE__ */ jsx(Layout, {
+        element: /* @__PURE__ */ jsxs(Layout, {
           locale: ctx.locale,
           t: ctx.t,
           sender: ctx.sender,
@@ -617,9 +642,19 @@ var templates = {
             label: ctx.t("party_invitation.action"),
             url: p.signInUrl,
           },
-          children: /* @__PURE__ */ jsx(Paragraph, {
-            children: ctx.t("party_invitation.how", { expiresAt: p.expiresAt }),
-          }),
+          children: [
+            p.kind === "pool" && p.jobTitle
+              ? /* @__PURE__ */ jsx(Paragraph, {
+                  children: ctx.t("party_invitation.poolRole", { jobTitle: p.jobTitle }),
+                })
+              : null,
+            /* @__PURE__ */ jsx(Paragraph, {
+              children: ctx.t(
+                p.kind === "pool" ? "party_invitation.poolHow" : "party_invitation.how",
+                { expiresAt: p.expiresAt },
+              ),
+            }),
+          ],
         }),
       };
     },
@@ -678,6 +713,68 @@ var templates = {
               children: ctx.t("approval_link_code.expiry", { minutes: expiresInMinutes }),
             }),
             /* @__PURE__ */ jsx(Paragraph, { children: ctx.t("approval_link_code.ignore") }),
+          ],
+        }),
+      };
+    },
+  },
+  guest_message: {
+    transactional: false,
+    compose: (p, ctx) => {
+      const orgName = ctx.sender.orgName;
+      const subject =
+        p.kind === "Message" && p.subject !== void 0
+          ? p.subject
+          : ctx.t(
+              p.kind === "Pass" ? "guest_message.passSubject" : "guest_message.invitationSubject",
+              {
+                orgName,
+                projectName: p.projectName,
+              },
+            );
+      const show =
+        p.showName === void 0
+          ? null
+          : p.showDate === void 0
+            ? ctx.t("guest_message.show", { showName: p.showName })
+            : ctx.t("guest_message.showOn", {
+                showName: p.showName,
+                showDate: p.showDate,
+              });
+      return {
+        subject,
+        element: /* @__PURE__ */ jsxs(Layout, {
+          locale: ctx.locale,
+          t: ctx.t,
+          sender: ctx.sender,
+          preview: subject,
+          heading:
+            p.kind === "Message"
+              ? subject
+              : ctx.t("guest_message.heading", { projectName: p.projectName }),
+          transactional: false,
+          why: ctx.t("guest_message.why", { orgName }),
+          preferencesLabel: ctx.t("guest_message.preferences"),
+          children: [
+            /* @__PURE__ */ jsx(Paragraph, {
+              children: ctx.t("guest_message.greeting", { name: p.guestName }),
+            }),
+            p.kind === "Invitation" &&
+              /* @__PURE__ */ jsx(Paragraph, {
+                children: ctx.t("guest_message.invitation", {
+                  orgName,
+                  projectName: p.projectName,
+                }),
+              }),
+            p.kind === "Pass" &&
+              /* @__PURE__ */ jsx(Paragraph, {
+                children: ctx.t("guest_message.pass", {
+                  projectName: p.projectName,
+                  plusOnes: p.plusOnes,
+                }),
+              }),
+            show !== null && /* @__PURE__ */ jsx(Paragraph, { children: show }),
+            p.body !== void 0 && /* @__PURE__ */ jsx(Paragraph, { children: p.body }),
           ],
         }),
       };

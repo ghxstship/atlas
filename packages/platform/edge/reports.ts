@@ -8,6 +8,7 @@
 import { defaultLocale, isLaunchLocale, type LaunchLocale } from "@xos/i18n/locales";
 import type { DeliveryCopy } from "../../data/src/report-deliveries.ts";
 import type { RunLabels } from "../../data/src/report-runs.ts";
+import type { PackEmailCopy } from "../../data/src/stakeholder-packs.ts";
 
 export {
   REPORT_DELIVER_JOB,
@@ -30,6 +31,9 @@ export {
 } from "../../data/src/report-runs.ts";
 
 export { READ_REPLICA_ENV, readReplicaUrl } from "../../data/src/read-replica.ts";
+
+/** The pack.deliver worker, loaded when a run reaches it, so report-run's boot stays inside its budget. */
+export const loadPackDeliveries = () => import("../../data/src/stakeholder-packs.ts");
 
 type Tree = { readonly [key: string]: Tree | string };
 
@@ -122,5 +126,26 @@ export async function reportDeliveryCopy(locale: string): Promise<DeliveryCopy> 
   return {
     subject: (values) => fill(email("subject"), values),
     body: (values) => fill(email("body"), values),
+  };
+}
+
+/**
+ * The stakeholder pack email in a locale (B2, ADR 0141), from the same reporting namespace, which is loaded
+ * only when a pack job exists. Its footer carries the org's name and postal address (ADR 0033 decision 41).
+ */
+export async function packEmailCopy(locale: string): Promise<PackEmailCopy> {
+  const messages = await messagesFor(locale);
+  const line = (key: string, values: Readonly<Record<string, string>> = {}) =>
+    fill(lookup(messages, ["reporting", "packEmail", key]) ?? key, values);
+  return {
+    subject: (values) => line("subject", values),
+    intro: (values) => line("intro", values),
+    message: (values) => line("message", values),
+    items: (values) => line("items", values),
+    open: (values) => line("open", values),
+    expires: (values) => line("expires", values),
+    code: () => line("code"),
+    sentBy: (values) => line("sentBy", values),
+    stop: (values) => line("stop", values),
   };
 }

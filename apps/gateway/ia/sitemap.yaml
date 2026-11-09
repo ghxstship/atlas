@@ -21,6 +21,8 @@ params:
   handle: { type: handle }
   companyHandle: { type: handle }
   token: { type: token }
+  orgSlug: { type: slug }
+  pageSlug: { type: slug }
 audience:
   dimension: account-role
   roles: [individual, account-owner, account-admin, account-finance, account-member]
@@ -153,12 +155,14 @@ engagementTabs:
         - engagement.documents
         - engagement.messages
     # A person on a staffing agency's roster (R12, ADR 0100 amendment): the Roster Member tabs, with the training they
-    # acknowledge before their first shift, the shifts the agency placed them on and their own timesheets.
+    # acknowledge before their first shift, the positions they hold with their records (B9, ADR 0148), the shifts the
+    # agency placed them on and their own timesheets.
     roster-staff:
       tabs:
         - engagement.overview
         - engagement.project-details
         - engagement.training
+        - engagement.positions
         - engagement.shifts
         - engagement.timesheets
         - engagement.credentials
@@ -235,6 +239,19 @@ nodes:
             label: nav.gateway.work.applications
             route: /work/applications
             list: { views: [list, table, board], default: list }
+          # B11 (G-196): where a quote reminder lands. The Owner and Admin of the invited vendor's account read the RFQs
+          # that ask for a quote and send the quote to the named contact; the buyer records it.
+          - id: work.quote-requests
+            kind: page
+            label: nav.gateway.work.quoteRequests
+            route: /work/quote-requests
+            list: { views: [list], default: list }
+            visibility:
+              individual: hidden
+              account-owner: full
+              account-admin: full
+              account-finance: hidden
+              account-member: hidden
           - id: engagement
             kind: record
             label: nav.gateway.work.engagement
@@ -679,3 +696,28 @@ nodes:
         label: nav.gateway.public.agreementSigning
         route: "/sign/{token}"
         auth: token
+      - id: guest-unsubscribe
+        kind: page
+        label: nav.gateway.public.guestUnsubscribe
+        route: "/unsubscribe/{token}"
+        auth: token
+      - id: vendor-intake
+        kind: page
+        label: nav.gateway.public.vendorIntake
+        route: "/onboard/{token}"
+        auth: token
+      - id: public-form
+        kind: page
+        label: nav.gateway.public.publicForm
+        route: "/forms/{token}"
+        auth: token
+      - id: crew-shifts
+        kind: page
+        label: nav.gateway.public.crewShifts
+        route: "/shifts/{token}"
+        auth: token
+      - id: registration
+        kind: page
+        label: nav.gateway.public.registration
+        route: "/join/{orgSlug}/{pageSlug}"
+        auth: public

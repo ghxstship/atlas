@@ -86,6 +86,9 @@ email_templates:
   - code: approval_link_code
     transactional: true
     description: The 6-digit access code of a signed-out approval link, valid 10 minutes, and the org that asks (P9).
+  - code: guest_message
+    transactional: false
+    description: "An org's email to a guest on its guest list: an invitation, the guest's pass (the guest-pass PDF attached) or a message, with the unsubscribe link and the postal address (B8, ADR 0147 decision 7)."
 
 categories:
   - code: mentions
@@ -158,6 +161,9 @@ kinds:
       # P9: a pass or dock booking an approval rule matched asks its current step's approvers.
       - emitter: supabase/migrations/5860_approval_rules.sql#private.notify_subject_step_approvers
         test: supabase/tests/5860_approval_rules.test.sql
+      # B14 (6264): a record review asks the named reviewer, with the record's title and key.
+      - emitter: supabase/migrations/6264_record_reviews.sql#app.request_record_review
+        test: supabase/tests/6264_record_reviews.test.sql
   # B16 (6052, ADR 0155 D2): a connected app proposed a change for the person to confirm. In App and Push only, never
   # Email: the body names the app and the operation, never the agent-written summary, which XOS mail must not carry.
   - kind: agent.change_proposed
@@ -175,6 +181,23 @@ kinds:
       # P9: the requester hears when a subject approval is approved or rejected.
       - emitter: supabase/migrations/5860_approval_rules.sql#private.decide_subject_approval_as
         test: supabase/tests/5860_approval_rules.test.sql
+      # B14 (6264): a record review's decision tells the requester.
+      - emitter: supabase/migrations/6264_record_reviews.sql#app.decide_record_review
+        test: supabase/tests/6264_record_reviews.test.sql
+  # B11 (G-196): the hourly chase of a pending quote, and word to a supplier that lost. rfq.issued notifies nobody, so
+  # the first reminder is the vendor's first contact. Never a price, a winner or another vendor.
+  - kind: rfq.quote_reminder
+    category: opportunities
+    channels: [In App, Email]
+    emitted_by:
+      - emitter: supabase/migrations/6538_rfq_quote_chase.sql#private.send_rfq_supplier_notice
+        test: supabase/tests/6538_rfq_quote_chase.test.sql
+  - kind: rfq.not_awarded
+    category: opportunities
+    channels: [In App, Email]
+    emitted_by:
+      - emitter: supabase/migrations/6538_rfq_quote_chase.sql#private.send_rfq_supplier_notice
+        test: supabase/tests/6538_rfq_quote_chase.test.sql
   # P9 (G-261): the approvers of a step that waits are reminded, hourly or by the requester's nudge.
   - kind: approval.reminder
     category: approvals
@@ -218,6 +241,25 @@ kinds:
     emitted_by:
       - emitter: supabase/migrations/6123_availability_polls.sql#app.send_availability_poll
         test: supabase/tests/6123_availability_polls.test.sql
+  # "Still coming?" reconfirmations and no-shows (B9, 6511 and 6512, ADR 0148). The ask reaches the worker even in quiet
+  # hours when the shift starts within 12 hours, like a shift assigned or changed.
+  - kind: shift.reconfirm
+    category: schedule
+    bypasses_quiet_hours:
+      starts_within_hours: 12
+    emitted_by:
+      - emitter: supabase/migrations/6511_shift_reconfirmation.sql#private.send_shift_reconfirmations
+        test: supabase/tests/6511_shift_reconfirmation.test.sql
+  - kind: shift.reconfirm_declined
+    category: schedule
+    emitted_by:
+      - emitter: supabase/migrations/6511_shift_reconfirmation.sql#app.respond_shift_reconfirmation
+        test: supabase/tests/6511_shift_reconfirmation.test.sql
+  - kind: shift.no_show
+    category: schedule
+    emitted_by:
+      - emitter: supabase/migrations/6512_shift_no_shows_and_swap_reasons.sql#app.mark_shift_no_show
+        test: supabase/tests/6512_shift_no_shows_and_swap_reasons.test.sql
   - kind: event.invited
     category: schedule
     emitted_by:
@@ -244,6 +286,14 @@ kinds:
     emitted_by:
       - emitter: supabase/migrations/1131_external_party_notifications.sql#private.notify_invoice_step
         test: supabase/tests/1131_external_party_notifications.test.sql
+  # Quotes (B13: 6554). The sender of a quote version hears when the client signs it.
+  - kind: quote.accepted
+    category: finance
+    emitted_by:
+      - emitter: supabase/migrations/6554_quote_acceptance_and_external_views.sql#private.accept_quote_on_signature
+        test: supabase/tests/6554_quote_acceptance.test.sql
+      - emitter: supabase/migrations/6554_quote_acceptance_and_external_views.sql#private.quote_signer_name
+        test: supabase/tests/6554_quote_acceptance.test.sql
   # Safety (0520, 0800)
   - kind: incident.reported
     category: safety
@@ -261,8 +311,29 @@ kinds:
     category: safety
     bypasses_quiet_hours: true
     emitted_by:
-      - emitter: supabase/migrations/0806_workforce_site_operations.sql#app.record_weather_reading
-        test: supabase/tests/0806_workforce_site_operations.test.sql
+      # 6256 (B8): the threshold logic moved into private.apply_weather_level, which manual readings and the NWS feed
+      # both call.
+      - emitter: supabase/migrations/6256_weather_feed.sql#private.apply_weather_level
+        test: supabase/tests/6256_weather_feed.test.sql
+  # Weather feed, holds and all-clear (B8, 6256 and 6257)
+  - kind: weather.warning
+    category: safety
+    bypasses_quiet_hours: true
+    emitted_by:
+      - emitter: supabase/migrations/6256_weather_feed.sql#app.record_weather_feed
+        test: supabase/tests/6256_weather_feed.test.sql
+  - kind: weather.hold
+    category: safety
+    bypasses_quiet_hours: true
+    emitted_by:
+      - emitter: supabase/migrations/6257_weather_holds.sql#app.call_weather_hold
+        test: supabase/tests/6257_weather_holds.test.sql
+  - kind: weather.all_clear
+    category: safety
+    bypasses_quiet_hours: true
+    emitted_by:
+      - emitter: supabase/migrations/6257_weather_holds.sql#app.give_weather_all_clear
+        test: supabase/tests/6257_weather_holds.test.sql
   # Account (0520, 0560, 1203, 1560, 1561)
   - kind: account.security_changed
     category: account
@@ -505,6 +576,12 @@ kinds:
     emitted_by:
       - emitter: supabase/migrations/5822_credential_photo_functions.sql#app.request_credential_photos
         test: supabase/tests/5822_credential_photo_functions.test.sql
+  # Guest arrivals (B8, 6254): the host of a guest hears when the guest is checked in, at a door or in bulk.
+  - kind: guest.arrived
+    category: assignments
+    emitted_by:
+      - emitter: supabase/migrations/6254_guest_passes.sql#private.notify_guest_arrived
+        test: supabase/tests/6254_guest_passes.test.sql
   # Marketplace alerts and expiry reminders (A89: 1462 matcher, 1463 reminder job)
   - kind: opportunity.matched
     category: opportunities
@@ -519,6 +596,13 @@ kinds:
     emitted_by:
       - emitter: supabase/migrations/5200_one_tap_actions.sql#private.notify_offer_sent
         test: supabase/tests/5200_one_tap_actions.test.sql
+  # Vendor intake (B2: 6505)
+  - kind: vendor_intake.submitted
+    category: opportunities
+    channels: [In App, Email]
+    emitted_by:
+      - emitter: supabase/migrations/6505_vendor_intake_requests.sql#app.submit_vendor_intake
+        test: supabase/tests/6505_vendor_intake_requests.test.sql
   - kind: onboarding.item_expiring
     category: expiry_reminders
     emitted_by:
@@ -561,6 +645,12 @@ kinds:
     emitted_by:
       - emitter: supabase/migrations/4656_roster_lock.sql#app.set_roster_lock
         test: supabase/tests/4656_roster_lock.test.sql
+  # Advance answers recorded for a recipient from an Aurora draft (B15: 6273)
+  - kind: advance_answer.recorded
+    category: assignments
+    emitted_by:
+      - emitter: supabase/migrations/6273_advance_answer_sources.sql#app.record_drafted_advance_answer
+        test: supabase/tests/6273_advance_answer_sources.test.sql
   # Advance allocations (R7: 4693, 4694). Accepted account members receive them through private.party_org_ids (1131).
   - kind: allocation.decided
     category: approvals
@@ -569,6 +659,8 @@ kinds:
         test: supabase/tests/4693_allocation_rpcs.test.sql
       - emitter: supabase/migrations/4693_allocation_rpcs.sql#app.assign_allocation
         test: supabase/tests/4693_allocation_rpcs.test.sql
+      - emitter: supabase/migrations/6230_equipment_approval_rules.sql#private.decline_rejected_allocation
+        test: supabase/tests/6230_equipment_approval_rules.test.sql
   - kind: allocation.assigned
     category: assignments
     emitted_by:
@@ -588,6 +680,8 @@ kinds:
         test: supabase/tests/4694_allocation_cascades.test.sql
       - emitter: supabase/migrations/4694_allocation_cascades.sql#private.withdraw_entry_allocations
         test: supabase/tests/4694_allocation_cascades.test.sql
+      - emitter: supabase/migrations/6230_equipment_approval_rules.sql#private.withdraw_canceled_allocation
+        test: supabase/tests/6230_equipment_approval_rules.test.sql
   # Travel, lodging and ground transport (B5: 5947)
   - kind: accommodation_block.release_due
     category: expiry_reminders
@@ -599,3 +693,60 @@ kinds:
     emitted_by:
       - emitter: supabase/migrations/5947_hospitality_notices.sql#private.notify_transfer_driver
         test: supabase/tests/5947_hospitality_notices.test.sql
+  # Advancing reminders and notices (R11: 6221, 6222). Owner decision 6: reminders and the party's notices reach the
+  # Account Owners, Account Admins and assigned Advancing Leads, never an unassigned Account Member.
+  - kind: advance_packet.reminder
+    category: assignments
+    emitted_by:
+      - emitter: supabase/migrations/6221_advance_reminders.sql#private.queue_advance_reminder
+        test: supabase/tests/6221_advance_reminders.test.sql
+  - kind: advance_submission.returned
+    category: assignments
+    emitted_by:
+      - emitter: supabase/migrations/6222_advancing_notices.sql#private.notify_advance_answer_returned
+        test: supabase/tests/6222_advancing_notices.test.sql
+  - kind: submittal.returned
+    category: approvals
+    emitted_by:
+      - emitter: supabase/migrations/6222_advancing_notices.sql#private.notify_submittal_returned
+        test: supabase/tests/6222_advancing_notices.test.sql
+  - kind: roster_entry.removed
+    category: assignments
+    emitted_by:
+      - emitter: supabase/migrations/6222_advancing_notices.sql#private.notify_roster_entry_removed
+        test: supabase/tests/6222_advancing_notices.test.sql
+  - kind: roster_entry.facts_requested
+    category: assignments
+    emitted_by:
+      - emitter: supabase/migrations/6222_advancing_notices.sql#private.notify_roster_entry_accepted
+        test: supabase/tests/6222_advancing_notices.test.sql
+      - emitter: supabase/migrations/6221_advance_reminders.sql#private.send_roster_fact_reminders
+        test: supabase/tests/6221_advance_reminders.test.sql
+  - kind: roster_entry.share_revoked
+    category: assignments
+    emitted_by:
+      - emitter: supabase/migrations/6222_advancing_notices.sql#private.notify_roster_share_revoked
+        test: supabase/tests/6222_advancing_notices.test.sql
+  - kind: credential.revoked
+    category: assignments
+    emitted_by:
+      - emitter: supabase/migrations/6222_advancing_notices.sql#private.notify_credential_revoked
+        test: supabase/tests/6222_advancing_notices.test.sql
+  # Crew onboarding and recruitment (B10: 6522, 6524). A registrant receives them through private.party_org_ids (6525),
+  # and an engaged person through their engagement.
+  - kind: crew_registration.decided
+    category: approvals
+    emitted_by:
+      - emitter: supabase/migrations/6522_crew_registrations.sql#private.decide_crew_registration
+        test: supabase/tests/6522_crew_registrations.test.sql
+  - kind: crew_registration.invited
+    category: opportunities
+    channels: [In App, Email, Push]
+    emitted_by:
+      - emitter: supabase/migrations/6522_crew_registrations.sql#app.invite_to_registration_page
+        test: supabase/tests/6522_crew_registrations.test.sql
+  - kind: engagement_document.sent
+    category: approvals
+    emitted_by:
+      - emitter: supabase/migrations/6524_engagement_document_batches.sql#app.send_engagement_document_batch
+        test: supabase/tests/6524_engagement_document_batches.test.sql

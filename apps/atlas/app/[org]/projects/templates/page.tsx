@@ -7,8 +7,11 @@ export default async function Page({
   searchParams,
 }: PageProps<"/[org]/projects/templates">) {
   const ctx = await requireNode("projects.templates", await params);
-  const template = (await searchParams)["template"];
+  const search = await searchParams;
+  const template = search["template"];
   const selected =
     typeof template === "string" && /^[0-9a-f-]{36}$/.test(template) ? template : null;
-  return <TemplatesView ctx={ctx} selected={selected} />;
+  const day = search["dayTemplate"];
+  const dayTemplate = typeof day === "string" && /^[0-9a-f-]{36}$/.test(day) ? day : null;
+  return <TemplatesView ctx={ctx} selected={selected} dayTemplate={dayTemplate} />;
 }

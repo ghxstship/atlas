@@ -7,11 +7,13 @@ import {
   addSection,
   addSectionChoice,
   ADVANCE_SECTION_KINDS,
+  ADVANCE_TRACKS,
   ADVANCE_WINDOW_KINDS,
   bookDockSlotFromAnswer,
   removeSectionChoice,
   sectionConfig,
   setRecipientNamesDue,
+  setSectionTrack,
   archivePacket,
   archiveRider,
   createPacket,
@@ -51,6 +53,11 @@ export interface AdvancingState {
   readonly ok?: boolean;
   readonly error?: string;
   readonly fieldErrors?: Readonly<Record<string, string>>;
+  /**
+   * What a refused badge issue lacked (B8): the unmet requirements' titles and the live duplicate's number, which the
+   * Issue dialog names beside the refusal.
+   */
+  readonly detail?: { readonly missing: readonly string[]; readonly duplicates: readonly string[] };
   /** The id of a row the action created, for navigation to it. */
   readonly id?: string;
   /** A link issued once: shown to the issuer, never stored in clear. */
@@ -189,6 +196,7 @@ export async function addSectionAction(_: AdvancingState, form: FormData): Promi
       maxLines: z.coerce.number().int().nullable().catch(null),
       perPerson: z.boolean(),
       choices: z.array(z.string().regex(/^(asset_class|credential_category):[0-9a-f-]{36}$/)),
+      track: z.enum(ADVANCE_TRACKS).catch("General"),
     })
     .safeParse({
       packetId: text(form, "packetId"),
@@ -199,6 +207,7 @@ export async function addSectionAction(_: AdvancingState, form: FormData): Promi
       maxLines: text(form, "maxLines") || null,
       perPerson: text(form, "perPerson") === "on",
       choices: form.getAll("choice").filter((c): c is string => typeof c === "string" && c !== ""),
+      track: text(form, "track") || "General",
     });
   if (!parsed.success) {
     return {
@@ -224,6 +233,7 @@ export async function addSectionAction(_: AdvancingState, form: FormData): Promi
     title: f.title,
     prompt: f.prompt,
     config,
+    track: f.track,
   });
   if (!added.ok || !needsChoices) return done(ctx.org.slug, added);
   for (const choice of f.choices) {
@@ -279,18 +289,29 @@ export async function updateSectionAction(
   form: FormData,
 ): Promise<AdvancingState> {
   const ctx = await contextFor(form);
-  const parsed = z.object({ sectionId: id, title, prompt: optionalText(2000) }).safeParse({
-    sectionId: text(form, "sectionId"),
-    title: text(form, "title"),
-    prompt: text(form, "prompt"),
-  });
+  const parsed = z
+    .object({
+      sectionId: id,
+      title,
+      prompt: optionalText(2000),
+      track: z.enum(ADVANCE_TRACKS).nullable().catch(null),
+    })
+    .safeParse({
+      sectionId: text(form, "sectionId"),
+      title: text(form, "title"),
+      prompt: text(form, "prompt"),
+      track: text(form, "track") || null,
+    });
   if (!parsed.success) return { fieldErrors: { title: "title" } };
+  const updated = await updateSection(ctx.viewer.db, parsed.data.sectionId, {
+    title: parsed.data.title,
+    prompt: parsed.data.prompt,
+  });
+  // R11: the track is a grouping label, editable after the packet is sent like the wording (6223).
+  if (!updated.ok || parsed.data.track === null) return done(ctx.org.slug, updated);
   return done(
     ctx.org.slug,
-    await updateSection(ctx.viewer.db, parsed.data.sectionId, {
-      title: parsed.data.title,
-      prompt: parsed.data.prompt,
-    }),
+    await setSectionTrack(ctx.viewer.db, parsed.data.sectionId, parsed.data.track),
   );
 }
 

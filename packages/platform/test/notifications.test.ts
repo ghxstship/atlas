@@ -6,7 +6,7 @@ import { createHmac } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { hasMessage } from "@xos/email";
 import { locales } from "@xos/i18n";
-import { NOTIFICATION_KINDS } from "@xos/schemas/notifications";
+import { copyKeys, NOTIFICATION_KINDS } from "@xos/schemas/notifications";
 import { describe, expect, it } from "vitest";
 import {
   EXPO_PUSH_RECEIPTS_URL,
@@ -118,8 +118,8 @@ describe("notification copy on every channel (Section 3.15)", () => {
   it("has a subject and a body for every registry kind in every locale, and SMS replies", () => {
     for (const locale of locales) {
       for (const k of NOTIFICATION_KINDS) {
-        expect(hasMessage(locale, k.copy.subject), `${locale} ${k.kind}`).toBe(true);
-        expect(hasMessage(locale, k.copy.body), `${locale} ${k.kind}`).toBe(true);
+        expect(hasMessage(locale, copyKeys(k.kind).subject), `${locale} ${k.kind}`).toBe(true);
+        expect(hasMessage(locale, copyKeys(k.kind).body), `${locale} ${k.kind}`).toBe(true);
       }
       for (const key of ["sms.message", "sms.help", "sms.stop", "sms.start"])
         expect(hasMessage(locale, key), `${locale} ${key}`).toBe(true);
@@ -1430,15 +1430,19 @@ describe("texts held by quiet hours go out as one summary", () => {
 
   it("keeps the bypass list short and in the registry", () => {
     // ADR 0033 decision 62 (1620) adds a new shift within 12 hours, security changes (with a recovery code used)
-    // and emergency access.
+    // and emergency access; B8 (2979, ADR 0147) the official weather warning, the weather hold and its all-clear.
     expect(
       NOTIFICATION_KINDS.filter((k) => k.quietHoursBypass !== null).map((k) => k.kind),
     ).toEqual([
       "shift.assigned",
       "shift.changed",
+      "shift.reconfirm",
       "incident.reported",
       "occupancy.threshold",
       "weather.alert",
+      "weather.warning",
+      "weather.hold",
+      "weather.all_clear",
       "account.security_changed",
       "account.recovery_code_used",
       "access.break_glass_started",

@@ -53,6 +53,11 @@ function lookups(writes: Row[]): TargetLookups {
     counterpartyTypeExists: async (t) => t === "Sponsor",
     jurisdictionExists: async (id) => id === "US-FL-MIAMI-DADE",
     vendorIdByName: async (_o, n) => (n === "Harborline" ? "ven1" : null),
+    uridExists: async () => false,
+    uridXyz: async () => null,
+    costCenterId: async () => null,
+    budgetDestination: async () => null,
+    budgetLineTag: async () => null,
     elementExists: async (id) => id === "0000.01.01-XOS-001",
     assetClassId: async (_o, v) => (v === "Truss" ? "ac1" : null),
     venueId: async (_o, v) => (v === "Pier 9" ? "v9" : null),
@@ -73,7 +78,24 @@ function lookups(writes: Row[]): TargetLookups {
     counterpartyIdByName: async () => null,
     destinationKeyMatch: async () => null,
     nextCuePosition: async () => 1,
+    talentPoolIdByName: async () => null,
+    roleCode: async () => null,
+    poolInvitationContext: async () => ({
+      talentPoolId: null,
+      numberFormat: "comma-dot",
+      canWriteRates: false,
+      language: null,
+      baseCurrency: null,
+      exponents: new Map(),
+    }),
+    poolInvitation: async () => null,
     cueCalled: async () => false,
+    canonCodeExists: async () => true,
+    unitExists: async () => true,
+    materialMatch: async () => null,
+    projectTimeZone: async () => "UTC",
+    purchaseOrderState: async () => "Proposed",
+    nextPoLineNumber: async () => 1,
   };
 }
 
@@ -139,6 +161,7 @@ function memoryStore(csv: string | Uint8Array, targetCode = "counterparties", so
   const scan = { status: "Clean" as string | null, downloads: 0 };
   const store: ImportStore = {
     lookups: lookups(writes),
+    recordMaterialMatch: async () => {},
     async claim(kind) {
       const mine = queue.filter((q) => q.kind === kind);
       for (const m of mine) queue.splice(queue.indexOf(m), 1);
@@ -225,6 +248,8 @@ function memoryStore(csv: string | Uint8Array, targetCode = "counterparties", so
       const r = rows.find((x) => x.id === input.rowId);
       if (r) r.written = { action: input.action, target: input.targetId, before: input.before };
     },
+    async skipRow() {},
+    async noteRow() {},
     async refuseRow(rowId, reason) {
       const r = rows.find((x) => x.id === rowId);
       if (r) {

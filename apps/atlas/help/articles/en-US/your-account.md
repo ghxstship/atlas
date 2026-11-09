@@ -24,6 +24,10 @@ Manage your sign-in methods, passkeys and sessions. Signing out of a session end
 
 Set your language, time zone, theme and reduced motion. In **Preferences**, you can replay any guided tour and show the contextual tips again.
 
+## Calendar feeds
+
+**Me, Calendar Feeds** subscribes your calendar app to your schedule in this organization, or to a project's. Give each feed a name, which your calendar shows, and choose what it shows: shifts, meetings, milestones, deadlines and, on a project feed, cues. A project feed can also follow only some people, one team or one department, and only the cues with one show department's call. A feed never shows more than you may see. **Edit** changes a feed without changing its link.
+
 ## Notifications
 
 Choose which notifications reach you by email, text message and push, set quiet hours, and pick a digest.

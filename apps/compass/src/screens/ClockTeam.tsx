@@ -5,6 +5,7 @@
  * queues as one team punch (app.record_supervisor_punches); each worker's answer shows beside their name once it
  * syncs, and who is in follows the synced time entries, so a worker who clocked in on their own phone shows In. The database decides who may be punched: crew.shift.write on the project, or leading the roster.
  */
+import type { Database } from "@xos/data/database.types";
 import { stampEvent, type Row } from "@xos/sync";
 import { useMemo, useState, type ReactElement } from "react";
 import { useTranslation } from "react-i18next";
@@ -80,7 +81,7 @@ export function ClockTeam(): ReactElement {
   const allSelected = team.length > 0 && chosen.length === team.length;
   const toggle = (id: string, on: boolean) =>
     setSelected((current) => (on ? [...current, id] : current.filter((x) => x !== id)));
-  const punch = async (kind: "In" | "Out") => {
+  const punch = async (kind: Database["app"]["Enums"]["scan_direction"]) => {
     if (chosen.length === 0 || busy) return;
     setBusy(true);
     try {

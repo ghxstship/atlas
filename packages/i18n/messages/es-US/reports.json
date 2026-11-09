@@ -95,7 +95,8 @@
     },
     "variance": "Variación",
     "varianceIn": "Variación en {currency}",
-    "withheld": "Retenido"
+    "withheld": "Retenido",
+    "efc": "Costo final estimado"
   },
   "labor": {
     "budget": "Presupuesto de mano de obra",
@@ -111,7 +112,23 @@
     "open": "Registros de tiempo abiertos",
     "payrollRuns": "Corridas de nómina",
     "run": "Corrida",
-    "timesheets": "Hojas de horas"
+    "timesheets": "Hojas de horas",
+    "postedByTeam": "Registrado en el presupuesto por equipo",
+    "team": "Equipo",
+    "cost": "Costo",
+    "unpricedHours": "Horas sin precio",
+    "offBudget": "Horas sin línea de presupuesto",
+    "person": "Persona",
+    "date": "Fecha",
+    "shift": "Turno",
+    "openShift": "Abrir el turno",
+    "noShift": "Sin turno",
+    "teams": {
+      "OwnTeam": "Equipo propio",
+      "Agency": "Agencia",
+      "Engaged": "Personas contratadas"
+    },
+    "offBudgetMore": "Se muestran los últimos {count} registros; hay más."
   },
   "po": {
     "caption": "Compromiso pendiente por orden de compra",
@@ -196,7 +213,11 @@
       "procurement": "Compras",
       "assets": "Activos",
       "incidents": "Incidentes",
-      "custom_object": "Objeto personalizado"
+      "custom_object": "Objeto personalizado",
+      "crew_hours": "Horas del equipo",
+      "crew_responses": "Respuestas del equipo",
+      "crew_removals": "Retiros del equipo",
+      "crew_ratings": "Calificaciones del equipo"
     },
     "status": {
       "Queued": "En cola",
@@ -206,6 +227,78 @@
     },
     "visibility": "Visibilidad",
     "when": "Iniciado",
-    "you": "Usted"
+    "you": "Usted",
+    "standard": {
+      "title": "Informes estándar del equipo",
+      "help": "Informes listos sobre turnos, respuestas, retiros y calificaciones de tu equipo. Abre uno para verlo y guarda tu propia copia para cambiarlo.",
+      "open": "Abrir",
+      "openNamed": "Abrir {name}",
+      "names": {
+        "crew-utilization": "Uso del equipo",
+        "crew-invitation-responses": "Respuestas a invitaciones",
+        "crew-removals": "Retiros del equipo",
+        "crew-ratings": "Calificaciones del equipo",
+        "crew-scheduled-vs-actual": "Horas programadas frente a reales"
+      }
+    }
+  },
+  "wrapUp": {
+    "title": "Cierre",
+    "description": "El balance y el resumen para la dirección del proyecto, impresos con el presupuesto frente a los costos reales, la asistencia, el carbono y los incidentes como informe de cierre.",
+    "debrief": "Balance",
+    "states": {
+      "notStarted": "Sin empezar",
+      "open": "Abierto",
+      "completed": "Completado"
+    },
+    "completed": "Completado por {name} el {date}",
+    "aiReviewed": "Redactado con Aurora y revisado por {name} el {date}",
+    "writtenBy": "Escrito por {name} el {date}",
+    "summaryNotIncluded": "No incluido: el resumen para la dirección se redacta con datos de presupuesto, contabilidad, compuertas e incidentes que usted no puede leer.",
+    "summaryLabel": "Resumen para la dirección",
+    "summaryHelp": "Hasta 4000 caracteres. No se guarda nada hasta que elija Guardar resumen.",
+    "saveSummary": "Guardar resumen",
+    "summarySaved": "Resumen guardado.",
+    "useSummary": "Usar como resumen para la dirección",
+    "aiPending": "Redactado con Aurora. Revíselo y guárdelo a su nombre.",
+    "points": "Puntos del balance",
+    "areaLabel": "Área",
+    "kindLabel": "Tipo",
+    "point": "Punto",
+    "owner": "Responsable",
+    "noOwner": "Sin responsable",
+    "addPoint": "Agregar un punto",
+    "savePoint": "Guardar punto",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "cancel": "Cancelar",
+    "trashed": "El punto del balance se movió a la papelera.",
+    "noPoints": "Aún no hay puntos del balance.",
+    "complete": "Completar balance",
+    "reopen": "Reabrir balance",
+    "area": {
+      "schedule": "Calendario",
+      "budget": "Presupuesto",
+      "safety": "Seguridad",
+      "audience": "Público",
+      "sustainability": "Sostenibilidad",
+      "crew": "Equipo",
+      "vendors": "Proveedores",
+      "other": "Otro"
+    },
+    "kind": {
+      "wentWell": "Salió bien",
+      "toImprove": "Por mejorar",
+      "action": "Acción"
+    },
+    "errors": {
+      "debrief_completed": "Este balance está completado. Reábralo para cambiar sus puntos o su resumen.",
+      "debrief_ai_request": "Ese borrador no es su propio resumen de Aurora de este proyecto. Redáctelo de nuevo y luego guárdelo.",
+      "debrief_summary": "Escriba un resumen para la dirección de hasta 4000 caracteres.",
+      "refused": "Se rechazó este cambio.",
+      "notFound": "Ese balance o punto no está disponible para usted.",
+      "invalid": "Revise los campos e inténtelo de nuevo.",
+      "unexpected": "Algo salió mal. Inténtelo de nuevo."
+    }
   }
 }

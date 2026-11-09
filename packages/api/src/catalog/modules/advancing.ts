@@ -8,6 +8,7 @@
  * are removed and sending stays the `send` action (app.send_advance_packet, 0430).
  */
 import { z } from "@hono/zod-openapi";
+import { Constants } from "@xos/data/database.types";
 import { defineResource, fields } from "@xos/schemas";
 import { defineAdditions } from "../additions.ts";
 import {
@@ -19,8 +20,13 @@ import {
   removeActions,
   setCapabilities,
 } from "../correct.ts";
-import { itemAction, resource } from "../define.ts";
-import { Constants } from "@xos/data/database.types";
+import { collectionAction, itemAction, resource } from "../define.ts";
+import {
+  ADVANCE_TRACKS,
+  advanceTrackActions,
+  advanceTrackCapabilities,
+  advanceTrackResources,
+} from "./parts/advance-tracks.ts";
 import { allocationCapabilities, allocationResources } from "./parts/allocations.ts";
 import { rosterEntryCapabilities, rosterEntryResources } from "./parts/roster-project-facts.ts";
 import {
@@ -79,6 +85,27 @@ const GuestListEntry = editDefinition(
       decided_by: orNull(fields.ref("person who decided, set by the database")),
       checked_in_at: orNull(fields.instant("When the guest was checked in. Set by the database.")),
       checked_in_by: orNull(fields.ref("person who checked the guest in, set by the database")),
+      // B8 (6254): the guest's pass, set by the production while the guest is not checked in.
+      pass_category_id: orNull(
+        fields.ref("pass type: an Access credential category of the same project"),
+      ),
+      table_label: orNull(fields.text("Table or seat.", "Table 4", 60)),
+      host_person_id: orNull(
+        fields.ref("project person hosting the guest, alerted when the guest arrives"),
+      ),
+      guest_email: orNull(
+        fields.text(
+          "Where the guest's pass and messages go, lowercased. Confidential.",
+          "sasha@example.com",
+          320,
+        ),
+      ),
+      pass_code: orNull(
+        fields.code(
+          "Pass code the door scans (XOSGP1:<code>), stamped by the database on approval.",
+          "GP-ABCDEFGHIJ",
+        ),
+      ),
     },
     serverSet: [
       "person_id",
@@ -89,17 +116,84 @@ const GuestListEntry = editDefinition(
       "decided_by",
       "checked_in_at",
       "checked_in_by",
+      "pass_code",
     ],
     immutable: ["project_id"],
   }),
   { nullable: ["created_by", "updated_by"] },
 );
 
+const GuestEmailKind = z.enum(Constants.app.Enums.guest_email_kind);
+
+/** app.guest_email_sends (6255, B8): one bulk email staff sent to a project's guests. */
+const GuestEmailSend = defineResource({
+  name: "GuestEmailSend",
+  table: "app.guest_email_sends",
+  description:
+    "A bulk email staff sent to a project's guests (gap G-71): an invitation, their pass or a message, in one language. Written only by the send-email action.",
+  serverSet: ["project_id", "email_kind", "subject", "body", "locale", "created_by", "updated_by"],
+  fields: {
+    project_id: fields.ref("project"),
+    email_kind: GuestEmailKind.meta({
+      description: "Invitation, Pass or Message.",
+      example: "Pass",
+    }),
+    subject: orNull(fields.text("Subject of a Message.", "Doors open at 7", 150)),
+    body: orNull(
+      fields.text(
+        "Text of a Message, or a note on an invitation or pass.",
+        "See you tonight.",
+        5000,
+      ),
+    ),
+    locale: z
+      .enum(["en-US", "es-US"])
+      .meta({ description: "Language of the email.", example: "en-US" }),
+    created_by: orNull(fields.uuid("Person who sent it.")),
+    updated_by: orNull(fields.uuid("Always null: a send is never changed.")),
+  },
+});
+
+const sendEmailBody = z
+  .object({
+    project_id: fields.uuid("Project of the guests."),
+    guest_list_entry_ids: z
+      .array(fields.uuid("Guest list entry."))
+      .min(1)
+      .max(500)
+      .meta({
+        description: "The guests to email, 1 to 500.",
+        example: ["0192a000-0000-7000-8000-000000000001"],
+      }),
+    email_kind: GuestEmailKind.meta({
+      description: "Invitation, Pass (their pass attached as a PDF) or Message.",
+      example: "Pass",
+    }),
+    subject: z.string().min(1).max(150).optional().meta({
+      description: "Subject; required for a Message, not allowed otherwise.",
+      example: "Doors open at 7",
+    }),
+    body: z.string().min(1).max(5000).optional().meta({
+      description: "Text; required for a Message.",
+      example: "See you tonight.",
+    }),
+    locale: z
+      .enum(["en-US", "es-US"])
+      .optional()
+      .meta({ description: "Language of the email; en-US when left out.", example: "es-US" }),
+  })
+  .meta({ id: "GuestEmailSendRequest", description: "An email to selected guests of a project." });
+
+const sendEmailResponse = z
+  .object({ send_id: fields.uuid("The send; read its rows' states at /guest-email-sends/{id}.") })
+  .meta({ id: "GuestEmailSendQueued", description: "A queued guest email send." });
+
 export const additions = defineAdditions("Advancing", {
   resources: [
     ...rosterEntryResources,
     ...allocationResources,
     ...typedAdvanceResources,
+    ...advanceTrackResources,
     resource("Advancing", "/guest-list-entries", GuestListEntry, {
       actions: [
         itemAction("decide", {
@@ -120,18 +214,39 @@ export const additions = defineAdditions("Advancing", {
           description:
             "Moves an Approved guest to Checked In at the door; the database stamps who checked them in and when. Any other state is refused (422).",
         }),
+        collectionAction("sendEmail", {
+          summary: "Email guests",
+          description:
+            "Queues an email to the selected guests of a project, sent by the org with an unsubscribe link and its postal address (B8, ADR 0147 decision 7). Every guest gets a row: Queued, Suppressed (the address is on the org's suppression list) or Skipped (no email, not live, or no pass for a Pass email). Refuses guest_email_batch (1 to 500), guest_email_rate (2,000 a day per org) and guest_email_message (422).",
+          body: sendEmailBody,
+          response: sendEmailResponse,
+          status: 202,
+          segment: "send-email",
+          rpc: "app.queue_guest_emails",
+        }),
       ],
     }),
+    resource("Advancing", "/guest-email-sends", GuestEmailSend, {
+      verbs: ["list", "get"],
+      order: { by: ["created_at"], numeric: false, descending: true },
+    }),
   ],
+  actions: advanceTrackActions,
   capabilities: {
     ...rosterEntryCapabilities,
     ...allocationCapabilities,
     ...typedAdvanceCapabilities,
+    ...advanceTrackCapabilities,
     guestListEntries: {
       read: "advancing.packet.read",
       write: "advancing.rider.write",
-      actions: { decide: "advancing.submission.review", checkIn: "advancing.rider.write" },
+      actions: {
+        decide: "advancing.submission.review",
+        checkIn: "advancing.rider.write",
+        sendEmail: "advancing.rider.write",
+      },
     },
+    guestEmailSends: { read: "advancing.packet.read" },
   },
   corrections: [
     {
@@ -273,6 +388,27 @@ export const additions = defineAdditions("Advancing", {
           { configure: "advancing.packet.write" },
         ),
       ),
+    },
+    {
+      id: "advance-section-track",
+      since: SINCE,
+      resources: ["advanceSections"],
+      change:
+        "Adds `track`, the track the section is grouped under (Finance, Technical, Hospitality, Catering, Travel, Logistics or General), optional on create and General unless given; the `setTrack` action changes it.",
+      reason:
+        "app.advance_sections.track (6223, R11, parity gap G-176) groups a packet's sections into tracks a reviewer signs off one by one; it is a grouping label that stays editable after the packet is sent, and defaults to General.",
+      apply: editShape({
+        add: {
+          track: {
+            schema: z.enum(ADVANCE_TRACKS).meta({
+              description: "Track the section is grouped under; General unless given.",
+              example: "Hospitality",
+            }),
+            create: "optional",
+            update: false,
+          },
+        },
+      }),
     },
     {
       id: "advance-recipient-engagement",

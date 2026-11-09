@@ -24,6 +24,7 @@ import type {
   AccessReviewItemUpdate,
   AccessScan,
   AccessScanCreate,
+  AccessScanOverrideRequest,
   AccommodationNight,
   AccountMembership,
   AccountMembershipCreate,
@@ -56,17 +57,22 @@ import type {
   AdvanceRecipientBindEngagementRequest,
   AdvanceRecipientCreate,
   AdvanceRecipientSetNamesDueRequest,
+  AdvanceRecipientSignOffTrackRequest,
   AdvanceSection,
   AdvanceSectionChoice,
   AdvanceSectionChoiceCreate,
   AdvanceSectionConfigureRequest,
   AdvanceSectionCreate,
+  AdvanceSectionSetTrackRequest,
   AdvanceSectionUpdate,
   AdvanceSubmission,
   AdvanceSubmissionCreate,
   AdvanceSubmissionFile,
   AdvanceSubmissionLine,
   AdvanceSubmissionReviewRequest,
+  AdvanceTrackProgress,
+  AdvanceTrackSignoff,
+  AdvanceTrackSignoffRevokeRequest,
   AgencySlate,
   AgencySlateCreate,
   Agreement,
@@ -123,12 +129,17 @@ import type {
   AssetLotUpdate,
   AssetMaintenance,
   AssetMaintenanceCreate,
+  AssetMaintenanceDue,
+  AssetMaintenancePlan,
+  AssetMaintenancePlanCreate,
+  AssetMaintenancePlanUpdate,
   AssetMaintenanceUpdate,
   AssetReservation,
   AssetReservationConflict,
   AssetReservationRelease,
   AssetScanEvent,
   AssetScanResult,
+  AssetShortages,
   AssetTransitionRequest,
   AssetUnit,
   AssetUnitBulkEditRequest,
@@ -140,14 +151,26 @@ import type {
   AssignTrainingRequest,
   AssignTrainingResult,
   AuditEvent,
+  AuroraAppliedAdvanceAnswer,
+  AuroraAppliedContractIntake,
   AuroraAppliedDraft,
+  AuroraAppliedInvoiceLines,
+  AuroraAppliedItinerary,
+  AuroraApplyAdvanceAnswerRequest,
+  AuroraApplyContractIntakeRequest,
   AuroraApplyDraftRequest,
+  AuroraApplyInvoiceLinesRequest,
+  AuroraApplyItineraryRequest,
   AuroraAskRequest,
   AuroraBindCodeRequest,
+  AuroraDraftAdvanceAnswersRequest,
   AuroraDraftRequest,
   AuroraExtractRequest,
   AuroraFilterRequest,
+  AuroraIntakeKind,
+  AuroraIntakeOptions,
   AuroraMapColumnsRequest,
+  AuroraOpenProposals,
   AuroraPreview,
   AuroraPreviewRequest,
   AuroraResult,
@@ -201,6 +224,8 @@ import type {
   Calendar,
   CalendarCreate,
   CalendarFeed,
+  CalendarFeedConfiguration,
+  CalendarFeedConfigureRequest,
   CalendarFeedCreate,
   CalendarFeedToken,
   CalendarUpdate,
@@ -308,6 +333,8 @@ import type {
   Credential,
   CredentialCategory,
   CredentialCategoryCreate,
+  CredentialCategoryRequirement,
+  CredentialCategoryRequirementCreate,
   CredentialCategoryUpdate,
   CredentialCreate,
   CrisisAlert,
@@ -319,6 +346,8 @@ import type {
   CueCallCreate,
   CueCallUpdate,
   CueCreate,
+  CueFieldAudience,
+  CueFieldAudienceCreate,
   CueUpdate,
   CustomFieldDefinition,
   CustomFieldDefinitionCreate,
@@ -350,6 +379,13 @@ import type {
   DelegationCreate,
   DelegationUpdate,
   DeletionCertificate,
+  DeliveryWindow,
+  DeliveryWindowBookRequest,
+  DeliveryWindowBookResult,
+  DeliveryWindowCreate,
+  DeliveryWindowGenerateRequest,
+  DeliveryWindowGenerateResult,
+  DeliveryWindowUpdate,
   DeptCode,
   DirectConversationRequest,
   DirectoryEntryPage,
@@ -359,6 +395,7 @@ import type {
   DispatchAssignmentUpdate,
   DisposeLostItemRequest,
   DockSlot,
+  DockSlotCancelBookingResult,
   DockSlotCreate,
   DockSlotUpdate,
   Document,
@@ -417,6 +454,12 @@ import type {
   Flight,
   Form1099NecRowPage,
   FormDecisionRequest,
+  FormLink,
+  FormLinkRegenerated,
+  FormLinkRequest,
+  FormLinkResponse,
+  FormLinkResponseDecision,
+  FormLinkToken,
   FormSubmission,
   FormSubmissionCreate,
   FormTemplate,
@@ -448,6 +491,9 @@ import type {
   GuestCheckIn,
   GuestCheckInCreate,
   GuestDecisionRequest,
+  GuestEmailSend,
+  GuestEmailSendQueued,
+  GuestEmailSendRequest,
   GuestListEntry,
   GuestListEntryCreate,
   GuestListEntryUpdate,
@@ -531,11 +577,14 @@ import type {
   InvoiceCreate,
   InvoiceLine,
   InvoiceLineCreate,
+  InvoiceLineHistory,
+  InvoiceLineHistoryRequest,
   InvoiceLineUpdate,
   InvoiceMatch,
   InvoiceMatchCreate,
   InvoiceMatchResolveRequest,
   InvoicePaymentRequest,
+  InvoiceTieOut,
   InvoiceTransitionRequest,
   InvoiceUpdate,
   ItemId,
@@ -657,6 +706,7 @@ import type {
   OrganizationRelationshipCreate,
   OrganizationRelationshipUpdate,
   OrganizationUpdate,
+  OutsideAccessRow,
   OvertimeRule,
   OwnershipTransfer,
   OwnershipTransferOfferRequest,
@@ -692,6 +742,8 @@ import type {
   PermitTransitionRequest,
   Person,
   PersonCalendarFeed,
+  PersonCalendarFeedConfiguration,
+  PersonCalendarFeedConfigureRequest,
   PersonProfile,
   PersonProfileCreate,
   PersonProfileUpdate,
@@ -726,6 +778,12 @@ import type {
   PriceBook,
   PriceBookCreate,
   PriceBookUpdate,
+  ProcurementNeed,
+  ProcurementNeedConsolidateRequest,
+  ProcurementNeedConsolidateResult,
+  ProcurementNeedCreate,
+  ProcurementNeedStatus,
+  ProcurementNeedUpdate,
   ProfileShare,
   ProfileShareCreate,
   ProfileVisibilityRule,
@@ -739,6 +797,11 @@ import type {
   ProjectAssignmentUpdate,
   ProjectAuthority,
   ProjectCreate,
+  ProjectDebrief,
+  ProjectDebriefItem,
+  ProjectDebriefItemCreate,
+  ProjectDebriefItemUpdate,
+  ProjectDebriefSaveRequest,
   ProjectInbox,
   ProjectInboxCreate,
   ProjectMeasurement,
@@ -766,6 +829,7 @@ import type {
   PurchaseOrderReturnResult,
   PurchaseOrderTransitionRequest,
   PurchaseOrderUpdate,
+  Quote,
   RFQTransitionRequest,
   RadioChannel,
   RadioChannelCreate,
@@ -845,8 +909,13 @@ import type {
   ReturnLine,
   Rfq,
   RfqCreate,
+  RfqCreateSubHireRequest,
+  RfqCreateSubHireResult,
   RfqInvitation,
   RfqInvitationCreate,
+  RfqLine,
+  RfqLineCreate,
+  RfqLineUpdate,
   RfqResponse,
   RfqResponseCreate,
   RfqResponseLine,
@@ -880,6 +949,7 @@ import type {
   RunOfShow,
   RunOfShowCreate,
   RunOfShowUpdate,
+  RunSegmentInstance,
   SavedProjectFact,
   SavedSearch,
   SavedSearchCreate,
@@ -903,6 +973,19 @@ import type {
   ScopeNode,
   ScopeNodeCreate,
   ScopeNodeUpdate,
+  SegmentInsertRequest,
+  SegmentInsertResult,
+  SegmentLibraryCue,
+  SegmentLibraryCueCall,
+  SegmentLibraryCueCallCreate,
+  SegmentLibraryCueCallUpdate,
+  SegmentLibraryCueCreate,
+  SegmentLibraryCueUpdate,
+  SegmentLibrarySegment,
+  SegmentLibrarySegmentCreate,
+  SegmentLibrarySegmentUpdate,
+  SegmentPublishRequest,
+  SegmentPublishResults,
   SeparationOfDutiesRule,
   ServiceAccount,
   ServiceAccountCreate,
@@ -924,6 +1007,8 @@ import type {
   ShiftClaimResult,
   ShiftCommunicationStatusPage,
   ShiftCreate,
+  ShiftNoShowRequest,
+  ShiftReconfirmRequest,
   ShiftSwap,
   ShiftSwapCreate,
   ShiftTransitionRequest,
@@ -937,6 +1022,15 @@ import type {
   Shortlist,
   ShortlistCreate,
   ShortlistUpdate,
+  ShowChannelConversation,
+  ShowChannelJoinRequest,
+  ShowChannelOpenRequest,
+  ShowChannelStatus,
+  ShowcallerDevicesSignedOut,
+  ShowcallerLink,
+  ShowcallerLinkRegenerated,
+  ShowcallerLinkRequest,
+  ShowcallerLinkToken,
   SitePlan,
   SitePlanCreate,
   SitePlanPin,
@@ -958,6 +1052,21 @@ import type {
   SponsorEntitlement,
   SponsorEntitlementCreate,
   SponsorEntitlementUpdate,
+  StakeholderPack,
+  StakeholderPackChange,
+  StakeholderPackEvent,
+  StakeholderPackItem,
+  StakeholderPackItemRemoved,
+  StakeholderPackItemRequest,
+  StakeholderPackRecipient,
+  StakeholderPackRecipientCode,
+  StakeholderPackRecipientCodeReset,
+  StakeholderPackRecipientRequest,
+  StakeholderPackRequest,
+  StakeholderPackSchedule,
+  StakeholderPackScheduleRequest,
+  StakeholderPackSendRequest,
+  StakeholderPackSent,
   StdCode,
   StdDocument,
   StdEmergencyCode,
@@ -1071,6 +1180,13 @@ import type {
   VendorClassCreate,
   VendorClassUpdate,
   VendorCreate,
+  VendorIntakeApproval,
+  VendorIntakeDecline,
+  VendorIntakeLink,
+  VendorIntakeLinkRegenerated,
+  VendorIntakeLinkRequest,
+  VendorIntakeLinkToken,
+  VendorIntakeRequest,
   VendorProduct,
   VendorProductCreate,
   VendorProductUpdate,
@@ -1095,11 +1211,17 @@ import type {
   WeatherAlert,
   WeatherAlertRole,
   WeatherAlertRoleCreate,
+  WeatherAllClearRequest,
+  WeatherFeed,
+  WeatherFeedCreate,
+  WeatherHold,
+  WeatherHoldCreate,
   WeatherReading,
   WeatherReadingCreate,
   WeatherThreshold,
   WeatherThresholdCreate,
   WeatherThresholdUpdate,
+  WeatherWarning,
   WebhookDelivery,
   WebhookEndpoint,
   WebhookEndpointCreate,
@@ -5486,6 +5608,25 @@ export class DockSlotsResource extends $Resource {
       options,
     );
   }
+
+  /**
+   * Cancel a delivery booking
+   *
+   * Cancels a booking and frees its place, before check-in and before the window starts: for its engagement or a dock writer. Its approval is canceled with it. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /dock-slots/{id}/cancel-booking` (operation `dockSlots.cancelBooking`).
+   * Requires the capability `logistics.dock_slot.write`.
+   */
+  cancelBooking(
+    id: string,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<DockSlotCancelBookingResult>> {
+    return this.client.request<DockSlotCancelBookingResult>(
+      $OPERATIONS["dockSlots.cancelBooking"],
+      { path: { id } },
+      options,
+    );
+  }
 }
 
 /**
@@ -5974,6 +6115,26 @@ export class AdvanceSectionsResource extends $Resource {
       options,
     );
   }
+
+  /**
+   * Move a section to another track
+   *
+   * Sets the track a section is grouped under (Finance, Technical, Hospitality, Catering, Travel, Logistics or General). A grouping label: it stays editable after the packet is sent. With If-Match, a stale section is refused (412). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /advance-sections/{id}/set-track` (operation `advanceSections.setTrack`).
+   * Requires the capability `advancing.packet.write`.
+   */
+  setTrack(
+    id: string,
+    body: AdvanceSectionSetTrackRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<AdvanceSection>> {
+    return this.client.request<AdvanceSection>(
+      $OPERATIONS["advanceSections.setTrack"],
+      { path: { id }, body },
+      options,
+    );
+  }
 }
 
 /**
@@ -6112,6 +6273,26 @@ export class AdvanceRecipientsResource extends $Resource {
   ): Promise<$ApiResponse<AdvanceRecipient>> {
     return this.client.request<AdvanceRecipient>(
       $OPERATIONS["advanceRecipients.setNamesDue"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Sign off a recipient's track
+   *
+   * Signs off one track of a sent packet's recipient through `app.sign_off_advance_track`, once every live section on it is Accepted, Complete or Not Applicable. Refuses a track with no section (422 advance_track_empty), one not done (advance_track_incomplete), one already signed off (advance_track_signed_off) and an unsent packet (advance_packet_unsent). Needs advancing.submission.review on the project. Returns the sign-off. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /advance-recipients/{id}/sign-off-track` (operation `advanceRecipients.signOffTrack`).
+   * Requires the capability `advancing.submission.review`.
+   */
+  signOffTrack(
+    id: string,
+    body: AdvanceRecipientSignOffTrackRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<AdvanceTrackSignoff>> {
+    return this.client.request<AdvanceTrackSignoff>(
+      $OPERATIONS["advanceRecipients.signOffTrack"],
       { path: { id }, body },
       options,
     );
@@ -7104,6 +7285,30 @@ export class AssetClassesResource extends $Resource {
     return this.client.request<AssetClassAvailability>(
       $OPERATIONS["assetClasses.availability"],
       { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * What is short against own stock
+   *
+   * One row per project and asset class whose open allocations want more than can supply them: serviceable units, lot quantity and quantity on order that covers the window. Needs advancing.packet.read or procurement.po.read on the project; other projects are omitted. No prices or names. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `GET /asset-classes/shortages` (operation `assetClasses.shortages`).
+   * Requires the capability `procurement.po.read`.
+   */
+  shortages(
+    params?: {
+      /**
+       * Identifier of the project to narrow to.
+       */
+      readonly project_id?: string;
+    },
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<AssetShortages>> {
+    return this.client.request<AssetShortages>(
+      $OPERATIONS["assetClasses.shortages"],
+      { query: params },
       options,
     );
   }
@@ -8660,6 +8865,46 @@ export class ShiftsResource extends $Resource {
     return this.client.request<MarkCommunicatedResult>(
       $OPERATIONS["shifts.markCommunicated"],
       { body },
+      options,
+    );
+  }
+
+  /**
+   * Mark a no-show
+   *
+   * Records that the worker of a started shift did not arrive (app.mark_shift_no_show): crew.shift.write on the project, or the agency's lead for its roster staff; never the worker. A no-show is an outcome record, so the shift's state does not change, and its worker, times and state other than a cancel are frozen while it stands. Idempotent on `no_show_id`, which the client chooses: the same id for the same shift returns the same no-show, also after it was withdrawn, and for another shift is refused (422, no_show_id_conflict). `open_replacement` opens a Published replacement of the same role from now to the shift's end. A shift not started (shift_no_show_state), a worker who clocked in (shift_no_show_clocked_in), a missing reason (shift_no_show_reason) and a replacement with under 15 minutes left (shift_no_show_too_late) are refused (422). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /shifts/{id}/no-show` (operation `shifts.markNoShow`).
+   * Requires the capability `crew.shift.write`.
+   */
+  markNoShow(
+    id: string,
+    body: ShiftNoShowRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<Shift>> {
+    return this.client.request<Shift>(
+      $OPERATIONS["shifts.markNoShow"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Answer Still coming?
+   *
+   * The person asked whether they are still coming to a shift answers (app.respond_shift_reconfirmation): `coming` true confirms; false declines, and under scheduling.reconfirm_reopen, on by default, the shift reopens to claiming or returns to its agency's slot. Only the person asked, who still works the shift, answers (403). A second answer, or any answer once the shift has started, is refused (422, shift_reconfirm_answered). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /shifts/{id}/reconfirm` (operation `shifts.reconfirm`).
+   * Requires the capability `crew.shift.read`.
+   */
+  reconfirm(
+    id: string,
+    body: ShiftReconfirmRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<Shift>> {
+    return this.client.request<Shift>(
+      $OPERATIONS["shifts.reconfirm"],
+      { path: { id }, body },
       options,
     );
   }
@@ -11217,6 +11462,26 @@ export class AccessScansResource extends $Resource {
       options,
     );
   }
+
+  /**
+   * Override a denied scan
+   *
+   * Lets the holder of a Denied In scan less than 15 minutes old in: records a new Granted In row tied to it, with the reason. Needs credentials.credential.issue on the project. Refuses scan_not_denied, scan_override_revoked (a revoked badge is never let in), scan_override_stale, scan_override_taken, scan_override_self (the holder) and scan_override_reason (422). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /access-scans/{id}/override` (operation `accessScans.override`).
+   * Requires the capability `credentials.credential.issue`.
+   */
+  override(
+    id: string,
+    body: AccessScanOverrideRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<AccessScan>> {
+    return this.client.request<AccessScan>(
+      $OPERATIONS["accessScans.override"],
+      { path: { id }, body },
+      options,
+    );
+  }
 }
 
 /**
@@ -12763,6 +13028,42 @@ export class InvoicesResource extends $Resource {
       options,
     );
   }
+
+  /**
+   * Read an invoice's tie-out
+   *
+   * The total the document printed against the invoice's lines, with the residual: computed, never stored, and it blocks neither approval nor posting (B15). A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `GET /invoices/{id}/tie-out` (operation `invoices.tieOut`).
+   * Requires the capability `finance.invoice.read`.
+   */
+  tieOut(id: string, options?: $RequestOptions): Promise<$ApiResponse<InvoiceTieOut>> {
+    return this.client.request<InvoiceTieOut>(
+      $OPERATIONS["invoices.tieOut"],
+      { path: { id } },
+      options,
+    );
+  }
+
+  /**
+   * Read a vendor's line history
+   *
+   * For each description, up to three prior lines the same counterparty billed in the same direction, with the budget line only when on the same project. Row level security decides what it reads. Calls no model, and the history is never sent to one (B15). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /invoices/{id}/line-history` (operation `invoices.lineHistory`).
+   * Requires the capability `finance.invoice.read`.
+   */
+  lineHistory(
+    id: string,
+    body: InvoiceLineHistoryRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<InvoiceLineHistory>> {
+    return this.client.request<InvoiceLineHistory>(
+      $OPERATIONS["invoices.lineHistory"],
+      { path: { id }, body },
+      options,
+    );
+  }
 }
 
 /**
@@ -13680,6 +13981,25 @@ export class RfqsResource extends $Resource {
     return this.client.request<Rfq>(
       $OPERATIONS["rfqs.transition"],
       { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Draft a sub-hire RFQ
+   *
+   * Drafts a Proposed RFQ with one Rental line per short class, reusing a live need whose window overlaps or adding one of the short quantity. Vendors are invited as on any RFQ. Each request's `Idempotency-Key` replays the stored response. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /rfqs/sub-hire` (operation `rfqs.createSubHire`).
+   * Requires the capability `procurement.rfq.write`.
+   */
+  createSubHire(
+    body: RfqCreateSubHireRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<RfqCreateSubHireResult>> {
+    return this.client.request<RfqCreateSubHireResult>(
+      $OPERATIONS["rfqs.createSubHire"],
+      { body },
       options,
     );
   }
@@ -33296,7 +33616,7 @@ export class NotificationsResource extends $Resource {
   /**
    * Act on a notification
    *
-   * Acts where the notification arrived, without opening its record (app.act_on_notification): approve or reject the approval an approval request asks for (app.decide_approval decides every rule; a rejection needs a comment), accept or decline a published shift or an offer that waits on the applicant (shift.assigned, shift.changed and offer.sent), reply to a message (message.received; the reply is the comment), or mark it Done. Only the recipient acts; approving and rejecting are a member's. Push notification action buttons call this operation. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   * Acts where the notification arrived, without opening its record (app.act_on_notification): approve or reject the approval an approval request asks for (app.decide_approval decides every rule; a rejection needs a comment), accept or decline a published shift, an offer that waits on the applicant or a crew roster invitation still unanswered (shift.assigned, shift.changed, offer.sent and roster_entry.invited), answer Still coming? about a shift (shift.reconfirm), reply to a message (message.received; the reply is the comment), or mark it Done. Only the recipient acts; approving and rejecting are a member's. Push notification action buttons call this operation. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
    *
    * `POST /notifications/{id}/act` (operation `notifications.act`).
    * Requires the capability `inbox.notifications.write`.
@@ -33532,6 +33852,45 @@ export class CalendarFeedsResource extends $Resource {
   rotate(id: string, options?: $MutationOptions): Promise<$ApiResponse<CalendarFeedToken>> {
     return this.client.request<CalendarFeedToken>(
       $OPERATIONS["calendarFeeds.rotate"],
+      { path: { id } },
+      options,
+    );
+  }
+
+  /**
+   * Configure a calendar feed
+   *
+   * Replaces the name, sources, audience and show department of one of the caller's live feeds (app.configure_calendar_feed). The subscription URL stays. Another member's or a revoked feed is not found. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /calendar-feeds/{id}/configure` (operation `calendarFeeds.configure`).
+   * Requires the capability `me.calendar_feeds.write`.
+   */
+  configure(
+    id: string,
+    body: CalendarFeedConfigureRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<CalendarFeedConfiguration>> {
+    return this.client.request<CalendarFeedConfiguration>(
+      $OPERATIONS["calendarFeeds.configure"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Read a calendar feed's configuration
+   *
+   * The name, sources, audience and show department of one of the caller's live feeds. Another member's feed is not found. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `GET /calendar-feeds/{id}/configuration` (operation `calendarFeeds.configuration`).
+   * Requires the capability `me.calendar_feeds.write`.
+   */
+  configuration(
+    id: string,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<CalendarFeedConfiguration>> {
+    return this.client.request<CalendarFeedConfiguration>(
+      $OPERATIONS["calendarFeeds.configuration"],
       { path: { id } },
       options,
     );
@@ -34487,6 +34846,246 @@ export class ProjectMeasurementSummaryResource extends $Resource {
 }
 
 /**
+ * Operations on `projectDebriefs`, in the Projects module.
+ *
+ * Projects, scope tree, jurisdiction and gate evidence (Section 4.2).
+ */
+export class ProjectDebriefsResource extends $Resource {
+  /**
+   * List project debrief rows
+   *
+   * The debrief of a project's wrap-up (6215, ADR 0146): one live debrief per project, started and saved by projectDebriefs.save, completed once and reopened when it needs a change. Its points are project-debrief-items; its management summary prints on the wrap-up report for readers of every fact it is drafted from. Returns a cursor page of project debrief rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /project-debriefs` (operation `projectDebriefs.list`).
+   * Requires the capability `projects.project.read`.
+   */
+  list(
+    params?: $ListParams<ProjectDebrief>,
+    options?: $RequestOptions,
+  ): Promise<$Page<ProjectDebrief>> {
+    return this.client.requestPage<ProjectDebrief>(
+      $OPERATIONS["projectDebriefs.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List project debrief rows
+   *
+   * The debrief of a project's wrap-up (6215, ADR 0146): one live debrief per project, started and saved by projectDebriefs.save, completed once and reopened when it needs a change. Its points are project-debrief-items; its management summary prints on the wrap-up report for readers of every fact it is drafted from. Returns a cursor page of project debrief rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /project-debriefs` (operation `projectDebriefs.list`).
+   * Requires the capability `projects.project.read`.
+   */
+  listAll(
+    params?: $ListAllParams<ProjectDebrief>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<ProjectDebrief, void, undefined> {
+    return this.client.paginate<ProjectDebrief>(
+      $OPERATIONS["projectDebriefs.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Get a project debrief
+   *
+   * The debrief of a project's wrap-up (6215, ADR 0146): one live debrief per project, started and saved by projectDebriefs.save, completed once and reopened when it needs a change. Its points are project-debrief-items; its management summary prints on the wrap-up report for readers of every fact it is drafted from. Returns one project debrief with its `ETag`. A project debrief the caller may not see returns 404.
+   *
+   * `GET /project-debriefs/{id}` (operation `projectDebriefs.get`).
+   * Requires the capability `projects.project.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<ProjectDebrief>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<ProjectDebrief>> {
+    return this.client.request<ProjectDebrief>(
+      $OPERATIONS["projectDebriefs.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Start or save a project debrief
+   *
+   * Creates the project's debrief when there is none and saves its management summary (app.save_project_debrief). Answers the debrief. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /project-debriefs/save` (operation `projectDebriefs.save`).
+   * Requires the capability `projects.project.write`.
+   */
+  save(
+    body: ProjectDebriefSaveRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<ProjectDebrief>> {
+    return this.client.request<ProjectDebrief>(
+      $OPERATIONS["projectDebriefs.save"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Complete a project debrief
+   *
+   * Stamps completion once (app.complete_project_debrief); points and the summary lock until it is reopened. An already completed debrief answers debrief_completed (422). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /project-debriefs/{id}/complete` (operation `projectDebriefs.complete`).
+   * Requires the capability `projects.project.write`.
+   */
+  complete(id: string, options?: $MutationOptions): Promise<$ApiResponse<ProjectDebrief>> {
+    return this.client.request<ProjectDebrief>(
+      $OPERATIONS["projectDebriefs.complete"],
+      { path: { id } },
+      options,
+    );
+  }
+
+  /**
+   * Reopen a project debrief
+   *
+   * Clears completion (app.reopen_project_debrief) so the points and summary can change again. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /project-debriefs/{id}/reopen` (operation `projectDebriefs.reopen`).
+   * Requires the capability `projects.project.write`.
+   */
+  reopen(id: string, options?: $MutationOptions): Promise<$ApiResponse<ProjectDebrief>> {
+    return this.client.request<ProjectDebrief>(
+      $OPERATIONS["projectDebriefs.reopen"],
+      { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `projectDebriefItems`, in the Projects module.
+ *
+ * Projects, scope tree, jurisdiction and gate evidence (Section 4.2).
+ */
+export class ProjectDebriefItemsResource extends $Resource {
+  /**
+   * List project debrief item rows
+   *
+   * A point of a project debrief (6215): an area, Went Well, To Improve or Action, the point, and an owner for an Action only. Changes are refused while the debrief is completed (debrief_completed: 422); a deleted point is in Trash. Returns a cursor page of project debrief item rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /project-debrief-items` (operation `projectDebriefItems.list`).
+   * Requires the capability `projects.project.read`.
+   */
+  list(
+    params?: $ListParams<ProjectDebriefItem>,
+    options?: $RequestOptions,
+  ): Promise<$Page<ProjectDebriefItem>> {
+    return this.client.requestPage<ProjectDebriefItem>(
+      $OPERATIONS["projectDebriefItems.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List project debrief item rows
+   *
+   * A point of a project debrief (6215): an area, Went Well, To Improve or Action, the point, and an owner for an Action only. Changes are refused while the debrief is completed (debrief_completed: 422); a deleted point is in Trash. Returns a cursor page of project debrief item rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /project-debrief-items` (operation `projectDebriefItems.list`).
+   * Requires the capability `projects.project.read`.
+   */
+  listAll(
+    params?: $ListAllParams<ProjectDebriefItem>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<ProjectDebriefItem, void, undefined> {
+    return this.client.paginate<ProjectDebriefItem>(
+      $OPERATIONS["projectDebriefItems.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a project debrief item
+   *
+   * A point of a project debrief (6215): an area, Went Well, To Improve or Action, the point, and an owner for an Action only. Changes are refused while the debrief is completed (debrief_completed: 422); a deleted point is in Trash. Creates a project debrief item. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   *
+   * `POST /project-debrief-items` (operation `projectDebriefItems.create`).
+   * Requires the capability `projects.project.write`.
+   */
+  create(
+    body: ProjectDebriefItemCreate,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<ProjectDebriefItem>> {
+    return this.client.request<ProjectDebriefItem>(
+      $OPERATIONS["projectDebriefItems.create"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Get a project debrief item
+   *
+   * A point of a project debrief (6215): an area, Went Well, To Improve or Action, the point, and an owner for an Action only. Changes are refused while the debrief is completed (debrief_completed: 422); a deleted point is in Trash. Returns one project debrief item with its `ETag`. A project debrief item the caller may not see returns 404.
+   *
+   * `GET /project-debrief-items/{id}` (operation `projectDebriefItems.get`).
+   * Requires the capability `projects.project.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<ProjectDebriefItem>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<ProjectDebriefItem>> {
+    return this.client.request<ProjectDebriefItem>(
+      $OPERATIONS["projectDebriefItems.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Update a project debrief item
+   *
+   * A point of a project debrief (6215): an area, Went Well, To Improve or Action, the point, and an owner for an Action only. Changes are refused while the debrief is completed (debrief_completed: 422); a deleted point is in Trash. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+   *
+   * `PATCH /project-debrief-items/{id}` (operation `projectDebriefItems.update`).
+   * Requires the capability `projects.project.write`.
+   */
+  update(
+    id: string,
+    body: ProjectDebriefItemUpdate,
+    options: $UpdateOptions,
+  ): Promise<$ApiResponse<ProjectDebriefItem>> {
+    return this.client.request<ProjectDebriefItem>(
+      $OPERATIONS["projectDebriefItems.update"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Delete a project debrief item
+   *
+   * A point of a project debrief (6215): an area, Went Well, To Improve or Action, the point, and an owner for an Action only. Changes are refused while the debrief is completed (debrief_completed: 422); a deleted point is in Trash. Soft-deletes the project debrief item: it moves to Trash and can be restored for its table's retention period.
+   *
+   * `DELETE /project-debrief-items/{id}` (operation `projectDebriefItems.delete`).
+   * Requires the capability `projects.project.write`.
+   */
+  delete(id: string, options?: $RequestOptions): Promise<$ApiResponse<undefined>> {
+    return this.client.request<undefined>(
+      $OPERATIONS["projectDebriefItems.delete"],
+      { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
  * Operations on `cueCalls`, in the Show module.
  *
  * Run of show, cues, day sheets and call sheets (Section 4.2).
@@ -34585,6 +35184,780 @@ export class CueCallsResource extends $Resource {
     return this.client.request<undefined>(
       $OPERATIONS["cueCalls.delete"],
       { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `segmentLibrary`, in the Show module.
+ *
+ * Run of show, cues, day sheets and call sheets (Section 4.2).
+ */
+export class SegmentLibraryResource extends $Resource {
+  /**
+   * List library segment rows
+   *
+   * A reusable show segment of the org (ADR 0142): a named block of cues with their department calls, copied into running orders with `segmentLibrary.insertIntoRun` and republished to them with `segmentLibrary.publish`. Every member reads the library; holders of show.run_of_show.write org-wide edit it. `version` is the database's change counter. Returns a cursor page of library segment rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /segment-library` (operation `segmentLibrary.list`).
+   * Requires the capability `show.run_of_show.read`.
+   */
+  list(
+    params?: $ListParams<SegmentLibrarySegment>,
+    options?: $RequestOptions,
+  ): Promise<$Page<SegmentLibrarySegment>> {
+    return this.client.requestPage<SegmentLibrarySegment>(
+      $OPERATIONS["segmentLibrary.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List library segment rows
+   *
+   * A reusable show segment of the org (ADR 0142): a named block of cues with their department calls, copied into running orders with `segmentLibrary.insertIntoRun` and republished to them with `segmentLibrary.publish`. Every member reads the library; holders of show.run_of_show.write org-wide edit it. `version` is the database's change counter. Returns a cursor page of library segment rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /segment-library` (operation `segmentLibrary.list`).
+   * Requires the capability `show.run_of_show.read`.
+   */
+  listAll(
+    params?: $ListAllParams<SegmentLibrarySegment>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<SegmentLibrarySegment, void, undefined> {
+    return this.client.paginate<SegmentLibrarySegment>(
+      $OPERATIONS["segmentLibrary.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a library segment
+   *
+   * A reusable show segment of the org (ADR 0142): a named block of cues with their department calls, copied into running orders with `segmentLibrary.insertIntoRun` and republished to them with `segmentLibrary.publish`. Every member reads the library; holders of show.run_of_show.write org-wide edit it. `version` is the database's change counter. Creates a library segment. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   *
+   * `POST /segment-library` (operation `segmentLibrary.create`).
+   * Requires the capability `show.run_of_show.write`.
+   */
+  create(
+    body: SegmentLibrarySegmentCreate,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<SegmentLibrarySegment>> {
+    return this.client.request<SegmentLibrarySegment>(
+      $OPERATIONS["segmentLibrary.create"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Get a library segment
+   *
+   * A reusable show segment of the org (ADR 0142): a named block of cues with their department calls, copied into running orders with `segmentLibrary.insertIntoRun` and republished to them with `segmentLibrary.publish`. Every member reads the library; holders of show.run_of_show.write org-wide edit it. `version` is the database's change counter. Returns one library segment with its `ETag`. A library segment the caller may not see returns 404.
+   *
+   * `GET /segment-library/{id}` (operation `segmentLibrary.get`).
+   * Requires the capability `show.run_of_show.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<SegmentLibrarySegment>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<SegmentLibrarySegment>> {
+    return this.client.request<SegmentLibrarySegment>(
+      $OPERATIONS["segmentLibrary.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Update a library segment
+   *
+   * A reusable show segment of the org (ADR 0142): a named block of cues with their department calls, copied into running orders with `segmentLibrary.insertIntoRun` and republished to them with `segmentLibrary.publish`. Every member reads the library; holders of show.run_of_show.write org-wide edit it. `version` is the database's change counter. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+   *
+   * `PATCH /segment-library/{id}` (operation `segmentLibrary.update`).
+   * Requires the capability `show.run_of_show.write`.
+   */
+  update(
+    id: string,
+    body: SegmentLibrarySegmentUpdate,
+    options: $UpdateOptions,
+  ): Promise<$ApiResponse<SegmentLibrarySegment>> {
+    return this.client.request<SegmentLibrarySegment>(
+      $OPERATIONS["segmentLibrary.update"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Delete a library segment
+   *
+   * A reusable show segment of the org (ADR 0142): a named block of cues with their department calls, copied into running orders with `segmentLibrary.insertIntoRun` and republished to them with `segmentLibrary.publish`. Every member reads the library; holders of show.run_of_show.write org-wide edit it. `version` is the database's change counter. Soft-deletes the library segment: it moves to Trash and can be restored for its table's retention period.
+   *
+   * `DELETE /segment-library/{id}` (operation `segmentLibrary.delete`).
+   * Requires the capability `show.run_of_show.write`.
+   */
+  delete(id: string, options?: $RequestOptions): Promise<$ApiResponse<undefined>> {
+    return this.client.request<undefined>(
+      $OPERATIONS["segmentLibrary.delete"],
+      { path: { id } },
+      options,
+    );
+  }
+
+  /**
+   * Copy a library segment into a running order
+   *
+   * Copies the segment's cues and their department calls into a running order of the same org through app.insert_library_segment, before the cue at the 1-based place `before_position` (omitted, at the end), renumbering the running order 1..n in one transaction. With `starts_at` the copies are planned from it and the durations before them; without it they are unplanned. Needs show.run_of_show.write on the project. Refuses an empty segment (422 `segment_library_empty`), a place at or before the last called cue (422 `segment_insert_before_called`) and a running order that would pass 300 cues (422 `segment_insert_cue_limit`). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /segment-library/{id}/insert-into-run` (operation `segmentLibrary.insertIntoRun`).
+   * Requires the capability `show.run_of_show.read`.
+   */
+  insertIntoRun(
+    id: string,
+    body: SegmentInsertRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<SegmentInsertResult>> {
+    return this.client.request<SegmentInsertResult>(
+      $OPERATIONS["segmentLibrary.insertIntoRun"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Publish a library segment to running orders
+   *
+   * Publishes the segment's current version to up to 50 running orders of its org through app.publish_library_segment (422 `segment_publish_runs` otherwise; 422 `segment_library_empty` for a segment with no cues), one transaction locking them in id order. In each, an older copy whose cues are all uncalled and none an artist's set time is replaced in place with the current cues and calls; local edits to those cues, custom values included, are lost. Needs show.run_of_show.write on every running order. Answers one outcome per copy. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /segment-library/{id}/publish` (operation `segmentLibrary.publish`).
+   * Requires the capability `show.run_of_show.read`.
+   */
+  publish(
+    id: string,
+    body: SegmentPublishRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<SegmentPublishResults>> {
+    return this.client.request<SegmentPublishResults>(
+      $OPERATIONS["segmentLibrary.publish"],
+      { path: { id }, body },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `segmentLibraryCues`, in the Show module.
+ *
+ * Run of show, cues, day sheets and call sheets (Section 4.2).
+ */
+export class SegmentLibraryCuesResource extends $Resource {
+  /**
+   * List library cue rows
+   *
+   * A cue of a library segment (at most 100 per segment), copied with the segment into running orders. Returns a cursor page of library cue rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /segment-library-cues` (operation `segmentLibraryCues.list`).
+   * Requires the capability `show.run_of_show.read`.
+   */
+  list(
+    params?: $ListParams<SegmentLibraryCue>,
+    options?: $RequestOptions,
+  ): Promise<$Page<SegmentLibraryCue>> {
+    return this.client.requestPage<SegmentLibraryCue>(
+      $OPERATIONS["segmentLibraryCues.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List library cue rows
+   *
+   * A cue of a library segment (at most 100 per segment), copied with the segment into running orders. Returns a cursor page of library cue rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /segment-library-cues` (operation `segmentLibraryCues.list`).
+   * Requires the capability `show.run_of_show.read`.
+   */
+  listAll(
+    params?: $ListAllParams<SegmentLibraryCue>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<SegmentLibraryCue, void, undefined> {
+    return this.client.paginate<SegmentLibraryCue>(
+      $OPERATIONS["segmentLibraryCues.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a library cue
+   *
+   * A cue of a library segment (at most 100 per segment), copied with the segment into running orders. Creates a library cue. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   *
+   * `POST /segment-library-cues` (operation `segmentLibraryCues.create`).
+   * Requires the capability `show.run_of_show.write`.
+   */
+  create(
+    body: SegmentLibraryCueCreate,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<SegmentLibraryCue>> {
+    return this.client.request<SegmentLibraryCue>(
+      $OPERATIONS["segmentLibraryCues.create"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Get a library cue
+   *
+   * A cue of a library segment (at most 100 per segment), copied with the segment into running orders. Returns one library cue with its `ETag`. A library cue the caller may not see returns 404.
+   *
+   * `GET /segment-library-cues/{id}` (operation `segmentLibraryCues.get`).
+   * Requires the capability `show.run_of_show.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<SegmentLibraryCue>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<SegmentLibraryCue>> {
+    return this.client.request<SegmentLibraryCue>(
+      $OPERATIONS["segmentLibraryCues.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Update a library cue
+   *
+   * A cue of a library segment (at most 100 per segment), copied with the segment into running orders. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+   *
+   * `PATCH /segment-library-cues/{id}` (operation `segmentLibraryCues.update`).
+   * Requires the capability `show.run_of_show.write`.
+   */
+  update(
+    id: string,
+    body: SegmentLibraryCueUpdate,
+    options: $UpdateOptions,
+  ): Promise<$ApiResponse<SegmentLibraryCue>> {
+    return this.client.request<SegmentLibraryCue>(
+      $OPERATIONS["segmentLibraryCues.update"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Delete a library cue
+   *
+   * A cue of a library segment (at most 100 per segment), copied with the segment into running orders. Soft-deletes the library cue: it moves to Trash and can be restored for its table's retention period.
+   *
+   * `DELETE /segment-library-cues/{id}` (operation `segmentLibraryCues.delete`).
+   * Requires the capability `show.run_of_show.write`.
+   */
+  delete(id: string, options?: $RequestOptions): Promise<$ApiResponse<undefined>> {
+    return this.client.request<undefined>(
+      $OPERATIONS["segmentLibraryCues.delete"],
+      { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `segmentLibraryCueCalls`, in the Show module.
+ *
+ * Run of show, cues, day sheets and call sheets (Section 4.2).
+ */
+export class SegmentLibraryCueCallsResource extends $Resource {
+  /**
+   * List library cue call rows
+   *
+   * A department's call on a library cue, one per department, copied into app.cue_calls with the cue. Returns a cursor page of library cue call rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /segment-library-cue-calls` (operation `segmentLibraryCueCalls.list`).
+   * Requires the capability `show.run_of_show.read`.
+   */
+  list(
+    params?: $ListParams<SegmentLibraryCueCall>,
+    options?: $RequestOptions,
+  ): Promise<$Page<SegmentLibraryCueCall>> {
+    return this.client.requestPage<SegmentLibraryCueCall>(
+      $OPERATIONS["segmentLibraryCueCalls.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List library cue call rows
+   *
+   * A department's call on a library cue, one per department, copied into app.cue_calls with the cue. Returns a cursor page of library cue call rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /segment-library-cue-calls` (operation `segmentLibraryCueCalls.list`).
+   * Requires the capability `show.run_of_show.read`.
+   */
+  listAll(
+    params?: $ListAllParams<SegmentLibraryCueCall>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<SegmentLibraryCueCall, void, undefined> {
+    return this.client.paginate<SegmentLibraryCueCall>(
+      $OPERATIONS["segmentLibraryCueCalls.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a library cue call
+   *
+   * A department's call on a library cue, one per department, copied into app.cue_calls with the cue. Creates a library cue call. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   *
+   * `POST /segment-library-cue-calls` (operation `segmentLibraryCueCalls.create`).
+   * Requires the capability `show.run_of_show.write`.
+   */
+  create(
+    body: SegmentLibraryCueCallCreate,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<SegmentLibraryCueCall>> {
+    return this.client.request<SegmentLibraryCueCall>(
+      $OPERATIONS["segmentLibraryCueCalls.create"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Get a library cue call
+   *
+   * A department's call on a library cue, one per department, copied into app.cue_calls with the cue. Returns one library cue call with its `ETag`. A library cue call the caller may not see returns 404.
+   *
+   * `GET /segment-library-cue-calls/{id}` (operation `segmentLibraryCueCalls.get`).
+   * Requires the capability `show.run_of_show.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<SegmentLibraryCueCall>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<SegmentLibraryCueCall>> {
+    return this.client.request<SegmentLibraryCueCall>(
+      $OPERATIONS["segmentLibraryCueCalls.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Update a library cue call
+   *
+   * A department's call on a library cue, one per department, copied into app.cue_calls with the cue. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+   *
+   * `PATCH /segment-library-cue-calls/{id}` (operation `segmentLibraryCueCalls.update`).
+   * Requires the capability `show.run_of_show.write`.
+   */
+  update(
+    id: string,
+    body: SegmentLibraryCueCallUpdate,
+    options: $UpdateOptions,
+  ): Promise<$ApiResponse<SegmentLibraryCueCall>> {
+    return this.client.request<SegmentLibraryCueCall>(
+      $OPERATIONS["segmentLibraryCueCalls.update"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Delete a library cue call
+   *
+   * A department's call on a library cue, one per department, copied into app.cue_calls with the cue. Soft-deletes the library cue call: it moves to Trash and can be restored for its table's retention period.
+   *
+   * `DELETE /segment-library-cue-calls/{id}` (operation `segmentLibraryCueCalls.delete`).
+   * Requires the capability `show.run_of_show.write`.
+   */
+  delete(id: string, options?: $RequestOptions): Promise<$ApiResponse<undefined>> {
+    return this.client.request<undefined>(
+      $OPERATIONS["segmentLibraryCueCalls.delete"],
+      { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `runSegmentInstances`, in the Show module.
+ *
+ * Run of show, cues, day sheets and call sheets (Section 4.2).
+ */
+export class RunSegmentInstancesResource extends $Resource {
+  /**
+   * List segment copy rows
+   *
+   * A library segment copied into a running order, with the library version the copy holds. Written only by `segmentLibrary.insertIntoRun` and `segmentLibrary.publish`. Returns a cursor page of segment copy rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /run-segment-instances` (operation `runSegmentInstances.list`).
+   * Requires the capability `show.run_of_show.read`.
+   */
+  list(
+    params?: $ListParams<RunSegmentInstance>,
+    options?: $RequestOptions,
+  ): Promise<$Page<RunSegmentInstance>> {
+    return this.client.requestPage<RunSegmentInstance>(
+      $OPERATIONS["runSegmentInstances.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List segment copy rows
+   *
+   * A library segment copied into a running order, with the library version the copy holds. Written only by `segmentLibrary.insertIntoRun` and `segmentLibrary.publish`. Returns a cursor page of segment copy rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /run-segment-instances` (operation `runSegmentInstances.list`).
+   * Requires the capability `show.run_of_show.read`.
+   */
+  listAll(
+    params?: $ListAllParams<RunSegmentInstance>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<RunSegmentInstance, void, undefined> {
+    return this.client.paginate<RunSegmentInstance>(
+      $OPERATIONS["runSegmentInstances.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Get a segment copy
+   *
+   * A library segment copied into a running order, with the library version the copy holds. Written only by `segmentLibrary.insertIntoRun` and `segmentLibrary.publish`. Returns one segment copy with its `ETag`. A segment copy the caller may not see returns 404.
+   *
+   * `GET /run-segment-instances/{id}` (operation `runSegmentInstances.get`).
+   * Requires the capability `show.run_of_show.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<RunSegmentInstance>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<RunSegmentInstance>> {
+    return this.client.request<RunSegmentInstance>(
+      $OPERATIONS["runSegmentInstances.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `showcallerLinks`, in the Show module.
+ *
+ * Run of show, cues, day sheets and call sheets (Section 4.2).
+ */
+export class ShowcallerLinksResource extends $Resource {
+  /**
+   * List showcaller link rows
+   *
+   * A no-account link and access code that let an outside showcaller call one running order and edit it live, within that running order only (ADR 0142). Every link expires within 14 days and serves at most 5 devices; the token and the code are returned once by `showcallerLinks.create` or `showcallerLinks.regenerate` and stored only as hashes, so they never appear here. Members read the links of running orders they can read. Returns a cursor page of showcaller link rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /showcaller-links` (operation `showcallerLinks.list`).
+   * Requires the capability `show.run_of_show.read`.
+   */
+  list(
+    params?: $ListParams<ShowcallerLink>,
+    options?: $RequestOptions,
+  ): Promise<$Page<ShowcallerLink>> {
+    return this.client.requestPage<ShowcallerLink>(
+      $OPERATIONS["showcallerLinks.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List showcaller link rows
+   *
+   * A no-account link and access code that let an outside showcaller call one running order and edit it live, within that running order only (ADR 0142). Every link expires within 14 days and serves at most 5 devices; the token and the code are returned once by `showcallerLinks.create` or `showcallerLinks.regenerate` and stored only as hashes, so they never appear here. Members read the links of running orders they can read. Returns a cursor page of showcaller link rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /showcaller-links` (operation `showcallerLinks.list`).
+   * Requires the capability `show.run_of_show.read`.
+   */
+  listAll(
+    params?: $ListAllParams<ShowcallerLink>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<ShowcallerLink, void, undefined> {
+    return this.client.paginate<ShowcallerLink>(
+      $OPERATIONS["showcallerLinks.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Get a showcaller link
+   *
+   * A no-account link and access code that let an outside showcaller call one running order and edit it live, within that running order only (ADR 0142). Every link expires within 14 days and serves at most 5 devices; the token and the code are returned once by `showcallerLinks.create` or `showcallerLinks.regenerate` and stored only as hashes, so they never appear here. Members read the links of running orders they can read. Returns one showcaller link with its `ETag`. A showcaller link the caller may not see returns 404.
+   *
+   * `GET /showcaller-links/{id}` (operation `showcallerLinks.get`).
+   * Requires the capability `show.run_of_show.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<ShowcallerLink>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<ShowcallerLink>> {
+    return this.client.request<ShowcallerLink>(
+      $OPERATIONS["showcallerLinks.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a showcaller link to a running order
+   *
+   * Makes a showcaller link through app.create_showcaller_link. The caller must be a member of the running order's org and hold both show.run_of_show.write and show.cue.call on the project (422 `showcaller_link_capability`); a read-only org makes none (422 `org_read_only`). `caller_name` is 1 to 120 characters (422 `showcaller_link_caller_name`). `expires_at` defaults to the end of the day after the show in the project's zone; when given it must be after now and within 14 days (422 `showcaller_link_expiry_range`). A running order holds at most 5 live links (422 `showcaller_link_limit`). Anyone with the link and the code can call cues and edit this running order until it expires. Answers 201 with the token and code, shown once. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /showcaller-links/create` (operation `showcallerLinks.create`).
+   * Requires the capability `show.run_of_show.read`.
+   */
+  create(
+    body: ShowcallerLinkRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<ShowcallerLinkToken>> {
+    return this.client.request<ShowcallerLinkToken>(
+      $OPERATIONS["showcallerLinks.create"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Regenerate a showcaller link
+   *
+   * Draws a new token and access code through app.regenerate_showcaller_link: the old address answers that the link is no longer available, wrong-code attempts reset and every device must enter the new code. The caller must be a member of the org and hold both show.run_of_show.write and show.cue.call on the project, as when making a link, the creator included (422 `showcaller_link_capability`). A revoked link (422 `showcaller_link_revoked`) and a read-only org (422 `org_read_only`) are refused. Answers the new token and code, shown once. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /showcaller-links/{id}/regenerate` (operation `showcallerLinks.regenerate`).
+   * Requires the capability `show.run_of_show.read`.
+   */
+  regenerate(
+    id: string,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<ShowcallerLinkRegenerated>> {
+    return this.client.request<ShowcallerLinkRegenerated>(
+      $OPERATIONS["showcallerLinks.regenerate"],
+      { path: { id } },
+      options,
+    );
+  }
+
+  /**
+   * Revoke a showcaller link
+   *
+   * Revokes the link through app.revoke_showcaller_link so it never opens or writes again and the open portal stops on its next update. Its creator, or a holder of show.run_of_show.write on the project, may, also in a read-only org. Revoking a revoked link answers it unchanged. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /showcaller-links/{id}/revoke` (operation `showcallerLinks.revoke`).
+   * Requires the capability `show.run_of_show.read`.
+   */
+  revoke(id: string, options?: $MutationOptions): Promise<$ApiResponse<ShowcallerLink>> {
+    return this.client.request<ShowcallerLink>(
+      $OPERATIONS["showcallerLinks.revoke"],
+      { path: { id } },
+      options,
+    );
+  }
+
+  /**
+   * Sign every device out of a showcaller link
+   *
+   * Drops every device grant of the link through app.sign_out_showcaller_devices, so each device must enter the access code again; the token and code stay. Its creator, or a holder of show.run_of_show.write on the project, may. Answers how many devices were signed out. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /showcaller-links/{id}/sign-out-devices` (operation `showcallerLinks.signOutDevices`).
+   * Requires the capability `show.run_of_show.read`.
+   */
+  signOutDevices(
+    id: string,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<ShowcallerDevicesSignedOut>> {
+    return this.client.request<ShowcallerDevicesSignedOut>(
+      $OPERATIONS["showcallerLinks.signOutDevices"],
+      { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `deliveryWindows`, in the Logistics module.
+ *
+ * Shipments, dock slots, gate queue, staging and release (Section 4.2).
+ */
+export class DeliveryWindowsResource extends $Resource {
+  /**
+   * List delivery window rows
+   *
+   * A gate open for a time for up to a number of vehicles (ADR 0150). Vendors book a place in it, and each booking is a dock slot. It overlaps no other live window or direct slot at its zone. Returns a cursor page of delivery window rows the caller may see. The default order is `starts_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /delivery-windows` (operation `deliveryWindows.list`).
+   * Requires the capability `logistics.shipment.read`.
+   */
+  list(
+    params?: $ListParams<DeliveryWindow>,
+    options?: $RequestOptions,
+  ): Promise<$Page<DeliveryWindow>> {
+    return this.client.requestPage<DeliveryWindow>(
+      $OPERATIONS["deliveryWindows.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List delivery window rows
+   *
+   * A gate open for a time for up to a number of vehicles (ADR 0150). Vendors book a place in it, and each booking is a dock slot. It overlaps no other live window or direct slot at its zone. Returns a cursor page of delivery window rows the caller may see. The default order is `starts_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /delivery-windows` (operation `deliveryWindows.list`).
+   * Requires the capability `logistics.shipment.read`.
+   */
+  listAll(
+    params?: $ListAllParams<DeliveryWindow>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<DeliveryWindow, void, undefined> {
+    return this.client.paginate<DeliveryWindow>(
+      $OPERATIONS["deliveryWindows.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a delivery window
+   *
+   * A gate open for a time for up to a number of vehicles (ADR 0150). Vendors book a place in it, and each booking is a dock slot. It overlaps no other live window or direct slot at its zone. Creates a delivery window. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   *
+   * `POST /delivery-windows` (operation `deliveryWindows.create`).
+   * Requires the capability `logistics.dock_slot.write`.
+   */
+  create(
+    body: DeliveryWindowCreate,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<DeliveryWindow>> {
+    return this.client.request<DeliveryWindow>(
+      $OPERATIONS["deliveryWindows.create"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Get a delivery window
+   *
+   * A gate open for a time for up to a number of vehicles (ADR 0150). Vendors book a place in it, and each booking is a dock slot. It overlaps no other live window or direct slot at its zone. Returns one delivery window with its `ETag`. A delivery window the caller may not see returns 404.
+   *
+   * `GET /delivery-windows/{id}` (operation `deliveryWindows.get`).
+   * Requires the capability `logistics.shipment.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<DeliveryWindow>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<DeliveryWindow>> {
+    return this.client.request<DeliveryWindow>(
+      $OPERATIONS["deliveryWindows.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Update a delivery window
+   *
+   * A gate open for a time for up to a number of vehicles (ADR 0150). Vendors book a place in it, and each booking is a dock slot. It overlaps no other live window or direct slot at its zone. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+   *
+   * `PATCH /delivery-windows/{id}` (operation `deliveryWindows.update`).
+   * Requires the capability `logistics.dock_slot.write`.
+   */
+  update(
+    id: string,
+    body: DeliveryWindowUpdate,
+    options: $UpdateOptions,
+  ): Promise<$ApiResponse<DeliveryWindow>> {
+    return this.client.request<DeliveryWindow>(
+      $OPERATIONS["deliveryWindows.update"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Delete a delivery window
+   *
+   * A gate open for a time for up to a number of vehicles (ADR 0150). Vendors book a place in it, and each booking is a dock slot. It overlaps no other live window or direct slot at its zone. Soft-deletes the delivery window: it moves to Trash and can be restored for its table's retention period.
+   *
+   * `DELETE /delivery-windows/{id}` (operation `deliveryWindows.delete`).
+   * Requires the capability `logistics.dock_slot.write`.
+   */
+  delete(id: string, options?: $RequestOptions): Promise<$ApiResponse<undefined>> {
+    return this.client.request<undefined>(
+      $OPERATIONS["deliveryWindows.delete"],
+      { path: { id } },
+      options,
+    );
+  }
+
+  /**
+   * Add a schedule of delivery windows
+   *
+   * Adds windows at a gate for each day, from a local start to a local end in slots of a length, on the project's calendar. A local time the clocks skip gets no window. At most 500 windows. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /delivery-windows/generate` (operation `deliveryWindows.generate`).
+   * Requires the capability `logistics.dock_slot.write`.
+   */
+  generate(
+    body: DeliveryWindowGenerateRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<DeliveryWindowGenerateResult>> {
+    return this.client.request<DeliveryWindowGenerateResult>(
+      $OPERATIONS["deliveryWindows.generate"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Book a place in a delivery window
+   *
+   * Books a place for a vehicle: for a dock writer on the project, or for a Vendor engagement of the project the caller reaches in the operational area. Returns the dock slot with its reference code. Each request's `Idempotency-Key` replays the stored response. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /delivery-windows/{id}/book` (operation `deliveryWindows.book`).
+   * Requires the capability `logistics.dock_slot.write`.
+   */
+  book(
+    id: string,
+    body: DeliveryWindowBookRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<DeliveryWindowBookResult>> {
+    return this.client.request<DeliveryWindowBookResult>(
+      $OPERATIONS["deliveryWindows.book"],
+      { path: { id }, body },
       options,
     );
   }
@@ -34905,7 +36278,7 @@ export class AdvanceAllocationsResource extends $Resource {
   /**
    * Approve or decline an allocation
    *
-   * Decides a Requested allocation through `app.decide_allocation`, never by its requester (422 sod_allocation_requester). Declining needs a reason (allocation_reason_required); approving holds an asset's stock (allocation_sources_required, reservation_over_capacity) and, above the allowance with overflow at review, needs a reason that goes in the ledger (allocation_over_allowance_reason). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   * Decides a Requested allocation through `app.decide_allocation`, never by its requester (422 sod_allocation_requester). Declining needs a reason (allocation_reason_required); approving waits on the Equipment approval rule the request matched (approval_rule_pending), holds an asset's stock (allocation_sources_required, reservation_over_capacity) and, above the allowance with overflow at review, needs a reason that goes in the ledger (allocation_over_allowance_reason). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
    *
    * `POST /advance-allocations/{allocation_id}/decide` (operation `advanceAllocations.decide`).
    * Requires the capability `advancing.submission.review`.
@@ -35351,6 +36724,140 @@ export class AdvanceSubmissionFilesResource extends $Resource {
 }
 
 /**
+ * Operations on `advanceTrackSignoffs`, in the Advancing module.
+ *
+ * Advance packets, sections, recipients, submissions and riders (Section 4.2).
+ */
+export class AdvanceTrackSignoffsResource extends $Resource {
+  /**
+   * List track sign-off rows
+   *
+   * A reviewer's sign-off of one recipient's track of an advance packet (R11, G-176): every section on the track was accepted, complete or not applicable when it was signed. The signer is `created_by`. A revoked sign-off keeps its row with the reason; the track's state is computed in advanceTrackProgress. Returns a cursor page of track sign-off rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /advance-track-signoffs` (operation `advanceTrackSignoffs.list`).
+   * Requires the capability `advancing.packet.read`.
+   */
+  list(
+    params?: $ListParams<AdvanceTrackSignoff>,
+    options?: $RequestOptions,
+  ): Promise<$Page<AdvanceTrackSignoff>> {
+    return this.client.requestPage<AdvanceTrackSignoff>(
+      $OPERATIONS["advanceTrackSignoffs.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List track sign-off rows
+   *
+   * A reviewer's sign-off of one recipient's track of an advance packet (R11, G-176): every section on the track was accepted, complete or not applicable when it was signed. The signer is `created_by`. A revoked sign-off keeps its row with the reason; the track's state is computed in advanceTrackProgress. Returns a cursor page of track sign-off rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /advance-track-signoffs` (operation `advanceTrackSignoffs.list`).
+   * Requires the capability `advancing.packet.read`.
+   */
+  listAll(
+    params?: $ListAllParams<AdvanceTrackSignoff>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<AdvanceTrackSignoff, void, undefined> {
+    return this.client.paginate<AdvanceTrackSignoff>(
+      $OPERATIONS["advanceTrackSignoffs.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Get a track sign-off
+   *
+   * A reviewer's sign-off of one recipient's track of an advance packet (R11, G-176): every section on the track was accepted, complete or not applicable when it was signed. The signer is `created_by`. A revoked sign-off keeps its row with the reason; the track's state is computed in advanceTrackProgress. Returns one track sign-off with its `ETag`. A track sign-off the caller may not see returns 404.
+   *
+   * `GET /advance-track-signoffs/{id}` (operation `advanceTrackSignoffs.get`).
+   * Requires the capability `advancing.packet.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<AdvanceTrackSignoff>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<AdvanceTrackSignoff>> {
+    return this.client.request<AdvanceTrackSignoff>(
+      $OPERATIONS["advanceTrackSignoffs.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Revoke a track sign-off
+   *
+   * Revokes a live sign-off through `app.revoke_advance_track_signoff` with a reason of 1 to 500 characters (422 advance_track_revoke_reason); the row stays and the track can be signed off again. Needs advancing.submission.review on the project. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /advance-track-signoffs/{id}/revoke` (operation `advanceTrackSignoffs.revoke`).
+   * Requires the capability `advancing.submission.review`.
+   */
+  revoke(
+    id: string,
+    body: AdvanceTrackSignoffRevokeRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<AdvanceTrackSignoff>> {
+    return this.client.request<AdvanceTrackSignoff>(
+      $OPERATIONS["advanceTrackSignoffs.revoke"],
+      { path: { id }, body },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `advanceTrackProgress`, in the Advancing module.
+ *
+ * Advance packets, sections, recipients, submissions and riders (Section 4.2).
+ */
+export class AdvanceTrackProgressResource extends $Resource {
+  /**
+   * List track progress rows
+   *
+   * Where each recipient of a sent advance packet stands on each track (R11, G-176): one row per packet, recipient and track with a live section. `track_state` is computed from the answers and the live sign-off, never stored. Returns a cursor page of track progress rows the caller may see. The default order is `advance_recipient_id` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /advance-track-progress` (operation `advanceTrackProgress.list`).
+   * Requires the capability `advancing.packet.read`.
+   */
+  list(
+    params?: $ListParams<AdvanceTrackProgress>,
+    options?: $RequestOptions,
+  ): Promise<$Page<AdvanceTrackProgress>> {
+    return this.client.requestPage<AdvanceTrackProgress>(
+      $OPERATIONS["advanceTrackProgress.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List track progress rows
+   *
+   * Where each recipient of a sent advance packet stands on each track (R11, G-176): one row per packet, recipient and track with a live section. `track_state` is computed from the answers and the live sign-off, never stored. Returns a cursor page of track progress rows the caller may see. The default order is `advance_recipient_id` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /advance-track-progress` (operation `advanceTrackProgress.list`).
+   * Requires the capability `advancing.packet.read`.
+   */
+  listAll(
+    params?: $ListAllParams<AdvanceTrackProgress>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<AdvanceTrackProgress, void, undefined> {
+    return this.client.paginate<AdvanceTrackProgress>(
+      $OPERATIONS["advanceTrackProgress.list"],
+      { query: params },
+      options,
+    );
+  }
+}
+
+/**
  * Operations on `guestListEntries`, in the Advancing module.
  *
  * Advance packets, sections, recipients, submissions and riders (Section 4.2).
@@ -35503,6 +37010,92 @@ export class GuestListEntriesResource extends $Resource {
     return this.client.request<GuestListEntry>(
       $OPERATIONS["guestListEntries.checkIn"],
       { path: { id } },
+      options,
+    );
+  }
+
+  /**
+   * Email guests
+   *
+   * Queues an email to the selected guests of a project, sent by the org with an unsubscribe link and its postal address (B8, ADR 0147 decision 7). Every guest gets a row: Queued, Suppressed (the address is on the org's suppression list) or Skipped (no email, not live, or no pass for a Pass email). Refuses guest_email_batch (1 to 500), guest_email_rate (2,000 a day per org) and guest_email_message (422). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /guest-list-entries/send-email` (operation `guestListEntries.sendEmail`).
+   * Requires the capability `advancing.rider.write`.
+   */
+  sendEmail(
+    body: GuestEmailSendRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<GuestEmailSendQueued>> {
+    return this.client.request<GuestEmailSendQueued>(
+      $OPERATIONS["guestListEntries.sendEmail"],
+      { body },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `guestEmailSends`, in the Advancing module.
+ *
+ * Advance packets, sections, recipients, submissions and riders (Section 4.2).
+ */
+export class GuestEmailSendsResource extends $Resource {
+  /**
+   * List guest email send rows
+   *
+   * A bulk email staff sent to a project's guests (gap G-71): an invitation, their pass or a message, in one language. Written only by the send-email action. Returns a cursor page of guest email send rows the caller may see. The default order is `created_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /guest-email-sends` (operation `guestEmailSends.list`).
+   * Requires the capability `advancing.packet.read`.
+   */
+  list(
+    params?: $ListParams<GuestEmailSend>,
+    options?: $RequestOptions,
+  ): Promise<$Page<GuestEmailSend>> {
+    return this.client.requestPage<GuestEmailSend>(
+      $OPERATIONS["guestEmailSends.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List guest email send rows
+   *
+   * A bulk email staff sent to a project's guests (gap G-71): an invitation, their pass or a message, in one language. Written only by the send-email action. Returns a cursor page of guest email send rows the caller may see. The default order is `created_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /guest-email-sends` (operation `guestEmailSends.list`).
+   * Requires the capability `advancing.packet.read`.
+   */
+  listAll(
+    params?: $ListAllParams<GuestEmailSend>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<GuestEmailSend, void, undefined> {
+    return this.client.paginate<GuestEmailSend>(
+      $OPERATIONS["guestEmailSends.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Get a guest email send
+   *
+   * A bulk email staff sent to a project's guests (gap G-71): an invitation, their pass or a message, in one language. Written only by the send-email action. Returns one guest email send with its `ETag`. A guest email send the caller may not see returns 404.
+   *
+   * `GET /guest-email-sends/{id}` (operation `guestEmailSends.get`).
+   * Requires the capability `advancing.packet.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<GuestEmailSend>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<GuestEmailSend>> {
+    return this.client.request<GuestEmailSend>(
+      $OPERATIONS["guestEmailSends.get"],
+      { path: { id }, query: params },
       options,
     );
   }
@@ -35905,6 +37498,175 @@ export class AccommodationNightsResource extends $Resource {
 }
 
 /**
+ * Operations on `assetMaintenancePlans`, in the Assets module.
+ *
+ * Assets at class, unit and lot grain, custody, maintenance and damage (Section 4.2).
+ */
+export class AssetMaintenancePlansResource extends $Resource {
+  /**
+   * List asset maintenance plan rows
+   *
+   * Maintenance to do, on one unit or on every serviceable unit of a class: first due on a day, then every interval after it was last done, or once when the interval is null. Returns a cursor page of asset maintenance plan rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /asset-maintenance-plans` (operation `assetMaintenancePlans.list`).
+   * Requires the capability `assets.asset.read`.
+   */
+  list(
+    params?: $ListParams<AssetMaintenancePlan>,
+    options?: $RequestOptions,
+  ): Promise<$Page<AssetMaintenancePlan>> {
+    return this.client.requestPage<AssetMaintenancePlan>(
+      $OPERATIONS["assetMaintenancePlans.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List asset maintenance plan rows
+   *
+   * Maintenance to do, on one unit or on every serviceable unit of a class: first due on a day, then every interval after it was last done, or once when the interval is null. Returns a cursor page of asset maintenance plan rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /asset-maintenance-plans` (operation `assetMaintenancePlans.list`).
+   * Requires the capability `assets.asset.read`.
+   */
+  listAll(
+    params?: $ListAllParams<AssetMaintenancePlan>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<AssetMaintenancePlan, void, undefined> {
+    return this.client.paginate<AssetMaintenancePlan>(
+      $OPERATIONS["assetMaintenancePlans.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create an asset maintenance plan
+   *
+   * Maintenance to do, on one unit or on every serviceable unit of a class: first due on a day, then every interval after it was last done, or once when the interval is null. Creates an asset maintenance plan. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   *
+   * `POST /asset-maintenance-plans` (operation `assetMaintenancePlans.create`).
+   * Requires the capability `assets.maintenance.write`.
+   */
+  create(
+    body: AssetMaintenancePlanCreate,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<AssetMaintenancePlan>> {
+    return this.client.request<AssetMaintenancePlan>(
+      $OPERATIONS["assetMaintenancePlans.create"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Get an asset maintenance plan
+   *
+   * Maintenance to do, on one unit or on every serviceable unit of a class: first due on a day, then every interval after it was last done, or once when the interval is null. Returns one asset maintenance plan with its `ETag`. A asset maintenance plan the caller may not see returns 404.
+   *
+   * `GET /asset-maintenance-plans/{id}` (operation `assetMaintenancePlans.get`).
+   * Requires the capability `assets.asset.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<AssetMaintenancePlan>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<AssetMaintenancePlan>> {
+    return this.client.request<AssetMaintenancePlan>(
+      $OPERATIONS["assetMaintenancePlans.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Update an asset maintenance plan
+   *
+   * Maintenance to do, on one unit or on every serviceable unit of a class: first due on a day, then every interval after it was last done, or once when the interval is null. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+   *
+   * `PATCH /asset-maintenance-plans/{id}` (operation `assetMaintenancePlans.update`).
+   * Requires the capability `assets.maintenance.write`.
+   */
+  update(
+    id: string,
+    body: AssetMaintenancePlanUpdate,
+    options: $UpdateOptions,
+  ): Promise<$ApiResponse<AssetMaintenancePlan>> {
+    return this.client.request<AssetMaintenancePlan>(
+      $OPERATIONS["assetMaintenancePlans.update"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Delete an asset maintenance plan
+   *
+   * Maintenance to do, on one unit or on every serviceable unit of a class: first due on a day, then every interval after it was last done, or once when the interval is null. Soft-deletes the asset maintenance plan: it moves to Trash and can be restored for its table's retention period.
+   *
+   * `DELETE /asset-maintenance-plans/{id}` (operation `assetMaintenancePlans.delete`).
+   * Requires the capability `assets.maintenance.write`.
+   */
+  delete(id: string, options?: $RequestOptions): Promise<$ApiResponse<undefined>> {
+    return this.client.request<undefined>(
+      $OPERATIONS["assetMaintenancePlans.delete"],
+      { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `assetMaintenanceDue`, in the Assets module.
+ *
+ * Assets at class, unit and lot grain, custody, maintenance and damage (Section 4.2).
+ */
+export class AssetMaintenanceDueResource extends $Resource {
+  /**
+   * List maintenance due rows
+   *
+   * Maintenance due, one row per plan and unit: computed on the org's calendar, never stored. A recurring plan never reads Completed: done work is the log. Returns a cursor page of maintenance due rows the caller may see. The default order is `due_on` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /asset-maintenance-due` (operation `assetMaintenanceDue.list`).
+   * Requires the capability `assets.asset.read`.
+   */
+  list(
+    params?: $ListParams<AssetMaintenanceDue>,
+    options?: $RequestOptions,
+  ): Promise<$Page<AssetMaintenanceDue>> {
+    return this.client.requestPage<AssetMaintenanceDue>(
+      $OPERATIONS["assetMaintenanceDue.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List maintenance due rows
+   *
+   * Maintenance due, one row per plan and unit: computed on the org's calendar, never stored. A recurring plan never reads Completed: done work is the log. Returns a cursor page of maintenance due rows the caller may see. The default order is `due_on` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /asset-maintenance-due` (operation `assetMaintenanceDue.list`).
+   * Requires the capability `assets.asset.read`.
+   */
+  listAll(
+    params?: $ListAllParams<AssetMaintenanceDue>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<AssetMaintenanceDue, void, undefined> {
+    return this.client.paginate<AssetMaintenanceDue>(
+      $OPERATIONS["assetMaintenanceDue.list"],
+      { query: params },
+      options,
+    );
+  }
+}
+
+/**
  * Operations on `assetUnitHire`, in the Assets module.
  *
  * Assets at class, unit and lot grain, custody, maintenance and damage (Section 4.2).
@@ -36033,6 +37795,164 @@ export class AssetReservationsResource extends $Resource {
     return this.client.request<AssetReservation>(
       $OPERATIONS["assetReservations.release"],
       { path: { id }, body },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `credentialCategoryRequirements`, in the Credentials module.
+ *
+ * Credential categories, issuance, the Access Grid and scans (Section 4.2).
+ */
+export class CredentialCategoryRequirementsResource extends $Resource {
+  /**
+   * List credential category requirement rows
+   *
+   * A training course or a certification a credential category requires before it is issued (gap G-148): issuing the category to someone who does not meet it now is refused (credential_training_incomplete, 422, naming what is missing). Only a published course can be required (credential_requirement_course_state, 422). Returns a cursor page of credential category requirement rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /credential-category-requirements` (operation `credentialCategoryRequirements.list`).
+   * Requires the capability `credentials.credential.read`.
+   */
+  list(
+    params?: $ListParams<CredentialCategoryRequirement>,
+    options?: $RequestOptions,
+  ): Promise<$Page<CredentialCategoryRequirement>> {
+    return this.client.requestPage<CredentialCategoryRequirement>(
+      $OPERATIONS["credentialCategoryRequirements.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List credential category requirement rows
+   *
+   * A training course or a certification a credential category requires before it is issued (gap G-148): issuing the category to someone who does not meet it now is refused (credential_training_incomplete, 422, naming what is missing). Only a published course can be required (credential_requirement_course_state, 422). Returns a cursor page of credential category requirement rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /credential-category-requirements` (operation `credentialCategoryRequirements.list`).
+   * Requires the capability `credentials.credential.read`.
+   */
+  listAll(
+    params?: $ListAllParams<CredentialCategoryRequirement>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<CredentialCategoryRequirement, void, undefined> {
+    return this.client.paginate<CredentialCategoryRequirement>(
+      $OPERATIONS["credentialCategoryRequirements.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a credential category requirement
+   *
+   * A training course or a certification a credential category requires before it is issued (gap G-148): issuing the category to someone who does not meet it now is refused (credential_training_incomplete, 422, naming what is missing). Only a published course can be required (credential_requirement_course_state, 422). Creates a credential category requirement. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   *
+   * `POST /credential-category-requirements` (operation `credentialCategoryRequirements.create`).
+   * Requires the capability `credentials.category.write`.
+   */
+  create(
+    body: CredentialCategoryRequirementCreate,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<CredentialCategoryRequirement>> {
+    return this.client.request<CredentialCategoryRequirement>(
+      $OPERATIONS["credentialCategoryRequirements.create"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Get a credential category requirement
+   *
+   * A training course or a certification a credential category requires before it is issued (gap G-148): issuing the category to someone who does not meet it now is refused (credential_training_incomplete, 422, naming what is missing). Only a published course can be required (credential_requirement_course_state, 422). Returns one credential category requirement with its `ETag`. A credential category requirement the caller may not see returns 404.
+   *
+   * `GET /credential-category-requirements/{id}` (operation `credentialCategoryRequirements.get`).
+   * Requires the capability `credentials.credential.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<CredentialCategoryRequirement>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<CredentialCategoryRequirement>> {
+    return this.client.request<CredentialCategoryRequirement>(
+      $OPERATIONS["credentialCategoryRequirements.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Delete a credential category requirement
+   *
+   * A training course or a certification a credential category requires before it is issued (gap G-148): issuing the category to someone who does not meet it now is refused (credential_training_incomplete, 422, naming what is missing). Only a published course can be required (credential_requirement_course_state, 422). Soft-deletes the credential category requirement: it moves to Trash and can be restored for its table's retention period.
+   *
+   * `DELETE /credential-category-requirements/{id}` (operation `credentialCategoryRequirements.delete`).
+   * Requires the capability `credentials.category.write`.
+   */
+  delete(id: string, options?: $RequestOptions): Promise<$ApiResponse<undefined>> {
+    return this.client.request<undefined>(
+      $OPERATIONS["credentialCategoryRequirements.delete"],
+      { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `quotes`, in the Finance module.
+ *
+ * Budgets, expenses, change orders, ledger, periods and the Universal Posting Line (Sections 3.11 and 4.2).
+ */
+export class QuotesResource extends $Resource {
+  /**
+   * List quote rows
+   *
+   * A client quote of one budget: its current version, computed display state and totals. Versions and client lines come with GET /quotes/{id}. XOS never holds funds, so a quote has no Paid state. Returns a cursor page of quote rows the caller may see. The default order is `id` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /quotes` (operation `quotes.list`).
+   * Requires the capability `finance.budget.read`.
+   */
+  list(params?: $ListParams<Quote>, options?: $RequestOptions): Promise<$Page<Quote>> {
+    return this.client.requestPage<Quote>($OPERATIONS["quotes.list"], { query: params }, options);
+  }
+
+  /**
+   * List quote rows
+   *
+   * A client quote of one budget: its current version, computed display state and totals. Versions and client lines come with GET /quotes/{id}. XOS never holds funds, so a quote has no Paid state. Returns a cursor page of quote rows the caller may see. The default order is `id` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /quotes` (operation `quotes.list`).
+   * Requires the capability `finance.budget.read`.
+   */
+  listAll(
+    params?: $ListAllParams<Quote>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<Quote, void, undefined> {
+    return this.client.paginate<Quote>($OPERATIONS["quotes.list"], { query: params }, options);
+  }
+
+  /**
+   * Get a quote
+   *
+   * A client quote of one budget: its current version, computed display state and totals. Versions and client lines come with GET /quotes/{id}. XOS never holds funds, so a quote has no Paid state. Returns one quote with its `ETag`. A quote the caller may not see returns 404.
+   *
+   * `GET /quotes/{id}` (operation `quotes.get`).
+   * Requires the capability `finance.budget.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<Quote>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<Quote>> {
+    return this.client.request<Quote>(
+      $OPERATIONS["quotes.get"],
+      { path: { id }, query: params },
       options,
     );
   }
@@ -36239,6 +38159,298 @@ export class PoLineHireWarningsResource extends $Resource {
     return this.client.paginate<PoLineHireWarning>(
       $OPERATIONS["poLineHireWarnings.list"],
       { query: params },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `procurementNeeds`, in the Procurement module.
+ *
+ * RFQs, purchase orders, receipts, three-way match and catalog bindings (Section 4.2).
+ */
+export class ProcurementNeedsResource extends $Resource {
+  /**
+   * List procurement need rows
+   *
+   * What a project will actually get. The quantity is set here and linking requests never changes it; its status is computed from order lines (procurementNeedStatus). At most one of the asset class and the element. Returns a cursor page of procurement need rows the caller may see. The default order is `need_number` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /procurement-needs` (operation `procurementNeeds.list`).
+   * Requires the capability `procurement.po.read`.
+   */
+  list(
+    params?: $ListParams<ProcurementNeed>,
+    options?: $RequestOptions,
+  ): Promise<$Page<ProcurementNeed>> {
+    return this.client.requestPage<ProcurementNeed>(
+      $OPERATIONS["procurementNeeds.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List procurement need rows
+   *
+   * What a project will actually get. The quantity is set here and linking requests never changes it; its status is computed from order lines (procurementNeedStatus). At most one of the asset class and the element. Returns a cursor page of procurement need rows the caller may see. The default order is `need_number` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /procurement-needs` (operation `procurementNeeds.list`).
+   * Requires the capability `procurement.po.read`.
+   */
+  listAll(
+    params?: $ListAllParams<ProcurementNeed>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<ProcurementNeed, void, undefined> {
+    return this.client.paginate<ProcurementNeed>(
+      $OPERATIONS["procurementNeeds.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a procurement need
+   *
+   * What a project will actually get. The quantity is set here and linking requests never changes it; its status is computed from order lines (procurementNeedStatus). At most one of the asset class and the element. Creates a procurement need. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   *
+   * `POST /procurement-needs` (operation `procurementNeeds.create`).
+   * Requires the capability `procurement.po.write`.
+   */
+  create(
+    body: ProcurementNeedCreate,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<ProcurementNeed>> {
+    return this.client.request<ProcurementNeed>(
+      $OPERATIONS["procurementNeeds.create"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Get a procurement need
+   *
+   * What a project will actually get. The quantity is set here and linking requests never changes it; its status is computed from order lines (procurementNeedStatus). At most one of the asset class and the element. Returns one procurement need with its `ETag`. A procurement need the caller may not see returns 404.
+   *
+   * `GET /procurement-needs/{id}` (operation `procurementNeeds.get`).
+   * Requires the capability `procurement.po.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<ProcurementNeed>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<ProcurementNeed>> {
+    return this.client.request<ProcurementNeed>(
+      $OPERATIONS["procurementNeeds.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Update a procurement need
+   *
+   * What a project will actually get. The quantity is set here and linking requests never changes it; its status is computed from order lines (procurementNeedStatus). At most one of the asset class and the element. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+   *
+   * `PATCH /procurement-needs/{id}` (operation `procurementNeeds.update`).
+   * Requires the capability `procurement.po.write`.
+   */
+  update(
+    id: string,
+    body: ProcurementNeedUpdate,
+    options: $UpdateOptions,
+  ): Promise<$ApiResponse<ProcurementNeed>> {
+    return this.client.request<ProcurementNeed>(
+      $OPERATIONS["procurementNeeds.update"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Delete a procurement need
+   *
+   * What a project will actually get. The quantity is set here and linking requests never changes it; its status is computed from order lines (procurementNeedStatus). At most one of the asset class and the element. Soft-deletes the procurement need: it moves to Trash and can be restored for its table's retention period.
+   *
+   * `DELETE /procurement-needs/{id}` (operation `procurementNeeds.delete`).
+   * Requires the capability `procurement.po.write`.
+   */
+  delete(id: string, options?: $RequestOptions): Promise<$ApiResponse<undefined>> {
+    return this.client.request<undefined>(
+      $OPERATIONS["procurementNeeds.delete"],
+      { path: { id } },
+      options,
+    );
+  }
+
+  /**
+   * Consolidate requests onto needs
+   *
+   * Links allocations onto a need when `need_id` is given, leaving its quantity alone; otherwise adds one need per asset class with the sum of the selection. Needs procurement.po.write and advancing.packet.read on the project. Requested may be linked as well as Approved. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /procurement-needs/consolidate` (operation `procurementNeeds.consolidate`).
+   * Requires the capability `procurement.po.write`.
+   */
+  consolidate(
+    body: ProcurementNeedConsolidateRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<ProcurementNeedConsolidateResult>> {
+    return this.client.request<ProcurementNeedConsolidateResult>(
+      $OPERATIONS["procurementNeeds.consolidate"],
+      { body },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `procurementNeedStatus`, in the Procurement module.
+ *
+ * RFQs, purchase orders, receipts, three-way match and catalog bindings (Section 4.2).
+ */
+export class ProcurementNeedStatusResource extends $Resource {
+  /**
+   * List need status rows
+   *
+   * Each live need with what was asked for and what is ordered: computed, never stored. Ordered counts lines on Approved, Sent or Closed orders, less returns other than Off Hire and Over Delivery; Proposed lines show only as drafted. Returns a cursor page of need status rows the caller may see. The default order is `need_id` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /procurement-need-status` (operation `procurementNeedStatus.list`).
+   * Requires the capability `procurement.po.read`.
+   */
+  list(
+    params?: $ListParams<ProcurementNeedStatus>,
+    options?: $RequestOptions,
+  ): Promise<$Page<ProcurementNeedStatus>> {
+    return this.client.requestPage<ProcurementNeedStatus>(
+      $OPERATIONS["procurementNeedStatus.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List need status rows
+   *
+   * Each live need with what was asked for and what is ordered: computed, never stored. Ordered counts lines on Approved, Sent or Closed orders, less returns other than Off Hire and Over Delivery; Proposed lines show only as drafted. Returns a cursor page of need status rows the caller may see. The default order is `need_id` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /procurement-need-status` (operation `procurementNeedStatus.list`).
+   * Requires the capability `procurement.po.read`.
+   */
+  listAll(
+    params?: $ListAllParams<ProcurementNeedStatus>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<ProcurementNeedStatus, void, undefined> {
+    return this.client.paginate<ProcurementNeedStatus>(
+      $OPERATIONS["procurementNeedStatus.list"],
+      { query: params },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `rfqLines`, in the Procurement module.
+ *
+ * RFQs, purchase orders, receipts, three-way match and catalog bindings (Section 4.2).
+ */
+export class RfqLinesResource extends $Resource {
+  /**
+   * List rfq line rows
+   *
+   * What an RFQ asks for. Lines change only while the RFQ is Proposed. Readable with the RFQ: no prices, and nothing of a sealed response. Returns a cursor page of rfq line rows the caller may see. The default order is `line_number` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /rfq-lines` (operation `rfqLines.list`).
+   * Requires the capability `procurement.rfq.read`.
+   */
+  list(params?: $ListParams<RfqLine>, options?: $RequestOptions): Promise<$Page<RfqLine>> {
+    return this.client.requestPage<RfqLine>(
+      $OPERATIONS["rfqLines.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List rfq line rows
+   *
+   * What an RFQ asks for. Lines change only while the RFQ is Proposed. Readable with the RFQ: no prices, and nothing of a sealed response. Returns a cursor page of rfq line rows the caller may see. The default order is `line_number` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /rfq-lines` (operation `rfqLines.list`).
+   * Requires the capability `procurement.rfq.read`.
+   */
+  listAll(
+    params?: $ListAllParams<RfqLine>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<RfqLine, void, undefined> {
+    return this.client.paginate<RfqLine>($OPERATIONS["rfqLines.list"], { query: params }, options);
+  }
+
+  /**
+   * Create a rfq line
+   *
+   * What an RFQ asks for. Lines change only while the RFQ is Proposed. Readable with the RFQ: no prices, and nothing of a sealed response. Creates a rfq line. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   *
+   * `POST /rfq-lines` (operation `rfqLines.create`).
+   * Requires the capability `procurement.rfq.write`.
+   */
+  create(body: RfqLineCreate, options?: $MutationOptions): Promise<$ApiResponse<RfqLine>> {
+    return this.client.request<RfqLine>($OPERATIONS["rfqLines.create"], { body }, options);
+  }
+
+  /**
+   * Get a rfq line
+   *
+   * What an RFQ asks for. Lines change only while the RFQ is Proposed. Readable with the RFQ: no prices, and nothing of a sealed response. Returns one rfq line with its `ETag`. A rfq line the caller may not see returns 404.
+   *
+   * `GET /rfq-lines/{id}` (operation `rfqLines.get`).
+   * Requires the capability `procurement.rfq.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<RfqLine>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<RfqLine>> {
+    return this.client.request<RfqLine>(
+      $OPERATIONS["rfqLines.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Update a rfq line
+   *
+   * What an RFQ asks for. Lines change only while the RFQ is Proposed. Readable with the RFQ: no prices, and nothing of a sealed response. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+   *
+   * `PATCH /rfq-lines/{id}` (operation `rfqLines.update`).
+   * Requires the capability `procurement.rfq.write`.
+   */
+  update(id: string, body: RfqLineUpdate, options: $UpdateOptions): Promise<$ApiResponse<RfqLine>> {
+    return this.client.request<RfqLine>(
+      $OPERATIONS["rfqLines.update"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Delete a rfq line
+   *
+   * What an RFQ asks for. Lines change only while the RFQ is Proposed. Readable with the RFQ: no prices, and nothing of a sealed response. Soft-deletes the rfq line: it moves to Trash and can be restored for its table's retention period.
+   *
+   * `DELETE /rfq-lines/{id}` (operation `rfqLines.delete`).
+   * Requires the capability `procurement.rfq.write`.
+   */
+  delete(id: string, options?: $RequestOptions): Promise<$ApiResponse<undefined>> {
+    return this.client.request<undefined>(
+      $OPERATIONS["rfqLines.delete"],
+      { path: { id } },
       options,
     );
   }
@@ -36772,7 +38984,7 @@ export class AuroraResource extends $Resource {
   /**
    * Extract a document
    *
-   * Reads a rider, insurance certificate, invoice, receipt or quote into proposed fields with a confidence each and provenance agent. A price, date or quantity the document does not show is NO_ANSWER. Nothing is written until the caller confirms. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   * Reads a rider, insurance certificate, invoice, receipt, quote, itinerary or contract into proposed fields with a confidence each and provenance agent. A price, date or quantity the document does not show is NO_ANSWER. Nothing is written until the caller confirms. An itinerary or contract needs `project_id` and the write capability on that project, checked before any model call or metering; a fee is read only for a caller who reads pay. A tool call cut off at the token limit stores nothing. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
    *
    * `POST /aurora/extract` (operation `aurora.extract`).
    * Requires the capability `home.dashboard.read`.
@@ -36787,7 +38999,7 @@ export class AuroraResource extends $Resource {
   /**
    * Draft text
    *
-   * Drafts an SOP, advance packet, email, day sheet or change order description in the org's verbiage library. Facts the context lacks are marked as gaps, never invented. The draft is returned, not saved or sent. A run of show or risk assessment is drafted into the empty list `target` names: refused with aurora_draft_list_not_empty before any model call when the list has entries, it returns checked lines with their suggestion ids, for `aurora.applyDraft`. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   * Drafts an SOP, advance packet, email, day sheet or change order description in the org's verbiage library. Facts the context lacks are marked as gaps, never invented. The draft is returned, not saved or sent. A run of show or risk assessment is drafted into the empty list `target` names: refused with aurora_draft_list_not_empty before any model call when the list has entries, it returns checked lines with their suggestion ids, for `aurora.applyDraft`. An event plan, event brief, approval pack or waste plan names its Document record of the matching subtype as `target` and needs work.record.write on its project, before any model call or metering; the draft is returned for the record's editor. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
    *
    * `POST /aurora/draft` (operation `aurora.draft`).
    * Requires the capability `home.dashboard.read`.
@@ -36858,6 +39070,181 @@ export class AuroraResource extends $Resource {
     options?: $MutationOptions,
   ): Promise<$ApiResponse<AuroraResult>> {
     return this.client.request<AuroraResult>($OPERATIONS["aurora.bindCode"], { body }, options);
+  }
+
+  /**
+   * Read what an intake review offers
+   *
+   * An itinerary's traveler candidates, names only, or a contract's parties and non-employee rate card rows, with whether the caller reads pay and may add riders. Needs the intake's write capability on the project. Calls no model and meters nothing. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `GET /aurora/intake-options` (operation `aurora.intakeOptions`).
+   * Requires the capability `home.dashboard.read`.
+   */
+  intakeOptions(
+    params: {
+      /**
+       * What an intake reads into a project.
+       */
+      readonly kind: AuroraIntakeKind;
+      /**
+       * Identifier of the project of the intake.
+       */
+      readonly project_id: string;
+    },
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<AuroraIntakeOptions>> {
+    return this.client.request<AuroraIntakeOptions>(
+      $OPERATIONS["aurora.intakeOptions"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Resume an intake review
+   *
+   * The caller's open proposals of a project's intake, with their fields, so a reload resumes the review until they expire at 7 days. Calls no model and meters nothing. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `GET /aurora/open-proposals` (operation `aurora.openProposals`).
+   * Requires the capability `home.dashboard.read`.
+   */
+  openProposals(
+    params: {
+      /**
+       * Identifier of the project of the intake.
+       */
+      readonly project_id: string;
+      /**
+       * The kind of open proposal to resume.
+       */
+      readonly operation_id: "travelSegments.create" | "engagements.createFromContract";
+    },
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<AuroraOpenProposals>> {
+    return this.client.request<AuroraOpenProposals>(
+      $OPERATIONS["aurora.openProposals"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Read an invoice's open line proposals
+   *
+   * The caller's open line suggestions of an invoice: those whose extraction's header suggestion was saved as this invoice. Calls no model and meters nothing. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `GET /aurora/invoice-line-proposals` (operation `aurora.invoiceLineProposals`).
+   * Requires the capability `home.dashboard.read`.
+   */
+  invoiceLineProposals(
+    params: {
+      /**
+       * Identifier of the invoice.
+       */
+      readonly invoice_id: string;
+    },
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<AuroraOpenProposals>> {
+    return this.client.request<AuroraOpenProposals>(
+      $OPERATIONS["aurora.invoiceLineProposals"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Add itinerary lines
+   *
+   * Adds kept itinerary lines as travel segments in one transaction, with the person's traveler and values. A person with no standing on the project refuses aurora_itinerary_traveler; a live segment of the same person, service and departure refuses aurora_itinerary_duplicate. Each refusal names its line and writes nothing. Untouched suggestions stay open. Calls no model and meters nothing. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /aurora/apply-itinerary` (operation `aurora.applyItinerary`).
+   * Requires the capability `home.dashboard.read`.
+   */
+  applyItinerary(
+    body: AuroraApplyItineraryRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<AuroraAppliedItinerary>> {
+    return this.client.request<AuroraAppliedItinerary>(
+      $OPERATIONS["aurora.applyItinerary"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Add bookings from contracts
+   *
+   * Books each kept group in one transaction: a new Artist engagement at Onboarding with the person's terms, or the documents attached to the party's live engagement. Contract documents become Agreement rows, rider documents become riders only with advancing.rider.write. A fee without pay access refuses aurora_fee_restricted. Each refusal names its line and writes nothing. Calls no model and meters nothing. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /aurora/apply-contract-intake` (operation `aurora.applyContractIntake`).
+   * Requires the capability `home.dashboard.read`.
+   */
+  applyContractIntake(
+    body: AuroraApplyContractIntakeRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<AuroraAppliedContractIntake>> {
+    return this.client.request<AuroraAppliedContractIntake>(
+      $OPERATIONS["aurora.applyContractIntake"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Add invoice lines
+   *
+   * Adds kept lines to the invoice their extraction was saved as, as the caller, numbered after the existing lines. Lines of another invoice refuse aurora_invoice_lines_foreign, a currency mismatch aurora_invoice_currency, and a non-Proposed invoice invoice_locked. Calls no model and meters nothing. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /aurora/apply-invoice-lines` (operation `aurora.applyInvoiceLines`).
+   * Requires the capability `home.dashboard.read`.
+   */
+  applyInvoiceLines(
+    body: AuroraApplyInvoiceLinesRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<AuroraAppliedInvoiceLines>> {
+    return this.client.request<AuroraAppliedInvoiceLines>(
+      $OPERATIONS["aurora.applyInvoiceLines"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Draft advance answers from a reply
+   *
+   * Reads one source, Verified or Filed project inbox mail or a file the person chose, into proposed answers for a recipient's open sections, one suggestion per answer. Needs advancing.submission.review on the packet's project; Item Request and Credential Request sections also need advancing.packet.write. Unverified mail refuses aurora_advance_source_unverified, a blank body aurora_advance_source_empty and a recipient with no open section aurora_advance_no_open_sections, all before metering. Guest List, File, Crew Roster and per-person sections are never drafted, and the model never receives the roster, a profile or a project fact. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /aurora/draft-advance-answers` (operation `aurora.draftAdvanceAnswers`).
+   * Requires the capability `home.dashboard.read`.
+   */
+  draftAdvanceAnswers(
+    body: AuroraDraftAdvanceAnswersRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<AuroraResult>> {
+    return this.client.request<AuroraResult>(
+      $OPERATIONS["aurora.draftAdvanceAnswers"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Record a drafted advance answer
+   *
+   * Records one accepted answer through the single writer of advance answers, with its source, and tells the recipient side. The accepter is the answer's submitter, so a second person reviews it. An open answer refuses advance_answer_pending. Calls no model and meters nothing. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /aurora/apply-advance-answer` (operation `aurora.applyAdvanceAnswer`).
+   * Requires the capability `home.dashboard.read`.
+   */
+  applyAdvanceAnswer(
+    body: AuroraApplyAdvanceAnswerRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<AuroraAppliedAdvanceAnswer>> {
+    return this.client.request<AuroraAppliedAdvanceAnswer>(
+      $OPERATIONS["aurora.applyAdvanceAnswer"],
+      { body },
+      options,
+    );
   }
 
   /**
@@ -39811,6 +42198,988 @@ export class LiveLinksResource extends $Resource {
 }
 
 /**
+ * Operations on `cueFieldAudiences`, in the Platform module.
+ *
+ * Custom objects, imports and exports, approvals, comments, notifications, saved views, trash and templates (Sections 4.6 and 4.10).
+ */
+export class CueFieldAudiencesResource extends $Resource {
+  /**
+   * List cue field audience rows
+   *
+   * Who a cue custom field is shown to (ADR 0142): Crew (Atlas running orders; members read every value their access allows either way), Showcaller (showcaller link portals) or Client (Clients engaged on the project, in Gateway). A new cue field starts with Crew. A Person, Money or Email field never takes Showcaller or Client (422 `cue_field_audience_type`), and an audience names a cue field (422 `cue_field_audience_target`). Returns a cursor page of cue field audience rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /cue-field-audiences` (operation `cueFieldAudiences.list`).
+   * Requires the capability `org.settings.read`.
+   */
+  list(
+    params?: $ListParams<CueFieldAudience>,
+    options?: $RequestOptions,
+  ): Promise<$Page<CueFieldAudience>> {
+    return this.client.requestPage<CueFieldAudience>(
+      $OPERATIONS["cueFieldAudiences.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List cue field audience rows
+   *
+   * Who a cue custom field is shown to (ADR 0142): Crew (Atlas running orders; members read every value their access allows either way), Showcaller (showcaller link portals) or Client (Clients engaged on the project, in Gateway). A new cue field starts with Crew. A Person, Money or Email field never takes Showcaller or Client (422 `cue_field_audience_type`), and an audience names a cue field (422 `cue_field_audience_target`). Returns a cursor page of cue field audience rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /cue-field-audiences` (operation `cueFieldAudiences.list`).
+   * Requires the capability `org.settings.read`.
+   */
+  listAll(
+    params?: $ListAllParams<CueFieldAudience>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<CueFieldAudience, void, undefined> {
+    return this.client.paginate<CueFieldAudience>(
+      $OPERATIONS["cueFieldAudiences.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a cue field audience
+   *
+   * Who a cue custom field is shown to (ADR 0142): Crew (Atlas running orders; members read every value their access allows either way), Showcaller (showcaller link portals) or Client (Clients engaged on the project, in Gateway). A new cue field starts with Crew. A Person, Money or Email field never takes Showcaller or Client (422 `cue_field_audience_type`), and an audience names a cue field (422 `cue_field_audience_target`). Creates a cue field audience. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   *
+   * `POST /cue-field-audiences` (operation `cueFieldAudiences.create`).
+   * Requires the capability `org.custom_fields.write`.
+   */
+  create(
+    body: CueFieldAudienceCreate,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<CueFieldAudience>> {
+    return this.client.request<CueFieldAudience>(
+      $OPERATIONS["cueFieldAudiences.create"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Delete a cue field audience
+   *
+   * Who a cue custom field is shown to (ADR 0142): Crew (Atlas running orders; members read every value their access allows either way), Showcaller (showcaller link portals) or Client (Clients engaged on the project, in Gateway). A new cue field starts with Crew. A Person, Money or Email field never takes Showcaller or Client (422 `cue_field_audience_type`), and an audience names a cue field (422 `cue_field_audience_target`). Soft-deletes the cue field audience: it moves to Trash and can be restored for its table's retention period.
+   *
+   * `DELETE /cue-field-audiences/{id}` (operation `cueFieldAudiences.delete`).
+   * Requires the capability `org.custom_fields.write`.
+   */
+  delete(id: string, options?: $RequestOptions): Promise<$ApiResponse<undefined>> {
+    return this.client.request<undefined>(
+      $OPERATIONS["cueFieldAudiences.delete"],
+      { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `stakeholderPacks`, in the Platform module.
+ *
+ * Custom objects, imports and exports, approvals, comments, notifications, saved views, trash and templates (Sections 4.6 and 4.10).
+ */
+export class StakeholderPacksResource extends $Resource {
+  /**
+   * List stakeholder pack rows
+   *
+   * A named bundle of a project's live links and Public or Internal files for people outside the org (ADR 0141). Members holding projects.settings.write on the project read and change packs; a partner org reaching the project through a project share sees none. Revoking a pack stops every link and device grant at once. Returns a cursor page of stakeholder pack rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /stakeholder-packs` (operation `stakeholderPacks.list`).
+   * Requires the capability `projects.project.read`.
+   */
+  list(
+    params?: $ListParams<StakeholderPack>,
+    options?: $RequestOptions,
+  ): Promise<$Page<StakeholderPack>> {
+    return this.client.requestPage<StakeholderPack>(
+      $OPERATIONS["stakeholderPacks.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List stakeholder pack rows
+   *
+   * A named bundle of a project's live links and Public or Internal files for people outside the org (ADR 0141). Members holding projects.settings.write on the project read and change packs; a partner org reaching the project through a project share sees none. Revoking a pack stops every link and device grant at once. Returns a cursor page of stakeholder pack rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /stakeholder-packs` (operation `stakeholderPacks.list`).
+   * Requires the capability `projects.project.read`.
+   */
+  listAll(
+    params?: $ListAllParams<StakeholderPack>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<StakeholderPack, void, undefined> {
+    return this.client.paginate<StakeholderPack>(
+      $OPERATIONS["stakeholderPacks.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Get a stakeholder pack
+   *
+   * A named bundle of a project's live links and Public or Internal files for people outside the org (ADR 0141). Members holding projects.settings.write on the project read and change packs; a partner org reaching the project through a project share sees none. Revoking a pack stops every link and device grant at once. Returns one stakeholder pack with its `ETag`. A stakeholder pack the caller may not see returns 404.
+   *
+   * `GET /stakeholder-packs/{id}` (operation `stakeholderPacks.get`).
+   * Requires the capability `projects.project.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<StakeholderPack>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<StakeholderPack>> {
+    return this.client.request<StakeholderPack>(
+      $OPERATIONS["stakeholderPacks.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a stakeholder pack
+   *
+   * Makes a pack on a project through app.create_stakeholder_pack. Needs membership of the project's org and projects.settings.write on the project (a partner org never qualifies), an org that is not read-only (422 `org_read_only`), and an expiry after now and within 90 days (422 `stakeholder_pack_expiry_range`). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /stakeholder-packs/create` (operation `stakeholderPacks.create`).
+   * Requires the capability `projects.project.read`.
+   */
+  create(
+    body: StakeholderPackRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<StakeholderPack>> {
+    return this.client.request<StakeholderPack>(
+      $OPERATIONS["stakeholderPacks.create"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Change a stakeholder pack
+   *
+   * Changes the name, message, note and expiry through app.update_stakeholder_pack. An earlier expiry stops every link and device grant at once. Refused for a revoked pack (422 `stakeholder_pack_revoked`) and a read-only org (422 `org_read_only`). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /stakeholder-packs/{id}/update` (operation `stakeholderPacks.update`).
+   * Requires the capability `projects.project.read`.
+   */
+  update(
+    id: string,
+    body: StakeholderPackChange,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<StakeholderPack>> {
+    return this.client.request<StakeholderPack>(
+      $OPERATIONS["stakeholderPacks.update"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Revoke a stakeholder pack
+   *
+   * Revokes the pack through app.revoke_stakeholder_pack: every device grant is deleted and every emailed link revoked. Allowed in a read-only org, since it withdraws access. Revoking a revoked pack answers it unchanged. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /stakeholder-packs/{id}/revoke` (operation `stakeholderPacks.revoke`).
+   * Requires the capability `projects.project.read`.
+   */
+  revoke(id: string, options?: $MutationOptions): Promise<$ApiResponse<StakeholderPack>> {
+    return this.client.request<StakeholderPack>(
+      $OPERATIONS["stakeholderPacks.revoke"],
+      { path: { id } },
+      options,
+    );
+  }
+
+  /**
+   * Set a pack's delivery schedule
+   *
+   * Sets when the pack emails its recipients a fresh sign-in link through app.set_stakeholder_pack_schedule: Daily, Weekly (weekday 1 to 7) or Monthly (day 1 to 28) at a local hour, in the project's zone by default. A slot after the pack's expiry is refused (422 `stakeholder_pack_schedule_past_expiry`). Outside recipients get a link, never a report file. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /stakeholder-packs/{id}/schedule` (operation `stakeholderPacks.setSchedule`).
+   * Requires the capability `projects.project.read`.
+   */
+  setSchedule(
+    id: string,
+    body: StakeholderPackScheduleRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<StakeholderPackSchedule>> {
+    return this.client.request<StakeholderPackSchedule>(
+      $OPERATIONS["stakeholderPacks.setSchedule"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Clear a pack's delivery schedule
+   *
+   * Turns the schedule off through app.clear_stakeholder_pack_schedule; deliveries already queued still go. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /stakeholder-packs/{id}/schedule/clear` (operation `stakeholderPacks.clearSchedule`).
+   * Requires the capability `projects.project.read`.
+   */
+  clearSchedule(id: string, options?: $MutationOptions): Promise<$ApiResponse<StakeholderPack>> {
+    return this.client.request<StakeholderPack>(
+      $OPERATIONS["stakeholderPacks.clearSchedule"],
+      { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `stakeholderPackItems`, in the Platform module.
+ *
+ * Custom objects, imports and exports, approvals, comments, notifications, saved views, trash and templates (Sections 4.6 and 4.10).
+ */
+export class StakeholderPackItemsResource extends $Resource {
+  /**
+   * List stakeholder pack item rows
+   *
+   * One item of a stakeholder pack (ADR 0141), at most 30: a live link of the pack's project or a file of the project whose current version scanned clean and is Public or Internal. The file's own read policy decides whether the caller may add it. Returns a cursor page of stakeholder pack item rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /stakeholder-pack-items` (operation `stakeholderPackItems.list`).
+   * Requires the capability `projects.project.read`.
+   */
+  list(
+    params?: $ListParams<StakeholderPackItem>,
+    options?: $RequestOptions,
+  ): Promise<$Page<StakeholderPackItem>> {
+    return this.client.requestPage<StakeholderPackItem>(
+      $OPERATIONS["stakeholderPackItems.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List stakeholder pack item rows
+   *
+   * One item of a stakeholder pack (ADR 0141), at most 30: a live link of the pack's project or a file of the project whose current version scanned clean and is Public or Internal. The file's own read policy decides whether the caller may add it. Returns a cursor page of stakeholder pack item rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /stakeholder-pack-items` (operation `stakeholderPackItems.list`).
+   * Requires the capability `projects.project.read`.
+   */
+  listAll(
+    params?: $ListAllParams<StakeholderPackItem>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<StakeholderPackItem, void, undefined> {
+    return this.client.paginate<StakeholderPackItem>(
+      $OPERATIONS["stakeholderPackItems.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Add an item to a stakeholder pack
+   *
+   * Adds one live link or one file, last in order, through app.add_stakeholder_pack_item. A live link must be one the caller may manage, on the pack's project, neither revoked nor expired (422 `stakeholder_pack_item_link`). A file must be readable by the caller, of the pack's project, with a clean current version (422 `stakeholder_pack_item_file`), and Public or Internal (422 `stakeholder_pack_item_classified`). At most 30 items (422 `stakeholder_pack_item_limit`). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /stakeholder-pack-items/add` (operation `stakeholderPackItems.add`).
+   * Requires the capability `projects.project.read`.
+   */
+  add(
+    body: StakeholderPackItemRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<StakeholderPackItem>> {
+    return this.client.request<StakeholderPackItem>(
+      $OPERATIONS["stakeholderPackItems.add"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Remove an item from a stakeholder pack
+   *
+   * Removes the item through app.remove_stakeholder_pack_item; recipients stop seeing it at once. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /stakeholder-pack-items/{id}/remove` (operation `stakeholderPackItems.remove`).
+   * Requires the capability `projects.project.read`.
+   */
+  remove(
+    id: string,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<StakeholderPackItemRemoved>> {
+    return this.client.request<StakeholderPackItemRemoved>(
+      $OPERATIONS["stakeholderPackItems.remove"],
+      { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `stakeholderPackRecipients`, in the Platform module.
+ *
+ * Custom objects, imports and exports, approvals, comments, notifications, saved views, trash and templates (Sections 4.6 and 4.10).
+ */
+export class StakeholderPackRecipientsResource extends $Resource {
+  /**
+   * List stakeholder pack recipient rows
+   *
+   * One person outside the org a stakeholder pack is for (ADR 0141), at most 200 per pack. The 6-digit access code is returned once by `stakeholderPackRecipients.add` and `stakeholderPackRecipients.resetCode` and stored only as a salted hash, so it never appears here. Returns a cursor page of stakeholder pack recipient rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /stakeholder-pack-recipients` (operation `stakeholderPackRecipients.list`).
+   * Requires the capability `projects.project.read`.
+   */
+  list(
+    params?: $ListParams<StakeholderPackRecipient>,
+    options?: $RequestOptions,
+  ): Promise<$Page<StakeholderPackRecipient>> {
+    return this.client.requestPage<StakeholderPackRecipient>(
+      $OPERATIONS["stakeholderPackRecipients.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List stakeholder pack recipient rows
+   *
+   * One person outside the org a stakeholder pack is for (ADR 0141), at most 200 per pack. The 6-digit access code is returned once by `stakeholderPackRecipients.add` and `stakeholderPackRecipients.resetCode` and stored only as a salted hash, so it never appears here. Returns a cursor page of stakeholder pack recipient rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /stakeholder-pack-recipients` (operation `stakeholderPackRecipients.list`).
+   * Requires the capability `projects.project.read`.
+   */
+  listAll(
+    params?: $ListAllParams<StakeholderPackRecipient>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<StakeholderPackRecipient, void, undefined> {
+    return this.client.paginate<StakeholderPackRecipient>(
+      $OPERATIONS["stakeholderPackRecipients.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Get a stakeholder pack recipient
+   *
+   * One person outside the org a stakeholder pack is for (ADR 0141), at most 200 per pack. The 6-digit access code is returned once by `stakeholderPackRecipients.add` and `stakeholderPackRecipients.resetCode` and stored only as a salted hash, so it never appears here. Returns one stakeholder pack recipient with its `ETag`. A stakeholder pack recipient the caller may not see returns 404.
+   *
+   * `GET /stakeholder-pack-recipients/{id}` (operation `stakeholderPackRecipients.get`).
+   * Requires the capability `projects.project.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<StakeholderPackRecipient>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<StakeholderPackRecipient>> {
+    return this.client.request<StakeholderPackRecipient>(
+      $OPERATIONS["stakeholderPackRecipients.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Add a recipient to a stakeholder pack
+   *
+   * Adds a person through app.add_stakeholder_pack_recipient and answers their 6-digit access code once, to give by phone or message. Refuses a revoked pack, a read-only org, a malformed email (422 `stakeholder_pack_recipient_email`), a second live recipient with the same email (422 `stakeholder_pack_recipient_duplicate`), more than 200 recipients (422 `stakeholder_pack_recipient_limit`). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /stakeholder-pack-recipients/add` (operation `stakeholderPackRecipients.add`).
+   * Requires the capability `projects.project.read`.
+   */
+  add(
+    body: StakeholderPackRecipientRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<StakeholderPackRecipientCode>> {
+    return this.client.request<StakeholderPackRecipientCode>(
+      $OPERATIONS["stakeholderPackRecipients.add"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Reset a recipient's access code
+   *
+   * Draws a new 6-digit code through app.reset_stakeholder_pack_recipient_code, answered once. Wrong-code attempts reset, which unlocks a locked recipient, and every device grant is dropped. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /stakeholder-pack-recipients/{id}/reset-code` (operation `stakeholderPackRecipients.resetCode`).
+   * Requires the capability `projects.project.read`.
+   */
+  resetCode(
+    id: string,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<StakeholderPackRecipientCodeReset>> {
+    return this.client.request<StakeholderPackRecipientCodeReset>(
+      $OPERATIONS["stakeholderPackRecipients.resetCode"],
+      { path: { id } },
+      options,
+    );
+  }
+
+  /**
+   * Revoke a recipient
+   *
+   * Revokes one recipient through app.revoke_stakeholder_pack_recipient: their device grants are deleted and emailed links revoked. Allowed in a read-only org. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /stakeholder-pack-recipients/{id}/revoke` (operation `stakeholderPackRecipients.revoke`).
+   * Requires the capability `projects.project.read`.
+   */
+  revoke(id: string, options?: $MutationOptions): Promise<$ApiResponse<StakeholderPackRecipient>> {
+    return this.client.request<StakeholderPackRecipient>(
+      $OPERATIONS["stakeholderPackRecipients.revoke"],
+      { path: { id } },
+      options,
+    );
+  }
+
+  /**
+   * Email a pack's sign-in links now
+   *
+   * Queues an Invite or Resend per recipient through app.send_stakeholder_pack. Revoked and unsubscribed recipients, addresses on the org's suppression list, and any recipient already sent 3 manual emails in the last hour are skipped. The email never carries the access code. Answers how many were queued. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /stakeholder-pack-recipients/send` (operation `stakeholderPackRecipients.send`).
+   * Requires the capability `projects.project.read`.
+   */
+  send(
+    body: StakeholderPackSendRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<StakeholderPackSent>> {
+    return this.client.request<StakeholderPackSent>(
+      $OPERATIONS["stakeholderPackRecipients.send"],
+      { body },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `stakeholderPackEvents`, in the Platform module.
+ *
+ * Custom objects, imports and exports, approvals, comments, notifications, saved views, trash and templates (Sections 4.6 and 4.10).
+ */
+export class StakeholderPackEventsResource extends $Resource {
+  /**
+   * List stakeholder pack event rows
+   *
+   * What each stakeholder pack recipient did (ADR 0141), append-only. Written only by the pack RPCs; no visitor address is kept. Returns a cursor page of stakeholder pack event rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /stakeholder-pack-events` (operation `stakeholderPackEvents.list`).
+   * Requires the capability `projects.project.read`.
+   */
+  list(
+    params?: $ListParams<StakeholderPackEvent>,
+    options?: $RequestOptions,
+  ): Promise<$Page<StakeholderPackEvent>> {
+    return this.client.requestPage<StakeholderPackEvent>(
+      $OPERATIONS["stakeholderPackEvents.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List stakeholder pack event rows
+   *
+   * What each stakeholder pack recipient did (ADR 0141), append-only. Written only by the pack RPCs; no visitor address is kept. Returns a cursor page of stakeholder pack event rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /stakeholder-pack-events` (operation `stakeholderPackEvents.list`).
+   * Requires the capability `projects.project.read`.
+   */
+  listAll(
+    params?: $ListAllParams<StakeholderPackEvent>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<StakeholderPackEvent, void, undefined> {
+    return this.client.paginate<StakeholderPackEvent>(
+      $OPERATIONS["stakeholderPackEvents.list"],
+      { query: params },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `vendorIntakeLinks`, in the Platform module.
+ *
+ * Custom objects, imports and exports, approvals, comments, notifications, saved views, trash and templates (Sections 4.6 and 4.10).
+ */
+export class VendorIntakeLinksResource extends $Resource {
+  /**
+   * List vendor intake link rows
+   *
+   * A reusable vendor intake link (ADR 0141): one link and 6-digit access code a project gives to many vendors or contractors. Each signs in to Gateway and sends a request that, once approved, becomes an Onboarding engagement on these terms. The token and code are returned once by `vendorIntakeLinks.create` and `vendorIntakeLinks.regenerate` and stored only as hashes. Returns a cursor page of vendor intake link rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /vendor-intake-links` (operation `vendorIntakeLinks.list`).
+   * Requires the capability `opportunities.engagement.read`.
+   */
+  list(
+    params?: $ListParams<VendorIntakeLink>,
+    options?: $RequestOptions,
+  ): Promise<$Page<VendorIntakeLink>> {
+    return this.client.requestPage<VendorIntakeLink>(
+      $OPERATIONS["vendorIntakeLinks.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List vendor intake link rows
+   *
+   * A reusable vendor intake link (ADR 0141): one link and 6-digit access code a project gives to many vendors or contractors. Each signs in to Gateway and sends a request that, once approved, becomes an Onboarding engagement on these terms. The token and code are returned once by `vendorIntakeLinks.create` and `vendorIntakeLinks.regenerate` and stored only as hashes. Returns a cursor page of vendor intake link rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /vendor-intake-links` (operation `vendorIntakeLinks.list`).
+   * Requires the capability `opportunities.engagement.read`.
+   */
+  listAll(
+    params?: $ListAllParams<VendorIntakeLink>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<VendorIntakeLink, void, undefined> {
+    return this.client.paginate<VendorIntakeLink>(
+      $OPERATIONS["vendorIntakeLinks.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Get a vendor intake link
+   *
+   * A reusable vendor intake link (ADR 0141): one link and 6-digit access code a project gives to many vendors or contractors. Each signs in to Gateway and sends a request that, once approved, becomes an Onboarding engagement on these terms. The token and code are returned once by `vendorIntakeLinks.create` and `vendorIntakeLinks.regenerate` and stored only as hashes. Returns one vendor intake link with its `ETag`. A vendor intake link the caller may not see returns 404.
+   *
+   * `GET /vendor-intake-links/{id}` (operation `vendorIntakeLinks.get`).
+   * Requires the capability `opportunities.engagement.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<VendorIntakeLink>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<VendorIntakeLink>> {
+    return this.client.request<VendorIntakeLink>(
+      $OPERATIONS["vendorIntakeLinks.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a vendor intake link
+   *
+   * Makes a reusable link through app.create_vendor_intake_link. Needs membership of the project's org and opportunities.engagement.write on the project. Refuses an employee classification (422 `vendor_intake_classification`), a Vendor link without a counterparty type (422 `vendor_intake_counterparty_type`), terms that are not one rate card row (422 `vendor_intake_rate_card`), an expiry past 90 days (422 `vendor_intake_expiry_range`), an agreement without a clean upload (422 `intake_agreement_file`) or above Internal (422 `intake_agreement_classified`). Answers 201 with the token and code, shown once. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /vendor-intake-links/create` (operation `vendorIntakeLinks.create`).
+   * Requires the capability `opportunities.engagement.read`.
+   */
+  create(
+    body: VendorIntakeLinkRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<VendorIntakeLinkToken>> {
+    return this.client.request<VendorIntakeLinkToken>(
+      $OPERATIONS["vendorIntakeLinks.create"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Regenerate a vendor intake link
+   *
+   * Draws a new token and code through app.regenerate_vendor_intake_link; wrong-code attempts reset, which unlocks a locked link, and every grant is dropped. A revoked link (422 `vendor_intake_link_revoked`) and a read-only org (422 `org_read_only`) are refused. Answers them once. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /vendor-intake-links/{id}/regenerate` (operation `vendorIntakeLinks.regenerate`).
+   * Requires the capability `opportunities.engagement.read`.
+   */
+  regenerate(
+    id: string,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<VendorIntakeLinkRegenerated>> {
+    return this.client.request<VendorIntakeLinkRegenerated>(
+      $OPERATIONS["vendorIntakeLinks.regenerate"],
+      { path: { id } },
+      options,
+    );
+  }
+
+  /**
+   * Revoke a vendor intake link
+   *
+   * Revokes the link through app.revoke_vendor_intake_link so it never opens again; requests already sent stay for the team to decide. Allowed in a read-only org. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /vendor-intake-links/{id}/revoke` (operation `vendorIntakeLinks.revoke`).
+   * Requires the capability `opportunities.engagement.read`.
+   */
+  revoke(id: string, options?: $MutationOptions): Promise<$ApiResponse<VendorIntakeLink>> {
+    return this.client.request<VendorIntakeLink>(
+      $OPERATIONS["vendorIntakeLinks.revoke"],
+      { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `vendorIntakeRequests`, in the Platform module.
+ *
+ * Custom objects, imports and exports, approvals, comments, notifications, saved views, trash and templates (Sections 4.6 and 4.10).
+ */
+export class VendorIntakeRequestsResource extends $Resource {
+  /**
+   * List vendor intake request rows
+   *
+   * What a vendor or contractor sent through a reusable intake link (ADR 0141). It holds references only: no tax identifier or bank number. Members holding opportunities.engagement.read on the project read it; the requester reads through Gateway. A request is written by Gateway's server actions and decided here. Returns a cursor page of vendor intake request rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /vendor-intake-requests` (operation `vendorIntakeRequests.list`).
+   * Requires the capability `opportunities.engagement.read`.
+   */
+  list(
+    params?: $ListParams<VendorIntakeRequest>,
+    options?: $RequestOptions,
+  ): Promise<$Page<VendorIntakeRequest>> {
+    return this.client.requestPage<VendorIntakeRequest>(
+      $OPERATIONS["vendorIntakeRequests.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List vendor intake request rows
+   *
+   * What a vendor or contractor sent through a reusable intake link (ADR 0141). It holds references only: no tax identifier or bank number. Members holding opportunities.engagement.read on the project read it; the requester reads through Gateway. A request is written by Gateway's server actions and decided here. Returns a cursor page of vendor intake request rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /vendor-intake-requests` (operation `vendorIntakeRequests.list`).
+   * Requires the capability `opportunities.engagement.read`.
+   */
+  listAll(
+    params?: $ListAllParams<VendorIntakeRequest>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<VendorIntakeRequest, void, undefined> {
+    return this.client.paginate<VendorIntakeRequest>(
+      $OPERATIONS["vendorIntakeRequests.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Get a vendor intake request
+   *
+   * What a vendor or contractor sent through a reusable intake link (ADR 0141). It holds references only: no tax identifier or bank number. Members holding opportunities.engagement.read on the project read it; the requester reads through Gateway. A request is written by Gateway's server actions and decided here. Returns one vendor intake request with its `ETag`. A vendor intake request the caller may not see returns 404.
+   *
+   * `GET /vendor-intake-requests/{id}` (operation `vendorIntakeRequests.get`).
+   * Requires the capability `opportunities.engagement.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<VendorIntakeRequest>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<VendorIntakeRequest>> {
+    return this.client.request<VendorIntakeRequest>(
+      $OPERATIONS["vendorIntakeRequests.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Approve a vendor intake request
+   *
+   * Approves into an Onboarding engagement on the link's terms through app.decide_vendor_intake: the org's counterparty for the account is reused or added, Tax Form and Payout Details items are marked submitted but never verified, and the agreement is signed for the pinned version or stays Sent. The requester and anyone in the vendor account are refused (422 `sod_vendor_intake_self`); a decided request answers 422 `vendor_intake_not_pending`; the plan limit surfaces its own code. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /vendor-intake-requests/{id}/approve` (operation `vendorIntakeRequests.approve`).
+   * Requires the capability `opportunities.engagement.read`.
+   */
+  approve(
+    id: string,
+    body: VendorIntakeApproval,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<VendorIntakeRequest>> {
+    return this.client.request<VendorIntakeRequest>(
+      $OPERATIONS["vendorIntakeRequests.approve"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Decline a vendor intake request
+   *
+   * Declines through app.decide_vendor_intake with a reason of at least 10 characters (422 `vendor_intake_decline_reason`). The tax form and payout reference written for it are soft-deleted when nothing else needs them. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /vendor-intake-requests/{id}/decline` (operation `vendorIntakeRequests.decline`).
+   * Requires the capability `opportunities.engagement.read`.
+   */
+  decline(
+    id: string,
+    body: VendorIntakeDecline,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<VendorIntakeRequest>> {
+    return this.client.request<VendorIntakeRequest>(
+      $OPERATIONS["vendorIntakeRequests.decline"],
+      { path: { id }, body },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `formLinks`, in the Platform module.
+ *
+ * Custom objects, imports and exports, approvals, comments, notifications, saved views, trash and templates (Sections 4.6 and 4.10).
+ */
+export class FormLinksResource extends $Resource {
+  /**
+   * List form link rows
+   *
+   * A public link to a Published form with no photo, signature or GPS (ADR 0141): people outside the org open it with a 6-digit access code and answer without an account. Responses are filed Submitted and become project records only when approved. The token and code are returned once and stored only as hashes. Returns a cursor page of form link rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /form-links` (operation `formLinks.list`).
+   * Requires the capability `knowledge.sop.publish`.
+   */
+  list(params?: $ListParams<FormLink>, options?: $RequestOptions): Promise<$Page<FormLink>> {
+    return this.client.requestPage<FormLink>(
+      $OPERATIONS["formLinks.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List form link rows
+   *
+   * A public link to a Published form with no photo, signature or GPS (ADR 0141): people outside the org open it with a 6-digit access code and answer without an account. Responses are filed Submitted and become project records only when approved. The token and code are returned once and stored only as hashes. Returns a cursor page of form link rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /form-links` (operation `formLinks.list`).
+   * Requires the capability `knowledge.sop.publish`.
+   */
+  listAll(
+    params?: $ListAllParams<FormLink>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<FormLink, void, undefined> {
+    return this.client.paginate<FormLink>(
+      $OPERATIONS["formLinks.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Get a form link
+   *
+   * A public link to a Published form with no photo, signature or GPS (ADR 0141): people outside the org open it with a 6-digit access code and answer without an account. Responses are filed Submitted and become project records only when approved. The token and code are returned once and stored only as hashes. Returns one form link with its `ETag`. A form link the caller may not see returns 404.
+   *
+   * `GET /form-links/{id}` (operation `formLinks.get`).
+   * Requires the capability `knowledge.sop.publish`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<FormLink>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<FormLink>> {
+    return this.client.request<FormLink>(
+      $OPERATIONS["formLinks.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a public form link
+   *
+   * Makes a public link through app.create_form_link. Needs membership and knowledge.sop.publish, a Published form (422 `form_not_published`) with no photo field, signature or GPS stamp (422 `form_link_unsupported`), and an expiry within 90 days (422 `form_link_expiry_range`). Answers 201 with the token and code, shown once. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /form-links/create` (operation `formLinks.create`).
+   * Requires the capability `knowledge.sop.publish`.
+   */
+  create(body: FormLinkRequest, options?: $MutationOptions): Promise<$ApiResponse<FormLinkToken>> {
+    return this.client.request<FormLinkToken>($OPERATIONS["formLinks.create"], { body }, options);
+  }
+
+  /**
+   * Regenerate a public form link
+   *
+   * Draws a new token and code through app.regenerate_form_link; wrong-code attempts reset and every grant is dropped. A revoked link and a read-only org are refused. Answers them once. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /form-links/{id}/regenerate` (operation `formLinks.regenerate`).
+   * Requires the capability `knowledge.sop.publish`.
+   */
+  regenerate(id: string, options?: $MutationOptions): Promise<$ApiResponse<FormLinkRegenerated>> {
+    return this.client.request<FormLinkRegenerated>(
+      $OPERATIONS["formLinks.regenerate"],
+      { path: { id } },
+      options,
+    );
+  }
+
+  /**
+   * Revoke a public form link
+   *
+   * Revokes the link through app.revoke_form_link; responses already in stay. Allowed in a read-only org. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /form-links/{id}/revoke` (operation `formLinks.revoke`).
+   * Requires the capability `knowledge.sop.publish`.
+   */
+  revoke(id: string, options?: $MutationOptions): Promise<$ApiResponse<FormLink>> {
+    return this.client.request<FormLink>(
+      $OPERATIONS["formLinks.revoke"],
+      { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `formLinkResponses`, in the Platform module.
+ *
+ * Custom objects, imports and exports, approvals, comments, notifications, saved views, trash and templates (Sections 4.6 and 4.10).
+ */
+export class FormLinkResponsesResource extends $Resource {
+  /**
+   * List form link response rows
+   *
+   * A response to a public form link (ADR 0141): the respondent's name and email, answers against one template version and the score. It stays Submitted until `formLinkResponses.decide`, and approving one on a project makes its record. `formSubmissions` lists members' submissions only. Returns a cursor page of form link response rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /form-link-responses` (operation `formLinkResponses.list`).
+   * Requires the capability `knowledge.sop.publish`.
+   */
+  list(
+    params?: $ListParams<FormLinkResponse>,
+    options?: $RequestOptions,
+  ): Promise<$Page<FormLinkResponse>> {
+    return this.client.requestPage<FormLinkResponse>(
+      $OPERATIONS["formLinkResponses.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List form link response rows
+   *
+   * A response to a public form link (ADR 0141): the respondent's name and email, answers against one template version and the score. It stays Submitted until `formLinkResponses.decide`, and approving one on a project makes its record. `formSubmissions` lists members' submissions only. Returns a cursor page of form link response rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /form-link-responses` (operation `formLinkResponses.list`).
+   * Requires the capability `knowledge.sop.publish`.
+   */
+  listAll(
+    params?: $ListAllParams<FormLinkResponse>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<FormLinkResponse, void, undefined> {
+    return this.client.paginate<FormLinkResponse>(
+      $OPERATIONS["formLinkResponses.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Get a form link response
+   *
+   * A response to a public form link (ADR 0141): the respondent's name and email, answers against one template version and the score. It stays Submitted until `formLinkResponses.decide`, and approving one on a project makes its record. `formSubmissions` lists members' submissions only. Returns one form link response with its `ETag`. A form link response the caller may not see returns 404.
+   *
+   * `GET /form-link-responses/{id}` (operation `formLinkResponses.get`).
+   * Requires the capability `knowledge.sop.publish`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<FormLinkResponse>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<FormLinkResponse>> {
+    return this.client.request<FormLinkResponse>(
+      $OPERATIONS["formLinkResponses.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Approve or reject a public form response
+   *
+   * Decides through app.decide_form_submission as a holder of the form's approver role or knowledge.sop.publish. A rejection needs a note. Approving a response on a project makes its record of the form's kind and subtype. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /form-link-responses/{id}/decide` (operation `formLinkResponses.decide`).
+   * Requires the capability `knowledge.sop.publish`.
+   */
+  decide(
+    id: string,
+    body: FormLinkResponseDecision,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<FormLinkResponse>> {
+    return this.client.request<FormLinkResponse>(
+      $OPERATIONS["formLinkResponses.decide"],
+      { path: { id }, body },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `outsideAccess`, in the Platform module.
+ *
+ * Custom objects, imports and exports, approvals, comments, notifications, saved views, trash and templates (Sections 4.6 and 4.10).
+ */
+export class OutsideAccessResource extends $Resource {
+  /**
+   * List outside access row rows
+   *
+   * One thing that reaches a project from outside the org: a live or display link, file link, advance or signing link, roster invitation, pack recipient, intake link, form link or engagement (ADR 0141). Each source's own row level security decides. `filter[project_id][eq]` is required: a list without it answers 400, because a file link's project is looked up per row. No token, code or password: none is stored readably. Returns a cursor page of outside access row rows the caller may see. The default order is `project_id` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /outside-access` (operation `outsideAccess.list`).
+   * Requires the capability `projects.project.read`.
+   */
+  list(
+    params?: $ListParams<OutsideAccessRow>,
+    options?: $RequestOptions,
+  ): Promise<$Page<OutsideAccessRow>> {
+    return this.client.requestPage<OutsideAccessRow>(
+      $OPERATIONS["outsideAccess.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List outside access row rows
+   *
+   * One thing that reaches a project from outside the org: a live or display link, file link, advance or signing link, roster invitation, pack recipient, intake link, form link or engagement (ADR 0141). Each source's own row level security decides. `filter[project_id][eq]` is required: a list without it answers 400, because a file link's project is looked up per row. No token, code or password: none is stored readably. Returns a cursor page of outside access row rows the caller may see. The default order is `project_id` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /outside-access` (operation `outsideAccess.list`).
+   * Requires the capability `projects.project.read`.
+   */
+  listAll(
+    params?: $ListAllParams<OutsideAccessRow>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<OutsideAccessRow, void, undefined> {
+    return this.client.paginate<OutsideAccessRow>(
+      $OPERATIONS["outsideAccess.list"],
+      { query: params },
+      options,
+    );
+  }
+}
+
+/**
  * Operations on `personCalendarFeeds`, in the Platform module.
  *
  * Custom objects, imports and exports, approvals, comments, notifications, saved views, trash and templates (Sections 4.6 and 4.10).
@@ -39919,6 +43288,45 @@ export class PersonCalendarFeedsResource extends $Resource {
   rotate(id: string, options?: $MutationOptions): Promise<$ApiResponse<CalendarFeedToken>> {
     return this.client.request<CalendarFeedToken>(
       $OPERATIONS["personCalendarFeeds.rotate"],
+      { path: { id } },
+      options,
+    );
+  }
+
+  /**
+   * Configure a personal calendar feed
+   *
+   * Replaces the name and sources of one of the caller's own live feeds (app.configure_person_calendar_feed). The subscription URL stays. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /person-calendar-feeds/{id}/configure` (operation `personCalendarFeeds.configure`).
+   * Requires the capability `me.calendar_feeds.write`.
+   */
+  configure(
+    id: string,
+    body: PersonCalendarFeedConfigureRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<PersonCalendarFeedConfiguration>> {
+    return this.client.request<PersonCalendarFeedConfiguration>(
+      $OPERATIONS["personCalendarFeeds.configure"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Read a personal calendar feed's configuration
+   *
+   * The name and sources of one of the caller's own live feeds. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `GET /person-calendar-feeds/{id}/configuration` (operation `personCalendarFeeds.configuration`).
+   * Requires the capability `me.calendar_feeds.write`.
+   */
+  configuration(
+    id: string,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<PersonCalendarFeedConfiguration>> {
+    return this.client.request<PersonCalendarFeedConfiguration>(
+      $OPERATIONS["personCalendarFeeds.configuration"],
       { path: { id } },
       options,
     );
@@ -40589,6 +43997,68 @@ export class WorkforceGroupsResource extends $Resource {
     return this.client.request<WorkforceGroup>(
       $OPERATIONS["workforceGroups.archive"],
       { path: { id } },
+      options,
+    );
+  }
+
+  /**
+   * Open a project's show channel
+   *
+   * Opens the project's show channel through app.open_show_channel and answers its conversation: a Project group named for the project (after `name_prefix`, Show channel by default), with the caller as Owner and the project's members who can read its running orders, less anyone engaged as Client. A project has one live show channel; opening again answers it. Needs membership of the project's org and show.run_of_show.write on the project. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /groups/open-show-channel` (operation `workforceGroups.openShowChannel`).
+   * Requires the capability `show.run_of_show.read`.
+   */
+  openShowChannel(
+    body: ShowChannelOpenRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<ShowChannelConversation>> {
+    return this.client.request<ShowChannelConversation>(
+      $OPERATIONS["workforceGroups.openShowChannel"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Join a project's show channel
+   *
+   * Adds the caller to the project's live show channel through app.join_show_channel. Needs show.run_of_show.read on the project; anyone engaged as Client is refused (422 `show_channel_client`). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /groups/join-show-channel` (operation `workforceGroups.joinShowChannel`).
+   * Requires the capability `show.run_of_show.read`.
+   */
+  joinShowChannel(
+    body: ShowChannelJoinRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<ShowChannelConversation>> {
+    return this.client.request<ShowChannelConversation>(
+      $OPERATIONS["workforceGroups.joinShowChannel"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Read what the show channel panel may offer
+   *
+   * Answers through app.show_channel_status whether the project has a live show channel, its conversation (only for a member), and whether the caller is in it, may join it or may open it. Group visibility hides a group from people outside it, so the panel asks here. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `GET /groups/show-channel-status` (operation `workforceGroups.showChannelStatus`).
+   * Requires the capability `show.run_of_show.read`.
+   */
+  showChannelStatus(
+    params: {
+      /**
+       * Identifier of the project of the show channel.
+       */
+      readonly project_id: string;
+    },
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<ShowChannelStatus>> {
+    return this.client.request<ShowChannelStatus>(
+      $OPERATIONS["workforceGroups.showChannelStatus"],
+      { query: params },
       options,
     );
   }
@@ -43915,6 +47385,261 @@ export class WeatherAlertsResource extends $Resource {
     return this.client.request<WeatherAlert>(
       $OPERATIONS["weatherAlerts.get"],
       { path: { id }, query: params },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `weatherFeeds`, in the Workforce module.
+ *
+ * Groups, chat, the directory, the feed, polls, surveys, recognition, events, forms, training, the handbook, the help desk and site operations (Section 4.9).
+ */
+export class WeatherFeedsResource extends $Resource {
+  /**
+   * List weather feed rows
+   *
+   * A project's official weather feed (gap G-150): on while it exists, off once deleted. Only for a venue with a location in the US (weather_feed_unsupported, 422). The worker polls every 10 minutes during the project's window. Returns a cursor page of weather feed rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /weather-feeds` (operation `weatherFeeds.list`).
+   * Requires the capability `safety.incident.read`.
+   */
+  list(params?: $ListParams<WeatherFeed>, options?: $RequestOptions): Promise<$Page<WeatherFeed>> {
+    return this.client.requestPage<WeatherFeed>(
+      $OPERATIONS["weatherFeeds.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List weather feed rows
+   *
+   * A project's official weather feed (gap G-150): on while it exists, off once deleted. Only for a venue with a location in the US (weather_feed_unsupported, 422). The worker polls every 10 minutes during the project's window. Returns a cursor page of weather feed rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /weather-feeds` (operation `weatherFeeds.list`).
+   * Requires the capability `safety.incident.read`.
+   */
+  listAll(
+    params?: $ListAllParams<WeatherFeed>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<WeatherFeed, void, undefined> {
+    return this.client.paginate<WeatherFeed>(
+      $OPERATIONS["weatherFeeds.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a weather feed
+   *
+   * A project's official weather feed (gap G-150): on while it exists, off once deleted. Only for a venue with a location in the US (weather_feed_unsupported, 422). The worker polls every 10 minutes during the project's window. Creates a weather feed. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   *
+   * `POST /weather-feeds` (operation `weatherFeeds.create`).
+   * Requires the capability `safety.emergency_code.write`.
+   */
+  create(body: WeatherFeedCreate, options?: $MutationOptions): Promise<$ApiResponse<WeatherFeed>> {
+    return this.client.request<WeatherFeed>($OPERATIONS["weatherFeeds.create"], { body }, options);
+  }
+
+  /**
+   * Get a weather feed
+   *
+   * A project's official weather feed (gap G-150): on while it exists, off once deleted. Only for a venue with a location in the US (weather_feed_unsupported, 422). The worker polls every 10 minutes during the project's window. Returns one weather feed with its `ETag`. A weather feed the caller may not see returns 404.
+   *
+   * `GET /weather-feeds/{id}` (operation `weatherFeeds.get`).
+   * Requires the capability `safety.incident.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<WeatherFeed>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<WeatherFeed>> {
+    return this.client.request<WeatherFeed>(
+      $OPERATIONS["weatherFeeds.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Delete a weather feed
+   *
+   * A project's official weather feed (gap G-150): on while it exists, off once deleted. Only for a venue with a location in the US (weather_feed_unsupported, 422). The worker polls every 10 minutes during the project's window. Soft-deletes the weather feed: it moves to Trash and can be restored for its table's retention period.
+   *
+   * `DELETE /weather-feeds/{id}` (operation `weatherFeeds.delete`).
+   * Requires the capability `safety.emergency_code.write`.
+   */
+  delete(id: string, options?: $RequestOptions): Promise<$ApiResponse<undefined>> {
+    return this.client.request<undefined>(
+      $OPERATIONS["weatherFeeds.delete"],
+      { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `weatherWarnings`, in the Workforce module.
+ *
+ * Groups, chat, the directory, the feed, polls, surveys, recognition, events, forms, training, the handbook, the help desk and site operations (Section 4.9).
+ */
+export class WeatherWarningsResource extends $Resource {
+  /**
+   * List weather warning rows
+   *
+   * An official alert the US National Weather Service issued for the venue's location, in English as issued. A new Severe or Extreme alert notifies the alert-role people and the dispatchers once (weather.warning). Returns a cursor page of weather warning rows the caller may see. The default order is `sent_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /weather-warnings` (operation `weatherWarnings.list`).
+   * Requires the capability `safety.incident.read`.
+   */
+  list(
+    params?: $ListParams<WeatherWarning>,
+    options?: $RequestOptions,
+  ): Promise<$Page<WeatherWarning>> {
+    return this.client.requestPage<WeatherWarning>(
+      $OPERATIONS["weatherWarnings.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List weather warning rows
+   *
+   * An official alert the US National Weather Service issued for the venue's location, in English as issued. A new Severe or Extreme alert notifies the alert-role people and the dispatchers once (weather.warning). Returns a cursor page of weather warning rows the caller may see. The default order is `sent_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /weather-warnings` (operation `weatherWarnings.list`).
+   * Requires the capability `safety.incident.read`.
+   */
+  listAll(
+    params?: $ListAllParams<WeatherWarning>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<WeatherWarning, void, undefined> {
+    return this.client.paginate<WeatherWarning>(
+      $OPERATIONS["weatherWarnings.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Get a weather warning
+   *
+   * An official alert the US National Weather Service issued for the venue's location, in English as issued. A new Severe or Extreme alert notifies the alert-role people and the dispatchers once (weather.warning). Returns one weather warning with its `ETag`. A weather warning the caller may not see returns 404.
+   *
+   * `GET /weather-warnings/{id}` (operation `weatherWarnings.get`).
+   * Requires the capability `safety.incident.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<WeatherWarning>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<WeatherWarning>> {
+    return this.client.request<WeatherWarning>(
+      $OPERATIONS["weatherWarnings.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `weatherHolds`, in the Workforce module.
+ *
+ * Groups, chat, the directory, the feed, polls, surveys, recognition, events, forms, training, the handbook, the help desk and site operations (Section 4.9).
+ */
+export class WeatherHoldsResource extends $Resource {
+  /**
+   * List weather hold rows
+   *
+   * A weather hold a dispatcher called to stop work, and the all-clear that ended it (gap G-150). At most one is open per project. Calling one notifies the alert-role people, the dispatchers and everyone present in the project's zones (weather.hold); the all-clear notifies the same people as they are then (weather.all_clear). Returns a cursor page of weather hold rows the caller may see. The default order is `called_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /weather-holds` (operation `weatherHolds.list`).
+   * Requires the capability `safety.incident.read`.
+   */
+  list(params?: $ListParams<WeatherHold>, options?: $RequestOptions): Promise<$Page<WeatherHold>> {
+    return this.client.requestPage<WeatherHold>(
+      $OPERATIONS["weatherHolds.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List weather hold rows
+   *
+   * A weather hold a dispatcher called to stop work, and the all-clear that ended it (gap G-150). At most one is open per project. Calling one notifies the alert-role people, the dispatchers and everyone present in the project's zones (weather.hold); the all-clear notifies the same people as they are then (weather.all_clear). Returns a cursor page of weather hold rows the caller may see. The default order is `called_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /weather-holds` (operation `weatherHolds.list`).
+   * Requires the capability `safety.incident.read`.
+   */
+  listAll(
+    params?: $ListAllParams<WeatherHold>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<WeatherHold, void, undefined> {
+    return this.client.paginate<WeatherHold>(
+      $OPERATIONS["weatherHolds.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a weather hold
+   *
+   * A weather hold a dispatcher called to stop work, and the all-clear that ended it (gap G-150). At most one is open per project. Calling one notifies the alert-role people, the dispatchers and everyone present in the project's zones (weather.hold); the all-clear notifies the same people as they are then (weather.all_clear). Creates a weather hold. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   *
+   * `POST /weather-holds` (operation `weatherHolds.create`).
+   * Requires the capability `safety.incident.dispatch`.
+   */
+  create(body: WeatherHoldCreate, options?: $MutationOptions): Promise<$ApiResponse<WeatherHold>> {
+    return this.client.request<WeatherHold>($OPERATIONS["weatherHolds.create"], { body }, options);
+  }
+
+  /**
+   * Get a weather hold
+   *
+   * A weather hold a dispatcher called to stop work, and the all-clear that ended it (gap G-150). At most one is open per project. Calling one notifies the alert-role people, the dispatchers and everyone present in the project's zones (weather.hold); the all-clear notifies the same people as they are then (weather.all_clear). Returns one weather hold with its `ETag`. A weather hold the caller may not see returns 404.
+   *
+   * `GET /weather-holds/{id}` (operation `weatherHolds.get`).
+   * Requires the capability `safety.incident.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<WeatherHold>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<WeatherHold>> {
+    return this.client.request<WeatherHold>(
+      $OPERATIONS["weatherHolds.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Give the all-clear
+   *
+   * Ends an open weather hold and notifies the same people as they are now (weather.all_clear). Needs safety.incident.dispatch; refuses weather_hold_closed and weather_hold_message (422). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /weather-holds/{id}/all-clear` (operation `weatherHolds.allClear`).
+   * Requires the capability `safety.incident.dispatch`.
+   */
+  allClear(
+    id: string,
+    body: WeatherAllClearRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<WeatherHold>> {
+    return this.client.request<WeatherHold>(
+      $OPERATIONS["weatherHolds.allClear"],
+      { path: { id }, body },
       options,
     );
   }

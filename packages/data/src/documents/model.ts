@@ -7,8 +7,8 @@
 
 import type { Database } from "../database.types.ts";
 /**
- * The record documents: the twelve of Section 11.9, then the radio hand-out (R7, ADR 0031 amendment) and the parity
- * kinds (B1: the site plan and the signage build sheet).
+ * The record documents: the twelve of Section 11.9, then the radio hand-out (R7, ADR 0031 amendment), the parity
+ * kinds (B1: the site plan and the signage build sheet) the wrap-up report (B7, ADR 0146), the guest pass (B8), generated agreements (B10) and the client quote (B13).
  */
 export const DOCUMENT_KINDS = [
   "purchase-order",
@@ -26,6 +26,10 @@ export const DOCUMENT_KINDS = [
   "radio-handout",
   "site-plan",
   "signage-build-sheet",
+  "wrap-up-report",
+  "guest-pass",
+  "engagement-document",
+  "quote",
 ] as const;
 
 export type DocumentKind = (typeof DOCUMENT_KINDS)[number];
@@ -57,18 +61,62 @@ export const COMPLIANCE_DOCUMENT_KINDS = [
 
 export type ComplianceDocumentKind = (typeof COMPLIANCE_DOCUMENT_KINDS)[number];
 
+/**
+ * Documents compiled from record documents (B7, ADR 0146 decision 4): a tour or production book's cover and
+ * contents. The cover is a model of its own; the documents after it keep their own kinds.
+ */
+export const COMPILED_DOCUMENT_KINDS = ["document-book"] as const;
+
+export type CompiledDocumentKind = (typeof COMPILED_DOCUMENT_KINDS)[number];
+
+/**
+ * The record documents a book may hold (ADR 0146 decision 4). Purchase orders, invoices, change orders, credential
+ * badges and agreement certificates stay out: their readers are not the show crew a book is printed for.
+ */
+export const BOOK_SECTION_KINDS = [
+  "day-sheet",
+  "call-sheet",
+  "run-of-show",
+  "beo",
+  "inspection-report",
+  "incident-report",
+  "final-cost-report",
+  "wrap-up-report",
+] as const satisfies readonly DocumentKind[];
+
+export type BookSectionKind = (typeof BOOK_SECTION_KINDS)[number];
+
+/** The most documents one batch PDF holds (P5: a print run of credential badges). */
+export const MAX_BATCH = 100;
+
+/** The most documents a book holds, not counting its cover (B7): a batch's worth. */
+export const MAX_BOOK_DOCUMENTS = MAX_BATCH;
+
+export function isBookSectionKind(value: string): value is BookSectionKind {
+  return (BOOK_SECTION_KINDS as readonly string[]).includes(value);
+}
+
+/** Section kinds a Tour Book leaves out: the commercial and wrap-up documents (document_book_kind_sections). */
+export const PRODUCTION_ONLY_SECTIONS: readonly BookSectionKind[] = [
+  "final-cost-report",
+  "wrap-up-report",
+];
+
 /** Section 8.3 classification, least to most sensitive. */
 export type DataClassification = Database["app"]["Enums"]["data_classification"];
 
 /**
  * The classification of each generated document: the highest classification among the registered
  * columns its template prints (private.column_classifications). Section 8.6 puts the viewer email
- * and time on Confidential and Restricted PDFs. The record documents print only Internal columns: the site plan and
- * the signage build sheet embed only drawings and artwork classified Public or Internal (B1, ADR 0140 D3); the WH-347
- * prints Restricted pay rates; the OSHA forms print Confidential health data.
+ * and time on Confidential and Restricted PDFs. The record documents and a book's cover print only Internal columns:
+ * the site plan and the signage build sheet embed only drawings and artwork classified Public or Internal (B1, ADR
+ * 0140 D3); the WH-347 prints Restricted pay rates; the OSHA forms print Confidential health data.
  */
 export const DOCUMENT_CLASSIFICATION: Readonly<
-  Record<DocumentKind | PlatformDocumentKind | ComplianceDocumentKind, DataClassification>
+  Record<
+    DocumentKind | PlatformDocumentKind | ComplianceDocumentKind | CompiledDocumentKind,
+    DataClassification
+  >
 > = {
   "purchase-order": "Internal",
   invoice: "Internal",
@@ -85,6 +133,12 @@ export const DOCUMENT_CLASSIFICATION: Readonly<
   "radio-handout": "Internal",
   "site-plan": "Internal",
   "signage-build-sheet": "Internal",
+  "wrap-up-report": "Internal",
+  "document-book": "Internal",
+  "guest-pass": "Internal",
+  // A generated agreement can hold the rate; a reader of a masked text gets 404 before it renders.
+  "engagement-document": "Confidential",
+  quote: "Internal",
   "deletion-certificate": "Internal",
   "certified-payroll": "Restricted",
   "osha-300": "Confidential",
@@ -108,9 +162,9 @@ export function isPaper(value: string): value is Paper {
 }
 
 /**
- * Card sizes, for the credential badge only (P5, ADR 0031 amendment): A6 (105 by 148 mm) and the ID-1 card CR80
- * (53.98 by 85.60 mm), both portrait. Paper and isPaper keep meaning Letter or A4, so compliance forms and Gateway
- * still accept only those.
+ * Card sizes, for the credential badge (P5) and the guest pass (B8), per the ADR 0031 amendments: A6 (105 by 148 mm)
+ * and the ID-1 card CR80 (53.98 by 85.60 mm), both portrait. Paper and isPaper keep meaning Letter or A4, so
+ * compliance forms and Gateway still accept only those.
  */
 export type CardPaper = "a6" | "cr80";
 
@@ -125,9 +179,17 @@ export function isCardPaper(value: string): value is CardPaper {
 
 const BADGE_SIZES: readonly PrintSize[] = ["letter", "a4", "a6", "cr80"];
 
-/** The sizes a kind prints on: the credential badge also prints on A6 and CR80 cards, every other kind on Letter and A4. */
+/** The guest pass prints on the badge sizes, A6 first: it is a card handed to a guest or attached to their email. */
+const GUEST_PASS_SIZES: readonly PrintSize[] = ["a6", "cr80", "letter", "a4"];
+
+/**
+ * The sizes a kind prints on, the default first: the credential badge also prints on A6 and CR80 cards, the guest
+ * pass on the same sizes with A6 as its default, every other kind on Letter and A4.
+ */
 export function printSizesFor(kind: string): readonly PrintSize[] {
-  return kind === "credential-badge" ? BADGE_SIZES : PAPERS;
+  if (kind === "credential-badge") return BADGE_SIZES;
+  if (kind === "guest-pass") return GUEST_PASS_SIZES;
+  return PAPERS;
 }
 
 export function isPrintSizeFor(kind: string, value: string): value is PrintSize {
@@ -200,6 +262,16 @@ export type DocumentBlock =
       readonly footer?: readonly (readonly string[])[];
       /** Shown in place of the table when it has no rows. */
       readonly empty: string;
+    }
+  /**
+   * A book's contents (B7): one entry per document with its title, record key and the book page it starts on, read
+   * as a TOC with a TOCI per entry; the page numbers sit in a fixed-width column, so they never change a line break.
+   */
+  | {
+      readonly kind: "contents";
+      readonly caption: string;
+      readonly entries: readonly DocumentContentsEntry[];
+      readonly empty: string;
     };
 
 /** The design-token color roles a plan overlay is drawn in (site plan shape tones, 5901). */
@@ -218,6 +290,13 @@ export type PlanOverlay =
   /** A text label at a point. */
   | { readonly kind: "label"; readonly x: number; readonly y: number; readonly text: string };
 
+export interface DocumentContentsEntry {
+  readonly title: string;
+  readonly recordKey: string;
+  /** The 1-based book page the document starts on; 0 until the first pass counts the pages. */
+  readonly page: number;
+}
+
 export interface DocumentLogo {
   /** PNG or JPEG bytes. Other formats fall back to the brand name in text. */
   readonly bytes: Uint8Array;
@@ -234,7 +313,8 @@ export interface DocumentWatermark {
 }
 
 export interface DocumentModel {
-  readonly kind: DocumentKind | PlatformDocumentKind | ComplianceDocumentKind;
+  readonly kind:
+    DocumentKind | PlatformDocumentKind | ComplianceDocumentKind | CompiledDocumentKind;
   /** BCP 47 language of every string in the model, for example en-US or es-US. */
   readonly lang: string;
   /** Document title, also the PDF title the viewer shows (for example "Purchase order PRJ-PO-12"). */

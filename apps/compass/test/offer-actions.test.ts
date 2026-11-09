@@ -7,6 +7,7 @@ import {
 } from "../src/domain/notifications";
 import type { ActionResponseLike } from "../src/domain/notifications";
 import {
+  buttonKey,
   CATEGORY_ACTIONS,
   doneMessageKey,
   ENGAGEMENT_OFFER_CATEGORY,
@@ -16,6 +17,7 @@ import {
   readOfferOutcome,
   readOfferResponse,
   SHIFT_OFFER_CATEGORY,
+  SHIFT_RECONFIRM_CATEGORY,
 } from "../src/domain/offer-actions";
 
 /** A127: a shift offer, an engagement offer and a message answered from the push notification itself. */
@@ -196,5 +198,29 @@ describe("offer and message push actions", () => {
     expect(doneMessageKey({ ...request, category: MESSAGE_REPLY_CATEGORY, action: "reply" })).toBe(
       "compass.offerActions.replied",
     );
+  });
+});
+
+describe('"Still coming?" push actions (B9)', () => {
+  it("answers from the lock screen with its own words", () => {
+    expect(CATEGORY_ACTIONS[SHIFT_RECONFIRM_CATEGORY]).toEqual(["accept", "decline"]);
+    expect(needsUnlock(SHIFT_RECONFIRM_CATEGORY, "accept")).toBe(false);
+    expect(needsUnlock(SHIFT_RECONFIRM_CATEGORY, "decline")).toBe(false);
+    expect(buttonKey(SHIFT_RECONFIRM_CATEGORY, "accept")).toBe("compass.offerActions.coming");
+    expect(buttonKey(SHIFT_RECONFIRM_CATEGORY, "decline")).toBe("compass.offerActions.notComing");
+    // Other categories keep their buttons.
+    expect(buttonKey(SHIFT_OFFER_CATEGORY, "accept")).toBe("compass.offerActions.accept");
+  });
+
+  it("reads the answer and says what happened", () => {
+    const request = readOfferResponse(
+      response("decline", { notificationId: NOTE, title: "Stagehand" }, SHIFT_RECONFIRM_CATEGORY),
+    );
+    expect(request).toMatchObject({ category: SHIFT_RECONFIRM_CATEGORY, action: "decline" });
+    expect(request && doneMessageKey(request)).toBe("compass.offerActions.reconfirmNotComing");
+    const coming = readOfferResponse(
+      response("accept", { notificationId: NOTE }, SHIFT_RECONFIRM_CATEGORY),
+    );
+    expect(coming && doneMessageKey(coming)).toBe("compass.offerActions.reconfirmComing");
   });
 });

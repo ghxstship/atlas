@@ -31,6 +31,10 @@ export interface InboxDescription {
 const NEEDS: Readonly<Record<string, readonly string[]>> = {
   "shift.assigned": ["startsAt"],
   "shift.changed": ["startsAt"],
+  // "Still coming?" and no-shows (B9, 6511 and 6512); a decline may carry the worker's name.
+  "shift.reconfirm": ["startsAt"],
+  "shift.reconfirm_declined": ["startsAt", "workerName", "named", "reopened"],
+  "shift.no_show": ["startsAt"],
   "event.invited": ["startsAt"],
   // B5 (5947): the pickup time of a transfer to drive.
   "transfer.assigned": ["startsAt"],
@@ -55,6 +59,8 @@ const NEEDS: Readonly<Record<string, readonly string[]>> = {
   "offer.sent": ["orgName"],
   // P9 (5862): how long an approval has waited, and which reminder of the org's limit this is.
   "approval.reminder": ["waitingSince", "reminderNumber", "reminderLimit"],
+  // A request through a reusable vendor intake link (B2, 6505).
+  "vendor_intake.submitted": ["requesterName", "projectName"],
   "onboarding.item_expiring": ["days", "expiresOn"],
   "certification.expiring": ["days", "expiresOn"],
   "document.expiring": ["days", "expiresOn"],
@@ -65,6 +71,14 @@ const NEEDS: Readonly<Record<string, readonly string[]>> = {
   "content.removed": ["subject", "ruleReference", "statement"],
   // P8 (6123): the project and the days an availability poll asks about.
   "availability.requested": ["projectName", "dayCount", "firstDay", "lastDay"],
+  // Advancing reminders and notices (R11, 6221 and 6222).
+  "advance_packet.reminder": ["reminder", "due", "outstanding", "orgName", "projectName"],
+  "advance_submission.returned": ["packetTitle"],
+  "submittal.returned": ["projectName"],
+  "roster_entry.removed": ["partyName", "projectName"],
+  "roster_entry.facts_requested": ["kind", "partyName", "projectName"],
+  "roster_entry.share_revoked": ["personName", "partyName", "projectName"],
+  "credential.revoked": ["projectName"],
 };
 
 /** Where a notification's subject opens, by the table it names (paths under /{org}). */
@@ -89,6 +103,7 @@ const TARGETS: Readonly<Record<string, string>> = {
   "app.weather_alerts": "site-ops/weather",
   "app.occupancy_counters": "site-ops/occupancy",
   invoices: "finance/invoices",
+  quote_versions: "finance/quotes",
   "app.invoices": "finance/invoices",
   incidents: "safety/incidents",
   "app.incidents": "safety/incidents",
@@ -134,6 +149,13 @@ export function inboxTarget(
       ? `/${org}/import?import=${encodeURIComponent(item.subjectId)}`
       : `/${org}/import`;
   }
+  // A revoked share (R11, 6222) opens the person on the project's crew roster.
+  if (item.kind === "roster_entry.share_revoked") {
+    const key = item.args?.["projectKey"];
+    return key && item.subjectId
+      ? `/${org}/p/${encodeURIComponent(key)}/advancing?section=crew&peek=${encodeURIComponent(item.subjectId)}`
+      : null;
+  }
   const row = item.subjectTable ? ROW_TARGETS[item.subjectTable] : undefined;
   if (row) {
     return item.subjectId
@@ -148,6 +170,9 @@ export function inboxTarget(
   if (item.kind.startsWith("account.")) return `/${org}/me/security`;
   return null;
 }
+
+/** An ISO 8601 instant, as message arguments carry them for date and time formats. */
+const ISO_INSTANT = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:?\d{2})$/;
 
 function date(value: string | undefined): Date | null {
   if (!value) return null;
@@ -177,9 +202,20 @@ function values(
   const startsAt = date(a["startsAt"]);
   if (startsAt) out["startsAt"] = startsAt;
   else delete out["startsAt"];
+  // Any other ISO instant is a date for a `{x, time}` or `{x, date}` format, as the email and push copy reads it
+  // (packages/platform notificationArgs): a late weather hold's called_at (6257).
+  for (const [key, value] of Object.entries(a)) {
+    if (key !== "startsAt" && typeof value === "string" && ISO_INSTANT.test(value)) {
+      out[key] = new Date(value);
+    }
+  }
   const waitingSince = date(a["waitingSince"]);
   if (waitingSince) out["waitingSince"] = waitingSince;
   else if (item.kind === "approval.reminder") return null;
+  // An advance reminder's due date (R11) is an instant too; without one the copy reads its other branch.
+  const dueAt = date(a["dueAt"]);
+  if (dueAt) out["dueAt"] = dueAt;
+  else delete out["dueAt"];
   for (const key of [
     "days",
     "count",
@@ -191,6 +227,7 @@ function values(
     "freeRoomNights",
     "passengerCount",
     "dayCount",
+    "outstanding",
   ]) {
     if (a[key] !== undefined) out[key] = Number(a[key]);
   }

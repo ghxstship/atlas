@@ -297,10 +297,12 @@ describe("inbound mail", () => {
     expect(localPartFor(["someone@else.test"], "in.xos.test")).toBeNull();
   });
 
-  it("hands the stripped message to the database and skips mail for other domains", async () => {
+  const REPLY_LOCAL_PART = `r-${"a".repeat(32)}-${"b".repeat(32)}-${"c".repeat(32)}`;
+
+  it("hands the stripped reply to the database and skips mail for other domains", async () => {
     const { db, calls } = fakeDb({ receive_inbound_email: () => "msg-1" });
     const message = {
-      to: ["r-abc@in.xos.test"],
+      to: [`${REPLY_LOCAL_PART}@in.xos.test`],
       from: "Erin <ERIN@northwind.test>",
       subject: "Re: Opening night",
       messageId: "<r1@northwind.test>",
@@ -310,7 +312,7 @@ describe("inbound mail", () => {
     };
     await expect(receiveInbound(inboundStore(db), message, "in.xos.test")).resolves.toBe("msg-1");
     expect(calls[0]?.args).toMatchObject({
-      p_local_part: "r-abc",
+      p_local_part: REPLY_LOCAL_PART,
       p_from_address: "erin@northwind.test",
       p_body_text: "Confirmed.",
       p_dkim_verified: true,
@@ -319,6 +321,43 @@ describe("inbound mail", () => {
       receiveInbound(inboundStore(db), { ...message, to: ["x@other.test"] }, "in.xos.test"),
     ).resolves.toBeNull();
     expect(calls).toHaveLength(1);
+  });
+
+  describe("a forward to a project inbox keeps its whole text", () => {
+    const INBOX = "nwl-3f9a1c0d7e@in.xos.test";
+    const message = {
+      from: "erin@northwind.test",
+      subject: "Fwd: Load in",
+      messageId: "<f1@northwind.test>",
+      dkimPass: true,
+      rawObjectPath: "raw/f1.eml",
+    };
+    const bodyFor = async (to: string, text: string) => {
+      const { db, calls } = fakeDb({ receive_inbound_email: () => "msg-1" });
+      await receiveInbound(inboundStore(db), { ...message, to: [to], text }, "in.xos.test");
+      return calls[0]?.args["p_body_text"];
+    };
+
+    it("from Gmail, whose forward has a marker and a From: line", async () => {
+      const gmail =
+        "FYI\n\n---------- Forwarded message ---------\nFrom: Sam <sam@bayside-audio.test>\nDate: Tue, Oct 13, 2026\nSubject: Load in\n\nWe load in at 6 PM on Thursday.";
+      await expect(bodyFor(INBOX, gmail)).resolves.toBe(gmail);
+    });
+
+    it("from Outlook, whose forward starts at a rule and a From: line", async () => {
+      const outlook =
+        "Please see below.\n\n________________________________\nFrom: Sam <sam@bayside-audio.test>\nSent: Tuesday, October 13, 2026\nSubject: Load in\n\nWe load in at 6 PM on Thursday.\n-----Original Message-----\nFrom: Erin";
+      await expect(bodyFor(INBOX, outlook)).resolves.toBe(outlook);
+    });
+
+    it("while a reply to a signed address is still stripped", async () => {
+      await expect(
+        bodyFor(
+          `${REPLY_LOCAL_PART}@in.xos.test`,
+          "Confirmed.\nFrom: Erin <erin@northwind.test>\nCan you confirm?",
+        ),
+      ).resolves.toBe("Confirmed.");
+    });
   });
 });
 
@@ -641,6 +680,24 @@ describe("stores", () => {
         "Content-Profile": "app",
       });
       expect(JSON.parse(String(calls[0]?.init.body))).toEqual({ p_pin: "4821", p_photo_uri: null });
+    });
+
+    it("posts to another schema when one is named, as the guest unsubscribe does in api_public", async () => {
+      const calls: { url: string; init: RequestInit }[] = [];
+      const db = restDb({
+        url: "http://kong:8000",
+        serviceKey,
+        schema: "api_public",
+        fetch: async (url, init) => {
+          calls.push({ url, init });
+          return Response.json({ org_name: null });
+        },
+      });
+      await db.rpc("unsubscribe_guest_email", { p_token: "t" });
+      expect(calls[0]?.url).toBe("http://kong:8000/rest/v1/rpc/unsubscribe_guest_email");
+      expect((calls[0]?.init.headers as Record<string, string>)["Content-Profile"]).toBe(
+        "api_public",
+      );
     });
 
     it("answers null for an empty body and a scalar for a scalar function", async () => {

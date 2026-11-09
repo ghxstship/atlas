@@ -114,6 +114,13 @@ describe("export sources (Section 4.6.4)", () => {
     }
   });
 
+  it("exports what tells a credit from a charge", () => {
+    const entry = EXPORT_SOURCES["finance/expenses"];
+    expect(entry && "columns" in entry ? entry.columns : []).toEqual(
+      expect.arrayContaining(["credit_of_expense_id", "is_reimbursable", "engagement_id"]),
+    );
+  });
+
   it("reads one relation per source and never the medical encounter tables", () => {
     for (const source of allExportSources()) {
       expect(source.relation).toMatch(/^(app|xpms)\.[a-z][a-z0-9_]*$/);
@@ -121,6 +128,21 @@ describe("export sources (Section 4.6.4)", () => {
       expect(source.columns.length).toBeGreaterThan(0);
       expect(new Set(source.columns).size, source.relation).toBe(source.columns.length);
     }
+  });
+
+  it("exports the muster list with the names on screen, by the page's project and zone", () => {
+    const muster = exportSourceFor(
+      "site_ops/muster",
+      new URLSearchParams("project=01920000-0000-7000-8000-000000000201&zone=z"),
+    );
+    expect(muster?.relation).toBe("app.muster_list");
+    expect(muster?.columns).toEqual(
+      expect.arrayContaining(["full_name", "guest_name", "zone_name", "party_name", "entered_at"]),
+    );
+    expect(muster?.filters).toMatchObject({
+      project: { column: "project_id", resolve: "project" },
+      zone: { column: "zone_id" },
+    });
   });
 
   it("exports the masked rate of a rate card, which classifies Restricted in the database", () => {

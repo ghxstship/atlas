@@ -101,10 +101,12 @@
       "pay_max_minor": "Pago hasta",
       "pay_min_minor": "Pago desde",
       "price_minor": "Tarifa",
+      "printed_total_minor": "Total impreso",
       "proposed_fee_minor": "Honorarios propuestos",
       "rate_minor": "Tarifa",
       "shipping_minor": "Envío",
-      "tax_minor": "Impuesto"
+      "tax_minor": "Impuesto",
+      "printed_total_minor": "Total impreso"
     }
   },
   "coedit": {

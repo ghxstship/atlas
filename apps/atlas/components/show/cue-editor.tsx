@@ -3,19 +3,22 @@
 import {
   CUE_CALL_KINDS,
   CUE_CALL_SLUGS,
+  SEGMENT_COLORS,
   type Cue,
   type CueCall,
   type CueCallKind,
   type RunOfShow,
+  type SegmentColor,
 } from "@xos/data/show";
-import { Button, Checkbox, Dialog, Input, MoreFields, Select, Textarea } from "@xos/ui";
+import { Button, Checkbox, Dialog, Input, Select, Textarea } from "@xos/ui";
 import { useState } from "react";
+import { CustomFieldsSection } from "@/components/custom-fields/custom-fields-section";
 import { ActionErrorAlert, useAction, useCopy } from "@/components/work/action-ui";
 import { fromLocalInput, toLocalInput } from "@/components/work/format";
+import { segmentColorToWrite, shownSegmentColor } from "@/lib/show/segment-color";
+import { CueFormTabs } from "./cue-form-tabs";
 import { moveCueToAction, saveCueCallsAction, updateCueAction } from "./actions";
-
-/** Department calls shown beside a cue's four fields; the rest sit under More fields (gate 27). */
-const VISIBLE_CALLS = 3;
+import { setSegmentColorAction } from "./depth-actions";
 
 /**
  * The run of show's inline cue editor and Move to position dialog (G-78, ADR 0131). runs.tsx loads
@@ -28,21 +31,28 @@ function timeOf(at: string | null, zone: string): string {
 }
 
 /**
- * One cue edited in place of its row: label, planned time, Time to be confirmed, length and the five
- * department calls. Save writes the cue, then its calls; when the calls fail the editor stays open
- * with what the person typed and says why. Escape cancels.
+ * One cue edited in place of its row, in tabs (B3, ADR 0142): label, planned time, Time to be confirmed, length, segment
+ * and its color; description and script; the five department calls; and, when the org has cue fields, their own tab
+ * (A117). Save writes the cue, the segment's color when the person picked one (one color for the whole segment), then
+ * its calls; when a step fails the editor stays open with what the person typed and says why. Escape cancels.
  */
 export function CueEditor({
   org,
   run,
   cue,
   calls,
+  segmentColors = {},
+  hasCueFields = false,
   onClose,
 }: {
   org: string;
   run: RunOfShow;
   cue: Cue;
   calls: readonly CueCall[];
+  /** The running order's segment colors by segmentKey (app.run_segment_colors). */
+  segmentColors?: Readonly<Record<string, SegmentColor>>;
+  /** Whether the org has any live cue field, in any audience: Crew is presentation only. */
+  hasCueFields?: boolean;
   onClose: () => void;
 }) {
   const t = useCopy("show");
@@ -54,27 +64,22 @@ export function CueEditor({
   const [duration, setDuration] = useState(
     cue.durationSeconds === null ? "" : String(cue.durationSeconds),
   );
-  const initial = Object.fromEntries(
-    CUE_CALL_KINDS.map((k) => [k, calls.find((c) => c.kind === k)?.instruction ?? ""]),
-  ) as Record<CueCallKind, string>;
+  // Frozen when the editor opens, like the typed values: a call someone else saves meanwhile is neither sent nor undone.
+  const [initial] = useState(
+    () =>
+      Object.fromEntries(
+        CUE_CALL_KINDS.map((k) => [k, calls.find((c) => c.kind === k)?.instruction ?? ""]),
+      ) as Record<CueCallKind, string>,
+  );
   const [instructions, setInstructions] = useState(initial);
+  const [segment, setSegment] = useState(cue.segment ?? "");
+  // Null until the person picks: the color shown follows the segment typed, and only a pick is written.
+  const [pickedColor, setPickedColor] = useState<string | null>(null);
+  const [description, setDescription] = useState(cue.description ?? "");
+  const [script, setScript] = useState(cue.script ?? "");
   // The planned day is the cue's own, or the show day for a cue that had no time.
   const day = cue.plannedAt ? toLocalInput(cue.plannedAt, zone).slice(0, 10) : run.showDate;
   const department = (k: CueCallKind) => t(`cues.departments.${CUE_CALL_SLUGS[k]}`);
-  const [moreCalls] = useState(() =>
-    CUE_CALL_KINDS.slice(VISIBLE_CALLS).some((k) => initial[k] !== ""),
-  );
-  const callField = (k: CueCallKind) => (
-    <Textarea
-      key={k}
-      id={`cue-edit-call-${CUE_CALL_SLUGS[k]}-${cue.id}`}
-      label={t("cues.callFor", { department: department(k) })}
-      rows={2}
-      maxLength={2000}
-      value={instructions[k]}
-      onChange={(e) => setInstructions((v) => ({ ...v, [k]: e.target.value }))}
-    />
-  );
 
   const submit = () =>
     save.run(
@@ -84,8 +89,17 @@ export function CueEditor({
           plannedAt: planned ? fromLocalInput(`${day}T${planned}`, zone) : null,
           durationSeconds: duration === "" ? null : Number(duration),
           startTbc: planned !== "" && startTbc,
+          segment,
+          description,
+          script,
         });
         if (!updated.ok) return updated;
+        // The color belongs to the segment, so it is set once for every cue of it.
+        const color = segmentColorToWrite(pickedColor, segment, segmentColors);
+        if (color !== undefined) {
+          const colored = await setSegmentColorAction(org, run.id, segment, color);
+          if (!colored.ok) return colored;
+        }
         // Only departments whose text changed are sent; an emptied one clears its call.
         const changed = Object.fromEntries(
           CUE_CALL_KINDS.filter((k) => instructions[k].trim() !== initial[k].trim()).map((k) => [
@@ -100,9 +114,10 @@ export function CueEditor({
     );
 
   return (
-    <form
+    <div
+      role="group"
       aria-label={t("cues.editing", { label: cue.label })}
-      className="flex w-full flex-col gap-8 py-6"
+      className="w-full py-6"
       onKeyDown={(e) => {
         if (e.key === "Escape") {
           e.preventDefault();
@@ -110,69 +125,116 @@ export function CueEditor({
           onClose();
         }
       }}
-      onSubmit={(e) => {
-        e.preventDefault();
-        submit();
-      }}
     >
-      <ActionErrorAlert error={save.error} />
-      <div className="flex flex-wrap items-end gap-8">
-        <Input
-          id={`cue-edit-label-${cue.id}`}
-          label={t("cues.label")}
-          value={label}
-          onChange={(e) => setLabel(e.target.value)}
-        />
-        {cue.calledAt ? null : (
+      <CueFormTabs
+        label={t("cues.editing", { label: cue.label })}
+        alert={<ActionErrorAlert error={save.error} />}
+        saving={save.pending}
+        canSave={label.trim() !== ""}
+        saveLabel={t("cues.save")}
+        cancelLabel={t("cues.cancel")}
+        onCancel={onClose}
+        submit={submit}
+        cue={
           <>
-            <Input
-              id={`cue-edit-time-${cue.id}`}
-              type="time"
-              label={t("cues.planned")}
-              value={planned}
-              onChange={(e) => setPlanned(e.target.value)}
+            <div className="flex flex-wrap items-end gap-8">
+              <Input
+                id={`cue-edit-label-${cue.id}`}
+                label={t("cues.label")}
+                value={label}
+                onChange={(e) => setLabel(e.target.value)}
+              />
+              {cue.calledAt ? null : (
+                <>
+                  <Input
+                    id={`cue-edit-time-${cue.id}`}
+                    type="time"
+                    label={t("cues.planned")}
+                    value={planned}
+                    onChange={(e) => setPlanned(e.target.value)}
+                  />
+                  <Checkbox
+                    label={t("cues.tbc")}
+                    checked={planned !== "" && startTbc}
+                    disabled={planned === ""}
+                    onChange={(e) => setStartTbc(e.target.checked)}
+                  />
+                </>
+              )}
+              <Input
+                id={`cue-edit-duration-${cue.id}`}
+                type="number"
+                min={0}
+                width={120}
+                label={t("cues.duration")}
+                value={duration}
+                onChange={(e) => setDuration(e.target.value)}
+              />
+            </div>
+            <div className="flex flex-wrap items-end gap-8">
+              <Input
+                id={`cue-edit-segment-${cue.id}`}
+                label={t("cues.segment")}
+                maxLength={200}
+                value={segment}
+                onChange={(e) => setSegment(e.target.value)}
+              />
+              {/* Select is uncontrolled, so it remounts when the segment typed brings another color. */}
+              <Select
+                key={shownSegmentColor(pickedColor, segment, segmentColors)}
+                id={`cue-edit-segment-color-${cue.id}`}
+                label={t("cues.segmentColor")}
+                disabled={segment.trim() === ""}
+                value={shownSegmentColor(pickedColor, segment, segmentColors)}
+                options={[
+                  { value: "", label: t("colors.none") },
+                  ...SEGMENT_COLORS.map((c) => ({ value: c, label: t(`colors.${c}`) })),
+                ]}
+                onChange={(e) => setPickedColor(e.target.value)}
+              />
+            </div>
+          </>
+        }
+        words={
+          <>
+            <Textarea
+              id={`cue-edit-description-${cue.id}`}
+              label={t("cues.description")}
+              rows={2}
+              maxLength={2000}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
             />
-            <Checkbox
-              label={t("cues.tbc")}
-              checked={planned !== "" && startTbc}
-              disabled={planned === ""}
-              onChange={(e) => setStartTbc(e.target.checked)}
+            <Textarea
+              id={`cue-edit-script-${cue.id}`}
+              label={t("cues.script")}
+              help={t("cues.scriptHelp")}
+              rows={4}
+              maxLength={20000}
+              value={script}
+              onChange={(e) => setScript(e.target.value)}
             />
           </>
-        )}
-        <Input
-          id={`cue-edit-duration-${cue.id}`}
-          type="number"
-          min={0}
-          width={120}
-          label={t("cues.duration")}
-          value={duration}
-          onChange={(e) => setDuration(e.target.value)}
-        />
-      </div>
-      <div className="grid grid-cols-2 gap-8 max-sm:grid-cols-1">
-        {CUE_CALL_KINDS.slice(0, VISIBLE_CALLS).map(callField)}
-      </div>
-      {/* At most seven fields show (gate 27); the rest open by themselves when they hold a call. */}
-      <MoreFields open={moreCalls}>
-        <div className="grid grid-cols-2 gap-8 max-sm:grid-cols-1">
-          {CUE_CALL_KINDS.slice(VISIBLE_CALLS).map(callField)}
-        </div>
-      </MoreFields>
-      <div className="flex gap-8">
-        <Button
-          type="submit"
-          variant="primary"
-          loading={save.pending}
-          disabled={label.trim() === ""}
-        >
-          {t("cues.save")}
-        </Button>
-        <Button variant="ghost" onClick={onClose}>
-          {t("cues.cancel")}
-        </Button>
-      </div>
-    </form>
+        }
+        calls={
+          <div className="grid grid-cols-2 gap-8 max-sm:grid-cols-1">
+            {CUE_CALL_KINDS.map((k) => (
+              <Textarea
+                key={k}
+                id={`cue-edit-call-${CUE_CALL_SLUGS[k]}-${cue.id}`}
+                label={t("cues.callFor", { department: department(k) })}
+                rows={2}
+                maxLength={2000}
+                value={instructions[k]}
+                onChange={(e) => setInstructions((v) => ({ ...v, [k]: e.target.value }))}
+              />
+            ))}
+          </div>
+        }
+        // The cue's custom fields (6240) save on their own, under A117's rules, outside the cue's forms.
+        {...(hasCueFields ? { fields: <CustomFieldsSection table="app.cues" id={cue.id} /> } : {})}
+      />
+    </div>
   );
 }
 

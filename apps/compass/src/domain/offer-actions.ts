@@ -4,15 +4,18 @@
  * is answered from it with a reply typed in place, all without opening Compass.
  *
  * The categories are the server's (packages/platform/src/notifications/push.ts, pushCategoryFor): shift_offer for
- * shift.assigned and shift.changed about a shift still Published, engagement_offer for offer.sent and message_reply
- * for message.received. Each action answers through notifications.act (POST /api/v1/notifications/{id}/act), which
- * runs app.act_on_notification as the person: app.accept_shift or app.accept_engaged_shift, app.decline_shift,
- * app.accept_offer, app.decline_offer, or app.send_chat_message with the reply. The approval category stays
+ * shift.assigned and shift.changed about a shift still Published, engagement_offer for offer.sent and
+ * roster_entry.invited, message_reply for message.received, and shift_reconfirm for shift.reconfirm, "Still coming?"
+ * (B9, ADR 0148). Each action answers through notifications.act (POST
+ * /api/v1/notifications/{id}/act), which runs app.act_on_notification as the person: app.accept_shift or
+ * app.accept_engaged_shift, app.decline_shift, app.accept_offer, app.decline_offer, app.respond_roster_entry, or
+ * app.send_chat_message with the reply. The approval category stays
  * notifications.ts's; this module never reads its actions, nor that one these.
  */
 import type { ActionResponseLike } from "./notifications";
 
 export const SHIFT_OFFER_CATEGORY = "shift_offer";
+export const SHIFT_RECONFIRM_CATEGORY = "shift_reconfirm";
 export const ENGAGEMENT_OFFER_CATEGORY = "engagement_offer";
 export const MESSAGE_REPLY_CATEGORY = "message_reply";
 
@@ -23,23 +26,27 @@ export const REPLY_ACTION = "reply";
 export type OfferAction = typeof ACCEPT_ACTION | typeof DECLINE_ACTION | typeof REPLY_ACTION;
 
 export type OfferCategory =
-  typeof SHIFT_OFFER_CATEGORY | typeof ENGAGEMENT_OFFER_CATEGORY | typeof MESSAGE_REPLY_CATEGORY;
+  | typeof SHIFT_OFFER_CATEGORY
+  | typeof SHIFT_RECONFIRM_CATEGORY
+  | typeof ENGAGEMENT_OFFER_CATEGORY
+  | typeof MESSAGE_REPLY_CATEGORY;
 
 /** The actions each category carries, in the order the notification shows them. */
 export const CATEGORY_ACTIONS: Readonly<Record<OfferCategory, readonly OfferAction[]>> = {
   [SHIFT_OFFER_CATEGORY]: [ACCEPT_ACTION, DECLINE_ACTION],
+  [SHIFT_RECONFIRM_CATEGORY]: [ACCEPT_ACTION, DECLINE_ACTION],
   [ENGAGEMENT_OFFER_CATEGORY]: [ACCEPT_ACTION, DECLINE_ACTION],
   [MESSAGE_REPLY_CATEGORY]: [REPLY_ACTION],
 };
 
 /**
  * Whether the device must be unlocked first. Accepting or declining a shift works from the lock screen (A127's bar: a
- * shift offer is accepted from the lock screen); an offer's terms bind the person to an engagement and a reply is
+ * shift offer is accepted from the lock screen), and so does answering "Still coming?" about one; an offer's terms bind the person to an engagement and a reply is
  * written in their name, so both ask for the device to be unlocked.
  */
 export function needsUnlock(category: OfferCategory, action: OfferAction): boolean {
   void action;
-  return category !== SHIFT_OFFER_CATEGORY;
+  return category !== SHIFT_OFFER_CATEGORY && category !== SHIFT_RECONFIRM_CATEGORY;
 }
 
 export interface OfferActionRequest {
@@ -56,6 +63,7 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 function isOfferCategory(value: unknown): value is OfferCategory {
   return (
     value === SHIFT_OFFER_CATEGORY ||
+    value === SHIFT_RECONFIRM_CATEGORY ||
     value === ENGAGEMENT_OFFER_CATEGORY ||
     value === MESSAGE_REPLY_CATEGORY
   );
@@ -153,6 +161,19 @@ export async function readOfferOutcome(
 /** The catalog key of the confirmation a done action shows, under compass.offerActions. */
 export function doneMessageKey(request: OfferActionRequest): string {
   if (request.action === REPLY_ACTION) return "compass.offerActions.replied";
+  if (request.category === SHIFT_RECONFIRM_CATEGORY) {
+    return `compass.offerActions.reconfirm${request.action === ACCEPT_ACTION ? "Coming" : "NotComing"}`;
+  }
   const subject = request.category === SHIFT_OFFER_CATEGORY ? "shift" : "offer";
   return `compass.offerActions.${subject}${request.action === ACCEPT_ACTION ? "Accepted" : "Declined"}`;
+}
+
+/** The catalog key of an action's button: "I'm coming" and "Can't make it" for Still coming?, else the action's. */
+export function buttonKey(category: OfferCategory, action: OfferAction): string {
+  if (category === SHIFT_RECONFIRM_CATEGORY) {
+    return action === ACCEPT_ACTION
+      ? "compass.offerActions.coming"
+      : "compass.offerActions.notComing";
+  }
+  return `compass.offerActions.${action}`;
 }

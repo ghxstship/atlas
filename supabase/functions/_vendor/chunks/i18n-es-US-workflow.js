@@ -18,6 +18,18 @@ var settings = {
     label: "Recordatorios por paso",
     help: "De 1 a 10. Cuentan los recordatorios automáticos y Recordar a los aprobadores.",
   },
+  quoteChaseEnabled: {
+    label: "Recordar cotizaciones a los proveedores",
+    help: "Si está activado, a los proveedores invitados a una solicitud emitida que no han respondido se les recuerda automáticamente.",
+  },
+  quoteChaseInterval: {
+    label: "Horas entre recordatorios de cotización",
+    help: "Cuánto esperar después de emitir una solicitud y entre recordatorios.",
+  },
+  quoteChaseLimit: {
+    label: "Máximo de recordatorios por proveedor",
+    help: "Los recordatorios terminan en este número, cuando el proveedor responde o cuando la solicitud deja de estar emitida.",
+  },
 };
 var common = {
   errorTitle: "Algo salió mal",
@@ -80,8 +92,8 @@ var refusals = {
   approval_rule_active_delete: "Retire una regla Activa antes de eliminarla.",
   approval_rule_filter_project:
     "El filtro debe pertenecer a la organización de este proyecto, y una categoría de credencial a este proyecto.",
-  approval_rule_equipment_pending:
-    "Las reglas de equipo se aplican cuando las solicitudes de equipo vienen de los avances. Mantenga esta regla en Borrador hasta entonces.",
+  approval_rule_class_no_offering:
+    "Las solicitudes solo llegan para radios y carritos, así que una regla sobre esta clase nunca se aplicaría. Elija una de esas clases.",
   approval_rule_pending:
     "Esta solicitud espera su regla de aprobación. Apruébela cuando todos los pasos estén aprobados.",
   approval_step_engagement:
@@ -192,6 +204,9 @@ var approvals = {
     reasonHelp: "Se guarda en el historial de la aprobación.",
     submit: "Retirar aprobación",
     done: "Aprobación retirada.",
+    equipmentHelp:
+      "Se guarda en el historial de la aprobación. También retira la solicitud de equipo, y quien la pidió ve el motivo.",
+    equipmentDone: "Aprobación y solicitud de equipo retiradas.",
   },
   submit: {
     title: "Enviar un documento para aprobación",
@@ -358,6 +373,8 @@ var templates = {
       "Déjelo en blanco para no tener vencimiento; use un número negativo para antes del inicio.",
     remove: "Quitar",
     removeNamed: "Quitar {name}",
+    requiresReview: "Requiere revisión",
+    reviewed: "requiere revisión",
   },
   draft: {
     title: "Borrador de la versión {version}",
@@ -429,6 +446,10 @@ var builder = {
     assets: "Activos",
     incidents: "Incidentes",
     custom_object: "Objetos personalizados",
+    crew_hours: "Horas del equipo",
+    crew_responses: "Respuestas del equipo",
+    crew_removals: "Retiros del equipo",
+    crew_ratings: "Calificaciones del equipo",
   },
   fields: {
     records: {
@@ -476,6 +497,40 @@ var builder = {
     custom_object: {
       title: "Título",
       created_at: "Creado",
+    },
+    crew_hours: {
+      shift_id: "Turno",
+      role_code: "Rol",
+      worker_kind: "Tipo de persona",
+      worker_name: "Persona",
+      starts_at: "Empieza",
+      scheduled_hours: "Horas programadas",
+      actual_hours: "Horas reales",
+      variance_hours: "Diferencia de horas",
+      no_show: "Ausencia",
+    },
+    crew_responses: {
+      kind: "Tipo",
+      answer: "Respuesta",
+      asked_at: "Preguntado",
+      answered_at: "Respondido",
+      person_name: "Persona",
+      role_code: "Rol",
+    },
+    crew_removals: {
+      removed_at: "Retirado",
+      from_state: "Estado anterior",
+      person_name: "Persona",
+      role_code: "Rol",
+      engagement_party: "Parte",
+      reason: "Motivo",
+      removed_by_name: "Retirado por",
+    },
+    crew_ratings: {
+      party_name: "Parte",
+      role_type: "Tipo de rol",
+      score: "Puntuación",
+      submitted_at: "Enviado",
     },
   },
   fieldsTitle: "Columnas",
@@ -566,6 +621,16 @@ var builder = {
   savedNone: "Aún no hay informes guardados. Guarde uno arriba.",
   sharedLabel: "Compartido",
   privateLabel: "Privado",
+  standard: {
+    "crew-utilization": "Uso del equipo",
+    "crew-invitation-responses": "Respuestas a invitaciones",
+    "crew-removals": "Retiros del equipo",
+    "crew-ratings": "Calificaciones del equipo",
+    "crew-scheduled-vs-actual": "Horas programadas frente a reales",
+  },
+  standardHelp:
+    "Un informe estándar. Nada se guarda hasta que lo guardes como tu propia copia editable, y la vista previa muestra solo lo que puedes leer.",
+  saveAsMine: "Guardar como mi informe",
 };
 var policies = {
   title: "Políticas de aprobación",

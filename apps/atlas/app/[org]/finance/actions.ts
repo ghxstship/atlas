@@ -123,12 +123,26 @@ export async function saveBudgetAction(_: ActionState, form: FormData): Promise<
   const name = text(200).safeParse(f["name"]);
   if (!name.success) return inputError("name");
   const isBaseline = f["isBaseline"] === "on" || f["isBaseline"] === "true";
+  // Typed as a percent; a blank field is no default markup, stored as NULL.
+  const markupText = (f["defaultMarkupPercent"] ?? "").trim();
+  const markupPercent = markupText === "" ? null : Number(markupText);
+  if (
+    markupPercent !== null &&
+    !(Number.isFinite(markupPercent) && markupPercent >= 0 && markupPercent <= 1000)
+  ) {
+    return inputError("defaultMarkupPercent");
+  }
+  const defaultMarkupBp = markupPercent === null ? null : Math.round(markupPercent * 100);
   if (f["id"]) {
     const id = z.uuid().safeParse(f["id"]);
     if (!id.success) return { error: { kind: "not-found" } };
     return finish(
       ctx,
-      await finance.updateBudget(ctx.viewer.db, id.data, { name: name.data, isBaseline }),
+      await finance.updateBudget(ctx.viewer.db, id.data, {
+        name: name.data,
+        isBaseline,
+        ...("defaultMarkupPercent" in f ? { defaultMarkupBp } : {}),
+      }),
     );
   }
   const projectId = z.uuid().safeParse(f["projectId"]);
@@ -140,6 +154,7 @@ export async function saveBudgetAction(_: ActionState, form: FormData): Promise<
     name: name.data,
     currency: code.data,
     isBaseline,
+    defaultMarkupBp,
   });
   return finish(ctx, result, result.ok ? { id: result.data.id } : {});
 }
@@ -163,6 +178,10 @@ const LineSchema = z.object({
   unitPriceMinor: z.number().int().min(0).nullable(),
   xyz: z.enum(["X", "Y", "Z"]),
   xyzBasis: z.enum(enums.xyzBasis),
+  markupBp: z.number().int().min(0).max(100000).nullable().optional(),
+  clientUnitPriceMinor: z.number().int().min(0).nullable().optional(),
+  excludedFromQuote: z.boolean().optional(),
+  etcMinor: z.number().int().min(0).nullable().optional(),
 });
 
 /** Appends one or many lines (single add, catalog picks or a spreadsheet paste) as one batch. */
@@ -259,12 +278,16 @@ export async function saveExpenseAction(_: ActionState, form: FormData): Promise
   if (amount === "invalid" || amount === null || amount <= 0) return inputError("amount");
   const counterparty = optionalId.safeParse(f["counterpartyId"] ?? "");
   if (!counterparty.success) return inputError("counterpartyId");
+  const engagement = optionalId.safeParse(f["engagementId"] ?? "");
+  if (!engagement.success) return inputError("engagementId");
   const common = {
     counterpartyId: counterparty.data,
     description: description.data,
     incurredOn: incurredOn.data,
     amountMinor: amount,
     currency: code.data,
+    isReimbursable: f["isReimbursable"] === "on",
+    engagementId: engagement.data,
   };
   if (f["id"]) {
     const id = z.uuid().safeParse(f["id"]);
@@ -405,12 +428,17 @@ export async function saveInvoiceAction(_: ActionState, form: FormData): Promise
   const custom = await customFieldsOf(ctx, "app.invoices", form);
   const problem = Object.entries(custom.fieldErrors ?? {})[0];
   if (problem) return inputError(...problem);
+  // The total a document printed, filled by Aurora in one hidden field (B15): never a visible field.
+  const printed = f["printedTotal"]
+    ? finance.parseMoney(f["printedTotal"], exponentOf(await getExponents(ctx), code.data))
+    : null;
   const result = await finance.createInvoice(ctx.viewer.db, ctx.org.id, {
     ...dates,
     projectId: project.data,
     counterpartyId: counterparty.data,
     direction: direction.data,
     currency: code.data,
+    printedTotalMinor: typeof printed === "number" ? printed : null,
   });
   if (result.ok) await custom.save(result.data.id);
   // A form Aurora filled from a document closes its suggestions with the invoice written (A95).

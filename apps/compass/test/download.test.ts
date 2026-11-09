@@ -12,6 +12,7 @@ import {
 import { describe, expect, it } from "vitest";
 import { downloadAll } from "../src/data/downloader";
 import { sourcesFor, toLocalRows } from "../src/data/sources";
+import { markedShiftIds } from "../src/domain/no-show";
 
 type Table = Record<string, unknown>[];
 
@@ -395,5 +396,61 @@ describe("REST download", () => {
     // A row for someone else never reaches the device, even if a view returned it.
     await session.ingest("profile_documents", [{ id: "doc-9", person_id: "person-9" }]);
     expect(await store.get("profile_documents", "doc-9")).toBeUndefined();
+  });
+  // B9: a retired break type leaves the device, or Break Start would send it and be refused break_type_unknown; a
+  // withdrawn no-show stays with its deleted_at, since a project's pull removes nothing, and the Crew tab reads past it.
+  describe("what ended on the server", () => {
+    const supervisor: DownloadScope = {
+      audience: "field",
+      personIds: ["person-1"],
+      orgIds: ["org-1"],
+      membershipIds: ["m-1"],
+      readableProjectIds: ["proj-1"],
+      engagementIds: [],
+      engagedProjectIds: [],
+    };
+
+    it("removes a retired break type on the next pull", async () => {
+      const store = new MemoryStore();
+      const session = new SyncSession(store, supervisor);
+      const type = { id: "b1", org_id: "org-1", name: "Meal", paid: false };
+      await downloadAll({
+        client: client({ "app.break_types": [{ ...type, deleted_at: null }] }).client,
+        session,
+        projectId: null,
+      });
+      expect((await store.list("break_types")).map((r) => r.id)).toEqual(["b1"]);
+      await downloadAll({
+        client: client({ "app.break_types": [{ ...type, deleted_at: "2027-06-01T00:00:00Z" }] })
+          .client,
+        session,
+        projectId: null,
+      });
+      expect(await store.list("break_types")).toEqual([]);
+    });
+
+    it("returns a person to the late list when their no-show is withdrawn", async () => {
+      const store = new MemoryStore();
+      const session = new SyncSession(store, supervisor);
+      const mark = {
+        id: "n1",
+        org_id: "org-1",
+        project_id: "proj-1",
+        shift_id: "s1",
+        recorded_at: "2027-06-01T15:00:00Z",
+      };
+      const pull = async (deleted_at: string | null) => {
+        await downloadAll({
+          client: client({ "app.shift_no_shows": [{ ...mark, deleted_at }] }).client,
+          session,
+          projectId: "proj-1",
+        });
+        return markedShiftIds(
+          (await store.list("shift_no_shows")) as unknown as Parameters<typeof markedShiftIds>[0],
+        );
+      };
+      expect(await pull(null)).toEqual(new Set(["s1"]));
+      expect(await pull("2027-06-01T15:30:00Z")).toEqual(new Set());
+    });
   });
 });

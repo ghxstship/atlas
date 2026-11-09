@@ -1,9 +1,12 @@
 import {
   getWeatherBoard,
+  getWeatherFeedBoard,
   HAZARD_UNITS,
+  isSevereWarning,
   WEATHER_HAZARDS,
   WEATHER_LEVELS,
   type WeatherAlert,
+  type WeatherFeedBoard,
 } from "@xos/data/workforce-site";
 import { listWorkforceRoles } from "@xos/data/people";
 import { getFormatter, getLocale } from "next-intl/server";
@@ -28,12 +31,14 @@ import {
   addAlertRoleAction,
   recordReadingAction,
   removeAlertRoleAction,
+  saveWeatherTemplatesAction,
   setThresholdAction,
 } from "@/lib/workforce/actions";
 import type { SearchParams } from "@/lib/collection-kit/page";
 import { nodeHref } from "@/lib/shell/sitemap";
 import type { OrgContext } from "@/lib/shell/context";
 import { ProjectPicker, REFUSALS, chosenProject, orgPickers, workforceCopy } from "./shared";
+import { WeatherFeedSwitch, WeatherHoldControls } from "./weather-controls";
 import { CollectionPage } from "@/components/platform/collection-page";
 
 const LEVEL_STATE = { Monitor: "in-review", Restrict: "blocked", Evacuate: "blocked" } as const;
@@ -42,7 +47,9 @@ const LEVEL_STATE = { Monitor: "in-review", Restrict: "blocked", Evacuate: "bloc
  * Site Operations > Weather (Section 4.9 weather monitoring): wind, lightning and heat thresholds per
  * project at Monitor, Restrict and Evacuate, each with the emergency plan section it comes from, the
  * readings taken on site and the alerts they raised. Alerts go to the canon roles the plan names for
- * each level and to the project's dispatchers.
+ * each level and to the project's dispatchers. B8 (6256, 6257): the official US National Weather Service feed for a
+ * US venue with a location (its status, active warnings and the next 12 hours, its readings marked by source), and
+ * the hold and all-clear a dispatcher sends to everyone at once.
  */
 export async function WeatherSection({
   ctx,
@@ -73,12 +80,13 @@ export async function WeatherSection({
     );
   }
   const db = ctx.viewer.db;
-  const [board, roles, settings, jurisdiction, locale] = await Promise.all([
+  const [board, roles, settings, jurisdiction, locale, feedBoard] = await Promise.all([
     getWeatherBoard(db, project.id),
     listWorkforceRoles(db),
     getShellSettings(db, ctx.org.id, null),
     projectJurisdictionUnits(db, project.id),
     getLocale(),
+    getWeatherFeedBoard(db, project.id),
   ]);
   // Values show and are typed in the person's units (locale.units, Section 15), stored in the hazard's unit.
   const units = unitSystemFor(settings.preferences.units, jurisdiction, locale);
@@ -95,7 +103,11 @@ export async function WeatherSection({
   const canConfigure = ctx.capabilities.has("safety.emergency_code.write");
   const canRecord = ctx.role !== "viewer";
   const when = (d: string) =>
-    format.dateTime(new Date(d), { dateStyle: "medium", timeStyle: "short" });
+    format.dateTime(new Date(d), {
+      dateStyle: "medium",
+      timeStyle: "short",
+      timeZone: project.timeZone,
+    });
   const active = board.data.alerts.filter((a) => a.clearedAt === null);
   const roleName = (code: string) => {
     const r = roles.ok ? roles.data.find((x) => x.code === code) : undefined;
@@ -108,9 +120,45 @@ export async function WeatherSection({
       time: when(a.issuedAt),
     });
 
+  const feed: WeatherFeedBoard | null = feedBoard.ok ? feedBoard.data : null;
+  const canDispatch = ctx.capabilities.has("safety.incident.dispatch");
+  // The hold starts prefilled from a reading at Restrict or Evacuate, or an official Severe or Extreme warning.
+  const promptAlert = active.find((a) => a.level !== "Monitor") ?? active[0];
+  const promptWarning = (feed?.warnings ?? []).find(isSevereWarning);
+  const allClearText = feed?.templates["All Clear"]?.body ?? t("weather.templates.defaultAllClear");
+
+  const holdBanner = feed?.openHold ? (
+    <InlineAlert
+      tone="danger"
+      title={t("weather.holds.open", { time: when(feed.openHold.calledAt) })}
+    >
+      {feed.openHold.message}
+    </InlineAlert>
+  ) : null;
+
   return (
     <CollectionPage header={<PageHeader title={title} />}>
       {picker}
+      {canDispatch && feed ? (
+        <WeatherHoldControls
+          org={ctx.org.slug}
+          projectId={project.id}
+          openHoldId={feed.openHold?.id ?? null}
+          hazards={WEATHER_HAZARDS.map((h) => ({ value: h, label: t(`weather.hazards.${h}`) }))}
+          warnings={feed.warnings.map((w) => ({ id: w.id, event: w.event }))}
+          prompt={{
+            hazard: promptAlert?.hazard ?? null,
+            alertId: promptAlert?.id ?? null,
+            warningId: promptWarning?.id ?? null,
+          }}
+          holdTemplate={feed.templates.Hold?.body ?? null}
+          allClearText={allClearText}
+        >
+          {holdBanner}
+        </WeatherHoldControls>
+      ) : (
+        holdBanner
+      )}
       {active.length > 0 ? (
         <InlineAlert tone="danger" title={t("weather.activeTitle", { count: active.length })}>
           {active.map(alertLine).join(" · ")}
@@ -120,6 +168,120 @@ export async function WeatherSection({
           {t("weather.allClear")}
         </p>
       )}
+      {feed ? (
+        <KitSection id="weather-feed" title={t("weather.feed.title")}>
+          <p className="m-0 text-text-13 text-text-secondary">{t("weather.feed.what")}</p>
+          {!feed.status.supported ? (
+            <p className="m-0 text-text-13">{t("weather.feed.unsupported")}</p>
+          ) : (
+            <>
+              {canConfigure ? (
+                <WeatherFeedSwitch
+                  org={ctx.org.slug}
+                  projectId={project.id}
+                  feedId={feed.status.feedId}
+                />
+              ) : null}
+              <p role="status" className="m-0 text-text-13">
+                {feed.status.feedId === null
+                  ? null
+                  : feed.status.lastSuccessAt
+                    ? t("weather.feed.lastUpdate", { time: when(feed.status.lastSuccessAt) })
+                    : t("weather.feed.never")}
+              </p>
+              {feed.status.feedId !== null &&
+              feed.status.lastFailureAt &&
+              feed.status.failuresSinceSuccess > 0 ? (
+                <InlineAlert tone="warning">
+                  {t("weather.feed.lastFailure", {
+                    time: when(feed.status.lastFailureAt),
+                    error: feed.status.lastError ?? "",
+                  })}{" "}
+                  {t("weather.feed.failuresSince", { count: feed.status.failuresSinceSuccess })}
+                </InlineAlert>
+              ) : null}
+            </>
+          )}
+          <h3 className="m-0 text-text-13 font-semibold">{t("weather.warnings.title")}</h3>
+          {feed.warnings.length === 0 ? (
+            <p className="m-0 text-text-13 text-text-secondary">{t("weather.warnings.empty")}</p>
+          ) : (
+            <ul className="m-0 flex list-none flex-col gap-8 p-0 text-text-13">
+              {feed.warnings.map((w) => (
+                <li key={w.id} className="flex flex-col gap-4" lang="en-US">
+                  <span className="flex flex-wrap items-center gap-8">
+                    <StateChip
+                      state={isSevereWarning(w) ? "blocked" : "in-review"}
+                      label={t(`weather.warnings.severities.${w.severity}`)}
+                      compact
+                    />
+                    <span className="font-semibold">{w.event}</span>
+                    {(w.endsAt ?? w.expiresAt) ? (
+                      <span className="text-text-secondary">
+                        {t("weather.warnings.until", {
+                          time: when((w.endsAt ?? w.expiresAt) as string),
+                        })}
+                      </span>
+                    ) : null}
+                  </span>
+                  {w.headline ? <span>{w.headline}</span> : null}
+                  {w.description || w.instruction ? (
+                    <details>
+                      <summary className="cursor-pointer text-text-secondary">
+                        {t("weather.warnings.more")}
+                      </summary>
+                      {w.description ? (
+                        <p className="m-0 whitespace-pre-line">{w.description}</p>
+                      ) : null}
+                      {w.instruction ? (
+                        <p className="m-0 whitespace-pre-line">{w.instruction}</p>
+                      ) : null}
+                    </details>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+          )}
+          <p className="m-0 text-text-12 text-text-secondary">{t("weather.warnings.issuedBy")}</p>
+          <h3 className="m-0 text-text-13 font-semibold">{t("weather.forecast.title")}</h3>
+          {feed.forecast.length === 0 ? (
+            <p className="m-0 text-text-13 text-text-secondary">{t("weather.forecast.empty")}</p>
+          ) : (
+            <DataTable
+              caption={t("weather.forecast.title")}
+              label={t("weather.forecast.title")}
+              columns={[
+                { key: "time", label: t("weather.time") },
+                { key: "temperature", label: t("weather.hazards.Heat") },
+                { key: "wind", label: t("weather.hazards.Wind") },
+                { key: "rain", label: t("weather.forecast.rain") },
+                { key: "summary", label: t("weather.forecast.summary"), wrap: true },
+              ]}
+              rows={feed.forecast.map((p) => ({
+                id: p.startsAt,
+                time: format.dateTime(new Date(p.startsAt), {
+                  weekday: "short",
+                  hour: "numeric",
+                  timeZone: project.timeZone,
+                }),
+                temperature:
+                  p.temperatureF === null
+                    ? ""
+                    : t("weather.forecast.temperature", { value: Math.round(p.temperatureF) }),
+                wind:
+                  p.windSpeedMph === null
+                    ? ""
+                    : t("weather.forecast.wind", { value: Math.round(p.windSpeedMph) }),
+                rain:
+                  p.precipitationPercent === null
+                    ? ""
+                    : t("weather.forecast.precipitation", { value: p.precipitationPercent }),
+                summary: p.shortForecast ?? "",
+              }))}
+            />
+          )}
+        </KitSection>
+      ) : null}
       {canRecord ? (
         <KitSection id="weather-reading" title={t("weather.record")}>
           <EntityForm
@@ -128,6 +290,7 @@ export async function WeatherSection({
             hidden={{ org: ctx.org.slug, projectId: project.id, units }}
             refusals={REFUSALS}
             submitLabel={t("weather.recordSubmit")}
+            submitVariant={canDispatch ? "secondary" : "primary"}
             fields={[
               {
                 kind: "select",
@@ -236,6 +399,41 @@ export async function WeatherSection({
           />
         ) : null}
       </KitSection>
+      {canConfigure && feed ? (
+        <KitSection id="weather-templates" title={t("weather.templates.title")}>
+          <EntityForm
+            id="weather-templates-form"
+            action={saveWeatherTemplatesAction}
+            hidden={{
+              org: ctx.org.slug,
+              projectId: project.id,
+              ...(feed.templates.Hold ? { holdId: feed.templates.Hold.id } : {}),
+              ...(feed.templates["All Clear"]
+                ? { allClearId: feed.templates["All Clear"].id }
+                : {}),
+            }}
+            refusals={REFUSALS}
+            submitLabel={t("weather.templates.save")}
+            submitVariant="secondary"
+            fields={[
+              {
+                kind: "textarea",
+                name: "hold",
+                label: t("weather.templates.hold"),
+                required: true,
+                defaultValue: feed.templates.Hold?.body ?? t("weather.templates.defaultHold"),
+              },
+              {
+                kind: "textarea",
+                name: "allClear",
+                label: t("weather.templates.allClear"),
+                required: true,
+                defaultValue: allClearText,
+              },
+            ]}
+          />
+        </KitSection>
+      ) : null}
       <KitSection id="weather-roles" title={t("weather.roles")}>
         {board.data.roles.length === 0 ? (
           <p className="m-0 text-text-13 text-text-secondary">{t("weather.noRoles")}</p>
@@ -304,6 +502,7 @@ export async function WeatherSection({
               { key: "time", label: t("weather.time") },
               { key: "hazard", label: t("weather.hazard") },
               { key: "value", label: t("weather.value") },
+              { key: "source", label: t("weather.source") },
               { key: "by", label: t("weather.by") },
             ]}
             rows={board.data.readings.map((r) => ({
@@ -311,7 +510,8 @@ export async function WeatherSection({
               time: when(r.observedAt),
               hazard: t(`weather.hazards.${r.hazard}`),
               value: formatHazardValue(locale, r.hazard, r.value, units),
-              by: r.recordedBy ?? t("someone"),
+              source: t(`weather.readingSource.${r.source}`),
+              by: r.source === "NWS" ? "" : (r.recordedBy ?? t("someone")),
             }))}
           />
         )}

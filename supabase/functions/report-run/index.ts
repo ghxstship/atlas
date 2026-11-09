@@ -15,17 +15,25 @@
 //
 // Resend, exceljs and pdfkit load only when a run needs them (A85), and the file and email copy load per
 // locale on first use.
+//
+// Stakeholder packs (B2, ADR 0141): after the report deliveries it runs the pack.deliver jobs, which email an
+// outside recipient a sign-in link, never a report file. XOS_APP_URL and XOS_POSTAL_ADDRESS are read here and
+// not through the shared env(), which throws: report deliveries keep working when they are unset, and a pack
+// delivery fails with the reason.
 import { createClient } from "@supabase/supabase-js";
 import {
   lazyResendClient,
   mailpitMailer,
+  packEmailCopy,
   readEmailEnv,
   readReplicaUrl,
   recipientAllowed,
   reportDeliveryCopy,
   reportRunLabels,
   resendMailer,
+  runPackDeliveries,
   runScheduledReports,
+  supabasePackDeliveryStore,
   supabaseReportDeliveryStore,
   supabaseReportRunStore,
   supabaseResultFiles,
@@ -67,6 +75,8 @@ serve(async (request) => {
     replicaUrl === null
       ? null
       : createClient(replicaUrl, env("SUPABASE_SERVICE_ROLE_KEY"), options);
+  const mailer = reportMailer();
+  const worker = `report-run:${crypto.randomUUID()}`;
   const outcome = await runScheduledReports({
     runs: supabaseReportRunStore(client, {
       replica,
@@ -77,14 +87,27 @@ serve(async (request) => {
     labels: await reportRunLabels("en-US"),
     deliveries: supabaseReportDeliveryStore(client),
     files: supabaseResultFiles(client),
-    mailer: reportMailer(),
+    mailer,
     copy: await reportDeliveryCopy("en-US"),
-    worker: `report-run:${crypto.randomUUID()}`,
+    worker,
+  });
+  const { runPackDeliveries, supabasePackDeliveryStore } = await loadPackDeliveries();
+  const packs = await runPackDeliveries({
+    store: supabasePackDeliveryStore(client),
+    mailer,
+    copy: packEmailCopy,
+    env: {
+      appUrl: Deno.env.get("XOS_APP_URL"),
+      postalAddress: Deno.env.get("XOS_POSTAL_ADDRESS"),
+      apiUrl: env("SUPABASE_URL"),
+    },
+    worker,
   });
   return json(200, {
     queued: outcome.queued,
     processed: outcome.runs.length,
     results: outcome.runs,
     delivered: outcome.deliveries,
+    packs,
   });
 });

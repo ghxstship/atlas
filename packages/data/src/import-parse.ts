@@ -237,6 +237,8 @@ export const FIELD_SYNONYMS: Readonly<Record<string, readonly string[]>> = {
   asset_tag: ["tag", "assettag", "barcode"],
   asset_class_id: ["assetclass", "class", "category"],
   home_venue_id: ["homevenue", "venue", "location"],
+  // Purchase order and budget lines (B11, B13).
+  line_number: ["line", "lineno", "linenum"],
   // Rundowns (P3). A header that is only '#' means the cue number; normalize() drops it, so similarField checks it.
   position: ["cue", "cueno", "cuenumber", "cueid", "number", "no"],
   label: ["scene", "title", "cuename", "item"],
@@ -250,6 +252,15 @@ export const FIELD_SYNONYMS: Readonly<Record<string, readonly string[]>> = {
   note: ["notes", "comment", "access"],
   scope_node_id: ["show", "night", "scope"],
   counterparty_id: ["list", "company", "onlistof", "sponsor", "client"],
+  // Freelancer lists (B10), in both languages.
+  email: ["mail", "emailaddress", "correo"],
+  pool_name: ["pool", "crewlist", "lista"],
+  invitee_name: ["name", "fullname", "nombre"],
+  work_phone: ["phone", "mobile", "cell", "telefono", "celular"],
+  role: ["jobtitle", "position", "puesto", "rol"],
+  rate: ["dayrate", "hourlyrate", "tarifa"],
+  rate_currency: ["currency", "moneda"],
+  rate_type: ["basis", "paybasis"],
 };
 
 /** The target field a header names by its own name or a synonym; a header of only '#' is the cue number. */
@@ -333,6 +344,9 @@ export const IMPORT_TARGET_TABLES: Readonly<Record<string, string>> = {
   asset_units: "app.asset_units",
   cues: "app.cues",
   guest_list_entries: "app.guest_list_entries",
+  procurement_needs: "app.procurement_needs",
+  po_lines: "app.po_lines",
+  budget_lines: "app.budget_lines",
 };
 
 /** Playbook targets that land in an import field of another table: a counterparty's name is its organization's. */
@@ -461,3 +475,9 @@ export function proposeTarget(
   }
   return { targetCode: best?.code ?? null, fromPlaybook: false };
 }
+
+// Rates (B10) -----------------------------------------------------------------------------------------------------
+
+/** How a file writes amounts: the four formats an uploader chooses from. It sets the separators only. */
+export const NUMBER_FORMATS = ["comma-dot", "dot-comma", "space-comma", "apostrophe-dot"] as const;
+export type NumberFormat = (typeof NUMBER_FORMATS)[number];

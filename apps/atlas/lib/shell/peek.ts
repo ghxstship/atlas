@@ -22,6 +22,7 @@ const NO_OWN_PEEK_NODES: ReadonlySet<string> = new Set([
   "activity.feed",
   "approvals",
   "credentials.access-grid",
+  "crew.access-links",
   "credentials.scan-log",
   "finance.chart-of-accounts",
   "finance.universal-posting-line-export",
@@ -37,6 +38,7 @@ const NO_OWN_PEEK_NODES: ReadonlySet<string> = new Set([
   "opportunities.onboarding",
   "opportunities.pipeline",
   "opportunities.pools",
+  "opportunities.registration-pages",
   "opportunities.postings",
   "opportunities.ratings",
   "opportunities.requisitions",
@@ -54,6 +56,11 @@ const NO_OWN_PEEK_NODES: ReadonlySet<string> = new Set([
   "reports.labor",
   "reports.measurement",
   "reports.purchase-order-exposure",
+  // B4: Days opens its own day editor (?day=), Workload its cell (?cell=), and Clashes links to each side's page.
+  "schedule.clashes",
+  "schedule.days",
+  "schedule.workload",
+  "site-ops.muster",
   "site-ops.weather",
   "trash",
 ]);

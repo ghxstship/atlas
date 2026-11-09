@@ -307,6 +307,7 @@ export const FIXTURES: { readonly [K in DocumentKind]: DocumentDataMap[K] } = {
       acquisitionKind: "Purchase" as const,
       hireStartsAt: null,
       hireEndsAt: null,
+      engagementId: null,
     })),
     totals: { unpricedCount: 1, linesTotalMinor: null, approvedChangesMinor: 50_000 },
   },
@@ -428,6 +429,7 @@ export const FIXTURES: { readonly [K in DocumentKind]: DocumentDataMap[K] } = {
         roleCode: "AUD-A1",
         roleTitle: "Audio A1",
         personName: "Ana Ruiz",
+        membershipId: "m1",
       },
       {
         shiftId: "s2",
@@ -436,6 +438,7 @@ export const FIXTURES: { readonly [K in DocumentKind]: DocumentDataMap[K] } = {
         roleCode: null,
         roleTitle: null,
         personName: null,
+        membershipId: null,
       },
     ],
   },
@@ -466,6 +469,12 @@ export const FIXTURES: { readonly [K in DocumentKind]: DocumentDataMap[K] } = {
         calledByName: "Sam Lee",
         startTbc: false,
         standbyAt: null,
+        segment: null,
+        description: null,
+        script: null,
+        segmentInstanceId: null,
+        calledViaLink: null,
+        updatedAt: "2026-10-24T22:00:00Z",
       },
       {
         id: "q2",
@@ -478,6 +487,12 @@ export const FIXTURES: { readonly [K in DocumentKind]: DocumentDataMap[K] } = {
         calledByName: null,
         startTbc: false,
         standbyAt: null,
+        segment: null,
+        description: null,
+        script: null,
+        segmentInstanceId: null,
+        calledViaLink: null,
+        updatedAt: "2026-10-24T22:00:00Z",
       },
       {
         id: "q3",
@@ -490,6 +505,12 @@ export const FIXTURES: { readonly [K in DocumentKind]: DocumentDataMap[K] } = {
         calledByName: null,
         startTbc: false,
         standbyAt: null,
+        segment: null,
+        description: null,
+        script: null,
+        segmentInstanceId: null,
+        calledViaLink: null,
+        updatedAt: "2026-10-24T22:00:00Z",
       },
     ],
   },
@@ -713,6 +734,50 @@ export const FIXTURES: { readonly [K in DocumentKind]: DocumentDataMap[K] } = {
       ],
     },
   },
+  "engagement-document": {
+    project,
+    document: {
+      id: "c0000000-0000-4000-8000-000000000001",
+      title: "Crew agreement for Ana Ruiz",
+      kind: "Agreement",
+      state: "Executed",
+      body: "1. Services. You work the show days.\n\n2. Fees. $990.00 per day.",
+      signedName: "Ana Ruiz",
+      signedAt: "2026-09-20T18:12:00Z",
+      sha256: "3f1d0a4c9b7e2f6a8d5c4b3a2918f7e6d5c4b3a29180f7e6d5c4b3a29180f7e6",
+      createdAt: "2026-09-18T12:00:00Z",
+    },
+  },
+  quote: {
+    project,
+    quote: {
+      key: "NWF26-Q-14",
+      versionNumber: 2,
+      title: "Main stage production",
+      clientName: "Coral Group",
+      currency: "USD",
+      validUntil: "2026-12-01",
+      terms: "Half on signature, half before load-in. Zoë Ångström's crew is included.",
+      state: "Sent",
+      issuedAt: "2026-11-02T15:00:00Z",
+      contentSha256: "a".repeat(64),
+      lines: Array.from({ length: 80 }, (_, i) => ({
+        lineNumber: i + 1,
+        description:
+          i === 3
+            ? "Ångström-grade rigging, 中文字 and emoji 🎸 outside the subset"
+            : `Scope line ${i + 1}`,
+        quantity: 2,
+        unitBasis: "day",
+        unitPriceMinor: 12500,
+        amountMinor: 25000,
+      })),
+      totalMinor: 2000000,
+      acceptedAt: null,
+      acceptedName: null,
+      acceptedEmail: null,
+    },
+  },
   "radio-handout": {
     project,
     lines: [
@@ -772,7 +837,207 @@ export const FIXTURES: { readonly [K in DocumentKind]: DocumentDataMap[K] } = {
       sign2: { bytes: null, filename: "menu-board.pdf" },
     },
   },
+  "wrap-up-report": {
+    project,
+    debrief: {
+      id: "d0000000-0000-4000-8000-000000000001",
+      projectId: project.id,
+      completedAt: "2026-10-28T21:00:00Z",
+      completedBy: "p1",
+      completedByName: "Ana Ruiz",
+    },
+    items: [
+      {
+        id: "di1",
+        area: "Schedule",
+        kind: "Went Well",
+        body: "Load-in finished an hour ahead of the plan on the pier.",
+        position: 1,
+        ownerMembershipId: null,
+        ownerName: null,
+      },
+      {
+        id: "di2",
+        area: "Audience",
+        kind: "To Improve",
+        body: "The gate queue peaked at 25 minutes before doors; open two more lanes. Señales en español también.",
+        position: 2,
+        ownerMembershipId: null,
+        ownerName: null,
+      },
+      {
+        id: "di3",
+        area: "Safety",
+        kind: "Action",
+        body: "Add a second spotter on the downstage truss for load-out.",
+        position: 3,
+        ownerMembershipId: "m1",
+        ownerName: "Ana Ruiz",
+      },
+    ],
+    summary: {
+      text: "Delivered under the revised budget with 9,800 guests against a target of 9,000; two minor incidents, both closed.",
+      aiDrafted: true,
+      aiRequestId: null,
+      by: "p1",
+      byName: "Ana Ruiz",
+      at: "2026-10-28T20:30:00Z",
+    },
+    budget: {
+      project: { id: project.id, key: project.key, name: project.name, phase: "Closeout" },
+      hasBaseline: true,
+      rows: [],
+      totals: [
+        {
+          accountCode: "",
+          currency: "USD",
+          baselineMinor: 10_000_000,
+          baselineUnpricedCount: 0,
+          approvedChangeMinor: 840_000,
+          revisedMinor: 10_840_000,
+          pricedRevisedMinor: 10_840_000,
+          actualMinor: 10_500_000,
+          varianceMinor: 340_000,
+          budgetLineIds: [],
+        },
+      ],
+    },
+    measurements: {
+      preference: "metric",
+      catalog: {
+        units: [
+          {
+            code: "count",
+            dimension: "Count",
+            factor: 1,
+            system: "Either",
+            isDisplay: true,
+            ordinal: 12,
+          },
+          {
+            code: "kg_co2e",
+            dimension: "Emissions",
+            factor: 1,
+            system: "Either",
+            isDisplay: true,
+            ordinal: 10,
+          },
+          {
+            code: "kwh",
+            dimension: "Energy",
+            factor: 1,
+            system: "Either",
+            isDisplay: true,
+            ordinal: 8,
+          },
+        ],
+        metrics: [
+          ["energy_used", "Sustainability", "Energy", "kwh", 3],
+          ["transport_emissions", "Sustainability", "Emissions", "kg_co2e", 5],
+          ["attendance", "Audience", "Count", "count", 6],
+          ["online_audience", "Audience", "Count", "count", 7],
+        ].map(([code, family, dimension, baseUnit, ordinal]) => ({
+          code: code as string,
+          family: family as "Sustainability" | "Audience",
+          dimension: dimension as "Energy" | "Emissions" | "Count",
+          baseUnit: baseUnit as string,
+          aggregation: "Sum" as const,
+          derived: false,
+          lowerBound: 0,
+          upperBound: null,
+          canon: null,
+          tags: [],
+          ordinal: ordinal as number,
+        })),
+      },
+      rows: [
+        {
+          projectId: project.id,
+          metricCode: "attendance",
+          family: "Audience",
+          dimension: "Count",
+          aggregation: "Sum",
+          objectiveId: "o1",
+          direction: "At Least",
+          targetValue: 9000,
+          targetUnitCode: "count",
+          targetBase: 9000,
+          measuredCount: 3,
+          unmeasuredCount: 0,
+          measuredBase: 9800,
+          lastMeasuredOn: "2026-10-26",
+          outcome: "Met",
+        },
+        {
+          projectId: project.id,
+          metricCode: "transport_emissions",
+          family: "Sustainability",
+          dimension: "Emissions",
+          aggregation: "Sum",
+          objectiveId: null,
+          direction: null,
+          targetValue: null,
+          targetUnitCode: null,
+          targetBase: null,
+          measuredCount: 0,
+          unmeasuredCount: 2,
+          measuredBase: null,
+          lastMeasuredOn: null,
+          outcome: null,
+        },
+      ],
+    },
+    incidents: {
+      rows: [
+        {
+          severityId: "s1",
+          severityLabel: "Minor",
+          state: "Closed",
+          count: 2,
+          incidentIds: ["i1", "i2"],
+        },
+      ],
+      total: 2,
+      open: 0,
+    },
+  },
+  "guest-pass": {
+    project,
+    guest: {
+      id: "90000000-0000-4000-8000-000000000001",
+      projectId: project.id,
+      guestName: "María José Ångström-Delacroix de la Vega",
+      plusOnes: 2,
+      state: "Approved",
+      passCode: "GP-ABCDEFGHIJ",
+      passCategoryCode: "VIP",
+      passCategoryName: "VIP Guest",
+      tableLabel: "Table 4",
+      showName: "Main Stage, Night 1",
+      showDay: "2027-06-04",
+      decidedAt: "2027-05-20T18:00:00Z",
+    },
+  },
 };
+
+/**
+ * A quote accepted through a signing link and one accepted signed in to Gateway: only an Accepted quote
+ * prints the Signature block (S14.5-01), so veraPDF checks it in both wordings.
+ */
+const acceptedQuote = (acceptedEmail: string | null): DocumentDataMap["quote"] => ({
+  ...FIXTURES.quote,
+  quote: {
+    ...FIXTURES.quote.quote,
+    state: "Accepted",
+    acceptedAt: "2026-11-03T15:00:00Z",
+    acceptedName: "Cleo Marsh Ångström",
+    acceptedEmail,
+  },
+});
+export const ACCEPTED_QUOTES = {
+  "quote-accepted-link": acceptedQuote("cleo@coral-group.test"),
+  "quote-accepted-signed-in": acceptedQuote(null),
+} as const;
 
 /**
  * The deletion certificate of an org (A79, Section 14.7), with a long name and characters outside the font's
@@ -812,4 +1077,54 @@ export const BADGE_V2: DocumentDataMap["credential-badge"] = {
     updatedAt: "2027-02-15T00:00:00Z",
   },
   photo: { bytes: PHOTO_JPEG, source: "Badge" },
+};
+
+/**
+ * A day sheet issued under version 3 (B7, DAY_SHEET_V3_FROM): its day's calls, an open shift, a TBC meeting, a
+ * canceled deadline and one run with department calls, so the veraPDF check renders every version 3 table.
+ */
+export const DAY_SHEET_V3: DocumentDataMap["day-sheet"] = {
+  ...FIXTURES["day-sheet"],
+  sheet: { ...FIXTURES["day-sheet"].sheet, publishedAt: "2027-06-02T12:00:00Z" },
+  schedule: {
+    calls: [
+      ...FIXTURES["call-sheet"].calls,
+      {
+        shiftId: "s3",
+        startsAt: "2026-10-24T14:00:00Z",
+        endsAt: "2026-10-24T22:00:00Z",
+        roleCode: "5000.51.02",
+        roleTitle: null,
+        personName: null,
+        membershipId: null,
+      },
+    ],
+    records: [
+      {
+        id: "r1",
+        kind: "Meeting",
+        title: "Lighting focus with the house electrician, upstage and downstage positions",
+        at: "2026-10-24T18:00:00Z",
+        startTbc: true,
+        state: "Scheduled",
+        recordKey: "NWF26-41",
+      },
+      {
+        id: "r2",
+        kind: "Deadline",
+        title: "Advance due",
+        at: "2026-10-24T20:00:00Z",
+        startTbc: false,
+        state: "Canceled",
+        recordKey: "NWF26-42",
+      },
+    ],
+    runs: [
+      {
+        run: FIXTURES["run-of-show"].run,
+        cues: FIXTURES["run-of-show"].cues,
+        calls: FIXTURES["run-of-show"].calls ?? [],
+      },
+    ],
+  },
 };

@@ -52,6 +52,11 @@ export interface DownloadScope {
    * person who works an engagement only through a party's roster. Absent holds none.
    */
   readonly rosterEntryIds?: readonly string[];
+  /**
+   * External: the orgs of those open engagements, roster ones included, for an org's reference data an external worker
+   * reads (B9's break types). Never in orgIds, which stays the orgs a person is a member of. Absent holds none.
+   */
+  readonly engagedOrgIds?: readonly string[];
 }
 
 export type ScopeKey = Exclude<keyof DownloadScope, "audience">;
@@ -136,6 +141,16 @@ export const TABLE_RULES: readonly TableRule[] = [
       internalProject,
     ],
   },
+  // No-shows and break types (B9): REST only (ADR 0033 decision 51). The break types an external worker reads come
+  // through api_external.break_types, on the orgs of their open engagements.
+  { table: "shift_no_shows", anyOf: [{ ...internalProject, restOnly: true }] },
+  {
+    table: "break_types",
+    anyOf: [
+      { ...internalOrg, restOnly: true },
+      { column: "org_id", key: "engagedOrgIds", audiences: CREW_STAFF, restOnly: true },
+    ],
+  },
   { table: "time_entries", anyOf: [...ownOrEngaged, internalProject] },
   { table: "clock_punches", anyOf: [...ownOrEngaged, internalProject] },
   // Geofences belong to venues, not projects; internal devices hold their org's shapes. External devices
@@ -209,6 +224,8 @@ export const TABLE_RULES: readonly TableRule[] = [
   },
   // Compass logistics (Section 4.3 item 8): the gate queue, the marshalling yard log and fulfillments.
   { table: "gate_queue", anyOf: [internalProject] },
+  // B11 (G-115): a gate's windows for the phone gate view; vendors read open windows through api_external instead.
+  { table: "delivery_windows", anyOf: [internalProject] },
   { table: "marshalling_log", anyOf: [internalProject] },
   { table: "fulfillments", anyOf: [internalProject] },
   { table: "sops", anyOf: [internalOrg] },

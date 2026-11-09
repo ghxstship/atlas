@@ -66,7 +66,7 @@ select ok(not exists (select 1 from app.live_links l join private.live_link_chan
 select has_column('private', 'realtime_channel_policies', 'roles', 'the channel rule registry names each rule''s roles');
 select is((select roles from private.realtime_channel_policies where policy_name = 'xos_live_link_channel_read'), array['anon'],
   'the live link rule is registered for anon');
-select is((select count(*)::int from private.realtime_channel_policies where policy_name <> 'xos_live_link_channel_read' and roles <> array['authenticated']), 0,
+select is((select count(*)::int from private.realtime_channel_policies where policy_name not in ('xos_live_link_channel_read', 'xos_showcaller_channel_read') and roles <> array['authenticated']), 0,
   'every other rule keeps authenticated');
 select has_table('realtime', 'messages', 'Realtime''s messages table exists on this stack');
 select policy_cmd_is('realtime', 'messages', 'xos_live_link_channel_read', 'select', 'receiving on a live link channel has its rule');

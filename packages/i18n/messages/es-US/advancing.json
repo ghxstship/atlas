@@ -111,11 +111,14 @@
     "allocation_target_project": "Elige un artículo de este proyecto.",
     "allocation_target_required": "Elige un artículo.",
     "allocation_window": "Las fechas terminan después de empezar.",
+    "approval_rule_pending": "Esta solicitud espera la regla de aprobación de su proyecto. Apruébala cuando todos los pasos de la regla la hayan aprobado.",
     "asset_class_held_for_reservations": "Las unidades que quedan están reservadas para otros ahora. Entrega contra una reserva.",
     "asset_reserved_for_other": "Esta unidad está reservada para otra persona ahora.",
     "availability_window": "Elige fechas de un inicio a un fin posterior, con un máximo de 400 días.",
     "bulk_decision_final": "Una asignación se decide una vez. Retírala en lugar de deshacer la decisión.",
+    "credential_duplicate": "Esta persona ya tiene una credencial vigente de esta categoría para un periodo que se superpone. Primero revoque la anterior o emita para otro periodo.",
     "credential_self_issue": "Nunca te emites una credencial a ti.",
+    "credential_training_incomplete": "Esta persona no ha completado la capacitación o las certificaciones que exige esta credencial. Regístrelas primero y luego emita.",
     "credential_vehicle_not_holders": "Elige el vehículo del titular en esta contratación.",
     "credential_vehicle_not_parking": "Solo un pase de estacionamiento nombra un vehículo.",
     "custody_not_reserved_holder": "Esa unidad o cantidad está reservada para otra persona.",
@@ -152,7 +155,23 @@
     "advance_line_booked": "Esta franja ya tiene un turno de muelle.",
     "advance_dock_zone": "Elige una zona de muelle vigente.",
     "dock_slot_overlap": "Otro turno ocupa ese muelle a esa hora. Elige otro muelle o mueve el turno.",
-    "credential_names_closed": "Ya pasó la fecha límite de nombres para la parte; cambia los nombres desde Asignaciones."
+    "credential_names_closed": "Ya pasó la fecha límite de nombres para la parte; cambia los nombres desde Asignaciones.",
+    "guest_pass_category": "Un tipo de pase es una categoría de Acceso de este proyecto. Elige una de la lista.",
+    "guest_host_not_on_project": "Un anfitrión es miembro de tu organización o está contratado en este proyecto. Elige a alguien de la lista.",
+    "guest_entry_production_fields": "El tipo de pase, la mesa y el anfitrión los define la producción.",
+    "guest_entry_checked_in": "Un invitado registrado conserva su tipo de pase, mesa, anfitrión y correo.",
+    "guest_email_batch": "Envía correos a entre 1 y 500 invitados a la vez.",
+    "guest_email_rate": "Tu organización puede escribir a hasta 2,000 invitados por día. Envía el resto mañana.",
+    "guest_email_message": "Un mensaje necesita un asunto de hasta 150 caracteres y un texto de hasta 5,000.",
+    "guest_email_format": "Escribe una dirección de correo para el invitado, o déjala vacía.",
+    "detailMissing": "Falta: {titles}.",
+    "detailExisting": "Credencial existente: {numbers}.",
+    "advance_track_empty": "Ninguna sección del paquete está en esta área.",
+    "advance_track_incomplete": "Todas las secciones del área deben estar aceptadas, completas o no aplicar antes de aprobarla.",
+    "advance_track_signed_off": "Esta área ya está aprobada. Revoca la aprobación para volver a aprobarla.",
+    "advance_track_revoke_reason": "Di por qué se revoca la aprobación, en 1 a 500 caracteres.",
+    "advance_reminder_batch": "Recuerda de 1 a 200 destinatarios a la vez.",
+    "advance_section_stale": "La sección cambió desde que la abriste. Recarga e inténtalo de nuevo."
   },
   "projectTab": {
     "scope": "Avances de {key} · {name}.",
@@ -338,7 +357,14 @@
     "named": "{n} de {q} con nombre",
     "pool": "Todo el equipo",
     "windowRange": "{from} a {to}",
-    "needDecision": "{n, plural, one {# artículo necesita una decisión} other {# artículos necesitan una decisión}} en Asignaciones: fuentes, capacidad, la asignación permitida o la aceptación de la persona."
+    "needDecision": "{n, plural, one {# artículo necesita una decisión} other {# artículos necesitan una decisión}} en Asignaciones: fuentes, capacidad, la asignación permitida o la aceptación de la persona.",
+    "source": {
+      "recordedFrom": "Registrado desde {from}.",
+      "projectInbox": "correo de la bandeja del proyecto",
+      "sender": "Enviado desde {from}.",
+      "acceptedBy": "Redactado por Aurora, aceptado por {name}.",
+      "someone": "alguien"
+    }
   },
   "review": {
     "accept": "Aceptar",
@@ -534,7 +560,9 @@
       "guest": "Invitado",
       "plusOnes": "Acompañantes",
       "show": "Show",
-      "from": "Lista de"
+      "from": "Lista de",
+      "passType": "Tipo de pase",
+      "table": "Mesa"
     },
     "states": {
       "Requested": "Solicitado",
@@ -563,9 +591,81 @@
       "decline": "Rechazar a {name}",
       "checkIn": "Registrar llegada de {name}",
       "edit": "Editar a {name}",
-      "remove": "Quitar a {name}"
+      "remove": "Quitar a {name}",
+      "approved": "{name} está aprobado.",
+      "declined": "{name} está rechazado.",
+      "checkedIn": "{name} está registrado.",
+      "removed": "{name} se quitó de la lista."
     },
-    "import": "Importar invitados"
+    "import": "Importar invitados",
+    "pass": {
+      "type": "Tipo de pase",
+      "typeHelp": "Una categoría de Acceso de este proyecto, como GUEST o VIP.",
+      "noType": "Sin tipo de pase",
+      "table": "Mesa",
+      "tableHelp": "Opcional. Una mesa o asiento, de hasta 60 caracteres.",
+      "host": "Anfitrión",
+      "hostHelp": "Opcional. La persona que recibe a este invitado se entera cuando llega.",
+      "noHost": "Sin anfitrión",
+      "email": "Correo",
+      "emailHelp": "Aquí le enviamos su pase.",
+      "code": "Código del pase",
+      "print": "Imprimir pase",
+      "download": "Descargar pase",
+      "notApproved": "El pase se emite cuando se aprueba al invitado.",
+      "edit": "Datos del pase de {name}",
+      "emailError": "Escriba una dirección de correo o déjelo vacío.",
+      "someHost": "Un anfitrión de este proyecto"
+    },
+    "email": {
+      "action": "Escribir a invitados",
+      "title": "Escribir a invitados",
+      "what": "Envía a los invitados seleccionados una invitación, su pase o un mensaje. Se omiten los invitados sin correo y las direcciones que pidieron no recibir correos de tu organización.",
+      "kind": "Qué enviar",
+      "kinds": {
+        "Invitation": "Invitación",
+        "Pass": "Su pase",
+        "Message": "Un mensaje"
+      },
+      "subject": "Asunto",
+      "subjectHelp": "Hasta 150 caracteres.",
+      "body": "Mensaje",
+      "bodyHelp": "Hasta 5,000 caracteres.",
+      "note": "Nota",
+      "noteHelp": "Opcional. Se agrega debajo de la invitación o del pase.",
+      "language": "Idioma del correo",
+      "preview": "Vista previa",
+      "willSkip": "{count, plural, one {Se omitirá # invitado} other {Se omitirán # invitados}}",
+      "audience": "Enviar a",
+      "audienceAll": "{count, plural, one {El # invitado de esta lista} other {Los # invitados de esta lista}}",
+      "audienceChosen": "Los invitados que elija",
+      "batchFirst": "Un envío llega a un máximo de {count} invitados. Este va a los primeros {count} que pueden recibirlo; elija invitados para enviar el resto.",
+      "batchOver": "Un envío llega a un máximo de {count} invitados. Quite algunos y envíe el resto después.",
+      "willSuppress": "{count, plural, one {# dirección pidió no recibir correos} other {# direcciones pidieron no recibir correos}}",
+      "confirm": "{count, plural, one {Enviar a # invitado} other {Enviar a # invitados}}",
+      "sent": "{count, plural, one {En cola para # invitado} other {En cola para # invitados}}",
+      "sendsTitle": "Correos a invitados",
+      "states": {
+        "Queued": "En cola",
+        "Sending": "Enviando",
+        "Sent": "Enviado",
+        "Failed": "Falló",
+        "Suppressed": "Bloqueado",
+        "Skipped": "Omitido"
+      },
+      "skipReasons": {
+        "NoEmail": "Sin correo",
+        "NotLive": "Ya no está en la lista",
+        "NoPass": "No aprobado"
+      },
+      "recipients": "Invitados",
+      "previews": {
+        "Invitation": "Está en la lista de invitados de {project}. Su nombre está en la puerta; traiga una identificación con foto.",
+        "Pass": "Adjuntamos su pase para {project}. Muéstrelo en la puerta, en el teléfono o impreso.",
+        "Message": "Su asunto y su mensaje, enviados por su organización con un enlace para darse de baja y su dirección postal."
+      },
+      "removedGuest": "Un invitado que ya no está en la lista"
+    }
   },
   "crew": {
     "sentence": "Las personas que cada parte incluye en sus contrataciones. Acepta o devuelve cada entrada enviada.",
@@ -884,6 +984,12 @@
       "unit": "unidad {tag}",
       "lot": "lote",
       "line": "línea de pedido {line}"
+    },
+    "approval": {
+      "label": "Regla de aprobación",
+      "waiting": "En espera de aprobación",
+      "approved": "Aprobada por la regla",
+      "rejected": "Rechazada por la regla"
     }
   },
   "bookDock": {
@@ -893,5 +999,138 @@
     "done": "Turno de muelle reservado.",
     "noZones": "El recinto del proyecto no tiene zonas para reservar.",
     "booked": "Turno de muelle reservado"
+  },
+  "progress": {
+    "title": "Progreso",
+    "tiles": {
+      "outstanding": "Pendientes",
+      "overdue": "Vencidas",
+      "awaitingReview": "Por revisar",
+      "rosterGaps": "Faltantes en listas",
+      "tracksReady": "Áreas listas"
+    },
+    "tileCaptions": {
+      "outstanding": "Secciones faltantes o devueltas",
+      "overdue": "Pasada la fecha de vencimiento",
+      "awaitingReview": "Respuestas por revisar",
+      "rosterGaps": "Datos que aún faltan",
+      "tracksReady": "Listas para aprobar"
+    },
+    "panes": {
+      "label": "Mostrar",
+      "packets": "Paquetes",
+      "crew": "Equipo",
+      "allocations": "Asignaciones",
+      "tracks": "Áreas"
+    },
+    "engagementClosed": "Contratación cerrada",
+    "packetFilter": "Paquete",
+    "noPackets": "Aún no se envió ningún paquete. Envía uno para ver quién respondió cada sección.",
+    "corner": {
+      "recipient": "Destinatario",
+      "person": "Persona",
+      "party": "Parte"
+    },
+    "heatmap": {
+      "packets": "{packet}: respuestas por destinatario y sección",
+      "crew": "Preparación del equipo por persona y categoría",
+      "allocations": "Asignaciones por parte y servicio",
+      "tracks": "{packet}: áreas por destinatario"
+    },
+    "states": {
+      "missing": "Falta",
+      "awaitingReview": "Por revisar",
+      "accepted": "Aceptada",
+      "returned": "Devuelta",
+      "complete": "Completa",
+      "notApplicable": "No aplica"
+    },
+    "overdue": "Vencida",
+    "readiness": {
+      "categories": {
+        "acceptance": "Aceptación",
+        "contact": "Contacto",
+        "emergencyContacts": "Contactos de emergencia",
+        "dietaryNeeds": "Necesidades alimentarias",
+        "accessibilityNeeds": "Necesidades de accesibilidad",
+        "allergies": "Alergias",
+        "passport": "Pasaporte",
+        "uniform": "Uniforme",
+        "travel": "Viaje",
+        "vehicle": "Vehículo"
+      },
+      "states": {
+        "accepted": "Aceptada",
+        "awaitingPerson": "Espera a la persona",
+        "declined": "Rechazada",
+        "onFile": "Registrado",
+        "missing": "Falta",
+        "notShared": "No compartido",
+        "shared": "Compartido",
+        "submitted": "Enviado",
+        "notOffered": "No se ofrece",
+        "hidden": "Oculto"
+      },
+      "empty": "Todavía no hay nadie en una lista de equipo de este proyecto.",
+      "refused": "No puedes ver el equipo de este proyecto."
+    },
+    "allocation": {
+      "states": {
+        "requested": "Solicitada",
+        "approved": "Aprobada",
+        "partlyIssued": "Entregada en parte",
+        "issued": "Entregada",
+        "returned": "Devuelta"
+      },
+      "detail": "{issued} de {approved} entregados",
+      "requestedDetail": "{n} esperan una decisión",
+      "empty": "Todavía no hay nada asignado en este proyecto.",
+      "badges": "Credenciales",
+      "sites": "Equipos del sitio"
+    },
+    "tracksEmpty": "Ninguna sección de este paquete está en un área todavía.",
+    "remind": {
+      "action": "Enviar recordatorio",
+      "done": "Se recordó a {sent}; se omitió a {skipped}: ya se les recordó hoy o no tienen nada que responder",
+      "pickPacket": "Elige un paquete para recordar a sus destinatarios.",
+      "selected": "{n, plural, one {# destinatario seleccionado} other {# destinatarios seleccionados}}"
+    },
+    "live": "Se actualiza cuando cambian las respuestas y las listas."
+  },
+  "tracks": {
+    "label": "Área",
+    "help": "Agrupa las secciones que un revisor aprueba juntas. Se puede cambiar después de enviar el paquete.",
+    "names": {
+      "finance": "Finanzas",
+      "technical": "Técnica",
+      "hospitality": "Hospitalidad",
+      "catering": "Catering",
+      "travel": "Viajes",
+      "logistics": "Logística",
+      "general": "General"
+    },
+    "states": {
+      "notStarted": "Sin empezar",
+      "inProgress": "En curso",
+      "readyForSignOff": "Listo para aprobar",
+      "signedOff": "Aprobado",
+      "reopened": "Reabierto"
+    },
+    "signedOffOn": "Aprobado el {date}",
+    "signedOffBy": "Aprobado por {name}, {date}",
+    "progress": "{done} de {total} listas",
+    "signOff": {
+      "title": "Aprobar {track} de {recipient}",
+      "body": "Todas las secciones de esta área están aceptadas, completas o no aplican. Al aprobar queda registrado quién aprobó y cuándo.",
+      "confirm": "Aprobar",
+      "done": "{track} aprobado para {recipient}."
+    },
+    "revoke": {
+      "title": "Revocar la aprobación de {track} de {recipient}",
+      "reason": "Por qué se revoca",
+      "reasonHelp": "De 1 a 500 caracteres. El área vuelve a revisión.",
+      "confirm": "Revocar aprobación",
+      "done": "Se revocó la aprobación de {track} para {recipient}."
+    }
   }
 }

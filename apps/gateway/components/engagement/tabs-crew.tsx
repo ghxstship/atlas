@@ -27,7 +27,7 @@ import { ItinerarySections, loadItinerary } from "./itinerary";
 import { AreaClosed, RowList, TabEmpty } from "./rows";
 import type { TabProps } from "./tab-context";
 import { DocumentActions } from "@/components/documents/document-actions";
-import { AssignRosterShiftForm } from "./staffing-forms";
+import { AssignRosterShiftForm, MarkNoShowForm } from "./staffing-forms";
 
 /**
  * Crew and staff tabs (Section 4.4.4: shifts, timesheets, travel and lodging, credentials,
@@ -48,6 +48,14 @@ function agencyLead(view: TabProps["view"]): boolean {
 }
 
 type ShiftRow = ExternalRow<"shifts">;
+
+function hasPassed(iso: string): boolean {
+  return Date.parse(iso) <= Date.now();
+}
+
+function newNoShowId(): string {
+  return crypto.randomUUID();
+}
 
 /**
  * The shifts a tab lists: a person on the roster their own (R12), the agency's lead the slots and roster shifts of
@@ -151,10 +159,21 @@ export async function PositionsTab({ view, t, locale, engagementKey }: TabProps)
   const lead = agencyLead(view);
   const assignable = lead ? await assignableStaff(view, shifts.data, t) : null;
   if (assignable && !assignable.ok) return <RegionError />;
+  // Records assigned to the positions the person holds, or to the positions of the roster they lead (B9).
+  const records = await readView(view.ctx.db, "position_records", {
+    eq: { project_id: view.engagement.projectId },
+    order: ["position_title", "asc"],
+  });
+  if (!records.ok) return <RegionError />;
+  // A project position names the group; otherwise the scope, as before (B9, ADR 0148).
   const groups = new Map<string, ShiftRow[]>();
   for (const s of shifts.data) {
-    const key = s.scope_node_name ?? s.job_title ?? "";
+    const key = s.position_title ?? s.scope_node_name ?? s.job_title ?? "";
     groups.set(key, [...(groups.get(key) ?? []), s]);
+  }
+  for (const r of records.data) {
+    const key = r.position_title ?? "";
+    if (!groups.has(key)) groups.set(key, []);
   }
   if (groups.size === 0) {
     return (
@@ -170,52 +189,91 @@ export async function PositionsTab({ view, t, locale, engagementKey }: TabProps)
     <div className="flex flex-col gap-16">
       {[...groups].map(([position, list]) => (
         <Section key={position} id={`position-${position}`} title={position}>
-          <RowList
-            label={position}
-            items={list.map((s) => ({
-              id: s.id ?? "",
-              title: s.starts_at
-                ? formatScheduleTime(locale, s.starts_at, s.time_zone, view.scheduleView)
-                : position,
-              meta: [
-                s.project_name,
-                s.ends_at
-                  ? formatScheduleTime(locale, s.ends_at, s.time_zone, view.scheduleView)
-                  : null,
-                lead ? (s.holder_name ?? t("gateway.engagement.staffing.openSlot")) : null,
-              ],
-              ...(s.shift_state
-                ? {
-                    tag: {
-                      label: t(enumLabelKey("shiftState", s.shift_state)),
-                      tone: toneFor(s.shift_state),
-                    },
-                  }
-                : {}),
-              // The agency places someone on an open slot, or takes them off one (R12).
-              ...(lead && s.id && s.shift_state !== "Canceled"
-                ? s.is_agency_slot && assignable?.ok
+          {records.data.some((r) => r.position_title === position) ? (
+            <RowList
+              label={t("gateway.engagement.positions.records", { position })}
+              items={records.data
+                .filter((r) => r.position_title === position)
+                .map((r) => ({
+                  id: `record-${r.id ?? ""}`,
+                  title: r.title ?? "",
+                  meta: [
+                    r.record_kind,
+                    r.due_at
+                      ? t("gateway.engagement.positions.due", {
+                          date: formatDate(locale, r.due_at),
+                        })
+                      : null,
+                  ],
+                  ...(r.record_state
+                    ? { tag: { label: r.record_state, tone: toneFor(r.record_state) } }
+                    : {}),
+                }))}
+            />
+          ) : null}
+          {list.length > 0 ? (
+            <RowList
+              label={position}
+              items={list.map((s) => ({
+                id: s.id ?? "",
+                title: s.starts_at
+                  ? formatScheduleTime(locale, s.starts_at, s.time_zone, view.scheduleView)
+                  : position,
+                meta: [
+                  s.project_name,
+                  s.ends_at
+                    ? formatScheduleTime(locale, s.ends_at, s.time_zone, view.scheduleView)
+                    : null,
+                  lead ? (s.holder_name ?? t("gateway.engagement.staffing.openSlot")) : null,
+                ],
+                ...(s.has_no_show
                   ? {
-                      detail: <AssignRosterShiftForm shiftId={s.id} options={assignable.data(s)} />,
+                      tag: {
+                        label: t("gateway.engagement.staffing.noShowTag"),
+                        tone: "warning" as const,
+                      },
                     }
-                  : s.roster_entry_id
+                  : s.shift_state
                     ? {
-                        action: (
-                          <ActionButton
-                            action={unassignRosterShiftAction.bind(
-                              null,
-                              s.id,
-                              t("gateway.engagement.staffing.unassignReason"),
-                            )}
-                            label={t("gateway.engagement.staffing.unassign")}
-                            variant="secondary"
-                          />
+                        tag: {
+                          label: t(enumLabelKey("shiftState", s.shift_state)),
+                          tone: toneFor(s.shift_state),
+                        },
+                      }
+                    : {}),
+                // The agency places someone on an open slot, or takes them off one (R12).
+                ...(lead && s.id && s.shift_state !== "Canceled"
+                  ? s.is_agency_slot && assignable?.ok
+                    ? {
+                        detail: (
+                          <AssignRosterShiftForm shiftId={s.id} options={assignable.data(s)} />
                         ),
                       }
-                    : {}
-                : {}),
-            }))}
-          />
+                    : s.roster_entry_id && !s.has_no_show
+                      ? {
+                          // Running, and nobody marked: the agency's lead says they did not arrive (B9).
+                          ...(s.starts_at &&
+                          hasPassed(s.starts_at) &&
+                          !(s.ends_at && hasPassed(s.ends_at))
+                            ? { detail: <MarkNoShowForm shiftId={s.id} noShowId={newNoShowId()} /> }
+                            : {}),
+                          action: (
+                            <ActionButton
+                              action={unassignRosterShiftAction.bind(
+                                null,
+                                s.id,
+                                t("gateway.engagement.staffing.unassignReason"),
+                              )}
+                              label={t("gateway.engagement.staffing.unassign")}
+                              variant="secondary"
+                            />
+                          ),
+                        }
+                      : {}
+                  : {}),
+              }))}
+            />
+          ) : null}
         </Section>
       ))}
     </div>

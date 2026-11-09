@@ -9,7 +9,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0700_engagement_world.psql
 
-select plan(66);
+select plan(67);
 
 create function pg_temp.approval_of(p_credential text) returns uuid language sql as $$
   select a.id from app.subject_approvals a where a.credential_id = pg_temp.id(p_credential) and a.canceled_at is null
@@ -67,8 +67,8 @@ with x as (insert into app.approval_rules (project_id, subject, name) values (pg
   insert into world select 'rule_equipment', id from x;
 insert into app.approval_rule_steps (approval_rule_id, step_order, name, approver_membership_id)
 values (pg_temp.id('rule_equipment'), 1, 'Quartermaster', pg_temp.id('bob@org_a'));
-select throws_like($$select app.transition_approval_rule((select id from world where key = 'rule_equipment'), 'Draft', 'Active', 'Go.')$$,
-  'approval_rule_equipment_pending:%', 'an Equipment rule stays a Draft until equipment requests are gated (2863)');
+select lives_ok($$select app.transition_approval_rule((select id from world where key = 'rule_equipment'), 'Draft', 'Active', 'Go.')$$,
+  'an Equipment rule is activated, since 6230 gates equipment requests');
 -- An outside party with no XOS account cannot receive approval emails.
 select pg_temp.as_platform();
 with p as (insert into app.people (full_name) values ('Offline Vendor') returning id) insert into world select 'offline', id from p;
@@ -134,6 +134,8 @@ select ok((select message_args ->> 'title' from app.notifications where kind = '
 
 -- 3. The access-scan gate ----------------------------------------------------------------------------------------------------
 select is(pg_temp.scan('cred_frank'), 'Denied', 'a pass In Review does not open a door the grid allows');
+select is((select s.refusal_reason::text from app.access_scans s where s.credential_id = pg_temp.id('cred_frank') order by s.scanned_at desc limit 1), 'Not Approved',
+  'and says it waits on its approval (6250)');
 select is(pg_temp.scan('cred_crew'), 'Granted', 'a pass no rule gates still does');
 
 -- 4. Refusals --------------------------------------------------------------------------------------------------------------------

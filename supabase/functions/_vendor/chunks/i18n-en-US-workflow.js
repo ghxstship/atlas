@@ -18,6 +18,18 @@ var settings = {
     label: "Reminders per step",
     help: "From 1 to 10. Automatic reminders and Remind approvers both count.",
   },
+  quoteChaseEnabled: {
+    label: "Remind vendors about quotes",
+    help: "When on, vendors invited to an issued RFQ who have not answered are reminded automatically.",
+  },
+  quoteChaseInterval: {
+    label: "Hours between quote reminders",
+    help: "How long to wait after an RFQ is issued, and between reminders.",
+  },
+  quoteChaseLimit: {
+    label: "Most reminders per vendor",
+    help: "Reminders stop at this number, when the vendor answers, or when the RFQ leaves Issued.",
+  },
 };
 var common = {
   errorTitle: "Something went wrong",
@@ -77,8 +89,8 @@ var refusals = {
   approval_rule_active_delete: "Retire an Active rule before you delete it.",
   approval_rule_filter_project:
     "The filter must belong to this project's org, and a credential category to this project.",
-  approval_rule_equipment_pending:
-    "Equipment rules take effect once equipment requests come from advances. Keep this rule as a Draft until then.",
+  approval_rule_class_no_offering:
+    "Requests come only for Radios and Carts, so a rule on this class would never apply. Choose one of those classes.",
   approval_rule_pending:
     "This request waits on its approval rule. Approve it once every step is approved.",
   approval_step_engagement:
@@ -186,6 +198,9 @@ var approvals = {
     reasonHelp: "Kept in the approval's history.",
     submit: "Withdraw approval",
     done: "Approval withdrawn.",
+    equipmentHelp:
+      "Kept in the approval's history. This also withdraws the equipment request, and the requester sees why.",
+    equipmentDone: "Approval and equipment request withdrawn.",
   },
   submit: {
     title: "Submit a document for approval",
@@ -347,6 +362,8 @@ var templates = {
     dueOffsetHelp: "Leave blank for no due date; use a negative number for before the start.",
     remove: "Remove",
     removeNamed: "Remove {name}",
+    requiresReview: "Requires review",
+    reviewed: "requires review",
   },
   draft: {
     title: "Draft version {version}",
@@ -416,6 +433,10 @@ var builder = {
     assets: "Assets",
     incidents: "Incidents",
     custom_object: "Custom objects",
+    crew_hours: "Crew hours",
+    crew_responses: "Crew responses",
+    crew_removals: "Crew removals",
+    crew_ratings: "Crew ratings",
   },
   fields: {
     records: {
@@ -463,6 +484,40 @@ var builder = {
     custom_object: {
       title: "Title",
       created_at: "Created",
+    },
+    crew_hours: {
+      shift_id: "Shift",
+      role_code: "Role",
+      worker_kind: "Worker kind",
+      worker_name: "Worker",
+      starts_at: "Starts",
+      scheduled_hours: "Scheduled hours",
+      actual_hours: "Actual hours",
+      variance_hours: "Variance hours",
+      no_show: "No-show",
+    },
+    crew_responses: {
+      kind: "Kind",
+      answer: "Answer",
+      asked_at: "Asked",
+      answered_at: "Answered",
+      person_name: "Person",
+      role_code: "Role",
+    },
+    crew_removals: {
+      removed_at: "Removed",
+      from_state: "Left state",
+      person_name: "Person",
+      role_code: "Role",
+      engagement_party: "Party",
+      reason: "Reason",
+      removed_by_name: "Removed by",
+    },
+    crew_ratings: {
+      party_name: "Party",
+      role_type: "Role type",
+      score: "Score",
+      submitted_at: "Submitted",
     },
   },
   fieldsTitle: "Columns",
@@ -552,6 +607,16 @@ var builder = {
   savedNone: "No saved reports yet. Save one above.",
   sharedLabel: "Shared",
   privateLabel: "Private",
+  standard: {
+    "crew-utilization": "Crew utilization",
+    "crew-invitation-responses": "Invitation responses",
+    "crew-removals": "Crew removals",
+    "crew-ratings": "Crew ratings",
+    "crew-scheduled-vs-actual": "Scheduled against actual hours",
+  },
+  standardHelp:
+    "A standard report. Nothing is kept until you save it as your own editable copy, and the preview shows only what you may read.",
+  saveAsMine: "Save as my report",
 };
 var policies = {
   title: "Approval policies",

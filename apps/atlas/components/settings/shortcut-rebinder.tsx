@@ -67,7 +67,20 @@ export function ShortcutRebinder({
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const byId = new Map(shell.shortcuts.map((s) => [s.id, s]));
-  const label = (id: string) => t(byId.get(id)?.label ?? id);
+  const groupLabel = new Map(shell.groups.map((g) => [g.id, g.label]));
+  // The Stream Deck's function keys do what the console's letters do, under the same action names, so
+  // an action another shortcut shares is named with its group: one row, key and Change button each.
+  const sharedLabels = new Set(
+    shell.shortcuts.map((s) => s.label).filter((l, i, all) => all.indexOf(l) !== i),
+  );
+  const label = (id: string) => {
+    const shortcut = byId.get(id);
+    if (!shortcut) return t(id);
+    const group = groupLabel.get(shortcut.group);
+    return sharedLabels.has(shortcut.label) && group
+      ? t("settings.shortcuts.inGroup", { action: t(shortcut.label), group: t(group) })
+      : t(shortcut.label);
+  };
   const current = (p: Platform) => effectiveBindings(shell, bindings, p);
   const keysOf = (id: string) => current(platform).get(id) ?? null;
 

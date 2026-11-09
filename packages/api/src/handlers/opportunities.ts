@@ -461,7 +461,11 @@ const opportunities = tableResource("opportunities", {
   fixed: ["project_id", "role_type"],
 });
 const applications = tableResource("applications", { orgColumn: false });
-const engagementDocuments = tableResource("engagementDocuments");
+// A Quote document follows its quote (6553) and is read through /quotes: the frozen resource's list
+// omits it, and get and transition answer 404, so its document_kind enum holds (ADR 0152).
+const engagementDocuments = tableResource("engagementDocuments", {
+  scope: (q) => q.neq("document_kind", "Quote"),
+});
 
 /** A bid's NULL-aware total from its lines and whether it is still sealed (before the opportunity deadline). */
 async function bidContract(row: Row, context: { db: XosClient }): Promise<Row> {

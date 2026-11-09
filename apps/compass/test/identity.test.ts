@@ -65,6 +65,8 @@ describe("audience", () => {
       // The onboarding checklist reads before operational access opens, never after Complete (A92).
       onboardingEngagementIds: ["e1"],
       rosterEntryIds: [],
+      // An engaged context is no member of the org, so orgIds stays empty; B9's break types scope here instead.
+      engagedOrgIds: ["o1"],
     });
     const onboarding = { ...identity, engagements: [eng({ id: "e3", state: "Onboarding" })] };
     expect(scopeFor(onboarding, [], [])).toMatchObject({

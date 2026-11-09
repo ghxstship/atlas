@@ -130,7 +130,8 @@
     "saved": "Líneas del rider agregadas desde el documento.",
     "suggestionsOpen": "Las líneas se agregaron, pero algunas propuestas siguen abiertas en el registro de sugerencias.",
     "saveFailed": "Las líneas no se guardaron. Revisa el rider e inténtalo de nuevo.",
-    "noLines": "Aurora no encontró solicitudes en este rider. Agrégalas a mano arriba."
+    "noLines": "Aurora no encontró solicitudes en este rider. Agrégalas a mano arriba.",
+    "tooManyLines": "El rider tiene demasiadas líneas para una lectura. Divídelo e inténtalo de nuevo."
   },
   "compass": {
     "menuLabel": "Aurora",
@@ -169,7 +170,10 @@
       "listNotEmpty": "Esta lista ya tiene entradas. Aurora solo redacta en una lista vacía.",
       "refused": "Aurora no pudo hacer esto: {detail}",
       "unexpected": "Algo salió mal y no se cambió nada. Inténtelo de nuevo.",
-      "failed": "El modelo no respondió y no se cambió nada. Inténtelo de nuevo en un momento."
+      "failed": "El modelo no respondió y no se cambió nada. Inténtelo de nuevo en un momento.",
+      "itineraryDuplicate": "{detail}",
+      "feeRestricted": "Solo quien puede ver pagos fija un honorario. No se cambió nada.",
+      "sourceUnverified": "Aurora solo redacta desde correo verificado de la bandeja de este proyecto. No se cambió nada."
     },
     "sent": {
       "heading": "Lo que recibe Aurora",
@@ -190,14 +194,22 @@
         "change_order_description": "Redactar una descripción con Aurora",
         "day_sheet": "Redactar una hoja del día con Aurora",
         "run_of_show": "Redactar una orden de show con Aurora",
-        "risk_assessment": "Redactar una evaluación de riesgos con Aurora"
+        "risk_assessment": "Redactar una evaluación de riesgos con Aurora",
+        "event_plan": "Redactar un plan de evento con Aurora",
+        "waste_plan": "Redactar un plan de residuos con Aurora",
+        "event_brief": "Redactar un resumen con Aurora",
+        "approval_pack": "Redactar un paquete de aprobación con Aurora"
       },
       "instructions": "¿Qué debe decir el borrador?",
       "instructionsHelp": {
         "sop": "Por ejemplo: el procedimiento de montaje del escenario principal, con el jefe de equipo como responsable.",
         "advance_packet": "Por ejemplo: pida al equipo del artista sus necesidades de hospitalidad y sus horas de llegada.",
         "change_order_description": "Por ejemplo: cuatro puntos de colgado más sobre el borde delantero del escenario, a pedido del cliente.",
-        "day_sheet": "Por ejemplo: montaje a las 7:00 con el equipo de rigging, apertura de puertas a las 19:00 y los contactos del jefe de escena."
+        "day_sheet": "Por ejemplo: montaje a las 7:00 con el equipo de rigging, apertura de puertas a las 19:00 y los contactos del jefe de escena.",
+        "event_plan": "Por ejemplo: el plan del escenario exterior, con el personal y la ruta de emergencia.",
+        "waste_plan": "Por ejemplo: los flujos de residuos de la zona de comida y cómo se recoge cada uno.",
+        "event_brief": "Por ejemplo: un resumen de una página para los líderes de equipo.",
+        "approval_pack": "Por ejemplo: el resumen para la oficina de eventos de la ciudad."
       },
       "kind": {
         "sop": "Procedimiento operativo estándar",
@@ -205,7 +217,11 @@
         "change_order_description": "Descripción de la orden de cambio",
         "day_sheet": "Hoja del día",
         "run_of_show": "Orden de show",
-        "risk_assessment": "Evaluación de riesgos"
+        "risk_assessment": "Evaluación de riesgos",
+        "event_plan": "Plan de evento",
+        "waste_plan": "Plan de residuos",
+        "event_brief": "Resumen",
+        "approval_pack": "Paquete de aprobación"
       },
       "sentKind": "Borrador",
       "sentInstructions": "Sus instrucciones",
@@ -307,7 +323,8 @@
       "kind": {
         "record_activity": "La actividad de este registro",
         "project_week": "Esta semana",
-        "gate_readiness": "Preparación de la compuerta"
+        "gate_readiness": "Preparación de la compuerta",
+        "project_wrap_up": "Cierre"
       },
       "itemsError": "No pudimos leer qué resumir. Cierre el panel e inténtelo de nuevo.",
       "nothing": "Todavía no hay nada que resumir.",
@@ -373,7 +390,8 @@
         "description": "Descripción",
         "amount_minor": "Importe",
         "incurred_on": "Fecha",
-        "valid_until": "Válida hasta"
+        "valid_until": "Válida hasta",
+        "printed_total_minor": "Total impreso"
       },
       "notRead": "No se leyó: {missing}",
       "confidence": "Confianza del {percent, number} por ciento.",
@@ -384,7 +402,10 @@
       "lineDescription": "Descripción de la línea {n, number}",
       "lineQuantity": "Cantidad",
       "lineUnitPrice": "Precio unitario",
-      "lineNotRead": "No aparece en el documento"
+      "lineNotRead": "No aparece en el documento",
+      "vendor": "Proveedor: {name}",
+      "linesLater": "{count, plural, one {# línea queda abierta} other {# líneas quedan abiertas}} para revisar en la factura después de guardarla.",
+      "tooManyLines": "Aurora no pudo terminar de leer este archivo. Puede tener demasiadas líneas para una lectura. Divídelo e inténtalo de nuevo."
     },
     "binding": {
       "button": "Sugerir vínculo",
@@ -448,6 +469,194 @@
         "expenses": "gastos",
         "changeOrders": "órdenes de cambio"
       }
+    },
+    "intake": {
+      "fileStatusLabel": "Archivos",
+      "fileStatus": {
+        "waiting": "En espera",
+        "reading": "Leyendo",
+        "read": "Leído",
+        "failed": "No se pudo leer"
+      },
+      "fileReading": "Leyendo {name}.",
+      "files": "Archivos",
+      "filesHelp": "Hasta {max} archivos de 10 MB cada uno: PDF, texto o imágenes.",
+      "tooMany": "Elige como máximo {max} archivos.",
+      "tooBig": "Cada archivo puede tener como máximo 10 MB.",
+      "sentKind": "Qué es",
+      "sentFiles": "Archivos",
+      "noFiles": "Ninguno todavía",
+      "uses": "Esto usa {n} de tus {left} solicitudes restantes.",
+      "usesUnlimited": "Esto usa {n, plural, one {# solicitud} other {# solicitudes}}.",
+      "keepsNothing": "XOS no guarda nada de estos archivos hasta que los agregues.",
+      "tooManyDropped": "{file}: {count, plural, one {# línea quedó fuera} other {# líneas quedaron fuera}} porque una lectura admite 40 líneas. Divide el archivo para leer el resto.",
+      "tooManyLines": "{file} tiene demasiadas líneas para una lectura. Divídelo e inténtalo de nuevo.",
+      "rejectAll": "Rechazar todo",
+      "rejectReason": "Rechazado en la revisión.",
+      "choose": "Elegir",
+      "next": "Siguiente",
+      "done": "Listo",
+      "correct": "Corregir",
+      "keep": "Conservar",
+      "keepLine": "Conservar {name}",
+      "confidence": "Confianza",
+      "excerpt": "Fuente",
+      "status": "Estado",
+      "itinerary": {
+        "button": "Leer itinerarios",
+        "title": "Leer itinerarios",
+        "kind": "Itinerario de viaje",
+        "ready": "Las líneas están listas para revisar.",
+        "add": "Agregar {count, plural, one {# tramo} other {# tramos}}",
+        "added": "Se {count, plural, one {agregó # tramo} other {agregaron # tramos}}.",
+        "review": "Elige quién es cada pasajero y confirma cada zona. No se agrega nada hasta que elijas Agregar, y las líneas que dejes siguen abiertas 7 días.",
+        "travelersTitle": "Viajeros",
+        "printedAs": "Impreso como {name}",
+        "zonesTitle": "Zonas",
+        "checkZone": "Revisa esta zona. Aurora la dedujo del aeropuerto o la ciudad.",
+        "zoneOf": "Zona de {place}",
+        "badZone": "Usa un nombre IANA como America/Chicago.",
+        "confirmZone": "Confirmada",
+        "linesTitle": "Líneas",
+        "traveler": "Viajero",
+        "route": "Ruta",
+        "routeLine": "{from} a {to}",
+        "yearInferred": "El año no estaba impreso. Aurora usó la próxima vez que llega esta fecha.",
+        "mode": "Modo",
+        "flight": "Vuelo",
+        "ground": "Terrestre",
+        "operator": "Operador",
+        "service": "Servicio",
+        "confirmation": "Confirmación",
+        "price": "Precio",
+        "currency": "Moneda",
+        "place": "Lugar",
+        "localTime": "Hora local",
+        "zone": "Zona",
+        "steps": {
+          "0": "Servicio",
+          "1": "Salida",
+          "2": "Llegada"
+        },
+        "status": {
+          "ready": "Lista",
+          "needsTraveler": "Falta viajero",
+          "needsDetails": "Faltan datos",
+          "checkZone": "Revisar zona",
+          "alreadyBooked": "Ya reservado"
+        },
+        "dropped": {
+          "length": "{file}, línea {line}: quedó fuera porque un valor es más largo de lo que admite un tramo.",
+          "zone": "{file}, línea {line}: quedó fuera porque su zona no es un nombre IANA.",
+          "time": "{file}, línea {line}: quedó fuera porque llega antes de salir.",
+          "too_many": "{file}, línea {line}: quedó fuera."
+        }
+      },
+      "contract": {
+        "button": "Leer contratos y riders",
+        "title": "Leer contratos y riders",
+        "kind": "Contrato o rider",
+        "project": "Proyecto",
+        "ready": "Los documentos están listos para revisar.",
+        "add": "Agregar {count, plural, one {# contratación} other {# contrataciones}}",
+        "added": "Se {count, plural, one {agregó # contratación} other {agregaron # contrataciones}}.",
+        "review": "Los documentos se agrupan por acto. Tú eliges cada contratación y honorario. Aurora no crea personas, cuentas ni contrapartes.",
+        "terms": "Condiciones",
+        "termsHelp": "Cada contratación toma este puesto, clasificación, base de pago y modalidad.",
+        "termLabel": "{role} · {classification} · {basis} · {arrangement}",
+        "groups": "Contrataciones",
+        "party": "Parte",
+        "noAct": "Sin acto indicado",
+        "importCounterparties": "Importar contrapartes",
+        "attachOnly": "Esta parte ya tiene una contratación aquí. Los documentos se adjuntan a ella y el honorario se ignora.",
+        "chooseBooking": "Contratación",
+        "bookingN": "Contratación {n}",
+        "vendorNeedsCounterparty": "Las condiciones de proveedor necesitan una contraparte.",
+        "dates": "{start} a {end}.",
+        "printedFee": "Honorario impreso: {fee}. Un honorario solo se lee para quienes pueden ver pagos.",
+        "rate": "Tarifa por unidad: {rate}",
+        "startDate": "Inicio",
+        "endDate": "Fin",
+        "fee": "Honorario",
+        "currency": "Moneda",
+        "feeHint": "Este honorario es un total. Ingresa la tarifa por unidad.",
+        "attachFile": "Adjuntar archivo",
+        "type": {
+          "Contract": "Contrato",
+          "Rider": "Rider",
+          "Other": "Otro documento"
+        },
+        "upload": {
+          "pending": "Adjuntando",
+          "attached": "Adjuntado",
+          "failed": "No se pudo adjuntar"
+        },
+        "status": {
+          "ready": "Lista",
+          "needsParty": "Falta la parte",
+          "needsStartDate": "Falta la fecha de inicio",
+          "alreadyBooked": "Ya contratado",
+          "other": "Otro documento"
+        }
+      },
+      "invoiceLines": {
+        "button": "Revisar líneas del documento",
+        "title": "Revisar líneas del documento",
+        "add": "Agregar líneas",
+        "added": "Se {count, plural, one {agregó # línea} other {agregaron # líneas}}.",
+        "tieOut": "Total impreso {printed}. Las líneas suman {computed}. Diferencia {residual}.",
+        "notCheckable": "Todavía no se puede comprobar el total: una línea no tiene precio o no se imprimió un total.",
+        "checked": "Revisé la diferencia",
+        "lines": "Líneas",
+        "budgetLine": "Línea de presupuesto",
+        "lastBilled": "Último cobro a {price} en {invoice}.",
+        "lastBilledCoded": "Último cobro a {price} en {invoice}. Asignado a {line}.",
+        "useBudgetLine": "Usar esta línea de presupuesto"
+      },
+      "advanceDraft": {
+        "button": "Redactar respuestas desde una respuesta recibida",
+        "title": "Redactar respuestas para {name}",
+        "kind": "Respuestas de avance",
+        "ready": "Las respuestas están listas para revisar.",
+        "source": "Fuente",
+        "mailOption": "{subject}, de {from}",
+        "noSubject": "Sin asunto",
+        "fileOption": "Elegir un archivo",
+        "file": "Archivo",
+        "mailRecord": "El mensaje",
+        "emptyInbox": "Todavía no ha llegado a la bandeja de este proyecto ningún correo que puedas leer. Elige un archivo.",
+        "fromSender": "Enviado desde {from}.",
+        "fromFile": "Leído de {name}.",
+        "secondPerson": "Otra persona revisa lo que aceptes.",
+        "answers": "Respuestas",
+        "answer": "Respuesta",
+        "window": "{start} a {end}, {zone}",
+        "checkFile": "Compáralo con el archivo.",
+        "accept": "Aceptar",
+        "reject": "Rechazar",
+        "accepted": "Se registró una respuesta a {section}.",
+        "decision": {
+          "accepted": "Registrada",
+          "rejected": "Rechazada"
+        },
+        "dropped": "{count, plural, one {# respuesta quedó fuera} other {# respuestas quedaron fuera}} porque no se pudieron comprobar con la fuente.",
+        "unanswered": "Sin responder"
+      },
+      "fileFailed": "No se pudo leer {file}, así que nada de ese archivo aparece aquí. Inténtalo de nuevo, o divídelo si es largo.",
+      "fileNoAnswer": "Aurora no encontró nada que leer en {file}, así que nada de ese archivo aparece aquí."
+    },
+    "rules": {
+      "aurora_intake_item_invalid": "{detail}",
+      "aurora_intake_project_required": "Un itinerario o un contrato se lee para un proyecto.",
+      "aurora_itinerary_traveler": "{detail}",
+      "aurora_invoice_currency": "{detail}",
+      "aurora_invoice_lines_foreign": "Estas líneas se leyeron para otra factura.",
+      "aurora_advance_no_open_sections": "Este destinatario no tiene ninguna sección abierta que Aurora pueda redactar.",
+      "aurora_advance_source_empty": "Este mensaje no tiene texto para leer. Elige un archivo.",
+      "aurora_advance_section_not_allowed": "Aurora no registra una respuesta a esta sección.",
+      "advance_answer_pending": "Esta sección ya tiene respuesta. Solo se puede responder de nuevo después de que se devuelva.",
+      "invoice_locked": "Las líneas de factura solo cambian mientras la factura está Propuesta.",
+      "sod_advance_submitter": "Tú registraste esta respuesta, así que otra persona la revisa."
     }
   }
 }

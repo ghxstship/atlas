@@ -12,13 +12,15 @@ import { fail, ok, toDataError, type Result } from "./result.ts";
 
 /**
  * The tables whose rows have a field history: private.field_history_subjects (migrations 1452,
- * 2100, 5241 and 5950). Asking for any other table is refused, so pages render the history only for these.
+ * 2100, 5241, 5950 and R11's 6220). Asking for any other table is refused, so pages render the history only for these.
  */
 export const FIELD_HISTORY_SUBJECTS: ReadonlySet<string> = new Set([
   "app.accommodation_assignments",
   "app.accommodation_blocks",
   "app.accounting_periods",
   "app.advance_packets",
+  "app.advance_recipients",
+  "app.advance_sections",
   "app.advance_submissions",
   "app.agreements",
   "app.applications",
@@ -26,6 +28,7 @@ export const FIELD_HISTORY_SUBJECTS: ReadonlySet<string> = new Set([
   "app.asset_damage",
   "app.asset_lots",
   "app.asset_maintenance",
+  "app.asset_maintenance_plans",
   "app.asset_units",
   "app.beos",
   "app.budgets",
@@ -41,6 +44,7 @@ export const FIELD_HISTORY_SUBJECTS: ReadonlySet<string> = new Set([
   "app.cues",
   "app.custom_object_records",
   "app.day_sheets",
+  "app.delivery_windows",
   "app.dock_slots",
   "app.documents",
   "app.engagements",
@@ -68,6 +72,7 @@ export const FIELD_HISTORY_SUBJECTS: ReadonlySet<string> = new Set([
   "app.per_diems",
   "app.permit_requirements",
   "app.prequalifications",
+  "app.procurement_needs",
   "app.purchase_orders",
   "app.radio_channels",
   "app.rate_cards",
@@ -120,6 +125,7 @@ export const MONEY_SUBJECTS: ReadonlySet<string> = new Set([
   "app.engagements",
   "app.expenses",
   "app.insurance_certificates",
+  "app.invoices",
   "app.opportunities",
   "app.payments",
   "app.per_diems",
