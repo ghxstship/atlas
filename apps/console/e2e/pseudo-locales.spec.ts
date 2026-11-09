@@ -11,7 +11,15 @@ import {
 } from "@xos/testing/pseudo";
 import { expect, test, type Page } from "@playwright/test";
 import { sitemap } from "../ia/sitemap.generated";
-import { DEMO, newOperator, passwordSignIn, reportedListing, sql, totp } from "./support";
+import {
+  DEMO,
+  disputedRating,
+  newOperator,
+  passwordSignIn,
+  reportedListing,
+  sql,
+  totp,
+} from "./support";
 
 /**
  * Gate 16 (Section 15) on every operator console route, on next dev:
@@ -19,7 +27,7 @@ import { DEMO, newOperator, passwordSignIn, reportedListing, sql, totp } from ".
  *   both   no text is cut off by its box without a title or tooltip carrying all of it, at 1280 px
  *          and 375 px (en-XA pads each message by 40 percent; ar-XB lays the page right to left)
  * An Administrator sees every sitemap node, so one fresh Administrator visits them all, with the
- * demo org, an open support session (each of its areas) and a reported listing filling the params;
+ * demo org, an open support session (each of its areas), a reported listing and a disputed rating filling the params;
  * the sign-in and second factor pages are checked on the way in. The checks are shared with the
  * other shells (packages/testing/src/pseudo.ts). Pseudo-locales exist only in development builds, so
  * a run against a production build (E2E_PRODUCTION_BUILD=1) skips; CI runs this in the pseudo-locale
@@ -82,6 +90,7 @@ test("every console route shows no hard-coded or clipped string", async ({ page,
     DEMO.owner,
   );
   const listing = await reportedListing();
+  const dispute = await disputedRating();
   const email = await newOperator("Administrator", "Ada Administrator");
   const [legalItem] = await sql<{ id: string }>(
     `select private.open_legal_queue_item('security_report', 'Open redirect report', now()) as id`,
@@ -94,6 +103,8 @@ test("every console route shows no hard-coded or clipped string", async ({ page,
     listing.title,
     email,
     legalReference?.reference ?? "",
+    dispute.comment,
+    dispute.details,
   ]);
 
   problems.push(...(await check(page, base, "/auth/sign-in", data)));
@@ -115,6 +126,7 @@ test("every console route shows no hard-coded or clipped string", async ({ page,
     sessionId: session?.id as string,
     opportunityId: listing.id,
     itemId: legalItem?.id as string,
+    disputeId: dispute.id,
   };
   const paths = flattenRoutes(sitemap).flatMap((r) => {
     const path = fillRoute(r.route, params);
