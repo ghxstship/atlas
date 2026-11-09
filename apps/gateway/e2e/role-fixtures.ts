@@ -809,6 +809,12 @@ export async function newSignIn(email: string, fullName: string): Promise<string
       where u.id = p.user_id and u.email = $1 returning p.id`,
     [email],
   );
+  // Answered as a sign-up form records it (ADR 0156): an account that never did is asked before any page.
+  await sql(
+    `insert into private.age_confirmations (person_id, user_id, minimum_age, surface)
+     select p.id, p.user_id, 18, 'Gateway' from app.people p join auth.users u on u.id = p.user_id where u.email = $1`,
+    [email],
+  );
   return person?.id as string;
 }
 

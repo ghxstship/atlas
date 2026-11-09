@@ -216,9 +216,11 @@ test("ADR 0164: the company attests before a member's meal preference, and canno
       .toBe(1);
     const [attestation] = await sql<{ basis: string; given_by: string }>(
       `select basis::text, given_by from app.sensitive_data_consents
-        where person_id = $1 and category = 'Dietary and Allergies' and withdrawn_at is null`,
+        where person_id = $1 and category = 'Dietary and Allergies' and withdrawn_at is null
+          and basis = 'Attested Authority'`,
       [AGENCY.staffOne],
     );
+    // Another journey may have recorded the person's own consent on this stack; the company's attestation is its own row.
     expect(attestation).toEqual({ basis: "Attested Authority", given_by: AGENCY.owner });
 
     // It sees that one is on file, and never the value.
