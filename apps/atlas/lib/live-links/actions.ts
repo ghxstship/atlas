@@ -11,6 +11,7 @@ import {
   type LiveLink,
   type LiveLinkKind,
 } from "@xos/data/live-links";
+import { getRunOfShow } from "@xos/data/show";
 import { listProjectRefs, type ProjectRef } from "@xos/data/work";
 import { z } from "zod";
 import { env } from "@/lib/env";
@@ -106,7 +107,7 @@ export async function createViewLinkAction(
   const created = await createViewLink(ctx.viewer.db, {
     savedViewId: p.savedViewId,
     projectId: project.id,
-    expiresAt: expiryFor(p.expiresOn),
+    expiresAt: expiryFor(p.expiresOn, project.timeZone),
     note: p.note === "" ? null : p.note,
   });
   if (!created.ok) return refused(created.error);
@@ -138,9 +139,16 @@ export async function createDisplayLinkAction(
   const parsed = displaySchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: "live_link_expiry_range" };
   const p = parsed.data;
+  let expiresAt: string | null = null;
+  if (p.expiresOn !== "") {
+    // A picked day ends in the running order's project zone, as the database's default does.
+    const run = await getRunOfShow(ctx.viewer.db, p.runOfShowId);
+    if (!run.ok) return refused(run.error);
+    expiresAt = expiryFor(p.expiresOn, run.data.timeZone);
+  }
   const created = await createDisplayLink(ctx.viewer.db, {
     runOfShowId: p.runOfShowId,
-    expiresAt: p.expiresOn === "" ? null : expiryFor(p.expiresOn),
+    expiresAt,
     defaultMode: isDisplayMode(p.defaultMode) ? p.defaultMode : "Backstage",
     note: p.note === "" ? null : p.note,
   });
