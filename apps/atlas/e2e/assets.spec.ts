@@ -1,4 +1,4 @@
-import { expect, settle, test, type Page } from "./engine-test";
+import { expect as baseExpect, settle, test, type Page } from "./engine-test";
 import { expectAccessibleInBothThemes, ORG, settled, signIn } from "./operations-support";
 
 /**
@@ -11,7 +11,8 @@ import { expectAccessibleInBothThemes, ORG, settled, signIn } from "./operations
 
 test.use({ reducedMotion: "reduce" });
 test.setTimeout(300_000);
-expect.configure({ timeout: 20_000 });
+// configure returns a new expect; the file-level timeout applies only through it.
+const expect = baseExpect.configure({ timeout: 20_000 });
 
 const PAGES: [string, string, string[]][] = [
   ["asset-classes", "Catalog of Asset Classes", ["table", "list", "gallery"]],

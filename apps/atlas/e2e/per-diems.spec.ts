@@ -1,5 +1,5 @@
 import pg from "pg";
-import { expect, test } from "./engine-test";
+import { expect as baseExpect, test } from "./engine-test";
 import { expectAccessibleInBothThemes, ORG, signIn } from "./operations-support";
 
 /**
@@ -10,7 +10,8 @@ import { expectAccessibleInBothThemes, ORG, signIn } from "./operations-support"
 
 test.use({ reducedMotion: "reduce" });
 test.setTimeout(180_000);
-expect.configure({ timeout: 20_000 });
+// configure returns a new expect; the file-level timeout applies only through it.
+const expect = baseExpect.configure({ timeout: 20_000 });
 
 const PROJECT = "01920000-0000-7000-8000-000000001001";
 const CREW = "01920000-0000-7000-8000-000000000201";

@@ -72,6 +72,17 @@ export const base = tseslint.config(
       "@typescript-eslint/no-unused-vars": ["error", { caughtErrors: "all" }],
       "@typescript-eslint/consistent-type-imports": "error",
       eqeqeq: ["error", "always"],
+      // Playwright's expect.configure returns a new expect; called on its own it changes nothing, so a
+      // file's timeout never applied (fifteen Atlas journeys ran on the 5 s default).
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector:
+            "ExpressionStatement > CallExpression[callee.object.name='expect'][callee.property.name='configure']",
+          message:
+            "expect.configure returns a new expect: bind it, as in const expect = baseExpect.configure({ ... }).",
+        },
+      ],
     },
   },
   ...designValues,
