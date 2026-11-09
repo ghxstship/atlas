@@ -20,8 +20,9 @@ declare
   v text;
 begin
   perform pg_temp.as_user(p_user);
+  -- From yesterday: the no-show shift started 20 minutes ago in New York, which is yesterday there in the UTC evening.
   select coalesce(string_agg(distinct x.kind, ',' order by x.kind), '') into v
-  from app.crew_shortages(pg_temp.id('org_a'), current_date, current_date + 14) x;
+  from app.crew_shortages(pg_temp.id('org_a'), current_date - 1, current_date + 14) x;
   return v;
 end $$;
 

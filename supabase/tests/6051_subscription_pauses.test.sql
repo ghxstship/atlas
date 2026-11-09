@@ -49,7 +49,9 @@ begin
   where id = (pg_temp.open_pause()).id;
 end $$;
 
-insert into k (key, at) values ('period_end', date_trunc('second', now() + interval '20 days'));
+-- The 15th of next month at this time of day, 7 to 46 days ahead: a period end on the 29th to the 31st makes a 3-month
+-- pause end on a shorter month's last day, which app.subscription_pause_status (6051) then counts as 2 months.
+insert into k (key, at) values ('period_end', date_trunc('month', now()) + interval '1 month 14 days' + (date_trunc('second', now()) - date_trunc('day', now())));
 
 -- Setup: a file made before any pause; Northwind pays monthly through Stripe; Harbor Lights pays annually; Bluewater
 -- is past due; Nina has a trial and a sandbox.
