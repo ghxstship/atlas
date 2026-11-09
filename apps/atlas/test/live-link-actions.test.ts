@@ -5,8 +5,8 @@ import type { OrgContext } from "@/lib/shell/context";
 /**
  * P1 (RRR-215, ADR 0130): the live link server actions behind the saved view and display screen
  * dialogs. The database decides who may make a link and every rule (pgTAP 3780); the actions turn a
- * project key into its id, keep the expiry inside the 90 days, build the public address on the Atlas
- * origin, and report refusals by rule. A new link's address and code come back once.
+ * project key into its id, end a picked day in the project's zone inside the 90 days, build the public
+ * address on the Atlas origin, and report refusals by rule. A new link's address and code come back once.
  */
 const state = vi.hoisted(() => ({ ctx: null as unknown }));
 const TOKEN = `xshv_${"ab".repeat(32)}`;
@@ -16,6 +16,7 @@ const data = vi.hoisted(() => ({
   createDisplay: vi.fn(),
   regenerate: vi.fn(),
   revoke: vi.fn(),
+  run: vi.fn(),
 }));
 
 vi.mock("@/lib/env", () => ({ env: () => ({ ATLAS_SITE_URL: "https://atlas.example.test" }) }));
@@ -24,10 +25,16 @@ vi.mock("@xos/data/work", () => ({
   listProjectRefs: async () => ({
     ok: true,
     data: [
-      { id: "0192f3a0-0000-7000-8000-000000000001", key: "NWL", name: "Northwind Summer Series" },
+      {
+        id: "0192f3a0-0000-7000-8000-000000000001",
+        key: "NWL",
+        name: "Northwind Summer Series",
+        timeZone: "America/New_York",
+      },
     ],
   }),
 }));
+vi.mock("@xos/data/show", () => ({ getRunOfShow: data.run }));
 vi.mock("@xos/data/live-links", async (importOriginal) => ({
   ...(await importOriginal<typeof LiveLinks>()),
   createViewLink: data.createView,
@@ -63,6 +70,7 @@ describe("live link actions", () => {
       ok: true,
       data: { id: LINK, token: SCREEN, accessCode: "135790", expiresAt: "2026-11-02T04:00:00Z" },
     });
+    data.run.mockResolvedValue({ ok: true, data: { id: RUN, timeZone: "Australia/Sydney" } });
   });
 
   it("makes a view link on the project the key names, with its address on the Atlas origin", async () => {
@@ -83,7 +91,8 @@ describe("live link actions", () => {
     expect(data.createView.mock.calls[0]?.[1]).toEqual({
       savedViewId: VIEW,
       projectId: "0192f3a0-0000-7000-8000-000000000001",
-      expiresAt: "2026-11-27T23:59:59.000Z",
+      // The end of the picked day in the project's zone (New York, UTC-5 in November), never a UTC day.
+      expiresAt: "2026-11-28T04:59:59.000Z",
       note: "Venue",
     });
   });
@@ -110,11 +119,46 @@ describe("live link actions", () => {
     expect(result).toEqual({ ok: false, error: "live_link_view_unsupported" });
   });
 
-  it("keeps a picked expiry inside the 90 days the database allows", async () => {
+  it("ends a picked day in the project's zone, inside the 90 days the database allows", async () => {
     const now = new Date("2026-10-28T12:00:00Z");
-    expect(expiryFor("2026-11-27", now)).toBe("2026-11-27T23:59:59.000Z");
-    const last = Date.parse(expiryFor("2027-01-26", now));
+    expect(expiryFor("2026-11-27", "UTC", now)).toBe("2026-11-27T23:59:59.000Z");
+    expect(expiryFor("2026-11-27", "America/Los_Angeles", now)).toBe("2026-11-28T07:59:59.000Z");
+    expect(expiryFor("2026-11-27", "Asia/Tokyo", now)).toBe("2026-11-27T14:59:59.000Z");
+    // Across a daylight saving change: London is on summer time until 25 October 2026.
+    expect(expiryFor("2026-10-24", "Europe/London", now)).toBe("2026-10-24T22:59:59.000Z");
+    expect(expiryFor("2026-10-26", "Europe/London", now)).toBe("2026-10-26T23:59:59.000Z");
+    const last = Date.parse(expiryFor("2027-01-26", "Pacific/Honolulu", now));
     expect(last).toBeLessThan(now.getTime() + 90 * 86_400_000);
+  });
+
+  it("ends a display link's picked day in its running order's project zone", async () => {
+    const result = await actions.createDisplayLinkAction("northwind-live", {
+      runOfShowId: RUN,
+      expiresOn: "2026-11-01",
+      defaultMode: "Backstage",
+      note: "",
+    });
+    expect(result.ok).toBe(true);
+    expect(data.run).toHaveBeenCalledWith({}, RUN);
+    // Sydney is UTC+11 in November.
+    expect(data.createDisplay.mock.calls[0]?.[1]).toEqual({
+      runOfShowId: RUN,
+      expiresAt: "2026-11-01T12:59:59.000Z",
+      defaultMode: "Backstage",
+      note: null,
+    });
+  });
+
+  it("reports a running order it cannot read, and never makes the link", async () => {
+    data.run.mockResolvedValue({ ok: false, error: { kind: "not-found" } });
+    const result = await actions.createDisplayLinkAction("northwind-live", {
+      runOfShowId: RUN,
+      expiresOn: "2026-11-01",
+      defaultMode: "Backstage",
+      note: "",
+    });
+    expect(result).toEqual({ ok: false, error: "notFound" });
+    expect(data.createDisplay).not.toHaveBeenCalled();
   });
 
   it("leaves a display link's expiry to the database's default when none is picked", async () => {
@@ -131,6 +175,7 @@ describe("live link actions", () => {
       defaultMode: "Presenter Timer",
       note: null,
     });
+    expect(data.run).not.toHaveBeenCalled();
   });
 
   it("refuses an unknown display mode before the database", async () => {
