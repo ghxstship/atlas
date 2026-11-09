@@ -389,3 +389,68 @@ test("crew tab: the company enters a member's vehicle, and the names lock", asyn
     await removeProject(project.id);
   }
 });
+
+test("crew tab: the company picks a member's airports in the Project details drawer", async ({
+  page,
+}) => {
+  const project = await newProject("Drawer Airport Run");
+  try {
+    await offer("offerings.travel", project.id);
+    await asPerson(
+      PEOPLE.owner,
+      `select app.set_setting($1, 'advancing.company_may_submit_project_facts', 'Project', $2, null, true, null, false)`,
+      [DEMO.org, project.id],
+    );
+    const [engagement] = await sql<{ id: string }>(
+      `insert into app.engagements (project_id, person_id, counterparty_id, role_type, role_code, worker_classification,
+         pay_basis, arrangement, agreed_rate_minor, currency_code, start_date, end_date)
+       values ($1, $2,
+         (select c.id from app.counterparties c where c.org_id = $3 and c.organization_id = $4 and c.deleted_at is null limit 1),
+         'Staff', '5000.51.02', 'INDEPENDENT_CONTRACTOR', 'Day Rate', 'Per Engagement', 30000, 'USD', '2027-06-04', '2027-06-06')
+       returning id`,
+      [project.id, AGENCY.owner, DEMO.org, AGENCY.account],
+      PEOPLE.owner,
+    );
+    const engagementId = engagement?.id as string;
+    const [entry] = await asPerson<{ id: string }>(
+      AGENCY.owner,
+      "select app.add_roster_entry($1, $2) as id",
+      [engagementId, AGENCY.staffOne],
+    );
+    const entryId = entry?.id as string;
+    await asPerson(AGENCY.owner, "select app.submit_roster($1)", [engagementId]);
+    await asPerson(AGENCY.staffOne, "select app.respond_roster_entry($1, 'Accepted')", [entryId]);
+
+    await signIn(page, "agency@example.com", "/home");
+    await page
+      .context()
+      .addCookies([{ name: "xos-acting", value: AGENCY.account, url: page.url() }]);
+    await page.goto(`/work/engagements/${toDisplayKey("engagement", engagementId)}/crew`);
+    const row = page.getByRole("listitem").filter({ hasText: "Demo Staff One" });
+    await row.getByRole("button", { name: "Project details" }).click();
+    const drawer = page.getByRole("dialog", { name: "Project details for Demo Staff One" });
+    await drawer.getByRole("button", { name: "Enter for Demo Staff One" }).click();
+
+    // The airport list opens over the drawer that holds the field, so an option takes a real click (no force).
+    await drawer.getByRole("combobox", { name: "Arriving at" }).fill("MIA");
+    await page.getByRole("option", { name: /\(MIA\)/ }).click();
+    await drawer.getByLabel("Arrival date").fill("2027-06-03");
+    await drawer.getByRole("combobox", { name: "Flying home from" }).fill("MIA");
+    await page.getByRole("option", { name: /\(MIA\)/ }).click();
+    await drawer.getByLabel("Departure date").fill("2027-06-07");
+    await drawer.getByRole("button", { name: "Next" }).click();
+    await expect(drawer).toContainText("Miami International Airport (MIA)");
+    await expect
+      .poll(() =>
+        count(
+          `select count(*)::int as n from app.roster_travel_requests
+            where roster_entry_id = $1 and inbound_airport_code = 'MIA' and outbound_airport_code = 'MIA'
+              and deleted_at is null`,
+          [entryId],
+        ),
+      )
+      .toBe(1);
+  } finally {
+    await removeProject(project.id);
+  }
+});
