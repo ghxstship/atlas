@@ -252,3 +252,19 @@ pdfkit writes new PDFs only, so it cannot put the Section 8.6 watermark on a PDF
 | Action                 | Tag     | SHA                                        |
 | ---------------------- | ------- | ------------------------------------------ |
 | `github/codeql-action` | v4.39.1 | `9b3254085494b55a0f7c4c2b3d2d52cc712ce370` |
+
+## Amendment (2026-11-09): audit overrides for fast-uri, zod and decode-uri-component (RRR-242)
+
+Three overrides in `pnpm-workspace.yaml` close production audit findings; each is two weeks past its release, and the comment beside each says when it goes.
+
+- fast-uri 3.1.9 (published 2026-10-19) replaces 3.1.8 under ajv 8, which stylelint and the API tooling use; a patch release in the same major.
+- zod 4.6.6 replaces 3.25.76 under `@expo/cli` 57.0.30, closing GHSA-mrhx-c7xc-m3w5 (high) there too. The command line tool uses zod only for its dev tools plugin schemas, and those parse and refuse the same input under zod 4. `@expo/cli` 57.0.33 drops zod; it is short of two weeks. This supersedes the 2026-10-24 amendment's note that 3.25.76 stays under the tool: no zod 3 remains in production dependencies (lighthouse's copy is development only).
+- decode-uri-component 0.5.1 (published 2026-10-23) replaces 0.2.2 under query-string 7.1.3, which expo-router 57 uses in the Compass app, closing GHSA-qr28-fpjm-wq7f (high) and GHSA-vcc3-ghjq-m6fr. 0.5.1 is an ES module only, so `patches/query-string@7.1.3.patch` makes query-string read its default export; Metro and Node 22.12's `require` of an ES module both supply it. An upgrade was not possible: query-string 8 and later export only a default, which expo-router's `import * as queryString` cannot use, and 10.0.0's regular expressions use the `v` flag, which Hermes does not support. pnpm fails the install on an unused patch, so the patch cannot outlive query-string 7.
+
+node-forge 1.4.1, glob 14.0.2 and minimatch 11.0.1 become two weeks old on 2026-11-10 (04:44, 22:07 and 22:26 UTC) and are not taken here; their allowlist entries stay until then.
+
+| Area                                   | Package                                           | Version |
+| -------------------------------------- | ------------------------------------------------- | ------- |
+| Build and test tooling                 | `fast-uri` (override)                             | 3.1.9   |
+| Compass build tooling (`@expo/cli`)    | `zod` (override)                                  | 4.6.6   |
+| Compass (expo-router's `query-string`) | `decode-uri-component` (override, with one patch) | 0.5.1   |
