@@ -56,10 +56,8 @@ test.describe("without JavaScript", () => {
     await expect(page).toHaveURL(/\/legal\/contact$/);
     await expect(page.getByRole("heading", { level: 1, name: "Legal Contact" })).toBeVisible();
     await expect(
-      page
-        .getByRole("region", { name: "Email" })
-        .getByRole("link", { name: "support@ghxstship.pro" })
-        .first(),
+      // One address since 2026-11-08: the Email section names it before its table of subject lines.
+      page.locator("article").getByRole("link", { name: "support@ghxstship.pro" }).first(),
     ).toHaveAttribute("href", "mailto:support@ghxstship.pro");
   });
 
