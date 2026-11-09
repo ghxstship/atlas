@@ -35,14 +35,13 @@ import {
   Tag,
   TemplateCollection,
   Timeline,
-  useLive,
 } from "@xos/ui";
 import type { Route } from "next";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useFormatter, useLocale } from "next-intl";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { ActionErrorAlert, useAction, useCopy } from "@/components/work/action-ui";
 // B4: the cue grid's one-module wrapper loads it when opened, so the run of show carries none of it until then.
 import { CueGrid } from "@/components/lazy-ui/cue-grid";
@@ -69,7 +68,7 @@ import {
 import { ShowChannelPanel } from "./show-channel-panel";
 import { showChannelComposerId } from "./show-channel-ids";
 import { CollectionViews } from "@/components/views/collection-views";
-import { useLiveRefresh } from "@/components/live/live-refresh";
+import { LiveCues } from "./live-cues";
 import { ListDraftEntry } from "@/components/aurora/entry/list-draft-entry";
 import { useRowMenu } from "@/components/menus/use-row-menu";
 
@@ -475,44 +474,6 @@ export function CreateRunDialog({
       ) : null}
     </>
   );
-}
-
-/** Show mode follows cue calls within half a second (Section 11.11): small batches, short gaps. */
-const SHOW_PACING = { batchMs: 30, minIntervalMs: 200, maxIntervalMs: 1_000 } as const;
-
-/**
- * Follows cue calls live while mounted (ADR 0044): a called cue refreshes the page as soon as
- * Realtime reports it, and `onCalled` hears the call from the cue's row first, so the page can show
- * it before the reread lands (ADR 0119). A 15-second pull covers a dropped channel; it replaced a
- * 2-second poll.
- */
-function LiveCues({
-  runId,
-  onCalled,
-}: {
-  runId: string;
-  onCalled: (cueId: string, calledAt: string) => void;
-}) {
-  const router = useRouter();
-  const topics = [{ table: "cues", filter: `run_of_show_id=eq.${runId}` }];
-  useLiveRefresh(topics, SHOW_PACING);
-  useLive(
-    topics,
-    (changes) => {
-      for (const change of changes) {
-        const calledAt = change.row?.["called_at"];
-        if (change.type === "UPDATE" && change.id && typeof calledAt === "string") {
-          onCalled(change.id, calledAt);
-        }
-      }
-    },
-    SHOW_PACING,
-  );
-  useEffect(() => {
-    const timer = setInterval(() => router.refresh(), 15_000);
-    return () => clearInterval(timer);
-  }, [router]);
-  return null;
 }
 
 /**

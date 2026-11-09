@@ -3,7 +3,7 @@
 - Status: Accepted
 - Date: 2026-10-28
 - Decider: A145 interaction latency and workflow timing (RRR-208)
-- Migrations: none
+- Migrations: none; amended by `6900_show_call_broadcast.sql`
 
 ## Context
 
@@ -61,3 +61,35 @@ token (ADR 0044, item 1). A cue is called once: `called_at` is set by `app.call_
   block for, and is left to a follow-up with one, which also removes the fixme.
 - Other pages keep rereading on each batch, as ADR 0044 decided. A page that adopts the row pattern must keep the
   same rule: show the row's change only until a server read carries it, and only for a change no later write undoes.
+
+## Amendment 2026-11-09: each call is broadcast to its running order
+
+The follow-up this record left open (RRR-243). Migration 6900 sends each call from the database to the running order's
+private channel `show:<run id>`, so it no longer waits for Realtime's change poll.
+
+- A row trigger on `app.cues` (`t97_broadcast_cue_called`, and `t97_broadcast_cue_called_insert` for a cue inserted
+  called) sends one `called` message with the cue's id and `called_at` through `realtime.send`, as the `cue.called`
+  events fire (6243). Realtime reads `realtime.messages` from its replication stream, not by polling. Sending never fails
+  the call: without Realtime, or without a partition of `realtime.messages` for today, the call goes on and devices hear
+  it from the Postgres change or their 15-second pull.
+- `private.show_channel_can_join(topic)` lets a signed-in person join `show:<run id>` when they can read the running
+  order through its own read policies (`private.caller_reads_row`), and its cues with it. The rule
+  `xos_show_channel_read` is a row of `private.realtime_channel_policies` (2060, 3782), for authenticated, receiving
+  only. Only the database sends.
+- Show mode (`LiveCues`, now `apps/atlas/components/show/live-cues.tsx`) joins the channel beside its Postgres change
+  watch and hands either one's call to the same heard calls, whichever comes first. Decision 2 is unchanged: the reread
+  stays the source of truth, and the Postgres change still drives it (ADR 0044).
+- The journey is on again, with its body unchanged except that the second device also waits until it has joined the
+  show channel. The `test.fixme` is gone.
+
+Measured on 2026-11-09 on production builds (`next start`, as CI's journeys run) against a local stack, six calls per
+run, the slowest deciding each run:
+
+| Machine load (1 min average) | Runs | Calls | Median | p90    | Slowest |
+| ---------------------------- | ---- | ----- | ------ | ------ | ------- |
+| about 5                      | 6    | 36    | 117 ms | 128 ms | 133 ms  |
+| about 14, ten busy loops     | 5    | 30    | 127 ms | 138 ms | 233 ms  |
+
+The other device's socket now receives the call within about 2 ms of the caller's own answer, so what remains of the
+span is the caller's call round trip (the server action and `app.call_cue`). Under `next dev` the same journey measured
+903 ms for its slowest call, all of it the development server's own slower action; CI does not run journeys there.
