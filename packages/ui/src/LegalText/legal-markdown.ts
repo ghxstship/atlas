@@ -98,9 +98,12 @@ function isTableRule(line: string): boolean {
 }
 const QUOTE = /^>\s?/;
 
-/** Bold, code, a written link, or underscore emphasis that opens and closes on a word edge. */
+/**
+ * Bold, code, a written link, or underscore emphasis that opens and closes on a word edge. A link's label
+ * and address stop at the next bracket or parenthesis, so a run of unclosed links reads in one pass.
+ */
 const INLINE =
-  /\*\*(.+?)\*\*|`([^`]+)`|\[([^\][]+)\]\(([^)\s]+)\)|(?<![\p{L}\p{N}_])_([^_]+?)_(?![\p{L}\p{N}_])/gu;
+  /\*\*(.+?)\*\*|`([^`]+)`|\[([^\][]+)\]\(([^()[\]\s]+)\)|(?<![\p{L}\p{N}_])_([^_]+?)_(?![\p{L}\p{N}_])/gu;
 
 /**
  * A path to a document, an email address, or a section of this document. A section named with
