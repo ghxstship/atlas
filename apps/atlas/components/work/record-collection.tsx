@@ -29,7 +29,7 @@ import { transitionRecordAction } from "./actions";
 import { formatScheduleTime, formatStartTime, formatWhen, stateToken, withQuery } from "./format";
 import { useScheduleView } from "./use-schedule-view";
 import { displayTimeZone } from "@xos/ui/preferences";
-import { TransitionDialog, useStateUndo } from "./record-panels";
+import { TransitionDialog, useStateUndo } from "./record-transition";
 import { CollectionViews } from "@/components/views/collection-views";
 import { isConditionParam } from "@/lib/views/query";
 import type { BulkConfig } from "@/components/bulk/types";
