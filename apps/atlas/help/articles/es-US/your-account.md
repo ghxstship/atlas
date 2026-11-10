@@ -24,6 +24,10 @@ Administre sus métodos de inicio de sesión, llaves de acceso y sesiones.
 
 Configure su idioma, zona horaria, tema y movimiento reducido. En **Preferencias** puede repetir cualquier recorrido guiado y volver a mostrar los consejos.
 
+## Calendarios suscritos
+
+**Yo, Calendarios suscritos** suscribe su aplicación de calendario a su horario en esta organización, o al de un proyecto. Dé a cada calendario un nombre, que su aplicación muestra, y elija qué muestra: turnos, reuniones, hitos, fechas límite y, en un calendario de proyecto, cues. Un calendario de proyecto también puede seguir solo a algunas personas, un equipo o un departamento, y solo los cues con un llamado de un departamento del show. Un calendario nunca muestra más de lo que usted puede ver. **Editar** lo cambia sin cambiar su enlace.
+
 ## Notificaciones
 
 Elija qué notificaciones recibe por correo, mensaje de texto y notificación push, defina horas de silencio y elija un resumen.

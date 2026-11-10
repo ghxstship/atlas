@@ -1,6 +1,18 @@
+import { getGuestPass } from "../advancing.ts";
+import { radioHandout } from "../allocations.ts";
+import { listProjectLocalContacts } from "../local-contacts.ts";
 import type { XosClient } from "../client.ts";
 import { getIssuedCredential } from "../credentials.ts";
+import type { CueCallKind } from "../cue-calls.ts";
+import { getDebriefSummary, getProjectDebrief, listDebriefItems } from "../debriefs.ts";
 import {
+  listMeasurementCatalog,
+  listMeasurementSummary,
+  type UnitPreference,
+} from "../measurements.ts";
+import { badgePhotos, loadBadgePhotoBytes } from "../credential-photos.ts";
+import {
+  extendedMinor,
   listChangeOrderLines,
   listChangeOrders,
   listInvoiceLines,
@@ -10,16 +22,63 @@ import { getBeo } from "../hospitality.ts";
 import { getIncident, listIncidentHistory, listIncidentSeverities } from "../incidents.ts";
 import { getAgreement } from "../people.ts";
 import { getPurchaseOrder, getPurchaseOrderTotals, listPoLines } from "../procurement.ts";
-import { finalCostReport } from "../reports.ts";
+import { finalCostReport, incidentsReport } from "../reports.ts";
 import { fail, ok, toDataError, type Result } from "../result.ts";
 import {
   listInspectionResultValues,
   listInspectionTemplates,
   listInspections,
 } from "../safety-permits.ts";
-import { getRunOfShow, listCallSheets, listCalls, listCues, listDaySheets } from "../show.ts";
+import {
+  getRunOfShow,
+  listCallSheets,
+  listCalls,
+  listCueCalls,
+  listCues,
+  listDayRecords,
+  listDaySheets,
+  listRunsOfShow,
+  readDaySheetSchedule,
+  type DaySheet,
+} from "../show.ts";
+import { ATTACHMENTS_BUCKET } from "../attachments.ts";
+import { getSitePlan, listSitePlans, listSitePlanShapes, type SitePlan } from "../places.ts";
+import { listSigns, type Sign } from "../signage.ts";
 import type { DocumentKind } from "./model.ts";
-import type { DocumentDataMap, DocumentProject } from "./templates.ts";
+import { isEmbeddableImage } from "./render.ts";
+import type {
+  BadgePhoto,
+  DaySheetAudience,
+  DaySheetSchedule,
+  DocumentDataMap,
+  QuoteDocument,
+  DocumentProject,
+} from "./templates.ts";
+import { getQuote, quoteAcceptanceEmail } from "../quotes.ts";
+
+/** What a loader needs beyond the record's id (B7). */
+export interface LoadOptions {
+  /** day-sheet: a copy for one team or one department, and the show department of its cues. */
+  readonly audience?: {
+    readonly teamId?: string | null;
+    readonly departmentCode?: string | null;
+    readonly showDepartment?: CueCallKind | null;
+  } | null;
+  /**
+   * wrap-up-report: whether the reader holds finance.journal.read in the org (the org capability check). Posted
+   * actuals come from the ledger, so without it the budget section, and the summary drafted from it, are left out.
+   */
+  readonly ledgerRead?: boolean;
+  /** wrap-up-report: the reader's units (locale.units); imperial when not given. */
+  readonly unitPreference?: UnitPreference;
+}
+
+/** The capabilities that decide the wrap-up report's sections (app.my_capabilities_on_project, 6215). */
+export const WRAP_UP_CAPABILITIES = [
+  "finance.budget.read",
+  "projects.gate.read",
+  "safety.incident.read",
+] as const;
 
 /**
  * Loads the data of one document from the existing records, through the caller's own client, so
@@ -50,6 +109,19 @@ export async function documentProject(
   });
 }
 
+/**
+ * The photo a badge prints, read as the caller (P5): the org's badge photo once Clean, else a profile photo the
+ * caller may see. A credential that is no longer live, or a photo that cannot be read, prints the empty photo frame.
+ */
+export async function credentialBadgePhoto(
+  db: XosClient,
+  credentialId: string,
+): Promise<BadgePhoto | null> {
+  const rows = await badgePhotos(db, [credentialId]);
+  if (!rows.ok) return null;
+  return (await loadBadgePhotoBytes(db, rows.data)).get(credentialId) ?? null;
+}
+
 async function personNames(
   db: XosClient,
   ids: readonly (string | null)[],
@@ -61,11 +133,126 @@ async function personNames(
   return ok(new Map(data.flatMap((p) => (p.full_name ? [[p.id, p.full_name] as const] : []))));
 }
 
+/** The most artwork bytes a build sheet embeds per sign (ADR 0140): a thumbnail, not a print file. */
+export const MAX_ARTWORK_BYTES = 2 * 1024 * 1024;
+
+/**
+ * The bytes of a stored version read as the caller, when it is a Clean PNG or JPEG of a live attachment classified
+ * Public or Internal and no larger than `maxBytes`; otherwise null. A document never embeds a file above Internal
+ * (DOCUMENT_CLASSIFICATION), so a drawing or artwork raised later prints its frame or its name instead (ADR 0140 D3).
+ */
+export async function embeddableVersionBytes(
+  db: XosClient,
+  versionId: string,
+  maxBytes = Number.POSITIVE_INFINITY,
+): Promise<{ readonly bytes: Uint8Array | null; readonly filename: string }> {
+  const { data } = await db
+    .from("attachment_versions")
+    .select(
+      "object_name, filename, content_type, size_bytes, scan_status, deleted_at, attachments(classification, deleted_at)",
+    )
+    .eq("id", versionId)
+    .maybeSingle();
+  const row = data as unknown as {
+    object_name: string;
+    filename: string;
+    content_type: string;
+    size_bytes: number;
+    scan_status: string;
+    deleted_at: string | null;
+    attachments: { classification: string; deleted_at: string | null } | null;
+  } | null;
+  if (!row) return { bytes: null, filename: "" };
+  const drawable =
+    row.deleted_at === null &&
+    row.attachments?.deleted_at === null &&
+    (row.attachments.classification === "Public" ||
+      row.attachments.classification === "Internal") &&
+    row.scan_status === "Clean" &&
+    (row.content_type === "image/png" || row.content_type === "image/jpeg") &&
+    row.size_bytes <= maxBytes;
+  if (!drawable) return { bytes: null, filename: row.filename };
+  const { data: blob } = await db.storage.from(ATTACHMENTS_BUCKET).download(row.object_name);
+  const bytes = blob ? new Uint8Array(await blob.arrayBuffer()) : null;
+  return { bytes: bytes && isEmbeddableImage(bytes) ? bytes : null, filename: row.filename };
+}
+
+/** The drawing a plan shows, when it is stored and still drawable; a legacy web image is never fetched. */
+async function planDrawingBytes(db: XosClient, plan: SitePlan): Promise<Uint8Array | null> {
+  if (!plan.drawing || plan.drawing.unavailable) return null;
+  return (await embeddableVersionBytes(db, plan.drawing.shownVersionId)).bytes;
+}
+
+async function nameOf(db: XosClient, table: "venues" | "venue_levels", id: string | null) {
+  if (!id) return null;
+  const { data } = await db.from(table).select("name").eq("id", id).maybeSingle();
+  return (data as { name: string } | null)?.name ?? null;
+}
+
 type Loader<K extends DocumentKind> = (
   db: XosClient,
   orgId: string,
   id: string,
+  options: LoadOptions,
 ) => Promise<Result<DocumentDataMap[K]>>;
+
+/**
+ * A day sheet's day as the caller reads it (B7): the shifts that start that local day, the records that start or
+ * fall due on it, and the cues of that show date's runs with their department calls. With an audience, only what
+ * app.day_sheet_schedule says belongs to it.
+ */
+export async function daySheetSchedule(
+  db: XosClient,
+  orgId: string,
+  project: DocumentProject,
+  sheet: DaySheet,
+  audience: LoadOptions["audience"],
+): Promise<Result<{ schedule: DaySheetSchedule; audience: DaySheetAudience | null }>> {
+  const day = { projectId: project.id, day: sheet.day, timeZone: project.timeZone };
+  const [calls, records, runs] = await Promise.all([
+    listCalls(db, day),
+    listDayRecords(db, day),
+    listRunsOfShow(db, { orgId, projectId: project.id, from: sheet.day, to: sheet.day }),
+  ]);
+  if (!calls.ok) return calls;
+  if (!records.ok) return records;
+  if (!runs.ok) return runs;
+  const cueSets = await Promise.all(
+    runs.data.map(async (run) => {
+      const [cues, cueCalls] = await Promise.all([listCues(db, run.id), listCueCalls(db, run.id)]);
+      return cues.ok && cueCalls.ok ? { run, cues: cues.data, calls: cueCalls.data } : null;
+    }),
+  );
+  const full: DaySheetSchedule = {
+    calls: calls.data,
+    records: records.data,
+    runs: cueSets.filter((r): r is NonNullable<typeof r> => r !== null),
+  };
+  const showDepartment = audience?.showDepartment ?? null;
+  const target = audience?.teamId
+    ? { teamId: audience.teamId }
+    : audience?.departmentCode
+      ? { departmentCode: audience.departmentCode }
+      : null;
+  if (target === null) {
+    return ok({
+      schedule: full,
+      audience: showDepartment ? { label: null, showDepartment } : null,
+    });
+  }
+  const scoped = await readDaySheetSchedule(db, sheet.id, target);
+  if (!scoped.ok) return scoped;
+  const shifts = new Set(scoped.data.shiftIds);
+  const recordIds = new Set(scoped.data.recordIds);
+  return ok({
+    schedule: {
+      calls: full.calls.filter((c) => shifts.has(c.shiftId)),
+      records: full.records.filter((r) => recordIds.has(r.id)),
+      runs: full.runs,
+    },
+    audience: { label: scoped.data.audienceName, showDepartment },
+  });
+}
 
 const LOADERS: { readonly [K in DocumentKind]: Loader<K> } = {
   "purchase-order": async (db, orgId, id) => {
@@ -126,14 +313,24 @@ const LOADERS: { readonly [K in DocumentKind]: Loader<K> } = {
     });
   },
 
-  "day-sheet": async (db, orgId, id) => {
+  "day-sheet": async (db, orgId, id, options) => {
     const found = await listDaySheets(db, { orgId, id });
     if (!found.ok) return found;
     const sheet = found.data[0];
     if (!sheet) return fail({ kind: "not-found" });
     const project = await documentProject(db, orgId, sheet.projectId);
     if (!project.ok) return project;
-    return ok({ project: project.data, sheet });
+    const day = await daySheetSchedule(db, orgId, project.data, sheet, options.audience);
+    if (!day.ok) return day;
+    // The day's local contacts (B5); a reader who cannot read them gets the sheet without.
+    const contacts = await listProjectLocalContacts(db, sheet.projectId, sheet.day);
+    return ok({
+      project: project.data,
+      sheet,
+      contacts: contacts.ok ? contacts.data : [],
+      schedule: day.data.schedule,
+      ...(day.data.audience ? { audience: day.data.audience } : {}),
+    });
   },
 
   "call-sheet": async (db, orgId, id) => {
@@ -157,9 +354,10 @@ const LOADERS: { readonly [K in DocumentKind]: Loader<K> } = {
     if (!run.ok) return run;
     const project = await documentProject(db, orgId, run.data.projectId);
     if (!project.ok) return project;
-    const cues = await listCues(db, id);
+    const [cues, calls] = await Promise.all([listCues(db, id), listCueCalls(db, id)]);
     if (!cues.ok) return cues;
-    return ok({ project: project.data, run: run.data, cues: cues.data });
+    if (!calls.ok) return calls;
+    return ok({ project: project.data, run: run.data, cues: cues.data, calls: calls.data });
   },
 
   beo: async (db, orgId, id) => {
@@ -170,12 +368,33 @@ const LOADERS: { readonly [K in DocumentKind]: Loader<K> } = {
     return ok({ project: project.data, beo: beo.data });
   },
 
+  "radio-handout": async (db, orgId, id) => {
+    const project = await documentProject(db, orgId, id);
+    if (!project.ok) return project;
+    const lines = await radioHandout(db, id);
+    if (!lines.ok) return lines;
+    return ok({ project: project.data, lines: lines.data });
+  },
+
+  /** Only an Approved or Checked In guest with a pass code has a pass; a Requested guest answers not found. */
+  "guest-pass": async (db, orgId, id) => {
+    const guest = await getGuestPass(db, id);
+    if (!guest.ok) return guest;
+    const project = await documentProject(db, orgId, guest.data.projectId);
+    if (!project.ok) return project;
+    return ok({ project: project.data, guest: guest.data });
+  },
+
   "credential-badge": async (db, orgId, id) => {
     const credential = await getIssuedCredential(db, id);
     if (!credential.ok) return credential;
     const project = await documentProject(db, orgId, credential.data.projectId);
     if (!project.ok) return project;
-    return ok({ project: project.data, credential: credential.data });
+    return ok({
+      project: project.data,
+      credential: credential.data,
+      photo: await credentialBadgePhoto(db, id),
+    });
   },
 
   "inspection-report": async (db, orgId, id) => {
@@ -237,6 +456,60 @@ const LOADERS: { readonly [K in DocumentKind]: Loader<K> } = {
     return ok({ project: project.data, report: report.data });
   },
 
+  /**
+   * The wrap-up of a project (B7, ADR 0146 decision 5); its id is the project id. Each section is read only when
+   * the reader holds its capability, and is "unavailable" otherwise: the budget needs finance.budget.read on the
+   * project and finance.journal.read in the org (posted actuals are ledger rows), the measurements
+   * projects.gate.read, the incidents safety.incident.read, and the summary all of them.
+   */
+  "wrap-up-report": async (db, orgId, id, options) => {
+    const project = await documentProject(db, orgId, id);
+    if (!project.ok) return project;
+    const { data: held, error } = await db.rpc("my_capabilities_on_project", {
+      p_project_id: id,
+      p_capabilities: [...WRAP_UP_CAPABILITIES],
+    });
+    if (error) return fail(toDataError(error));
+    const can = new Set((held ?? []) as string[]);
+    const budgetRead = can.has("finance.budget.read") && options.ledgerRead === true;
+    const gateRead = can.has("projects.gate.read");
+    const incidentRead = can.has("safety.incident.read");
+    const debrief = await getProjectDebrief(db, id);
+    if (!debrief.ok) return debrief;
+    const [items, summary, budget, summaryRows, catalog, incidents] = await Promise.all([
+      debrief.data ? listDebriefItems(db, debrief.data.id) : Promise.resolve(ok([])),
+      debrief.data && budgetRead && gateRead && incidentRead
+        ? getDebriefSummary(db, debrief.data.id)
+        : Promise.resolve(ok(null)),
+      budgetRead ? finalCostReport(db, { orgId, projectId: id }) : Promise.resolve(null),
+      gateRead ? listMeasurementSummary(db, { orgId, projectId: id }) : Promise.resolve(null),
+      gateRead ? listMeasurementCatalog(db) : Promise.resolve(null),
+      incidentRead ? incidentsReport(db, { orgId, projectId: id }) : Promise.resolve(null),
+    ]);
+    if (!items.ok) return items;
+    if (!summary.ok) return summary;
+    if (budget && !budget.ok) return budget;
+    if (summaryRows && !summaryRows.ok) return summaryRows;
+    if (catalog && !catalog.ok) return catalog;
+    if (incidents && !incidents.ok) return incidents;
+    return ok({
+      project: project.data,
+      debrief: debrief.data,
+      items: items.data,
+      summary: budgetRead && gateRead && incidentRead ? summary.data : "unavailable",
+      budget: budget ? budget.data : "unavailable",
+      measurements:
+        summaryRows && catalog
+          ? {
+              rows: summaryRows.data,
+              catalog: catalog.data,
+              preference: options.unitPreference ?? "imperial",
+            }
+          : "unavailable",
+      incidents: incidents ? incidents.data : "unavailable",
+    });
+  },
+
   /** Only a signed agreement has a certificate; any other state answers not found. */
   "agreement-certificate": async (db, orgId, id) => {
     const owner = await db
@@ -258,13 +531,217 @@ const LOADERS: { readonly [K in DocumentKind]: Loader<K> } = {
     }
     return ok({ project, agreement: agreement.data });
   },
+
+  /** A live site plan of the org (B1): its drawing as shown, its shapes and the signs at its pins. */
+  "site-plan": async (db, orgId, id) => {
+    const plan = await getSitePlan(db, id);
+    if (!plan.ok) return plan;
+    if (plan.data.archivedAt !== null) return fail({ kind: "not-found" });
+    const project = await documentProject(db, orgId, plan.data.projectId);
+    if (!project.ok) return project;
+    const [shapes, signs, venueName, levelName, drawing] = await Promise.all([
+      listSitePlanShapes(db, [id]),
+      listSigns(db, { orgId, projectId: plan.data.projectId }),
+      nameOf(db, "venues", plan.data.venueId),
+      nameOf(db, "venue_levels", plan.data.venueLevelId),
+      planDrawingBytes(db, plan.data),
+    ]);
+    if (!shapes.ok) return shapes;
+    if (!signs.ok) return signs;
+    const signsAtPins: Record<string, string[]> = {};
+    for (const sign of signs.data) {
+      if (!sign.sitePlanPinId) continue;
+      (signsAtPins[sign.sitePlanPinId] ??= []).push(`${sign.key} ${sign.title}`);
+    }
+    return ok({
+      project: project.data,
+      plan: plan.data,
+      venueName,
+      levelName,
+      shapes: shapes.data,
+      drawing,
+      signsAtPins,
+    });
+  },
+
+  /** The signage build sheet of a project (B1); its id is the project id. */
+  "signage-build-sheet": async (db, orgId, id) => {
+    const project = await documentProject(db, orgId, id);
+    if (!project.ok) return project;
+    const [signs, plans] = await Promise.all([
+      listSigns(db, { orgId, projectId: id }),
+      listSitePlans(db, { orgId, projectId: id }),
+    ]);
+    if (!signs.ok) return signs;
+    if (!plans.ok) return plans;
+    const pinned = new Set(
+      signs.data.map((s) => s.sitePlanPinId).filter((p): p is string => p !== null),
+    );
+    const holding = plans.data
+      .filter((p) => p.pins.some((pin) => pinned.has(pin.id)))
+      .sort((a, b) => a.title.localeCompare(b.title));
+    const withArt = signs.data.filter(
+      (s): s is Sign & { artworkVersionId: string } => s.artworkVersionId !== null,
+    );
+    const [drawings, art] = await Promise.all([
+      Promise.all(holding.map((plan) => planDrawingBytes(db, plan))),
+      Promise.all(
+        withArt.map((s) => embeddableVersionBytes(db, s.artworkVersionId, MAX_ARTWORK_BYTES)),
+      ),
+    ]);
+    return ok({
+      project: project.data,
+      signs: signs.data,
+      plans: holding.map((plan, i) => ({ plan, drawing: drawings[i] ?? null })),
+      artwork: Object.fromEntries(
+        withArt.map((s, i) => [s.id, art[i] ?? { bytes: null, filename: "" }]),
+      ),
+    });
+  },
+
+  /** A generated engagement document; a reader of a masked text answers not found, like anyone who cannot open it (B10). */
+  "engagement-document": async (db, orgId, id) => {
+    const found = await db
+      .from("engagement_document_text_list")
+      .select(
+        "engagement_document_id, project_id, title, document_kind, engagement_document_state, body, body_masked, body_sha256, signed_name, signed_body_sha256, signed_at, created_at, org_id",
+      )
+      .eq("engagement_document_id", id)
+      .eq("org_id", orgId)
+      .maybeSingle();
+    if (found.error) return fail(toDataError(found.error));
+    const row = found.data;
+    if (!row || row.body_masked || row.body === null || !row.created_at) {
+      return fail({ kind: "not-found" });
+    }
+    const project = row.project_id ? await documentProject(db, orgId, row.project_id) : null;
+    if (project && !project.ok && project.error.kind !== "not-found") return project;
+    return ok({
+      project: project?.ok ? project.data : null,
+      document: {
+        id,
+        title: row.title ?? "",
+        kind: row.document_kind ?? "",
+        state: row.engagement_document_state ?? "",
+        body: row.body,
+        signedName: row.signed_name,
+        signedAt: row.signed_at,
+        sha256: row.signed_body_sha256 ?? row.body_sha256,
+        createdAt: row.created_at,
+      },
+    });
+  },
+
+  /** A quote version as the viewer with finance.budget.read: a Draft reads live prices, Sent and later the capture. */
+  quote: async (db, orgId, id) => {
+    const version = await db
+      .from("quote_versions")
+      .select("id, quote_id, org_id, created_at")
+      .eq("id", id)
+      .eq("org_id", orgId)
+      .maybeSingle();
+    if (version.error) return fail(toDataError(version.error));
+    if (!version.data) return fail({ kind: "not-found" });
+    const detail = await getQuote(db, version.data.quote_id);
+    if (!detail.ok) return detail;
+    const shown = detail.data.versions.find((v) => v.id === id);
+    if (!shown) return fail({ kind: "not-found" });
+    // An earlier sent version prints its own capture and frozen title, not the current version's.
+    const lines = await quoteDocumentLines(db, shown.budgetVersionId, detail.data.status.budgetId);
+    if (!lines.ok) return lines;
+    const project = await documentProject(db, orgId, detail.data.status.projectId);
+    if (!project.ok) return project;
+    const email = shown.state === "Accepted" ? await quoteAcceptanceEmail(db, id) : null;
+    if (email && !email.ok) return email;
+    const total = lines.data.some((l) => l.amountMinor === null)
+      ? null
+      : lines.data.reduce((sum, l) => sum + (l.amountMinor ?? 0), 0);
+    return ok({
+      project: project.data,
+      quote: {
+        key: detail.data.status.key,
+        versionNumber: shown.versionNumber,
+        // A Draft beside a sent version prints the quote's own title and the budget's currency.
+        title: shown.sentTitle ?? detail.data.draftTitle,
+        clientName: shown.sentClientName ?? detail.data.status.clientName,
+        currency: shown.state === "Draft" ? detail.data.currency : detail.data.status.currency,
+        validUntil: shown.validUntil,
+        terms: shown.terms,
+        state: shown.state,
+        issuedAt: shown.sentAt ?? version.data.created_at,
+        contentSha256: shown.contentSha256,
+        lines: lines.data,
+        totalMinor: lines.data.length === 0 ? null : total,
+        acceptedAt: shown.acceptedAt,
+        acceptedName: shown.acceptedName,
+        acceptedEmail: email?.ok ? email.data : null,
+      },
+    });
+  },
 };
+
+async function quoteDocumentLines(
+  db: XosClient,
+  budgetVersionId: string | null,
+  budgetId: string,
+): Promise<Result<QuoteDocument["lines"]>> {
+  const raw = budgetVersionId
+    ? await db
+        .from("budget_version_lines")
+        .select("line_number, description, quantity, unit_basis, client_unit_price_minor")
+        .eq("budget_version_id", budgetVersionId)
+        .eq("excluded_from_quote", false)
+        .order("line_number")
+    : await db
+        .from("budget_lines")
+        .select("id, line_number, description, quantity, unit_basis")
+        .eq("budget_id", budgetId)
+        .eq("excluded_from_quote", false)
+        .is("deleted_at", null)
+        .order("line_number");
+  if (raw.error) return fail(toDataError(raw.error));
+  const rows = (raw.data ?? []) as unknown as readonly {
+    id?: string;
+    line_number: number;
+    description: string;
+    quantity: number;
+    unit_basis: string | null;
+    client_unit_price_minor?: number | null;
+  }[];
+  let live: ReadonlyMap<string, number | null> = new Map();
+  if (!budgetVersionId) {
+    const prices = await db
+      .from("budget_line_prices")
+      .select("budget_line_id, client_unit_price_minor")
+      .eq("budget_id", budgetId);
+    if (prices.error) return fail(toDataError(prices.error));
+    live = new Map(
+      (prices.data ?? []).map((p) => [p.budget_line_id ?? "", p.client_unit_price_minor]),
+    );
+  }
+  return ok(
+    rows.map((r) => {
+      const unit = budgetVersionId
+        ? (r.client_unit_price_minor ?? null)
+        : (live.get(r.id ?? "") ?? null);
+      return {
+        lineNumber: r.line_number,
+        description: r.description,
+        quantity: Number(r.quantity),
+        unitBasis: r.unit_basis,
+        unitPriceMinor: unit,
+        amountMinor: extendedMinor(Number(r.quantity), unit),
+      };
+    }),
+  );
+}
 
 export function loadDocumentData<K extends DocumentKind>(
   db: XosClient,
   orgId: string,
   kind: K,
   id: string,
+  options: LoadOptions = {},
 ): Promise<Result<DocumentDataMap[K]>> {
-  return (LOADERS[kind] as Loader<K>)(db, orgId, id);
+  return (LOADERS[kind] as Loader<K>)(db, orgId, id, options);
 }

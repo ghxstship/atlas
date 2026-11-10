@@ -1,16 +1,30 @@
-import { sendEmail, type EmailTransport, type Sender } from "@xos/email";
+import { sendEmail, type EmailTransport, type MessageArgs, type Sender } from "@xos/email";
 import { isLocale, type Locale } from "@xos/i18n/locales";
-import type { PlatformDb } from "../stores.ts";
+import {
+  brandedSender,
+  readOrgEmailBrand,
+  type BrandedSenderParts,
+  type OrgEmailBrand,
+  type PlatformDb,
+} from "../stores.ts";
 
 /**
  * Emails the platform sends in its own name (Section 14.4, migration 1382): the double opt-in
- * confirmation for Subprocessor List change notices and the notices themselves. The
+ * confirmation for Subprocessor List change notices and the notices themselves, and invitations to an
+ * external account or onto a crew roster (R4, migrations 2630 and 2636), which link to Gateway sign-in, the legal
+ * queue's alerts (ADR 0167, migration 6862) and moderation outcomes the notification queue cannot reach (6863). An
+ * invitation names its inviting org (904090003) and wears that org's email brand while white label is in force. The
  * subprocessor-notices Edge Function claims them from private.platform_emails, renders them through
  * @xos/email in the recipient's language, sends them through the configured transport (recording by
  * default, Resend in production) and records each outcome; the database then forgets any token.
  */
 
-export type PlatformEmailTemplate = "subprocessor_confirm" | "subprocessor_notice";
+export type PlatformEmailTemplate =
+  | "subprocessor_confirm"
+  | "subprocessor_notice"
+  | "party_invitation"
+  | "legal_clock_alert"
+  | "moderation_notice";
 
 export interface ClaimedPlatformEmail {
   readonly id: string;
@@ -22,6 +36,8 @@ export interface ClaimedPlatformEmail {
 
 export interface PlatformEmailStore {
   claim(limit: number): Promise<readonly ClaimedPlatformEmail[]>;
+  /** The inviting org's email brand while white label is in force, or null (app.email_brand_for_org). */
+  brandFor?(orgId: string): Promise<OrgEmailBrand | null>;
   finish(
     id: string,
     sent: boolean,
@@ -33,12 +49,18 @@ export interface PlatformEmailStore {
 export interface PlatformEmailOptions {
   /** Atlas origin: the Subprocessor List and its confirmation and unsubscribe pages live there. */
   readonly appUrl: string;
-  /** From address, for example notices@ghxstship.tech. */
+  /** Gateway origin: invitations link to its sign-in. The invited address never goes into the link. */
+  readonly gatewayUrl?: string;
+  /** Console origin: a legal queue alert links an operator to the queue. Without it the alert has no link. */
+  readonly consoleUrl?: string;
+  /** From address, for example support@ghxstship.pro. */
   readonly from: string;
   /** The platform's postal address (CAN-SPAM, CASL). */
   readonly postalAddress: string;
   /** Sender name shown in the footer. */
   readonly senderName: string;
+  /** Public base URL of the org-brand bucket, for a white-label org's logo on its invitation. */
+  readonly brandAssetUrl?: string | null;
 }
 
 export interface PlatformEmailSummary {
@@ -62,6 +84,32 @@ export function subprocessorLinks(appUrl: string) {
   };
 }
 
+/** Gateway sign-in, where an invitee signs in with the invited address and accepts on Home. */
+export function gatewaySignInUrl(gatewayUrl: string): string {
+  return new URL("/auth/sign-in", gatewayUrl).toString();
+}
+
+function text(value: unknown): string {
+  return typeof value === "string" ? value : "";
+}
+
+/** One line of a legal queue digest, as the sweep wrote it. */
+function legalClockItem(value: unknown) {
+  const line = (value ?? {}) as Readonly<Record<string, unknown>>;
+  const matter = line["matter"];
+  return {
+    reference: str(line["reference"], "reference"),
+    ...(typeof matter === "string" ? { matter } : {}),
+    clock: line["clock"] === "First Response" ? ("First Response" as const) : ("Due" as const),
+    at: new Date(str(line["clock_at"], "clock_at")),
+    overdue: line["overdue"] === true,
+  };
+}
+
+function legalAudience(value: unknown): "operator" | "backup" | "reviewer" {
+  return value === "backup" || value === "reviewer" ? value : "operator";
+}
+
 /** Claims due platform emails, sends each and records the outcome. A failure is recorded, never dropped. */
 export async function dispatchPlatformEmails(
   store: PlatformEmailStore,
@@ -79,8 +127,22 @@ export async function dispatchPlatformEmails(
         typeof claim.args["unsubscribe_token"] === "string"
           ? claim.args["unsubscribe_token"]
           : null;
+      // An invitation from an org with white label in force goes out under its brand; everything else as XOS.
+      const orgId =
+        claim.template === "party_invitation" && typeof claim.args["org_id"] === "string"
+          ? claim.args["org_id"]
+          : null;
+      const brand = orgId !== null && store.brandFor ? await store.brandFor(orgId) : null;
+      const branded: BrandedSenderParts | null =
+        brand === null
+          ? null
+          : brandedSender(text(claim.args["org_name"]) || text(claim.args["account_name"]), brand, {
+              fromAddress: options.from,
+              brandAssetUrl: options.brandAssetUrl ?? null,
+            });
       const sender: Sender = {
-        orgName: options.senderName,
+        orgName: branded?.orgName ?? options.senderName,
+        ...(branded?.brand === undefined ? {} : { brand: branded.brand }),
         postalAddress: options.postalAddress,
         // Members manage the notice in Settings, Notifications; subscribers unsubscribe by link.
         preferencesUrl: options.appUrl,
@@ -92,31 +154,91 @@ export async function dispatchPlatformEmails(
         timeZone: "UTC",
         sender,
         recipientName: claim.to,
-        from: options.from,
+        from: branded?.from ?? options.from,
+        ...(branded?.replyTo === undefined ? {} : { replyTo: branded.replyTo }),
         to: claim.to,
         deliveryId: claim.id,
       };
       const result =
-        claim.template === "subprocessor_confirm"
+        claim.template === "legal_clock_alert"
           ? await sendEmail({
               ...common,
-              template: "subprocessor_confirm",
+              // Clocks end at the end of a local day, so the alert states them in the clock's own time zone.
+              timeZone: str(claim.args["time_zone"], "time_zone"),
+              template: "legal_clock_alert",
               props: {
-                confirmUrl: links.confirm(str(claim.args["confirm_token"], "confirm_token")),
+                audience: legalAudience(claim.args["audience"]),
+                overdue: Number(claim.args["overdue"] ?? 0),
+                dueSoon: Number(claim.args["due_soon"] ?? 0),
+                items: (Array.isArray(claim.args["items"]) ? claim.args["items"] : []).map(
+                  legalClockItem,
+                ),
+                ...(options.consoleUrl
+                  ? { queueUrl: new URL("/legal-queue", options.consoleUrl).toString() }
+                  : {}),
               },
             })
-          : await sendEmail({
-              ...common,
-              template: "subprocessor_notice",
-              props: {
-                listVersion: str(claim.args["list_version"], "list_version"),
-                summary: str(claim.args["summary"], "summary"),
-                effectiveOn: new Date(
-                  `${str(claim.args["effective_on"], "effective_on")}T12:00:00Z`,
-                ),
-                listUrl: links.list,
-              },
-            });
+          : claim.template === "moderation_notice"
+            ? await sendEmail({
+                ...common,
+                template: "moderation_notice",
+                props: {
+                  kind:
+                    claim.args["kind"] === "listing_report.decided" ||
+                    claim.args["kind"] === "listing.moderated"
+                      ? claim.args["kind"]
+                      : "moderation_appeal.decided",
+                  args: (claim.args["values"] ?? {}) as MessageArgs,
+                },
+              })
+            : claim.template === "party_invitation"
+              ? await sendEmail({
+                  ...common,
+                  template: "party_invitation",
+                  props: {
+                    kind:
+                      claim.args["kind"] === "roster"
+                        ? "roster"
+                        : claim.args["kind"] === "pool"
+                          ? "pool"
+                          : "account",
+                    inviterName: text(claim.args["inviter_name"]),
+                    // While white label is in force the invitation names the brand, as its From and footer do.
+                    orgName:
+                      branded !== null && text(claim.args["org_name"])
+                        ? branded.orgName
+                        : text(claim.args["org_name"]),
+                    jobTitle: text(claim.args["job_title"]),
+                    accountName:
+                      branded !== null && text(claim.args["account_name"])
+                        ? branded.orgName
+                        : text(claim.args["account_name"]),
+                    projectName: text(claim.args["project_name"]),
+                    partyName: text(claim.args["party_name"]),
+                    expiresAt: new Date(str(claim.args["expires_at"], "expires_at")),
+                    signInUrl: gatewaySignInUrl(options.gatewayUrl ?? options.appUrl),
+                  },
+                })
+              : claim.template === "subprocessor_confirm"
+                ? await sendEmail({
+                    ...common,
+                    template: "subprocessor_confirm",
+                    props: {
+                      confirmUrl: links.confirm(str(claim.args["confirm_token"], "confirm_token")),
+                    },
+                  })
+                : await sendEmail({
+                    ...common,
+                    template: "subprocessor_notice",
+                    props: {
+                      listVersion: str(claim.args["list_version"], "list_version"),
+                      summary: str(claim.args["summary"], "summary"),
+                      effectiveOn: new Date(
+                        `${str(claim.args["effective_on"], "effective_on")}T12:00:00Z`,
+                      ),
+                      listUrl: links.list,
+                    },
+                  });
       await store.finish(claim.id, true, result.providerMessageId, null);
       sent += 1;
     } catch (error) {
@@ -148,6 +270,7 @@ export function platformEmailStore(db: PlatformDb): PlatformEmailStore {
         args: (r["args"] ?? {}) as Record<string, unknown>,
       }));
     },
+    brandFor: (orgId) => readOrgEmailBrand(db, orgId),
     async finish(id, sent, providerMessageId, error) {
       return String(
         await db.rpc("finish_platform_email", {

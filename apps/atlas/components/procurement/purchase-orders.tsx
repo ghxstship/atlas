@@ -1,17 +1,24 @@
 import { nextStates } from "@xos/data/commercial-common";
+import { listBudgetLineRefs, listCounterparties } from "@xos/data/finance";
+import { listEngagementRefs, type EngagementRef } from "@xos/data/settlements";
 import {
   getPoAcknowledgment,
+  getPoLineSupply,
+  getProjectTimeZone,
   getPurchaseOrderTotals,
   listCurrencies,
   listGoodsReceipts,
   listPoChangeOrders,
+  listPoLineHireWarnings,
   listPoLines,
   listProjectOptions,
   listPurchaseOrders,
   listSubmittals,
+  type PoLineHireWarning,
   type PoState,
   type PurchaseOrder,
 } from "@xos/data/procurement";
+import dynamic from "next/dynamic";
 import { listTransitionRules, listVendors } from "@xos/data/vendors";
 import { getFormatter } from "next-intl/server";
 import {
@@ -20,11 +27,14 @@ import {
   createChangeOrderAction,
   createPoAction,
   decideChangeOrderAction,
+  hireWarningsAction,
   priceChangeOrderAction,
   removePoLineAction,
   transitionPoAction,
 } from "@/app/[org]/procurement/actions";
 import { CollabPanels } from "@/components/collection-kit/collab";
+import { CustomFieldsPanel } from "@/components/custom-fields/custom-fields-panel";
+import { customFieldList } from "@/lib/custom-fields/server";
 import { CollectionView } from "@/components/collection-kit/collection-view";
 import { emptyFor } from "@/components/collection-kit/empty";
 import { StateHistory } from "@/components/collection-kit/history";
@@ -43,6 +53,7 @@ import {
 import { recordStateOf, type KitRow, type ViewKind } from "@/components/collection-kit/types";
 import { PageHeader } from "@/components/collection-kit/ui";
 import { DataTable } from "@/components/platform/client/data-table";
+import { purchaseOrderBulk } from "@/lib/bulk/procurement";
 import { getCopy, type Copy } from "@/lib/collection-kit/i18n";
 import {
   collectionState,
@@ -53,15 +64,25 @@ import {
 import type { OrgContext } from "@/lib/shell/context";
 import { orgToday } from "@/lib/shell/time-zone";
 import { DocumentActions } from "@/components/documents/document-actions";
+import * as enums from "@xos/data/enums";
+import { HIRE_WARNING_KEY } from "@/lib/procurement/hire";
+import { CollectionPage } from "@/components/platform/collection-page";
+import { MaterialQuickAddButton } from "@/components/quick-add/material-quick-add-button";
+import { PoLineActSheet, PoLookAlikes, PoPaymentSchedule } from "./po-payment-schedule";
 
 const VIEWS: readonly ViewKind[] = ["table", "list", "board"];
 const REFUSALS = "procurement.refusals";
-const STATES: readonly PoState[] = ["Proposed", "Approved", "Sent", "Closed", "Canceled"];
+const STATES: readonly PoState[] = enums.poState;
+
+/** The order line form, with its hire window warnings, loads with the record page's edit state (R7a). */
+const PoLineForm = dynamic(() => import("./supply-forms").then((m) => m.PoLineForm));
 
 /**
  * Procurement > Purchase orders (journeys 4, 5 and 30): orders with NULL-aware totals, lines that
  * change only while Proposed, approval under spend authority by someone other than the creator,
- * sending, the vendor's acknowledgment from Gateway, change orders, receipts and submittals.
+ * sending, the vendor's acknowledgment from Gateway, change orders, receipts and submittals. Lines buy or
+ * hire their item; a hire's delivery and return window warnings never block it (R7a, G-99), and the
+ * Supply section reads each line's progress from app.po_line_supply.
  */
 export async function PurchaseOrdersSection({
   ctx,
@@ -76,22 +97,24 @@ export async function PurchaseOrdersSection({
 }) {
   const state = collectionState(search, VIEWS, await orgToday(ctx));
   const db = ctx.viewer.db;
-  const [t, format, all, projects, vendors, rules, currencies] = await Promise.all([
-    getCopy("procurement"),
-    getFormatter(),
-    listPurchaseOrders(db, ctx.org.id),
-    listProjectOptions(db, ctx.org.id),
-    listVendors(db, ctx.org.id),
-    listTransitionRules<PoState>(db, "purchase_order"),
-    listCurrencies(db),
-  ]);
+  const [t, format, all, projects, vendors, rules, currencies, custom, warnings] =
+    await Promise.all([
+      getCopy("procurement"),
+      getFormatter(),
+      listPurchaseOrders(db, ctx.org.id),
+      listProjectOptions(db, ctx.org.id),
+      listVendors(db, ctx.org.id),
+      listTransitionRules<PoState>(db, "purchase_order"),
+      listCurrencies(db),
+      customFieldList(ctx, "app.purchase_orders", search),
+      listPoLineHireWarnings(db, ctx.org.id),
+    ]);
   const title = t("orders.title");
   if (!all.ok || !projects.ok || !vendors.ok || !rules.ok || !currencies.ok) {
     return (
-      <>
-        <PageHeader title={title} />
+      <CollectionPage header={<PageHeader title={title} />}>
         <ErrorPanel what={t("orders.what")} />
-      </>
+      </CollectionPage>
     );
   }
   const orders = projectId ? all.data.filter((o) => o.projectId === projectId) : all.data;
@@ -159,11 +182,28 @@ export async function PurchaseOrdersSection({
         stateLabel={stateLabel}
         money={money}
         canWrite={canWrite}
+        recordHref={(extra) =>
+          withQuery(
+            path,
+            { ...state, baseQuery: dropKey(state.baseQuery, "lineAct") },
+            { peek: selected.id, full: "1", ...extra },
+          )
+        }
+        peekHref={(id) => withQuery(path, state, { peek: id, full: "1" })}
+        lineActId={typeof search["lineAct"] === "string" ? search["lineAct"] : null}
       />
     );
   }
 
-  const rows: KitRow[] = orders.map((o) => ({
+  // The Hire warnings filter (G-99): orders with a rental line whose hire conflicts with the site window.
+  const warningCount = new Map<string, number>();
+  for (const w of warnings.ok ? warnings.data : [])
+    warningCount.set(w.purchaseOrderId, (warningCount.get(w.purchaseOrderId) ?? 0) + 1);
+  const onlyWarnings = search["hire"] === "warnings";
+  const listed = orders.filter(
+    (o) => custom.keep(o.id) && (!onlyWarnings || warningCount.has(o.id)),
+  );
+  const rows: KitRow[] = listed.map((o) => ({
     id: o.id,
     key: o.key,
     title: o.vendorName ?? t("fields.unnamedVendor"),
@@ -177,6 +217,7 @@ export async function PurchaseOrdersSection({
       state: { state: recordStateOf(o.state), label: stateLabel(o.state) },
       total: money(o.totals.linesTotalMinor, o.currencyCode),
       unpriced: o.totals.unpricedCount,
+      hireWarnings: warningCount.get(o.id) ?? 0,
     },
   }));
 
@@ -191,6 +232,7 @@ export async function PurchaseOrdersSection({
           refusals={REFUSALS}
           submitLabel={t("orders.create")}
           successHref={withQuery(path, state, { peek: "{id}", full: "1" })}
+          customFields="app.purchase_orders"
           fields={[
             {
               kind: "select",
@@ -233,6 +275,7 @@ export async function PurchaseOrdersSection({
         properties={properties(selected)}
         actions={controls(selected)}
       >
+        <CustomFieldsPanel org={ctx.org.slug} table="app.purchase_orders" id={selected.id} />
         <PresenceFor table="purchase_orders" id={selected.id} />
       </PeekDrawer>
     );
@@ -250,8 +293,23 @@ export async function PurchaseOrdersSection({
         { key: "state", label: t("fields.state"), type: "state" },
         { key: "total", label: t("orders.total") },
         { key: "unpriced", label: t("orders.unpricedLines"), type: "number" },
+        { key: "hireWarnings", label: t("hireWarnings.column"), type: "number" },
       ]}
       rows={rows}
+      filters={
+        <KitLink
+          href={
+            onlyWarnings
+              ? withQuery(path, { ...state, baseQuery: dropKey(state.baseQuery, "hire") })
+              : withQuery(path, state, { hire: "warnings" })
+          }
+          size="sm"
+          variant={onlyWarnings ? "primary" : "secondary"}
+        >
+          {t(onlyWarnings ? "hireWarnings.showAll" : "hireWarnings.filter")}
+        </KitLink>
+      }
+      customFields={await custom.view(rows.map((r) => r.id))}
       board={STATES.map((s) => ({ value: s, state: recordStateOf(s), label: stateLabel(s) }))}
       actions={
         canWrite ? (
@@ -261,6 +319,7 @@ export async function PurchaseOrdersSection({
         ) : null
       }
       empty={emptyFor(t, canWrite, withQuery(path, state, { create: "1" }), "orders")}
+      bulk={purchaseOrderBulk(ctx.org.slug, ctx.capabilities, t)}
     >
       {drawer}
     </CollectionView>
@@ -277,6 +336,9 @@ async function PurchaseOrderRecord({
   stateLabel,
   money,
   canWrite,
+  recordHref,
+  peekHref,
+  lineActId,
 }: {
   ctx: OrgContext;
   order: PurchaseOrder;
@@ -287,17 +349,28 @@ async function PurchaseOrderRecord({
   stateLabel: (s: string) => string;
   money: (minor: number | null, currency: string) => string;
   canWrite: boolean;
+  /** This record's page with more query values. */
+  recordHref: (extra: Record<string, string>) => string;
+  /** Another order's record page. */
+  peekHref: (id: string) => string;
+  /** The line whose act the sheet is setting (`?lineAct=`). */
+  lineActId: string | null;
 }) {
   const db = ctx.viewer.db;
-  const [format, lines, totals, ack, changes, receipts, submittals] = await Promise.all([
-    getFormatter(),
-    listPoLines(db, order.id),
-    getPurchaseOrderTotals(db, order.id),
-    getPoAcknowledgment(db, order.id),
-    listPoChangeOrders(db, order.id),
-    listGoodsReceipts(db, ctx.org.id, order.id),
-    listSubmittals(db, ctx.org.id, { purchaseOrderId: order.id }),
-  ]);
+  const [format, lines, totals, ack, changes, receipts, submittals, supply, warnings, zone, refs] =
+    await Promise.all([
+      getFormatter(),
+      listPoLines(db, order.id),
+      getPurchaseOrderTotals(db, order.id),
+      getPoAcknowledgment(db, order.id),
+      listPoChangeOrders(db, order.id),
+      listGoodsReceipts(db, ctx.org.id, order.id),
+      listSubmittals(db, ctx.org.id, { purchaseOrderId: order.id }),
+      getPoLineSupply(db, order.id),
+      listPoLineHireWarnings(db, ctx.org.id, order.id),
+      getProjectTimeZone(db, order.projectId),
+      listBudgetLineRefs(db, { orgId: ctx.org.id, projectId: order.projectId }),
+    ]);
   if (!lines.ok || !totals.ok || !ack.ok || !changes.ok || !receipts.ok || !submittals.ok) {
     return <ErrorPanel what={t("orders.what")} />;
   }
@@ -305,6 +378,42 @@ async function PurchaseOrderRecord({
   const date = (d: string) =>
     format.dateTime(new Date(d), { dateStyle: "medium", timeStyle: "short" });
   const receivable = order.state === "Approved" || order.state === "Sent";
+  // Budget lines of the order's project a line can commit (Section 4.2, gap G-204). Row level security
+  // returns none to a viewer without finance.budget.read, and the field and column then stay hidden.
+  const budgetLines = refs.ok ? refs.data : [];
+  const budgetLineLabel = new Map(
+    budgetLines.map((b) => [
+      b.id,
+      `${b.budgetName} · ${b.lineNumber} · ${b.description} (${b.currency})`,
+    ]),
+  );
+  // The acts a line can be for, by name (6547). Row level security returns none without the read, and the column
+  // then stays hidden. Names come through the one name resolution.
+  const [engagementRefs, parties] = await Promise.all([
+    listEngagementRefs(db, { orgId: ctx.org.id, projectId: order.projectId }),
+    listCounterparties(db, ctx.org.id),
+  ]);
+  const acts = engagementRefs.ok ? engagementRefs.data : [];
+  const partyById = new Map((parties.ok ? parties.data : []).map((p) => [p.id, p.name ?? ""]));
+  const partyName = (e: EngagementRef) =>
+    (e.counterpartyId && partyById.get(e.counterpartyId)) ||
+    e.personName ||
+    t("schedule.lineAct.unnamed");
+  const actName = new Map(acts.map((e) => [e.id, partyName(e)]));
+  const canSetAct =
+    canWrite && acts.length > 0 && ["Proposed", "Approved", "Sent"].includes(order.state);
+  const actLine = canSetAct ? lines.data.find((l) => l.id === lineActId) : undefined;
+  const hireText = (from: string | null, to: string | null) =>
+    from && to
+      ? format.dateTimeRange(new Date(from), new Date(to), {
+          dateStyle: "medium",
+          timeStyle: "short",
+          timeZone: zone,
+        })
+      : "";
+  const lineWarnings = new Map<string, PoLineHireWarning[]>();
+  for (const w of warnings.ok ? warnings.data : [])
+    lineWarnings.set(w.poLineId, [...(lineWarnings.get(w.poLineId) ?? []), w]);
   return (
     <RecordPage
       backHref={backHref}
@@ -327,6 +436,7 @@ async function PurchaseOrderRecord({
       }
     >
       <PresenceFor table="purchase_orders" id={order.id} />
+      <PoLookAlikes ctx={ctx} order={order} t={t} hrefFor={peekHref} />
       <KitSection id="po-lines" title={t("orders.lines")}>
         {lines.data.length === 0 ? (
           <p className="m-0 text-text-13 text-text-secondary">{t("orders.noLines")}</p>
@@ -340,14 +450,27 @@ async function PurchaseOrderRecord({
               { key: "unit", label: t("lines.unitPrice") },
               { key: "extended", label: t("lines.extended") },
               { key: "received", label: t("lines.received"), type: "number" },
+              ...(budgetLines.length > 0
+                ? [{ key: "budgetLine", label: t("orders.commitsLine"), wrap: true }]
+                : []),
+              { key: "acquisition", label: t("lines.acquisition.label"), wrap: true },
+              ...(acts.length > 0
+                ? [{ key: "act", label: t("schedule.lineAct.column"), wrap: true }]
+                : []),
             ]}
             rows={lines.data.map((l) => ({
               n: l.lineNumber,
               description: l.description,
+              acquisition:
+                l.acquisitionKind === "Rental"
+                  ? `${t("lines.acquisition.rental")} · ${hireText(l.hireStartsAt, l.hireEndsAt)}`
+                  : t("lines.acquisition.purchase"),
               quantity: l.quantity,
               unit: money(l.unitPriceMinor, order.currencyCode),
               extended: money(l.extendedMinor, order.currencyCode),
               received: l.receivedQuantity,
+              budgetLine: l.budgetLineId ? (budgetLineLabel.get(l.budgetLineId) ?? "") : "",
+              act: l.engagementId ? (actName.get(l.engagementId) ?? "") : "",
             }))}
             totals={{
               description: t("orders.total"),
@@ -368,49 +491,101 @@ async function PurchaseOrderRecord({
                 />
               ))}
             </div>
-            <EntityForm
-              id={`po-line-${order.id}`}
+            <div className="flex flex-wrap gap-8">
+              <MaterialQuickAddButton
+                org={ctx.org.slug}
+                target={{ kind: "order", purchaseOrderId: order.id }}
+              />
+              <KitLink href={`/${ctx.org.slug}/import?target=po_lines&purchaseOrder=${order.id}`}>
+                {t("needs.import")}
+              </KitLink>
+            </div>
+            <PoLineForm
+              org={ctx.org.slug}
+              purchaseOrderId={order.id}
+              projectId={order.projectId}
+              currencyCode={order.currencyCode}
+              timeZone={zone}
               action={addPoLineAction}
-              hidden={{
-                org: ctx.org.slug,
-                purchaseOrderId: order.id,
-                currencyCode: order.currencyCode,
-              }}
-              refusals={REFUSALS}
-              submitLabel={t("orders.addLine")}
-              fields={[
-                {
-                  kind: "text",
-                  name: "description",
-                  label: t("lines.descriptionLabel"),
-                  required: true,
-                },
-                {
-                  kind: "number",
-                  name: "quantity",
-                  label: t("lines.quantity"),
-                  required: true,
-                  defaultValue: "1",
-                },
-                {
-                  kind: "text",
-                  name: "unitBasis",
-                  label: t("lines.unitBasis"),
-                  help: t("lines.unitBasisHelp"),
-                },
-                {
-                  kind: "money",
-                  name: "unitPrice",
-                  label: t("lines.unitPrice"),
-                  unit: order.currencyCode,
-                },
-              ]}
+              warningsAction={hireWarningsAction}
+              budgetLines={budgetLines.map((b) => {
+                const label = budgetLineLabel.get(b.id) ?? b.description;
+                return {
+                  value: b.id,
+                  // An order in another currency is counted, never summed, into Committed.
+                  label:
+                    b.currency === order.currencyCode
+                      ? label
+                      : t("lines.budgetLineOtherCurrency", { label }),
+                };
+              })}
             />
           </>
         ) : order.state === "Proposed" ? null : (
           <p className="m-0 text-text-12 text-text-secondary">{t("orders.linesLocked")}</p>
         )}
+        {canSetAct && lines.data.length > 0 ? (
+          <div className="flex flex-wrap gap-8">
+            {lines.data.map((l) => (
+              <KitLink key={l.id} href={recordHref({ lineAct: l.id })} size="sm">
+                {t("schedule.lineAct.set", { n: l.lineNumber })}
+              </KitLink>
+            ))}
+          </div>
+        ) : null}
       </KitSection>
+      {actLine ? (
+        <PoLineActSheet
+          ctx={ctx}
+          line={actLine}
+          engagements={acts}
+          t={t}
+          partyName={partyName}
+          closeHref={recordHref({})}
+        />
+      ) : null}
+
+      <PoPaymentSchedule
+        ctx={ctx}
+        order={order}
+        t={t}
+        money={money}
+        canWrite={canWrite}
+        zone={zone}
+      />
+
+      {supply.ok && supply.data.length > 0 ? (
+        <KitSection id="po-supply" title={t("supply.title")}>
+          <DataTable
+            caption={t("supply.title")}
+            columns={[
+              { key: "line", label: t("lines.descriptionLabel"), wrap: true },
+              { key: "ordered", label: t("supply.ordered"), type: "number" },
+              { key: "acknowledged", label: t("supply.acknowledged") },
+              { key: "received", label: t("supply.received"), type: "number" },
+              { key: "returned", label: t("supply.returned"), type: "number" },
+              { key: "status", label: t("supply.status"), wrap: true },
+            ]}
+            rows={supply.data.map((row) => {
+              const line = lines.data.find((l) => l.id === row.poLineId);
+              const chips = [
+                ...(row.offHireDue ? [t("supply.offHireDue")] : []),
+                ...(lineWarnings.get(row.poLineId) ?? []).map((w) =>
+                  t(`hireWarnings.${HIRE_WARNING_KEY[w.warning]}`),
+                ),
+              ];
+              return {
+                line: line ? `${line.lineNumber}. ${line.description}` : t("receipts.unknownLine"),
+                ordered: row.quantityOrdered,
+                acknowledged: row.acknowledged ? t("supply.yes") : t("supply.no"),
+                received: row.quantityReceived,
+                returned: row.quantityReturned,
+                status: chips.join(" · "),
+              };
+            })}
+          />
+        </KitSection>
+      ) : null}
 
       <KitSection id="po-changes" title={t("changes.title")}>
         {changes.data.length === 0 ? (
@@ -442,7 +617,7 @@ async function PurchaseOrderRecord({
                       />
                     ) : null}
                     {ctx.capabilities.has("finance.po.approve")
-                      ? (["Approved", "Rejected"] as const).map((decision) => (
+                      ? enums.approvalDecision.map((decision) => (
                           <ActionButton
                             key={decision}
                             action={decideChangeOrderAction}
@@ -537,7 +712,15 @@ async function PurchaseOrderRecord({
       </KitSection>
 
       <StateHistory ctx={ctx} ledger="purchase_order" id={order.id} stateLabel={stateLabel} />
+      <CustomFieldsPanel org={ctx.org.slug} table="app.purchase_orders" id={order.id} />
       <CollabPanels ctx={ctx} table="app.purchase_orders" id={order.id} />
     </RecordPage>
   );
+}
+
+/** A query string without one key, for a filter link that turns itself off. */
+function dropKey(query: string, key: string): string {
+  const q = new URLSearchParams(query);
+  q.delete(key);
+  return q.toString();
 }

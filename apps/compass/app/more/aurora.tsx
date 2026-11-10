@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { View } from "react-native";
 import { compassConversation } from "../../src/runtime/aurora";
 import { useCompass } from "../../src/runtime/CompassProvider";
+import { AiDisclosure } from "../../src/screens/AiDisclosure";
 import { DenialNotice } from "../../src/screens/common";
 import {
   Button,
@@ -31,7 +32,7 @@ import {
 export default function AuroraScreen(): ReactElement {
   const { t } = useTranslation();
   const theme = useTheme();
-  const { resolved, config, client } = useCompass();
+  const { resolved, config, client, aiChoice } = useCompass();
   const conversation = useMemo(
     () => compassConversation(config.atlasUrl, client),
     [config.atlasUrl, client],
@@ -41,8 +42,8 @@ export default function AuroraScreen(): ReactElement {
   const internal = resolved ? isInternal(resolved.identity.audience) : false;
 
   useEffect(() => {
-    if (internal) void conversation.loadStatus();
-  }, [conversation, internal]);
+    if (internal && aiChoice !== "Declined") void conversation.loadStatus();
+  }, [conversation, internal, aiChoice]);
 
   const title = t(COMPASS_AURORA_ENTRY.labelKey);
   if (!resolved) {
@@ -60,7 +61,28 @@ export default function AuroraScreen(): ReactElement {
     );
   }
 
+  // Declined: AI features stay off until the person changes their mind. A first visit where the assistant is on asks before
+  // any question can go out; the status read that tells us it is on sends nothing of theirs (ADR 0156).
+  if (aiChoice === "Declined") {
+    return (
+      <Screen testID="aurora" title={title}>
+        <InlineAlert
+          testID="aurora-declined"
+          tone="info"
+          message={t("compass.aiDisclosure.declined")}
+        />
+        <AiDisclosure />
+      </Screen>
+    );
+  }
   const availability = state.availability;
+  if (aiChoice === "unknown" && availability.kind === "ready") {
+    return (
+      <Screen testID="aurora" title={title}>
+        <AiDisclosure />
+      </Screen>
+    );
+  }
   const ask = () => {
     const q = question;
     setQuestion("");
@@ -115,6 +137,13 @@ export default function AuroraScreen(): ReactElement {
           outcome="REFUSE"
           title={t("compass.aurora.offTitle")}
           reason={t("aurora.off.actionMember")}
+        />
+      ) : availability.kind === "declined" ? (
+        <RefusalNotice
+          testID="aurora-declined"
+          outcome="REFUSE"
+          title={t("compass.aurora.declinedTitle")}
+          reason={t("compass.aurora.declined")}
         />
       ) : availability.kind === "limit-reached" ? (
         <RefusalNotice
@@ -175,7 +204,9 @@ function TurnCard({
             <Text>{turn.answer.text}</Text>
             {turn.answer.citations.length > 0 ? (
               <Text variant="text13" tone="secondary">
-                {`${t("aurora.panel.citations")}: ${turn.answer.citations.map((c) => c.label).join(", ")}`}
+                {t("aurora.panel.citations")}
+                {": "}
+                {turn.answer.citations.map((c) => c.label).join(", ")}
               </Text>
             ) : null}
             {turn.model ? (

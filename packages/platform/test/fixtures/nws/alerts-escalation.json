@@ -1,0 +1,24 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "id": "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.2002",
+      "type": "Feature",
+      "properties": {
+        "id": "urn:oid:2.49.0.1.840.0.2002",
+        "sent": "2027-06-02T18:50:00-04:00",
+        "expires": "2027-06-02T20:00:00-04:00",
+        "status": "Actual",
+        "messageType": "Update",
+        "severity": "Severe",
+        "certainty": "Likely",
+        "urgency": "Expected",
+        "event": "Flash Flood Warning",
+        "headline": "Flash Flood Warning issued June 2 at 6:50PM EDT until June 2 at 8:00PM EDT by NWS Miami FL",
+        "references": [
+          { "identifier": "urn:oid:2.49.0.1.840.0.2001", "sent": "2027-06-02T17:00:00-04:00" }
+        ]
+      }
+    }
+  ]
+}

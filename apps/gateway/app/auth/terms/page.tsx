@@ -5,7 +5,7 @@ import { getTranslations } from "next-intl/server";
 import type { ReactNode } from "react";
 import { minimumAgeConfirmed } from "@xos/data/consent";
 import { TermsForm } from "@/components/auth/forms";
-import { missingSignUpAcceptances } from "@/lib/auth/legal";
+import { ACCOUNT_DELETION_PATH, missingSignUpAcceptances, skipsTermsStep } from "@/lib/auth/legal";
 import { safeNext } from "@/lib/auth/redirect";
 import { createServerSupabase } from "@/lib/supabase/server";
 
@@ -18,7 +18,8 @@ export async function generateMetadata(): Promise<Metadata> {
  * The Worker Terms for an account a provider created (ADR 0036, finding A59-025). Signing in with
  * Google creates the account before any form, so /auth/callback sends a new account here to accept
  * the Worker Terms and read the Privacy Policy, as the sign-up form asks. Someone who has accepted
- * them goes straight on to `next`.
+ * them goes straight on to `next`. Deleting the account is never held behind them: the page links to
+ * Settings, Account, and a `next` that is that page goes straight there (Worker Terms 13).
  */
 export default async function TermsPage({ searchParams }: PageProps<"/auth/terms">) {
   const next = safeNext((await searchParams)["next"], "/home");
@@ -28,7 +29,9 @@ export default async function TermsPage({ searchParams }: PageProps<"/auth/terms
     const here = `/auth/terms?next=${encodeURIComponent(next)}`;
     redirect(`/auth/sign-in?next=${encodeURIComponent(here)}` as Route);
   }
-  if ((await missingSignUpAcceptances(db)).length === 0) redirect(next as Route);
+  if (skipsTermsStep(next) || (await missingSignUpAcceptances(db)).length === 0) {
+    redirect(next as Route);
+  }
   const age = await minimumAgeConfirmed(db);
   const t = await getTranslations("gateway.auth");
   const legalLink = (href: string) =>
@@ -58,6 +61,12 @@ export default async function TermsPage({ searchParams }: PageProps<"/auth/terms
           privacy: legalLink("/legal/privacy-policy"),
         })}
       />
+      <p className="m-0 text-text-13 text-text-secondary">
+        {t("terms.deleteInstead")}{" "}
+        <Link href={ACCOUNT_DELETION_PATH as Route} className="text-accent-text underline">
+          {t("terms.deleteLink")}
+        </Link>
+      </p>
     </div>
   );
 }

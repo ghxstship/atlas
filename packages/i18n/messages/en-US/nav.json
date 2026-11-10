@@ -23,7 +23,10 @@
         "calendar": "Calendar",
         "milestones": "Milestones",
         "baselines": "Baselines",
-        "events": "Events"
+        "events": "Events",
+        "days": "Days",
+        "workload": "Workload",
+        "clashes": "Clashes"
       },
       "work": {
         "allRecords": "All Records",
@@ -35,19 +38,24 @@
       "show": {
         "runOfShow": "Run of Show",
         "daySheets": "Day Sheets",
-        "callSheets": "Call Sheets"
+        "callSheets": "Call Sheets",
+        "segments": "Segment Library",
+        "showDay": "Show Day"
       },
       "advancing": {
         "packets": "Packets",
         "submissions": "Submissions",
         "riders": "Riders",
-        "reconciliation": "Reconciliation"
+        "reconciliation": "Reconciliation",
+        "crew": "Crew Roster",
+        "allocations": "Allocations"
       },
       "places": {
         "venues": "Venues",
         "spacesAndZones": "Spaces and Zones",
         "capabilityDocuments": "Capability Documents",
-        "sitePlans": "Site Plans"
+        "sitePlans": "Site Plans",
+        "signage": "Signage"
       },
       "logistics": {
         "shipments": "Shipments",
@@ -57,7 +65,10 @@
       "hospitality": {
         "fulfillments": "Fulfillments",
         "beos": "BEOs",
-        "accommodationBlocks": "Accommodation Blocks"
+        "accommodationBlocks": "Accommodation Blocks",
+        "travel": "Travel",
+        "transfers": "Transfers",
+        "rooms": "Green Rooms and Dressing Rooms"
       },
       "assets": {
         "assetClasses": "Catalog of Asset Classes",
@@ -103,7 +114,8 @@
         "onboarding": "Onboarding",
         "engagements": "Engagements",
         "ratings": "Ratings",
-        "marketplaceSettings": "Marketplace Settings"
+        "marketplaceSettings": "Marketplace Settings",
+        "registrationPages": "Registration Pages"
       },
       "crew": {
         "schedule": "Schedule",
@@ -115,7 +127,10 @@
         "payPeriods": "Pay Periods",
         "payrollExports": "Payroll Exports",
         "timeOff": "Time Off",
-        "perDiems": "Per Diems"
+        "perDiems": "Per Diems",
+        "accessLinks": "Crew Access Links",
+        "shortages": "Shortages",
+        "positions": "Positions"
       },
       "finance": {
         "budgets": "Budgets",
@@ -128,14 +143,16 @@
         "universalPostingLineExport": "Universal Posting Line Export",
         "chartOfAccounts": "Chart of Accounts",
         "costCenters": "Cost Centers",
-        "yearEnd": "Year-End"
+        "yearEnd": "Year-End",
+        "quotes": "Quotes"
       },
       "procurement": {
         "rfqs": "RFQs",
         "purchaseOrders": "Purchase Orders",
         "receipts": "Receipts",
         "invoiceMatching": "Invoice Matching",
-        "catalog": "Catalog"
+        "catalog": "Catalog",
+        "needs": "Needs"
       },
       "vendors": {
         "directory": "Directory",
@@ -187,7 +204,8 @@
         "occupancy": "Occupancy",
         "weather": "Weather",
         "guestCheckIn": "Guest Check-In",
-        "lostAndFound": "Lost and Found"
+        "lostAndFound": "Lost and Found",
+        "muster": "Muster List"
       }
     },
     "items": {
@@ -398,7 +416,9 @@
       "reports": "Reports",
       "invoices": "Invoices",
       "documents": "Documents",
-      "messages": "Messages"
+      "messages": "Messages",
+      "crew": "Crew",
+      "projectDetails": "Project Details"
     },
     "avatar": {
       "settings": "Settings",
@@ -430,7 +450,8 @@
       "upcoming": "Upcoming",
       "engagements": "Engagements",
       "applications": "Applications",
-      "engagement": "Engagement"
+      "engagement": "Engagement",
+      "quoteRequests": "Quote Requests"
     },
     "money": {
       "overview": "Overview",
@@ -446,7 +467,15 @@
       "personProfile": "Person Profile",
       "companyProfile": "Company Profile",
       "advanceForm": "Advance Form",
-      "agreementSigning": "Agreement Signing"
+      "agreementSigning": "Agreement Signing",
+      "crewShifts": "My Shifts Link",
+      "registration": "Crew Registration",
+      "vendorIntake": "Vendor Intake",
+      "publicForm": "Public Form",
+      "guestUnsubscribe": "Stop Emails"
+    },
+    "profile": {
+      "badgePhotos": "Badge Photos"
     }
   },
   "compass": {
@@ -474,7 +503,10 @@
       "reference": "Reference",
       "offlineQueue": "Offline Queue",
       "profile": "Profile and Certifications",
-      "settings": "Settings"
+      "settings": "Settings",
+      "projectDetails": "Project Details",
+      "logisticsGate": "Gate",
+      "drives": "Drives"
     },
     "reference": {
       "emergencyCodes": "Emergency Codes",
@@ -528,20 +560,30 @@
       "shiftCoverage": "Shift Coverage"
     },
     "routes": {
-      "record": "Record"
+      "record": "Record",
+      "clockTeam": "Clock In Team"
     }
   },
   "console": {
     "group": "Operator Console",
     "tenants": "Tenants",
     "tenant": "Tenant",
+    "metrics": "Metrics",
     "flags": "Feature Flags",
+    "territories": "Territories",
     "support": "Support Sessions",
     "supportSession": "Support Session",
     "moderation": "Moderation",
     "listing": "Reported Listing",
+    "reportedContent": "Reported Content",
+    "reportedItem": "Reported Item",
+    "legalQueue": "Legal Queue",
+    "legalQueueItem": "Legal Queue Item",
     "banners": "System Banners",
+    "funnels": "Funnels",
     "team": "Platform Team",
-    "activity": "Activity"
+    "activity": "Activity",
+    "ratingDisputes": "Rating Disputes",
+    "ratingDispute": "Rating Dispute"
   }
 }

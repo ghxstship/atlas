@@ -7,13 +7,13 @@
 // on XOS_APP_URL (Atlas, A104; without it nobody is told). Called every minute with the service key, like report-run.
 import { createClient } from "@supabase/supabase-js";
 import { runImportJobs, supabaseImportStore } from "../_vendor/import-run.js";
-import { env, hasBearer, json, serve } from "../_shared/runtime.ts";
+import { isServiceRequest, json, env, secretKey, serve } from "../_shared/runtime.ts";
 
 serve(async (request) => {
-  if (!hasBearer(request, env("SUPABASE_SERVICE_ROLE_KEY"))) {
+  if (!isServiceRequest(request)) {
     return json(401, { type: "/problems/unauthorized", title: "Unauthorized", status: 401 });
   }
-  const client = createClient(env("SUPABASE_URL"), env("SUPABASE_SERVICE_ROLE_KEY"), {
+  const client = createClient(env("SUPABASE_URL"), secretKey(), {
     auth: { persistSession: false, autoRefreshToken: false },
   });
   const appUrl = Deno.env.get("XOS_APP_URL");

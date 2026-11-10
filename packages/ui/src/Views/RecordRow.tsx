@@ -95,7 +95,9 @@ export function RecordRow({
         {kind ? (
           <RecordKindGlyph kind={kind} size={14} color="var(--color-text-secondary)" />
         ) : null}
-        <span className="truncate">{title}</span>
+        <span className="truncate" title={title}>
+          {title}
+        </span>
       </span>
       <span role="gridcell" className="xos-rrow-chips flex gap-4">
         {chips}

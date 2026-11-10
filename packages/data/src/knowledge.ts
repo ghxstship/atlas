@@ -1,3 +1,4 @@
+import { applyArchived, type ArchivedFilter } from "./archive.ts";
 import type { Database, XosClient } from "./client.ts";
 import {
   blankToNull,
@@ -262,20 +263,28 @@ export interface KnowledgeDocument {
   readonly title: string;
   readonly projectId: string | null;
   readonly projectKey: string | null;
+  /** Document type of the org it is filed under (B14, 6261); null or absent when untyped. */
+  readonly documentTypeId?: string | null;
+  readonly documentTypeName?: string | null;
   readonly updatedAt: string;
   readonly versions: readonly DocumentVersion[];
   readonly latestVersion: DocumentVersion | null;
+  /** When the document was archived (A124); archived documents leave lists unless asked for. */
+  readonly archivedAt: string | null;
 }
 
 const DOCUMENT_COLUMNS =
-  "id, title, project_id, updated_at, project:projects(project_key), document_versions(id, version_number, storage_uri, checksum_sha256, created_at, created_by, author:people!document_versions_created_by_fkey(full_name))" as const;
+  "id, title, project_id, document_type_id, updated_at, archived_at, project:projects(project_key), document_type:document_types(name), document_versions(id, version_number, storage_uri, checksum_sha256, created_at, created_by, author:people!document_versions_created_by_fkey(full_name))" as const;
 
 interface DocumentRow {
   id: string;
   title: string;
   project_id: string | null;
+  document_type_id: string | null;
   updated_at: string;
+  archived_at: string | null;
   project: { project_key: string } | null;
+  document_type: { name: string } | null;
   document_versions:
     | {
         id: string;
@@ -306,24 +315,29 @@ function toDocument(row: DocumentRow): KnowledgeDocument {
     title: row.title,
     projectId: row.project_id,
     projectKey: row.project?.project_key ?? null,
+    documentTypeId: row.document_type_id,
+    documentTypeName: row.document_type?.name ?? null,
     updatedAt: row.updated_at,
     versions,
     latestVersion: versions[0] ?? null,
+    archivedAt: row.archived_at,
   };
 }
 
-/** Org-wide documents and documents of the projects the viewer can read, latest change first. */
+/**
+ * Org-wide documents and documents of the projects the viewer can read, latest change first;
+ * archived ones only when asked for (A124).
+ */
 export async function listDocuments(
   db: XosClient,
   orgId: string,
+  archived: ArchivedFilter = "exclude",
 ): Promise<Result<KnowledgeDocument[]>> {
   const result = await readRows(
-    db
-      .from("documents")
-      .select(DOCUMENT_COLUMNS)
-      .eq("org_id", orgId)
-      .is("deleted_at", null)
-      .order("updated_at", { ascending: false }),
+    applyArchived(
+      db.from("documents").select(DOCUMENT_COLUMNS).eq("org_id", orgId).is("deleted_at", null),
+      archived,
+    ).order("updated_at", { ascending: false }),
     (row) => toDocument(row),
   );
   return result.ok
@@ -355,7 +369,12 @@ export interface DocumentVersionInput {
 export async function createDocument(
   db: XosClient,
   orgId: string,
-  input: { readonly title: string; readonly projectId: string | null } & DocumentVersionInput,
+  input: {
+    readonly title: string;
+    readonly projectId: string | null;
+    /** B14 (6261): the org document type to file it under. */
+    readonly documentTypeId?: string | null;
+  } & DocumentVersionInput,
 ): Promise<Result<{ id: string }>> {
   if (!SHA256.test(input.checksumSha256)) return fail({ kind: "invalid", message: "checksum" });
   const document = await insertedId(
@@ -365,6 +384,7 @@ export async function createDocument(
         org_id: orgId,
         title: input.title.trim(),
         project_id: blankToNull(input.projectId),
+        ...(input.documentTypeId ? { document_type_id: input.documentTypeId } : {}),
       })
       .select("id")
       .single(),
@@ -380,6 +400,17 @@ export async function renameDocument(
   title: string,
 ): Promise<Result<null>> {
   return touched(db.from("documents").update({ title: title.trim() }).eq("id", id).select("id"));
+}
+
+/** Files a document under an org document type, or clears it (B14, 6261); knowledge.document.write decides. */
+export async function setDocumentType(
+  db: XosClient,
+  id: string,
+  documentTypeId: string | null,
+): Promise<Result<null>> {
+  return touched(
+    db.from("documents").update({ document_type_id: documentTypeId }).eq("id", id).select("id"),
+  );
 }
 
 /** Appends a version; the database numbers it and versions never change. */

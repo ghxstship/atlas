@@ -5,6 +5,7 @@ import {
   type AdvancingProject,
 } from "@xos/data/advancing";
 import { isNodeVisible } from "@xos/ia";
+import type { CapabilityCode } from "@xos/schemas/capabilities/codes";
 import { notFound } from "next/navigation";
 import { requireNode } from "@/lib/shell/require-node";
 import { getOrgContext, type OrgContext } from "@/lib/shell/context";
@@ -26,6 +27,8 @@ export interface AdvancingAbilities {
   readonly rider: boolean;
   /** advancing.reconciliation.write: run reconciliations. */
   readonly reconcile: boolean;
+  /** projects.scope.write: add the venue's specs as capabilities (B1, app.provide_place_specs). */
+  readonly scopeWrite: boolean;
 }
 
 export interface AdvancingContext {
@@ -43,13 +46,14 @@ async function abilities(ctx: OrgContext): Promise<AdvancingAbilities> {
     ctx.org.roles.map((r) => r.id),
   );
   if (!reach.ok) throw new Error(`Cannot read capabilities: ${JSON.stringify(reach.error)}`);
-  const has = (code: string) => reach.data.has(code) && reach.data.get(code) !== "own";
+  const has = (code: CapabilityCode) => reach.data.has(code) && reach.data.get(code) !== "own";
   return {
     write: has("advancing.packet.write"),
     send: has("advancing.packet.send"),
     review: has("advancing.submission.review"),
     rider: has("advancing.rider.write"),
     reconcile: has("advancing.reconciliation.write"),
+    scopeWrite: has("projects.scope.write"),
   };
 }
 

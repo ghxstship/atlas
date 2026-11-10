@@ -33,6 +33,8 @@ import { getCopy, type Copy } from "@/lib/collection-kit/i18n";
 import { collectionState, withQuery, type SearchParams } from "@/lib/collection-kit/page";
 import type { OrgContext } from "@/lib/shell/context";
 import { orgToday } from "@/lib/shell/time-zone";
+import * as enums from "@xos/data/enums";
+import { CollectionPage } from "@/components/platform/collection-page";
 
 const VIEWS: readonly ViewKind[] = ["table", "list", "board"];
 const REFUSALS = "canonBrowser.refusals";
@@ -74,10 +76,9 @@ export async function CanonExtensions({
   const title = t("extensions.title");
   if (!proposals.ok || !departments.ok || !disciplines.ok || !rules.ok) {
     return (
-      <>
-        <PageHeader title={title} />
+      <CollectionPage header={<PageHeader title={title} />}>
         <ErrorPanel what={t("extensions.what")} />
-      </>
+      </CollectionPage>
     );
   }
   const canWrite = ctx.capabilities.has("canon.extension.write");
@@ -283,7 +284,7 @@ export async function CanonExtensions({
         { key: "state", label: t("fields.state"), type: "state" },
       ]}
       rows={rows}
-      board={(["Proposed", "Approved", "Rejected", "Withdrawn"] as const).map((s) => ({
+      board={enums.canonExtensionState.map((s) => ({
         value: s,
         state: RECORD_STATE[s],
         label: t(`extensions.states.${s}`),

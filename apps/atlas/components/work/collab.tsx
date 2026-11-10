@@ -15,6 +15,7 @@ import {
   uploadAttachmentAction,
   type CollabSubject,
 } from "./collab-actions";
+import { AttachmentPreview } from "@/components/files/file-preview";
 
 /**
  * Comments and attachments on one Schedule, Work or Show row or custom object record (Section 19.6,
@@ -149,6 +150,7 @@ function CommentsPanel({
         >
           <Textarea
             id={`comment-${subject.id}`}
+            data-shortcut="record.comment"
             label={t("collab.write")}
             value={body}
             onChange={(e) => setBody(e.target.value)}
@@ -216,6 +218,7 @@ function AttachmentsPanel({
                 >
                   {t(`collab.scan.${scan(a)}`)}
                 </Tag>
+                <AttachmentPreview attachment={a} />
                 {a.current ? (
                   <Button
                     size="sm"

@@ -5,9 +5,19 @@ import {
   type AccommodationBlock,
   type AccommodationBlockDetail,
 } from "@xos/data/hospitality";
+import { listBudgetLineRefs } from "@xos/data/finance";
 import { findIdByKey, listCounterpartyOptions } from "@xos/data/logistics";
+import {
+  buildNightsMatrix,
+  listAccommodationNights,
+  listActsWithoutRooms,
+  listBudgetLineLodging,
+  type ActWithoutRoom,
+} from "@xos/data/lodging";
 import type { RecordState } from "@xos/ui";
+import type { Route } from "next";
 import { getTranslations } from "next-intl/server";
+import Link from "next/link";
 import type { ReactNode } from "react";
 import {
   assignRoomAction,
@@ -46,7 +56,7 @@ import { PageHeader, RefusalNotice, TemplateCollection } from "./ui";
  * block's assignments never exceed its rooms held (accommodation_block_full, migration 0440).
  */
 
-export const BLOCK_VIEWS = ["list", "table", "calendar"] as const;
+export const BLOCK_VIEWS = ["list", "table", "calendar", "matrix"] as const;
 type BlockView = (typeof BLOCK_VIEWS)[number];
 
 type BlockPhase = "upcoming" | "inStay" | "past";
@@ -80,15 +90,28 @@ export async function BlocksSection({
   const db = scope.ctx.viewer.db;
   const exponents = await getCurrencyExponents(db);
   const view = readView<BlockView>(search, BLOCK_VIEWS, "list");
-  const [rows, hotels] = await Promise.all([
-    listAccommodationBlocks(db, {
-      orgId: scope.ctx.org.id,
-      ...(scope.project ? { projectId: scope.project.id } : {}),
-    }),
+  const blockScope = {
+    orgId: scope.ctx.org.id,
+    ...(scope.project ? { projectId: scope.project.id } : {}),
+  };
+  // Acts without rooms (B5, G-66) per project the viewer reads hospitality on; no fact value is read.
+  const roomlessProjects = (scope.project ? [scope.project] : scope.projects).filter((p) =>
+    scope.access.can(p.id, "hospitality.fulfillment.read"),
+  );
+  const [rows, hotels, nights, roomless, budgetLines] = await Promise.all([
+    listAccommodationBlocks(db, blockScope),
     listCounterpartyOptions(db, scope.ctx.org.id),
+    listAccommodationNights(db, blockScope),
+    Promise.all(roomlessProjects.map((p) => listActsWithoutRooms(db, p.id))),
+    listBudgetLineRefs(db, { orgId: scope.ctx.org.id, projectId: scope.project?.id ?? null }),
   ]);
   if (!rows.ok) throw new Error(`Cannot read blocks: ${JSON.stringify(rows.error)}`);
   if (!hotels.ok) throw new Error(`Cannot read hotels: ${JSON.stringify(hotels.error)}`);
+  if (!nights.ok) throw new Error(`Cannot read block nights: ${JSON.stringify(nights.error)}`);
+  const actsWithoutRooms: ActWithoutRoom[] = roomless.flatMap((r) => (r.ok ? r.data : []));
+  // Budget lines are read with finance.budget.read: the select shows only for holders, who can read them.
+  const linesFor = (projectId: string | undefined) =>
+    budgetLines.ok ? budgetLines.data.filter((l) => !projectId || l.projectId === projectId) : [];
   const writable = writableProjects(scope, "hospitality.accommodation.write");
   const today = scope.today;
   const listHref = hrefWith(base, search, { peek: null, full: null, edit: null, create: null });
@@ -176,7 +199,31 @@ export async function BlocksSection({
       defaultValue: b?.currencyCode ?? "USD",
       options: currencies,
     },
+    ...(linesFor(b?.projectId ?? scope.project?.id).length > 0
+      ? [
+          {
+            name: "budgetLineId",
+            label: t("blocks.budgetLine.label"),
+            kind: "select" as const,
+            help: t("blocks.budgetLine.help"),
+            defaultValue: b?.budgetLineId ?? "",
+            options: [
+              { value: "", label: tc("none") },
+              ...linesFor(b?.projectId ?? scope.project?.id).map((l) => ({
+                value: l.id,
+                label: t("blocks.budgetLine.option", {
+                  budget: l.budgetName,
+                  number: l.lineNumber,
+                  description: l.description,
+                }),
+              })),
+            ],
+          },
+        ]
+      : []),
   ];
+  const budgetLineHidden = (projectId: string | undefined) =>
+    linesFor(projectId).length > 0 ? { budgetLineSent: "1" } : {};
 
   let overlay: ReactNode = null;
   if (param(search, "create") === "1") {
@@ -191,7 +238,7 @@ export async function BlocksSection({
         <FormDrawer
           title={t("blocks.new")}
           fields={fieldsFor()}
-          hidden={{ org: scope.ctx.org.slug }}
+          hidden={{ org: scope.ctx.org.slug, ...budgetLineHidden(scope.project?.id) }}
           action={createBlockAction}
           submitLabel={t("blocks.new")}
           closeHref={listHref}
@@ -219,6 +266,15 @@ export async function BlocksSection({
       ]);
       const guestName = (a: { personId: string; personName: string | null }) =>
         a.personName ?? names.get(a.personId) ?? tc("unnamed");
+      // The per-night table reads app.accommodation_block_nights, as the matrix does, so the two never disagree.
+      const blockNights = nights.data.filter((n) => n.blockId === b.id);
+      const line = b.budgetLineId
+        ? linesFor(b.projectId).find((l) => l.id === b.budgetLineId)
+        : undefined;
+      const lodging = line ? await listBudgetLineLodging(db, line.budgetId) : null;
+      const lodgingRow = lodging?.ok
+        ? lodging.data.find((r) => r.budgetLineId === line?.id)
+        : undefined;
       record = (
         <>
           <RecordView
@@ -256,6 +312,40 @@ export async function BlocksSection({
                 value: <TotalValue db={scope.ctx.viewer.db} total={b.contractTotal} />,
               },
               { label: t("blocks.fields.occupancy"), value: occupancyLine(b) },
+              ...(line
+                ? [
+                    {
+                      label: t("blocks.budgetLine.label"),
+                      value: t("blocks.budgetLine.option", {
+                        budget: line.budgetName,
+                        number: line.lineNumber,
+                        description: line.description,
+                      }),
+                    },
+                  ]
+                : []),
+              ...(lodgingRow && !lodgingRow.withheld
+                ? [
+                    {
+                      label: t("blocks.budgetLine.held"),
+                      value:
+                        format.money(
+                          lodgingRow.heldMinor,
+                          lodgingRow.currencyCode,
+                          exponents.get(lodgingRow.currencyCode) ?? 2,
+                        ) ?? tc("unpriced"),
+                    },
+                    {
+                      label: t("blocks.budgetLine.assigned"),
+                      value:
+                        format.money(
+                          lodgingRow.assignedMinor,
+                          lodgingRow.currencyCode,
+                          exponents.get(lodgingRow.currencyCode) ?? 2,
+                        ) ?? tc("unpriced"),
+                    },
+                  ]
+                : []),
             ]}
             actions={
               canWrite ? (
@@ -309,15 +399,13 @@ export async function BlocksSection({
                     </tr>
                   </thead>
                   <tbody>
-                    {b.occupancy.byNight.map((n) => (
+                    {blockNights.map((n) => (
                       <tr key={n.night} className="border-t border-border-subtle">
                         <th scope="row" className="px-12 py-6 text-start font-normal">
                           {format.weekday(n.night)} {format.date(n.night)}
                         </th>
                         <td className="px-12 py-6 text-end tabular-nums">{n.assigned}</td>
-                        <td className="px-12 py-6 text-end tabular-nums">
-                          {b.roomsHeld - n.assigned}
-                        </td>
+                        <td className="px-12 py-6 text-end tabular-nums">{n.free}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -401,7 +489,12 @@ export async function BlocksSection({
             <FormDrawer
               title={t("blocks.editTitle", { key: b.key })}
               fields={fieldsFor(b)}
-              hidden={{ org, id: b.id, expectedUpdatedAt: b.updatedAt }}
+              hidden={{
+                org,
+                id: b.id,
+                expectedUpdatedAt: b.updatedAt,
+                ...budgetLineHidden(b.projectId),
+              }}
               action={updateBlockAction}
               submitLabel={tc("save")}
               closeHref={hrefWith(base, search, { edit: null })}
@@ -422,6 +515,24 @@ export async function BlocksSection({
   }
 
   const createHref = hrefWith(base, search, { create: "1", peek: null });
+  const roomlessNote =
+    actsWithoutRooms.length > 0 ? (
+      <details className="rounded-card border border-border-subtle px-12 py-8 text-text-13">
+        <summary className="cursor-pointer font-medium">
+          {t("actsWithoutRooms.count", { count: actsWithoutRooms.length })}
+        </summary>
+        <ul className="m-0 mt-8 flex list-none flex-col gap-4 p-0">
+          {actsWithoutRooms.map((a) => (
+            <li key={a.engagementId}>
+              {t("actsWithoutRooms.row", {
+                name: a.actName ?? tc("unnamed"),
+                people: a.peopleCount,
+              })}
+            </li>
+          ))}
+        </ul>
+      </details>
+    ) : null;
   const header = (
     <PageHeader
       title={t("blocks.title")}
@@ -430,7 +541,10 @@ export async function BlocksSection({
         <ViewSwitcher
           label={tc("views.label")}
           current={view}
-          options={BLOCK_VIEWS.map((v) => ({ value: v, label: tc(`views.${v}`) }))}
+          options={BLOCK_VIEWS.map((v) => ({
+            value: v,
+            label: v === "matrix" ? t("blocks.matrix.view") : tc(`views.${v}`),
+          }))}
         />
       }
       actions={
@@ -526,6 +640,98 @@ export async function BlocksSection({
         }}
       />
     );
+  } else if (view === "matrix") {
+    const matrix = buildNightsMatrix(nights.data, today);
+    const byId = new Map(rows.data.map((b) => [b.id, b]));
+    body = (
+      <div
+        role="region"
+        aria-label={t("blocks.matrix.title")}
+        tabIndex={0}
+        className="overflow-x-auto rounded-card border border-border-subtle"
+      >
+        <table className="w-full border-collapse text-text-13">
+          <caption className="sr-only">{t("blocks.matrix.title")}</caption>
+          <thead>
+            <tr>
+              <th
+                scope="col"
+                className="px-12 py-6 text-start text-text-12 font-medium text-text-secondary bg-bg-surface"
+              >
+                {t("blocks.matrix.block")}
+              </th>
+              {matrix.nights.map((n) => (
+                <th
+                  key={n}
+                  scope="col"
+                  className="px-8 py-6 text-end text-text-12 font-medium bg-bg-surface whitespace-nowrap"
+                >
+                  <span className="text-text-secondary">{format.weekday(n)}</span> {format.date(n)}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {matrix.blocks.map((m) => {
+              const block = byId.get(m.blockId);
+              return (
+                <tr key={m.blockId} className="border-t border-border-subtle">
+                  <th scope="row" className="px-12 py-6 text-start font-normal">
+                    {block ? (
+                      <Link
+                        href={peekHref(block.key) as Route}
+                        scroll={false}
+                        className="text-text-primary underline-offset-2 hover:underline"
+                      >
+                        {block.key} {m.title}
+                      </Link>
+                    ) : (
+                      m.title
+                    )}
+                  </th>
+                  {m.cells.map((c, i) => (
+                    <td
+                      key={matrix.nights[i]}
+                      className={`px-8 py-6 text-end tabular-nums whitespace-nowrap ${c?.releaseDue ? "bg-warning-bg text-warning-text font-medium" : ""}`}
+                    >
+                      {c ? (
+                        <span
+                          title={
+                            c.releaseDue
+                              ? t("blocks.matrix.releaseDue", {
+                                  date: format.date(m.releaseOn) ?? "",
+                                  free: c.free,
+                                })
+                              : t("blocks.matrix.cell", {
+                                  assigned: c.assigned,
+                                  held: c.held,
+                                  free: c.free,
+                                })
+                          }
+                        >
+                          {t("blocks.matrix.value", { assigned: c.assigned, held: c.held })}
+                          {c.releaseDue ? (
+                            <span className="sr-only">
+                              {" "}
+                              {t("blocks.matrix.releaseDue", {
+                                date: format.date(m.releaseOn) ?? "",
+                                free: c.free,
+                              })}
+                            </span>
+                          ) : null}
+                        </span>
+                      ) : (
+                        ""
+                      )}
+                    </td>
+                  ))}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    );
   } else if (view === "calendar") {
     const cal = calendarMonth(search, scope.today);
     body = (
@@ -565,14 +771,11 @@ export async function BlocksSection({
   return (
     <TemplateCollection
       header={
-        heading ? (
-          <>
-            {heading}
-            {header}
-          </>
-        ) : (
-          header
-        )
+        <>
+          {heading}
+          {header}
+          {roomlessNote}
+        </>
       }
       peek={
         <>

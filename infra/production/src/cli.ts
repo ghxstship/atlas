@@ -11,7 +11,7 @@
  *                         Compare two table-counts.sql outputs; exit 1 when a data table differs.
  *   linked <dry-run|rehearse|execute> [--confirm REF] [--log DIR]
  *                         Run the removal against the linked hosted project through the Supabase CLI's login
- *                         (`supabase db query --linked`, `supabase storage rm --linked`): no database password
+ *                         (`supabase db query --remote`, `supabase storage rm --remote`): no database password
  *                         and no service role key. execute needs --confirm with the linked project ref.
  *   plain-sql <mode>      Print the removal script translated to plain SQL for one mode (what `linked` runs).
  *

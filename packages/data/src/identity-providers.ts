@@ -1,5 +1,6 @@
 import type { XosClient } from "./client.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
+import type { Database } from "./database.types.ts";
 
 /**
  * Enterprise single sign-on and SCIM (Section 9, Enterprise plan; migrations 0638 and 1332, A77). An org's identity
@@ -11,7 +12,7 @@ import { fail, ok, toDataError, type Result } from "./result.ts";
 
 export interface IdentityProvider {
   readonly id: string;
-  readonly protocol: "SAML" | "OIDC";
+  readonly protocol: Database["app"]["Enums"]["identity_protocol"];
   readonly name: string;
   readonly authProviderId: string;
   readonly defaultRoleId: string;
@@ -51,7 +52,7 @@ export async function listIdentityProviders(
 export interface IdentityProviderInput {
   readonly orgId: string;
   readonly name: string;
-  readonly protocol: "SAML" | "OIDC";
+  readonly protocol: Database["app"]["Enums"]["identity_protocol"];
   readonly authProviderId: string;
   readonly defaultRoleId: string;
   readonly jitEnabled: boolean;

@@ -13,8 +13,11 @@ import {
   type ConnectionView,
   type IntegrationsCopy,
 } from "@xos/integrations/settings";
-import { getLocale } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
+import { StoragePicker } from "@/components/lazy-ui/storage-picker";
 import { InlineAlert } from "@/components/ui";
+import { connectStorageAction } from "@/lib/integrations/storage-actions";
+import { storageOAuthClient } from "@/lib/integrations/storage-oauth";
 import { planHasFeature } from "@/lib/settings/plan";
 import { getTranslate } from "@/lib/shell/translate";
 import {
@@ -84,6 +87,49 @@ async function IntegrationsPanel({ ctx }: SettingsPanelProps) {
     return <InlineAlert tone="danger">{t("integrations.settings.loadFailed")}</InlineAlert>;
   }
   const rows = connections.ok ? connections.data : [];
+  // B16 (ADR 0155 D5): Google Drive and OneDrive sign in, and an Admin chooses the folder writers link from.
+  const s = (await getTranslations("storageLinks")) as unknown as (key: string) => string;
+  const signIn = (code: string): ConnectionView["oauth"] => {
+    if (code !== "google_drive" && code !== "onedrive_sharepoint") return undefined;
+    const google = code === "google_drive";
+    return {
+      label: s(google ? "connectGoogle" : "connectMicrosoft"),
+      disabledReason:
+        storageOAuthClient(code) === null
+          ? s(google ? "notSetUpGoogle" : "notSetUpMicrosoft")
+          : null,
+    };
+  };
+  const linkingFolder = (c: (typeof rows)[number]) => {
+    if (!canManage || c.connection_state !== "Connected") return undefined;
+    if (c.provider_code !== "google_drive" && c.provider_code !== "onedrive_sharepoint")
+      return undefined;
+    const root =
+      typeof c.provider_settings["link_root_id"] === "string"
+        ? c.provider_settings["link_root_id"]
+        : null;
+    return (
+      <details className="flex flex-col gap-8" data-testid="linking-folder">
+        <summary className="cursor-pointer text-label-13 font-medium">
+          {s("linkingFolder")}: {root ?? s("linkingFolderNone")}
+        </summary>
+        <p className="m-0 text-text-12 text-text-secondary">{s("linkingFolderHelp")}</p>
+        <StoragePicker
+          org={ctx.org.slug}
+          connectionId={c.id}
+          mode="admin"
+          labels={{
+            loading: s("pickerLoading"),
+            empty: s("pickerEmpty"),
+            up: s("pickerUp"),
+            choose: s("pickerChoose"),
+            open: s("pickerOpen"),
+            useFolder: s("useFolder"),
+          }}
+        />
+      </details>
+    );
+  };
   const when = new Intl.DateTimeFormat(locale, { dateStyle: "medium", timeStyle: "short" });
   const copy = Object.fromEntries(
     COPY_KEYS.map((k) => [k, t(`integrations.settings.${k}`)]),
@@ -114,6 +160,9 @@ async function IntegrationsPanel({ ctx }: SettingsPanelProps) {
     scopes: isProviderCode(c.provider_code)
       ? scopesFor(c.provider_code).map((s) => ({ value: s, label: t(`integrations.scopes.${s}`) }))
       : [],
+    ...(signIn(c.provider_code) ? { oauth: signIn(c.provider_code) } : {}),
+    accountName: c.external_account_name,
+    ...(linkingFolder(c) ? { extra: linkingFolder(c) } : {}),
   }));
   return (
     <section aria-labelledby="integrations-heading" className="flex flex-col gap-12">
@@ -131,6 +180,7 @@ async function IntegrationsPanel({ ctx }: SettingsPanelProps) {
           credential: storeIntegrationCredentialAction,
           transition: transitionIntegrationAction,
           sync: syncIntegrationAction,
+          oauth: connectStorageAction,
         }}
       />
     </section>

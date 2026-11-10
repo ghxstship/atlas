@@ -113,6 +113,44 @@ export function advisorsSummary(projectRef: string, verdict: AdvisorVerdict): st
   ].join("\n");
 }
 
+/**
+ * The lints `supabase db advisors --output-format json` reports for a local stack (Supabase CLI 3), in the Management
+ * API's shape, so the local gate applies the same accepted list as staging. CLI 3 lints every schema `[api]` exposes,
+ * where CLI 2 linted only `public`.
+ */
+export function cliAdvisorLints(report: unknown): { kind: AdvisorKind; lints: Lint[] }[] {
+  const results = (report as { results?: unknown } | null)?.results;
+  if (!Array.isArray(results)) throw new Error("The advisors report has no results list.");
+  const lints = results.map((raw) => {
+    const r = raw as Record<string, unknown>;
+    const text = (key: string) => (typeof r[key] === "string" ? (r[key] as string) : null);
+    const categories = Array.isArray(r["categories"]) ? (r["categories"] as string[]) : [];
+    const lint: { -readonly [K in keyof Lint]: Lint[K] } = {
+      name: text("name") ?? "unknown",
+      level: text("level") ?? "ERROR",
+      categories,
+    };
+    const title = text("title");
+    if (title !== null) lint.title = title;
+    const detail = text("detail");
+    if (detail !== null) lint.detail = detail;
+    const description = text("description");
+    if (description !== null) lint.description = description;
+    const remediation = text("remediation");
+    if (remediation !== null) lint.remediation = remediation;
+    const cacheKey = text("cacheKey");
+    if (cacheKey !== null) lint.cache_key = cacheKey;
+    return {
+      kind: (categories.includes("SECURITY") ? "security" : "performance") as AdvisorKind,
+      lint,
+    };
+  });
+  return (["security", "performance"] as const).map((kind) => ({
+    kind,
+    lints: lints.filter((l) => l.kind === kind).map((l) => l.lint),
+  }));
+}
+
 /** Fetches both advisor kinds with a bearer token. `fetchImpl` is injectable for tests. */
 export async function fetchAdvisors(
   projectRef: string,

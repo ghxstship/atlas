@@ -1,4 +1,5 @@
 import type { PreviewCell, ReportPreview } from "./report-builder.ts";
+import type { Database } from "./database.types.ts";
 
 /**
  * Report files in .xlsx and PDF (A43, finding A38-004; Section 4.6.4): the same summary a report
@@ -14,7 +15,7 @@ import type { PreviewCell, ReportPreview } from "./report-builder.ts";
  * Restricted file.
  */
 
-export type DataClassification = "Public" | "Internal" | "Confidential" | "Restricted";
+export type DataClassification = Database["app"]["Enums"]["data_classification"];
 
 /** Section 8.6: PDFs and images of Confidential and Restricted data carry the viewer and the time. */
 export function watermarked(classification: DataClassification): boolean {

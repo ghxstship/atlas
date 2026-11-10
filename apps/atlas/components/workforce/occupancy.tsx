@@ -25,6 +25,7 @@ import { nodeHref } from "@/lib/shell/sitemap";
 import type { OrgContext } from "@/lib/shell/context";
 import { orgToday } from "@/lib/shell/time-zone";
 import { ProjectPicker, REFUSALS, chosenProject, orgPickers, workforceCopy } from "./shared";
+import { CollectionPage } from "@/components/platform/collection-page";
 
 const VIEWS: readonly ViewKind[] = ["table", "list"];
 
@@ -56,15 +57,14 @@ export async function OccupancySection({
   const project = chosenProject(pickers.projects, search);
   if (project === null) {
     return (
-      <>
-        <PageHeader title={title} />
+      <CollectionPage header={<PageHeader title={title} />}>
         <EmptyStateLink
           icon="FolderPlus"
           sentence={t("site.noProjects")}
           actionLabel={t("site.openProjects")}
           href={nodeHref("projects.all", { org: ctx.org.slug }) ?? "/"}
         />
-      </>
+      </CollectionPage>
     );
   }
   const db = ctx.viewer.db;
@@ -72,11 +72,10 @@ export async function OccupancySection({
   const picker = <ProjectPicker t={t} path={path} projects={pickers.projects} current={project} />;
   if (!counters.ok) {
     return (
-      <>
-        <PageHeader title={title} />
+      <CollectionPage header={<PageHeader title={title} />}>
         {picker}
         <ErrorPanel what={t("occupancy.what")} />
-      </>
+      </CollectionPage>
     );
   }
   const canConfigure = ctx.capabilities.has("safety.emergency_code.write");

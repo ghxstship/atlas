@@ -23,7 +23,7 @@ const rows = [
     "5.3",
     "Segregation of duties",
     "Yes",
-    "Product separation of duties rules (Section 8.2) enforced in SQL; author cannot approve own pull request",
+    "Product separation of duties rules (Section 8.2) enforced in SQL. While GHXSTSHIP has one person with production access, logs and automated checks stand in place of a second approver",
     "A02, A03",
     "Planned (Wave 2)",
   ],
@@ -279,7 +279,7 @@ const rows = [
     "5.35",
     "Independent review of information security",
     "Yes",
-    "Independent reviewers A22 and A23 in Wave 6; SOC 2 Type II examination after launch",
+    "Reviews in Wave 6 were by automated AI agents (A22, A23), not an independent party; no independent review is under contract. SOC 2 Type II examination after launch",
     "A22, A23",
     "Planned (Wave 6)",
   ],
@@ -496,7 +496,7 @@ const rows = [
     "8.4",
     "Access to source code",
     "Yes",
-    "Branch protection, signed commits, reviewed pull requests",
+    "Written policy calls for branch protection, signed commits and reviewed pull requests; main is not protected by repository settings yet, and a second reviewer cannot be required while there is one maintainer",
     "Orchestrator",
     "Planned (Wave 7)",
   ],
@@ -616,7 +616,7 @@ const rows = [
     "8.19",
     "Installation of software on operational systems",
     "Yes",
-    "Deployments only through CI from signed commits; no manual installs",
+    "Deployments only through CI; no manual installs. Written policy calls for signed commits, which repository settings do not yet require",
     "Orchestrator",
     "Planned (Wave 7)",
   ],
@@ -721,13 +721,13 @@ const body = `---
 title: ISO/IEC 27001:2022 Statement of Applicability
 version: 1.0.0-draft
 effective_date: The date this version is approved by the Owner
-status: Draft for review by counsel before launch
+status: Draft before launch
 audience: Internal; shared with customers and auditors under confidentiality
 ---
 
 # ISO/IEC 27001:2022 Statement of Applicability
 
-> **Draft for review by counsel before launch.** This Statement of Applicability is a draft. It takes effect when the Owner approves it, and its effective date is that date of approval. GHXSTSHIP Industries LLC does not hold ISO/IEC 27001 certification.
+> **Draft before launch.** This Statement of Applicability is a draft. It takes effect when the Owner approves it, and its effective date is that date of approval. GHXSTSHIP Industries LLC does not hold ISO/IEC 27001 certification.
 
 ## 1. Scope of the ISMS
 

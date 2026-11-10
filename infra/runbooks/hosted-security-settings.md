@@ -135,12 +135,13 @@ Migrations 1560 to 1563 (ADR 0055). Apply to staging, then production:
 
 ## Upload virus scanning (A22-011): self-hosted ClamAV
 
-The owner chose self-hosted ClamAV, `clamav/clamav` 1.5.4 (decision 10, ADR 0034). Files never leave XOS
-infrastructure, so there is no new subprocessor.
+The owner chose self-hosted ClamAV, `clamav/clamav` 1.5.4 (decision 10, ADR 0034). File bytes reach the machine at
+Fly.io that runs it, so Fly.io is on the Subprocessor List (ADR 0034, amendment of 2026-11-06).
 
-1. Run clamd as described in `production.md`, "Upload scanning (ClamAV)".
-2. Set the function secrets `XOS_CLAMAV_HOST` and `XOS_CLAMAV_PORT`.
-3. Schedule `upload-scan` every minute with the service key, as for `webhook-dispatch`.
+1. Run clamd as described in `infra/scanning/fly/README.md`.
+2. Set the function secrets `XOS_CLAMAV_HOST` and `XOS_CLAMAV_PORT`, and `XOS_CLAMAV_TLS_CA`, `XOS_CLAMAV_TLS_CERT` and
+   `XOS_CLAMAV_TLS_KEY` (all three or none) as its step 4 shows.
+3. Schedule `upload-scan` every minute with a secret key on the `apikey` header, as for `webhook-dispatch`.
 
 Without `XOS_CLAMAV_HOST`, `upload-scan` answers 503 and claims nothing. Every upload stays quarantined,
 and nothing is passed through unscanned outside a local stack.
@@ -183,7 +184,25 @@ Check the hosted project once, on staging, before relying on per-address limits 
 
 ## Report runs (A35)
 
-Schedule the `report-run` Edge Function every minute with the service key, as for
+Schedule the `report-run` Edge Function every minute with a secret key on the `apikey` header, as for
 `webhook-dispatch`. It processes `report.run` jobs (migration 1050): until it is scheduled, report runs
 stay Queued. Result files go to the private `report-results` bucket, readable only by the person each
 run is for.
+
+## Hosted MCP endpoint (B16)
+
+`XOS_MCP_HOSTED=on` in Vercel (Atlas) turns on the hosted MCP endpoint at `/api/mcp`, and `/mcp` on the API host
+(ADR 0155 D1). Unset, both answer 404, and so does `/.well-known/oauth-protected-resource`.
+`/.well-known/oauth-authorization-server` is served either way. Before turning it on:
+
+1. In a test org on the hosted environment you choose, register a Claude connector and a ChatGPT connector from the
+   presets in Settings, Integrations (callbacks `https://claude.ai/api/mcp/auth_callback` and
+   `https://chatgpt.com/connector_platform_oauth_redirect`, kept in `apps/atlas/lib/mcp/connectors.ts`).
+2. In each client's custom connector, add the MCP server URL and paste the client ID into the advanced OAuth
+   settings. Confirm the callback, a public client with PKCE and no secret, the consent screen, `tools/list`, and
+   that one proposal appears in Personal settings, Connected apps.
+3. If a client needs another callback, a client secret or dynamic registration, record a follow-up decision; never
+   turn dynamic registration on.
+
+Every write the endpoint receives becomes a proposal the person confirms; the database also refuses a connector
+token's direct writes (`agent_write_needs_review`).

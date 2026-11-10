@@ -10,6 +10,7 @@
 import type { CapabilityRule } from "./capabilities.ts";
 import { RESOURCE_CAPABILITIES, canonRule } from "./capabilities.ts";
 import type { Correction, CorrectionInput } from "./corrections.ts";
+import type { z } from "@hono/zod-openapi";
 import type { ActionSpec, Module, ResourceSpec } from "./types.ts";
 
 export interface ModuleAdditionsInput {
@@ -22,6 +23,13 @@ export interface ModuleAdditionsInput {
    * resource, or only `actions` capabilities for actions added to an existing resource.
    */
   readonly capabilities?: Readonly<Record<string, CapabilityRule>>;
+  /**
+   * New query parameters on the list operation of this module's existing resources, keyed by the
+   * resource's `op`. Each parameter must be optional, so a request without it reads what it read
+   * before (an additive change); none may reuse limit, cursor, fields, sort, filter or another
+   * added name.
+   */
+  readonly listQuery?: Readonly<Record<string, z.ZodObject>>;
   /**
    * Corrections to this module's frozen resources while v1 is a draft (ADR 0023; README
    * "Correcting the frozen contract"). Each entry needs a reason; the orchestrator reviews it.
@@ -41,6 +49,9 @@ export function defineAdditions<M extends Module>(
   const corrections = (additions.corrections ?? []).map((c) => ({ ...c, module }));
   return { module, ...additions, corrections };
 }
+
+/** The query parameters every list operation has (`build/routes.ts`). */
+const STANDARD_LIST_PARAMS = ["limit", "cursor", "fields", "sort", "filter"] as const;
 
 function operationIds(spec: ResourceSpec): string[] {
   return [...spec.verbs, ...spec.actions.map((a) => a.verb)].map((v) => `${spec.op}.${v}`);
@@ -95,6 +106,33 @@ export function applyAdditions(
           capabilityRule: { ...current, actions: { ...current.actions, ...added } },
         });
       }
+    }
+    for (const [op, query] of Object.entries(m.listQuery ?? {})) {
+      const target = byOp.get(op);
+      if (target === undefined || !target.verbs.includes("list")) {
+        throw new Error(`${m.module} adds list parameters to ${op}, which has no list operation.`);
+      }
+      if (target.module !== m.module) {
+        throw new Error(
+          `${m.module} adds list parameters to ${op}, which belongs to ${target.module}.`,
+        );
+      }
+      const taken = new Set([
+        ...STANDARD_LIST_PARAMS,
+        ...Object.keys(target.listQuery?.shape ?? {}),
+      ]);
+      for (const [name, schema] of Object.entries(query.shape)) {
+        if (taken.has(name)) {
+          throw new Error(
+            `${m.module} adds list parameter ${name} to ${op}, which it already has.`,
+          );
+        }
+        if (!(schema as z.ZodType).safeParse(undefined).success) {
+          throw new Error(`${m.module} adds list parameter ${name} to ${op}; it must be optional.`);
+        }
+      }
+      const merged = target.listQuery === undefined ? query : target.listQuery.extend(query.shape);
+      Object.assign(target, { listQuery: merged });
     }
     for (const spec of m.resources ?? []) {
       if (spec.module !== m.module) {

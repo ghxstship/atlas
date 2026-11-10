@@ -3,6 +3,8 @@ import { csvField } from "./csv.ts";
 import { nullAwareSum } from "./finance.ts";
 import { fail, ok, toDataError, type DatabaseErrorLike, type Result } from "./result.ts";
 import { untyped } from "./untyped.ts";
+import type { Database } from "./database.types.ts";
+import * as enums from "./enums.generated.ts";
 
 /**
  * The report builder (Section 4.6.4, A33 on A18's report definitions, 0550): a source, fields with
@@ -15,31 +17,13 @@ import { untyped } from "./untyped.ts";
 type Raw = Record<string, unknown>;
 
 export type FieldType = "text" | "number" | "money" | "date";
-export type Aggregate = "None" | "Count" | "Sum" | "Average" | "Minimum" | "Maximum";
-export type FilterOperator =
-  "eq" | "ne" | "lt" | "lte" | "gt" | "gte" | "in" | "is_null" | "contains";
-export type ChartType = "Table" | "Bar" | "Line" | "Area" | "Pie" | "Number";
+export type Aggregate = Database["app"]["Enums"]["report_aggregate"];
+export type FilterOperator = Database["app"]["Enums"]["filter_operator"];
+export type ChartType = Database["app"]["Enums"]["report_chart"];
 
-export const AGGREGATES: readonly Aggregate[] = [
-  "None",
-  "Count",
-  "Sum",
-  "Average",
-  "Minimum",
-  "Maximum",
-];
-export const FILTER_OPERATORS: readonly FilterOperator[] = [
-  "eq",
-  "ne",
-  "lt",
-  "lte",
-  "gt",
-  "gte",
-  "in",
-  "is_null",
-  "contains",
-];
-export const CHART_TYPES: readonly ChartType[] = ["Table", "Bar", "Line", "Area", "Pie", "Number"];
+export const AGGREGATES: readonly Aggregate[] = enums.reportAggregate;
+export const FILTER_OPERATORS: readonly FilterOperator[] = enums.filterOperator;
+export const CHART_TYPES: readonly ChartType[] = enums.reportChart;
 
 export interface SourceField {
   /** Column of the source relation; the catalog key of its label is `fields.<source>.<key>`. */
@@ -55,6 +39,8 @@ export interface ReportSource {
   readonly currencyColumn?: string;
   /** Column scoping rows to the org. */
   readonly orgColumn: string;
+  /** False for a view with no deleted_at column: it filters its own rows, as app.report_run_rows finds in the catalog. */
+  readonly softDeletes?: false;
   readonly fields: readonly SourceField[];
 }
 
@@ -78,6 +64,7 @@ export const REPORT_SOURCES: readonly ReportSource[] = [
     code: "finance",
     relation: "budget_line_facts",
     orgColumn: "project_id",
+    softDeletes: false,
     currencyColumn: "currency_code",
     fields: [
       { key: "account_code", type: "text" },
@@ -104,6 +91,7 @@ export const REPORT_SOURCES: readonly ReportSource[] = [
     code: "procurement",
     relation: "purchase_order_totals",
     orgColumn: "project_id",
+    softDeletes: false,
     currencyColumn: "currency_code",
     fields: [
       { key: "lines_total_minor", type: "money" },
@@ -141,6 +129,65 @@ export const REPORT_SOURCES: readonly ReportSource[] = [
     fields: [
       { key: "title", type: "text" },
       { key: "created_at", type: "date" },
+    ],
+  },
+  // B9 (6517): the crew report sources, owner-rights views with their own row filters.
+  {
+    code: "crew_hours",
+    relation: "crew_shift_hours",
+    orgColumn: "org_id",
+    softDeletes: false,
+    fields: [
+      { key: "shift_id", type: "text" },
+      { key: "role_code", type: "text" },
+      { key: "worker_kind", type: "text" },
+      { key: "worker_name", type: "text" },
+      { key: "starts_at", type: "date" },
+      { key: "scheduled_hours", type: "number" },
+      { key: "actual_hours", type: "number" },
+      { key: "variance_hours", type: "number" },
+      { key: "no_show", type: "text" },
+    ],
+  },
+  {
+    code: "crew_responses",
+    relation: "crew_responses",
+    orgColumn: "org_id",
+    softDeletes: false,
+    fields: [
+      { key: "kind", type: "text" },
+      { key: "answer", type: "text" },
+      { key: "asked_at", type: "date" },
+      { key: "answered_at", type: "date" },
+      { key: "person_name", type: "text" },
+      { key: "role_code", type: "text" },
+    ],
+  },
+  {
+    code: "crew_removals",
+    relation: "crew_removals",
+    orgColumn: "org_id",
+    softDeletes: false,
+    fields: [
+      { key: "removed_at", type: "date" },
+      { key: "from_state", type: "text" },
+      { key: "person_name", type: "text" },
+      { key: "role_code", type: "text" },
+      { key: "engagement_party", type: "text" },
+      { key: "reason", type: "text" },
+      { key: "removed_by_name", type: "text" },
+    ],
+  },
+  {
+    code: "crew_ratings",
+    relation: "crew_ratings",
+    orgColumn: "org_id",
+    softDeletes: false,
+    fields: [
+      { key: "party_name", type: "text" },
+      { key: "role_type", type: "text" },
+      { key: "score", type: "number" },
+      { key: "submitted_at", type: "date" },
     ],
   },
 ];
@@ -468,11 +515,14 @@ export function planReport(d: ReportDefinition): ReportPlan | null {
   }));
   const hasMoney = columns.some((c) => c.type === "money");
   const group = d.groupBy !== null && known.has(d.groupBy) ? d.groupBy : null;
+  // A filter's column is read too, though not shown: app.report_run_rows filters only on the columns it is asked for
+  // (1050), so without it a queued run would drop a filter the preview applies.
   const select = [
     ...new Set([
       ...fields.map((f) => f.field),
       ...(group ? [group] : []),
       ...(hasMoney && source.currencyColumn ? [source.currencyColumn] : []),
+      ...d.filters.filter((f) => known.has(f.field)).map((f) => f.field),
     ]),
   ];
   return { source, columns, select, group };
@@ -583,9 +633,7 @@ export async function previewReport(
     source.orgColumn === "project_id"
       ? query.in("project_id", input.projectIds)
       : query.eq(source.orgColumn, input.orgId);
-  if (source.relation !== "budget_line_facts" && source.relation !== "purchase_order_totals") {
-    query = query.is("deleted_at", null);
-  }
+  if (source.softDeletes !== false) query = query.is("deleted_at", null);
   if (d.sourceCode === "custom_object" && d.customObjectTypeId) {
     query = query.eq("custom_object_type_id", d.customObjectTypeId);
   }

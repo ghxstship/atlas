@@ -88,3 +88,17 @@ Writing the entry points showed four mismatches between the features and the API
   composer: notification, invitation and reminder emails are system templates, advance packet links are shared
   by the coordinator, and the project inbox files or discards inbound mail without replying. Drafting an email
   stays an API feature (`aurora.draft` kind `email`) with no entry point in any shell.
+- An empty running order and a project Work tab filtered to Risk gained "Draft run of show with Aurora" and
+  "Draft risk assessment with Aurora" (P6, gap G-83). Aurora drafts only into an empty list: a cue with
+  deleted_at null fills a running order, and any Risk record with deleted_at null fills a risk list, in every
+  record state (Canceled included, since Canceled records are retained and never trashed) and archived or not.
+  Each line is a suggestion (`cues.create` or `records.create`) on a drafting request about the list, and
+  `aurora.applyDraft` (app.apply_drafted_list) adds the kept lines in one transaction while the list is still
+  empty. Those suggestions are applied only by app.apply_drafted_list, never by the operation they name, and
+  app.transition_ai_suggestion refuses confirming them one at a time (ai_suggestion_drafted_list).
+- B15 added entry points, one confirmation each (ADR 0154): "Read Itineraries" on a Travel fulfillment (app.apply_itinerary_lines),
+  "Read Contracts and Riders" on the engagements list (app.apply_contract_intake), "Review Lines from the Document" on a Proposed
+  invoice with the asker's open lines (app.apply_invoice_line_suggestions), "Draft Answers from a Reply" on a recipient of a sent
+  packet (app.record_drafted_advance_answer), and "Draft with Aurora" on a Document record of subtype Plan, Brief or Package, whose
+  draft fills the editor so the editor's Save is the write. travelSegments.create, engagements.createFromContract and
+  advanceAnswers.record name no API handler, so the generic confirm returns ai_suggestion_operation_unavailable.

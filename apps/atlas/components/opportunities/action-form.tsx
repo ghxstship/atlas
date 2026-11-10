@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Checkbox, InlineAlert, Input, Select, Textarea } from "@xos/ui";
+import { Button, Checkbox, Field, InlineAlert, Input, Select, Textarea } from "@xos/ui";
 import { useTranslations } from "next-intl";
 import { useActionState, useId } from "react";
 import type { OpportunityActionState } from "@/lib/opportunities/action-state";
@@ -29,6 +29,8 @@ export interface FieldSpec {
   readonly min?: number;
   readonly max?: number;
   readonly step?: string;
+  /** Shown but not editable, for example a choice a published record no longer allows (the help says why). */
+  readonly disabled?: boolean;
 }
 
 const INITIAL: OpportunityActionState = {};
@@ -114,8 +116,8 @@ export function ActionForm({
                 {...(field.help ? { help: field.help } : {})}
               />
             );
-          case "checkbox":
-            return (
+          case "checkbox": {
+            const box = (
               <Checkbox
                 key={field.name}
                 id={fieldId}
@@ -123,8 +125,21 @@ export function ActionForm({
                 label={field.label}
                 defaultChecked={value === "true"}
                 value="true"
+                {...(field.disabled ? { disabled: true } : {})}
+                {...(error || field.help
+                  ? { "aria-describedby": error ? `${fieldId}-err` : `${fieldId}-help` }
+                  : {})}
+                {...(error ? { "aria-invalid": true } : {})}
               />
             );
+            return error || field.help ? (
+              <Field key={field.name} id={fieldId} help={field.help} error={error || undefined}>
+                {box}
+              </Field>
+            ) : (
+              box
+            );
+          }
           default:
             return (
               <Input

@@ -4,9 +4,9 @@ import { createServer } from "node:http";
 import type { AddressInfo } from "node:net";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { signWebhookPayload } from "@xos/sdk";
-import type { ContractServer } from "@xos/sdk/test-server";
-import { startContractServer } from "@xos/sdk/test-server";
+import { signWebhookPayload } from "@ghxstship/xos-sdk";
+import type { ContractServer } from "@ghxstship/xos-sdk/test-server";
+import { startContractServer } from "@ghxstship/xos-sdk/test-server";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { HELP, run, splitGlobals } from "../src/cli.ts";
 import { configPath, readConfig, resolveCredentials } from "../src/config.ts";
@@ -70,7 +70,7 @@ describe("help and globals", () => {
   it("prints help and version", async () => {
     expect((await xos(["--help"])).out).toBe(HELP);
     expect((await xos([])).out).toBe(HELP);
-    expect((await xos(["--version"])).out).toMatch(/^xos 4\.0\.0 \(API /);
+    expect((await xos(["--version"])).out).toMatch(/^xos 4\.7\.0 \(API /);
   });
 
   it("parses global flags anywhere", () => {

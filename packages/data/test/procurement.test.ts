@@ -26,7 +26,10 @@ import {
   listInvoiceMatches,
   listPayableInvoices,
   listPoChangeOrders,
+  listLinkableBills,
+  listPoInstalments,
   listPoLines,
+  listPurchaseOrderDuplicates,
   listProjectOptions,
   listPurchaseOrders,
   listRfqResponses,
@@ -35,8 +38,17 @@ import {
   matchStanding,
   nullAwareTotal,
   pricePoChangeOrder,
+  getHireWindowWarnings,
+  getPoLineSupply,
+  hirePeriodLiteral,
+  listGoodsReturns,
+  listPoLineHireWarnings,
+  parseHirePeriod,
   recordGoodsReceipt,
+  recordGoodsReturn,
   recordRfqResponse,
+  addPoInstalment,
+  setPoLineEngagement,
   removePoLine,
   removeRfqInvitation,
   resolveInvoiceMatch,
@@ -48,6 +60,7 @@ import {
   type RfqResponse,
 } from "../src/procurement.ts";
 import { commercialClient, errorResponse, okResponse } from "./commercial-fake.ts";
+import { fakeClient } from "./fake-client.ts";
 
 const project = { project_key: "NWL", name: "Summer" };
 const vendor = { counterparty: { counterparty_name: "Harbor Audio" } };
@@ -237,7 +250,15 @@ describe("rfqs", () => {
           p_vendor_id: "v1",
           p_valid_until: null,
           p_currency_code: "USD",
-          p_lines: [{ description: "Mics", element_id: null, quantity: 4, unit_price_minor: null }],
+          p_lines: [
+            {
+              description: "Mics",
+              element_id: null,
+              quantity: 4,
+              unit_price_minor: null,
+              rfq_line_id: null,
+            },
+          ],
         },
       ],
     ]);
@@ -372,12 +393,27 @@ describe("purchase orders", () => {
         unit_basis: null,
         element_id: null,
         budget_line_id: null,
+        acquisition_kind: "Purchase",
+        hire_period: null,
         purchase_order_id: "po1",
         line_number: 4,
       },
     ]);
-    await addPoLine(db, "po1", { description: "First", quantity: 1, unitPriceMinor: 100 });
-    expect(calls[4]?.steps[0]?.[1]).toMatchObject([{ line_number: 1 }]);
+    await addPoLine(db, "po1", {
+      description: "First",
+      quantity: 1,
+      unitPriceMinor: 100,
+      acquisitionKind: "Rental",
+      hireStartsAt: "2027-06-01T10:00Z",
+      hireEndsAt: "2027-06-05T10:00Z",
+    });
+    expect(calls[4]?.steps[0]?.[1]).toMatchObject([
+      {
+        line_number: 1,
+        acquisition_kind: "Rental",
+        hire_period: "[2027-06-01T10:00Z,2027-06-05T10:00Z)",
+      },
+    ]);
     expect(
       (await addPoLine(db, "po1", { description: "x", quantity: 1, unitPriceMinor: 1 })).ok,
     ).toBe(false);
@@ -457,6 +493,10 @@ describe("purchase orders", () => {
           quantity: 4,
           unitPriceMinor: 1000,
           currencyCode: "EUR",
+          unitBasis: null,
+          acquisitionKind: "Purchase",
+          hirePeriod: null,
+          procurementNeedId: null,
         },
         {
           id: "l2",
@@ -465,6 +505,10 @@ describe("purchase orders", () => {
           quantity: 4,
           unitPriceMinor: null,
           currencyCode: "EUR",
+          unitBasis: null,
+          acquisitionKind: "Purchase",
+          hirePeriod: null,
+          procurementNeedId: null,
         },
       ],
     };
@@ -491,6 +535,10 @@ describe("purchase orders", () => {
           element_id: null,
           quantity: 4,
           unit_price_minor: 1000,
+          unit_basis: null,
+          acquisition_kind: "Purchase",
+          hire_period: null,
+          procurement_need_id: null,
         },
         {
           purchase_order_id: "po9",
@@ -499,6 +547,10 @@ describe("purchase orders", () => {
           element_id: "E-1",
           quantity: 4,
           unit_price_minor: null,
+          unit_basis: null,
+          acquisition_kind: "Purchase",
+          hire_period: null,
+          procurement_need_id: null,
         },
       ],
     ]);
@@ -609,16 +661,23 @@ describe("goods receipts", () => {
     expect((await getGoodsReceipt(db, "g1")).ok).toBe(true);
   });
 
-  it("records receipts, skipping empty lines, and withdraws a refused header", async () => {
+  it("records a receipt event through app.receive_goods, skipping empty lines", async () => {
     const { db, calls } = commercialClient({
-      "from:goods_receipts": [
-        okResponse({ id: "g1" }),
-        okResponse({ id: "g2" }),
-        okResponse(null),
-        errorResponse("XR001", "receipt_order_state: No.", "receipt_order_state"),
-      ],
-      "from:receipt_lines": [
-        okResponse([{ id: "r1" }]),
+      "rpc:receive_goods": [
+        okResponse({
+          outcome: "applied",
+          goods_receipt_id: "e1",
+          receipt_line_ids: ["rl1", "rl2"],
+          asset_unit_ids: ["u1", "u2"],
+          lot_movement_ids: ["m1"],
+        }),
+        okResponse({
+          outcome: "duplicate",
+          goods_receipt_id: "e1",
+          receipt_line_ids: ["rl1", "rl2"],
+          asset_unit_ids: ["u1", "u2"],
+          lot_movement_ids: ["m1"],
+        }),
         errorResponse(
           "XR001",
           "receipt_exceeds_order: Receipts never exceed the quantity ordered.",
@@ -627,27 +686,197 @@ describe("goods receipts", () => {
       ],
     });
     const input = {
+      eventId: "e1",
       purchaseOrderId: "po1",
       note: " ",
       lines: [
-        { poLineId: "l1", quantity: 2 },
-        { poLineId: "l2", quantity: 0 },
+        { poLineId: "l1", quantity: 2, assetTags: [" NWL-RNT-001", "NWL-RNT-002", " "] },
+        { poLineId: "l2", quantity: 4, venueId: "v1" },
+        { poLineId: "l3", quantity: 0 },
       ],
     };
-    expect(await recordGoodsReceipt(db, input)).toEqual({ ok: true, data: { id: "g1" } });
-    expect(calls[1]?.steps[0]?.[1]).toEqual([
-      [{ goods_receipt_id: "g1", po_line_id: "l1", quantity_received: 2 }],
+    expect(await recordGoodsReceipt(db, input)).toEqual({
+      ok: true,
+      data: {
+        outcome: "applied",
+        goodsReceiptId: "e1",
+        receiptLineIds: ["rl1", "rl2"],
+        assetUnitIds: ["u1", "u2"],
+        lotMovementIds: ["m1"],
+      },
+    });
+    expect(calls).toHaveLength(1);
+    expect(calls[0]?.steps[0]?.[1]).toEqual([
+      {
+        p_event_id: "e1",
+        p_purchase_order_id: "po1",
+        p_lines: [
+          { po_line_id: "l1", quantity: 2, asset_tags: ["NWL-RNT-001", "NWL-RNT-002"] },
+          { po_line_id: "l2", quantity: 4, venue_id: "v1" },
+        ],
+      },
     ]);
+    const replay = await recordGoodsReceipt(db, input);
+    expect(replay.ok && replay.data.outcome).toBe("duplicate");
     const exceeded = await recordGoodsReceipt(db, input);
     expect(exceeded.ok === false && exceeded.error.kind === "refusal" && exceeded.error.rule).toBe(
       "receipt_exceeds_order",
     );
-    expect(calls[4]?.steps[0]?.[0]).toBe("update");
-    expect((await recordGoodsReceipt(db, input)).ok).toBe(false);
     expect(await recordGoodsReceipt(db, { ...input, lines: [] })).toEqual({
       ok: false,
       error: { kind: "invalid", message: "lines" },
     });
+    expect(calls).toHaveLength(3);
+  });
+
+  it("returns goods through app.return_goods and lists returns", async () => {
+    const { db, calls } = commercialClient({
+      "rpc:return_goods": [
+        okResponse({ outcome: "applied", goods_return_id: "r1", return_line_ids: ["x1"] }),
+        errorResponse(
+          "XR001",
+          "return_off_hire_not_rental: Off Hire returns only goods hired on a rental line.",
+          "return_off_hire_not_rental",
+        ),
+      ],
+      "from:goods_returns": [
+        okResponse([
+          {
+            id: "r1",
+            purchase_order_id: "po1",
+            returned_at: "2027-06-06T10:00:00Z",
+            return_reason: "Off Hire",
+            note: null,
+            returner: { full_name: "Carol" },
+            return_lines: [
+              {
+                receipt_line_id: "rl1",
+                asset_unit_id: "u1",
+                quantity_returned: 1,
+                deleted_at: null,
+              },
+              {
+                receipt_line_id: "rl1",
+                asset_unit_id: "u2",
+                quantity_returned: 1,
+                deleted_at: "2027",
+              },
+            ],
+          },
+        ]),
+      ],
+    });
+    const input = {
+      eventId: "r1",
+      purchaseOrderId: "po1",
+      reason: "Off Hire" as const,
+      note: "Collected by courier.",
+      lines: [{ receiptLineId: "rl1", quantity: 1, assetUnitIds: ["u1"] }],
+    };
+    expect(await recordGoodsReturn(db, input)).toEqual({
+      ok: true,
+      data: { outcome: "applied", goodsReturnId: "r1", returnLineIds: ["x1"] },
+    });
+    expect(calls[0]?.steps[0]?.[1]).toEqual([
+      {
+        p_event_id: "r1",
+        p_purchase_order_id: "po1",
+        p_reason: "Off Hire",
+        p_lines: [{ receipt_line_id: "rl1", quantity: 1, asset_unit_ids: ["u1"] }],
+        p_note: "Collected by courier.",
+      },
+    ]);
+    const refused = await recordGoodsReturn(db, input);
+    expect(refused.ok === false && refused.error.kind === "refusal" && refused.error.rule).toBe(
+      "return_off_hire_not_rental",
+    );
+    expect(await recordGoodsReturn(db, { ...input, lines: [] })).toEqual({
+      ok: false,
+      error: { kind: "invalid", message: "lines" },
+    });
+    const list = await listGoodsReturns(db, "o1", "po1");
+    expect(list.ok && list.data[0]).toEqual({
+      id: "r1",
+      purchaseOrderId: "po1",
+      returnedAt: "2027-06-06T10:00:00Z",
+      returnerName: "Carol",
+      reason: "Off Hire",
+      note: null,
+      lines: [{ receiptLineId: "rl1", assetUnitId: "u1", quantityReturned: 1 }],
+    });
+    expect(calls[2]?.steps).toContainEqual(["eq", ["purchase_order_id", "po1"]]);
+  });
+
+  it("reads supply per line and hire window warnings", async () => {
+    const { db } = commercialClient({
+      "from:po_line_supply": [
+        okResponse([
+          {
+            po_line_id: "l1",
+            acquisition_kind: "Rental",
+            hire_period: '["2026-01-01 12:00:00+00","2026-01-10 12:00:00+00")',
+            quantity_ordered: 3,
+            acknowledged: true,
+            quantity_received: 2,
+            quantity_returned: 1,
+            units_received: 2,
+            off_hire_due: true,
+          },
+        ]),
+      ],
+      "from:po_line_hire_warnings": [
+        okResponse([
+          { po_line_id: "l1", purchase_order_id: "po1", warning: "Delivery After Load In" },
+        ]),
+      ],
+      "rpc:hire_window_warnings": [
+        okResponse(["Return Before Load Out"]),
+        errorResponse(
+          "XR001",
+          "hire_period_order: A hire ends after it starts.",
+          "hire_period_order",
+        ),
+      ],
+    });
+    const supply = await getPoLineSupply(db, "po1");
+    expect(supply.ok && supply.data[0]).toEqual({
+      poLineId: "l1",
+      acquisitionKind: "Rental",
+      hireStartsAt: "2026-01-01T12:00:00.000Z",
+      hireEndsAt: "2026-01-10T12:00:00.000Z",
+      quantityOrdered: 3,
+      acknowledged: true,
+      quantityReceived: 2,
+      quantityReturned: 1,
+      unitsReceived: 2,
+      offHireDue: true,
+    });
+    const warnings = await listPoLineHireWarnings(db, "o1", "po1");
+    expect(warnings.ok && warnings.data).toEqual([
+      { poLineId: "l1", purchaseOrderId: "po1", warning: "Delivery After Load In" },
+    ]);
+    const window = { projectId: "p1", hireFrom: "2027-06-02T10:00Z", hireTo: "2027-06-04T18:00Z" };
+    expect(await getHireWindowWarnings(db, window)).toEqual({
+      ok: true,
+      data: ["Return Before Load Out"],
+    });
+    const refused = await getHireWindowWarnings(db, window);
+    expect(refused.ok === false && refused.error.kind === "refusal" && refused.error.rule).toBe(
+      "hire_period_order",
+    );
+  });
+
+  it("writes and reads hire periods as ranges", () => {
+    expect(hirePeriodLiteral("2027-06-01T10:00Z", "2027-06-05T10:00Z")).toBe(
+      "[2027-06-01T10:00Z,2027-06-05T10:00Z)",
+    );
+    expect(hirePeriodLiteral("2027-06-01T10:00Z", " ")).toBeNull();
+    expect(parseHirePeriod('["2027-06-01 10:00:00+00","2027-06-05 10:30:00+00")')).toEqual({
+      startsAt: "2027-06-01T10:00:00.000Z",
+      endsAt: "2027-06-05T10:30:00.000Z",
+    });
+    expect(parseHirePeriod(null)).toEqual({ startsAt: null, endsAt: null });
+    expect(parseHirePeriod("empty")).toEqual({ startsAt: null, endsAt: null });
   });
 });
 
@@ -901,5 +1130,114 @@ describe("catalog", () => {
       },
     ]);
     expect((await deleteVendorProduct(db, "vp1")).ok).toBe(true);
+  });
+});
+
+describe("payment schedule (6543)", () => {
+  it("reads instalments with withheld columns left null and the totals beside them", async () => {
+    const { db, calls } = fakeClient({
+      "rpc:po_instalment_schedule": [
+        okResponse([
+          {
+            instalment_id: "i1",
+            instalment_number: 1,
+            label: "Deposit",
+            due_on: "2027-06-01",
+            amount_minor: 5000,
+            currency_code: "USD",
+            invoice_id: "b1",
+            invoice_number: null,
+            invoice_total_minor: null,
+            paid_minor: null,
+            scheduled_minor: null,
+            status: "Invoiced",
+            is_invoice_withheld: true,
+            is_payment_withheld: true,
+            schedule_total_minor: 5000,
+            order_total_minor: null,
+          },
+        ]),
+      ],
+    });
+    const result = await listPoInstalments(db, "po1");
+    expect(result.ok && result.data[0]).toMatchObject({
+      invoiceId: "b1",
+      invoiceNumber: null,
+      paidMinor: null,
+      status: "Invoiced",
+      isPaymentWithheld: true,
+      orderTotalMinor: null,
+    });
+    expect(calls[0]?.steps[0]?.[1][0]).toEqual({ p_purchase_order_id: "po1" });
+  });
+
+  it("numbers a new instalment after the live ones", async () => {
+    const { db, calls } = fakeClient({
+      "from:po_payment_instalments": [
+        okResponse({ instalment_number: 2 }),
+        okResponse({ id: "i3" }),
+      ],
+    });
+    const result = await addPoInstalment(db, {
+      purchaseOrderId: "po1",
+      label: " Balance ",
+      dueOn: "2027-07-01",
+      amountMinor: 900,
+    });
+    expect(result).toEqual({ ok: true, data: { id: "i3" } });
+    expect(calls[1]?.steps.find(([name]) => name === "insert")?.[1][0]).toEqual({
+      purchase_order_id: "po1",
+      instalment_number: 3,
+      label: "Balance",
+      due_on: "2027-07-01",
+      amount_minor: 900,
+    });
+  });
+
+  it("offers only bills the guard accepts: not matched elsewhere and not linked already", async () => {
+    const { db } = fakeClient({
+      "from:vendors": [okResponse({ counterparty_id: "c1" })],
+      "from:invoices": [
+        okResponse([
+          { id: "free", invoice_number: "B-1" },
+          { id: "elsewhere", invoice_number: "B-2" },
+          { id: "linked", invoice_number: "B-3" },
+        ]),
+      ],
+      "from:invoice_matches": [okResponse([{ invoice_id: "elsewhere" }])],
+      "from:po_payment_instalments": [okResponse([{ invoice_id: "linked" }])],
+    });
+    const result = await listLinkableBills(db, {
+      id: "po1",
+      projectId: "p1",
+      vendorId: "v1",
+      currencyCode: "USD",
+    });
+    expect(result).toEqual({ ok: true, data: [{ id: "free", number: "B-1" }] });
+  });
+
+  it("names a line's act and reads look-alike orders as warnings", async () => {
+    const { db, calls } = fakeClient({
+      "from:po_lines": [okResponse([{ id: "l1" }])],
+      "rpc:purchase_order_duplicate_candidates": [
+        okResponse([
+          {
+            purchase_order_id: "po1",
+            candidate_id: "po2",
+            same_vendor: false,
+            total_delta_minor: 50,
+            day_gap: 3,
+          },
+        ]),
+      ],
+    });
+    expect(await setPoLineEngagement(db, "l1", "e1")).toEqual({ ok: true, data: null });
+    expect(calls[0]?.steps.find(([name]) => name === "update")?.[1][0]).toEqual({
+      engagement_id: "e1",
+    });
+    const found = await listPurchaseOrderDuplicates(db, "po1");
+    expect(found.ok && found.data).toEqual([
+      { candidateId: "po2", sameVendor: false, totalDeltaMinor: 50, dayGap: 3 },
+    ]);
   });
 });

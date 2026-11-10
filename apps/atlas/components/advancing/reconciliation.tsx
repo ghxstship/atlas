@@ -15,9 +15,11 @@ import { getTranslate } from "@/lib/shell/translate";
 import type { AdvancingContext } from "./context";
 import { RecordCollab } from "./record-collab";
 import { Panel, RunReconciliationForm } from "./forms";
+import { ProvideSpecsForm } from "@/components/places/reconciliation/provide-specs-form";
 import { isRowId, pickView, Property, withQuery, type Search } from "./shared";
 import { InlineAlert, PageHeader, ReconciliationTable, StateChip, Tag, TemplateRecord } from "./ui";
 import { PeekPanel, PeekTable, SelectFilter, ViewSwitcher } from "./views";
+import { CollectionPage } from "@/components/platform/collection-page";
 
 const VIEWS = ["table", "matrix"] as const;
 const RESULTS = ["met", "gap", "unknown"] as const;
@@ -89,12 +91,16 @@ export async function ReconciliationCollection({
     );
 
   return (
-    <div className="flex flex-col gap-12 min-w-0">
-      <PageHeader
-        title={title}
-        count={runs.length}
-        views={<ViewSwitcher views={VIEWS} current={view} />}
-      />
+    <CollectionPage
+      gap={12}
+      header={
+        <PageHeader
+          title={title}
+          count={runs.length}
+          views={<ViewSwitcher views={VIEWS} current={view} />}
+        />
+      }
+    >
       {fixedProject ? null : (
         <div className="flex flex-wrap items-end gap-8">
           <SelectFilter
@@ -109,6 +115,9 @@ export async function ReconciliationCollection({
           />
         </div>
       )}
+      {can.scopeWrite && project ? (
+        <ProvideSpecsForm org={ctx.org.slug} projectId={project.id} />
+      ) : null}
       {can.reconcile && projects.length > 0 ? (
         <RunReconciliationForm
           org={ctx.org.slug}
@@ -223,7 +232,7 @@ export async function ReconciliationCollection({
           />
         ) : null,
       )}
-    </div>
+    </CollectionPage>
   );
 }
 
@@ -299,7 +308,11 @@ async function RunPage({
           rows={run.lines.map((l) => ({
             requirement: `${statementLabel(l.requirement.description, l.requirement.urid)}${l.requirement.isCritical ? ` · ${t("advancing.reconciliation.critical")}` : ""}`,
             capability: l.capability
-              ? `${statementLabel(l.capability.description, l.capability.urid)} · ${l.capability.assertionWord}`
+              ? [
+                  statementLabel(l.capability.description, l.capability.urid),
+                  l.capability.assertionWord,
+                  ...(l.capability.placeSpecField ? [t("places.specs.fromSpecs")] : []),
+                ].join(" · ")
               : null,
             result: l.result,
           }))}

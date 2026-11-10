@@ -7,6 +7,7 @@ import {
 import type { FinancePage } from "@/lib/finance/context";
 import type { FinanceCopy } from "@/lib/finance/copy";
 import type { AskCatalog, AskField } from "./ask";
+import * as enums from "@xos/data/enums";
 
 /**
  * The filters the finance collections read, offered to Ask in plain language (A95). Each meaning
@@ -85,7 +86,7 @@ export function invoiceAsk(page: FinancePage, c: FinanceCopy): AskCatalog {
         name: "direction",
         label: c.t("finance.invoices.fields.direction"),
         type: "enum",
-        values: ["Payable", "Receivable"].map((d) => ({
+        values: enums.moneyDirection.map((d) => ({
           value: d,
           label: c.t(`finance.invoices.directionShort.${d}`),
         })),

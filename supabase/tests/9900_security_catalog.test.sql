@@ -71,13 +71,22 @@ select set_eq($$
   where p.prosecdef and n.nspname in ('app', 'private', 'xpms', 'api_public', 'api_external', 'public')
     and has_function_privilege('anon', p.oid, 'EXECUTE')
     and has_schema_privilege('anon', n.oid, 'USAGE')
-$$, $$values ('active_system_banners'), ('calendar_feed'), ('client_minimum_version'), ('confirm_subprocessor_notices'), ('org_brand_for_host'), ('org_brand_for_slug'), ('open_share_link'),
+$$, $$values ('active_system_banners'), ('calendar_feed'), ('client_minimum_version'), ('confirm_subprocessor_notices'), ('docs_brand_for_slug'), ('org_brand_for_host'), ('org_brand_for_slug'), ('open_share_link'), ('crew_access_accept_shift'), ('crew_access_shifts'), ('registration_page'), ('offered_territories'),
   ('organization_profile'), ('organization_profile_details'), ('person_profile'), ('person_profile_certifications'), ('person_profile_languages'),
   ('person_profile_links'), ('person_profile_organizations'), ('person_profile_portfolio'), ('person_profile_references'),
-  ('person_profile_skills'), ('preview_advance'), ('read_agreement'), ('record_cookie_consent'), ('sign_agreement'),
-  ('invite_token_open'),
+  ('person_profile_skills'), ('preview_advance'), ('read_agreement'), ('record_age_refusal'), ('record_cookie_consent'), ('sign_agreement'),
+  ('invite_token_open'), ('live_channel_open'), ('live_display'), ('live_view'), ('open_live_link'),
+  ('open_stakeholder_pack'), ('stakeholder_pack'), ('stakeholder_pack_item'), ('stakeholder_pack_file'),
+  ('sign_stakeholder_pack_item'), ('unsubscribe_stakeholder_pack'), ('open_vendor_intake'), ('vendor_intake'),
+  ('vendor_intake_agreement'), ('open_form_link'), ('public_form'), ('submit_public_form'),
+  ('advance_roster'), ('advance_upload_ticket_open'), ('begin_advance_upload'), ('finish_advance_upload'), ('invite_advance_roster_member'),
+  ('request_advance_guest'), ('submit_advance_roster'), ('submit_advance_typed'),
+  ('showcaller_channel_open'), 
+  
   ('submit_advance'), ('subscribe_subprocessor_notices'), ('token_document'), ('token_sign_document'),
-  ('unsubscribe_subprocessor_notices'), ('verify_certification')$$,
+  ('unsubscribe_guest_email'), ('unsubscribe_subprocessor_notices'), ('verify_certification'),
+  -- P9 (5861, ADR 0138): the signed-out approval link page, with its emailed access code.
+  ('read_approval_link'), ('request_approval_link_code'), ('preview_approval_link'), ('use_approval_link'), ('token_quote')$$,
   'anon reaches exactly the reviewed api_public token, profile and consent RPCs');
 
 select is_empty($$
@@ -97,14 +106,15 @@ select set_eq($$
   select c.relname::text from pg_class c join pg_namespace n on n.oid = c.relnamespace
   where c.relkind in ('v', 'm') and n.nspname = 'app'
     and not coalesce(c.reloptions::text[] && array['security_invoker=true', 'security_invoker=on'], false)
-$$, $$values ('ai_never_send'), ('application_board'), ('bid_totals'), ('brand_fonts'), ('column_classifications'),
-  ('comment_subjects'), ('consent_purposes'), ('currencies'), ('custom_field_targets'), ('domain_event_catalog'), ('email_templates'),
-  ('employment_statuses'), ('engagement_board'), ('engagement_resolved'), ('expense_budget_lines'), ('feature_flags'), ('flsa_statuses'),
+$$, $$values ('advance_allocation_status'), ('ai_never_send'), ('allocation_holders'), ('application_board'), ('asset_reservation_conflicts'), ('asset_unit_hire'), ('bid_totals'), ('brand_fonts'), ('column_classifications'),
+  ('comment_subjects'), ('consent_purposes'), ('crew_ratings'), ('crew_removals'), ('crew_responses'), ('crew_shift_hours'), ('currencies'), ('custom_field_targets'), ('domain_event_catalog'), ('email_templates'), ('crew_access_link_list'), ('crew_registration_list'), ('engagement_document_text_list'), ('pool_member_names'), ('pool_member_rate_list'), ('talent_pool_invitation_list'),
+  ('employment_statuses'), ('engagement_board'), ('engagement_resolved'), ('expense_budget_lines'), ('feature_flags'), ('flsa_statuses'), ('budget_line_labor_totals'), ('labor_budget_lines'), ('labor_cost_posting_details'), ('labor_posting_team_totals'),
   ('import_target_fields'), ('import_targets'), ('integration_providers'), ('lifecycle_transition_rules'),
   ('measurement_metric_tags'), ('measurement_metrics'), ('measurement_units'), ('medical_encounters_masked'), ('notification_categories'), ('notification_templates'), ('offboarding_open_records'),
-  ('onboarding_item_status'), ('opportunity_position_counts'), ('org_legal_entities_masked'), ('pay_rates_masked'), ('pay_transparency_rules'),
-  ('payroll_line_amounts'), ('rate_card_lines_masked'), ('report_sources'), ('retention_policies'),
-  ('separation_of_duties_rules'), ('setting_choices'), ('setting_definitions'), ('shared_certifications'),
+  ('onboarding_item_status'), ('opportunity_position_counts'), ('org_legal_entities_masked'), ('pay_rates_masked'), ('pay_transparency_rules'), ('permit_rule_place_facts'),
+  ('payroll_line_amounts'), ('rate_card_lines_masked'), ('report_sources'), ('retention_policies'), ('roster_entry_people'), ('allocations_ready_to_consolidate'), ('rfq_chase_status'),
+  ('separation_of_duties_options'), ('separation_of_duties_rules'), ('setting_choices'), ('setting_definitions'), ('shared_certifications'),
+  ('sign_production'),
   ('sync_rpcs'), ('vendor_bank_accounts_masked'), ('warehouse_providers')$$,
   'every owner-rights view in app is a reviewed reference, masking or self-filtering view');
 

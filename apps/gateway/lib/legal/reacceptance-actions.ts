@@ -4,7 +4,7 @@ import { listPendingReacceptances } from "@xos/data/legal-reacceptance";
 import { recordLegalAcceptances } from "@xos/data/settings";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
-import { clientIp } from "@/lib/auth/legal";
+import { clientIp, gatewayLegalDocument } from "@/lib/auth/legal";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { observability } from "@/lib/observability";
 
@@ -18,6 +18,8 @@ export async function acceptPersonalLegalChangeAction(form: FormData): Promise<v
   const db = await createServerSupabase();
   const slug = String(form.get("document") ?? "");
   const version = String(form.get("version") ?? "");
+  // A document Gateway does not publish was not on the page the person read here (the Mobile EULA is Compass's to ask).
+  if (!gatewayLegalDocument(slug)?.accept) return;
   const pending = await listPendingReacceptances(db, null);
   const asked =
     pending.ok &&

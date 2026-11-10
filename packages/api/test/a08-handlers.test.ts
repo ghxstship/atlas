@@ -988,3 +988,28 @@ describe("schedule", () => {
     await expectContract(missing, "recordRecurrences.delete");
   });
 });
+
+describe("archived filter (A124)", () => {
+  it("leaves archived records and work orders out of lists unless asked, and reads them by id", async () => {
+    const { db, tables } = world();
+    Object.assign((tables["records"] as Row[]).find((r) => r["id"] === R2) ?? {}, {
+      archived_at: "2026-10-02T09:00:00Z",
+    });
+    Object.assign((tables["work_orders"] as Row[])[0] ?? {}, {
+      archived_at: "2026-10-02T09:00:00Z",
+    });
+    const app = api(db);
+    const ids = async (path: string, op: string) =>
+      ((await expectContract(await app.request(path), op)) as { data: Row[] }).data.map(
+        (r) => r["id"],
+      );
+    expect(await ids("/records", "records.list")).toEqual([R1]);
+    expect(await ids("/records?archived=include", "records.list")).toEqual([R1, R2]);
+    expect(await ids("/records?archived=only", "records.list")).toEqual([R2]);
+    await expectContract(await app.request(`/records/${R2}`), "records.get");
+    expect(await ids("/work-orders", "workOrders.list")).toEqual([]);
+    expect(await ids("/work-orders?archived=only", "workOrders.list")).toEqual([WO]);
+    const bad = await app.request("/records?archived=everything");
+    expect(bad.status).toBe(422);
+  });
+});

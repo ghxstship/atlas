@@ -47,6 +47,16 @@ export interface DownloadScope {
    * the onboarding checklist a person works through before operational access opens (A92). Absent holds none.
    */
   readonly onboardingEngagementIds?: readonly string[];
+  /**
+   * External: the person's own roster entries accepted by both sides on an Active or Closing engagement (R8), for a
+   * person who works an engagement only through a party's roster. Absent holds none.
+   */
+  readonly rosterEntryIds?: readonly string[];
+  /**
+   * External: the orgs of those open engagements, roster ones included, for an org's reference data an external worker
+   * reads (B9's break types). Never in orgIds, which stays the orgs a person is a member of. Absent holds none.
+   */
+  readonly engagedOrgIds?: readonly string[];
 }
 
 export type ScopeKey = Exclude<keyof DownloadScope, "audience">;
@@ -76,6 +86,8 @@ const OPERATIONAL_EXTERNAL: readonly Audience[] = EXTERNAL_AUDIENCES;
 const ownOrEngaged: readonly ScopeAlternative[] = [
   { column: "membership_id", key: "membershipIds", audiences: INTERNAL },
   { column: "engagement_id", key: "engagementIds", audiences: OPERATIONAL_EXTERNAL },
+  // Agency staff work their shifts and record time through their own roster entry (R12).
+  { column: "roster_entry_id", key: "rosterEntryIds" },
 ];
 
 const internalProject: ScopeAlternative = {
@@ -111,13 +123,32 @@ export const TABLE_RULES: readonly TableRule[] = [
       { column: "id", key: "engagedProjectIds", audiences: OPERATIONAL_EXTERNAL },
     ],
   },
-  { table: "shifts", anyOf: [...ownOrEngaged, internalProject] },
+  {
+    table: "shifts",
+    anyOf: [
+      ...ownOrEngaged,
+      internalProject,
+      // A staffing agency's lead holds its slots and its roster's shifts on the project, which api_external.shifts
+      // returns to them alone (R12), so they clock the team in offline.
+      { column: "project_id", key: "engagedProjectIds", audiences: ["staff"], restOnly: true },
+    ],
+  },
   {
     table: "shift_swaps",
     anyOf: [
       { column: "requested_by_membership_id", key: "membershipIds", audiences: INTERNAL },
       { column: "proposed_membership_id", key: "membershipIds", audiences: INTERNAL },
       internalProject,
+    ],
+  },
+  // No-shows and break types (B9): REST only (ADR 0033 decision 51). The break types an external worker reads come
+  // through api_external.break_types, on the orgs of their open engagements.
+  { table: "shift_no_shows", anyOf: [{ ...internalProject, restOnly: true }] },
+  {
+    table: "break_types",
+    anyOf: [
+      { ...internalOrg, restOnly: true },
+      { column: "org_id", key: "engagedOrgIds", audiences: CREW_STAFF, restOnly: true },
     ],
   },
   { table: "time_entries", anyOf: [...ownOrEngaged, internalProject] },
@@ -141,6 +172,9 @@ export const TABLE_RULES: readonly TableRule[] = [
   // artists receive their set times through the REST downloader, which reads the views.
   { table: "run_of_show", anyOf: [internalProject, clientRunningOrder, artistSetTimes] },
   { table: "cues", anyOf: [internalProject, clientRunningOrder, artistSetTimes] },
+  // Department calls (G-74) carry no project; the REST downloader stamps each with its cue's. They stay internal:
+  // no api_external view shows them (ADR 0131).
+  { table: "cue_calls", anyOf: [{ ...internalProject, restOnly: true }] },
   { table: "incidents", anyOf: [internalProject, { column: "reported_by", key: "personIds" }] },
   { table: "incident_media", anyOf: [internalProject, { column: "created_by", key: "personIds" }] },
   { table: "inspection_templates", anyOf: [internalOrg] },
@@ -168,6 +202,8 @@ export const TABLE_RULES: readonly TableRule[] = [
     anyOf: [
       { column: "custodian_membership_id", key: "membershipIds", audiences: INTERNAL },
       { column: "custodian_engagement_id", key: "engagementIds", audiences: ["crew", "staff"] },
+      // The units a person on a roster holds on their own entry (R8).
+      { column: "roster_entry_id", key: "rosterEntryIds" },
       internalOrg,
     ],
   },
@@ -188,6 +224,8 @@ export const TABLE_RULES: readonly TableRule[] = [
   },
   // Compass logistics (Section 4.3 item 8): the gate queue, the marshalling yard log and fulfillments.
   { table: "gate_queue", anyOf: [internalProject] },
+  // B11 (G-115): a gate's windows for the phone gate view; vendors read open windows through api_external instead.
+  { table: "delivery_windows", anyOf: [internalProject] },
   { table: "marshalling_log", anyOf: [internalProject] },
   { table: "fulfillments", anyOf: [internalProject] },
   { table: "sops", anyOf: [internalOrg] },
@@ -226,6 +264,7 @@ export const TABLE_RULES: readonly TableRule[] = [
       ["per_diems", "engagement_id", "engagementIds", CREW_STAFF],
       ["travel_segments", "engagement_id", "engagementIds", CREW_STAFF],
       ["lodging", "person_id", "personIds", CREW_STAFF],
+      ["itinerary_changes", "engagement_id", "engagementIds", CREW_STAFF],
       ["onboarding_items", "engagement_id", "onboardingEngagementIds", CREW_STAFF],
       ["purchase_orders", "project_id", "engagedProjectIds", VENDOR],
       ["po_lines", "project_id", "engagedProjectIds", VENDOR],
@@ -242,10 +281,44 @@ export const TABLE_RULES: readonly TableRule[] = [
       ["shared_reports", "engagement_id", "engagementIds", CLIENT],
       ["sponsor_entitlements", "project_id", "engagedProjectIds", SPONSOR],
       ["engagement_documents", "engagement_id", "engagementIds", SPONSOR],
+      ["proof_of_performance_photos", "engagement_id", "engagementIds", SPONSOR],
+      // Compass Today's blocks for outside parties: a vendor's open delivery windows, an artist's hospitality, a
+      // client's approvals, a sponsor's activation bookings and outside crew's project briefings.
+      ["vendor_delivery_windows", "project_id", "engagedProjectIds", VENDOR],
+      ["hospitality", "project_id", "engagedProjectIds", ARTIST_PARTY],
+      ["client_approvals", "engagement_id", "engagementIds", CLIENT],
+      ["space_bookings", "engagement_id", "engagementIds", SPONSOR],
+      ["briefings", "project_id", "engagedProjectIds", CREW_STAFF],
     ] as const
   ).map(([table, column, key, audiences]): TableRule => ({
     table,
     anyOf: [{ column, key, audiences, restOnly: true }],
+  })),
+  // A person on a roster (R8): their own entries, what is allocated on them and their parking passes, from
+  // api_external views (my_roster_entries, advance_allocations, my_parking_passes) the REST downloader serves.
+  { table: "roster_entries", anyOf: [{ column: "id", key: "rosterEntryIds", restOnly: true }] },
+  {
+    table: "advance_allocations",
+    anyOf: [{ column: "roster_entry_id", key: "rosterEntryIds", restOnly: true }],
+  },
+  {
+    table: "parking_passes",
+    anyOf: [{ column: "holder_person_id", key: "personIds", restOnly: true }],
+  },
+  // Drives and local contacts (B5): api_external.my_transfers for every audience, and the project's local contacts
+  // (app.project_local_contacts inside the org, api_external.local_contacts outside it), by project. Both are views,
+  // which PowerSync does not replicate, so the REST downloader serves them.
+  ...["my_transfers", "local_contacts"].map((table): TableRule => ({
+    table,
+    anyOf: [
+      { ...internalProject, restOnly: true },
+      {
+        column: "project_id",
+        key: "engagedProjectIds",
+        audiences: OPERATIONAL_EXTERNAL,
+        restOnly: true,
+      },
+    ],
   })),
   // The canon codes: the swatch of every org's codes, and the list an org that holds no codes shows.
   { table: "canon_emergency_codes", anyOf: [], global: true },

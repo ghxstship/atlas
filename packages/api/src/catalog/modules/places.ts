@@ -8,8 +8,10 @@
 import { z } from "@hono/zod-openapi";
 import { canonCodes, fields } from "@xos/schemas";
 import { defineAdditions } from "../additions.ts";
+import { archivedListQuery } from "./parts/archived-filter.ts";
 import { all, editShape, orNull, setTable } from "../correct.ts";
 import { placesFieldHomes } from "./parts/playbook-field-homes.ts";
+import { Constants } from "@xos/data/database.types";
 
 const SINCE = "1.0.0-draft.2";
 
@@ -36,6 +38,7 @@ const GeoJsonPolygon = z
   });
 
 export const additions = defineAdditions("Places", {
+  listQuery: { venues: archivedListQuery },
   corrections: [
     {
       id: "venue-address-and-location",
@@ -181,7 +184,7 @@ export const additions = defineAdditions("Places", {
           optionalOnCreate: ["is_critical"],
           add: {
             direction: {
-              schema: z.enum(["Require", "Provide"]).meta({
+              schema: z.enum(Constants.app.Enums.capability_direction).meta({
                 description:
                   "Require for a requirement of the project, Provide for a capability a venue or counterparty offers.",
                 example: "Require",

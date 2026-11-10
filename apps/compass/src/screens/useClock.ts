@@ -72,7 +72,7 @@ export interface ClockModel {
   readonly shift: ShiftRow | null;
   readonly locationDenied: boolean;
   readonly refusal: (kind: PunchKind) => PunchRefusal | null;
-  readonly punch: (kind: PunchKind) => Promise<void>;
+  readonly punch: (kind: PunchKind, breakTypeId?: string | null) => Promise<void>;
   readonly now: number;
   /** Who punches and where, for punches made outside the app (the Live Activity); null before scope loads. */
   readonly context: PunchContext | null;
@@ -82,9 +82,19 @@ export function useClock(punching: boolean): ClockModel {
   const { resolved, projectId, enqueue, settings, orgSettings } = useCompass();
   const identity = resolved?.identity;
   const engagement = identity ? (operationalEngagements(identity, projectId)[0] ?? null) : null;
-  const mine = (r: { membership_id?: string | null; engagement_id?: string | null }) =>
+  // Agency staff punch through their roster entry, on the shift the agency placed them on (R12).
+  const rosterEntryId =
+    !identity?.membershipId && engagement?.via === "roster"
+      ? (engagement.rosterEntryId ?? null)
+      : null;
+  const mine = (r: {
+    membership_id?: string | null;
+    engagement_id?: string | null;
+    roster_entry_id?: string | null;
+  }) =>
     (typeof identity?.membershipId === "string" && r.membership_id === identity.membershipId) ||
-    (engagement !== null && r.engagement_id === engagement.id);
+    (rosterEntryId !== null && r.roster_entry_id === rosterEntryId) ||
+    (rosterEntryId === null && engagement !== null && r.engagement_id === engagement.id);
   const { rows: punches } = useRows<Punch & Row>("clock_punches", mine);
   const { rows: entries } = useRows<EntryRow>("time_entries", mine);
   const { rows: shifts } = useRows<ShiftRow>(
@@ -132,14 +142,19 @@ export function useClock(punching: boolean): ClockModel {
     requireShift: false,
   };
 
-  const engagementId = identity?.membershipId ? null : (engagement?.id ?? null);
+  const engagementId = identity?.membershipId || rosterEntryId ? null : (engagement?.id ?? null);
   const context: PunchContext | null =
-    projectId && identity && (identity.membershipId !== null || engagementId !== null)
+    projectId &&
+    identity &&
+    (identity.membershipId !== null ||
+      engagementId !== null ||
+      (rosterEntryId !== null && shift !== null))
       ? {
           projectId,
           shiftId: shift?.id ?? null,
           membershipId: identity.membershipId,
           engagementId,
+          rosterEntryId,
           source: "Mobile",
         }
       : null;
@@ -153,11 +168,11 @@ export function useClock(punching: boolean): ClockModel {
     now,
     refusal: (kind) => checkPunch(kind, snapshot, geofence, policy, shift !== null),
     context,
-    punch: async (kind) => {
+    punch: async (kind, breakTypeId) => {
       if (!context) return;
       const input = buildPunch(
         kind,
-        context,
+        breakTypeId ? { ...context, breakTypeId } : context,
         stampEvent(deviceClock, null),
         fix,
         geofences,

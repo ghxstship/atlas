@@ -6,6 +6,7 @@ import {
   ImportWriteError,
   readSheet,
   runImportJobs,
+  supabaseImportStore,
   UnreadableUploadError,
   validateRow,
   type DetectedSheet,
@@ -14,6 +15,8 @@ import {
   type TargetLookups,
 } from "../src/import-worker.ts";
 import type { SheetsFetch } from "../src/import-sheets.ts";
+import { okResponse } from "./fake-client.ts";
+import { moduleClient, stepsOf } from "./module-client.ts";
 
 type Row = Record<string, unknown>;
 
@@ -50,6 +53,11 @@ function lookups(writes: Row[]): TargetLookups {
     counterpartyTypeExists: async (t) => t === "Sponsor",
     jurisdictionExists: async (id) => id === "US-FL-MIAMI-DADE",
     vendorIdByName: async (_o, n) => (n === "Harborline" ? "ven1" : null),
+    uridExists: async () => false,
+    uridXyz: async () => null,
+    costCenterId: async () => null,
+    budgetDestination: async () => null,
+    budgetLineTag: async () => null,
     elementExists: async (id) => id === "0000.01.01-XOS-001",
     assetClassId: async (_o, v) => (v === "Truss" ? "ac1" : null),
     venueId: async (_o, v) => (v === "Pier 9" ? "v9" : null),
@@ -63,6 +71,31 @@ function lookups(writes: Row[]): TargetLookups {
       writes.push({ op: "update", target, id, ...values });
       return { id };
     },
+    // Cue and guest list lookups (P3); the org-wide targets here never reach them.
+    runOfShow: async () => null,
+    spaceId: async () => null,
+    scopeNodeId: async () => null,
+    counterpartyIdByName: async () => null,
+    destinationKeyMatch: async () => null,
+    nextCuePosition: async () => 1,
+    talentPoolIdByName: async () => null,
+    roleCode: async () => null,
+    poolInvitationContext: async () => ({
+      talentPoolId: null,
+      numberFormat: "comma-dot",
+      canWriteRates: false,
+      language: null,
+      baseCurrency: null,
+      exponents: new Map(),
+    }),
+    poolInvitation: async () => null,
+    cueCalled: async () => false,
+    canonCodeExists: async () => true,
+    unitExists: async () => true,
+    materialMatch: async () => null,
+    projectTimeZone: async () => "UTC",
+    purchaseOrderState: async () => "Proposed",
+    nextPoLineNumber: async () => 1,
   };
 }
 
@@ -128,6 +161,7 @@ function memoryStore(csv: string | Uint8Array, targetCode = "counterparties", so
   const scan = { status: "Clean" as string | null, downloads: 0 };
   const store: ImportStore = {
     lookups: lookups(writes),
+    recordMaterialMatch: async () => {},
     async claim(kind) {
       const mine = queue.filter((q) => q.kind === kind);
       for (const m of mine) queue.splice(queue.indexOf(m), 1);
@@ -159,7 +193,9 @@ function memoryStore(csv: string | Uint8Array, targetCode = "counterparties", so
           fieldName: null,
         }),
       );
+      return cols.map((_c, i) => `col${i}`);
     },
+    async recordColumnSamples() {},
     async insertSheets(_id, list) {
       sheets.push(...list);
     },
@@ -212,6 +248,8 @@ function memoryStore(csv: string | Uint8Array, targetCode = "counterparties", so
       const r = rows.find((x) => x.id === input.rowId);
       if (r) r.written = { action: input.action, target: input.targetId, before: input.before };
     },
+    async skipRow() {},
+    async noteRow() {},
     async refuseRow(rowId, reason) {
       const r = rows.find((x) => x.id === rowId);
       if (r) {
@@ -777,5 +815,19 @@ describe("Google Sheets links (A65-025)", () => {
     expect((await runImportJobs(noReader.store, "w"))[0]?.error).toContain(
       "no Google Sheets reader",
     );
+  });
+});
+
+describe("the database import store (A124)", () => {
+  it("binds a venue by name to a live venue, never to an archived one sharing the name", async () => {
+    const { db, calls } = moduleClient({ "app:from:venues": [okResponse([{ id: "v9" }])] });
+    const store = supabaseImportStore(db as unknown as Parameters<typeof supabaseImportStore>[0]);
+    expect(await store.lookups.venueId("o1", "Pier 9")).toBe("v9");
+    const call = calls.find((c) => c.target === "app:from:venues");
+    expect(stepsOf(call, "is")).toEqual([
+      ["deleted_at", null],
+      ["archived_at", null],
+    ]);
+    expect(stepsOf(call, "ilike")).toEqual([["name", "Pier 9"]]);
   });
 });

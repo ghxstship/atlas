@@ -30,6 +30,23 @@ export const INITIAL_STATE: ActionState = {};
 
 /** Database rules whose refusal has its own sentence in the catalog. */
 const KNOWN_RULES = new Set([
+  // B11 (ADR 0150): delivery windows and bookings.
+  "delivery_window_full",
+  "delivery_window_closed",
+  "delivery_window_overlap",
+  "delivery_window_booked",
+  "delivery_window_limit",
+  "delivery_window_zone",
+  "delivery_window_count",
+  "delivery_window_range",
+  "delivery_booking_direct",
+  "delivery_booking_outside_window",
+  "delivery_booking_reference",
+  "delivery_booking_locked",
+  "delivery_booking_shipment",
+  "booking_event_reused",
+  "booking_already_arrived",
+  "gate_vehicle_required",
   "dock_slot_overlap",
   "dock_slot_checked_in",
   "dock_slot_canceled",
@@ -48,6 +65,25 @@ const KNOWN_RULES = new Set([
   "time_zone_unknown",
   "same_project",
   "person_not_on_project",
+  // B5 (ADR 0144): transfers, space bookings, local contacts and block budget lines.
+  "transfer_driver_double_booked",
+  "transfer_vehicle_double_booked",
+  "transfer_passenger_double_booked",
+  "transfer_vehicle_full",
+  "transfer_driver_is_passenger",
+  "transfer_person_not_on_project",
+  "transfer_meets_flight",
+  "transfer_canceled",
+  "space_booking_overlap",
+  "space_booking_venue",
+  "space_booking_space",
+  "space_booking_set_engagement",
+  "local_contact_member",
+  "local_contact_day_outside_project",
+  "local_contact_org_fixed",
+  "accommodation_block_budget_project",
+  "accommodation_block_budget_currency",
+  "cross_org_reference",
 ]);
 
 export function errorKey(error: DataError): string {

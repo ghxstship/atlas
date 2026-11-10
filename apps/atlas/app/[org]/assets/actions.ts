@@ -24,10 +24,17 @@ import {
   type ScannedLot,
   type ScannedUnit,
 } from "@xos/data/assets";
+import {
+  createMaintenancePlan,
+  deleteMaintenancePlan,
+  MAINTENANCE_INTERVAL_UNITS,
+  type MaintenanceIntervalUnit,
+} from "@xos/data/asset-maintenance-plans";
 import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 import { getOrgContext, getViewer } from "@/lib/shell/context";
+import { customFieldsOf } from "@/lib/custom-fields/form";
 import { minorUnits } from "@/lib/assets/money";
 import { observability } from "@/lib/observability";
 
@@ -48,6 +55,8 @@ export interface AssetActionState {
 
 /** Refusal rules with their own copy in `assets.errors`; anything else reads as unexpected. */
 const KNOWN_RULES = new Set([
+  // B11 (G-95): a plan covers its unit or the units of its class.
+  "maintenance_plan_unit",
   "asset_class_in_use",
   "asset_lot_count_negative",
   "asset_lot_insufficient",
@@ -179,8 +188,12 @@ export async function createUnitAction(
   if (!parsed.success) {
     return { error: "invalid", field: String(parsed.error.issues[0]?.path[0] ?? "assetTag") };
   }
+  const custom = await customFieldsOf(ctx, "app.asset_units", form);
+  const problem = Object.keys(custom.fieldErrors ?? {})[0];
+  if (problem) return { error: "invalid", field: problem };
   const result = await createAssetUnit(ctx.viewer.db, { orgId: ctx.org.id, ...parsed.data });
   if (!result.ok) return errorKey(result.error);
+  await custom.save(result.data.id);
   return { ...done(ctx.org.slug), assetTag: result.data.assetTag };
 }
 
@@ -314,6 +327,16 @@ const SCAN_RULES = new Set([
   "asset_scan_event_reused",
   "asset_scan_engagement_closed",
   "asset_scan_engagement_project",
+  // R7: holder rules of a hand-over (4692).
+  "asset_reserved_for_other",
+  "asset_class_held_for_reservations",
+  "custody_not_reserved_holder",
+  "custody_reservation_exhausted",
+  "custody_reservation_window",
+  "custody_roster_engagement",
+  "custody_roster_entry_not_live",
+  "lot_held_for_reservations",
+  "lot_reservation_mismatch",
 ]);
 
 /**
@@ -342,6 +365,11 @@ export async function custodyScanAction(
         .union([z.coerce.number().positive(), z.literal("")])
         .optional()
         .transform((v) => (typeof v === "number" ? v : null)),
+      // R7: an allocation hold as <reservation id>|<roster entry id or empty>.
+      hold: z
+        .union([z.string().regex(/^[0-9a-f-]{36}\|([0-9a-f-]{36})?$/), z.literal("")])
+        .optional()
+        .transform((v) => (v ? v : null)),
     })
     .safeParse(
       fields(form, [
@@ -353,17 +381,21 @@ export async function custodyScanAction(
         "projectId",
         "note",
         "quantity",
+        "hold",
       ]),
     );
   if (!parsed.success) {
     return { error: "invalid", field: String(parsed.error.issues[0]?.path[0] ?? "code") };
   }
-  const { custodian, ...scan } = parsed.data;
+  const { custodian, hold, ...scan } = parsed.data;
+  const [reservationId, rosterEntryId] = hold ? hold.split("|") : [null, null];
   const result = await applyAssetScanEvent(ctx.viewer.db, {
     orgId: ctx.org.id,
     ...scan,
     membershipId: custodian?.startsWith("m:") ? custodian.slice(2) : null,
     engagementId: custodian?.startsWith("e:") ? custodian.slice(2) : null,
+    reservationId: reservationId || null,
+    rosterEntryId: rosterEntryId || null,
   });
   if (!result.ok) {
     if (result.error.kind === "refusal" && SCAN_RULES.has(result.error.rule)) {
@@ -388,8 +420,18 @@ export async function recordMaintenanceAction(
       description: text(2000),
       cost: z.string().trim().optional(),
       currencyCode: z.string().regex(/^[A-Z]{3}$/),
+      maintenancePlanId: z.uuid().optional(),
     })
-    .safeParse(fields(form, ["unitId", "performedOn", "description", "cost", "currencyCode"]));
+    .safeParse(
+      fields(form, [
+        "unitId",
+        "performedOn",
+        "description",
+        "cost",
+        "currencyCode",
+        "maintenancePlanId",
+      ]),
+    );
   if (!parsed.success) {
     return { error: "invalid", field: String(parsed.error.issues[0]?.path[0] ?? "description") };
   }
@@ -417,5 +459,150 @@ export async function reportDamageAction(
     return { error: "invalid", field: String(parsed.error.issues[0]?.path[0] ?? "description") };
   }
   const result = await reportAssetDamage(ctx.viewer.db, { orgId: ctx.org.id, ...parsed.data });
+  return result.ok ? done(ctx.org.slug) : errorKey(result.error);
+}
+
+/** One allocation hold a unit may be checked out against, for the check-out dialog's Allocation select (R7). */
+export interface AllocationHoldOption {
+  readonly value: string;
+  readonly label: string;
+}
+
+/**
+ * The live holds of Approved allocations of a unit's class with units left, read when the check-out dialog opens:
+ * the unit's own pin and the class-stock and order-line holds. Picking one sends the hold and its person to the scan,
+ * so the custody row names them and the holder guards apply.
+ */
+export async function allocationHoldsAction(
+  org: string,
+  code: string,
+): Promise<readonly AllocationHoldOption[]> {
+  const ctx = await getOrgContext(org);
+  if (!ctx) return [];
+  const db = ctx.viewer.db;
+  const unit = await db
+    .from("asset_units")
+    .select("id, asset_class_id")
+    .eq("org_id", ctx.org.id)
+    .eq("asset_tag", code.trim().toUpperCase())
+    .is("deleted_at", null)
+    .maybeSingle();
+  if (!unit.data) return [];
+  // Approved allocations of this unit's class first, so the holds read is bounded by the class rather than cut
+  // off by an org-wide limit.
+  const classOf = await db
+    .from("advance_allocations")
+    .select("id")
+    .eq("org_id", ctx.org.id)
+    .eq("asset_class_id", unit.data.asset_class_id)
+    .eq("allocation_state", "Approved")
+    .is("deleted_at", null);
+  const ofClass = (classOf.data ?? []).map((a) => a.id);
+  if (ofClass.length === 0) return [];
+  const holds = await db
+    .from("asset_reservations")
+    .select("id, asset_unit_id, asset_lot_id, quantity, advance_allocation_id")
+    .in("advance_allocation_id", ofClass)
+    .is("released_at", null)
+    .is("deleted_at", null)
+    .is("asset_lot_id", null);
+  const statuses = await db
+    .from("advance_allocation_status")
+    .select(
+      "allocation_id, project_id, roster_entry_id, holder_engagement_id, item_name, quantity, issued_quantity, allocation_state",
+    )
+    .in("allocation_id", ofClass);
+  const projectIds = [
+    ...new Set((statuses.data ?? []).flatMap((a) => (a.project_id ? [a.project_id] : []))),
+  ];
+  const holders =
+    projectIds.length === 0
+      ? { data: [] }
+      : await db
+          .from("allocation_holders")
+          .select("roster_entry_id, engagement_id, holder_kind, holder_name, party_name")
+          .in("project_id", projectIds);
+  const byAllocation = new Map((statuses.data ?? []).map((s) => [s.allocation_id, s]));
+  return (holds.data ?? []).flatMap((h) => {
+    const a = byAllocation.get(h.advance_allocation_id);
+    if (!a) return [];
+    if (h.asset_unit_id !== null && h.asset_unit_id !== unit.data?.id) return [];
+    if (Number(a.issued_quantity ?? 0) >= Number(a.quantity ?? 0)) return [];
+    const holder = (holders.data ?? []).find((x) =>
+      a.roster_entry_id
+        ? x.roster_entry_id === a.roster_entry_id
+        : x.holder_kind === "Pool" && x.engagement_id === a.holder_engagement_id,
+    );
+    return [
+      {
+        value: `${h.id}|${a.roster_entry_id ?? ""}`,
+        label: `${holder?.holder_name ?? holder?.party_name ?? ""} · ${a.item_name ?? ""} (${a.issued_quantity ?? 0}/${a.quantity ?? 0})`,
+      },
+    ];
+  });
+}
+
+/**
+ * Adds a maintenance plan (B11, G-95): "unit:{id}" or "class:{id}" from the one picker, first due, and an interval, or
+ * none for work done once. assets.maintenance.write decides.
+ */
+export async function createMaintenancePlanAction(
+  _: AssetActionState,
+  form: FormData,
+): Promise<AssetActionState> {
+  const ctx = await contextFor(form);
+  const parsed = z
+    .object({
+      appliesTo: z.string().regex(/^(unit|class):[0-9a-f-]{36}$/),
+      title: text(200),
+      firstDueOn: z.iso.date(),
+      // A blank count is a plan done once; coerce would read it as 0 and refuse it.
+      everyCount: z.preprocess(
+        (v) => (v === "" ? undefined : v),
+        z.coerce.number().int().min(1).max(999).optional(),
+      ),
+      // Once only is the select's blank value.
+      everyUnit: z.preprocess(
+        (v) => (v === "" ? undefined : v),
+        z
+          .enum(
+            MAINTENANCE_INTERVAL_UNITS as [MaintenanceIntervalUnit, ...MaintenanceIntervalUnit[]],
+          )
+          .optional(),
+      ),
+      instructions: z.string().trim().max(1000).optional(),
+    })
+    .safeParse(
+      fields(form, ["appliesTo", "title", "firstDueOn", "everyCount", "everyUnit", "instructions"]),
+    );
+  if (!parsed.success) {
+    return { error: "invalid", field: String(parsed.error.issues[0]?.path[0] ?? "title") };
+  }
+  const { appliesTo, everyCount, instructions, ...rest } = parsed.data;
+  // The unit's select always holds a value, so a blank count alone means work done once.
+  const everyUnit = everyCount === undefined ? undefined : parsed.data.everyUnit;
+  if (everyCount !== undefined && everyUnit === undefined) {
+    return { error: "invalid", field: "everyCount" };
+  }
+  const [kind, id] = appliesTo.split(":") as [string, string];
+  const result = await createMaintenancePlan(ctx.viewer.db, ctx.org.id, {
+    ...rest,
+    assetUnitId: kind === "unit" ? id : null,
+    assetClassId: kind === "class" ? id : null,
+    everyCount: everyCount ?? null,
+    everyUnit: everyUnit ?? null,
+    instructions: instructions ?? null,
+  });
+  return result.ok ? done(ctx.org.slug) : errorKey(result.error);
+}
+
+export async function deleteMaintenancePlanAction(
+  _: AssetActionState,
+  form: FormData,
+): Promise<AssetActionState> {
+  const ctx = await contextFor(form);
+  const parsed = z.uuid().safeParse(form.get("planId"));
+  if (!parsed.success) return { error: "invalid" };
+  const result = await deleteMaintenancePlan(ctx.viewer.db, parsed.data);
   return result.ok ? done(ctx.org.slug) : errorKey(result.error);
 }

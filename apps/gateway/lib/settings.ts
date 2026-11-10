@@ -14,10 +14,13 @@ export function registryPage(gatewayNode: string): string | null {
     : null;
 }
 
-/** Personal settings shown on a Gateway settings section, in registry order. */
+/**
+ * Personal settings shown on a Gateway settings section, in registry order. A layout (an Atlas
+ * dashboard's tile spans, A129) is arranged on its dashboard, so Gateway never offers it.
+ */
 export function personalSettings(gatewayNode: string): SettingDefinition[] {
   const page = registryPage(gatewayNode);
-  return page ? SETTINGS.filter((s) => s.pages.personal === page) : [];
+  return page ? SETTINGS.filter((s) => s.pages.personal === page && s.input !== "layout") : [];
 }
 
 export function settingByKey(key: string): SettingDefinition | undefined {
@@ -36,6 +39,8 @@ export type ParsedValue =
 const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
 const CURRENCY = /^[A-Z]{3}$/;
+/** A phone setting arrives here already read into E.164 by the saving action (toE164, A139). */
+const E164 = /^\+[1-9]\d{7,14}$/;
 
 function validUrl(value: string): boolean {
   return URL.canParse(value) && /^https?:$/.test(new URL(value).protocol);
@@ -78,7 +83,9 @@ export function parseSettingValue(def: SettingDefinition, raw: string | null): P
                 ? CURRENCY.test(text)
                 : def.input === "time_zone"
                   ? validTimeZone(text)
-                  : true;
+                  : def.input === "phone"
+                    ? E164.test(text)
+                    : true;
       return valid ? { ok: true, value: text } : { ok: false, error: def.input };
     }
   }

@@ -7,12 +7,15 @@ import { untyped } from "./untyped.ts";
  * Global search for the command menu (Section 11.10 item 1, Section 11.7; findings A59-015 and A65-005).
  * Thin wrappers over migration 1440:
  *   * `globalSearch`: app.global_search, SECURITY INVOKER, so the reader's row level security decides every
- *     row; it takes the structured request `@xos/data/search-query` builds and an optional query vector;
+ *     row; it takes the structured request `@xos/data/search-query` builds and an optional query vector. Since
+ *     P7 (migration 5841) it also finds asset classes by name and asset units by tag, class or serial;
  *   * `recentItems` and `recordRecentView`: what the person opened, newest first, at most 50;
+ *   * `recentProjects`: the projects the person opened most recently, for the sidebar (migration 2090);
  *   * `searchContext`: the person, the org's calendar and whether the org has semantic search on.
  */
 
-export type SearchResultType = "record" | "incident" | "person" | "document" | "sop" | "article";
+export type SearchResultType =
+  "record" | "incident" | "person" | "document" | "sop" | "article" | "asset" | "asset_class";
 
 /** How a result matched: a record key, words, meaning, both, or filters alone. */
 export type SearchMatch = "key" | "text" | "semantic" | "both" | "filter";
@@ -20,12 +23,13 @@ export type SearchMatch = "key" | "text" | "semantic" | "both" | "filter";
 export interface SearchHit {
   readonly type: SearchResultType;
   readonly id: string;
-  /** The human key (NWL-12, SOP-001), or null for people, documents and articles. */
+  /** The human key (NWL-12, SOP-001, an asset unit's tag MH-002), or null for people, documents, articles and
+   * asset classes. */
   readonly key: string | null;
   readonly title: string;
   /** The record kind (Task, Permit), or null for anything but a record. */
   readonly recordKind: string | null;
-  /** The record or incident state, or Draft and Published for SOPs. */
+  /** The record or incident state, Draft and Published for SOPs, or an asset unit's state (Deployed). */
   readonly state: string | null;
   readonly projectKey: string | null;
   /** The date the item last changed (an incident's: when it happened). */
@@ -34,8 +38,9 @@ export interface SearchHit {
   readonly matched: SearchMatch;
 }
 
+/** Recent views name no person or asset (assets have no recent views). */
 export interface RecentItem {
-  readonly type: Exclude<SearchResultType, "person">;
+  readonly type: Exclude<SearchResultType, "person" | "asset" | "asset_class">;
   readonly id: string;
   readonly key: string | null;
   readonly title: string;
@@ -53,8 +58,17 @@ export interface SearchContext {
   readonly semanticEnabled: boolean;
 }
 
-/** Tables a recent view may name (app.recent_views.subject_table). */
-export type RecentViewTable = "records" | "incidents" | "documents" | "sops" | "handbook_articles";
+/** Tables a recent view may name (app.recent_views.subject_table; projects since migration 2090). */
+export type RecentViewTable =
+  "records" | "incidents" | "documents" | "sops" | "handbook_articles" | "projects";
+
+/** A project the person opened recently (app.recent_projects). */
+export interface RecentProject {
+  readonly id: string;
+  readonly key: string;
+  readonly name: string;
+  readonly viewedAt: string;
+}
 
 const TYPES = new Set<SearchResultType>([
   "record",
@@ -63,7 +77,10 @@ const TYPES = new Set<SearchResultType>([
   "document",
   "sop",
   "article",
+  "asset",
+  "asset_class",
 ]);
+const NOT_RECENT = new Set<string>(["person", "asset", "asset_class"]);
 const MATCHES = new Set<SearchMatch>(["key", "text", "semantic", "both", "filter"]);
 
 type Row = Record<string, unknown>;
@@ -135,7 +152,7 @@ export async function recentItems(
     const type = row["result_type"] as RecentItem["type"];
     const id = text(row["result_id"]);
     const viewedAt = text(row["viewed_at"]);
-    if (!id || !viewedAt || type === ("person" as string) || !TYPES.has(type)) continue;
+    if (!id || !viewedAt || NOT_RECENT.has(type) || !TYPES.has(type)) continue;
     items.push({
       type,
       id,
@@ -148,6 +165,24 @@ export async function recentItems(
     });
   }
   return ok(items);
+}
+
+/** The projects the person opened most recently in an org, newest first (Section 4.5.2). */
+export async function recentProjects(
+  db: XosClient,
+  orgId: string,
+  limit = 5,
+): Promise<Result<readonly RecentProject[]>> {
+  const { data, error } = await db.rpc("recent_projects", { p_org_id: orgId, p_limit: limit });
+  if (error) return fail(toDataError(error));
+  return ok(
+    data.map((row) => ({
+      id: row.project_id,
+      key: row.project_key,
+      name: row.name,
+      viewedAt: row.viewed_at,
+    })),
+  );
 }
 
 /**

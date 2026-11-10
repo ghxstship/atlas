@@ -8,7 +8,9 @@
  * security and the column guards decide every refusal. See ADR 0023 for the corrected shapes.
  * Distance search measures from `near` to the venue coordinates the view carries (A09 venue
  * location, A32 migration 1020); a listing whose venue is not located has no distance and is left
- * out of a radius search, never placed at a guessed position.
+ * out of a radius search, never placed at a guessed position. A listing whose client and event are
+ * hidden until booking (3871) carries no venue name and a venue point rounded to 1 decimal, so its
+ * distance is measured from that point and given in whole kilometers.
  */
 import { revokeProfileShare, shareProfile, submitTaxForm } from "@xos/data/gateway";
 import type { Components } from "../contract/operations.generated.ts";
@@ -26,6 +28,7 @@ import {
   unwrap,
 } from "./support/table.ts";
 import type { Row } from "./support/table.ts";
+import { engagedAllocationHandlers } from "./parts/engaged-allocations.ts";
 
 // Marketplace -------------------------------------------------------------------------------------
 
@@ -161,7 +164,10 @@ const parity = {
       const located = typeof lat === "number" && typeof lon === "number";
       const distance = origin !== null && located ? distanceKm(origin, { lat, lon }) : null;
       if (radius !== null && (distance === null || distance > radius)) return [];
-      return [{ ...listing, distance_km: distance }];
+      // A listing with its client hidden carries a rounded point (3871); its distance is given in whole kilometers.
+      const shown =
+        distance !== null && listing["client_hidden"] === true ? Math.round(distance) : distance;
+      return [{ ...listing, distance_km: shown }];
     });
     return ok({
       data: listed.slice(0, SEARCH_LIMIT),
@@ -214,6 +220,9 @@ const parity = {
     );
     return created((await taxForms.read(context, form.taxFormId)) as never);
   },
+
+  // Allocations from the engaged party's side (R8): see ./parts/engaged-allocations.ts.
+  ...engagedAllocationHandlers,
 } satisfies HandlerSet<"Gateway">;
 
 export const handlers = defineHandlers("Gateway", parity);

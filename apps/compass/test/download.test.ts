@@ -12,6 +12,7 @@ import {
 import { describe, expect, it } from "vitest";
 import { downloadAll } from "../src/data/downloader";
 import { sourcesFor, toLocalRows } from "../src/data/sources";
+import { markedShiftIds } from "../src/domain/no-show";
 
 type Table = Record<string, unknown>[];
 
@@ -60,12 +61,14 @@ describe("sources", () => {
     const external = sourcesFor("vendor");
     expect(external.filter((s) => s.schema === "app")).toEqual([]);
     expect(external.map((s) => s.table)).toContain("dock_slots");
-    // A member reads api_external only for their own profile rows, which those views limit to the caller (A109).
+    // A member reads api_external only for their own profile rows, which those views limit to the caller (A109), and
+    // their own transfers, which api_external.my_transfers limits to the caller's roles on them (B5).
     expect(
       sourcesFor("field")
         .filter((s) => s.schema === "api_external")
         .map((s) => [s.table, s.personColumn]),
     ).toEqual([
+      ["my_transfers", undefined],
       ["profile_certifications", "person_id"],
       ["profile_documents", "person_id"],
     ]);
@@ -273,6 +276,93 @@ describe("REST download", () => {
     expect(await store.list("shifts")).toEqual([]);
   });
 
+  it("downloads department calls with their cue's project and drops a cleared call (ADR 0131)", async () => {
+    const store = new MemoryStore();
+    const session = new SyncSession(store, {
+      audience: "field",
+      personIds: ["person-1"],
+      orgIds: ["org-1"],
+      membershipIds: ["mem-1"],
+      readableProjectIds: ["proj-1"],
+      engagementIds: [],
+      engagedProjectIds: [],
+    });
+    const cues = [
+      {
+        id: "c1",
+        org_id: "org-1",
+        project_id: "proj-1",
+        run_of_show_id: "ros-1",
+        deleted_at: null,
+      },
+      {
+        id: "c2",
+        org_id: "org-1",
+        project_id: "proj-1",
+        run_of_show_id: "ros-1",
+        deleted_at: "2027-03-13T20:00:00Z",
+      },
+    ];
+    const call = (
+      id: string,
+      kind: string,
+      instruction: string,
+      deleted: string | null = null,
+    ) => ({
+      id,
+      org_id: "org-1",
+      cue_id: "c1",
+      call_kind: kind,
+      instruction,
+      deleted_at: deleted,
+    });
+    const first = client({
+      "app.cues": cues,
+      "app.cue_calls": [
+        call("k1", "Lighting", "LX 14 GO"),
+        call("k0", "Audio", "Old", "2027-03-13T19:00:00Z"),
+      ],
+    });
+    await downloadAll({
+      client: first.client,
+      session,
+      projectId: null,
+      only: ["cues", "cue_calls"],
+    });
+    // A removed cue and a cleared call are soft-deleted rows row level security still returns; neither is stored.
+    expect((await store.list("cues")).map((r) => r.id)).toEqual(["c1"]);
+    expect(await store.list("cue_calls")).toEqual([
+      expect.objectContaining({ id: "k1", instruction: "LX 14 GO", project_id: "proj-1" }),
+    ]);
+    // The Lighting call is cleared and added again as a new row: only the new one stays on the device.
+    const second = client({
+      "app.cues": cues,
+      "app.cue_calls": [
+        call("k1", "Lighting", "LX 14 GO", "2027-03-13T21:00:00Z"),
+        call("k2", "Lighting", "LX 15 GO"),
+      ],
+    });
+    await downloadAll({
+      client: second.client,
+      session,
+      projectId: null,
+      only: ["cues", "cue_calls"],
+    });
+    expect((await store.list("cue_calls")).map((r) => [r.id, r["instruction"]])).toEqual([
+      ["k2", "LX 15 GO"],
+    ]);
+  });
+
+  it("never gives an external device department calls", () => {
+    for (const audience of EXTERNAL_AUDIENCES) {
+      expect(
+        sourcesFor(audience).some((s) => s.table === "cue_calls"),
+        audience,
+      ).toBe(false);
+    }
+    expect(sourcesFor("field").some((s) => s.table === "cue_calls")).toBe(true);
+  });
+
   it("keeps a member's own certifications and documents on the device for the Profile (A109)", async () => {
     const store = new MemoryStore();
     const session = new SyncSession(store, {
@@ -306,5 +396,61 @@ describe("REST download", () => {
     // A row for someone else never reaches the device, even if a view returned it.
     await session.ingest("profile_documents", [{ id: "doc-9", person_id: "person-9" }]);
     expect(await store.get("profile_documents", "doc-9")).toBeUndefined();
+  });
+  // B9: a retired break type leaves the device, or Break Start would send it and be refused break_type_unknown; a
+  // withdrawn no-show stays with its deleted_at, since a project's pull removes nothing, and the Crew tab reads past it.
+  describe("what ended on the server", () => {
+    const supervisor: DownloadScope = {
+      audience: "field",
+      personIds: ["person-1"],
+      orgIds: ["org-1"],
+      membershipIds: ["m-1"],
+      readableProjectIds: ["proj-1"],
+      engagementIds: [],
+      engagedProjectIds: [],
+    };
+
+    it("removes a retired break type on the next pull", async () => {
+      const store = new MemoryStore();
+      const session = new SyncSession(store, supervisor);
+      const type = { id: "b1", org_id: "org-1", name: "Meal", paid: false };
+      await downloadAll({
+        client: client({ "app.break_types": [{ ...type, deleted_at: null }] }).client,
+        session,
+        projectId: null,
+      });
+      expect((await store.list("break_types")).map((r) => r.id)).toEqual(["b1"]);
+      await downloadAll({
+        client: client({ "app.break_types": [{ ...type, deleted_at: "2027-06-01T00:00:00Z" }] })
+          .client,
+        session,
+        projectId: null,
+      });
+      expect(await store.list("break_types")).toEqual([]);
+    });
+
+    it("returns a person to the late list when their no-show is withdrawn", async () => {
+      const store = new MemoryStore();
+      const session = new SyncSession(store, supervisor);
+      const mark = {
+        id: "n1",
+        org_id: "org-1",
+        project_id: "proj-1",
+        shift_id: "s1",
+        recorded_at: "2027-06-01T15:00:00Z",
+      };
+      const pull = async (deleted_at: string | null) => {
+        await downloadAll({
+          client: client({ "app.shift_no_shows": [{ ...mark, deleted_at }] }).client,
+          session,
+          projectId: "proj-1",
+        });
+        return markedShiftIds(
+          (await store.list("shift_no_shows")) as unknown as Parameters<typeof markedShiftIds>[0],
+        );
+      };
+      expect(await pull(null)).toEqual(new Set(["s1"]));
+      expect(await pull("2027-06-01T15:30:00Z")).toEqual(new Set());
+    });
   });
 });

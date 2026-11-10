@@ -15,10 +15,6 @@ var exportFile = {
     "Este archivo contiene las primeras {limit} filas. Ajusta los filtros de la colección para exportar todas las filas.",
   watermark: "Exportado por {email} el {time}",
 };
-var email = {
-  subject: "{report} de {org}",
-  body: "Adjuntamos tu informe programado {report} de {org}. Tiene {rows} filas; {unpriced} tienen un importe sin precio, fuera de sus totales. Se ejecutó con tu propio acceso, así que solo muestra lo que puedes ver.",
-};
 var dashboards = {
   count: "{count, plural, =0 {Sin tableros} one {# tablero} other {# tableros}}",
   empty: "Aún no hay tableros. Crea uno y agrégale informes guardados desde Informes guardados.",
@@ -120,20 +116,10 @@ var errors = {
 var reporting_default = {
   file,
   exportFile,
-  email,
   dashboards,
   tile,
   schedule,
   errors,
 };
 //#endregion
-export {
-  dashboards,
-  reporting_default as default,
-  email,
-  errors,
-  exportFile,
-  file,
-  schedule,
-  tile,
-};
+export { dashboards, reporting_default as default, errors, exportFile, file, schedule, tile };

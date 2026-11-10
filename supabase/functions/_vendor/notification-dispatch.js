@@ -8,13 +8,15 @@ import {
   createTransport,
   readEmailEnv,
 } from "./chunks/email-env.js";
-import { isTemplateCode, sendEmail } from "./chunks/email.js";
+import { isTemplateCode } from "./chunks/email-render.js";
+import { sendEmail } from "./chunks/email-send.js";
 import {
   clip,
   createSmsProvider,
   dispatchSms,
   dispatchSmsSummaries,
   isRecordKey,
+  loadNotificationCopy,
   localeOf,
   notificationKind,
   notificationText,
@@ -42,11 +44,14 @@ var importFinished = z.object({
   skipped: z.number().int().nonnegative(),
   url: z.url(),
 });
+var approvalLinkCode = z.object({ orgName: z.string() });
 var reportDelivery = z.object({
   reportName: z.string(),
   periodLabel: z.string(),
   format: z.string(),
-  url: z.url(),
+  url: z.url().optional(),
+  rows: z.number().int().nonnegative().optional(),
+  unpriced: z.number().int().nonnegative().optional(),
 });
 function messageArgs(raw) {
   const args = {};
@@ -58,9 +63,21 @@ async function propsFor(claim, store) {
   if (!isTemplateCode(claim.emailTemplateCode))
     throw new Error(`Unknown email template ${claim.emailTemplateCode}`);
   switch (claim.emailTemplateCode) {
-    case "notification":
+    case "notification": {
+      const actions = (await store.actionLinksFor?.(claim)) ?? [];
       return {
         code: "notification",
+        props: {
+          kind: claim.kind,
+          args: messageArgs(claim.messageArgs),
+          url: await store.linkFor(claim),
+          ...(actions.length === 0 ? {} : { actions }),
+        },
+      };
+    }
+    case "billing_notice":
+      return {
+        code: "billing_notice",
         props: {
           kind: claim.kind,
           args: messageArgs(claim.messageArgs),
@@ -77,11 +94,31 @@ async function propsFor(claim, store) {
         code: "import_finished",
         props: importFinished.parse(claim.messageArgs),
       };
-    case "report_delivery":
+    case "report_delivery": {
+      const { url, rows, unpriced, ...words } = reportDelivery.parse(claim.messageArgs);
       return {
         code: "report_delivery",
-        props: reportDelivery.parse(claim.messageArgs),
+        props: {
+          ...words,
+          ...(url === void 0 ? {} : { url }),
+          ...(rows === void 0 ? {} : { rows }),
+          ...(unpriced === void 0 ? {} : { unpriced }),
+        },
       };
+    }
+    case "approval_link_code": {
+      const code = (await store.mintApprovalLinkCodeFor?.(claim)) ?? null;
+      if (code === null || !/^[0-9]{6}$/.test(code))
+        throw new Error("The approval link is no longer ready, so no access code was sent");
+      return {
+        code: "approval_link_code",
+        props: {
+          code,
+          orgName: approvalLinkCode.parse(claim.messageArgs).orgName,
+          expiresInMinutes: 10,
+        },
+      };
+    }
     default:
       throw new Error(`The ${claim.emailTemplateCode} template is not sent for notifications`);
   }
@@ -99,9 +136,9 @@ async function dispatchEmail(store, transport, limit = 50) {
     try {
       const recipient = await store.recipient(claim.recipientPersonId, claim.orgId);
       const locale = isLocale(recipient.locale) ? recipient.locale : "en-US";
-      const sender = await store.senderFor(claim.orgId, claim.recipientPersonId);
+      const sender = await store.senderFor(claim.orgId, claim.recipientPersonId, claim.kind);
       const { code, props } = await propsFor(claim, store);
-      const replyTo = await store.replyAddressFor(claim);
+      const replyTo = (await store.replyAddressFor(claim)) ?? sender.replyTo ?? null;
       const result = await sendEmail({
         transport,
         template: code,
@@ -134,6 +171,31 @@ async function dispatchEmail(store, transport, limit = 50) {
   };
 }
 //#endregion
+//#region src/notifications/drain.ts
+/** Each batch's counts are added up; a summary holds counts only. */
+async function drain(run, options) {
+  const now = options.now ?? Date.now;
+  const started = now();
+  const total = {};
+  let batches = 0;
+  for (;;) {
+    const summary = await run(options.batch);
+    batches += 1;
+    for (const [key, value] of Object.entries(summary))
+      if (typeof value === "number") total[key] = (total[key] ?? 0) + value;
+    if (
+      summary.attempted === 0 ||
+      batches >= options.maxBatches ||
+      now() - started >= options.budgetMs
+    )
+      break;
+  }
+  return {
+    ...total,
+    batches,
+  };
+}
+//#endregion
 //#region src/notifications/push.ts
 /**
  * Push notifications through the Expo push service (Section 5, ADR 0030, finding A65-012). Compass
@@ -142,13 +204,39 @@ async function dispatchEmail(store, transport, limit = 50) {
  * which makes a retry idempotent per delivery and device), and later reads the receipts, revoking the
  * devices Expo reports as DeviceNotRegistered.
  *
- * The contract Compass handles (apps/compass/src/domain/notifications.ts):
- *   - `categoryId` is the kind's push category from notification-kinds.yaml (`approval_request` for
- *     approval.requested), whose Approve and Reject actions answer through notifications.act;
+ * The contract Compass handles (apps/compass/src/domain/notifications.ts and offer-actions.ts):
+ *   - `categoryId` is the kind's push category (pushCategoryFor): `approval_request` for approval.requested, from
+ *     notification-kinds.yaml, whose Approve and Reject actions answer through notifications.act; and the
+ *     categories below (A127), whose Accept, Decline and Reply actions answer through the same operation;
  *   - `data` is { notificationId, kind, subjectTable, subjectId, title, recordKey, url }, where url is the deep
  *     link (Section 4.5.7: a push always carries one) and recordKey the display key of the record a notification is
  *     about (message_args.recordKey, 1600), which Compass opens on a tap (A101).
  */
+/** Push categories Compass registers in offer-actions.ts (A127, ADR 0106); approval_request is the registry's. */
+var SHIFT_OFFER_CATEGORY = "shift_offer";
+var ENGAGEMENT_OFFER_CATEGORY = "engagement_offer";
+var MESSAGE_REPLY_CATEGORY = "message_reply";
+/**
+ * A notification's push category: the registry's, else a still Published shift's, an offer's, a roster invitation's
+ * (R11: Accept and Decline answer the entry through notifications.act, as an offer's do) or a message's.
+ */
+function pushCategoryFor(kind, messageArgs) {
+  const registered = notificationKind(kind)?.pushCategory ?? null;
+  if (registered !== null) return registered;
+  if (
+    (kind === "shift.assigned" || kind === "shift.changed") &&
+    messageArgs["shiftState"] === "Published"
+  )
+    return SHIFT_OFFER_CATEGORY;
+  if (kind === "shift.reconfirm") return "shift_reconfirm";
+  if (kind === "offer.sent" || kind === "roster_entry.invited") return ENGAGEMENT_OFFER_CATEGORY;
+  if (kind === "message.received") return MESSAGE_REPLY_CATEGORY;
+  return null;
+}
+/** A decision goes out at high priority; a message's Reply does not. */
+function urgentCategory(category) {
+  return category !== null && category !== "message_reply";
+}
 /** Expo push service endpoints. */
 var EXPO_PUSH_SEND_URL = "https://exp.host/--/api/v2/push/send";
 var EXPO_PUSH_RECEIPTS_URL = "https://exp.host/--/api/v2/push/getReceipts";
@@ -163,7 +251,7 @@ function pushMessage(claim, device, recipient, url) {
     localeOf(recipient.locale),
     recipient.timeZone,
   );
-  const pushCategory = notificationKind(claim.kind)?.pushCategory ?? null;
+  const pushCategory = pushCategoryFor(claim.kind, claim.messageArgs);
   const title = claim.messageArgs["title"];
   const recordKey = claim.messageArgs["recordKey"];
   return {
@@ -181,7 +269,7 @@ function pushMessage(claim, device, recipient, url) {
     },
     ...(pushCategory === null ? {} : { categoryId: pushCategory }),
     sound: "default",
-    priority: pushCategory === null ? "default" : "high",
+    priority: urgentCategory(pushCategory) ? "high" : "default",
     ttl: 86400,
   };
 }
@@ -244,6 +332,7 @@ async function inBatches(items, size, concurrency, run) {
  */
 async function dispatchPush(store, client, options = {}) {
   const claims = await store.claimPush(options.limit ?? 50);
+  if (claims.length > 0) await loadNotificationCopy();
   const pending = [];
   const failedEarly = /* @__PURE__ */ new Map();
   const recipients = /* @__PURE__ */ new Map();
@@ -351,7 +440,7 @@ async function dispatchPush(store, client, options = {}) {
 async function pushBrowsers(claim, recipient, web) {
   const devices = await web.store.webDevices(claim.deliveryId);
   if (devices.length === 0) return [];
-  const pushCategory = notificationKind(claim.kind)?.pushCategory ?? null;
+  const pushCategory = pushCategoryFor(claim.kind, claim.messageArgs);
   const links = /* @__PURE__ */ new Map();
   for (const device of devices)
     if (!links.has(device.app)) links.set(device.app, await web.store.webLink(claim, device.app));
@@ -360,7 +449,7 @@ async function pushBrowsers(claim, recipient, web) {
       const payload = webPushPayload(claim, recipient, links.get(device.app) ?? "/");
       const answer = await web.client.send(device, payload, {
         ttl: 86400,
-        urgency: pushCategory === null ? "normal" : "high",
+        urgency: urgentCategory(pushCategory) ? "high" : "normal",
       });
       return answer.status === "ok"
         ? {
@@ -580,6 +669,7 @@ export {
   dispatchPush,
   dispatchSms,
   dispatchSmsSummaries,
+  drain,
   notificationStore,
   pushStore,
   readEmailEnv,

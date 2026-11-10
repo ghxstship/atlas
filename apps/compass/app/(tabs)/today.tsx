@@ -2,15 +2,18 @@ import type { Row } from "@xos/sync";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useEffect, useState, type ReactElement } from "react";
 import { useTranslation } from "react-i18next";
+import { isInternal } from "@xos/sync";
 import { View } from "react-native";
-import { access, operationalEngagements, todayBlocks } from "../../src/domain/access";
+import { access, operationalEngagements, rosterOnly, todayBlocks } from "../../src/domain/access";
 import { currentShift, isMine } from "../../src/domain/shifts";
 import {
+  breakChoice,
   formatElapsed,
   needsPreciseFix,
   primaryPunch,
   secondaryPunches,
   workedMs,
+  type BreakTypeRow,
   type ClockSnapshot,
   type PunchKind,
   type PunchRefusal,
@@ -22,6 +25,9 @@ import { ongoingContent, type Translate } from "../../src/domain/glance";
 import { itemZone } from "../../src/domain/orgs";
 import { useHomeWidgets, useOngoingNotification } from "../../src/runtime/glance";
 import { CombinedToday } from "../../src/screens/CombinedToday";
+import { TodaySearch } from "../../src/screens/TodaySearch";
+import { isWiredBlock, TodayBlock } from "../../src/screens/TodayBlocks";
+import { RosterToday } from "../../src/screens/RosterToday";
 import { useTodayGlance, type TodayGlance } from "../../src/screens/useTodayGlance";
 import { formatDistance, hapticsOn, scheduleZone } from "../../src/domain/settings";
 import { useCompass, useRows } from "../../src/runtime/CompassProvider";
@@ -44,6 +50,7 @@ import {
   InlineAlert,
   LiveActivity,
   Screen,
+  Sheet,
   ShiftCard,
   Text,
   useTheme,
@@ -155,8 +162,13 @@ function ClockCard({
         : null;
   const primary = primaryPunch(clock.snapshot.state);
   const refusal = clock.refusal(primary);
+  // Outside crew sync no geofence shapes: the server checks each of their punches against the venue boundary
+  // (record_punch), so an empty list is not "no geofence" for them and is not shown as a pass.
+  const external = resolved?.identity ? !isInternal(resolved.identity.audience) : false;
   const geofenceText = (() => {
     const g = clock.geofence;
+    if (external && g.kind === "unfenced" && !clock.locationDenied)
+      return t("compass.clock.checkedOnPunch");
     if (clock.locationDenied) return t("compass.clock.locationOff");
     if (g.kind === "inside") return t("compass.clock.inside", { name: g.geofence.name });
     if (g.kind === "outside")
@@ -170,14 +182,23 @@ function ClockCard({
       return t(g.reason === "coarse" ? "compass.clock.locationCoarse" : "compass.clock.locating");
     return t("compass.clock.unfenced");
   })();
-  const run = async (kind: PunchKind) => {
+  // Break offers the org's types when it has two or more (B9); one or none needs no question.
+  const { rows: breakTypes } = useRows<BreakTypeRow & Row>("break_types");
+  const [choosingBreak, setChoosingBreak] = useState(false);
+  const run = async (kind: PunchKind, breakTypeId?: string | null) => {
     const refused = clock.refusal(kind);
     if (refused) {
       setNotice(t(REFUSAL_KEY[refused]));
       return;
     }
+    const choice = kind === "Break Start" ? breakChoice(breakTypes) : null;
+    if (choice?.ask && breakTypeId === undefined) {
+      setChoosingBreak(true);
+      return;
+    }
+    setChoosingBreak(false);
     setPunching(true);
-    await clock.punch(kind);
+    await clock.punch(kind, breakTypeId ?? (choice && !choice.ask ? choice.typeId : null));
     setPunching(false);
     setNotice(status?.online ? null : t("compass.clock.queued"));
     announce(t(punchAnnouncementKey(kind, status?.online ?? false)));
@@ -188,6 +209,28 @@ function ClockCard({
       : clock.snapshot.state === "break"
         ? t("compass.clock.onBreak")
         : t("compass.clock.onShift");
+  const breakSheet = (
+    <Sheet
+      testID="clock-break-types"
+      open={choosingBreak}
+      title={t("compass.clock.breakTypeTitle")}
+      closeLabel={t("compass.clock.breakTypeCancel")}
+      onClose={() => setChoosingBreak(false)}
+    >
+      {breakTypes.map((b) => (
+        <Button
+          key={b.id}
+          testID={`clock-break-type-${b.id}`}
+          variant="secondary"
+          block
+          label={t(b.paid ? "compass.clock.breakTypePaid" : "compass.clock.breakTypeUnpaid", {
+            name: b.name,
+          })}
+          onPress={() => void run("Break Start", b.id)}
+        />
+      ))}
+    </Sheet>
+  );
   if (clock.snapshot.state !== "out") {
     // On shift: the Live Activity summary with its break toggle and clock out (Section 11.13 Clock).
     return (
@@ -218,6 +261,7 @@ function ClockCard({
         {lockScreenNotice ? (
           <InlineAlert testID="clock-lock-screen" tone="warning" message={lockScreenNotice} />
         ) : null}
+        {breakSheet}
       </View>
     );
   }
@@ -232,7 +276,9 @@ function ClockCard({
           : {})}
         {...(refusal && clock.snapshot.state === "out" ? { detail: t(REFUSAL_KEY[refusal]) } : {})}
         geofence={geofenceText}
-        geofenceOk={clock.geofence.kind === "inside" || clock.geofence.kind === "unfenced"}
+        geofenceOk={
+          clock.geofence.kind === "inside" || (clock.geofence.kind === "unfenced" && !external)
+        }
         haptics={hapticsOn(settings.haptics, orgSettings)}
         onPress={() => void run(primary)}
       />
@@ -363,6 +409,34 @@ export default function TodayScreen(): ReactElement {
         <Text>{t("compass.common.loading")}</Text>
       </Screen>
     );
+  // A person who works this project only on a party's roster sees their own call, parking and gear (R8).
+  if (!((resolved?.contexts.length ?? 0) > 1) && rosterOnly(identity, projectId)) {
+    return (
+      <Screen
+        testID="today"
+        title={t("compass.today.title")}
+        refreshing={refreshing}
+        onRefresh={() => {
+          setRefreshing(true);
+          void refresh().finally(() => setRefreshing(false));
+        }}
+      >
+        <ProjectPicker />
+        <StorageResetNotice />
+        <SyncBanner />
+        {/* Agency staff clock their own time on the shifts the agency placed them on (R12). */}
+        {access(identity, "clock", projectId).allowed && projectId ? (
+          <ClockCard
+            current={null}
+            onState={setClockState}
+            glance={glance}
+            zone={itemZone(null, projectRows[0]?.time_zone, personZone)}
+          />
+        ) : null}
+        <RosterToday />
+      </Screen>
+    );
+  }
   const canClock = access(identity, "clock", projectId).allowed;
   // Today on the project's calendar (A71), never the UTC date, which is tomorrow every evening in the Americas.
   const zone = itemZone(null, projectRows[0]?.time_zone, personZone);
@@ -371,7 +445,10 @@ export default function TodayScreen(): ReactElement {
   const combined = (resolved?.contexts.length ?? 0) > 1;
   const me = {
     membershipId: identity.membershipId,
-    engagementIds: operationalEngagements(identity, null).map((e) => e.id),
+    // A party's engagement reached through its roster never makes its shifts the person's own (R8).
+    engagementIds: operationalEngagements(identity, null)
+      .filter((e) => e.via !== "roster")
+      .map((e) => e.id),
   };
   const upcoming = shifts
     .filter((s) => isMine(s, me) && Date.parse(s.ends_at) >= Date.now())
@@ -402,6 +479,7 @@ export default function TodayScreen(): ReactElement {
       }}
     >
       <ProjectPicker />
+      <TodaySearch />
       <StorageResetNotice />
       <SyncBanner />
       {canClock && projectId ? (
@@ -409,6 +487,16 @@ export default function TodayScreen(): ReactElement {
       ) : (
         <CueGlance glance={glance} />
       )}
+      {/* A staffing agency's lead clocks its roster staff in from here (R12); internal supervisors use the Crew tab. */}
+      {!isInternal(identity.audience) && access(identity, "clock.team", projectId).allowed ? (
+        <Button
+          testID="today-clock-team"
+          variant="secondary"
+          icon="users"
+          label={t("compass.clockTeam.open")}
+          onPress={() => router.push("/clock-team")}
+        />
+      ) : null}
       {combined ? <CombinedToday clockState={clockState} /> : null}
       {!combined &&
       blocks.some((b) => ["shifts", "engaged-shifts-and-positions", "call-times"].includes(b)) ? (
@@ -479,16 +567,20 @@ export default function TodayScreen(): ReactElement {
               "tasks",
             ].includes(b),
         )
-        .map((b) => (
-          <Card
-            key={b}
-            title={t(
-              `nav.compass.content.${b.replace(/-([a-z])/g, (_m, c: string) => c.toUpperCase())}`,
-            )}
-          >
-            <Text tone="secondary">{t("compass.today.blockEmpty")}</Text>
-          </Card>
-        ))}
+        .map((b) =>
+          projectId && isWiredBlock(b) ? (
+            <TodayBlock key={b} id={b} projectId={projectId} zone={zone} />
+          ) : (
+            <Card
+              key={b}
+              title={t(
+                `nav.compass.content.${b.replace(/-([a-z])/g, (_m, c: string) => c.toUpperCase())}`,
+              )}
+            >
+              <Text tone="secondary">{t("compass.today.blockEmpty")}</Text>
+            </Card>
+          ),
+        )}
     </Screen>
   );
 }

@@ -1,3 +1,4 @@
+import { inboxItemInLens } from "@xos/data/role-lens";
 import type { Row } from "@xos/sync";
 import * as Linking from "expo-linking";
 import { useFocusEffect, useRouter } from "expo-router";
@@ -5,6 +6,7 @@ import { useCallback, type ReactElement } from "react";
 import { useTranslation } from "react-i18next";
 import { dispatchQueue, type IncidentRow, type Severity } from "../../src/domain/incidents";
 import {
+  crisisAlertNotice,
   inboxRecordKey,
   inboxTarget,
   type InboxNotificationRow,
@@ -25,13 +27,14 @@ import { Button, Card, EmptyState, ListRow, Screen, Text } from "../../src/ui";
  * from what it already holds on the device: shifts waiting for acceptance, open incidents for dispatchers,
  * conflicts in the offline queue. The person's notifications join from the server (A101): approvals,
  * mentions and assignments under Needs You, the rest under For Your Information. A notification opens the
- * record it is about, as its push does, or the Gateway page it names when Compass has no screen for it.
+ * record it is about, as its push does, or the Gateway page it names when Compass has no screen for it. Under a
+ * role lens (A128) a member sees what is addressed to them and what the lens role's capabilities brought them.
  */
 export default function InboxScreen(): ReactElement {
   const { t } = useTranslation();
   const roleTitle = useRoleTitle();
   const router = useRouter();
-  const { config, resolved, projectId, status } = useCompass();
+  const { config, resolved, projectId, status, lens } = useCompass();
   const canDispatch = useAllowed("incidents.dispatch");
   const identity = resolved?.identity;
   const permission = useNotificationPermission();
@@ -95,7 +98,9 @@ export default function InboxScreen(): ReactElement {
     const target = inboxTarget(n);
     const title = typeof n.args["title"] === "string" ? n.args["title"].trim() : "";
     const org = typeof n.args["orgName"] === "string" ? n.args["orgName"].trim() : "";
+    const crisis = crisisAlertNotice(n);
     const subtitle = [
+      crisis?.message || null,
       inboxRecordKey(n),
       formatDay(n.createdAt),
       n.read ? null : t("compass.inbox.new"),
@@ -104,13 +109,18 @@ export default function InboxScreen(): ReactElement {
       <ListRow
         key={n.id}
         testID={`inbox-notification-${n.id}`}
-        icon="bell"
+        icon={crisis ? "siren" : "bell"}
         title={
-          title !== ""
-            ? title
-            : org !== ""
-              ? t("compass.inbox.updateFrom", { org })
-              : t("compass.inbox.update")
+          crisis
+            ? t(crisis.ended ? "compass.inbox.crisisAllClear" : "compass.inbox.crisisAlert", {
+                project: crisis.project,
+                code: crisis.code,
+              })
+            : title !== ""
+              ? title
+              : org !== ""
+                ? t("compass.inbox.updateFrom", { org })
+                : t("compass.inbox.update")
         }
         subtitle={subtitle.join(" · ")}
         {...(target === null
@@ -127,8 +137,17 @@ export default function InboxScreen(): ReactElement {
       />
     );
   };
-  const needsNotifications = notifications.rows.filter((n) => n.section === "Needs You");
-  const fyiNotifications = notifications.rows.filter((n) => n.section !== "Needs You");
+  // The lens narrows the active org's notifications; another org's stay as they are.
+  const lensed = notifications.rows.filter(
+    (n) =>
+      n.orgId !== resolved?.orgId ||
+      inboxItemInLens(
+        { kind: n.kind, subjectTable: n.subjectTable, approverRoleId: n.approverRoleId ?? null },
+        lens.inbox,
+      ),
+  );
+  const needsNotifications = lensed.filter((n) => n.section === "Needs You");
+  const fyiNotifications = lensed.filter((n) => n.section !== "Needs You");
   return (
     <Screen testID="inbox" title={t("compass.inbox.title")}>
       <ProjectPicker />

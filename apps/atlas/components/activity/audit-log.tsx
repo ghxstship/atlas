@@ -64,7 +64,10 @@ export function AuditLog({
           changes: e.redacted
             ? t("redacted")
             : Object.keys(e.diff).length > 0
-              ? `${t("changedFields", { count: Object.keys(e.diff).length })}: ${Object.keys(e.diff).join(", ")}`
+              ? t("changedFieldList", {
+                  count: Object.keys(e.diff).length,
+                  fields: Object.keys(e.diff).join(", "),
+                })
               : "",
         }))}
       />

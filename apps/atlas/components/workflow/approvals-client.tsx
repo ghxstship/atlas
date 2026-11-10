@@ -9,15 +9,35 @@ import {
 } from "@/app/[org]/approvals/actions";
 import { ActionForm, useWorkflowT } from "./kit";
 
-/** Approve, or reject with a reason, the step an approval waits on. */
-export function DecisionForm({ org, id }: { org: string; id: string }) {
+// Each decision is the Finance funnel's step; the one that empties the person's queue completes it (A146).
+const DECIDED = ["atlas.finance:step1"] as const;
+const DECIDED_LAST = ["atlas.finance:step1", "atlas.finance:done"] as const;
+
+/** Which approval a form decides: a spend approval, or a pass, dock booking or equipment approval (P9). */
+export type ApprovalKind = "spend" | "subject";
+
+/**
+ * Approve, or reject with a reason, the step an approval waits on. `last` marks the only approval left waiting on the
+ * person.
+ */
+export function DecisionForm({
+  org,
+  id,
+  kind = "spend",
+  last = false,
+}: {
+  org: string;
+  id: string;
+  kind?: ApprovalKind;
+  last?: boolean;
+}) {
   const t = useWorkflowT();
   const fieldId = useId();
   const [decision, setDecision] = useState<"approve" | "reject">("approve");
   return (
     <ActionForm
       action={decideApprovalAction}
-      hidden={{ org, id, decision }}
+      hidden={{ org, id, decision, kind }}
       label={t("approvals.decide.label")}
       submitLabel={
         decision === "approve" ? t("approvals.decide.approve") : t("approvals.decide.reject")
@@ -25,6 +45,7 @@ export function DecisionForm({ org, id }: { org: string; id: string }) {
       submitVariant={decision === "approve" ? "primary" : "danger"}
       success={t("approvals.decide.done")}
       announce
+      signals={last ? DECIDED_LAST : DECIDED}
     >
       <fieldset className="m-0 flex flex-wrap gap-12 border-0 p-0">
         <legend className="mb-4 text-text-13 font-medium">{t("approvals.decide.legend")}</legend>
@@ -64,7 +85,18 @@ export function DecisionForm({ org, id }: { org: string; id: string }) {
 }
 
 /** Withdraw an approval in review, or an approved one the document has not used. */
-export function CancelForm({ org, id }: { org: string; id: string }) {
+export function CancelForm({
+  org,
+  id,
+  kind = "spend",
+  withdrawsRequest = false,
+}: {
+  org: string;
+  id: string;
+  kind?: ApprovalKind;
+  /** An Equipment approval: withdrawing it withdraws the request too (6230), so the form says so. */
+  withdrawsRequest?: boolean;
+}) {
   const t = useWorkflowT();
   const [open, setOpen] = useState(false);
   if (!open) {
@@ -77,18 +109,20 @@ export function CancelForm({ org, id }: { org: string; id: string }) {
   return (
     <ActionForm
       action={cancelApprovalAction}
-      hidden={{ org, id }}
+      hidden={{ org, id, kind }}
       label={t("approvals.cancel.label")}
       submitLabel={t("approvals.cancel.submit")}
       submitVariant="danger"
-      success={t("approvals.cancel.done")}
+      success={t(withdrawsRequest ? "approvals.cancel.equipmentDone" : "approvals.cancel.done")}
       announce
       onDone={() => setOpen(false)}
     >
       <Textarea
         name="reason"
         label={t("approvals.cancel.reason")}
-        help={t("approvals.cancel.reasonHelp")}
+        help={t(
+          withdrawsRequest ? "approvals.cancel.equipmentHelp" : "approvals.cancel.reasonHelp",
+        )}
         maxLength={500}
         rows={2}
         width="100%"

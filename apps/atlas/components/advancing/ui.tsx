@@ -12,6 +12,7 @@ export {
   PropertyList,
   ReconciliationTable,
   Skeleton,
+  StatTile,
   StateChip,
   Tag,
   TemplateRecord,

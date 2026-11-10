@@ -10,6 +10,8 @@
 import { z } from "@hono/zod-openapi";
 import { canonCodes, exampleOf, fields, maskable } from "@xos/schemas";
 import { defineAdditions } from "../additions.ts";
+import { fieldHistoryAction, shiftBulkActions } from "./parts/bulk-edit-and-history.ts";
+import { shiftCommunicationActions } from "./parts/communication.ts";
 import {
   all,
   editShape,
@@ -23,6 +25,7 @@ import { itemAction, transition } from "../define.ts";
 import type { ActionSpec, ResourceSpec } from "../types.ts";
 import { crewFieldHomes } from "./parts/playbook-field-homes.ts";
 import { crewFieldExposure } from "./parts/playbook-field-exposure.ts";
+import { Constants } from "@xos/data/database.types";
 
 const label = (values: readonly [string, ...string[]], description: string) =>
   z.enum(values).meta({ description, example: values[0] });
@@ -86,7 +89,64 @@ const shiftClaimResult = (shift: z.ZodObject) => {
     });
 };
 
+/** "Still coming?" and no-shows on a shift (B9, migrations 6511 and 6512, ADR 0148). */
+const shiftOutcomeActions: readonly ActionSpec[] = [
+  itemAction("markNoShow", {
+    segment: "no-show",
+    summary: "Mark a no-show",
+    description:
+      "Records that the worker of a started shift did not arrive (app.mark_shift_no_show): crew.shift.write on the project, or the agency's lead for its roster staff; never the worker. A no-show is an outcome record, so the shift's state does not change, and its worker, times and state other than a cancel are frozen while it stands. Idempotent on `no_show_id`, which the client chooses: the same id for the same shift returns the same no-show, also after it was withdrawn, and for another shift is refused (422, no_show_id_conflict). `open_replacement` opens a Published replacement of the same role from now to the shift's end. A shift not started (shift_no_show_state), a worker who clocked in (shift_no_show_clocked_in), a missing reason (shift_no_show_reason) and a replacement with under 15 minutes left (shift_no_show_too_late) are refused (422).",
+    body: z
+      .object({
+        no_show_id: fields.ref("no-show, chosen by the client so a retry is recognized"),
+        reason: fields.longText("What the supervisor saw.", "Did not arrive by call time."),
+        open_replacement: z
+          .boolean()
+          .meta({
+            description: "Open a replacement shift for the rest of this one.",
+            example: false,
+          })
+          .optional(),
+      })
+      .meta({ id: "ShiftNoShowRequest", description: "A no-show of a shift's worker." }),
+    rpc: "mark_shift_no_show",
+  }),
+  itemAction("reconfirm", {
+    summary: "Answer Still coming?",
+    description:
+      "The person asked whether they are still coming to a shift answers (app.respond_shift_reconfirmation): `coming` true confirms; false declines, and under scheduling.reconfirm_reopen, on by default, the shift reopens to claiming or returns to its agency's slot. Only the person asked, who still works the shift, answers (403). A second answer, or any answer once the shift has started, is refused (422, shift_reconfirm_answered).",
+    body: z
+      .object({
+        coming: z
+          .boolean()
+          .meta({ description: "True when the person is still coming.", example: true }),
+        reason: fields.longText("Why the person cannot come.", "Family matter.").optional(),
+      })
+      .meta({ id: "ShiftReconfirmRequest", description: "An answer to Still coming?." }),
+    rpc: "respond_shift_reconfirmation",
+  }),
+];
+
 export const additions = defineAdditions("Crew", {
+  actions: {
+    shifts: [
+      ...shiftBulkActions,
+      fieldHistoryAction("shift"),
+      ...shiftCommunicationActions,
+      ...shiftOutcomeActions,
+    ],
+  },
+  // Needs review and Mark as communicated (B6, 5951) are for the people who write shifts.
+  capabilities: {
+    shifts: {
+      actions: {
+        communicationStatus: "crew.shift.write",
+        markCommunicated: "crew.shift.write",
+        markNoShow: "crew.shift.write",
+        reconfirm: "crew.shift.read",
+      },
+    },
+  },
   corrections: [
     {
       id: "shift-worker-and-time-zone",
@@ -111,7 +171,7 @@ export const additions = defineAdditions("Crew", {
               create: "required",
             },
             shift_state: {
-              schema: label(["Draft", "Published", "Accepted", "Canceled"], "Shift state."),
+              schema: label(Constants.app.Enums.shift_state, "Shift state."),
             },
           },
         }),
@@ -148,7 +208,24 @@ export const additions = defineAdditions("Crew", {
             create: "required",
           },
           swap_state: {
-            schema: label(["Proposed", "Approved", "Rejected", "Canceled"], "Swap state."),
+            schema: label(Constants.app.Enums.swap_state, "Swap state."),
+          },
+        },
+      }),
+    },
+    {
+      id: "shift-swap-reason",
+      since: SINCE,
+      resources: ["shiftSwaps"],
+      change:
+        "Adds `reason`: why the person on the shift asks to hand it over. Optional on create, nullable on read, and fixed once asked.",
+      reason:
+        "app.shift_swaps.reason (6512) stores it and private.guard_shift_swap requires it while scheduling.swap_reason_required is on, so a client that cannot send it could not ask for a swap on such a project.",
+      apply: editShape({
+        add: {
+          reason: {
+            schema: orNull(fields.longText("Why the person asks to swap.", "Exam that morning.")),
+            create: "optional",
           },
         },
       }),
@@ -170,7 +247,7 @@ export const additions = defineAdditions("Crew", {
             membership_id: { schema: membership("the person who worked"), create: "optional" },
             engagement_id: { schema: engagement("the person who worked"), create: "optional" },
             source: {
-              schema: label(["Web", "Mobile", "Kiosk"], "Where the punch came from."),
+              schema: label(Constants.app.Enums.time_entry_source, "Where the punch came from."),
               create: "optional",
             },
             auto_closed_at: {
@@ -266,7 +343,7 @@ export const additions = defineAdditions("Crew", {
           },
           requested_by: { schema: orNull(fields.ref("person who asked for the correction")) },
           correction_state: {
-            schema: label(["Proposed", "Approved", "Rejected"], "Correction state."),
+            schema: label(Constants.app.Enums.correction_state, "Correction state."),
           },
         },
       }),
@@ -307,7 +384,7 @@ export const additions = defineAdditions("Crew", {
           period_end: { schema: fields.date("Last day of the period."), create: "required" },
           submitted_by: { schema: orNull(fields.ref("person who submitted the timesheet")) },
           timesheet_state: {
-            schema: label(["Proposed", "Submitted", "Approved", "Rejected"], "Timesheet state."),
+            schema: label(Constants.app.Enums.timesheet_state, "Timesheet state."),
           },
         },
       }),
@@ -567,10 +644,7 @@ export const additions = defineAdditions("Crew", {
           remove: ["gross_total"],
           add: {
             payroll_run_state: {
-              schema: label(
-                ["Draft", "Calculated", "Approved", "Exported", "Accepted", "Canceled"],
-                "Payroll run state.",
-              ),
+              schema: label(Constants.app.Enums.payroll_run_state, "Payroll run state."),
             },
           },
         }),
@@ -711,7 +785,7 @@ export const additions = defineAdditions("Crew", {
           },
           hours: { schema: fields.quantity("Hours requested.", 16), create: "required" },
           time_off_state: {
-            schema: label(["Proposed", "Approved", "Rejected", "Canceled"], "Request state."),
+            schema: label(Constants.app.Enums.time_off_state, "Request state."),
           },
         },
       }),

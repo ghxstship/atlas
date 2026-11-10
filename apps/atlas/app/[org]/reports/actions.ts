@@ -8,6 +8,7 @@ import { z } from "zod";
 import type { ActionError, ActionState } from "@/app/[org]/finance/actions";
 import { getOrgContext } from "@/lib/shell/context";
 import { observability } from "@/lib/observability";
+import * as enums from "@xos/data/enums";
 
 /**
  * Reports actions (A15): run a saved report through A18's app.run_report, share a finished run with
@@ -32,7 +33,7 @@ async function contextFor(form: FormData) {
 export async function runReportAction(_: ActionState, form: FormData): Promise<ActionState> {
   const ctx = await contextFor(form);
   const parsed = z
-    .object({ reportDefinitionId: z.uuid(), format: z.enum(["CSV", "XLSX", "PDF"]) })
+    .object({ reportDefinitionId: z.uuid(), format: z.enum(enums.exportFormat) })
     .safeParse({ reportDefinitionId: form.get("reportDefinitionId"), format: form.get("format") });
   if (!parsed.success) return { error: { kind: "input" }, fieldErrors: { format: "target" } };
   const result = await runReport(ctx.viewer.db, parsed.data);

@@ -14,7 +14,11 @@ Incidentes muestra los incidentes del proyecto con su número y estado: Reportad
 2. Revisa la ubicación que encontró Compass, describe en una línea lo que ocurrió y agrega fotos o notas de voz. Mantén presionado para grabar una nota de voz.
 3. Mantén presionado para enviar.
 
-Sin conexión, el reporte se guarda y se envía al reconectar.
+En una emergencia, llama primero a tu número local de emergencias. XOS no avisa a los servicios de emergencia.
+
+Sin conexión, el reporte se guarda, pero no se envía hasta que reconectes. Si es una emergencia, llama ahora a tu número local de emergencias.
+
+Para un casi accidente, algo que pudo lastimar a alguien o causar daños pero no lo hizo, elige Level 5 - Advisory y empieza Qué pasó con las palabras Near miss, para encontrarlo después.
 
 ## Despachar
 

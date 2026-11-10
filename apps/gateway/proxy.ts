@@ -4,6 +4,7 @@ import {
   consentCookieOptions,
   newVisitorId,
   parseConsent,
+  owesAgeAnswer,
   recordCookieConsent,
   sendsGpc,
   serializeConsent,
@@ -16,7 +17,8 @@ import { findRoute, getNode, isNodeVisible } from "@xos/ia";
 import { OFFLINE_KEY_HEADER, offlineKey } from "@xos/ui/pwa/offline-key";
 import { NextResponse, type NextFetchEvent, type NextRequest } from "next/server";
 import { sitemap } from "@/ia/sitemap.generated";
-import { secondFactorRedirect } from "@/lib/auth/assurance";
+import { ageRedirect, secondFactorRedirect } from "@/lib/auth/assurance";
+import { skipsTermsStep } from "@/lib/auth/deletion-path";
 import { env, platformHosts } from "@/lib/env";
 import {
   buildCsp,
@@ -166,6 +168,20 @@ export async function proxy(request: NextRequest, event?: NextFetchEvent): Promi
           const to = new URL(secondFactorRedirect(path, request.nextUrl.search), request.url);
           return secure(carryCookies(NextResponse.redirect(to), response()));
         }
+      }
+      // Anyone who has not answered at 18 answers before any page, however the account was made (ADR 0156). A page or client
+      // navigation only: the database refuses joining an org or an account and AI features until it is answered. Deleting
+      // the account never waits on it, as it never waits on accepting anything (Worker Terms 13).
+      if (
+        request.method === "GET" &&
+        !request.headers.has("next-action") &&
+        !path.startsWith("/auth/") &&
+        !path.startsWith("/legal") &&
+        !skipsTermsStep(path) &&
+        (await owesAgeAnswer(db))
+      ) {
+        const to = new URL(ageRedirect(path, request.nextUrl.search), request.url);
+        return secure(carryCookies(NextResponse.redirect(to), response()));
       }
       const accounts = await listMyAccounts(db);
       if (!accounts.ok)

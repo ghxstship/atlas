@@ -1,5 +1,6 @@
 import {
   useEffect,
+  useId,
   useRef,
   useState,
   type ClipboardEvent,
@@ -22,17 +23,66 @@ function editable(c: GridColumn): boolean {
   return Boolean(c.editable) && !c.derive;
 }
 
+function sameRow(a: Row, b: Row): boolean {
+  const keys = new Set([...Object.keys(a), ...Object.keys(b)]);
+  for (const k of keys) if ((a[k] ?? null) !== (b[k] ?? null)) return false;
+  return true;
+}
+
+interface Received {
+  readonly rows: readonly Row[];
+  /** The last row received for each key, which a new `rows` is compared against. */
+  readonly byKey: ReadonlyMap<string, Row>;
+}
+
+/**
+ * Merges new `rows` into the grid's rows by key. A row takes the incoming values only when they
+ * differ from the last ones received for it, never because they differ from what the person typed:
+ * a refresh carrying the version from before this tab's own save leaves the typed value in place.
+ * The row with an open cell keeps its values, and its last received row stays as it was, so the
+ * difference applies with the next rows after the cell closes.
+ */
+function reconcile(
+  incoming: readonly Row[],
+  local: readonly Row[],
+  received: ReadonlyMap<string, Row>,
+  keyOf: (row: Row) => string,
+  editingKey: string | null,
+): { rows: Row[]; byKey: Map<string, Row> } {
+  const mine = new Map(local.map((r) => [keyOf(r), r]));
+  const byKey = new Map<string, Row>();
+  const rows = incoming.map((row) => {
+    const key = keyOf(row);
+    const current = mine.get(key);
+    const before = received.get(key);
+    if (current && key === editingKey) {
+      byKey.set(key, before ?? row);
+      return current;
+    }
+    byKey.set(key, row);
+    return current && before && sameRow(before, row) ? current : { ...row };
+  });
+  return { rows, byKey };
+}
+
 /**
  * Spreadsheet-speed editing as an ARIA grid (the accessible model a Glide Data Grid surface keeps):
  * arrows and Tab move, Enter or typing edits, Escape cancels, Delete clears to Unpriced, and a paste
- * from Excel fills the range from the selected cell. Derived columns are read-only.
+ * from Excel fills the range from the selected cell. Derived columns are read-only. With appendRow a
+ * trailing blank row becomes a new row once typed or pasted into; errors mark cells invalid in place,
+ * each message named by its cell (aria-describedby), and a column's parse reads its own shorthand.
  */
 export function SpreadsheetGrid({
   label,
   columns,
   rows: given,
   totalsLabel,
+  appendRow = false,
+  errors,
   onChange,
+  rowKey,
+  onEditingChange,
+  onSelectionChange,
 }: SpreadsheetGridProps): ReactElement {
   const t = useT();
   const fmt = useFormat();
@@ -42,6 +92,54 @@ export function SpreadsheetGrid({
   const [editing, setEditing] = useState<{ draft: string } | null>(null);
   const cells = useRef(new Map<string, HTMLTableCellElement>());
   const input = useRef<HTMLInputElement>(null);
+  const keyOf = (row: Row | undefined) => (row && rowKey ? String(row[rowKey] ?? "") : "");
+  const [received, setReceived] = useState<Received>(() => ({
+    rows: given,
+    byKey: new Map(given.map((r) => [rowKey ? String(r[rowKey] ?? "") : "", r])),
+  }));
+
+  // New rows from the page, merged by key while the selection and the open cell follow their row.
+  if (rowKey && given !== received.rows) {
+    const selectedKey = keyOf(rows[sel[0]]);
+    const merged = reconcile(given, rows, received.byKey, keyOf, editing ? selectedKey : null);
+    const at = merged.rows.findIndex((r) => keyOf(r) === selectedKey);
+    setReceived({ rows: given, byKey: merged.byKey });
+    setRows(merged.rows);
+    if (at < 0) {
+      setSel([Math.max(0, Math.min(sel[0], merged.rows.length - 1)), sel[1]]);
+      if (editing) setEditing(null);
+    } else if (at !== sel[0]) {
+      setSel([at, sel[1]]);
+    }
+  }
+
+  const editingKey = rowKey && editing ? keyOf(rows[sel[0]]) : null;
+  const reportEditing = useRef(onEditingChange);
+  reportEditing.current = onEditingChange;
+  // The row a person selected, reported when it changes and following the row when rows move. The
+  // first cell holds the keyboard focus before anyone picks a row, so nothing reports until then.
+  const [picked, setPicked] = useState(false);
+  const selectedRowKey = rowKey && picked ? keyOf(rows[sel[0]]) || null : null;
+  const reportSelection = useRef(onSelectionChange);
+  reportSelection.current = onSelectionChange;
+  const reportedSelection = useRef<string | null>(null);
+  useEffect(() => {
+    if (reportedSelection.current === selectedRowKey) return;
+    reportedSelection.current = selectedRowKey;
+    reportSelection.current?.(selectedRowKey);
+  }, [selectedRowKey]);
+  const reported = useRef<string | null>(null);
+  useEffect(() => {
+    if (reported.current === editingKey) return;
+    reported.current = editingKey;
+    reportEditing.current?.(editingKey);
+  }, [editingKey]);
+  const errorId = useId();
+  const blank = (): Row => Object.fromEntries(columns.map((c) => [c.key, null]));
+  // The rows shown: the grid's rows and, with appendRow, one blank row after them.
+  const shown = appendRow ? [...rows, blank()] : rows;
+  const errorAt = (r: number, key: string) => errors?.[`${r}:${key}`];
+  const errorList = Object.entries(errors ?? {});
 
   useEffect(() => {
     if (editing) input.current?.focus();
@@ -55,6 +153,12 @@ export function SpreadsheetGrid({
   const setCell = (r: number, c: number, value: Cell) => {
     const col = columns[c];
     if (!col || !editable(col)) return;
+    if (r >= rows.length) {
+      // Typing into the blank row adds it; clearing it adds nothing.
+      if (value === null) return;
+      commit([...rows, { ...blank(), [col.key]: value }]);
+      return;
+    }
     commit(rows.map((row, i) => (i === r ? { ...row, [col.key]: value } : row)));
   };
   const show = (col: GridColumn, row: Row): ReactNode => {
@@ -87,7 +191,7 @@ export function SpreadsheetGrid({
 
   const move = (dr: number, dc: number) =>
     setSel(([r, c]) => [
-      Math.max(0, Math.min(rows.length - 1, r + dr)),
+      Math.max(0, Math.min(shown.length - 1, r + dr)),
       Math.max(0, Math.min(columns.length - 1, c + dc)),
     ]);
 
@@ -116,11 +220,11 @@ export function SpreadsheetGrid({
     } else if (e.key === "End") {
       e.preventDefault();
       setSel(
-        e.ctrlKey || e.metaKey ? [rows.length - 1, columns.length - 1] : [r, columns.length - 1],
+        e.ctrlKey || e.metaKey ? [shown.length - 1, columns.length - 1] : [r, columns.length - 1],
       );
     } else if ((e.key === "Enter" || e.key === "F2") && col && editable(col)) {
       e.preventDefault();
-      const v = rows[r]?.[col.key];
+      const v = shown[r]?.[col.key];
       setEditing({ draft: v === null || v === undefined ? "" : String(v) });
     } else if ((e.key === "Delete" || e.key === "Backspace") && col && editable(col)) {
       e.preventDefault();
@@ -142,8 +246,10 @@ export function SpreadsheetGrid({
       .map((line) => line.split("\t"));
     const next = rows.map((row) => ({ ...row }));
     grid.forEach((line, dr) => {
+      const r = sel[0] + dr;
+      // A paste reaching past the last row adds rows when the grid appends.
+      if (appendRow) while (next.length <= r) next.push(blank());
       line.forEach((value, dc) => {
-        const r = sel[0] + dr;
         const col = columns[sel[1] + dc];
         const row = next[r];
         if (row && col && editable(col)) row[col.key] = parseCell(col, value);
@@ -170,8 +276,10 @@ export function SpreadsheetGrid({
         <table
           role="grid"
           aria-label={label}
-          aria-rowcount={rows.length + 2}
+          aria-rowcount={shown.length + 2}
           onPaste={onPaste}
+          onPointerDownCapture={() => setPicked(true)}
+          onKeyDownCapture={() => setPicked(true)}
           className="w-full border-collapse text-text-13"
         >
           <thead>
@@ -192,19 +300,27 @@ export function SpreadsheetGrid({
             </tr>
           </thead>
           <tbody>
-            {rows.map((row, ri) => (
-              <tr key={ri} aria-rowindex={ri + 2}>
+            {shown.map((row, ri) => (
+              <tr
+                key={rowKey ? (ri < rows.length ? `k:${keyOf(row)}` : "blank") : ri}
+                aria-rowindex={ri + 2}
+              >
                 <td
                   className={cx(
                     td,
                     "text-center text-text-11 text-text-tertiary bg-bg-surface tabular-nums",
                   )}
                 >
-                  {ri + 1}
+                  {ri < rows.length ? (
+                    ri + 1
+                  ) : (
+                    <span aria-label={t("grid.newRow")}>{t("grid.newRowMark")}</span>
+                  )}
                 </td>
                 {columns.map((c, ci) => {
                   const on = sel[0] === ri && sel[1] === ci;
                   const isEditing = on && editing !== null;
+                  const message = errorAt(ri, c.key);
                   return (
                     <td
                       key={c.key}
@@ -215,6 +331,8 @@ export function SpreadsheetGrid({
                       role="gridcell"
                       aria-selected={on}
                       aria-readonly={editable(c) ? undefined : true}
+                      aria-invalid={message ? true : undefined}
+                      aria-describedby={message ? `${errorId}-${ri}-${c.key}` : undefined}
                       tabIndex={on ? 0 : -1}
                       title={c.derive ? t("grid.derived") : undefined}
                       onClick={() => setSel([ri, ci])}
@@ -230,6 +348,7 @@ export function SpreadsheetGrid({
                         td,
                         isNumeric(c) && "text-end",
                         !editable(c) && "text-text-secondary",
+                        message && "ring-(length:--stroke-width-hairline) ring-inset ring-danger",
                         on && "ring-(length:--stroke-width-focus) ring-inset ring-accent",
                         "outline-none forced-colors:border",
                       )}
@@ -238,6 +357,8 @@ export function SpreadsheetGrid({
                         <input
                           ref={input}
                           aria-label={c.label}
+                          aria-invalid={message ? true : undefined}
+                          aria-describedby={message ? `${errorId}-${ri}-${c.key}` : undefined}
                           defaultValue={editing.draft}
                           onBlur={(e) => finish(true, e.target.value)}
                           onKeyDown={(e) => {
@@ -254,6 +375,9 @@ export function SpreadsheetGrid({
                           }}
                           className="w-full border-0 bg-transparent outline-none text-inherit text-text-13 tabular-nums"
                         />
+                      ) : (row[c.key] === null || row[c.key] === undefined || row[c.key] === "") &&
+                        c.blankHint?.(row) ? (
+                        <span className="text-text-tertiary">{c.blankHint(row)}</span>
                       ) : (
                         show(c, row)
                       )}
@@ -270,7 +394,7 @@ export function SpreadsheetGrid({
             ))}
           </tbody>
           <tfoot>
-            <tr aria-rowindex={rows.length + 2}>
+            <tr aria-rowindex={shown.length + 2}>
               <td className={cx(td, "bg-bg-surface")} />
               {columns.map((c, i) => (
                 <td
@@ -280,7 +404,9 @@ export function SpreadsheetGrid({
                   {c.total ? (
                     <Money
                       amount={columnTotal(
-                        rows.map((r) => (c.derive ? { ...r, [c.key]: c.derive(r) ?? null } : r)),
+                        rows
+                          .filter((r) => c.totalIncludes?.(r) ?? true)
+                          .map((r) => (c.derive ? { ...r, [c.key]: c.derive(r) ?? null } : r)),
                         c.key,
                       )}
                       {...(c.currency ? { currency: c.currency } : {})}
@@ -294,7 +420,26 @@ export function SpreadsheetGrid({
           </tfoot>
         </table>
       </ScrollRegion>
-      <p className="m-0 text-text-11 text-text-secondary">{t("grid.hint")}</p>
+      {errorList.length > 0 ? (
+        <ul className="m-0 flex list-none flex-col gap-2 p-0 text-text-12 text-danger-text">
+          {errorList.map(([key, text]) => {
+            const [r, col] = key.split(":");
+            const column = columns.find((c) => c.key === col);
+            return (
+              <li key={key} id={`${errorId}-${r}-${col}`}>
+                {t("grid.cellError", {
+                  row: Number(r) + 1,
+                  column: column?.label ?? col ?? "",
+                  message: text,
+                })}
+              </li>
+            );
+          })}
+        </ul>
+      ) : null}
+      <p className="m-0 text-text-11 text-text-secondary">
+        {appendRow ? t("grid.hintAppend") : t("grid.hint")}
+      </p>
     </div>
   );
 }

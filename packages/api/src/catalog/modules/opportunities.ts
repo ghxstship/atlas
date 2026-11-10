@@ -17,12 +17,58 @@ import {
 } from "../correct.ts";
 import { itemAction } from "../define.ts";
 import { opportunitiesFieldExposure } from "./parts/playbook-field-exposure.ts";
+import { Constants } from "@xos/data/database.types";
 
 const label = (values: readonly [string, ...string[]], description: string) =>
   z.enum(values).meta({ description, example: values[0] });
 
+/**
+ * The document kinds v1 answers. A Quote document (3023, B13) follows its quote and is read through
+ * /quotes; engagementDocuments omits it (handlers/opportunities.ts), so the frozen enum stays as
+ * released and never gains a value a v1 client cannot read (ADR 0003, ADR 0152).
+ */
+const V1_ENGAGEMENT_DOCUMENT_KINDS = Constants.app.Enums.engagement_document_kind.filter(
+  (kind) => kind !== "Quote",
+) as unknown as readonly [string, ...string[]];
+
 export const additions = defineAdditions("Opportunities", {
+  actions: {
+    engagements: [
+      itemAction("setRosterLock", {
+        segment: "roster-lock",
+        summary: "Set an engagement's names lock",
+        description:
+          "Sets or clears the names lock through `app.set_roster_lock` (R5, G-142): after `locks_at` the company side can no longer add, invite, edit Draft entries or submit new names; Returned entries stay editable. Null clears the lock and a past instant locks at once. Needs advancing.packet.write on the project; 422 roster_lock_engagement_closed unless the engagement is Onboarding, Blocked, Active or Closing. Each roster manager is notified.",
+        rpc: "app.set_roster_lock",
+        body: z
+          .object({
+            locks_at: orNull(fields.instant("When names lock; null clears the lock.")),
+          })
+          .meta({ id: "RosterLockRequest", description: "The names lock of an engagement." }),
+      }),
+    ],
+  },
+  capabilities: { engagements: { actions: { setRosterLock: "advancing.packet.write" } } },
   corrections: [
+    {
+      id: "engagement-roster-lock",
+      since: "1.0.0-draft.2",
+      resources: ["engagements"],
+      change: "The read shape gains the read-only `roster_locks_at`.",
+      reason:
+        "app.engagements.roster_locks_at (4656, R5 G-142) is the names lock the producing org sets through app.set_roster_lock: after it the company side can no longer add, invite, edit Draft entries or submit new names.",
+      apply: editShape({
+        add: {
+          roster_locks_at: {
+            schema: orNull(
+              fields.instant(
+                "Names lock: after this instant the company side can no longer name new crew; null means no lock.",
+              ),
+            ),
+          },
+        },
+      }),
+    },
     {
       id: "opportunity-schema-shape",
       since: "1.0.0-draft.2",
@@ -106,6 +152,26 @@ export const additions = defineAdditions("Opportunities", {
       }),
     },
     {
+      id: "opportunity-hidden-client",
+      since: "1.0.0-draft.2",
+      resources: ["opportunities"],
+      change:
+        "Adds `hide_client_until_booked`, optional on create and update; it can be turned on only while the opportunity is Draft or Pending Approval.",
+      reason:
+        "app.opportunities.hide_client_until_booked (3870, P10): crew see the org, the city, the dates and the pay until they are booked, and the title and description cannot name the project, its client or the venue (opportunity_hidden_client_named, opportunity_hidden_client_published).",
+      apply: editShape({
+        add: {
+          hide_client_until_booked: {
+            schema: fields.bool(
+              "Whether the client and event stay hidden from crew until they are booked.",
+              false,
+            ),
+            create: "optional",
+          },
+        },
+      }),
+    },
+    {
       id: "opportunity-positions-are-rows",
       since: "1.0.0-draft.2",
       resources: ["opportunityPositions"],
@@ -140,7 +206,7 @@ export const additions = defineAdditions("Opportunities", {
         remove: ["tag_id", "statement", "currency"],
         add: {
           requirement_kind: {
-            schema: label(["Certification", "Insurance", "Equipment"], "Kind of requirement."),
+            schema: label(Constants.app.Enums.opportunity_requirement_kind, "Kind of requirement."),
             create: "required",
           },
           description: {
@@ -245,7 +311,7 @@ export const additions = defineAdditions("Opportunities", {
         remove: ["meeting_url", "outcome_notes"],
         add: {
           interview_kind: {
-            schema: label(["Interview", "Audition"], "Interview or Audition."),
+            schema: label(Constants.app.Enums.interview_kind, "Interview or Audition."),
             create: "required",
           },
           duration_minutes: {
@@ -279,22 +345,7 @@ export const additions = defineAdditions("Opportunities", {
         nullable: ["document_id"],
         add: {
           document_kind: {
-            schema: label(
-              [
-                "Offer",
-                "Agreement",
-                "Statement of Work",
-                "Non-Disclosure Agreement",
-                "Rider",
-                "Advance Packet",
-                "Insurance Certificate",
-                "Lien Waiver",
-                "Settlement",
-                "Proof of Performance",
-                "Content Consent",
-              ],
-              "Kind of document.",
-            ),
+            schema: label(V1_ENGAGEMENT_DOCUMENT_KINDS, "Kind of document."),
             create: "required",
             update: false,
           },
@@ -327,20 +378,7 @@ export const additions = defineAdditions("Opportunities", {
             create: "required",
           },
           item_kind: {
-            schema: label(
-              [
-                "Document Upload",
-                "Electronic Signature",
-                "Form",
-                "Certification",
-                "Training",
-                "Acknowledgment",
-                "Background Check",
-                "Tax Form",
-                "Payout Details",
-              ],
-              "Kind of onboarding item.",
-            ),
+            schema: label(Constants.app.Enums.onboarding_item_kind, "Kind of onboarding item."),
             create: "required",
           },
           is_blocking: {
@@ -383,7 +421,10 @@ export const additions = defineAdditions("Opportunities", {
         remove: ["role_type"],
         add: {
           pool_kind: {
-            schema: label(["Talent", "Vendor"], "Talent (people) or Vendor (external accounts)."),
+            schema: label(
+              Constants.app.Enums.pool_kind,
+              "Talent (people) or Vendor (external accounts).",
+            ),
             create: "required",
             update: false,
           },

@@ -1,5 +1,6 @@
 import type { XosClient } from "@xos/data/client";
 import { fail, ok, toDataError, type Result } from "@xos/data/result";
+import type { Database } from "@xos/data/database.types";
 
 /**
  * The party's own halves of three engagement features (A32): the guest list kept through A10's RPCs
@@ -8,7 +9,7 @@ import { fail, ok, toDataError, type Result } from "@xos/data/result";
  * person outside it gets not-found, never someone else's list.
  */
 
-export type GuestEntryState = "Requested" | "Approved" | "Declined" | "Checked In";
+export type GuestEntryState = Database["app"]["Enums"]["guest_entry_state"];
 
 export interface EngagedGuest {
   readonly id: string;
@@ -43,13 +44,21 @@ export async function listEngagedGuests(
 /** Requests a guest on the engagement's list; the production approves or declines in Atlas. */
 export async function requestEngagedGuest(
   db: XosClient,
-  input: { engagementId: string; guestName: string; plusOnes: number; note: string | null },
+  input: {
+    engagementId: string;
+    guestName: string;
+    plusOnes: number;
+    note: string | null;
+    /** Where the production sends the guest's pass (B8, 6254); checked again as guest_email_format. */
+    guestEmail?: string | null;
+  },
 ): Promise<Result<{ id: string }>> {
   const { data, error } = await db.rpc("request_engaged_guest", {
     p_engagement_id: input.engagementId,
     p_guest_name: input.guestName,
     p_plus_ones: input.plusOnes,
     ...(input.note === null ? {} : { p_note: input.note }),
+    ...(input.guestEmail ? { p_guest_email: input.guestEmail } : {}),
   });
   if (error) return fail(toDataError(error));
   return ok({ id: String(data) });

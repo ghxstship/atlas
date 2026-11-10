@@ -16,6 +16,7 @@ import {
   uuid,
   type ActionState,
 } from "@/lib/collection-kit/forms";
+import * as enums from "@xos/data/enums";
 
 /**
  * Canon extension actions (Section 7.2): an org proposes disciplines and categories in .50 to .99
@@ -24,7 +25,7 @@ import {
  */
 
 const MODULE = "canon";
-const STATES: readonly CanonExtensionState[] = ["Proposed", "Approved", "Rejected", "Withdrawn"];
+const STATES: readonly CanonExtensionState[] = enums.canonExtensionState;
 const EM_DASH = String.fromCharCode(0x2014);
 
 function labelAndRationale(form: FormData, errors: FieldErrors) {

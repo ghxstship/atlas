@@ -4,6 +4,8 @@ Everything the App Store and Google Play need for Compass, prepared by A68 (RRR-
 
 Nothing here was sent to Apple, Google or Expo: no account was used and no `eas build` or `eas submit` ran.
 
+**Availability.** XOS launches in the United States only (ADR 0160), so the owner sets App Store Connect and Google Play availability to the United States. Store territory is a targeting decision the AI legal audit names (no attorney has reviewed it); nothing in this kit sets it.
+
 ## What is where
 
 | File                                        | For                                                                                                                                          |
@@ -51,7 +53,7 @@ Every value that needs an account or an owner decision is an `OWNER_` token, so 
 
 ## Environment per profile
 
-Each build profile names an EAS environment of the same name (development, preview, production). The values live in EAS, never in the repository: `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY` (public by design), `EXPO_PUBLIC_ATLAS_URL`, `EXPO_PUBLIC_GATEWAY_URL`, `XOS_UNIVERSAL_LINK_HOSTS`, `XOS_APPLE_TEAM_ID` and the file variable `GOOGLE_SERVICES_JSON`. A preview or production build on EAS stops in `app.config.ts` if a server URL is missing, not https, or local, or the app icon is missing, so a build pointing at a developer's laptop cannot reach testers.
+Each build profile names an EAS environment of the same name (development, preview, production). The values live in EAS, never in the repository: `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (public by design), `EXPO_PUBLIC_ATLAS_URL`, `EXPO_PUBLIC_GATEWAY_URL`, `XOS_UNIVERSAL_LINK_HOSTS`, `XOS_APPLE_TEAM_ID` and the file variable `GOOGLE_SERVICES_JSON`. A preview or production build on EAS stops in `app.config.ts` if a server URL is missing, not https, or local, or the app icon is missing, so a build pointing at a developer's laptop cannot reach testers.
 
 ## Screenshots
 

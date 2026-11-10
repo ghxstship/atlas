@@ -38,10 +38,16 @@ La respuesta es una página de filas y un cursor a la página siguiente:
 
 ## Usa un SDK o la CLI
 
-Los SDK y la CLI se generan a partir del mismo documento OpenAPI que esta referencia, así que cada operación está disponible en todos.
+Los SDK y la CLI se generan a partir del mismo documento OpenAPI que esta referencia, así que cada operación está disponible en todos. Instala el que necesites:
+
+```bash
+npm install @ghxstship/xos-sdk               # TypeScript
+pip install xos-sdk                          # Python
+npm install --global @ghxstship/xos-cli      # la CLI xos
+```
 
 ```ts
-import { XosClient } from "@xos/sdk";
+import { XosClient } from "@ghxstship/xos-sdk";
 
 const xos = new XosClient({ baseUrl: process.env.XOS_BASE_URL, apiKey: process.env.XOS_API_KEY });
 const page = await xos.projects.list({ limit: 5 });

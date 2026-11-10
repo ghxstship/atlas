@@ -6,7 +6,7 @@ import { createHmac } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { hasMessage } from "@xos/email";
 import { locales } from "@xos/i18n";
-import { NOTIFICATION_KINDS } from "@xos/schemas/notifications";
+import { copyKeys, NOTIFICATION_KINDS } from "@xos/schemas/notifications";
 import { describe, expect, it } from "vitest";
 import {
   EXPO_PUSH_RECEIPTS_URL,
@@ -118,8 +118,8 @@ describe("notification copy on every channel (Section 3.15)", () => {
   it("has a subject and a body for every registry kind in every locale, and SMS replies", () => {
     for (const locale of locales) {
       for (const k of NOTIFICATION_KINDS) {
-        expect(hasMessage(locale, k.copy.subject), `${locale} ${k.kind}`).toBe(true);
-        expect(hasMessage(locale, k.copy.body), `${locale} ${k.kind}`).toBe(true);
+        expect(hasMessage(locale, copyKeys(k.kind).subject), `${locale} ${k.kind}`).toBe(true);
+        expect(hasMessage(locale, copyKeys(k.kind).body), `${locale} ${k.kind}`).toBe(true);
       }
       for (const key of ["sms.message", "sms.help", "sms.stop", "sms.start"])
         expect(hasMessage(locale, key), `${locale} ${key}`).toBe(true);
@@ -491,7 +491,7 @@ function smsFakeStore(claims: ClaimedSms[]) {
       locale: id === "p2" ? "es-US" : "en-US",
       timeZone: "America/New_York",
     }),
-    orgName: async () => "Northwind Live",
+    senderName: async () => "Northwind Live",
     linkFor: async () => "https://atlas.xos.test/northwind-live/inbox",
     record: async (...args) => {
       records.push(args);
@@ -1151,13 +1151,16 @@ describe("stores over the 1361 and 1363 RPCs", () => {
         record_notification_delivery: () => null,
         record_sms_keyword: () => 2,
         record_sms_status: () => true,
+        email_brand_for_org: () => [],
       },
       { organizations: [{ id: "org-1", slug: "northwind-live", name: "Northwind Live" }] },
     );
     const store = smsStore(db, { appUrl: "https://atlas.xos.test/" });
     const [claimed] = await store.claimSms(5);
     if (claimed === undefined) throw new Error("claim expected");
-    await expect(store.orgName("org-1")).resolves.toBe("Northwind Live");
+    await expect(store.senderName("org-1", "shift.changed")).resolves.toBe("Northwind Live");
+    // XOS's own notices name XOS, never the org (A138).
+    await expect(store.senderName("org-1", "account.security_changed")).resolves.toBe("XOS");
     await expect(store.linkFor(claimed)).resolves.toBe(
       "https://atlas.xos.test/northwind-live/inbox",
     );
@@ -1190,6 +1193,27 @@ describe("stores over the 1361 and 1363 RPCs", () => {
     );
     await expect(odd.recordKeyword("+1", "Help", "HELP")).resolves.toBe(0);
     await expect(odd.recordStatus("SM-2", "sent", null)).resolves.toBe(false);
+  });
+
+  it("an SMS names the org's brand while white label is in force", async () => {
+    const { db } = fakeDb(
+      {
+        email_brand_for_org: () => [
+          {
+            brand_name: "Northwind Presents",
+            sender_name: null,
+            reply_to: null,
+            logo_path: null,
+            accent_hex: null,
+            suppress_powered_by: false,
+          },
+        ],
+      },
+      { organizations: [{ id: "org-1", slug: "northwind-live", name: "Northwind Live" }] },
+    );
+    const store = smsStore(db, { appUrl: "https://atlas.xos.test" });
+    await expect(store.senderName("org-1", "shift.changed")).resolves.toBe("Northwind Presents");
+    await expect(store.senderName("org-1", "billing.payment_failed")).resolves.toBe("XOS");
   });
 
   it("translation store reads the message, the setting and the cache, and saves through the RPC", async () => {
@@ -1259,7 +1283,7 @@ describe("texts held by quiet hours go out as one summary", () => {
         locale: id === "p2" ? "es-US" : "en-US",
         timeZone: "UTC",
       }),
-      orgName: async () => "Northwind Live",
+      senderName: async () => "Northwind Live",
       inboxLink: async () => "https://atlas.xos.test/northwind-live/inbox",
       recordSummary: async (...args) => {
         records.push(args);
@@ -1430,15 +1454,21 @@ describe("texts held by quiet hours go out as one summary", () => {
 
   it("keeps the bypass list short and in the registry", () => {
     // ADR 0033 decision 62 (1620) adds a new shift within 12 hours, security changes (with a recovery code used)
-    // and emergency access.
+    // and emergency access; B8 (2979, ADR 0147) the official weather warning, the weather hold and its all-clear.
     expect(
       NOTIFICATION_KINDS.filter((k) => k.quietHoursBypass !== null).map((k) => k.kind),
     ).toEqual([
       "shift.assigned",
       "shift.changed",
+      "shift.reconfirm",
       "incident.reported",
       "occupancy.threshold",
       "weather.alert",
+      "weather.warning",
+      "weather.hold",
+      "weather.all_clear",
+      "crisis_alert.issued",
+      "crisis_alert.ended",
       "account.security_changed",
       "account.recovery_code_used",
       "access.break_glass_started",

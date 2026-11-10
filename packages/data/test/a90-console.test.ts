@@ -16,11 +16,13 @@ import {
   groundsFor,
   listActionLog,
   listBanners,
+  listBillingAlerts,
   listFlags,
   listOpenSupportSessions,
   listOperators,
   openSupportArea,
   parseSupportView,
+  resolveBillingAlert,
   revokeOperator,
   saveBanner,
   searchOrgs,
@@ -52,6 +54,11 @@ import {
   type SystemBanner,
 } from "../src/system-banners.ts";
 import { moduleClient, stepsOf } from "./module-client.ts";
+import {
+  decideRatingDispute,
+  getRatingDisputeDetail,
+  getRatingDisputeQueue,
+} from "../src/console.ts";
 
 const ok = (data: unknown) => ({ data, error: null });
 const refused = (rule: string) => ({
@@ -145,6 +152,49 @@ describe("operator console: tenants", () => {
       p_query: null,
       p_plan_code: null,
       p_limit: 50,
+    });
+  });
+
+  it("lists open billing alerts and closes one (ADR 0161)", async () => {
+    const { db, calls } = moduleClient({
+      "rpc:console_billing_alerts": [
+        ok([
+          {
+            alert_id: "a-1",
+            alert_kind: "active_on_deleted_org",
+            subject_org_id: null,
+            org_name: null,
+            stripe_subscription_id: "sub_1",
+            detail: "Stripe says sub_1 is active.",
+            raised_at: "2026-11-06T00:00:00Z",
+            occurrences: 2,
+          },
+        ]),
+      ],
+      "rpc:console_resolve_billing_alert": [ok("a-1")],
+    });
+    expect(await listBillingAlerts(db)).toEqual({
+      ok: true,
+      data: [
+        {
+          id: "a-1",
+          kind: "active_on_deleted_org",
+          orgId: null,
+          orgName: null,
+          stripeSubscriptionId: "sub_1",
+          detail: "Stripe says sub_1 is active.",
+          raisedAt: "2026-11-06T00:00:00Z",
+          occurrences: 2,
+        },
+      ],
+    });
+    expect(await resolveBillingAlert(db, "a-1", "Refunded in Stripe.")).toEqual({
+      ok: true,
+      data: "a-1",
+    });
+    expect(stepsOf(calls[1], "args")[0]?.[0]).toEqual({
+      p_alert_id: "a-1",
+      p_reason: "Refunded in Stripe.",
     });
   });
 
@@ -436,6 +486,79 @@ describe("operator console: support sessions", () => {
   });
 });
 
+describe("operator console: rating disputes", () => {
+  it("reads the queue and one dispute, and decides it, with no score in sight", async () => {
+    const { db, calls } = moduleClient({
+      "rpc:console_rating_dispute_queue": [
+        ok([
+          {
+            dispute_id: "d1",
+            org_id: "o1",
+            org_name: "Northwind",
+            disputant_name: "Ivy",
+            dispute_ground: "False Statement",
+            dispute_state: "Open",
+            org_answered: false,
+            filed_at: "2026-11-06T12:00:00Z",
+            decided_at: null,
+          },
+        ]),
+      ],
+      "rpc:console_rating_dispute_detail": [
+        ok({
+          id: "d1",
+          state: "Open",
+          ground: "False Statement",
+          details: "I was on time.",
+          filed_at: "2026-11-06T12:00:00Z",
+          disputant_name: "Ivy",
+          org_name: "Northwind",
+          project_name: "Summer",
+          comment: "Late twice.",
+          submitted_at: "2026-11-01T12:00:00Z",
+          reply: null,
+          org_response: null,
+          org_responded_at: null,
+          decision_ground: null,
+          decision_statement: null,
+          decided_at: null,
+          decided_by_name: null,
+          decidable_by_me: true,
+        }),
+      ],
+      "rpc:console_decide_rating_dispute": [
+        ok(null),
+        refused("rating_dispute_transition_not_allowed"),
+      ],
+    });
+    const queue = await getRatingDisputeQueue(db);
+    expect(queue.ok && queue.data[0]).toMatchObject({ disputeId: "d1", orgAnswered: false });
+    expect(calls[0]?.steps).toContainEqual(["args", [{ p_open: true }]]);
+    const detail = await getRatingDisputeDetail(db, "d1");
+    expect(detail.ok && detail.data).toMatchObject({ comment: "Late twice.", decidableByMe: true });
+    expect(detail.ok && "score" in detail.data).toBe(false);
+    const input = {
+      disputeId: "d1",
+      outcome: "Upheld",
+      ground: "False Statement",
+      statement: "The call sheets show otherwise.",
+    } as const;
+    expect((await decideRatingDispute(db, input)).ok).toBe(true);
+    expect(calls.at(-1)?.steps).toContainEqual([
+      "args",
+      [
+        {
+          p_dispute_id: "d1",
+          p_outcome: "Upheld",
+          p_ground: "False Statement",
+          p_statement: "The call sheets show otherwise.",
+        },
+      ],
+    ]);
+    expect((await decideRatingDispute(db, input)).ok).toBe(false);
+  });
+});
+
 describe("operator console: moderation", () => {
   it("reads the queue and a listing, and decides listings and appeals", async () => {
     const { db, calls } = moduleClient({
@@ -513,7 +636,12 @@ describe("operator console: moderation", () => {
               decided_by_name: null,
               decision_statement: null,
               decided_at: null,
-              decidable_by_me: true,
+              my_own_decision: true,
+              re_review_notes: null,
+              same_reviewer: false,
+              outside_reviewer_name: null,
+              told_by: null,
+              has_review: false,
             },
           ],
         }),
@@ -525,7 +653,8 @@ describe("operator console: moderation", () => {
     expect(queue.ok && queue.data[0]?.openReports).toBe(2);
     const detail = await getListingDetail(db, "op1");
     expect(detail.ok && detail.data.decisions[0]?.ruleReference).toBe("AUP 3.2");
-    expect(detail.ok && detail.data.appeals[0]?.decidableByMe).toBe(true);
+    expect(detail.ok && detail.data.appeals[0]?.myOwnDecision).toBe(true);
+    expect(detail.ok && detail.data.outsideReviewer).toBeNull();
     expect(
       await decideListing(db, {
         opportunityId: "op1",
@@ -541,13 +670,25 @@ describe("operator console: moderation", () => {
       p_ground: "Terms Violation",
     });
     expect(
-      await decideAppeal(db, { appealId: "a1", outcome: "Upheld", statement: "Stands." }),
+      await decideAppeal(db, {
+        appealId: "a1",
+        outcome: "Upheld",
+        statement: "Stands.",
+        reReviewNotes: "Read the listing again.",
+      }),
     ).toEqual({ ok: true, data: "a1" });
-    expect(stepsOf(calls[3], "args")[0]?.[0]).toMatchObject({ p_action: null, p_facts: null });
+    expect(stepsOf(calls[3], "args")[0]?.[0]).toMatchObject({
+      p_action: null,
+      p_facts: null,
+      p_re_review_notes: "Read the listing again.",
+      p_outside_reviewer_decided: false,
+    });
     await decideAppeal(db, {
       appealId: "a2",
       outcome: "Reversed",
       statement: "Remove.",
+      reReviewNotes: "Read the listing again.",
+      outsideReviewerDecided: true,
       newDecision: {
         action: "Removed",
         ground: "Illegal Content",

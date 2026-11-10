@@ -1,15 +1,16 @@
 import type { Database, XosClient } from "./client.ts";
 import type { DatabaseErrorLike } from "./result.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
+import * as enums from "./enums.generated.ts";
 
 /**
  * Share links and classified downloads (Section 8.6, finding A65-016; migration 1380).
  *
  * - A file carries a classification. Anyone who can read it may raise it; lowering it needs the
  *   uploader or data.classification.write.
- * - A share link opens one clean version of a file without an account: Public files may have a link
- *   without an expiry, Internal links need an expiry, Confidential links need an expiry, an access
- *   code and the recipient's email, and Restricted files never get one. The token and the code come
+ * - A share link opens one clean version of a file without an account, always with its access code,
+ *   and ends with its project: Public files may have a link without an expiry, Internal links need an
+ *   expiry, Confidential links need an expiry and the recipient's email, and Restricted files never get one. The token and the code come
  *   back once from {@link createShareLink}; the database keeps only their hashes.
  * - {@link openShareLink} runs as an anonymous caller and answers a single-use download ticket, which
  *   {@link fetchTicketFile} trades at the file-download Edge Function for the bytes. Confidential
@@ -23,12 +24,7 @@ import { fail, ok, toDataError, type Result } from "./result.ts";
 
 export type DataClassification = Database["app"]["Enums"]["data_classification"];
 
-export const CLASSIFICATIONS: readonly DataClassification[] = [
-  "Public",
-  "Internal",
-  "Confidential",
-  "Restricted",
-];
+export const CLASSIFICATIONS: readonly DataClassification[] = enums.dataClassification;
 
 export function isClassification(value: unknown): value is DataClassification {
   return typeof value === "string" && (CLASSIFICATIONS as readonly string[]).includes(value);
@@ -49,6 +45,7 @@ export interface ShareLink {
   readonly id: string;
   readonly attachmentId: string;
   readonly classification: DataClassification;
+  /** Always true for a live link (ADR 0142). */
   readonly accessCodeRequired: boolean;
   readonly recipientEmail: string | null;
   readonly note: string | null;
@@ -136,7 +133,6 @@ export interface ShareLinkInput {
   readonly attachmentId: string;
   /** ISO instant; required unless the file is Public. */
   readonly expiresAt: string | null;
-  readonly accessCodeRequired: boolean;
   readonly recipientEmail: string | null;
   readonly note: string | null;
 }
@@ -159,7 +155,6 @@ export async function createShareLink(
   const { data, error } = await db.rpc("create_share_link", {
     p_attachment_id: input.attachmentId,
     ...(input.expiresAt === null ? {} : { p_expires_at: input.expiresAt }),
-    p_access_code_required: input.accessCodeRequired,
     ...(input.recipientEmail === null ? {} : { p_recipient_email: input.recipientEmail }),
     ...(input.note === null ? {} : { p_note: input.note }),
   });
@@ -210,6 +205,7 @@ export async function classifyAttachment(
 
 export const SHARE_LINK_REFUSALS = [
   "share_link_invalid",
+  "share_link_ended",
   "share_link_locked",
   "share_link_expired",
   "share_link_reclassified",

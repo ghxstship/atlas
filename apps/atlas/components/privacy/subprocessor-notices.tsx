@@ -44,7 +44,7 @@ export async function SubprocessorNotices({
       <section
         id="notices"
         aria-labelledby="notices-heading"
-        className="mx-auto flex w-full max-w-layout-reading flex-col gap-12 px-24 pb-24"
+        className="flex w-full flex-col gap-12 scroll-mt-16"
       >
         <h2 id="notices-heading" className="m-0 text-heading-20 font-semibold">
           {t(isConfirm ? "confirmTitle" : "unsubscribeTitle")}
@@ -65,7 +65,7 @@ export async function SubprocessorNotices({
     <section
       id="notices"
       aria-labelledby="notices-heading"
-      className="mx-auto flex w-full max-w-layout-reading flex-col gap-12 px-24 pb-24"
+      className="flex w-full flex-col gap-12 scroll-mt-16"
     >
       <h2 id="notices-heading" className="m-0 text-heading-20 font-semibold">
         {t("title")}

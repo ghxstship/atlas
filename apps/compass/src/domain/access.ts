@@ -6,12 +6,13 @@
  * never hold memberships. Every "no" carries a reason, so the screen can show a refusal state that names
  * the next action instead of an empty page.
  */
+import type { CapabilityCode } from "@xos/schemas/capabilities/codes";
 import type { Audience } from "@xos/sync";
 import { isInternal } from "@xos/sync";
 import { navigation } from "../navigation.generated";
+import type { Database } from "@xos/data/database.types";
 
-export type EngagementState =
-  "Onboarding" | "Blocked" | "Active" | "Closing" | "Complete" | "Canceled";
+export type EngagementState = Database["app"]["Enums"]["engagement_state"];
 
 export interface EngagementSummary {
   readonly id: string;
@@ -21,6 +22,25 @@ export interface EngagementSummary {
   readonly projectName: string;
   readonly roleType: Audience;
   readonly state: EngagementState;
+  /**
+   * How the person reaches it: as the engaged party (api_external.engagements), or only through an
+   * Accepted entry on a party's roster (R8, api_external.my_roster_engagements), working as crew.
+   */
+  readonly via: "engagement" | "roster";
+  /** The person's roster entry, when reached through the roster; null otherwise. */
+  readonly rosterEntryId: string | null;
+  /** Whom to ask on the party side, for a roster engagement: its Advancing Lead, else its Account Owner. */
+  readonly leadName?: string | null;
+  /**
+   * The areas of the engagement open to the person now (api_external.engagements.areas, Section 8.7), such as
+   * roster for the Account Owner or Advancing Lead of the company that supplies it. Absent for roster engagements.
+   */
+  readonly areas?: readonly string[];
+  /**
+   * The engagement's own role type, for a roster engagement: Staff when the person works for a staffing agency,
+   * who clocks their own time on its shifts (R12).
+   */
+  readonly partyRoleType?: string | null;
 }
 
 export interface CompassIdentity {
@@ -37,6 +57,7 @@ export interface CompassIdentity {
 
 export type Feature =
   | "clock"
+  | "clock.team"
   | "kiosk.operate"
   | "shifts.swap"
   | "incidents.report"
@@ -48,10 +69,12 @@ export type Feature =
   | "show.read"
   | "scan.asset"
   | "scan.receiving"
+  | "scan.receiving.order"
   | "scan.credential.validate"
   | "scan.credential.badge"
   | "scan.lookup"
   | "crew.board"
+  | "crew.no_show"
   | "timesheets.approve"
   | "logistics.dock"
   | "logistics.yard"
@@ -67,7 +90,12 @@ export type Denial =
   /** External: no engagement on this project has its operational area open. */
   | "engagement-not-active"
   /** External: the engagement reached Complete; Compass access ended (Section 8.7). */
-  | "engagement-closed";
+  | "engagement-closed"
+  /**
+   * External: the person works the project only on a party's roster (R8). Time, swaps, the crew board,
+   * approvals and expenses are the party's own, so the person scans their badge and gear and nothing more.
+   */
+  | "roster-member";
 
 export type Access =
   { readonly allowed: true } | { readonly allowed: false; readonly reason: Denial };
@@ -76,8 +104,10 @@ const ALLOW: Access = { allowed: true };
 const deny = (reason: Denial): Access => ({ allowed: false, reason });
 
 /** Capability each internal feature needs on the project (canon capability codes, Section 8). */
-const INTERNAL_CAPABILITY: Readonly<Record<Feature, string | null>> = {
+const INTERNAL_CAPABILITY: Readonly<Record<Feature, CapabilityCode | null>> = {
   clock: "crew.time_entry.write",
+  // A supervisor clocks a team in or out (R12, G-126): app.record_supervisor_punches needs crew.shift.write.
+  "clock.team": "crew.shift.write",
   "kiosk.operate": "org.time_attendance.write",
   "shifts.swap": "crew.swap.request",
   "incidents.report": "safety.incident.write",
@@ -89,10 +119,14 @@ const INTERNAL_CAPABILITY: Readonly<Record<Feature, string | null>> = {
   "show.read": "show.run_of_show.read",
   "scan.asset": "assets.custody.write",
   "scan.receiving": "procurement.receipt.write",
+  // Receiving against an order (R7a): app.receive_goods needs procurement.receipt.write on the project.
+  "scan.receiving.order": "procurement.receipt.write",
   "scan.credential.validate": "credentials.scan.write",
   "scan.credential.badge": null,
   "scan.lookup": "assets.asset.read",
   "crew.board": "crew.shift.read",
+  // Marking a late crew member a no-show (B9): app.mark_shift_no_show needs crew.shift.write.
+  "crew.no_show": "crew.shift.write",
   "timesheets.approve": "crew.timesheet.approve",
   "logistics.dock": "logistics.dock_slot.write",
   "logistics.yard": "logistics.yard.write",
@@ -104,6 +138,8 @@ const INTERNAL_CAPABILITY: Readonly<Record<Feature, string | null>> = {
 /** External role types per feature (Section 4.5.7 role table and the sitemap's scan modes). */
 const EXTERNAL_ROLES: Readonly<Record<Feature, readonly Audience[]>> = {
   clock: ["crew", "staff", "contractor"],
+  // A staffing agency's lead clocks its roster staff; the database decides lead standing (R12).
+  "clock.team": ["staff"],
   "kiosk.operate": [],
   "shifts.swap": [],
   "incidents.report": [],
@@ -115,6 +151,8 @@ const EXTERNAL_ROLES: Readonly<Record<Feature, readonly Audience[]>> = {
   "show.read": ["client", "crew", "staff", "artist", "artist-representative"],
   "scan.asset": ["crew", "staff"],
   "scan.receiving": ["vendor"],
+  // Externals never receive against an order: the order, its lines and the receipt are internal records.
+  "scan.receiving.order": [],
   "scan.credential.validate": [],
   "scan.credential.badge": [
     "vendor",
@@ -126,6 +164,7 @@ const EXTERNAL_ROLES: Readonly<Record<Feature, readonly Audience[]>> = {
   ],
   "scan.lookup": [],
   "crew.board": [],
+  "crew.no_show": [],
   "timesheets.approve": [],
   "logistics.dock": [],
   "logistics.yard": [],
@@ -136,10 +175,34 @@ const EXTERNAL_ROLES: Readonly<Record<Feature, readonly Audience[]>> = {
 
 /** Internal-only features that also need the supervisor audience (Section 4.5.7 supervisor mode). */
 const SUPERVISOR_ONLY = new Set<Feature>([
+  "clock.team",
   "crew.board",
+  "crew.no_show",
   "timesheets.approve",
   "incidents.dispatch",
 ]);
+
+/**
+ * Features a person who works the project only on a party's roster never uses (R8): the party clocks,
+ * swaps, approves and claims for its people. Their badge and their own gear stay theirs to scan.
+ */
+const ROSTER_DENIED = new Set<Feature>([
+  "clock",
+  "shifts.swap",
+  "crew.board",
+  "crew.no_show",
+  "timesheets.approve",
+  "expenses.submit",
+]);
+
+/**
+ * True when every open context the person has on the project is a roster entry (R8): no engagement of
+ * their own is operational there, and at least one roster entry is.
+ */
+export function rosterOnly(identity: CompassIdentity, projectId: string | null): boolean {
+  const open = operationalEngagements(identity, projectId);
+  return open.length > 0 && open.every((e) => e.via === "roster");
+}
 
 /** Engagements whose operational area is open (Section 8.7 time box). */
 export function operationalEngagements(
@@ -150,6 +213,16 @@ export function operationalEngagements(
     (e) =>
       (e.state === "Active" || e.state === "Closing") &&
       (projectId === null || e.projectId === projectId),
+  );
+}
+
+/**
+ * True when the person works the project on a staffing agency's roster (R12): agency staff clock their own time on
+ * the shifts the agency placed them on, which R8's other roster members leave to their party.
+ */
+export function agencyStaff(identity: CompassIdentity, projectId: string | null): boolean {
+  return operationalEngagements(identity, projectId).some(
+    (e) => e.via === "roster" && e.partyRoleType === "Staff",
   );
 }
 
@@ -164,6 +237,16 @@ export function access(
     const capability = INTERNAL_CAPABILITY[feature];
     if (capability === null) return ALLOW;
     return identity.capabilities.includes(capability) ? ALLOW : deny("capability");
+  }
+  if (feature === "clock" && agencyStaff(identity, projectId)) return ALLOW;
+  if (ROSTER_DENIED.has(feature) && rosterOnly(identity, projectId)) return deny("roster-member");
+  if (feature === "clock.team") {
+    // Only a lead of the agency's Staff engagement: its roster area is open to them (R12, review correction 28c).
+    if (!EXTERNAL_ROLES[feature].includes(identity.audience)) return deny("role");
+    const lead = operationalEngagements(identity, projectId).some(
+      (e) => e.via === "engagement" && e.roleType === "staff" && (e.areas ?? []).includes("roster"),
+    );
+    return lead ? ALLOW : deny("role");
   }
   if (!EXTERNAL_ROLES[feature].includes(identity.audience)) return deny("role");
   const onProject = identity.engagements.filter(
@@ -244,6 +327,7 @@ export const NATIVE_MORE: ReadonlySet<string> = new Set([
   "incidents",
   "inspections",
   "logistics",
+  "logistics.gate",
   "show",
   "run-of-show",
   "reference",
@@ -266,7 +350,14 @@ export const NATIVE_MORE: ReadonlySet<string> = new Set([
   "settlement",
   "reports",
   "proof-of-performance",
+  // R5: project facts on the person's own roster entries, online only.
+  "project-details",
+  // B5: the transfers the person drives, read-only from the device.
+  "drives",
 ]);
+
+/** More entries hidden from a person who works the project only on a party's roster (R8). */
+const ROSTER_HIDDEN_MORE: ReadonlySet<string> = new Set(["timesheets", "invoices"]);
 
 export interface MoreSections {
   /** Entries Compass opens as its own screens, in the sitemap's order. */
@@ -280,8 +371,13 @@ export interface MoreSections {
  * does not render yet gathered behind one row that opens the right app, instead of one "this is in
  * Gateway" page per entry.
  */
-export function moreSections(audience: Audience): MoreSections {
-  const items = moreMenu(audience);
+export function moreSections(
+  audience: Audience,
+  options: { rosterOnly?: boolean } = {},
+): MoreSections {
+  // A person who works the project only on a party's roster keeps no timesheets and sends no invoices (R8).
+  const hidden = options.rosterOnly ? ROSTER_HIDDEN_MORE : new Set<string>();
+  const items = moreMenu(audience).filter((m) => !hidden.has(m.id));
   return {
     native: items.filter((m) => NATIVE_MORE.has(m.id)),
     elsewhere: items.filter((m) => !NATIVE_MORE.has(m.id)),

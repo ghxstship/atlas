@@ -42,6 +42,7 @@ insert into rule_sources values
   ('internal_project', 'app.dock_slots', '*', null),
   ('internal_project', 'app.radio_channels', '*', null),
   ('internal_project', 'app.gate_queue', '*', null),
+  ('internal_project', 'app.delivery_windows', '*', null),
   ('internal_project', 'app.marshalling_log', '*', null),
   ('internal_project', 'app.fulfillments', '*', null),
   ('internal_org', 'app.inspection_templates', '*', null),
@@ -58,12 +59,16 @@ insert into rule_sources values
   ('external_engagement', 'app.clock_punches', 'id,engagement_id,project_id,shift_id,time_entry_id,punch_kind,device_time,effective_at,geofence_verified,skew_flagged,source', 'api_external.clock_punches'),
   ('external_engagement', 'app.asset_custody', 'id,asset_unit_id,custodian_engagement_id>engagement_id,project_id,created_at>held_since', 'api_external.asset_custody'),
   ('external_engagement', 'app.credentials', 'id,project_id,holder_person_id,credential_number,valid_from,valid_to,revoked_at,engagement_id', 'api_external.credentials'),
-  ('external_engagement', 'app.dock_slots', 'id,project_id,zone_id,shipment_id,starts_at,ends_at,engagement_id', 'api_external.dock_slots'),
+  ('external_engagement', 'app.dock_slots', 'id,project_id,zone_id,shipment_id,starts_at,ends_at,engagement_id,reference_code', 'api_external.dock_slots'),
   ('external_project', 'app.projects', 'id,org_id,name,time_zone,venue_id', 'api_external.projects'),
   ('external_project', 'app.radio_channels', 'id,project_id,channel_number,name,zone_id', 'api_external.radio_channels'),
   ('external_project', 'app.day_sheets', 'id,project_id,day,body', 'api_external.day_sheets'),
   ('external_project', 'app.run_of_show', 'id,project_id,name,show_date', 'api_external.run_of_show'),
-  ('external_project', 'app.cues', 'id,run_of_show_id,position,label,planned_at,duration,called_at,project_id', 'api_external.cues'),
+  ('external_project', 'app.cues', 'id,run_of_show_id,position,label,planned_at,duration,called_at,project_id,start_tbc', 'api_external.cues'),
+  ('roster_entry', 'app.asset_custody', 'id,asset_unit_id,custodian_engagement_id>engagement_id,roster_entry_id,project_id,created_at>held_since', 'api_external.asset_custody'),
+  ('external_roster_shifts', 'app.shifts', 'id,roster_entry_id,project_id,scope_node_id,role_code,starts_at,ends_at,time_zone,shift_state', 'api_external.shifts'),
+  ('external_roster_shifts', 'app.time_entries', 'id,roster_entry_id,project_id,shift_id,clock_in,clock_out,break_minutes,source', 'api_external.time_entries'),
+  ('external_roster_shifts', 'app.clock_punches', 'id,roster_entry_id,project_id,shift_id,time_entry_id,punch_kind,device_time,effective_at,geofence_verified,skew_flagged,source', 'api_external.clock_punches'),
   ('canon_reference', 'xpms.emergency_code', 'code,label,emergency,swatch,sort_order', null),
   ('canon_reference', 'xpms.std_enumeration', 'record_id,enum_code,enum_label,sort_order,color_code', null),
   ('canon_reference', 'xpms.std_enumeration', 'record_id,enum_code,enum_label,sort_order', null),
@@ -90,7 +95,7 @@ select is(
 -- External and person buckets never select every column.
 select is(
   (select array_agg(s.bucket || ' ' || s.source) from rule_sources s
-   where s.columns = '*' and (s.bucket like 'external_%' or s.bucket = 'own_person' or s.bucket = 'canon_reference')),
+   where s.columns = '*' and (s.bucket like 'external_%' or s.bucket in ('own_person', 'roster_entry', 'canon_reference'))),
   null::text[], 'external, person and canon buckets list their columns');
 
 -- Every column an external bucket selects is a column of its api_external projection.

@@ -56,7 +56,7 @@ const KIND_FIELDS: Readonly<Record<string, readonly FieldSpec[]>> = {
   ],
   Task: [f("progress_pct", "number"), f("effort_hours", "number")],
   Training: [f("delivered_by", "person"), f("duration_minutes", "number")],
-  Document: [f("storage_uri", "text"), f("version_label", "text")],
+  Document: [f("storage_uri", "text"), f("version_label", "text"), f("body", "longText")],
   Supply: [
     f("element_id", "text"),
     f("quantity", "number"),

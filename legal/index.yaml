@@ -6,6 +6,12 @@
 #   slug: URL segment under /legal; stable across versions
 #   title: display title (Title Case)
 #   version: semantic version of the current text; "-draft" means not yet in effect
+#   history: every version, newest first, the current one first; /legal/{slug} lists them
+#     version: the version's number
+#     effective_date: the day it took effect, YYYY-MM-DD, and the same day the document's
+#       frontmatter states while it is current; a "-draft" version has none, and only the
+#       current version may be one
+#     summary: what changed in that version, in a sentence or two
 #   file: path from the repository root
 #   audience: who the document addresses
 #   publish: public (served at /legal) or internal (kept in the repository, shared on request)
@@ -17,7 +23,11 @@ registry_version: 1
 documents:
   - slug: terms-of-service
     title: Terms of Service
-    version: 1.0.0-draft
+    version: 1.0.0
+    history:
+      - version: 1.0.0
+        effective_date: 2026-11-10
+        summary: First version.
     file: legal/terms-of-service.md
     audience: Customer organizations
     publish: public
@@ -27,7 +37,11 @@ documents:
     owner_inputs: [1, 2, 3, 6]
   - slug: privacy-policy
     title: Privacy Policy
-    version: 1.0.0-draft
+    version: 1.0.0
+    history:
+      - version: 1.0.0
+        effective_date: 2026-11-10
+        summary: First version.
     file: legal/privacy-policy.md
     audience: Everyone
     publish: public
@@ -37,7 +51,11 @@ documents:
     owner_inputs: [2, 5, 6, 8, 9, 10]
   - slug: cookie-policy
     title: Cookie Policy
-    version: 1.0.0-draft
+    version: 1.0.0
+    history:
+      - version: 1.0.0
+        effective_date: 2026-11-10
+        summary: First version.
     file: legal/cookie-policy.md
     audience: Everyone
     publish: public
@@ -47,7 +65,11 @@ documents:
     owner_inputs: [6]
   - slug: data-processing-agreement
     title: Data Processing Agreement
-    version: 1.0.0-draft
+    version: 1.0.0
+    history:
+      - version: 1.0.0
+        effective_date: 2026-11-10
+        summary: First version.
     file: legal/data-processing-agreement.md
     audience: Customer organizations
     publish: public
@@ -57,7 +79,11 @@ documents:
     owner_inputs: [2, 4, 5, 6]
   - slug: subprocessors
     title: Subprocessor List
-    version: 1.0.0-draft
+    version: 1.0.0
+    history:
+      - version: 1.0.0
+        effective_date: 2026-11-10
+        summary: First version.
     file: legal/subprocessors.md
     audience: Customer organizations
     publish: public
@@ -67,7 +93,11 @@ documents:
     owner_inputs: [12]
   - slug: acceptable-use-policy
     title: Acceptable Use Policy
-    version: 1.0.0-draft
+    version: 1.0.0
+    history:
+      - version: 1.0.0
+        effective_date: 2026-11-10
+        summary: First version.
     file: legal/acceptable-use-policy.md
     audience: Everyone
     publish: public
@@ -77,7 +107,11 @@ documents:
     owner_inputs: [6]
   - slug: service-level-agreement
     title: Service Level Agreement
-    version: 1.0.0-draft
+    version: 1.0.0
+    history:
+      - version: 1.0.0
+        effective_date: 2026-11-10
+        summary: First version.
     file: legal/service-level-agreement.md
     audience: Customer organizations
     publish: public
@@ -87,7 +121,11 @@ documents:
     owner_inputs: []
   - slug: security-overview
     title: Security Overview
-    version: 1.0.0-draft
+    version: 1.0.0
+    history:
+      - version: 1.0.0
+        effective_date: 2026-11-10
+        summary: First version.
     file: legal/security-overview.md
     audience: Everyone
     publish: public
@@ -97,7 +135,11 @@ documents:
     owner_inputs: [6]
   - slug: accessibility-statement
     title: Accessibility Statement
-    version: 1.0.0-draft
+    version: 1.0.0
+    history:
+      - version: 1.0.0
+        effective_date: 2026-11-10
+        summary: First version.
     file: legal/accessibility-statement.md
     audience: Everyone
     publish: public
@@ -107,7 +149,11 @@ documents:
     owner_inputs: [2, 6]
   - slug: mobile-eula
     title: Mobile End User License Agreement
-    version: 1.0.0-draft
+    version: 1.0.0
+    history:
+      - version: 1.0.0
+        effective_date: 2026-11-10
+        summary: First version.
     file: legal/mobile-eula.md
     audience: Compass users
     publish: public
@@ -117,7 +163,11 @@ documents:
     owner_inputs: [2, 3, 6]
   - slug: copyright-dmca-policy
     title: Copyright and DMCA Policy
-    version: 1.0.0-draft
+    version: 1.0.0
+    history:
+      - version: 1.0.0
+        effective_date: 2026-11-10
+        summary: First version.
     file: legal/copyright-dmca-policy.md
     audience: Everyone
     publish: public
@@ -127,7 +177,11 @@ documents:
     owner_inputs: [6, 7]
   - slug: trademark-policy
     title: Trademark Policy
-    version: 1.0.0-draft
+    version: 1.0.0
+    history:
+      - version: 1.0.0
+        effective_date: 2026-11-10
+        summary: First version.
     file: legal/trademark-policy.md
     audience: Everyone
     publish: public
@@ -137,7 +191,11 @@ documents:
     owner_inputs: [6]
   - slug: open-source-licenses
     title: Open Source Licenses
-    version: 1.0.0-draft
+    version: 1.0.0
+    history:
+      - version: 1.0.0
+        effective_date: 2026-11-10
+        summary: First version.
     file: legal/open-source-licenses.md
     audience: Everyone
     publish: public
@@ -147,7 +205,11 @@ documents:
     owner_inputs: [6]
   - slug: responsible-disclosure-policy
     title: Responsible Disclosure Policy
-    version: 1.0.0-draft
+    version: 1.0.0
+    history:
+      - version: 1.0.0
+        effective_date: 2026-11-10
+        summary: First version.
     file: legal/responsible-disclosure-policy.md
     audience: Security researchers
     publish: public
@@ -157,7 +219,11 @@ documents:
     owner_inputs: [6, 13]
   - slug: data-retention-and-deletion-policy
     title: Data Retention and Deletion Policy
-    version: 1.0.0-draft
+    version: 1.0.0
+    history:
+      - version: 1.0.0
+        effective_date: 2026-11-10
+        summary: First version.
     file: legal/data-retention-and-deletion-policy.md
     audience: Everyone
     publish: public
@@ -167,7 +233,11 @@ documents:
     owner_inputs: []
   - slug: ai-features-notice
     title: AI Features Notice
-    version: 1.0.0-draft
+    version: 1.0.0
+    history:
+      - version: 1.0.0
+        effective_date: 2026-11-10
+        summary: First version.
     file: legal/ai-features-notice.md
     audience: Everyone
     publish: public
@@ -177,17 +247,25 @@ documents:
     owner_inputs: [6]
   - slug: worker-terms
     title: Worker Terms
-    version: 1.0.0-draft
+    version: 1.0.0
+    history:
+      - version: 1.0.0
+        effective_date: 2026-11-10
+        summary: First version.
     file: legal/worker-terms.md
     audience: External parties invited by a tenant
     publish: public
     requires_acceptance_at_signup: true
-    acceptance_by: [external_party_at_account_creation]
+    acceptance_by: [external_party_at_account_creation, compass_user_at_first_sign_in]
     material_change: false
     owner_inputs: [3, 6]
   - slug: account-deletion
     title: Delete Your Account
-    version: 1.0.0-draft
+    version: 1.0.0
+    history:
+      - version: 1.0.0
+        effective_date: 2026-11-10
+        summary: First version.
     file: legal/account-deletion.md
     audience: Everyone
     publish: public
@@ -197,7 +275,11 @@ documents:
     owner_inputs: [6]
   - slug: contact
     title: Legal Contact
-    version: 1.0.0-draft
+    version: 1.0.0
+    history:
+      - version: 1.0.0
+        effective_date: 2026-11-10
+        summary: First version.
     file: legal/contact.md
     audience: Everyone
     publish: public
@@ -205,9 +287,41 @@ documents:
     acceptance_by: []
     material_change: false
     owner_inputs: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+  - slug: consumer-health-data-privacy-policy
+    title: Consumer Health Data Privacy Policy
+    version: 1.0.0
+    history:
+      - version: 1.0.0
+        effective_date: 2026-11-10
+        summary: First version.
+    file: legal/consumer-health-data-privacy-policy.md
+    audience: Everyone
+    publish: public
+    requires_acceptance_at_signup: false
+    acceptance_by: []
+    material_change: false
+    owner_inputs: [6]
+  - slug: text-message-terms
+    title: Text Message Terms
+    version: 1.0.0
+    history:
+      - version: 1.0.0
+        effective_date: 2026-11-10
+        summary: First version.
+    file: legal/text-message-terms.md
+    audience: People who turn on text messages
+    publish: public
+    requires_acceptance_at_signup: false
+    acceptance_by: []
+    material_change: false
+    owner_inputs: [6]
   - slug: dpia-template
     title: Data Protection Impact Assessment Template
-    version: 1.0.0-draft
+    version: 1.0.0
+    history:
+      - version: 1.0.0
+        effective_date: 2026-11-10
+        summary: First version.
     file: legal/privacy/dpia-template.md
     audience: Customer organizations
     publish: public
@@ -217,7 +331,11 @@ documents:
     owner_inputs: []
   - slug: acr-atlas
     title: "Accessibility Conformance Report: Atlas"
-    version: 1.0.0-draft
+    version: 1.0.0
+    history:
+      - version: 1.0.0
+        effective_date: 2026-11-10
+        summary: First version.
     file: legal/accessibility/acr-atlas.md
     audience: Customers and procurement reviewers
     publish: public
@@ -227,7 +345,11 @@ documents:
     owner_inputs: [6]
   - slug: acr-compass
     title: "Accessibility Conformance Report: Compass"
-    version: 1.0.0-draft
+    version: 1.0.0
+    history:
+      - version: 1.0.0
+        effective_date: 2026-11-10
+        summary: First version.
     file: legal/accessibility/acr-compass.md
     audience: Customers and procurement reviewers
     publish: public
@@ -237,7 +359,11 @@ documents:
     owner_inputs: [6]
   - slug: acr-gateway
     title: "Accessibility Conformance Report: Gateway"
-    version: 1.0.0-draft
+    version: 1.0.0
+    history:
+      - version: 1.0.0
+        effective_date: 2026-11-10
+        summary: First version.
     file: legal/accessibility/acr-gateway.md
     audience: Customers and procurement reviewers
     publish: public
@@ -248,6 +374,9 @@ documents:
   - slug: information-security-policy
     title: Information Security Policy
     version: 1.0.0-draft
+    history:
+      - version: 1.0.0-draft
+        summary: First version.
     file: legal/policies/information-security.md
     audience: GHXSTSHIP personnel
     publish: internal
@@ -258,6 +387,9 @@ documents:
   - slug: access-control-policy
     title: Access Control Policy
     version: 1.0.0-draft
+    history:
+      - version: 1.0.0-draft
+        summary: First version.
     file: legal/policies/access-control.md
     audience: GHXSTSHIP personnel
     publish: internal
@@ -268,6 +400,9 @@ documents:
   - slug: encryption-policy
     title: Encryption Policy
     version: 1.0.0-draft
+    history:
+      - version: 1.0.0-draft
+        summary: First version.
     file: legal/policies/encryption.md
     audience: GHXSTSHIP personnel
     publish: internal
@@ -278,6 +413,9 @@ documents:
   - slug: vendor-management-policy
     title: Vendor Management Policy
     version: 1.0.0-draft
+    history:
+      - version: 1.0.0-draft
+        summary: First version.
     file: legal/policies/vendor-management.md
     audience: GHXSTSHIP personnel
     publish: internal
@@ -288,6 +426,9 @@ documents:
   - slug: incident-response-policy
     title: Incident Response Policy
     version: 1.0.0-draft
+    history:
+      - version: 1.0.0-draft
+        summary: First version.
     file: legal/policies/incident-response.md
     audience: GHXSTSHIP personnel
     publish: internal
@@ -298,6 +439,9 @@ documents:
   - slug: business-continuity-and-disaster-recovery-policy
     title: Business Continuity and Disaster Recovery Policy
     version: 1.0.0-draft
+    history:
+      - version: 1.0.0-draft
+        summary: First version.
     file: legal/policies/business-continuity-and-disaster-recovery.md
     audience: GHXSTSHIP personnel
     publish: internal
@@ -308,6 +452,9 @@ documents:
   - slug: secure-development-policy
     title: Secure Development Policy
     version: 1.0.0-draft
+    history:
+      - version: 1.0.0-draft
+        summary: First version.
     file: legal/policies/secure-development.md
     audience: GHXSTSHIP personnel and contributors
     publish: internal
@@ -318,6 +465,9 @@ documents:
   - slug: data-classification-policy
     title: Data Classification Policy
     version: 1.0.0-draft
+    history:
+      - version: 1.0.0-draft
+        summary: First version.
     file: legal/policies/data-classification.md
     audience: GHXSTSHIP personnel
     publish: internal
@@ -328,6 +478,9 @@ documents:
   - slug: personnel-acceptable-use-policy
     title: Acceptable Use Policy for Personnel
     version: 1.0.0-draft
+    history:
+      - version: 1.0.0-draft
+        summary: First version.
     file: legal/policies/acceptable-use.md
     audience: GHXSTSHIP personnel
     publish: internal
@@ -338,6 +491,9 @@ documents:
   - slug: change-management-policy
     title: Change Management Policy
     version: 1.0.0-draft
+    history:
+      - version: 1.0.0-draft
+        summary: First version.
     file: legal/policies/change-management.md
     audience: GHXSTSHIP personnel and contributors
     publish: internal
@@ -348,6 +504,9 @@ documents:
   - slug: records-of-processing
     title: Records of Processing and Lawful Basis Registry
     version: 1.0.0-draft
+    history:
+      - version: 1.0.0-draft
+        summary: First version.
     file: legal/privacy/records-of-processing.md
     audience: GHXSTSHIP privacy officer and supervisory authorities
     publish: internal
@@ -358,6 +517,9 @@ documents:
   - slug: soc2-controls
     title: SOC 2 Control Matrix
     version: 1.0.0-draft
+    history:
+      - version: 1.0.0-draft
+        summary: First version.
     file: legal/security/soc2-controls.md
     audience: GHXSTSHIP personnel and auditors
     publish: internal
@@ -368,6 +530,9 @@ documents:
   - slug: iso27001-statement-of-applicability
     title: ISO/IEC 27001:2022 Statement of Applicability
     version: 1.0.0-draft
+    history:
+      - version: 1.0.0-draft
+        summary: First version.
     file: legal/security/iso27001-soa.md
     audience: GHXSTSHIP personnel and auditors
     publish: internal
@@ -378,6 +543,9 @@ documents:
   - slug: asvs-matrix
     title: OWASP ASVS 5.0 Level 2 Control Matrix
     version: 1.0.0-draft
+    history:
+      - version: 1.0.0-draft
+        summary: First version.
     file: legal/security/asvs-matrix.md
     audience: GHXSTSHIP personnel and auditors
     publish: internal
@@ -388,6 +556,9 @@ documents:
   - slug: accessibility-audit-log
     title: Accessibility Audit Log
     version: 1.0.0-draft
+    history:
+      - version: 1.0.0-draft
+        summary: First version.
     file: legal/accessibility/audit-log.md
     audience: GHXSTSHIP personnel
     publish: internal
@@ -398,6 +569,9 @@ documents:
   - slug: compliance-matrix
     title: Compliance Matrix
     version: 1.0.0-draft
+    history:
+      - version: 1.0.0-draft
+        summary: First version.
     file: legal/compliance-matrix.md
     audience: GHXSTSHIP personnel
     publish: internal

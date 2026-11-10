@@ -194,3 +194,11 @@ export function addDays(day: string, days: number): string {
   const [y = 1970, m = 1, d = 1] = day.split("-").map(Number);
   return new Date(Date.UTC(y, m - 1, d + days)).toISOString().slice(0, 10);
 }
+
+// The schedule grid's time shorthand (B4) travels with quick add, so `@xos/ui/quick-add` carries both halves.
+export {
+  parseDuration,
+  parseTimeShorthand,
+  type TimeShorthand,
+  type TimeShorthandOptions,
+} from "./timeShorthand.ts";

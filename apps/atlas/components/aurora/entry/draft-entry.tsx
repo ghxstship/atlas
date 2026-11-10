@@ -9,7 +9,19 @@ const dialog = onDemand(() => import("./draft-dialog"));
 
 export interface DraftEntryProps {
   /** What to draft, as aurora.draft names it. */
-  readonly kind: "sop" | "advance_packet" | "day_sheet" | "change_order_description";
+  readonly kind:
+    | "sop"
+    | "advance_packet"
+    | "day_sheet"
+    | "change_order_description"
+    | "event_plan"
+    | "event_brief"
+    | "approval_pack"
+    | "waste_plan";
+  /** Kinds the person chooses between in the panel, such as an event plan or a waste plan. */
+  readonly kinds?: readonly ("event_plan" | "event_brief" | "approval_pack" | "waste_plan")[];
+  /** A governance kind's Document record: the draft reads and fills it (B15). */
+  readonly target?: { readonly collection: "records"; readonly id: string };
   /** The editor's form; by default the form the button sits in. */
   readonly formId?: string;
   /** Names of the form fields the draft fills: its title (optional) and body. */

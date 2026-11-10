@@ -14,6 +14,7 @@ export {
   stripeHost,
   type BillingEnv,
   type StripeClient,
+  type StripeClientLimits,
 } from "./env.ts";
 export {
   NotSelfServeError,
@@ -22,10 +23,11 @@ export {
   type BillingInterval,
 } from "./plans.ts";
 export {
-  PORTAL_CONFIGURATION_KEY,
+  PORTAL_CONFIGURATION_KEYS,
   PriceNotFoundError,
   createPortalSession,
   findPortalConfiguration,
+  stripeTrialEnd,
   type OpenedCheckout,
 } from "./checkout.ts";
 export {
@@ -36,3 +38,33 @@ export {
   type CheckoutAccountStore,
   type PlanCheckoutRequest,
 } from "./upgrade.ts";
+export {
+  PauseRefusedError,
+  pauseRefusal,
+  pauseSubscription,
+  resumeSubscription,
+  stripeResumesAt,
+  type PauseAccountStore,
+  type PauseRefusalRule,
+} from "./pause.ts";
+export {
+  runStripeCancellations,
+  sendStripeCancel,
+  stripeStatusEnded,
+  STRIPE_WORKER_BUDGET_MS,
+  STRIPE_WORKER_LIMITS,
+  stripeCancelIdempotencyKey,
+  type BillingAlert,
+  type BillingAlertSink,
+  type StripeCancelJob,
+  type StripeCancelMode,
+  type StripeCancelOutcome,
+  type StripeCancellationRun,
+  type StripeCancellationStore,
+} from "./cancel.ts";
+export {
+  CHECKOUT_MESSAGE_MAX,
+  RENEWAL_TERMS_VERSION,
+  firstChargeOn,
+  type RenewalConsent,
+} from "./renewal.ts";

@@ -15,6 +15,8 @@ export function Drawer({
   children,
   footer,
   onClose,
+  shortcutScope,
+  wide = false,
   ...control
 }: DrawerProps): ReactElement {
   const t = useT();
@@ -32,9 +34,11 @@ export function Drawer({
         <RDialog.Content
           onCloseAutoFocus={returnFocus}
           aria-describedby={undefined}
+          data-shortcut-scope={shortcutScope}
           className={cx(
             panelClass,
-            "xos-anim-peek fixed inset-y-0 z-dialog flex flex-col w-(--ui-drawer) rounded-none",
+            "xos-anim-peek fixed inset-y-0 z-dialog flex flex-col rounded-none",
+            wide ? "w-(--layout-peek-max) max-w-full" : "w-(--ui-drawer)",
             "max-md:w-full",
             side === "left" ? "start-0" : "end-0",
           )}

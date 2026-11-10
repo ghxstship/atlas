@@ -1,19 +1,67 @@
 "use client";
 
-import { Checkbox, DataTable, EmptyState, Input, PageHeader, TemplateCollection } from "@xos/ui";
+import {
+  Button,
+  Checkbox,
+  DataTable,
+  EmptyState,
+  Input,
+  PageHeader,
+  TemplateCollection,
+} from "@xos/ui";
 import type { ProjectSummary } from "@xos/data/projects";
 import type { Route } from "next";
 import { useFormatter, useTranslations } from "next-intl";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { phaseCode, stateIcon } from "@/lib/projects/format";
-import { CreateProjectDialog, type ProjectFormOptions } from "./create-project";
+import type { ProjectFormOptions } from "./create-project";
 import { collectionPeek } from "@/components/shell/collection-peek";
 import { CollectionViews } from "@/components/views/collection-views";
 import dynamic from "next/dynamic";
 import type { ProjectViewHelpers } from "./project-other-views";
+import type { BulkConfig } from "@/components/bulk/types";
+import { useBulk } from "@/components/bulk/use-bulk";
+// Its menu loads on the first right-click, keeping the page in its route budget.
+import { useRowMenuOnDemand } from "@/components/menus/row-menu-on-demand";
+import { useCustomFieldColumns } from "@/components/custom-fields/list";
+import { isConditionParam } from "@/lib/views/query";
 
 // Views other than the default table, and the peek, load when shown (A24-009).
+function CreateProjectLoading() {
+  const t = useTranslations("projects");
+  return (
+    <Button variant="primary" icon="Plus" loading>
+      {t("list.newProject")}
+    </Button>
+  );
+}
+
+// Most visits to Projects never open the dialog, and the page sits at its route budget.
+const CreateProjectDialog = dynamic(
+  () => import("./create-project").then((m) => m.CreateProjectDialog),
+  { loading: CreateProjectLoading },
+);
+
+/** The button renders and hydrates with the page, so a click is never lost; the first one loads the dialog. */
+function CreateProject({
+  org,
+  options,
+  defaultOpen,
+}: {
+  org: string;
+  options: ProjectFormOptions;
+  defaultOpen: boolean;
+}) {
+  const t = useTranslations("projects");
+  const [wanted, setWanted] = useState(defaultOpen);
+  if (wanted) return <CreateProjectDialog org={org} options={options} defaultOpen />;
+  return (
+    <Button variant="primary" icon="Plus" onClick={() => setWanted(true)}>
+      {t("list.newProject")}
+    </Button>
+  );
+}
 const ProjectOtherView = dynamic(() =>
   import("./project-other-views").then((m) => m.ProjectOtherView),
 );
@@ -33,7 +81,8 @@ export type BoardMode = "state" | "phase";
  * The Projects collection (Collection template, Section 11.6): the views the sitemap allows for the
  * page, a search over key and name, the archived filter, a side peek and the New project dialog.
  * Every view keeps the same search and filter state, and the view lives in the query string
- * (Section 4.5.3), so a link reopens the same view.
+ * (Section 4.5.3), so a link reopens the same view. The table selects projects for bulk changes,
+ * and each row's menu offers the same changes as the bulk bar (Section 11.7).
  */
 export function ProjectCollection({
   org,
@@ -48,6 +97,7 @@ export function ProjectCollection({
   today,
   create,
   sharers = [],
+  bulk,
 }: {
   org: string;
   title: string;
@@ -65,6 +115,8 @@ export function ProjectCollection({
    * Producers), named in the empty state so it never sends them in a loop (A59-014).
    */
   sharers?: readonly string[];
+  /** Bulk edit of the table view's selection, for people who may change projects. */
+  bulk?: BulkConfig | null;
 }) {
   const t = useTranslations("projects");
   const format = useFormatter();
@@ -73,6 +125,14 @@ export function ProjectCollection({
   const params = useSearchParams();
   const [query, setQuery] = useState("");
   const [peekKey, setPeekState] = useState<string | null>(params.get("peek"));
+  // The org's filterable project fields (A117), from the CustomFieldList the page wraps this in.
+  const custom = useCustomFieldColumns();
+  const tv = useTranslations("views");
+  const clearFilters = () => {
+    const next = new URLSearchParams(window.location.search);
+    for (const name of [...next.keys()]) if (isConditionParam(name)) next.delete(name);
+    router.replace(`${pathname}${next.size > 0 ? `?${next}` : ""}` as Route, { scroll: false });
+  };
   /** Opens or closes the peek and keeps it in the URL (`?peek=KEY`) without a server round trip. */
   const setPeekKey = (key: string | null) => {
     setPeekState(key);
@@ -84,12 +144,19 @@ export function ProjectCollection({
   };
 
   const gateOf = (code: string) => phases.find((p) => p.code === code)?.gate ?? 0;
+  // B14 (6260): the event type, read with the list (event_type:event_types(name)), as a column when any project has one.
+  const hasEventTypes = projects.some((p) => Boolean(p.eventTypeName));
   const shown = useMemo(() => {
     const q = query.trim().toLowerCase();
     return q === ""
       ? projects
       : projects.filter((p) => p.key.toLowerCase().includes(q) || p.name.toLowerCase().includes(q));
   }, [projects, query]);
+
+  // The selection keeps only projects the search still shows (Section 11.7).
+  const bulkRows = useMemo(() => shown.map((p) => ({ id: p.id, label: p.key })), [shown]);
+  const bulkKit = useBulk(view === "table" ? bulk : null, bulkRows);
+  const rowMenu = useRowMenuOnDemand();
 
   const setParam = (name: string, value: string | null) => {
     const next = new URLSearchParams(params.toString());
@@ -138,7 +205,7 @@ export function ProjectCollection({
       }
       actions={
         create ? (
-          <CreateProjectDialog
+          <CreateProject
             key={String(create.open)}
             org={org}
             options={create.options}
@@ -168,7 +235,9 @@ export function ProjectCollection({
   );
 
   let body: React.ReactNode;
-  if (projects.length === 0) {
+  // Custom field filters apply on the server (A117), so an empty list under them is no match, not no projects.
+  const filtering = [...params.keys()].some(isConditionParam);
+  if (projects.length === 0 && !filtering) {
     body = create ? (
       <EmptyState
         icon="FolderPlus"
@@ -192,37 +261,62 @@ export function ProjectCollection({
     body = (
       <EmptyState
         icon="Search"
-        sentence={t("list.noMatch", { query })}
-        actionLabel={t("list.clearSearch")}
-        onAction={() => setQuery("")}
+        sentence={query === "" && filtering ? tv("filter.noMatches") : t("list.noMatch", { query })}
+        actionLabel={query === "" && filtering ? tv("filter.clear") : t("list.clearSearch")}
+        onAction={() => (query === "" && filtering ? clearFilters() : setQuery(""))}
       />
     );
   } else if (view === "table") {
+    const columns = [
+      { key: "key", label: t("fields.key"), type: "code" as const, width: 88 },
+      { key: "name", label: t("fields.name"), wrap: true },
+      { key: "state", label: t("fields.state"), type: "state" as const, width: 128 },
+      { key: "phase", label: t("fields.phase"), width: 160 },
+      ...(hasEventTypes ? [{ key: "eventType", label: t("eventTypes.field"), width: 160 }] : []),
+      { key: "jurisdiction", label: t("fields.jurisdiction"), type: "code" as const, width: 180 },
+      { key: "venue", label: t("fields.venue"), width: 180 },
+      { key: "dates", label: t("fields.dates"), width: 220 },
+      ...custom.columns,
+    ];
     body = (
-      <DataTable
-        caption={t("list.caption")}
-        columns={[
-          { key: "key", label: t("fields.key"), type: "code", width: 88 },
-          { key: "name", label: t("fields.name"), wrap: true },
-          { key: "state", label: t("fields.state"), type: "state", width: 128 },
-          { key: "phase", label: t("fields.phase"), width: 160 },
-          { key: "jurisdiction", label: t("fields.jurisdiction"), type: "code", width: 180 },
-          { key: "venue", label: t("fields.venue"), width: 180 },
-          { key: "dates", label: t("fields.dates"), width: 220 },
-        ]}
-        pinStart={["key"]}
-        rows={shown.map((p) => ({
-          id: p.key,
-          key: p.key,
-          name: p.name,
-          state: { state: stateIcon(p.projectState), label: stateLabel(p) },
-          phase: t("gates.gate", { gate: gateOf(p.phaseCode) }) + ` · ${phaseName(p.phaseCode)}`,
-          jurisdiction: p.jurisdictionId ?? t("values.unresolved"),
-          venue: p.venueName ?? t("values.none"),
-          dates: dates(p),
-        }))}
-        onRowActivate={(row) => setPeekKey(String(row["key"]))}
-      />
+      <>
+        <DataTable
+          caption={t("list.caption")}
+          columns={columns}
+          pinStart={["key"]}
+          rows={shown.map((p) => ({
+            id: p.id,
+            key: p.key,
+            name: p.name,
+            state: { state: stateIcon(p.projectState), label: stateLabel(p) },
+            phase: t("gates.gate", { gate: gateOf(p.phaseCode) }) + ` · ${phaseName(p.phaseCode)}`,
+            eventType: p.eventTypeName ?? t("values.none"),
+            jurisdiction: p.jurisdictionId ?? t("values.unresolved"),
+            venue: p.venueName ?? t("values.none"),
+            dates: dates(p),
+            ...custom.cells(p.id),
+          }))}
+          onRowActivate={(row) => setPeekKey(String(row["key"]))}
+          onRowContextMenu={(_row, index, at, cell) => {
+            const p = shown[index];
+            if (!p) return;
+            rowMenu.open(
+              {
+                id: p.id,
+                label: p.key,
+                open: () => setPeekKey(p.key),
+                href: `/${org}/p/${p.key}/overview`,
+                bulk: bulkKit,
+              },
+              at,
+              cell,
+            );
+          }}
+          {...(bulkKit.selection ? { selection: bulkKit.selection } : {})}
+        />
+        {bulkKit.bar}
+        {rowMenu.menu}
+      </>
     );
   } else {
     body = (

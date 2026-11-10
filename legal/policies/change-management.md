@@ -2,13 +2,13 @@
 title: Change Management Policy
 version: 1.0.0-draft
 effective_date: The date this version is approved by the Owner
-status: Draft for review by counsel before launch
+status: Draft before launch
 audience: Internal
 ---
 
 # Change Management Policy
 
-> **Draft for review by counsel before launch.** This internal policy is a draft. It takes effect when the Owner approves it, and its effective date is that date of approval.
+> **Draft before launch.** This internal policy is a draft. It takes effect when the Owner approves it, and its effective date is that date of approval.
 
 ## 1. Purpose and Scope
 
@@ -16,26 +16,26 @@ This policy makes sure changes to XOS 4.0 are authorized, tested, reviewed, reco
 
 ## 2. Change Types
 
-| Type      | Definition                                                                                                                | Path                                                                                               |
-| --------- | ------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| Standard  | Any code, migration, configuration or documentation change in the repository                                              | Pull request, CI, maintainer review, merge, release as Section 4 sets                              |
-| Emergency | A change needed immediately to fix a SEV1 or SEV2 incident or a Critical vulnerability                                    | Expedited review by one maintainer, full CI, retrospective review within 2 business days           |
-| Contract  | A change to a frozen contract: schema conventions, the Playbook column map, a sitemap, OpenAPI v1, capabilities or tokens | Architecture Decision Record in `docs/adr/` approved by the orchestrator, then a standard change   |
-| Canon     | A change to canon data                                                                                                    | Data migration from the canon importer with updated source hashes; ratification recorded as data   |
-| Legal     | A change to a published legal document                                                                                    | Pull request in `legal/`, counsel review, Owner approval, new version and notice as Section 6 sets |
+| Type      | Definition                                                                                                                | Path                                                                                             |
+| --------- | ------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| Standard  | Any code, migration, configuration or documentation change in the repository                                              | Pull request, CI, maintainer review, merge, release as Section 4 sets                            |
+| Emergency | A change needed immediately to fix a SEV1 or SEV2 incident or a Critical vulnerability                                    | Expedited review by one maintainer, full CI, retrospective review within 2 business days         |
+| Contract  | A change to a frozen contract: schema conventions, the Playbook column map, a sitemap, OpenAPI v1, capabilities or tokens | Architecture Decision Record in `docs/adr/` approved by the orchestrator, then a standard change |
+| Canon     | A change to canon data                                                                                                    | Data migration from the canon importer with updated source hashes; ratification recorded as data |
+| Legal     | A change to a published legal document                                                                                    | Pull request in `legal/`, Owner approval, new version and notice as Section 6 sets               |
 
 ## 3. Requirements for Every Standard Change
 
 - A pull request that references its issue or ADR and follows Conventional Commits.
-- Signed commits with a Developer Certificate of Origin sign-off.
-- All Section 18 quality gates passing in CI.
-- Approval from a maintainer of the changed paths who is not the author.
+- Signed commits with a Developer Certificate of Origin sign-off. This policy calls for signing; repository settings do not yet require it.
+- All Section 18 quality gates passing in CI. Repository settings do not yet require a passing run before merge.
+- Approval from a maintainer of the changed paths who is not the author, once GHXSTSHIP has a second maintainer. While there is one, the maintainer who merges reviews the change with the automated and AI-assisted checks.
 - Database changes follow expand and contract: add, backfill, switch, then remove in a later release. No release breaks the version before it.
 - The public API changes additively within `/v1`; a breaking change ships as `/v2` with at least 12 months of overlap and deprecation headers.
 
 ## 4. Release
 
-- Atlas releases roll out in stages of 5, 25 and then 100 percent. A release owner approves each stage when the release gate's error-rate and latency checks pass, and the release rolls back when they regress.
+- This policy calls for Atlas releases to roll out in stages of 5, 25 and then 100 percent, with a release owner approving each stage when the release gate's error-rate and latency checks pass and rolling back when they regress. The staged rollout setting is not yet turned on, and the gate is run by a person.
 - The other web applications release directly. Every web application can be rolled back at once to its previous deployment.
 - Risky features ship behind a database-backed flag with a kill switch.
 - Mobile releases go through TestFlight and Play internal testing before production. Over-the-air updates apply only to JavaScript changes, follow staged rollout, and are scoped to their native build.
@@ -51,6 +51,7 @@ These changes always require the Owner's explicit approval before they happen: s
 - A material change to the Terms of Service or Data Processing Agreement triggers in-app re-acceptance with 30 days' notice.
 - A subprocessor addition requires 30 days' notice before it processes Customer Personal Data.
 - Internal policies are approved by the Owner and take effect on approval.
+- Status page incident notices are content published outside the code change process: the incident commander or Communications Lead publishes them to the page's incident list with no pull request or deployment.
 
 ## 7. Records
 

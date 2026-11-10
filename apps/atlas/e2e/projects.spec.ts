@@ -165,7 +165,8 @@ test("journey 2: a gate is refused with the named criterion, then passes on evid
   await expect(page.getByText("passed a gate on").first()).toBeVisible();
   await expectAccessible(page);
   await page.goto(`/${slug}/home/gate-readiness`);
-  await expect(page.getByText("Gate Trial Expo")).toBeVisible();
+  // In the page, not the sidebar, which lists the project among the recent ones too.
+  await expect(page.getByRole("main").getByText("Gate Trial Expo")).toBeVisible();
   await expectAccessible(page);
 });
 
@@ -203,6 +204,8 @@ test("journeys 22 and 23: uncleared rights block gate 8, then the project closes
 });
 
 test("Projects, Home and Activity pages pass axe in the light theme", async ({ page, context }) => {
+  // Fourteen pages, each waiting for its animations and a settled title before axe: more than the 60 s default.
+  test.setTimeout(180_000);
   const slug = await newOwnerOrg(page);
   await createProject(page, slug, "LTE", "Light Theme Evening");
   await context.addCookies([

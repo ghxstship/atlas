@@ -33,10 +33,12 @@ import {
   fieldKeyFrom,
   listCustomFields,
   listCustomFieldTargets,
+  listSeparationOptions,
   listSeparationRules,
   listSpendAuthorities,
   removeCustomField,
   removeSpendAuthority,
+  setSeparationOption,
 } from "../src/governance.ts";
 import {
   departmentsInUse,
@@ -407,7 +409,7 @@ describe("webhooks (0510)", () => {
   });
 });
 
-describe("governance (0320, 0540, 1150)", () => {
+describe("governance (0320, 0540, 1150, 2280)", () => {
   it("lists, adds and removes spend limits", async () => {
     const { db, calls } = commercialClient({
       "from:spend_authorities": [
@@ -494,6 +496,71 @@ describe("governance (0320, 0540, 1150)", () => {
       { code: "sod_x", enforcedOn: "", description: "" },
     ]);
     expect((await listSeparationRules(db)).ok).toBe(false);
+  });
+
+  it("lists the stricter options with whether the org switched them on, and switches them (2280)", async () => {
+    const { db, calls } = commercialClient({
+      "from:separation_of_duties_options": [
+        okResponse([
+          {
+            code: "sod_document_creator",
+            tightens: "sod_approval_requester",
+            enforced_on: "Purchase orders",
+            description: "Whoever created it cannot approve it.",
+          },
+          {
+            code: "sod_receiver_po_approver",
+            tightens: null,
+            enforced_on: null,
+            description: null,
+          },
+          { code: null, tightens: null, enforced_on: null, description: null },
+        ]),
+        okResponse([]),
+      ],
+      "from:org_separation_of_duties_options": [
+        okResponse([{ rule_code: "sod_document_creator" }]),
+        denied(),
+      ],
+      "rpc:set_separation_of_duties_option": [
+        okResponse(true),
+        refused("separation_option_unknown"),
+        denied(),
+      ],
+    });
+    expect(await listSeparationOptions(db, "org-1")).toEqual({
+      ok: true,
+      data: [
+        {
+          code: "sod_document_creator",
+          tightens: "sod_approval_requester",
+          enforcedOn: "Purchase orders",
+          description: "Whoever created it cannot approve it.",
+          on: true,
+        },
+        {
+          code: "sod_receiver_po_approver",
+          tightens: "",
+          enforcedOn: "",
+          description: "",
+          on: false,
+        },
+      ],
+    });
+    expect((await listSeparationOptions(db, "org-1")).ok).toBe(false);
+    expect(await setSeparationOption(db, "org-1", "sod_document_creator", true)).toEqual({
+      ok: true,
+      data: null,
+    });
+    expect(calls.at(-1)?.steps).toContainEqual([
+      "args",
+      [{ p_org_id: "org-1", p_rule_code: "sod_document_creator", p_on: true }],
+    ]);
+    const builtIn = await setSeparationOption(db, "org-1", "sod_po_creator", false);
+    expect(!builtIn.ok && builtIn.error.kind === "refusal" && builtIn.error.rule).toBe(
+      "separation_option_unknown",
+    );
+    expect((await setSeparationOption(db, "org-1", "sod_document_creator", false)).ok).toBe(false);
   });
 
   it("lists targets and fields, creates and removes fields and adds choices", async () => {

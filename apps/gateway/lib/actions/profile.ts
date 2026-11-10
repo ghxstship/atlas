@@ -1,13 +1,28 @@
 "use server";
 
+import { Constants } from "@xos/data/database.types";
+import type { Database } from "@xos/data/database.types";
+import { isCountryCode } from "@xos/i18n/formats";
+import { notOfferedValues } from "@/lib/territory";
 import {
   addAvailabilityBlock,
   APP_ENUMS,
   createAvailabilityCalendar,
   createExternalAccount,
   endAccountMembership,
+  RATING_SHARING_NOTICE_VERSION,
   removeAvailabilityBlock,
+  setRatingSharing,
 } from "@xos/data/gateway";
+import {
+  fetchProfilePhoto,
+  isBadgePhotoBytes,
+  myProfilePhotoPath,
+  removeCredentialPhotoObjects,
+  storeMyCredentialPhoto,
+  withdrawMyCredentialPhotos,
+} from "@xos/data/credential-photos";
+import { answerAvailabilityPoll } from "@xos/data/crew/availability-polls";
 import { updateMyName } from "@xos/data/identity";
 import {
   addCertification,
@@ -24,7 +39,7 @@ import {
 } from "@xos/data/profiles";
 import { z } from "zod";
 import type { SimpleFormState } from "@/components/forms/simple-form";
-import { outcomeFor, toAction, type ActionResult } from "@/lib/action-result";
+import { outcomeFor, refusalOutcome, toAction, type ActionResult } from "@/lib/action-result";
 import { parseMoneyInput } from "@/lib/format";
 import { getGatewayContext } from "@/lib/shell/context";
 
@@ -78,6 +93,25 @@ export async function saveProfileAction(
     rateCurrency: rateMinor === null ? null : currency || "USD",
     rateUnit: rateMinor === null ? null : rateUnit.success ? rateUnit.data : "Day",
   });
+  return result.ok ? { done: true } : { outcome: outcomeFor(result.error) };
+}
+
+/**
+ * The person's own choice to show every rating of them on their profile (ADR 0158). Turning it on records the notice
+ * version the page rendered with the form. A page older than the current notice is refused, so a record never names a
+ * notice the person did not see. Turning it off takes effect at once, from any page.
+ */
+export async function saveRatingSharingAction(
+  _: SimpleFormState,
+  form: FormData,
+): Promise<SimpleFormState> {
+  const ctx = await ctxOr();
+  const optIn = form.get("shareRatings") === "on";
+  const noticeVersion = text(form, "noticeVersion");
+  if (optIn && noticeVersion !== RATING_SHARING_NOTICE_VERSION) {
+    return { outcome: refusalOutcome("rating_sharing_notice") };
+  }
+  const result = await setRatingSharing(ctx.db, optIn, optIn ? noticeVersion : null);
   return result.ok ? { done: true } : { outcome: outcomeFor(result.error) };
 }
 
@@ -233,6 +267,33 @@ export async function removeAvailabilityAction(blockId: string): Promise<ActionR
   return toAction(await removeAvailabilityBlock(ctx.db, z.uuid().parse(blockId)));
 }
 
+/**
+ * Answers an availability poll an org sent (P8, 6123): one field per day, named `day:YYYY-MM-DD`, each Available,
+ * Tentative or Unavailable, or left blank. The answers go on the person's calendar kept for that org; a day the org's
+ * notice lock already holds comes back unwritten, and a closed poll is refused.
+ */
+export async function answerAvailabilityPollAction(
+  _: SimpleFormState,
+  form: FormData,
+): Promise<SimpleFormState> {
+  const ctx = await ctxOr();
+  const pollId = z.uuid().safeParse(text(form, "pollId"));
+  const kind = z.enum(Constants.app.Enums.availability_kind);
+  const answers: { day: string; kind: Database["app"]["Enums"]["availability_kind"] }[] = [];
+  for (const [name, value] of form.entries()) {
+    const day = /^day:(\d{4}-\d{2}-\d{2})$/.exec(name)?.[1];
+    if (!day || typeof value !== "string" || value === "") continue;
+    const parsed = kind.safeParse(value);
+    if (!parsed.success) return { fieldError: "availabilityAnswer" };
+    answers.push({ day, kind: parsed.data });
+  }
+  if (!pollId.success || answers.length === 0 || answers.length > 31) {
+    return { fieldError: "availabilityAnswer" };
+  }
+  const result = await answerAvailabilityPoll(ctx.db, { pollId: pollId.data, answers });
+  return result.ok ? { done: true } : { outcome: outcomeFor(result.error) };
+}
+
 export async function saveNameAction(_: SimpleFormState, form: FormData): Promise<SimpleFormState> {
   const ctx = await ctxOr();
   const name = text(form, "fullName");
@@ -256,8 +317,17 @@ export async function createAccountAction(
   ) {
     return { fieldError: "account" };
   }
-  const result = await createExternalAccount(ctx.db, { name, slug });
-  return result.ok ? { done: true } : { outcome: outcomeFor(result.error) };
+  const countryCode = text(form, "countryCode");
+  if (!isCountryCode(countryCode)) return { fieldError: "accountCountry" };
+  const result = await createExternalAccount(ctx.db, { name, slug, countryCode });
+  if (result.ok) return { done: true };
+  if (result.error.kind === "refusal" && result.error.rule === "territory_not_offered") {
+    return {
+      fieldError: "territory_not_offered",
+      fieldValues: await notOfferedValues(countryCode),
+    };
+  }
+  return { outcome: outcomeFor(result.error) };
 }
 
 export async function leaveAccountAction(membershipId: string): Promise<ActionResult> {
@@ -295,4 +365,64 @@ export async function saveCompanyProfileAction(
     searchIndexing: form.get("searchIndexing") === "on",
   });
   return result.ok ? { done: true } : { outcome: outcomeFor(result.error) };
+}
+
+// Badge photos (P5) --------------------------------------------------------------------------------
+
+const ORG_ID = z.uuid();
+
+/**
+ * The holder saves the photo they cropped in Gateway (badge-photo-upload.tsx) as their badge photo for one org:
+ * a JPEG or PNG of at most 2 MiB, uploaded into their own folder and recorded with their consent (5822).
+ */
+export async function uploadBadgePhotoAction(orgId: string, form: FormData): Promise<ActionResult> {
+  const ctx = await ctxOr();
+  if (!ORG_ID.safeParse(orgId).success) return { ok: false, outcome: "invalid" };
+  const file = form.get("photo");
+  if (!(file instanceof Blob)) return { ok: false, outcome: "invalid" };
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  if (!isBadgePhotoBytes(bytes)) return { ok: false, outcome: "invalid" };
+  return toAction(
+    await storeMyCredentialPhoto(ctx.db, {
+      orgId,
+      personId: ctx.personId,
+      bytes,
+      source: "Holder Upload",
+    }),
+  );
+}
+
+/**
+ * "Use my profile photo": a copy of the holder's own profile photo becomes their badge photo for the org. The bytes
+ * come from its public URL on the same project (profile-media has no select policy, 0860) and are checked again for
+ * the 2 MiB cap and the JPEG or PNG signature before they are stored.
+ */
+export async function chooseProfilePhotoAction(orgId: string): Promise<ActionResult> {
+  const ctx = await ctxOr();
+  if (!ORG_ID.safeParse(orgId).success) return { ok: false, outcome: "invalid" };
+  const path = await myProfilePhotoPath(ctx.db, ctx.personId);
+  const bytes = path ? await fetchProfilePhoto(ctx.db, path) : null;
+  if (!bytes) return { ok: false, outcome: "invalid" };
+  return toAction(
+    await storeMyCredentialPhoto(ctx.db, {
+      orgId,
+      personId: ctx.personId,
+      bytes,
+      source: "Holder Profile Photo",
+    }),
+  );
+}
+
+/** "Remove": the holder withdraws their badge photo and consent for the org, and every object of theirs goes. */
+export async function removeBadgePhotoAction(orgId: string): Promise<ActionResult> {
+  const ctx = await ctxOr();
+  if (!ORG_ID.safeParse(orgId).success) return { ok: false, outcome: "invalid" };
+  const withdrawn = await withdrawMyCredentialPhotos(ctx.db, orgId);
+  if (!withdrawn.ok) return toAction(withdrawn);
+  return toAction(
+    await removeCredentialPhotoObjects(
+      ctx.db,
+      withdrawn.data.map((p) => p.photoPath),
+    ),
+  );
 }

@@ -61,6 +61,25 @@ export async function asPerson<T extends Record<string, unknown>>(
   }
 }
 
+/**
+ * Offers one offering on a project, as the demo Owner (R3, owner decision 7): offerings default to
+ * Not Offered and Gateway shows the Travel and lodging, Per diem, Hospitality and Guest list tabs
+ * only where one is offered. Journeys that open one of those tabs set it first, so they never lean
+ * on the seed. Returns the value id.
+ */
+export async function offer(
+  key: `offerings.${string}`,
+  project: string = PROJECT,
+  mode: "provided" | "not-offered" = "provided",
+): Promise<string> {
+  const [row] = await asPerson<{ id: string }>(
+    PEOPLE.owner,
+    `select app.set_setting($1, $2, 'Project', $3, $4, null, null, false) as id`,
+    [DEMO.org, key, project, mode],
+  );
+  return row?.id as string;
+}
+
 /** A lifecycle move through private.transition_lifecycle, as the demo Owner. */
 export async function transition(
   entity: string,
@@ -790,6 +809,13 @@ export async function newSignIn(email: string, fullName: string): Promise<string
       where u.id = p.user_id and u.email = $1 returning p.id`,
     [email],
   );
+  // Answered as a sign-up form records it (ADR 0156): an account that never did is asked before any page.
+  await sql(
+    `insert into private.age_confirmations (person_id, user_id, minimum_age, surface)
+     select p.id, p.user_id, 18, 'Gateway' from app.people p join auth.users u on u.id = p.user_id where u.email = $1
+     on conflict do nothing`,
+    [email],
+  );
   return person?.id as string;
 }
 
@@ -842,6 +868,13 @@ export async function externalAccountWithHistory(): Promise<{
      values ($1, 'Organization', 5, 'Truss arrived early and every piece was inspected.')`,
     [engagementId],
     PEOPLE.owner,
+  );
+  // Answered as a sign-up form records it, after the person takes the user's id (ADR 0156).
+  await sql(
+    `insert into private.age_confirmations (person_id, user_id, minimum_age, surface)
+     select p.id, p.user_id, 18, 'Gateway' from app.people p join auth.users u on u.id = p.user_id where u.email = $1
+     on conflict do nothing`,
+    [email],
   );
   return { email, accountId, name, slug, engagementId };
 }

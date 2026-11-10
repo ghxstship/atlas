@@ -1,17 +1,44 @@
 "use server";
 
 import type { DataError, Result } from "@xos/data";
-import { addGuest, checkInGuest, decideGuest, removeGuest, updateGuest } from "@xos/data/advancing";
+import {
+  addGuest,
+  checkInGuest,
+  decideGuest,
+  guestEmailSendSummary,
+  queueGuestEmails,
+  removeGuest,
+  updateGuest,
+  updateGuestPass,
+  type GuestEmailSummary,
+  type GuestPassInput,
+} from "@xos/data/advancing";
+import { Constants } from "@xos/data/database.types";
+import {
+  clearGuestNeeds,
+  readGuestNeeds,
+  setGuestNeeds,
+  type GuestNeeds,
+} from "@xos/data/sensitive-consent";
+import {
+  guestNeedsCsv,
+  parseGuestNeedsForm,
+  workDetailErrorKey,
+} from "@xos/data/work-details-forms";
+import { getLocale } from "next-intl/server";
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { z } from "zod";
+import { clientIp } from "@/lib/auth/legal";
 import { getOrgContext } from "@/lib/shell/context";
 import type { AdvancingState } from "./actions";
 import { KNOWN_ERRORS } from "./errors";
 
 /**
  * Guest list actions (0431). The database decides every move: review authority and
- * sod_guest_requester for decisions, Approved before Checked In, a decided guest keeps its guest.
+ * sod_guest_requester for decisions, Approved before Checked In, a decided guest keeps its guest. B8 (6254, 6255): the
+ * pass fields (an Access category of the project, the host a project person, kept once checked in) and bulk emails.
  */
 
 async function contextFor(form: FormData) {
@@ -61,6 +88,42 @@ function read(form: FormData) {
   };
 }
 
+const optionalId = z
+  .string()
+  .trim()
+  .transform((v) => (v.length === 0 ? null : v))
+  .pipe(z.uuid().nullable());
+
+const passFields = z.object({
+  passCategoryId: optionalId,
+  hostPersonId: optionalId,
+  tableLabel: z
+    .string()
+    .trim()
+    .max(60)
+    .transform((v) => (v.length === 0 ? null : v)),
+  guestEmail: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .max(320)
+    .transform((v) => (v.length === 0 ? null : v))
+    .pipe(z.email().nullable()),
+});
+
+function readPass(form: FormData) {
+  const text = (key: string) => {
+    const value = form.get(key);
+    return typeof value === "string" ? value : "";
+  };
+  return {
+    passCategoryId: text("passCategoryId"),
+    hostPersonId: text("hostPersonId"),
+    tableLabel: text("tableLabel"),
+    guestEmail: text("guestEmail"),
+  };
+}
+
 function fieldErrors(error: z.ZodError): AdvancingState {
   const fields = new Set(error.issues.map((i) => String(i.path[0])));
   return { fieldErrors: Object.fromEntries([...fields].map((f) => [f, f])) };
@@ -70,8 +133,10 @@ export async function addGuestAction(_: AdvancingState, form: FormData): Promise
   const ctx = await contextFor(form);
   const projectId = id.safeParse(form.get("projectId"));
   const guest = guestFields.safeParse(read(form));
+  const pass = passFields.safeParse(readPass(form));
   if (!projectId.success) return { error: "invalid" };
   if (!guest.success) return fieldErrors(guest.error);
+  if (!pass.success) return fieldErrors(pass.error);
   return done(
     ctx.org.slug,
     await addGuest(ctx.viewer.db, {
@@ -79,8 +144,75 @@ export async function addGuestAction(_: AdvancingState, form: FormData): Promise
       projectId: projectId.data,
       approve: form.get("approve") === "true",
       ...guest.data,
+      pass: pass.data as GuestPassInput,
     }),
   );
+}
+
+/** Sets a guest's pass type, table, host and email, in any state but Checked In (6254). */
+export async function updateGuestPassAction(
+  _: AdvancingState,
+  form: FormData,
+): Promise<AdvancingState> {
+  const ctx = await contextFor(form);
+  const guestId = id.safeParse(form.get("guestId"));
+  const pass = passFields.safeParse(readPass(form));
+  if (!guestId.success) return { error: "invalid" };
+  if (!pass.success) return fieldErrors(pass.error);
+  return done(
+    ctx.org.slug,
+    await updateGuestPass(ctx.viewer.db, guestId.data, pass.data as GuestPassInput),
+  );
+}
+
+export type GuestEmailState = AdvancingState & { readonly summary?: GuestEmailSummary };
+
+/**
+ * Queues an email to the chosen guests (app.queue_guest_emails, advancing.rider.write) and answers the send's counts:
+ * queued, suppressed by the org's list, and skipped with the reason.
+ */
+export async function sendGuestEmailAction(
+  _: GuestEmailState,
+  form: FormData,
+): Promise<GuestEmailState> {
+  const ctx = await contextFor(form);
+  const parsed = z
+    .object({
+      projectId: id,
+      guestIds: z.array(id).min(1).max(500),
+      kind: z.enum(Constants.app.Enums.guest_email_kind),
+      subject: z.string().trim().max(150),
+      body: z.string().trim().max(5000),
+      locale: z.enum(["en-US", "es-US"]),
+    })
+    .safeParse({
+      projectId: form.get("projectId"),
+      guestIds: form.getAll("guestId"),
+      kind: form.get("kind"),
+      subject: form.get("subject") ?? "",
+      body: form.get("body") ?? "",
+      locale: form.get("locale"),
+    });
+  if (!parsed.success) {
+    return parsed.error.issues.some((i) => i.path[0] === "guestIds")
+      ? { error: "guest_email_batch" }
+      : { error: "guest_email_message" };
+  }
+  const { kind, subject, body } = parsed.data;
+  if (kind === "Message" && (subject === "" || body === ""))
+    return { error: "guest_email_message" };
+  const queued = await queueGuestEmails(ctx.viewer.db, {
+    projectId: parsed.data.projectId,
+    guestIds: parsed.data.guestIds,
+    kind,
+    subject: kind === "Message" ? subject : null,
+    body: body === "" ? null : body,
+    locale: parsed.data.locale,
+  });
+  if (!queued.ok) return { error: errorKey(queued.error) };
+  const summary = await guestEmailSendSummary(ctx.viewer.db, queued.data.sendId);
+  revalidatePath(`/${ctx.org.slug}`, "layout");
+  return summary.ok ? { ok: true, summary: summary.data } : { ok: true };
 }
 
 export async function updateGuestAction(
@@ -118,4 +250,65 @@ export async function removeGuestAction(
   const guestId = id.safeParse(form.get("guestId"));
   if (!guestId.success) return { error: "invalid" };
   return done(ctx.org.slug, await removeGuest(ctx.viewer.db, guestId.data));
+}
+
+// A guest's dietary and access needs (ADR 0164) ------------------------------------------------------------------------
+
+export interface GuestNeedsFormState {
+  readonly error?: string;
+  readonly fieldErrors?: Readonly<Record<string, string>>;
+  readonly ok?: boolean;
+}
+
+/** Sets a guest's needs under the keeper's attestation; the database refuses it without both statements. */
+export async function setGuestNeedsAction(
+  _: GuestNeedsFormState,
+  form: FormData,
+): Promise<GuestNeedsFormState> {
+  const ctx = await contextFor(form);
+  const parsed = parseGuestNeedsForm(form);
+  if (!parsed.ok) return { fieldErrors: Object.fromEntries(parsed.fields.map((f) => [f, f])) };
+  const result = await setGuestNeeds(ctx.viewer.db, {
+    ...parsed.value,
+    locale: await getLocale(),
+    surface: "Atlas",
+    clientIp: clientIp(await headers()),
+  });
+  if (!result.ok) return { error: workDetailErrorKey(result.error) };
+  revalidatePath(`/${ctx.org.slug}`, "layout");
+  return { ok: true };
+}
+
+export async function clearGuestNeedsAction(
+  _: GuestNeedsFormState,
+  form: FormData,
+): Promise<GuestNeedsFormState> {
+  const ctx = await contextFor(form);
+  const guestId = id.safeParse(form.get("guestId"));
+  if (!guestId.success) return { error: "invalid" };
+  const result = await clearGuestNeeds(ctx.viewer.db, guestId.data);
+  if (!result.ok) return { error: workDetailErrorKey(result.error) };
+  revalidatePath(`/${ctx.org.slug}`, "layout");
+  return { ok: true };
+}
+
+export type GuestNeedsRead =
+  | { readonly ok: true; readonly rows: readonly GuestNeeds[]; readonly csv: string }
+  | { readonly ok: false };
+
+/** The guests' needs for a holder of the medical capability on the project; the database logs each read. */
+export async function readGuestNeedsAction(
+  org: string,
+  projectId: string,
+  forExport: boolean,
+): Promise<GuestNeedsRead> {
+  const ctx = await getOrgContext(org);
+  if (!ctx || !id.safeParse(projectId).success) return { ok: false };
+  const result = await readGuestNeeds(ctx.viewer.db, projectId, forExport);
+  if (!result.ok) return { ok: false };
+  return {
+    ok: true,
+    rows: result.data,
+    csv: forExport ? guestNeedsCsv(result.data) : "",
+  };
 }

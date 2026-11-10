@@ -23,22 +23,31 @@ import {
 } from "@xos/ui";
 import type { Route } from "next";
 import NextLink from "next/link";
+import { useTranslations } from "next-intl";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState, type ReactNode } from "react";
 import { useAssetsCopy } from "./copy";
 import { CreateDialogContext } from "./dialog";
 import { CollectionViews } from "@/components/views/collection-views";
+import type { FilterField } from "@/components/views/filter-model";
+import { isConditionParam, type FilterPreset } from "@/lib/views/query";
+import { useCustomFieldColumns } from "@/components/custom-fields/list";
+import type { CustomFieldColumns } from "@/components/custom-fields/columns";
+import type { CustomFieldListView } from "@/lib/custom-fields/types";
 import type { BulkConfig } from "@/components/bulk/types";
 import { useBulk } from "@/components/bulk/use-bulk";
 import { useHoverCards } from "@/components/hover/use-hover-cards";
 import { useRowMenu } from "@/components/menus/use-row-menu";
 import { displayKey, keyedTitle } from "@/lib/assets/views";
+import { builtInViewEntries } from "@/lib/assets/built-in-views";
 
 /** One row of an assets collection, already shaped for every view the page offers. */
 export interface CollectionRow {
   readonly key: string;
   /** The row's id, for bulk edit; rows without one are not selectable. */
   readonly id?: string;
+  /** The row's updated_at as read, which a bulk change is sent against (Section 11.7). */
+  readonly version?: string;
   /** Value of `?peek=` that opens this row; rows without one do not open. */
   readonly peek?: string;
   /** The short human key shown in the key column (an asset tag); a row id is never shown (A59-009). */
@@ -74,6 +83,16 @@ export interface CollectionProps {
   readonly today?: string;
   /** Options of the state filter, when the page has one. */
   readonly filterOptions?: readonly ViewOption[];
+  /**
+   * Fields the Add filter control offers beside the custom fields (A117), which the page's loader applies on
+   * stored values (`f.<key>` conditions).
+   */
+  readonly filterFields?: readonly FilterField[];
+  /**
+   * Built-in views (R7a, G-96): presets of those fields' conditions, listed first in the saved views menu. No one
+   * edits or deletes them; a person saves a copy as their own saved view.
+   */
+  readonly presets?: readonly FilterPreset[];
   /** The one primary action: its label and the dialog it opens (a form using CreateDialogContext). */
   readonly create?: { label: string; dialog: ReactNode } | null;
   /**
@@ -89,6 +108,8 @@ export interface CollectionProps {
    * `id`.
    */
   readonly bulk?: BulkConfig | null;
+  /** The table's filterable custom fields (A117): columns, and fields the Add filter control offers. */
+  readonly customFields?: CustomFieldListView | null;
 }
 
 /** Views that hold no records to select, open a menu on or preview. */
@@ -111,6 +132,7 @@ interface Items {
  */
 export function AssetsCollection(props: CollectionProps) {
   const t = useAssetsCopy();
+  const tViews = useTranslations("views");
   const router = useRouter();
   const pathname = usePathname();
   const search = useSearchParams();
@@ -131,12 +153,22 @@ export function AssetsCollection(props: CollectionProps) {
   };
   const byKey = new Map(props.rows.map((r) => [r.key, r]));
   const byItem = new Map(props.rows.map((r) => [itemOf(r), r]));
-  const filtered = Boolean(search.get("q") || search.get("filter"));
+  // The Add filter control's conditions (A117) count as filters, and Clear removes them too.
+  const conditions = [...search.keys()].filter(isConditionParam);
+  const filtered = Boolean(search.get("q") || search.get("filter") || conditions.length > 0);
+  const clear = () => {
+    setQ("");
+    go({ q: null, filter: null, ...Object.fromEntries(conditions.map((name) => [name, null])) });
+  };
   const refs = useMemo(
-    () => props.rows.flatMap((r) => (r.id ? [{ id: r.id, label: r.title }] : [])),
+    () =>
+      props.rows.flatMap((r) =>
+        r.id ? [{ id: r.id, label: r.title, ...(r.version ? { version: r.version } : {}) }] : [],
+      ),
     [props.rows],
   );
   const bulkKit = useBulk(NOT_ITEMS.has(props.view) ? null : props.bulk, refs);
+  const custom = useCustomFieldColumns(props.customFields ?? null);
   const { selection, bar } = bulkKit;
   const rowMenu = useRowMenu();
   // A row's menu and hover card, the same in every view (Section 11.7).
@@ -169,6 +201,31 @@ export function AssetsCollection(props: CollectionProps) {
     };
   });
 
+  // The built-in views (G-96) head the saved views menu; the page works out which is on screen.
+  const builtIn = props.presets
+    ? builtInViewEntries(
+        props.presets,
+        new URLSearchParams(search.toString()),
+        props.view,
+        props.views.map((v) => v.value),
+      )
+    : [];
+  const leading =
+    builtIn.length > 0
+      ? {
+          items: [
+            { heading: tViews("menu.builtIn") },
+            ...builtIn.map((b) => ({
+              label: b.preset.name,
+              icon: "Filter" as const,
+              active: b.active,
+              onSelect: () => router.replace(`${pathname}?${b.query}` as Route, { scroll: false }),
+            })),
+          ],
+          current: builtIn.find((b) => b.active)?.preset.name,
+        }
+      : undefined;
+
   const header = (
     <PageHeader
       title={props.title}
@@ -180,6 +237,9 @@ export function AssetsCollection(props: CollectionProps) {
             value={props.view}
             options={props.views.map((v) => ({ value: v.value, label: v.label }))}
             onChange={(view) => go({ view })}
+            customFields={props.customFields ?? null}
+            {...(props.filterFields ? { fields: props.filterFields } : {})}
+            {...(leading ? { leading } : {})}
           />
         ) : null
       }
@@ -228,14 +288,7 @@ export function AssetsCollection(props: CollectionProps) {
           {t("collection.apply")}
         </Button>
         {filtered ? (
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={() => {
-              setQ("");
-              go({ q: null, filter: null });
-            }}
-          >
+          <Button type="button" variant="ghost" onClick={clear}>
             {t("collection.clear")}
           </Button>
         ) : null}
@@ -262,14 +315,14 @@ export function AssetsCollection(props: CollectionProps) {
         icon="SearchX"
         sentence={t("collection.noMatches")}
         actionLabel={t("collection.clear")}
-        onAction={() => {
-          setQ("");
-          go({ q: null, filter: null });
-        }}
+        onAction={clear}
       />
     );
   } else {
-    const view = renderView(props, t, open, byKey, { selection, menuFor });
+    const view = renderView(withCustomColumns(props, custom), t, open, byKey, {
+      selection,
+      menuFor,
+    });
     body = (
       <>
         {NOT_ITEMS.has(props.view) ? view : <div {...hover.hoverProps}>{view}</div>}
@@ -316,6 +369,16 @@ export function AssetsCollection(props: CollectionProps) {
       ) : null}
     </TemplateCollection>
   );
+}
+
+/** The props with the custom field columns after the page's own (A117). */
+function withCustomColumns(props: CollectionProps, custom: CustomFieldColumns): CollectionProps {
+  if (custom.columns.length === 0) return props;
+  return {
+    ...props,
+    columns: [...props.columns, ...custom.columns],
+    rows: props.rows.map((r) => ({ ...r, cells: { ...r.cells, ...custom.cells(r.id ?? "") } })),
+  };
 }
 
 /** The row a view names by its item id. */

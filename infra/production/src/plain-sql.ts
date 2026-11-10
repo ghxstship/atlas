@@ -1,5 +1,5 @@
 /**
- * Turns remove-demo-data.sql, a psql script, into plain SQL for `supabase db query --linked`, which reaches the
+ * Turns remove-demo-data.sql, a psql script, into plain SQL for `supabase db query --remote`, which reaches the
  * hosted database through the CLI's own login and needs neither the database password nor the service role key.
  *
  * psql meta-commands have no meaning there, so the transform resolves them for one mode up front:

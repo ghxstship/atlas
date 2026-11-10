@@ -101,6 +101,19 @@ export const EXTERNAL_ROLE_TYPES = [
 ] as const;
 export type ExternalRoleType = (typeof EXTERNAL_ROLE_TYPES)[number];
 
+/**
+ * Gateway engagement tab sets: one per external role type, then roster-member (R8, ADR 0100) for a
+ * person who reaches an engagement only through an Accepted roster entry, and roster-staff (R12, ADR 0100
+ * amendment) for one on a staffing agency's Staff engagement, who also trains, works shifts and keeps
+ * timesheets. Neither is a role type: they never appear in audience.roleTypes or the Compass audiences.
+ */
+export const ENGAGEMENT_TAB_SET_KEYS = [
+  ...EXTERNAL_ROLE_TYPES,
+  "roster-member",
+  "roster-staff",
+] as const;
+export type EngagementTabSetKey = (typeof ENGAGEMENT_TAB_SET_KEYS)[number];
+
 /** Gateway visibility keys: a person without a company account, then the four account roles. */
 export const GATEWAY_ACCOUNT_ROLES = [
   "individual",
@@ -142,6 +155,7 @@ export const VIEW_TYPES = [
   "matrix",
   "org-chart",
   "chart",
+  "heatmap",
   "feed",
   "inbox",
   "split",
@@ -203,6 +217,19 @@ export const CONDITIONS = [
   // Gateway: the person does paid work (not only client or sponsor engagements), so payout, tax
   // and work details apply to them (finding A59-033).
   "paid-work",
+  // Gateway, per engagement, from api_external.engagement_offerings (R3, owner decision 7): the producing org offers
+  // travel or lodging, per diem, hospitality (catering, lodging or travel) or a guest list on the engagement.
+  "offered-travel-or-lodging",
+  "offered-per-diem",
+  "offered-hospitality",
+  "offered-guest-list",
+  // Gateway, per engagement (R5, ADR 0100): the producing org offers travel, uniforms or parking on the engagement, so
+  // the person enters project facts for it.
+  "offered-project-facts",
+  // Gateway, per engagement (R4, ADR 0101): the caller manages the engagement's crew roster: its roster area is open to
+  // them (the artist on an Artist engagement, the account's Owner or Admin, an Advancing Lead, an Advance
+  // representative; never the worker a company engagement names) and it is rosterable.
+  "roster-manager",
 ] as const;
 export type Condition = (typeof CONDITIONS)[number];
 

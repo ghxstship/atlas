@@ -5,7 +5,11 @@ import { Button } from "../Button/Button.tsx";
 import { chipClass } from "../Chips/Chips.tsx";
 import { type Filter, type FilterBuilderProps } from "./Editing.types.ts";
 
-/** Filters as chips: each opens its editor, removes with its button, and the set saves as a view. */
+/**
+ * Filters as chips: each opens its editor, removes with its button, and the set saves as a view. Add
+ * filter is the target of the shell's Open the filters shortcut (data-shortcut="view.filters",
+ * lib/shortcut-targets.ts).
+ */
 export function FilterBuilder({
   filters,
   addLabel,
@@ -44,7 +48,13 @@ export function FilterBuilder({
           </button>
         </span>
       ))}
-      <Button size="sm" variant="ghost" icon="ListFilter" onClick={onAdd}>
+      <Button
+        size="sm"
+        variant="ghost"
+        icon="ListFilter"
+        onClick={onAdd}
+        data-shortcut="view.filters"
+      >
         {addLabel ?? t("filter.add")}
       </Button>
       {current.length ? (

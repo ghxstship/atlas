@@ -39,6 +39,13 @@ describe("no Gateway settings section renders only an empty state (A65-004)", ()
     expect(empty, "sections with nothing to show").toEqual([]);
   });
 
+  it("never offers an Atlas dashboard layout, which is arranged on its dashboard (A129)", () => {
+    const keys = personalSettings("settings.preferences").map((s) => s.key);
+    expect(keys).not.toContain("me.dashboard_layout.home");
+    expect(keys).not.toContain("me.dashboard_layout.partner");
+    expect(keys).toContain("me.time_zone_display");
+  });
+
   it("has no section that only points elsewhere", () => {
     expect(sections).not.toMatch(/function NoteSection|<NoteSection/);
   });

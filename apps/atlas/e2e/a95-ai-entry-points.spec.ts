@@ -240,8 +240,12 @@ test("drafting: an SOP and an advance packet section are drafted into their edit
   test.skip(!open, "The demo seed has no unsent advance packet.");
   await page.goto(`/${ORG}/advancing/packets?peek=${open?.id ?? ""}&full=1`);
   const sections = page.locator('section[aria-labelledby="packet-sections"]');
-  await sections.getByRole("button", { name: "Draft with Aurora" }).click();
   const section = page.getByRole("dialog", { name: "Draft a section with Aurora" });
+  // The packet page is long and hydrates after it paints; a click before that opens nothing.
+  await expect(async () => {
+    await sections.getByRole("button", { name: "Draft with Aurora" }).click();
+    await expect(section).toBeVisible({ timeout: 2_000 });
+  }).toPass({ timeout: 60_000 });
   await expect(section.getByText(/^Sent: /).first()).toBeVisible();
   await section.getByLabel("What should the draft say?").fill("Ask for hospitality needs");
   await section.getByRole("button", { name: "Send to Aurora" }).click();
@@ -291,10 +295,22 @@ test("drafting: a day sheet's body is drafted with Aurora and written only by th
   expect(((await saved.json()) as { body: string }).body).toMatch(/^1\. Load-in at 07:00/);
 });
 
+/**
+ * Opens the Summarize panel. Overview and a record page paint before they hydrate, and a click before that opens
+ * nothing (CI run 42726063468 found the record page's button clicked with no dialog for a minute), so it clicks
+ * until the panel shows.
+ */
+async function openSummary(dialog: ReturnType<Page["getByRole"]>): Promise<void> {
+  await expect(async () => {
+    await page.getByRole("button", { name: "Summarize" }).click();
+    await expect(dialog).toBeVisible({ timeout: 2_000 });
+  }).toPass({ timeout: 60_000 });
+}
+
 test("summaries: gate readiness on project Overview and a record's activity, each point cited", async () => {
   await page.goto(`/${ORG}/p/NWS/overview`);
-  await page.getByRole("button", { name: "Summarize" }).click();
   const panel = page.getByRole("dialog", { name: "Summarize with Aurora" });
+  await openSummary(panel);
   await expect(panel.getByRole("radio", { name: "This week" })).toBeChecked();
   await panel.getByRole("radio", { name: "Gate readiness" }).check();
   await expect(panel.getByText(/^Sent: gate_readiness$/)).toBeVisible();
@@ -306,8 +322,8 @@ test("summaries: gate readiness on project Overview and a record's activity, eac
   await panel.getByRole("button", { name: "Close" }).first().click();
 
   await page.goto(`/${ORG}/r/NWS-12`);
-  await page.getByRole("button", { name: "Summarize" }).click();
   const record = page.getByRole("dialog", { name: "Summarize with Aurora" });
+  await openSummary(record);
   await expect(record.getByText(/^NWS-12 /).first()).toBeVisible();
   await record.getByRole("button", { name: "Send to Aurora" }).click();
   await expect(record.getByText("AI-generated")).toBeVisible();

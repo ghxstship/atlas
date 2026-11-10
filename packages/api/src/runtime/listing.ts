@@ -13,8 +13,9 @@
 import { badRequest } from "../problem.ts";
 import { decodeCursor, pageSize, selectColumns, toPage } from "./pagination.ts";
 import type { Cursor, CursorValue, Page } from "./pagination.ts";
+import type { Database } from "@xos/data/database.types";
 
-type FilterOp = "eq" | "ne" | "lt" | "lte" | "gt" | "gte" | "in" | "is_null" | "contains";
+type FilterOp = Database["app"]["Enums"]["filter_operator"];
 
 export type FilterValue = Partial<Record<FilterOp, string>>;
 export type Filter = Readonly<Record<string, FilterValue>>;
@@ -152,6 +153,8 @@ export interface ListQuery {
   readonly fields?: string;
   readonly sort?: string;
   readonly filter?: Filter;
+  /** Archived rows of an archivable resource (A124): absent leaves them out. */
+  readonly archived?: "include" | "only";
 }
 
 /** Runs a list query and returns one cursor page, with sparse fieldsets applied. */

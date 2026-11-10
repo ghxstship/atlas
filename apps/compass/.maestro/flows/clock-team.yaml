@@ -1,0 +1,89 @@
+appId: pro.ghxstship.compass
+# Clock in team (R12, G-126): scripts/clock-team.js makes a staffing agency whose two staff the agency's lead placed
+# on two shifts of today on the demo project. Signed in as the lead, Today opens Clock in team; the lead selects both,
+# goes offline and clocks them in; the team punch waits on the device as one change and, after reconnecting, both show
+# In. When the flow completes, scripts/clock-team-cleanup.js clocks them out and closes the run's shifts and engagement.
+# Named after its file: config.yaml orders flows by name.
+name: clock-team
+tags:
+  - airplane-mode
+onFlowComplete:
+  - runScript:
+      file: ../scripts/clock-team-cleanup.js
+---
+- runScript:
+    file: ../scripts/clock-team.js
+- assertTrue:
+    condition: ${output.team.status === "ok"}
+    label: The agency fixture was built (${output.team.status})
+- runFlow:
+    file: ../subflows/sign-in.yaml
+    env:
+      EMAIL: ${output.team.email}
+# Pier Site, the demo project's venue geofence (seed 0109): the team is punched in at the lead's position.
+- setLocation:
+    latitude: 25.7752
+    longitude: -80.1855
+- extendedWaitUntil:
+    visible:
+      id: "today-clock-team"
+    timeout: 60000
+- tapOn:
+    id: "today-clock-team"
+- extendedWaitUntil:
+    visible: "Maestro Staff One"
+    timeout: 30000
+- assertVisible: "Maestro Staff Two"
+- tapOn:
+    id: "clock-team-select-all"
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - setAirplaneMode: enabled
+      - extendedWaitUntil:
+          visible:
+            id: "sync-offline"
+          timeout: 15000
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - runScript:
+          file: ../scripts/network.js
+          env:
+            STEP: offline
+      - assertTrue: ${output.network.ok}
+- tapOn:
+    id: "clock-team-primary"
+# One team punch waits on the device for the whole selection.
+- extendedWaitUntil:
+    visible: "1 change waiting to upload"
+    timeout: 15000
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - setAirplaneMode: disabled
+      - extendedWaitUntil:
+          notVisible:
+            id: "sync-offline"
+          timeout: 30000
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - runScript:
+          file: ../scripts/network.js
+          env:
+            STEP: online
+      - assertTrue: ${output.network.ok}
+- extendedWaitUntil:
+    notVisible:
+      id: "sync-queued"
+    timeout: 90000
+# Both are In, and the primary action now clocks them out.
+- assertVisible:
+    text: "In"
+    index: 1
+- assertVisible: "Clock out"

@@ -4,7 +4,10 @@ import { TransitionButton } from "./kit-transition-button";
 import { useFinanceT } from "./kit-use-finance-t";
 import { type Lifecycle } from "./kit.types";
 
-/** The transitions a state allows, as buttons; approvals lead as the primary action. */
+/**
+ * The transitions a state allows, as buttons; approvals lead as the primary action. The group is the
+ * record's Change state shortcut target (data-shortcut="record.state"): the key focuses the first.
+ */
 export function TransitionBar({
   org,
   lifecycle,
@@ -27,7 +30,13 @@ export function TransitionBar({
         ? "danger"
         : "secondary";
   return (
-    <div role="group" aria-label={t("common.actions")} className="flex flex-wrap gap-8">
+    <div
+      role="group"
+      aria-label={t("common.actions")}
+      data-shortcut="record.state"
+      data-shortcut-focus=""
+      className="flex flex-wrap gap-8"
+    >
       {allowed.map((next) => (
         <TransitionButton
           key={next}

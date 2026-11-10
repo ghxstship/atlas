@@ -1,5 +1,6 @@
 import type { Database, XosClient } from "./client.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
+import * as enums from "./enums.generated.ts";
 
 /**
  * Support tickets (Section 11.16, migration 0643). Members ask their own org's admins (Organization
@@ -15,20 +16,8 @@ export type SupportSeverity = Enums["support_severity"];
 export type SupportCategory = Enums["support_category"];
 export type SupportChannel = Enums["support_channel"];
 
-export const SUPPORT_CATEGORIES: readonly SupportCategory[] = [
-  "Question",
-  "Problem",
-  "Access",
-  "Billing",
-  "Account",
-  "Feature Request",
-];
-export const SUPPORT_SEVERITIES: readonly SupportSeverity[] = [
-  "Severity 1",
-  "Severity 2",
-  "Severity 3",
-  "Severity 4",
-];
+export const SUPPORT_CATEGORIES: readonly SupportCategory[] = enums.supportCategory;
+export const SUPPORT_SEVERITIES: readonly SupportSeverity[] = enums.supportSeverity;
 
 export interface Diagnostics {
   readonly route: string | null;

@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { expectAccessibleInBothThemes } from "./a16-support";
+import { settle } from "./engine-test";
 import { DEMO_ORG, signInAs } from "./a36-support";
 
 /**
@@ -46,6 +47,9 @@ test("journey 32: View as Field, and Why can I see this on a record", async ({ p
 
   // Why can I see this on a seeded Gear Requests record.
   await page.goto(`/${DEMO_ORG}/objects/gear_requests?view=list`);
+  // The list streams in behind its skeleton and hydrates after the load event; an Open clicked
+  // before then is lost (A71, A77).
+  await settle(page);
   await page.getByRole("button", { name: "Open" }).first().click();
   const peek = page.getByRole("dialog");
   await peek.getByText("Why can I see this?").click();

@@ -31,6 +31,14 @@
       "decided": {
         "subject": "{title} was {decision, select, approved {approved} other {rejected}}",
         "body": "{actorName} {decision, select, approved {approved} other {rejected}} {title}."
+      },
+      "reminder": {
+        "subject": "Reminder: {title} is waiting on you",
+        "body": "{title} has waited for your decision since {waitingSince, date, medium}. This is reminder {reminderNumber} of {reminderLimit}."
+      },
+      "link_code": {
+        "subject": "Your access code from {orgName}",
+        "body": "Your access code for {title} is in this email."
       }
     },
     "comment": {
@@ -47,6 +55,24 @@
       "changed": {
         "subject": "Shift changed: {title}",
         "body": "Your shift {title} now starts {startsAt, date, full} at {startsAt, time, short}."
+      },
+      "reconfirm": {
+        "subject": "Still coming? {title}",
+        "body": "You are scheduled for {title} starting {startsAt, date, full} at {startsAt, time, short}. Are you still coming?"
+      },
+      "reconfirm_declined": {
+        "subject": "Someone can't make {title}",
+        "body": "{named, select, yes {{workerName}} other {The person on this shift}} said they can't make {title} starting {startsAt, date, full} at {startsAt, time, short}. {reopened, select, yes {The shift is open again.} other {They stay on it until you change it.}}"
+      },
+      "no_show": {
+        "subject": "Marked as a no-show: {title}",
+        "body": "You were marked as a no-show for {title} starting {startsAt, date, full} at {startsAt, time, short}. Clocking in withdraws it."
+      }
+    },
+    "availability": {
+      "requested": {
+        "subject": "{orgName} asks for your availability: {title}",
+        "body": "{orgName} asks which days you can work on {projectName}: {dayCount, plural, one {# day} other {# days}} from {firstDay} to {lastDay}. Your answers are shared with its planners."
       }
     },
     "invoice": {
@@ -73,6 +99,16 @@
         "body": "{actorName} reported {title}. Open it to see the details and response."
       }
     },
+    "crisis_alert": {
+      "issued": {
+        "subject": "Crisis alert at {project}: {title}",
+        "body": "{message} Announced by {actorName}. XOS does not alert emergency services. In an emergency, call your local emergency number."
+      },
+      "ended": {
+        "subject": "All clear at {project}: {title}",
+        "body": "{actorName} gave the all-clear for {title} at {project}."
+      }
+    },
     "account": {
       "security_changed": {
         "subject": "Your account security changed",
@@ -85,6 +121,18 @@
       "session_signed_out": {
         "subject": "{count, plural, one {A session was signed out} other {# sessions were signed out}}",
         "body": "{count, plural, one {A session on your account was signed out} other {# sessions on your account were signed out}} from Settings, Security. If this was not you, change your password and check your sessions."
+      },
+      "work_details_moved": {
+        "subject": "Uniform sizes and travel preferences moved to each project",
+        "body": "{moved, select, uniform {Your uniform sizes were} travel {Your seat, meal and home airport preferences were} other {Your uniform sizes and travel preferences were}} removed from your profile. Productions now ask for them on each project you are rostered on, and keep them only for that project. Your other work details are unchanged."
+      },
+      "sensitive_data_attested": {
+        "subject": "Someone entered data for you",
+        "body": "Someone said they had your authority to enter your {category, select, Accessibility {accessibility} other {dietary}} details. See it, or remove it, under Settings, Work Details."
+      },
+      "sensitive_consent_needed": {
+        "subject": "Confirm or delete your sensitive details",
+        "body": "You have dietary, accessibility or supplier diversity details on file from before we recorded consent. They are hidden from everyone else. Agree where you keep them, under Settings, Work Details, or on your profile for supplier diversity, or we delete them in 30 days."
       }
     },
     "report": {
@@ -121,6 +169,34 @@
       "trial_ended": {
         "subject": "Your Pro trial has ended",
         "body": "Your organization is now on the Access plan. No data was deleted. Add a card in Billing and plan whenever you want Pro back."
+      },
+      "paused": {
+        "subject": "Your organization is paused",
+        "body": "Billing is paused and the organization is read-only {resumesOn, select, none {until the Owner resumes it} other {until {resumesOn}}}. Everything stays readable and exportable, and no data is deleted."
+      },
+      "resumed": {
+        "subject": "Your organization has resumed",
+        "body": "The pause has ended. The organization is writable again and billing continues."
+      },
+      "purchase_confirmed": {
+        "subject": "Your {plan} plan is confirmed",
+        "body": "Your {plan} plan renews automatically every {term, select, Annual {year} other {month}} at {price}, plus tax, until you cancel. The next charge is on {nextChargeOn, date, long}. To stop it, choose End plan in Settings, Billing and Plan any time before that date. The plan then runs to the end of the period you paid for. Fees already paid are not refunded unless the law requires it."
+      },
+      "renewal_reminder": {
+        "subject": "Your {plan} plan renews on {renewsOn, date, long}",
+        "body": "Your annual {plan} plan renews automatically for another year on {renewsOn, date, long}, and your payment method is charged {price, select, none {the plan's annual price, which the billing portal shows} other {{price}}}, plus tax. To stop it, choose End plan in Settings, Billing and Plan any time before that date. The plan then runs to the end of the year you paid for. Fees already paid are not refunded unless the law requires it."
+      },
+      "cancellation_confirmed": {
+        "subject": "Your subscription is canceled",
+        "body": "Stripe has accepted the cancellation and will not charge this subscription again. Time you already paid for is not refunded unless the law requires it. If a charge reaches you after you canceled, write to support@ghxstship.pro and we will refund it."
+      },
+      "plan_ending": {
+        "subject": "Your {plan} plan ends on {endsOn, date, long}",
+        "body": "Stripe has accepted your request. Your {plan} plan will not renew and you will not be charged again. It keeps working until {endsOn, date, long}, and then the organization moves to the Access plan with its data intact. Time you already paid for is not refunded unless the law requires it."
+      },
+      "cancellation_delayed": {
+        "subject": "Your cancellation is not confirmed yet",
+        "body": "We have your cancellation and are sending it to Stripe, our payment provider. Stripe has not accepted it yet, so the subscription may still be active. You do not need to do anything. We keep trying automatically, our team has been alerted, and we will email you as soon as it is accepted. If a charge reaches you after you canceled, write to support@ghxstship.pro and we will refund it."
       }
     },
     "message": {
@@ -167,14 +243,26 @@
     },
     "occupancy": {
       "threshold": {
-        "subject": "{title} is at {percent}% of its permitted load",
-        "body": "{title} has {count} people inside, {percent}% of the permitted load of {permitted_load}."
+        "subject": "{title} is at {percent}% of its occupant load",
+        "body": "{title} has {count} people inside, {percent}% of its occupant load of {permitted_load}."
       }
     },
     "weather": {
       "alert": {
         "subject": "Weather alert: {level}",
         "body": "A {hazard} reading of {reading} met the {level} threshold. Follow the emergency plan."
+      },
+      "warning": {
+        "subject": "Official warning: {event}",
+        "body": "The National Weather Service issued a {severity} alert: {headline}. Follow the emergency plan."
+      },
+      "hold": {
+        "subject": "Weather hold: stop work now",
+        "body": "{message}{late, select, yes { Called at {called_at, time, short} on a device that was offline.} other {}}"
+      },
+      "all_clear": {
+        "subject": "All clear: the weather hold is over",
+        "body": "{message}"
       }
     },
     "access": {
@@ -187,6 +275,12 @@
       "matched": {
         "subject": "{count, plural, one {New match for {searchName}: {title}} other {# new matches for {searchName}}}",
         "body": "{count, plural, one {{orgName} published {title}, which matches your saved search {searchName}.} other {{orgName} published # opportunities that match your saved search {searchName}, including {title}.}}"
+      }
+    },
+    "offer": {
+      "sent": {
+        "subject": "Offer from {orgName}: {title}",
+        "body": "{orgName} sent you an offer for {title}. Review the terms, then accept them or answer in Gateway."
       }
     },
     "onboarding": {
@@ -266,13 +360,23 @@
     "listing_report": {
       "decided": {
         "subject": "We reviewed the listing {title} you reported",
-        "body": "{action, select, Removed {We removed the listing.} Restricted {We restricted the listing.} Restored {We restored the listing.} other {We took no action on the listing.}} {statement} You can appeal this decision within six months."
+        "body": "{action, select, Removed {We removed the listing. {statement}} Restricted {We restricted the listing. {statement}} Restored {We restored the listing. {statement} You can appeal this decision within six months by writing to support@ghxstship.pro with Appeal in the subject line.} other {We took no action on the listing. {statement} You can appeal this decision within six months by writing to support@ghxstship.pro with Appeal in the subject line.}}"
       }
     },
     "moderation_appeal": {
       "decided": {
         "subject": "{outcome, select, Reversed {We reversed our decision on {title}} other {We kept our decision on {title}}}",
-        "body": "{outcome, select, Reversed {Another reviewer agreed with your appeal and reversed the decision.} other {Another reviewer looked at your appeal and kept the decision.}} {statement}"
+        "body": "{outcome, select, Reversed {We looked at your appeal afresh and reversed the decision.} other {We looked at your appeal afresh and kept the decision.}} {reviewer, select, same {The person who made the first decision did this review.} outside {{reviewerName}, an outside reviewer, did this review.} other {Someone who did not make the first decision did this review.}} {statement}"
+      }
+    },
+    "rating_dispute": {
+      "filed": {
+        "subject": "Someone disputed a rating on {project}",
+        "body": "A person your organization rated on {project} disputes the rating. Answer from Opportunities, Ratings. Our platform team decides."
+      },
+      "decided": {
+        "subject": "{outcome, select, Upheld {The rating on {project} was removed after a dispute} other {The rating on {project} stays after a dispute}}",
+        "body": "{outcome, select, Upheld {The dispute was upheld and the rating was removed.} other {The dispute was not upheld and the rating stays.}} {statement}"
       }
     },
     "content_report": {
@@ -286,18 +390,177 @@
       },
       "decided": {
         "subject": "{action, select, Removed {The {subject, select, comment {comment} message {message} other {post}} you reported was removed} other {Your report was reviewed}}",
-        "body": "Your organization's moderators reviewed the {subject, select, comment {comment} message {message} other {post}} you reported. {statement}"
+        "body": "{actorName} reviewed the {subject, select, comment {comment} message {message} other {post}} you reported. {statement}"
       }
     },
     "content": {
       "removed": {
         "subject": "{subject, select, comment {Your comment was removed} message {Your message was removed} other {Your post was removed}}",
-        "body": "Your organization's moderators removed your {subject, select, comment {comment} message {message} other {post}} under {ruleReference}. {statement}"
+        "body": "{actorName} removed your {subject, select, comment {comment} message {message} other {post}} under {ruleReference}. {statement}"
+      }
+    },
+    "agent": {
+      "change_proposed": {
+        "subject": "{app} proposed a change",
+        "body": "{app} proposed {operation}. Review it in Personal settings, Connected apps; nothing changes until you confirm it."
+      }
+    },
+    "credential_photo": {
+      "requested": {
+        "subject": "{orgName} asks for your badge photo",
+        "body": "{actorName} at {orgName} asked for a photo to print on your credential badge. Add it in Gateway, under Profile, Badge photos."
+      }
+    },
+    "roster_entry": {
+      "invited": {
+        "subject": "You are on the {partyName} crew for {projectName}",
+        "body": "Open Gateway Home to accept or decline."
+      },
+      "returned": {
+        "subject": "{personName} was returned on the {projectName} roster",
+        "body": "Reason: {reason}"
+      },
+      "declined": {
+        "subject": "{personName} declined the {projectName} roster",
+        "body": "Add someone else or withdraw the entry."
+      },
+      "project_facts_entered": {
+        "subject": "{actorName} added your {kind, select, travel {travel details} uniform {uniform sizes} vehicle {vehicle details} other {project details}}",
+        "body": "{actorName} entered them for {projectName}. Check them and correct anything that is wrong."
+      },
+      "removed": {
+        "subject": "You were taken off the {partyName} crew for {projectName}",
+        "body": "Your roster entry was withdrawn. Nothing more is needed from you for this crew."
+      },
+      "facts_requested": {
+        "subject": "{projectName} needs your {kind, select, uniform {uniform sizes} travel {travel request} vehicle {vehicle details} other {project details}}",
+        "body": "Enter them in Gateway before you arrive, so {partyName} and the production team can plan for you."
+      },
+      "share_revoked": {
+        "subject": "{personName} stopped sharing work details for {projectName}",
+        "body": "The work details {personName} shared on the {partyName} crew are no longer shared."
+      }
+    },
+    "engagement": {
+      "roster_lock_changed": {
+        "subject": "The names lock for {projectName} changed",
+        "body": "Open the crew roster to see when names close. After that, ask the producing organization to change the roster."
+      }
+    },
+    "advance_answer": {
+      "recorded": {
+        "subject": "{actorName} recorded your answer to {sectionTitle} for {projectName}",
+        "body": "They recorded it from your message or a file you sent. Ask them to return it if it needs changing."
+      }
+    },
+    "allocation": {
+      "decided": {
+        "subject": "Your {kind, select, credential {badge} parking_pass {parking pass} asset {{itemName}} catering {catering} lodging {room} travel {travel} per_diem {per diem} other {allocation}} for {projectName} was {decision, select, approved {approved} declined {declined} other {decided}}",
+        "body": "{decision, select, declined {Reason: {reason}} other {{quantity} for {personName}, through {partyName}.}}"
+      },
+      "assigned": {
+        "subject": "You were given {kind, select, credential {badge} parking_pass {parking pass} asset {{itemName}} catering {catering} lodging {room} travel {travel} per_diem {per diem} other {allocation}} for {projectName}",
+        "body": "{partyName} passed {quantity} on to you."
+      },
+      "issued": {
+        "subject": "Your {kind, select, credential {badge} parking_pass {parking pass} asset {{itemName}} catering {catering} lodging {room} travel {travel} per_diem {per diem} other {allocation}} for {projectName} was handed over",
+        "body": "It is now in your name. Return it when the job ends."
+      },
+      "withdrawn": {
+        "subject": "Your {kind, select, credential {badge} parking_pass {parking pass} asset {{itemName}} catering {catering} lodging {room} travel {travel} per_diem {per diem} other {allocation}} for {projectName} was withdrawn",
+        "body": "{cause, select, engagement_ended {The engagement ended.} entry_removed {You are no longer on the roster.} other {{orgName} withdrew it.}}"
+      }
+    },
+    "quote": {
+      "accepted": {
+        "subject": "Quote accepted: {quoteKey} v{version}",
+        "body": "{actorName} accepted quote {quoteKey}, version {version}, by electronic signature. It can no longer change; record later changes as a change order."
+      }
+    },
+    "rfq": {
+      "quote_reminder": {
+        "subject": "{orgName} asked you for a quote: {title}",
+        "body": "{orgName} asked you for a quote for {title} on {projectName}{dueDate, select, none {.} other {, by {dueDate}.}} Open it to see what they need."
+      },
+      "not_awarded": {
+        "subject": "{orgName} chose another supplier for {title}",
+        "body": "{orgName} chose another supplier for {title} on {projectName}. Thank you for your quote."
+      }
+    },
+    "crew_registration": {
+      "decided": {
+        "subject": "{outcome, select, approved {{orgName} approved your registration} other {{orgName} did not select you this time}}",
+        "body": "{outcome, select, approved {You are on the crew list for {title}. Watch Explore for work from {orgName}.} other {Thank you for registering on {title}. You can register again when the page opens.}}"
+      },
+      "invited": {
+        "subject": "{orgName} invites you to register: {title}",
+        "body": "Open the page in Gateway to register with {orgName}."
+      }
+    },
+    "engagement_document": {
+      "sent": {
+        "subject": "{orgName} sent you {title} to sign",
+        "body": "Read it in Gateway and sign it with your name, or decline it with a reason."
+      }
+    },
+    "vendor_intake": {
+      "submitted": {
+        "subject": "New intake request: {title}",
+        "body": "{requesterName} sent a request through {title} for {projectName}. Review it on the project's Engagements tab."
+      }
+    },
+    "guest": {
+      "arrived": {
+        "subject": "{guest_name} arrived",
+        "body": "Your guest {guest_name} was checked in{has_door, select, yes { at {door}} other {}} with {plus_ones_admitted, plural, =0 {no plus-ones} one {# plus-one} other {# plus-ones}}.{has_table, select, yes { Table: {table_label}.} other {}}"
+      }
+    },
+    "advance_packet": {
+      "reminder": {
+        "subject": "{reminder, select, overdue {Overdue: {title}} other {Reminder: {title}}} for {projectName}",
+        "body": "{outstanding, plural, one {# section is} other {# sections are}} still to answer for {orgName}. {due, select, set {{reminder, select, overdue {It was due {dueAt, date, medium}.} other {It is due {dueAt, date, medium} at {dueAt, time, short}.}}} other {Answer it in Gateway.}}"
+      }
+    },
+    "advance_submission": {
+      "returned": {
+        "subject": "Your answer to {title} was returned",
+        "body": "{packetTitle}: {reason} Answer the section again in Gateway."
+      }
+    },
+    "submittal": {
+      "returned": {
+        "subject": "Submittal returned: {title}",
+        "body": "{projectName}: {reason} Revise it and submit it again in Gateway."
+      }
+    },
+    "credential": {
+      "revoked": {
+        "subject": "Your {title} credential for {projectName} was revoked",
+        "body": "It no longer opens access. Ask the production team if you think this is a mistake."
+      }
+    },
+    "accommodation_block": {
+      "release_due": {
+        "subject": "{blockKey} {blockTitle} releases {days, plural, =0 {today} one {in # day} other {in # days}}",
+        "body": "{freeRoomNights, plural, one {# room night is} other {# room nights are}} still free in {blockTitle} for {projectName}. Unassigned rooms return to the hotel on {releaseOn}."
+      }
+    },
+    "transfer": {
+      "assigned": {
+        "subject": "You are driving {transferKey}",
+        "body": "Pickup at {pickupPlace}, {startsAt, date, medium} at {startsAt, time, short}, to {dropoffPlace}, with {passengerCount, plural, one {# passenger} other {# passengers}}."
       }
     }
   },
   "notification": {
-    "heading": "{subject}"
+    "heading": "{subject}",
+    "actions": {
+      "approve": "Approve",
+      "reject": "Reject",
+      "accept": "Accept",
+      "note": "Each button opens a page to confirm. It works once, for 7 days.",
+      "confirmComing": "Confirm you're coming"
+    }
   },
   "digest": {
     "subject": "{count, plural, one {# update} other {# updates}} from {orgName}",
@@ -315,7 +578,9 @@
     "subject": "{reportName}: {periodLabel}",
     "heading": "{reportName}",
     "body": "Your scheduled report for {periodLabel} is attached as {format}.",
-    "membersOnly": "Scheduled reports go only to members of {orgName}."
+    "membersOnly": "Scheduled reports go only to members of {orgName}.",
+    "contents": "It has {rows, plural, one {# row} other {# rows}}{unpriced, plural, =0 {.} one {; # carries an unpriced amount, left out of its totals.} other {; # carry an unpriced amount, left out of their totals.}}",
+    "access": "It ran with your own access, so it shows only what you may see."
   },
   "export_ready": {
     "subject": "Your export {exportName} is ready",
@@ -359,5 +624,71 @@
   "deletionCertificate": {
     "subject": "Deletion certificate for {org}",
     "body": "The data of {org} was deleted from XOS on {date}, as the organization's lifecycle set out.\n\nYour deletion certificate is attached. Its id is {id}. You can also download it from Atlas while you have an account.\n\nEncrypted backups made before the deletion age out on their own schedule."
+  },
+  "approval_link_code": {
+    "subject": "Your code to decide for {orgName}",
+    "heading": "Your access code",
+    "body": "{orgName} asked you to decide an approval. Enter this code on the page you opened from the approval email:",
+    "expiry": "The code works for {minutes} minutes and only with the links of the approval email you opened.",
+    "ignore": "If you did not ask for a code, ignore this email. Nothing is decided without the code and the link."
+  },
+  "party_invitation": {
+    "accountSubject": "{inviterName} invites you to {accountName} on XOS",
+    "rosterSubject": "{inviterName} invites you onto the {partyName} crew for {projectName}",
+    "how": "Sign in to Gateway with this address and accept on Home by {expiresAt, date, long}. The company then sees your profile and project facts. Not expecting this? Ignore it.",
+    "action": "Sign in to Gateway",
+    "poolSubject": "{inviterName} invites you to join the {orgName} crew list",
+    "poolRole": "Role: {jobTitle}",
+    "poolHow": "Sign in to Gateway with this address and accept on Home by {expiresAt, date, long}. Not expecting this? Ignore it."
+  },
+  "legal_clock_alert": {
+    "subject": "{overdue, plural, =0 {XOS legal queue: {dueSoon, plural, one {# clock is} other {# clocks are}} coming due} one {XOS legal queue: # clock is overdue} other {XOS legal queue: # clocks are overdue}}",
+    "open": "Open the legal queue",
+    "intro": {
+      "operator": "These clocks need you. Open the queue to act on them, and log what you did.",
+      "backup": "You are a backup contact for the legal queue of GHXSTSHIP Industries LLC. These clocks are overdue. Please make sure the owner has seen this.",
+      "reviewer": "These appeals are yours to re-review as outside reviewer for GHXSTSHIP Industries LLC. GHXSTSHIP sends you each file separately."
+    },
+    "item": "{reference}: {clock, select, Due {due} other {first response due}} {at, date, long} at {at, time, short}, New York time{overdue, select, yes {. Overdue.} other {.}}",
+    "itemMatter": "{reference}, {matter}: {clock, select, Due {due} other {first response due}} {at, date, long} at {at, time, short}, New York time{overdue, select, yes {. Overdue.} other {.}}",
+    "matters": {
+      "Data Subject Request": "data subject request",
+      "Privacy Complaint": "privacy complaint",
+      "DMCA Notice": "DMCA notice",
+      "DMCA Counter-Notice": "DMCA counter-notice",
+      "Repeat Infringer Review": "repeat infringer review",
+      "Abuse Report": "abuse report",
+      "Moderation Appeal": "moderation appeal",
+      "Security Report": "security report",
+      "Personal Data Breach": "personal data breach",
+      "Accessibility Complaint": "accessibility complaint",
+      "Government Data Request": "government data request",
+      "Other Promise": "other promise",
+      "Undelivered Notice": "undelivered notice",
+      "Queue Failure": "queue failure"
+    }
+  },
+  "stakeholder_pack": {
+    "subject": "{sender} shared {pack} with you",
+    "intro": "{sender} shared {pack} with you. Open it with the button below and the access code they gave you.",
+    "message": "Their message: {message}",
+    "items": "In this pack: {items}",
+    "expires": "This link works until {date}.",
+    "code": "The access code never comes by email. If you do not have it, ask the person who shared this pack.",
+    "open": "Open the pack",
+    "why": "You are receiving this email because {sender} shared a pack from {orgName} with you.",
+    "preferences": "Stop these emails"
+  },
+  "guest_message": {
+    "invitationSubject": "{orgName} invites you to {projectName}",
+    "passSubject": "Your pass for {projectName}",
+    "heading": "{projectName}",
+    "greeting": "Hi {name},",
+    "invitation": "{orgName} has put you on the guest list for {projectName}.",
+    "pass": "Your pass for {projectName} is attached. Show it at the door{plusOnes, plural, =0 {} one {; it admits # more guest} other {; it admits # more guests}}.",
+    "show": "Show: {showName}.",
+    "showOn": "Show: {showName}, {showDate, date, long}.",
+    "why": "You are receiving this email because you are on {orgName}'s guest list.",
+    "preferences": "Stop emails from this organization"
   }
 }

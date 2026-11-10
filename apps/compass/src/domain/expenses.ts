@@ -10,6 +10,7 @@
  */
 import type { AuroraClient, AuroraProblem } from "@xos/ai/client";
 import { uuidv7, type MutationInput } from "@xos/sync";
+import type { AiChoiceState } from "./legalGate";
 
 /** A budget line as the picker shows it (source budget_lines): no amounts. */
 export interface BudgetLineRow {
@@ -36,6 +37,34 @@ export interface ExpenseRow {
   readonly currency_code: string;
   readonly expense_state: string;
   readonly created_at?: string | null;
+  /** Paid out of the person's pocket (6540). */
+  readonly is_reimbursable?: boolean | null;
+  /** The charge this credit refunds; a finance user's own credit shows as one. */
+  readonly credit_of_expense_id?: string | null;
+}
+
+/** Where a reimbursable expense stands, from its state alone. */
+export type ReimbursementStatus = "recorded" | "owed" | "paid" | "notOwed";
+
+/**
+ * A reimbursable expense's status for the person who paid it: Recorded while Proposed, Owed to you once approved, Paid to
+ * you once reimbursed, Not owed when Rejected or Canceled. Null when the expense is not reimbursable. A crew member cannot
+ * read finance's credits, so a charge credited to nothing can still read Owed to you (6541).
+ */
+export function reimbursementStatusOf(
+  row: Pick<ExpenseRow, "is_reimbursable" | "expense_state">,
+): ReimbursementStatus | null {
+  if (!row.is_reimbursable) return null;
+  switch (row.expense_state) {
+    case "Proposed":
+      return "recorded";
+    case "Approved":
+      return "owed";
+    case "Paid":
+      return "paid";
+    default:
+      return "notOwed";
+  }
 }
 
 /**
@@ -164,6 +193,8 @@ export interface ExpenseDraft {
   readonly description: string;
   readonly amount: string;
   readonly incurredOn: string;
+  /** "I paid this myself": off unless the person turns it on. */
+  readonly isReimbursable?: boolean;
 }
 
 export type DraftProblem = "line" | "description" | "amount" | "date" | "future";
@@ -263,7 +294,7 @@ export function receiptProposal(
       const n = typeof v === "number" ? v : typeof v === "string" ? Number(v) : Number.NaN;
       return Number.isSafeInteger(n) && n > 0 ? n : null;
     }),
-    currency: proposed(fields, "currency", (v) =>
+    currency: proposed(fields, "currency_code", (v) =>
       typeof v === "string" && /^[A-Z]{3}$/.test(v) ? v : null,
     ),
     incurredOn: proposed(fields, "incurred_on", (v) =>
@@ -304,9 +335,21 @@ export function applyProposal(
   };
 }
 
-/** Why Aurora is not reading this receipt, for the line above the form. */
+/**
+ * Why Aurora is not reading this receipt, for the line above the form. `ask` means the org has it on and the person has
+ * not yet chosen, so nothing has left the phone; `declined` means they said no.
+ */
 export type AuroraState =
-  "reading" | "read" | "off" | "not-in-plan" | "limit" | "offline" | "no-answer" | "failed";
+  | "reading"
+  | "read"
+  | "ask"
+  | "declined"
+  | "off"
+  | "not-in-plan"
+  | "limit"
+  | "offline"
+  | "no-answer"
+  | "failed";
 
 /** The calls reading a receipt needs from the Aurora client (@xos/ai/client), with the person's own token. */
 export type ReceiptReader = Pick<AuroraClient, "status" | "extract" | "suggestion">;
@@ -316,10 +359,11 @@ export interface ReceiptReading {
   readonly proposal: ReceiptProposal | null;
 }
 
-function refusalState(problem: AuroraProblem): Exclude<AuroraState, "reading" | "read"> {
+function refusalState(problem: AuroraProblem): Exclude<AuroraState, "reading" | "read" | "ask"> {
   // The phone was online but the API did not answer (a dropped connection, Atlas unreachable): say Aurora
   // could not read it rather than that the phone is offline.
   if (problem.status === 0) return "failed";
+  if (problem.rule === "ai_declined_by_person") return "declined";
   if (problem.rule === "aurora_feature_off") return "off";
   if (problem.rule === "aurora_not_in_plan") return "not-in-plan";
   if (problem.rule === "plan_limit_exceeded") return "limit";
@@ -330,23 +374,29 @@ function refusalState(problem: AuroraProblem): Exclude<AuroraState, "reading" | 
  * Reads a receipt with Aurora. The org's switch comes first: with document extraction off, not in the plan or the
  * allowance used, no photo leaves the phone. The server checks the same again (app.ai_begin_request) and the
  * screen says why when it refuses. Offline, nothing is tried: the person types the fields and the save queues.
+ * The person's own AI choice binds as well: without an Allowed the photo stays on the phone (ADR 0156).
  */
 export async function readReceipt(
   reader: ReceiptReader,
   jpegBase64: string,
   online: boolean,
+  aiChoice: AiChoiceState,
 ): Promise<ReceiptReading> {
   const none = (state: Exclude<AuroraState, "reading">): ReceiptReading => ({
     state,
     proposal: null,
   });
+  if (aiChoice === "Declined") return none("declined");
   if (!online) return none("offline");
   const status = await reader.status();
   if (!status.ok) return none(refusalState(status.problem));
   if (!status.data.plan_includes_aurora) return none("not-in-plan");
+  // A decline made on another device binds here too (migration 6840).
+  if (status.data.declined_by_person === true) return none("declined");
   if (!status.data.enabled_features.includes("extraction")) return none("off");
   if (status.data.allowance !== null && status.data.used >= status.data.allowance)
     return none("limit");
+  if (aiChoice !== "Allowed") return none("ask");
   const result = await reader.extract(receiptExtractionRequest(jpegBase64));
   if (!result.ok) return none(refusalState(result.problem));
   if (result.data.outcome === "no_answer") return none("no-answer");
@@ -377,6 +427,8 @@ export interface ReceiptSave {
   readonly capturedAt: string | null;
   /** The Aurora suggestion whose fields the person confirmed, if Aurora read the receipt. */
   readonly suggestionId: string | null;
+  /** "I paid this myself" (6542). */
+  readonly isReimbursable?: boolean;
 }
 
 /** The field-media object a receipt photo is stored as: under the budget line's org and project (1490). */
@@ -390,7 +442,8 @@ export function receiptPath(
 /**
  * Queues the expense with its receipt. The uploader stores the photo (local_uri, storage_path) before it calls
  * app.submit_expense_receipt through app.apply_sync_mutation, so a replay files it once; the optimistic row shows
- * at once in the person's list.
+ * at once in the person's list. p_is_reimbursable goes only when the switch is on, so the common case never carries
+ * an argument an older server would refuse (sync_argument_unknown).
  */
 export function buildReceiptSave(
   save: ReceiptSave,
@@ -416,6 +469,7 @@ export function buildReceiptSave(
       p_capture_source: save.captureSource,
       p_captured_at: save.capturedAt,
       p_ai_suggestion_id: save.suggestionId,
+      ...(save.isReimbursable ? { p_is_reimbursable: true } : {}),
       storage_path: path,
       local_uri: save.localUri,
     },
@@ -431,6 +485,8 @@ export function buildReceiptSave(
       currency_code: save.line.currency_code,
       expense_state: "Proposed",
       created_at: new Date(nowMs).toISOString(),
+      is_reimbursable: save.isReimbursable ?? false,
+      credit_of_expense_id: null,
     },
   };
 }

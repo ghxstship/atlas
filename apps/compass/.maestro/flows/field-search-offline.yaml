@@ -1,0 +1,82 @@
+appId: pro.ghxstship.compass
+# Search on Today finds a shift with no connection (A126, Section 11.10 item 1): the results come from the
+# device's offline store, so the search answers while the device or the server is away.
+# Named after its file: config.yaml orders flows by name.
+name: field-search-offline
+# Tagged for runs that can take the device or the server offline: airplane mode on Android, the network
+# helper on iOS (apps/compass/scripts/maestro-network.ts), as field-clock-offline is.
+tags:
+  - airplane-mode
+---
+# The Demo Field Tech has today's Rigging shift on the demo project (seed 1090), already on the device after
+# sign-in.
+- runFlow:
+    file: ../subflows/sign-in.yaml
+    env:
+      EMAIL: tech@example.com
+- extendedWaitUntil:
+    visible:
+      id: "today"
+    timeout: 30000
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - setAirplaneMode: enabled
+      - extendedWaitUntil:
+          visible:
+            id: "sync-offline"
+          timeout: 15000
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - runScript:
+          file: ../scripts/network.js
+          env:
+            STEP: offline
+      - assertTrue: ${output.network.ok}
+- tapOn:
+    id: "today-search"
+- inputText: "rigger"
+- extendedWaitUntil:
+    visible:
+      id: "today-search-results"
+    timeout: 10000
+# The shift is found by its role, under Shifts, and opens the schedule.
+- assertVisible:
+    id: "search-group-shift"
+- assertVisible:
+    id: "search-result-shift-.*"
+- assertVisible: ".*Rigger.*"
+# The Android device itself is offline, so the results say they come from the device.
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - assertVisible: ".*Offline: searching what is on this device.*"
+- tapOn:
+    id: "search-result-shift-.*"
+    index: 0
+- extendedWaitUntil:
+    visible:
+      id: "schedule"
+    timeout: 10000
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - setAirplaneMode: disabled
+      - extendedWaitUntil:
+          notVisible:
+            id: "sync-offline"
+          timeout: 30000
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - runScript:
+          file: ../scripts/network.js
+          env:
+            STEP: online
+      - assertTrue: ${output.network.ok}

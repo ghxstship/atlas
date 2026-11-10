@@ -227,6 +227,45 @@ describe("uploader", () => {
     ).toBe("transient");
   });
 
+  it("drops a queued gate override the server no longer needed, with an informational line (B8)", async () => {
+    const granted = fakeClient([
+      {
+        data: null,
+        error: {
+          code: "XR001",
+          message: "scan_not_denied: Only a denied In scan can be overridden.",
+        },
+        status: 400,
+      },
+    ]);
+    const lines: string[] = [];
+    const uploader = new SupabaseUploader({
+      client: granted.client,
+      ...base,
+      onSettled: (m, key) => lines.push(`${m.id}:${key}`),
+    });
+    const override = mutation({
+      op: "rpc",
+      target: "override_access_scan",
+      payload: { p_scan_id: "s2", p_reason: "Escorted", p_id: "o1" },
+    });
+    expect(await uploader.upload(override)).toEqual({ kind: "applied", serverRow: null });
+    expect(lines).toEqual(["mut-1:settledScanNotDenied"]);
+    const stale = fakeClient([
+      {
+        data: null,
+        error: {
+          code: "XR001",
+          message: "scan_override_stale: The denial is too old to override.",
+        },
+        status: 400,
+      },
+    ]);
+    expect(
+      (await new SupabaseUploader({ client: stale.client, ...base }).upload(override)).kind,
+    ).toBe("refused");
+  });
+
   it("reads the first row of a table-returning RPC such as record_scan", async () => {
     const { client } = fakeClient([
       { data: [{ id: "s1", result: "Granted" }], error: null, status: 200 },

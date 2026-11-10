@@ -146,7 +146,7 @@ test("semantic search finds a document by meaning once an Admin turns it on", as
     if (mode === "supabase-gte") {
       const response = await fetch(`${url}/functions/v1/search-embed`, {
         method: "POST",
-        headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+        headers: { apikey: key, "Content-Type": "application/json" },
         body: "{}",
       });
       expect(response.status).toBe(200);

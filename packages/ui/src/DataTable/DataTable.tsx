@@ -1,5 +1,7 @@
 import {
+  useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -12,7 +14,6 @@ import {
   type TouchEvent,
 } from "react";
 import type { ColumnSizingState, Updater, columnResizingState } from "@tanstack/react-table";
-import { useVirtualizer } from "@tanstack/react-virtual";
 import { Direction } from "radix-ui";
 import type {
   DataTableColumn as ReferenceDataTableColumn,
@@ -27,6 +28,7 @@ import { ScrollRegion } from "../Layout/Layout.tsx";
 import { Money } from "../Forms/Forms.tsx";
 import { StateIcon } from "../StateIcon/StateIcon.tsx";
 import type { DataTableResizer, StartResize } from "./DataTableResizer.tsx";
+import type { DataTableVirtualizer, RowWindow } from "./DataTableVirtualizer.tsx";
 
 export interface DataTableColumn extends ReferenceDataTableColumn {
   /** Width in pixels; defaults by type. */
@@ -118,6 +120,28 @@ type ResizerComponent = ComponentType<Parameters<typeof DataTableResizer>[0]>;
 let resizerModule: Promise<{ DataTableResizer: typeof DataTableResizer }> | null = null;
 const loadResizer = () => (resizerModule ??= import("./DataTableResizer.tsx"));
 
+type VirtualizerComponent = ComponentType<Parameters<typeof DataTableVirtualizer>[0]>;
+
+/** The window engine (TanStack Virtual) loads on the first interaction with a table over the limit. */
+let virtualizerModule: Promise<{
+  DataTableVirtualizer: typeof DataTableVirtualizer;
+}> | null = null;
+const loadVirtualizer = () => (virtualizerModule ??= import("./DataTableVirtualizer.tsx"));
+
+/** Rows rendered past each end of the visible ones. */
+const OVERSCAN = 10;
+/** The first screen's height in rows before the table has measured itself, as on the server. */
+const INITIAL_SCREEN_ROWS = 20;
+/** What reaches the engine first: a pointer over the table, a focus inside it, or a scroll. */
+const WINDOW_INTERACTIONS = ["pointermove", "pointerdown", "focusin", "scroll"] as const;
+
+/** The rows of the table's first screen and overscan, which TanStack Virtual renders at the top. */
+function firstWindow(viewport: number, rowHeight: number, count: number): RowWindow {
+  return viewport === 0
+    ? { start: 0, end: -1 }
+    : { start: 0, end: Math.min(count - 1, Math.ceil(viewport / rowHeight) - 1 + OVERSCAN) };
+}
+
 function apply<T>(updater: Updater<T>, old: T): T {
   return typeof updater === "function" ? (updater as (old: T) => T)(old) : updater;
 }
@@ -175,7 +199,7 @@ function CellValue({
   }
   if (value === null || value === undefined) return null;
   if (column.type === "code")
-    return <span className="font-mono text-text-12">{String(value)}</span>;
+    return <code className="font-mono text-text-12">{String(value)}</code>;
   if (column.type === "number") return <span className="tabular-nums">{String(value)}</span>;
   return String(value);
 }
@@ -389,7 +413,7 @@ function DataTableCards({
 }
 
 /**
- * The table inside a ScrollRegion, virtualized with TanStack Virtual: a keyboard grid (arrow keys,
+ * The table inside a ScrollRegion, over its row limit virtualized with TanStack Virtual: a keyboard grid (arrow keys,
  * J and K between rows, Home and End, Ctrl+Home and Ctrl+End, Page Up and Page Down, Enter activates
  * the row), with column pinning and resizing. Null money renders Unpriced; long text columns wrap.
  * Each row carries its id as `data-item` and each cell its column as `data-column`, so a page can
@@ -397,7 +421,9 @@ function DataTableCards({
  *
  * The grid lays its columns out from its own column state. Keyboard resizing and reset change that
  * state directly. A pointer drag on a resize handle runs on TanStack Table, which loads when a
- * pointer first enters a handle or a handle takes focus, and then drives the same state (ADR 0027).
+ * pointer first enters a handle or a handle takes focus, and then drives the same state. TanStack
+ * Virtual loads the same way, when a table over the limit is first scrolled, pointed at or focused,
+ * and then moves the window of rows (ADR 0027).
  */
 export function DataTable({
   columns: givenColumns,
@@ -568,23 +594,50 @@ export function DataTable({
 
   const virtual = rows.length > virtualizeAbove;
   const rowHeight = ROW_HEIGHT[density];
-  const virtualizer = useVirtualizer({
-    count: rows.length,
-    getScrollElement: () => scrollRef.current,
-    estimateSize: () => rowHeight,
-    overscan: 10,
-    initialRect: { width: 0, height: rowHeight * 20 },
-    enabled: virtual,
-  });
+  // A table over the limit shows its first screen without the engine, which only moves the window:
+  // tables under the limit, and people who never scroll this one, do not download it (ADR 0027).
+  const [Virtualizer, setVirtualizer] = useState<VirtualizerComponent | null>(null);
+  const [viewport, setViewport] = useState(rowHeight * INITIAL_SCREEN_ROWS);
+  const [engineWindow, setEngineWindow] = useState<RowWindow | null>(null);
+  const scrollToRef = useRef<((index: number) => void) | null>(null);
+  const pendingScroll = useRef<number | null>(null);
+  const prepareWindow = useCallback(() => {
+    void loadVirtualizer().then((m) => setVirtualizer(() => m.DataTableVirtualizer));
+  }, []);
+  const onVirtualizerReady = useCallback(() => {
+    const pending = pendingScroll.current;
+    pendingScroll.current = null;
+    if (pending !== null) scrollToRef.current?.(pending);
+  }, []);
+  const engineRunning = Virtualizer !== null;
+  const cards = narrow && cardFields !== false;
+  useLayoutEffect(() => {
+    const element = scrollRef.current;
+    if (!virtual || engineRunning || !element) return;
+    const measure = () => setViewport(element.offsetHeight);
+    measure();
+    const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(measure);
+    observer?.observe(element);
+    for (const type of WINDOW_INTERACTIONS) {
+      element.addEventListener(type, prepareWindow, { passive: true });
+    }
+    return () => {
+      observer?.disconnect();
+      for (const type of WINDOW_INTERACTIONS) element.removeEventListener(type, prepareWindow);
+    };
+  }, [virtual, engineRunning, cards, prepareWindow]);
 
-  const items = virtual
-    ? virtualizer.getVirtualItems()
-    : rows.map((_, index) => ({ index, start: index * rowHeight, size: rowHeight }));
-  const before = virtual && items.length > 0 ? (items[0]?.start ?? 0) : 0;
-  const after =
-    virtual && items.length > 0
-      ? virtualizer.getTotalSize() - (items[items.length - 1]?.start ?? 0) - rowHeight
-      : 0;
+  const rowWindow = virtual
+    ? (engineWindow ?? firstWindow(viewport, rowHeight, rows.length))
+    : { start: 0, end: rows.length - 1 };
+  const items = Array.from(
+    { length: Math.max(0, rowWindow.end - rowWindow.start + 1) },
+    (_, i) => ({
+      index: rowWindow.start + i,
+    }),
+  );
+  const before = virtual ? rowWindow.start * rowHeight : 0;
+  const after = virtual && items.length > 0 ? (rows.length - 1 - rowWindow.end) * rowHeight : 0;
 
   useEffect(() => {
     if (!focusPending) return;
@@ -599,7 +652,13 @@ export function DataTable({
     const row = Math.max(0, Math.min(rows.length - 1, r));
     const col = Math.max(-lead, Math.min(leafColumns.length - 1, c));
     setActive([row, col]);
-    if (virtual) virtualizer.scrollToIndex(row);
+    if (virtual) {
+      if (scrollToRef.current) scrollToRef.current(row);
+      else {
+        pendingScroll.current = row;
+        prepareWindow();
+      }
+    }
     setFocusPending(true);
   };
 
@@ -701,260 +760,275 @@ export function DataTable({
   }
 
   return (
-    <ScrollRegion
-      ref={scrollRef}
-      label={label ?? caption ?? t("scroll.region")}
-      {...(virtual ? { style: { maxBlockSize: height }, className: "overflow-y-auto" } : {})}
-    >
-      {Resizer ? (
-        <Resizer
-          columns={resizerColumns}
-          sizing={sizing}
-          resizing={resizing}
-          onSizingChange={setSizing}
-          onResizingChange={setResizing}
-          direction={dir === "rtl" ? "rtl" : "ltr"}
-          startRef={startRef}
-          onReady={onResizerReady}
-        />
-      ) : null}
-      {select ? (
-        <span role="status" className="sr-only">
-          {selectedCount > 0 ? t("bulk.selected", { n: fmt.number(selectedCount) }) : ""}
-        </span>
-      ) : null}
-      <table
-        role="grid"
-        aria-multiselectable={select ? true : undefined}
-        aria-rowcount={rows.length + 1 + (totals ? 1 : 0)}
-        aria-colcount={leafColumns.length + lead}
-        className="border-separate border-spacing-0 table-fixed text-text-13 print:text-paper-ink"
-        style={{ inlineSize: totalSize }}
+    <>
+      <ScrollRegion
+        ref={scrollRef}
+        label={label ?? caption ?? t("scroll.region")}
+        {...(virtual ? { style: { maxBlockSize: height }, className: "overflow-y-auto" } : {})}
       >
-        {caption ? <caption className="pb-8 text-start font-semibold">{caption}</caption> : null}
-        <thead className="sticky top-0 z-sticky">
-          <tr aria-rowindex={1}>
-            {select ? (
-              <th
-                scope="col"
-                aria-colindex={1}
-                className="h-control-lg bg-bg-surface border-b border-border-subtle box-border z-sticky"
-                style={CHECK_STYLE}
-              >
-                <span className="flex justify-center">
-                  <input
-                    type="checkbox"
-                    className="xos-check-input"
-                    aria-label={t("table.selectAll")}
-                    checked={allSelected}
-                    ref={(el) => {
-                      if (el) el.indeterminate = selectedCount > 0 && !allSelected;
-                    }}
-                    onChange={() => selectAll(!allSelected)}
-                  />
-                </span>
-              </th>
-            ) : null}
-            {headers.map((header, ci) => {
-              const column = columns[ci];
-              return (
+        {Resizer ? (
+          <Resizer
+            columns={resizerColumns}
+            sizing={sizing}
+            resizing={resizing}
+            onSizingChange={setSizing}
+            onResizingChange={setResizing}
+            direction={dir === "rtl" ? "rtl" : "ltr"}
+            startRef={startRef}
+            onReady={onResizerReady}
+          />
+        ) : null}
+        {select ? (
+          <span role="status" className="sr-only">
+            {selectedCount > 0 ? t("bulk.selected", { n: fmt.number(selectedCount) }) : ""}
+          </span>
+        ) : null}
+        <table
+          role="grid"
+          aria-multiselectable={select ? true : undefined}
+          aria-rowcount={rows.length + 1 + (totals ? 1 : 0)}
+          aria-colcount={leafColumns.length + lead}
+          className="border-separate border-spacing-0 table-fixed text-text-13 print:text-paper-ink"
+          style={{ inlineSize: totalSize }}
+        >
+          {caption ? <caption className="pb-8 text-start font-semibold">{caption}</caption> : null}
+          <thead className="sticky top-0 z-sticky">
+            <tr aria-rowindex={1}>
+              {select ? (
                 <th
-                  key={header.id}
                   scope="col"
-                  aria-colindex={ci + 1 + lead}
-                  className={cx(
-                    "relative h-control-lg px-12 font-medium text-text-12 text-text-secondary bg-bg-surface",
-                    "border-b border-border-subtle box-border",
-                    column && isNumeric(column) ? "text-end" : "text-start",
-                    header.pinned && "z-sticky",
-                  )}
-                  style={pinStyle(header)}
+                  aria-colindex={1}
+                  className="h-control-lg bg-bg-surface border-b border-border-subtle box-border z-sticky"
+                  style={CHECK_STYLE}
                 >
-                  {header.label}
-                  {resizable ? (
-                    <div
-                      role="separator"
-                      aria-orientation="vertical"
-                      aria-label={t("table.resizeColumn", { column: header.label })}
-                      aria-valuenow={header.size}
-                      aria-valuemin={MIN_WIDTH}
-                      aria-valuemax={MAX_WIDTH}
-                      tabIndex={0}
-                      onPointerEnter={prepareResize}
-                      onFocus={prepareResize}
-                      onMouseDown={(e) => startResize(header.id, e)}
-                      onTouchStart={(e) => startResize(header.id, e)}
-                      onDoubleClick={() => resetSize(header)}
-                      onKeyDown={(e) => resizeByKey(header, e)}
-                      className={cx(
-                        "absolute inset-y-0 end-0 w-(--ui-handle) cursor-col-resize touch-none select-none",
-                        "hover:bg-accent focus-visible:bg-accent",
-                        resizing.isResizingColumn === header.id && "bg-accent",
-                      )}
-                    />
-                  ) : null}
-                </th>
-              );
-            })}
-          </tr>
-        </thead>
-        <tbody>
-          {before > 0 ? (
-            <tr aria-hidden="true">
-              <td colSpan={leafColumns.length + lead} style={{ blockSize: before }} />
-            </tr>
-          ) : null}
-          {items.map((item) => {
-            const row = rows[item.index];
-            if (!row) return null;
-            const selected = select?.checked(item.index) ?? false;
-            return (
-              <tr
-                key={item.index}
-                aria-rowindex={item.index + 2}
-                data-item={idOf(row, item.index)}
-                aria-selected={select ? selected : undefined}
-                className={cx(
-                  ROW_CLASS[density],
-                  "hover:[&>td]:bg-bg-hover",
-                  selected && "[&>td]:bg-bg-hover",
-                  onRowActivate && "cursor-pointer",
-                )}
-                onDoubleClick={onRowActivate ? () => onRowActivate(row, item.index) : undefined}
-                onMouseDown={
-                  select
-                    ? (e) => {
-                        // Shift+click selects a range, not the text between.
-                        if (e.shiftKey) e.preventDefault();
-                      }
-                    : undefined
-                }
-                onClick={
-                  select
-                    ? (e) => {
-                        if (e.metaKey || e.ctrlKey) select.toggle(item.index, false);
-                        else if (e.shiftKey) select.toggle(item.index, true);
-                      }
-                    : undefined
-                }
-                onContextMenu={
-                  onRowContextMenu
-                    ? (e) => {
-                        e.preventDefault();
-                        onRowContextMenu(
-                          row,
-                          item.index,
-                          { x: e.clientX, y: e.clientY },
-                          e.target as HTMLElement,
-                        );
-                      }
-                    : undefined
-                }
-              >
-                {select ? (
-                  <td
-                    ref={(el) => {
-                      const key = `${item.index}:-1`;
-                      if (el) cellRefs.current.set(key, el);
-                      else cellRefs.current.delete(key);
-                    }}
-                    role="gridcell"
-                    aria-colindex={1}
-                    tabIndex={active[0] === item.index && active[1] === -1 ? 0 : -1}
-                    onFocus={() => setActive([item.index, -1])}
-                    onKeyDown={(e) => onKeyDown(e, item.index, -1)}
-                    className={cx(
-                      "border-b border-border-subtle box-border z-sticky bg-bg-canvas",
-                      "focus-visible:outline-offset-[calc(var(--stroke-width-focus)*-1)]",
-                    )}
-                    style={CHECK_STYLE}
-                  >
-                    <span className="flex justify-center">
-                      <input
-                        type="checkbox"
-                        tabIndex={-1}
-                        className="xos-check-input"
-                        aria-label={select.label(row, item.index)}
-                        checked={selected}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          select.toggle(item.index, e.shiftKey);
-                        }}
-                        onChange={() => undefined}
-                      />
-                    </span>
-                  </td>
-                ) : null}
-                {leafColumns.map((cell, ci) => {
-                  const column = columns[ci];
-                  const isActive = active[0] === item.index && active[1] === ci;
-                  return (
-                    <td
-                      key={cell.id}
+                  <span className="flex justify-center">
+                    <input
+                      type="checkbox"
+                      className="xos-check-input"
+                      aria-label={t("table.selectAll")}
+                      checked={allSelected}
                       ref={(el) => {
-                        const key = `${item.index}:${ci}`;
+                        if (el) el.indeterminate = selectedCount > 0 && !allSelected;
+                      }}
+                      onChange={() => selectAll(!allSelected)}
+                    />
+                  </span>
+                </th>
+              ) : null}
+              {headers.map((header, ci) => {
+                const column = columns[ci];
+                return (
+                  <th
+                    key={header.id}
+                    scope="col"
+                    aria-colindex={ci + 1 + lead}
+                    className={cx(
+                      "relative h-control-lg px-12 font-medium text-text-12 text-text-secondary bg-bg-surface",
+                      "border-b border-border-subtle box-border",
+                      column && isNumeric(column) ? "text-end" : "text-start",
+                      header.pinned && "z-sticky",
+                    )}
+                    style={pinStyle(header)}
+                  >
+                    {header.label}
+                    {resizable ? (
+                      <div
+                        role="separator"
+                        aria-orientation="vertical"
+                        aria-label={t("table.resizeColumn", { column: header.label })}
+                        aria-valuenow={header.size}
+                        aria-valuemin={MIN_WIDTH}
+                        aria-valuemax={MAX_WIDTH}
+                        tabIndex={0}
+                        onPointerEnter={prepareResize}
+                        onFocus={prepareResize}
+                        onMouseDown={(e) => startResize(header.id, e)}
+                        onTouchStart={(e) => startResize(header.id, e)}
+                        onDoubleClick={() => resetSize(header)}
+                        onKeyDown={(e) => resizeByKey(header, e)}
+                        className={cx(
+                          "absolute inset-y-0 end-0 w-(--ui-handle) cursor-col-resize touch-none select-none",
+                          "hover:bg-accent focus-visible:bg-accent",
+                          resizing.isResizingColumn === header.id && "bg-accent",
+                        )}
+                      />
+                    ) : null}
+                  </th>
+                );
+              })}
+            </tr>
+          </thead>
+          <tbody>
+            {before > 0 ? (
+              <tr aria-hidden="true">
+                <td colSpan={leafColumns.length + lead} style={{ blockSize: before }} />
+              </tr>
+            ) : null}
+            {items.map((item) => {
+              const row = rows[item.index];
+              if (!row) return null;
+              const selected = select?.checked(item.index) ?? false;
+              return (
+                <tr
+                  key={item.index}
+                  aria-rowindex={item.index + 2}
+                  data-item={idOf(row, item.index)}
+                  aria-selected={select ? selected : undefined}
+                  className={cx(
+                    ROW_CLASS[density],
+                    "hover:[&>td]:bg-bg-hover",
+                    selected && "[&>td]:bg-bg-hover",
+                    onRowActivate && "cursor-pointer",
+                  )}
+                  onDoubleClick={onRowActivate ? () => onRowActivate(row, item.index) : undefined}
+                  onMouseDown={
+                    select
+                      ? (e) => {
+                          // Shift+click selects a range, not the text between.
+                          if (e.shiftKey) e.preventDefault();
+                        }
+                      : undefined
+                  }
+                  onClick={
+                    select
+                      ? (e) => {
+                          if (e.metaKey || e.ctrlKey) select.toggle(item.index, false);
+                          else if (e.shiftKey) select.toggle(item.index, true);
+                        }
+                      : undefined
+                  }
+                  onContextMenu={
+                    onRowContextMenu
+                      ? (e) => {
+                          e.preventDefault();
+                          onRowContextMenu(
+                            row,
+                            item.index,
+                            { x: e.clientX, y: e.clientY },
+                            e.target as HTMLElement,
+                          );
+                        }
+                      : undefined
+                  }
+                >
+                  {select ? (
+                    <td
+                      ref={(el) => {
+                        const key = `${item.index}:-1`;
                         if (el) cellRefs.current.set(key, el);
                         else cellRefs.current.delete(key);
                       }}
                       role="gridcell"
-                      aria-colindex={ci + 1 + lead}
-                      data-column={cell.id}
-                      tabIndex={isActive ? 0 : -1}
-                      onFocus={() => setActive([item.index, ci])}
-                      onKeyDown={(e) => onKeyDown(e, item.index, ci)}
+                      aria-colindex={1}
+                      tabIndex={active[0] === item.index && active[1] === -1 ? 0 : -1}
+                      onFocus={() => setActive([item.index, -1])}
+                      onKeyDown={(e) => onKeyDown(e, item.index, -1)}
+                      className={cx(
+                        "border-b border-border-subtle box-border z-sticky bg-bg-canvas",
+                        "focus-visible:outline-offset-[calc(var(--stroke-width-focus)*-1)]",
+                      )}
+                      style={CHECK_STYLE}
+                    >
+                      <span className="flex justify-center">
+                        <input
+                          type="checkbox"
+                          tabIndex={-1}
+                          className="xos-check-input"
+                          aria-label={select.label(row, item.index)}
+                          checked={selected}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            select.toggle(item.index, e.shiftKey);
+                          }}
+                          onChange={() => undefined}
+                        />
+                      </span>
+                    </td>
+                  ) : null}
+                  {leafColumns.map((cell, ci) => {
+                    const column = columns[ci];
+                    const isActive = active[0] === item.index && active[1] === ci;
+                    return (
+                      <td
+                        key={cell.id}
+                        ref={(el) => {
+                          const key = `${item.index}:${ci}`;
+                          if (el) cellRefs.current.set(key, el);
+                          else cellRefs.current.delete(key);
+                        }}
+                        role="gridcell"
+                        aria-colindex={ci + 1 + lead}
+                        data-column={cell.id}
+                        tabIndex={isActive ? 0 : -1}
+                        onFocus={() => setActive([item.index, ci])}
+                        onKeyDown={(e) => onKeyDown(e, item.index, ci)}
+                        className={cx(
+                          cellClass,
+                          column && isNumeric(column) && "text-end",
+                          column?.wrap && "whitespace-normal py-8",
+                          "focus-visible:outline-offset-[calc(var(--stroke-width-focus)*-1)]",
+                          pinnedClass(cell),
+                        )}
+                        style={pinStyle(cell)}
+                        title={cellTitle(column, column ? row[column.key] : undefined)}
+                      >
+                        {column ? <CellValue column={column} value={row[column.key]} /> : null}
+                      </td>
+                    );
+                  })}
+                </tr>
+              );
+            })}
+            {after > 0 ? (
+              <tr aria-hidden="true">
+                <td colSpan={leafColumns.length + lead} style={{ blockSize: after }} />
+              </tr>
+            ) : null}
+          </tbody>
+          {totals ? (
+            <tfoot className="sticky bottom-0 z-sticky">
+              <tr aria-rowindex={rows.length + 2} className={ROW_CLASS[density]}>
+                {select ? (
+                  <td className={cx(cellClass, "bg-bg-surface")} style={CHECK_STYLE} />
+                ) : null}
+                {columns.map((c, ci) => {
+                  const column = leafColumns[ci];
+                  return (
+                    <td
+                      key={c.key}
                       className={cx(
                         cellClass,
-                        column && isNumeric(column) && "text-end",
-                        column?.wrap && "whitespace-normal py-8",
-                        "focus-visible:outline-offset-[calc(var(--stroke-width-focus)*-1)]",
-                        pinnedClass(cell),
+                        "font-semibold bg-bg-surface",
+                        isNumeric(c) && "text-end",
                       )}
-                      style={pinStyle(cell)}
-                      title={cellTitle(column, column ? row[column.key] : undefined)}
+                      style={column ? pinStyle(column) : undefined}
                     >
-                      {column ? <CellValue column={column} value={row[column.key]} /> : null}
+                      {c.key in totals ? (
+                        <CellValue column={c} value={totals[c.key]} />
+                      ) : ci === 0 ? (
+                        (totalsLabel ?? t("table.total"))
+                      ) : null}
                     </td>
                   );
                 })}
               </tr>
-            );
-          })}
-          {after > 0 ? (
-            <tr aria-hidden="true">
-              <td colSpan={leafColumns.length + lead} style={{ blockSize: after }} />
-            </tr>
+            </tfoot>
           ) : null}
-        </tbody>
-        {totals ? (
-          <tfoot className="sticky bottom-0 z-sticky">
-            <tr aria-rowindex={rows.length + 2} className={ROW_CLASS[density]}>
-              {select ? (
-                <td className={cx(cellClass, "bg-bg-surface")} style={CHECK_STYLE} />
-              ) : null}
-              {columns.map((c, ci) => {
-                const column = leafColumns[ci];
-                return (
-                  <td
-                    key={c.key}
-                    className={cx(
-                      cellClass,
-                      "font-semibold bg-bg-surface",
-                      isNumeric(c) && "text-end",
-                    )}
-                    style={column ? pinStyle(column) : undefined}
-                  >
-                    {c.key in totals ? (
-                      <CellValue column={c} value={totals[c.key]} />
-                    ) : ci === 0 ? (
-                      (totalsLabel ?? t("table.total"))
-                    ) : null}
-                  </td>
-                );
-              })}
-            </tr>
-          </tfoot>
-        ) : null}
-      </table>
-    </ScrollRegion>
+        </table>
+      </ScrollRegion>
+      {/* After the region: the engine's layout effects read the region's ref, attached by then. */}
+      {virtual && Virtualizer ? (
+        <Virtualizer
+          count={rows.length}
+          rowHeight={rowHeight}
+          overscan={OVERSCAN}
+          viewport={viewport}
+          scrollRef={scrollRef}
+          scrollToRef={scrollToRef}
+          onWindow={setEngineWindow}
+          onReady={onVirtualizerReady}
+        />
+      ) : null}
+    </>
   );
 }

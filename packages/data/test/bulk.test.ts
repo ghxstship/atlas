@@ -63,12 +63,22 @@ describe("bulk edit", () => {
       ["shifts", "bulk_update_shifts"],
       ["invoices", "bulk_update_invoices"],
       ["asset_units", "bulk_update_asset_units"],
+      ["projects", "bulk_update_projects"],
+      ["work_orders", "bulk_update_work_orders"],
+      ["punch_items", "bulk_update_punch_items"],
+      ["documents", "bulk_update_documents"],
       ["shipments", "bulk_update_shipments"],
       ["dock_slots", "bulk_update_dock_slots"],
       ["fulfillments", "bulk_update_fulfillments"],
       ["beos", "bulk_update_beos"],
       ["accommodation_blocks", "bulk_update_accommodation_blocks"],
       ["guest_list_entries", "bulk_update_guest_list_entries"],
+      ["engagement_roster_entries", "bulk_update_roster_entries"],
+      ["purchase_orders", "bulk_update_purchase_orders"],
+      ["rfqs", "bulk_update_rfqs"],
+      ["vendors", "bulk_update_vendors"],
+      ["advance_allocations", "bulk_update_advance_allocations"],
+      ["cues", "bulk_update_cues"],
     ] as const) {
       const { db, calls } = rpcClient({ data: { preview: true, changed: 1 }, error: null });
       const result = await bulkUpdate(db, resource, [{ id: "x", set: { a: 1 } }], {

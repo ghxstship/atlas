@@ -54,6 +54,7 @@ export function UndoCenter() {
         <UndoToast
           key={latest.id}
           message={latest.label}
+          {...(latest.actionLabel ? { undoLabel: latest.actionLabel } : {})}
           onUndo={() => void undoStack.undo(latest.id)}
           onExpire={() => setLatest(null)}
         />

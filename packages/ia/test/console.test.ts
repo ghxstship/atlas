@@ -14,7 +14,8 @@ const operatorConsole = loadApp("console");
 /**
  * The operator console sitemap (A90, RRR-135; Section 4.10, Section 6): valid like the other shells, keyed by the
  * operator roles of migration 1470, with support sessions hidden from Trust and Safety, the moderation queue hidden
- * from Support and the platform team roster for Administrators only. The database checks each action again.
+ * from Support and the platform team roster for Administrators only. Train 11 adds territories (ADR 0160), rating disputes
+ * under moderation (ADR 0158), the legal queue for Administrators (ADR 0167) and Reported Content (6891). The database checks each action again.
  */
 describe("console sitemap", () => {
   it("passes every sitemap rule", () => {
@@ -30,12 +31,21 @@ describe("console sitemap", () => {
     expect(flattenRoutes(operatorConsole).map((r) => r.route)).toEqual([
       "/tenants",
       "/tenants/{orgId}",
+      "/metrics",
       "/flags",
+      "/territories",
       "/support",
       "/support/{sessionId}",
       "/moderation",
       "/moderation/{opportunityId}",
+      "/rating-disputes",
+      "/rating-disputes/{disputeId}",
+      "/legal-queue",
+      "/legal-queue/{itemId}",
+      "/reported-content",
+      "/reported-content/{subjectId}",
       "/banners",
+      "/funnels",
       "/team",
       "/activity",
     ]);
@@ -46,19 +56,37 @@ describe("console sitemap", () => {
       chromeSlot(operatorConsole, "topBar", { role }).map((n) => n.id);
     expect(visible("administrator")).toEqual([
       "tenants",
+      "metrics",
       "flags",
+      "territories",
       "support",
       "moderation",
+      "legal-queue",
+      "reported-content",
       "banners",
+      "funnels",
       "team",
       "activity",
     ]);
-    expect(visible("support")).toEqual(["tenants", "flags", "support", "banners", "activity"]);
+    expect(visible("support")).toEqual([
+      "tenants",
+      "metrics",
+      "flags",
+      "territories",
+      "support",
+      "banners",
+      "funnels",
+      "activity",
+    ]);
     expect(visible("trust-and-safety")).toEqual([
       "tenants",
+      "metrics",
       "flags",
+      "territories",
       "moderation",
+      "reported-content",
       "banners",
+      "funnels",
       "activity",
     ]);
     expect(isNodeVisible(operatorConsole, "moderation.listing", { role: "support" })).toBe(false);

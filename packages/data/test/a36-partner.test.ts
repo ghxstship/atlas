@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   createClientOrg,
   endSupportSession,
+  getClientCreationAllowed,
   getDefaultBrand,
   getEffectiveBrand,
   getPartnerAgreement,
@@ -91,6 +92,7 @@ describe("partner console repository", () => {
       slug: "tide",
       ownerEmail: "o@example.com",
       planCode: "core",
+      countryCode: "US",
     };
     expect(await createClientOrg(db, input)).toEqual({
       ok: true,
@@ -99,6 +101,15 @@ describe("partner console repository", () => {
     expect((await createClientOrg(db, input)).ok).toBe(false);
     const third = await createClientOrg(db, input);
     expect(third.ok === false && third.error.kind).toBe("refusal");
+  });
+
+  it("reads whether an operator has turned client creation on, off by default (6870)", async () => {
+    const { db } = moduleClient({
+      "rpc:partner_client_creation_allowed": [ok(true), ok(false), denied],
+    });
+    expect(await getClientCreationAllowed(db, "p1")).toEqual({ ok: true, data: true });
+    expect(await getClientCreationAllowed(db, "p1")).toEqual({ ok: true, data: false });
+    expect((await getClientCreationAllowed(db, "p1")).ok).toBe(false);
   });
 
   it("reads, creates and updates the default brand", async () => {
@@ -257,7 +268,7 @@ describe("partner console repository", () => {
   });
 
   it("grants, lists and ends support sessions, and reads client venues under RLS", async () => {
-    const { db } = moduleClient({
+    const { db, calls } = moduleClient({
       "rpc:grant_support_session": [ok("s1")],
       "rpc:end_support_session": [ok("s1")],
       "from:support_sessions": [
@@ -296,6 +307,13 @@ describe("partner console repository", () => {
       data: [{ id: "v1", name: "Boathouse", locality: null }],
     });
     expect((await listClientVenues(db, "c1")).ok).toBe(false);
+    // A client's archived venues are left out (A124).
+    expect(
+      stepsOf(
+        calls.find((c) => c.target === "from:venues"),
+        "is",
+      ),
+    ).toContainEqual(["archived_at", null]);
   });
 });
 

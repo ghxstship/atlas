@@ -2,10 +2,11 @@ import { listMembers } from "@xos/data";
 import { listAttachments } from "@xos/data/attachments";
 import { listThreads } from "@xos/data/comments";
 import type { AdvancingContext } from "./context";
+import { RecordHistory } from "@/components/history/record-history";
 import { AttachmentsPanel, CommentsPanel } from "./collab";
 
 /**
- * Comments and attachments of one Advancing row. Reading follows the row's read policy in the
+ * Field history (A131), comments and attachments of one Advancing row. Reading follows the row's read policy in the
  * database: anyone who can read the row may comment (A18), and uploads are offered to people who
  * may change it.
  */
@@ -35,6 +36,7 @@ export async function RecordCollab({
   if (members.ok) for (const m of members.data) if (m.fullName) names[m.personId] = m.fullName;
   return (
     <>
+      <RecordHistory db={db} table={table} id={id} />
       <CommentsPanel
         org={actx.ctx.org.slug}
         subjectTable={table}

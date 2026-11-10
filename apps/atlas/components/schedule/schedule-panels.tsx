@@ -5,7 +5,7 @@ import type { ProjectRef, RecordSummary } from "@xos/data/work";
 import { Button, Drawer, IconButton, Input, Select } from "@xos/ui";
 import type { Route } from "next";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRecordKeyHovers } from "@/components/hover/use-hover-cards";
 import { ActionErrorAlert, useAction, useCopy } from "@/components/work/action-ui";
 import { fromLocalInput, toLocalInput, withQuery } from "@/components/work/format";
@@ -15,8 +15,9 @@ import {
   removeDependencyAction,
   setActualAction,
 } from "./actions";
+import * as enums from "@xos/data/enums";
 
-const TYPES = ["Finish to Start", "Start to Start", "Finish to Finish", "Start to Finish"] as const;
+const TYPES = enums.dependencyType;
 
 /**
  * A record's predecessors and successors, with a form to add a predecessor of the same project. Each
@@ -41,7 +42,19 @@ export function DependencyEditor({
   const [predecessor, setPredecessor] = useState("");
   const [type, setType] = useState<string>(TYPES[0]);
   const [lag, setLag] = useState("0");
+  // The editor loads with the record (record-peek-panels) and its selects are uncontrolled, so a choice made before
+  // it hydrates stays in the page with no change event: read it once hydrated, or Add stays disabled.
+  const form = useRef<HTMLFormElement>(null);
+  useEffect(() => {
+    const fields = form.current?.elements;
+    const chosen = (fields?.namedItem("predecessor") as HTMLSelectElement | null)?.value ?? "";
+    if (chosen !== "") setPredecessor(chosen);
+    const kind = (fields?.namedItem("type") as HTMLSelectElement | null)?.value;
+    if (kind) setType(kind);
+  }, []);
   const byId = new Map(candidates.map((c) => [c.id, c]));
+  // Archived records still name existing dependencies but are not offered for new ones (A124).
+  const choices = candidates.filter((c) => c.archivedAt === null);
   const name = (id: string) => {
     const r = byId.get(id);
     return r ? `${r.key} ${r.title}` : t("dependencies.hidden");
@@ -104,8 +117,9 @@ export function DependencyEditor({
           )}
         </div>
       </div>
-      {canEdit && candidates.length > 0 ? (
+      {canEdit && choices.length > 0 ? (
         <form
+          ref={form}
           className="flex flex-wrap items-end gap-8"
           onSubmit={(e) => {
             e.preventDefault();
@@ -124,14 +138,16 @@ export function DependencyEditor({
           <Select
             key={`pred-${dependencies.length}`}
             id={`dep-pred-${record.id}`}
+            name="predecessor"
             label={t("dependencies.predecessor")}
             value=""
             placeholder={t("dependencies.choose")}
-            options={candidates.map((c) => ({ value: c.id, label: `${c.key} ${c.title}` }))}
+            options={choices.map((c) => ({ value: c.id, label: `${c.key} ${c.title}` }))}
             onChange={(e) => setPredecessor(e.target.value)}
           />
           <Select
             id={`dep-type-${record.id}`}
+            name="type"
             label={t("dependencies.type")}
             value={type}
             options={TYPES.map((x) => ({ value: x, label: t(`dependencies.types.${x}`) }))}

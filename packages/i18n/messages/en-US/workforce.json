@@ -315,7 +315,24 @@
     "stillNeeded": "Still needed",
     "submittedTitle": "Submitted",
     "submittedBody": "Your form is in. Fill it in again for another check.",
-    "submit": "Submit form"
+    "submit": "Submit form",
+    "publicLink": {
+      "title": "Public link",
+      "badge": "Public link",
+      "by": "{name} ({email}), public link",
+      "create": "New public link",
+      "unsupported": "Forms with photos, signatures or a GPS stamp are filled in by members only.",
+      "description": "People outside the organization open this form with an access code, then sign in or create an account to answer.",
+      "close": "Close",
+      "project": "Project",
+      "projectHelp": "An approved response becomes a record on this project.",
+      "chooseProject": "Choose a project",
+      "expiresOn": "Available until",
+      "dailyCap": "Most responses in any 24 hours",
+      "onePerEmail": "One response per email",
+      "submit": "Create link",
+      "expiresHelp": "Ends at the end of this day in {zone}."
+    }
   },
   "training": {
     "title": "Training",
@@ -618,7 +635,7 @@
     "noSpace": "No space",
     "spaceOption": "{name} ({area} sq ft, capacity {capacity})",
     "factor": "Occupant load factor",
-    "factorHelp": "From the Bible capacity metrics: the space's area divided by this factor gives the permitted load.",
+    "factorHelp": "From the Bible capacity metrics: the space's area divided by this factor gives a calculated load, not a permitted one.",
     "noFactor": "No load factor",
     "factorOption": "{item}: {feet} sq ft per person",
     "permit": "Permitted load from a permit",
@@ -630,7 +647,7 @@
       "Permit": "Permit"
     },
     "inside": "Inside",
-    "load": "Permitted load",
+    "load": "Occupant load",
     "percent": "Percent",
     "ratio": "{count} of {load} ({percent}%)",
     "counting": "Counting",
@@ -689,7 +706,77 @@
     "time": "Time",
     "by": "Recorded by",
     "alerts": "Alerts",
-    "cleared": "Cleared"
+    "cleared": "Cleared",
+    "readingSource": {
+      "Manual": "Recorded on site",
+      "NWS": "National Weather Service"
+    },
+    "feed": {
+      "title": "Official feed",
+      "what": "Readings, warnings and the forecast from the US National Weather Service for this project's venue, every 10 minutes from three days before the project starts to the day after it ends.",
+      "turnOn": "Turn on the official feed",
+      "turnOff": "Turn off the official feed",
+      "unsupported": "The official feed covers US venues with a location.",
+      "lastUpdate": "Last updated {time}",
+      "lastFailure": "Last attempt failed {time}: {error}",
+      "failuresSince": "{count, plural, one {# failed attempt since the last update} other {# failed attempts since the last update}}",
+      "never": "No update yet.",
+      "turnedOn": "The official feed is on. Its first reading arrives within 10 minutes.",
+      "turnedOff": "The official feed is off."
+    },
+    "warnings": {
+      "title": "Active warnings",
+      "empty": "No official warnings are active.",
+      "until": "Until {time}",
+      "issuedBy": "Issued by the National Weather Service, in English",
+      "severities": {
+        "Extreme": "Extreme",
+        "Severe": "Severe",
+        "Moderate": "Moderate",
+        "Minor": "Minor",
+        "Unknown": "Unknown"
+      },
+      "more": "Details"
+    },
+    "forecast": {
+      "title": "Next 12 hours",
+      "temperature": "{value}°F",
+      "wind": "{value} mph",
+      "precipitation": "{value}% rain",
+      "empty": "No forecast yet.",
+      "rain": "Rain",
+      "summary": "Forecast"
+    },
+    "holds": {
+      "call": "Call hold",
+      "callTitle": "Call a weather hold",
+      "callBody": "Everyone in the alert roles, the dispatchers and everyone inside the project's zones hears this at once.",
+      "message": "Message",
+      "messageHelp": "1 to 1,000 characters.",
+      "callSubmit": "Send hold",
+      "open": "Weather hold since {time}",
+      "allClear": "All clear",
+      "allClearTitle": "Give the all-clear",
+      "allClearSubmit": "Send all-clear",
+      "sent": "Sent to everyone",
+      "holdSent": "Weather hold sent to everyone it reaches.",
+      "allClearSent": "All-clear sent to everyone it reaches.",
+      "cancel": "Cancel",
+      "hazard": "Hazard",
+      "noHazard": "No hazard named",
+      "warning": "Official warning",
+      "noWarning": "No warning named"
+    },
+    "templates": {
+      "title": "Hold and all-clear messages",
+      "hold": "Hold message",
+      "allClear": "All-clear message",
+      "save": "Save messages",
+      "defaultHold": "Weather hold: stop work now and move to the nearest shelter. Wait for the all-clear.",
+      "defaultHoldHazard": "Weather hold for {hazard}: stop work now and move to the nearest shelter. Wait for the all-clear.",
+      "defaultAllClear": "All clear: the weather hold is over. Return to work when your lead says so.",
+      "defaultHoldWarning": "Weather hold for {event}: stop work now and move to the nearest shelter. Wait for the all-clear."
+    }
   },
   "guests": {
     "title": "Guest Check-In",
@@ -717,7 +804,12 @@
     "admittedLine": "Admitted with {plusOnes, plural, =0 {no plus-ones} one {# plus-one} other {# plus-ones}} at {door}.",
     "checkedInCount": "Checked in of {expected}",
     "peopleIn": "People in",
-    "emptyAction": "Open the guest list"
+    "emptyAction": "Open the guest list",
+    "passType": "Pass type",
+    "table": "Table",
+    "host": "Host",
+    "passCode": "Pass code",
+    "search": "Name or pass code"
   },
   "lostFound": {
     "title": "Lost and Found",
@@ -781,6 +873,7 @@
     "feed_post_publish_past": "Pick a publish time in the future, or leave it blank to post now.",
     "feed_post_not_author": "Only the author or a communication admin can change this post.",
     "audience_target": "Choose the audience's project, team, role or group.",
+    "show_channel_audience": "A show channel is for its chat; choose another audience.",
     "poll_options": "A poll needs 2 to 10 options.",
     "poll_closed": "This poll has closed.",
     "poll_already_voted": "You already voted in this poll.",
@@ -823,7 +916,7 @@
     "support_ticket_closed": "This request is closed. Open a new one.",
     "occupancy_count_negative": "That would take the count below zero. Check the door count.",
     "occupancy_counter_closed": "This counter is closed.",
-    "occupancy_load_unknown": "Give a permitted load, pick a load factor, or set the space's capacity first.",
+    "occupancy_load_unknown": "Enter the load from a permit, pick a load factor, or set the space's capacity first.",
     "occupancy_space_area": "The space needs its area before a load factor can size it.",
     "occupancy_load_factor": "Pick an occupant load factor from the Bible capacity metrics.",
     "guest_not_approved": "Only approved guests are checked in. Ask the guest list owner.",
@@ -835,11 +928,21 @@
     "lost_item_claim_settled": "This claim is already settled.",
     "lost_item_rejection_note": "Say why the claim is rejected.",
     "content_report_own": "You cannot report your own post, comment or message.",
+    "content_objectionable": "This contains language that is not allowed here. Change the wording and try again.",
     "content_report_removed": "This was already removed.",
     "block_self": "You cannot block yourself.",
     "content_moderation_own": "Another moderator decides reports about your own post, comment or message.",
     "content_moderation_nothing_open": "Every report about this was already decided.",
-    "content_moderation_authority": "Reviewing reported content needs permission to manage communication."
+    "content_moderation_authority": "Reviewing reported content needs permission to manage communication.",
+    "question_sensitive": "A question cannot ask for dietary, accessibility or protected-group details, because answering it records no consent. Use Work Details or the guest's needs step.",
+    "weather_feed_unsupported": "The official feed covers US venues with a location. Locate the venue first.",
+    "weather_feed_worker_fields": "The feed sets its own station, forecast URL and check time.",
+    "weather_feed_payload": "The official feed sent something we could not read. It will try again.",
+    "weather_hold_open": "A weather hold is already open on this project. Give the all-clear first.",
+    "weather_hold_closed": "This weather hold already has its all-clear.",
+    "weather_hold_message": "Write a message of 1 to 1,000 characters.",
+    "weather_hold_stale": "This all-clear was made more than 10 minutes ago and was not sent. Check the weather and give it again.",
+    "weather_hold_id_taken": "Someone else already sent this. Reload to see the hold."
   },
   "settingsPanels": {
     "groupsTitle": "Group spaces",
@@ -1102,10 +1205,20 @@
       "add": "Add {n}",
       "remove": "Remove {n}",
       "count": "{count} of {permitted}",
-      "percent": "{percent} percent of the permitted load",
-      "level80": "80 percent of the permitted load. Slow entry.",
-      "level90": "90 percent of the permitted load. Hold entry and call your supervisor.",
-      "level100": "At the permitted load. Stop entry now."
+      "percent": "{percent} percent of the {load}",
+      "level80": "80 percent of the {load}. Slow entry.",
+      "level90": "90 percent of the {load}. Hold entry and call your supervisor.",
+      "level100": "At the {load}. Stop entry now.",
+      "loadName": {
+        "Permit": "permitted load",
+        "OccupantLoadFactor": "calculated load",
+        "SpaceCapacity": "space capacity"
+      },
+      "basis": {
+        "Permit": "Load set by a permit.",
+        "OccupantLoadFactor": "Calculated load: the space's area divided by its occupant load factor. No permit set it.",
+        "SpaceCapacity": "Load from the space's stated capacity. No permit set it."
+      }
     },
     "weather": {
       "title": "Weather",
@@ -1132,7 +1245,26 @@
       },
       "alertLine": "{hazard}: {level} · {time}",
       "readingLine": "{value} {unit} · {time}",
-      "thresholdLine": "{level} at {value} {unit} ({source})"
+      "thresholdLine": "{level} at {value} {unit} ({source})",
+      "holdSince": "Weather hold since {time}",
+      "warnings": "Official warnings",
+      "noWarnings": "No official warnings.",
+      "issuedBy": "Issued by the National Weather Service, in English",
+      "severities": {
+        "extreme": "Extreme",
+        "severe": "Severe",
+        "moderate": "Moderate",
+        "minor": "Minor",
+        "unknown": "Unknown"
+      },
+      "callHold": "Call hold",
+      "allClear": "All clear",
+      "message": "Message",
+      "messageHelp": "1 to 1,000 characters. Everyone in the alert roles, the dispatchers and everyone inside the project's zones hears it.",
+      "send": "Send",
+      "defaultHold": "Weather hold: stop work now and move to the nearest shelter. Wait for the all-clear.",
+      "defaultHoldHazard": "Weather hold for {hazard}: stop work now and move to the nearest shelter. Wait for the all-clear.",
+      "defaultAllClear": "All clear: the weather hold is over. Return to work when your lead says so."
     },
     "door": {
       "title": "Guest Check-In",
@@ -1148,7 +1280,16 @@
       "more": "One more",
       "fewer": "One fewer",
       "admitted": "In with {plusOnes} plus-ones · {time}",
-      "admittedAt": "In with {plusOnes} plus-ones at {door} · {time}"
+      "admittedAt": "In with {plusOnes} plus-ones at {door} · {time}",
+      "pass": "Guest pass",
+      "passHelp": "Scan the pass, or type the code printed on it, such as GP-ABCDEFGHIJ.",
+      "checkPass": "Find the guest",
+      "passNotListed": "This pass is not on tonight's list.",
+      "passOffline": "Connect to check passes.",
+      "passUsed": "{name} already checked in with this pass.",
+      "passUsedAt": "{name} already checked in with this pass at {time}.",
+      "passType": "Pass: {name}",
+      "table": "Table {table}"
     },
     "lostFound": {
       "title": "Lost and Found",
@@ -1237,11 +1378,52 @@
       "noAction": "Take no action: it breaks no rule"
     },
     "ruleReference": "Rule relied on",
-    "ruleReferenceHelp": "For example Acceptable Use Policy 1, or a section of your organization's code of conduct.",
+    "ruleReferenceHelp": "For example Acceptable Use Policy, Section 1, or a section of your organization's code of conduct.",
     "facts": "Facts",
     "factsHelp": "What the content says or does that the decision rests on.",
     "statement": "Statement of reasons",
     "statementHelp": "Sent to the people who reported it and, when you remove it, to its author.",
     "submit": "Record Decision"
+  },
+  "muster": {
+    "title": "Muster list",
+    "what": "Everyone placed in a zone now by an entry scan or a geofenced clock-in, and guests checked in in the last 24 hours, at a door or in bulk. It shows only the people you may see; someone whose newer scan you cannot see may show in their last zone you can. Guests show only to people who may read the guest list, and their door and plus-ones only to people who check guests in at the doors.",
+    "noAccess": "The muster list needs the scan log, the time entries or the guest list of the project.",
+    "empty": "Nobody is inside a zone of this project.",
+    "project": "Project",
+    "zone": "Zone",
+    "allZones": "All zones",
+    "noZone": "Checked in at a door",
+    "name": "Name",
+    "since": "Since",
+    "source": "Source",
+    "sources": {
+      "Scan": "Entry scan",
+      "ClockIn": "Clock-in",
+      "GuestCheckIn": "Guest check-in"
+    },
+    "category": "Category",
+    "party": "Party",
+    "door": "Door",
+    "guestAt": "Checked in at {door}",
+    "zoneCount": "{count, plural, one {# person} other {# people}}",
+    "print": "Print",
+    "updated": "Updated {time}",
+    "pause": "Pause updates",
+    "resume": "Resume updates",
+    "views": "Muster list views",
+    "view": {
+      "table": "Table",
+      "list": "List"
+    },
+    "hiddenLabel": "Not shown to you",
+    "hiddenScans": "Entry scans are not shown: they need the project's scan log.",
+    "hiddenClockIns": "Clock-ins are not shown: they need the project's time entries.",
+    "hiddenGuests": "Guests are not shown: they need the project's guest list.",
+    "hiddenDoors": "Guests' doors and plus-ones are not shown: they need guest check-in at the doors.",
+    "plusOnes": "Plus-ones",
+    "plusOnesLine": "{count, plural, one {# plus-one} other {# plus-ones}}",
+    "truncated": "This list stops at {count} rows and more people are present. Filter by zone, or export the list for every row.",
+    "stale": "The list could not be read again just now, so this is the last one read. It tries again every 30 seconds."
   }
 }

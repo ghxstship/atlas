@@ -26,4 +26,16 @@ Open a saved view, then choose **Open by default** in the Saved views menu. The 
 
 A shared view holds only the view type, filters, sort, grouping and search. Each person who opens it sees only the records their own access allows. Only the owner can update, share or delete a view.
 
+## Share a view live
+
+A saved Schedule, Show, Run of show or Day sheets view can be shared with people who have no account, such as a venue or a vendor.
+
+1. Open the saved view, then choose **Share live** in the Saved views menu.
+2. On an organization page, pick the project the link shows. Pick when the link expires, at most 90 days ahead, and add a note for your team if you like.
+3. Copy the link and the 6-digit access code. They are shown only once; send the code separately from the link.
+
+The person opens the link, enters the code once on their device, and sees the view update while they watch. The page shows only the columns a public page may show: never owners, accountable people, blockers, notes, costs or custom fields. A view that filters, sorts or groups by anything else cannot be shared live, and a link stops when its view is deleted or changed that way, or when you lose access to the project.
+
+**Regenerate** gives the link a new address and code, and every device must enter the new code. **Revoke** stops it for good. Five wrong codes lock a link; regenerate it to open it again.
+
 Related: [Keyboard navigation](help:keyboard-navigation).

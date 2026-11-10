@@ -54,11 +54,24 @@ export async function expectAccessible(page: Page): Promise<void> {
       { timeout: 5_000 },
     )
     .catch(() => undefined);
-  // Next streams the page's metadata, so on a loaded runner the title can land after the body; axe's
-  // document-title rule would then fail a page that has one (run 40123982182). A page with no title
-  // still fails once this wait gives up.
+  // Next streams the page's metadata, so on a loaded runner the title can land after the body, and a
+  // view switch can clear it once more while the new one streams in; axe's document-title rule would
+  // then fail a page that has one (runs 40123982182, 42661223834). The title must stay set for 300 ms;
+  // a page with no title still fails once this wait gives up.
   await page
-    .waitForFunction(() => document.title.trim() !== "", undefined, { timeout: 10_000 })
+    .waitForFunction(
+      () => {
+        const w = window as typeof window & { __xosTitleSince?: number };
+        if (document.title.trim() === "") {
+          delete w.__xosTitleSince;
+          return false;
+        }
+        w.__xosTitleSince ??= performance.now();
+        return performance.now() - w.__xosTitleSince >= 300;
+      },
+      undefined,
+      { timeout: 10_000, polling: 50 },
+    )
     .catch(() => undefined);
   const results = await new AxeBuilder({ page })
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
@@ -90,6 +103,9 @@ export async function createOrganization(page: Page, input: { name: string; slug
   await expectAccessible(page);
   await page.getByLabel("Organization name").fill(input.name);
   await page.getByLabel("Web address").fill(input.slug);
+  await page
+    .getByLabel("Country where your organization is established", { exact: true })
+    .selectOption("US");
   await page.getByRole("checkbox").check();
   await page.getByRole("button", { name: "Create organization" }).click();
   await page.waitForURL(`**/${input.slug}/home`);

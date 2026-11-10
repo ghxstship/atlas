@@ -21,6 +21,8 @@ const TIMES = {
 };
 const MEMBERSHIP = id(9001);
 const REP = id(9002);
+/** What app.create_organization was told about the country, one entry per call. */
+const organizationCountries: unknown[] = [];
 
 function seed(component: string, rowId: string, extra: Row = {}): Row {
   return { ...sample(component, { id: rowId, ...TIMES, ...extra }), deleted_at: null };
@@ -56,6 +58,7 @@ function world(context = {}) {
         self.tables["organizations"]?.push(
           seed("Organization", id(9020), { name: args["p_name"], slug: args["p_slug"] }),
         );
+        organizationCountries.push(args["p_country_code"]);
         return id(9020);
       },
       create_client_organization: () => [
@@ -193,6 +196,18 @@ describe("the caller, people and organizations", () => {
       owner_email: "owner@client.example.com",
     });
     await expectContract(await success(client), "organizations.createClient");
+  });
+
+  it("passes the country the caller states, and leaves an omitted one to the database (ADR 0160)", async () => {
+    const { http } = world();
+    organizationCountries.length = 0;
+    await http.post("/organizations", { name: "Third Stage", slug: "third-stage" });
+    await http.post("/organizations", {
+      name: "Fourth Stage",
+      slug: "fourth-stage",
+      country_code: "PR",
+    });
+    expect(organizationCountries).toEqual([undefined, "PR"]);
   });
 });
 

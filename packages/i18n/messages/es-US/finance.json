@@ -55,7 +55,14 @@
     "unnamedCounterparty": "Contraparte sin nombre",
     "unpriced": "Sin precio",
     "vendor": "Proveedor",
-    "viewLabel": "Vista"
+    "viewLabel": "Vista",
+    "lineRemoved": "Se quitó {description}.",
+    "lineUndo": "Alguien cambió esta línea después de que usted la quitó; vuelva a cargar la página para ver el cambio.",
+    "editUndo": "Alguien cambió esta línea después de su edición; vuelva a cargar la página para ver el cambio.",
+    "yes": "Sí",
+    "no": "No",
+    "delete": "Eliminar",
+    "undo": "Deshacer"
   },
   "views": {
     "table": "Tabla",
@@ -208,6 +215,7 @@
       "direction": "Elija por pagar o por cobrar.",
       "endBeforeStart": "La fecha final debe ser igual o posterior a la inicial.",
       "engagementId": "Elija una contratación.",
+      "expenseIds": "Elija al menos un gasto.",
       "eventScope": "Un centro de costo de Evento necesita el alcance del evento al que pertenece.",
       "file": "Elija un archivo para subir.",
       "fileSize": "Los archivos pueden pesar hasta 50 MB.",
@@ -219,6 +227,7 @@
       "name": "Ingrese un nombre.",
       "number": "Los números de factura tienen hasta 100 caracteres.",
       "oneSide": "Cada línea lleva un débito o un crédito, no ambos ni ninguno.",
+      "perDiemIds": "Elija al menos un viático.",
       "periodId": "Elija el período contable.",
       "projectId": "Elija un proyecto.",
       "quantity": "Ingrese una cantidad de cero o más.",
@@ -234,7 +243,12 @@
       "unitPrice": "Ingrese un precio de cero o más, o déjelo en blanco para Sin precio.",
       "urid": "Elija una disciplina o categoría del canon.",
       "xyz": "Elija la etiqueta XYZ; una disciplina necesita declararla.",
-      "zeroNeedsNoCost": "Un precio en cero necesita marcar Sin costo; de lo contrario, deje el precio en blanco."
+      "zeroNeedsNoCost": "Un precio en cero necesita marcar Sin costo; de lo contrario, deje el precio en blanco.",
+      "defaultMarkupPercent": "Escribe un recargo de 0 a 1000 por ciento, o déjalo en blanco.",
+      "validUntil": "Escribe una fecha válida.",
+      "terms": "Los términos llegan hasta 4000 caracteres.",
+      "email": "Escribe un correo válido.",
+      "label": "Ponle a la instantánea un nombre de 1 a 120 caracteres."
     }
   },
   "refusals": {
@@ -341,7 +355,58 @@
     "step_up_required": "Exportar datos restringidos requiere autenticación reforzada. Vuelve a iniciar sesión con tu segundo factor y descarga de nuevo.",
     "form_1099_year": "Elige un año fiscal entre 2020 y este año.",
     "deliverable_fee_fixed": "Un hito aceptado conserva su tarifa.",
-    "deliverable_fee_currency": "Define la moneda de la contratación antes de poner precio a sus hitos."
+    "deliverable_fee_currency": "Define la moneda de la contratación antes de poner precio a sus hitos.",
+    "sod_document_creator": "Su organización no permite que quien creó un documento lo apruebe. Pida a otro aprobador.",
+    "sod_change_order_requester_steps": "Su organización no permite que quien solicita una orden de cambio decida un paso de su aprobación. Pida a otro aprobador.",
+    "budget_version_capture_only": "Una versión del presupuesto se toma con Tomar una instantánea o al enviar una cotización.",
+    "budget_version_immutable": "Una versión del presupuesto nunca cambia. Toma una instantánea nueva.",
+    "budget_version_in_use": "Esta versión respalda una cotización enviada, así que se conserva.",
+    "budget_version_label": "Ponle a la instantánea un nombre de 1 a 120 caracteres.",
+    "budget_not_found": "Este presupuesto ya no existe.",
+    "budget_has_sent_quote": "Se envió una cotización desde este presupuesto, así que se conserva.",
+    "budget_line_labor_linked": "Hay turnos que registran su tiempo en esta línea de mano de obra. Muévelos primero a otra línea.",
+    "quote_immutable": "Una cotización conserva su presupuesto y su número.",
+    "quote_client_engagement": "Elige una contratación de cliente abierta del proyecto para enviarle la cotización.",
+    "quote_budget_project": "La contratación del cliente debe ser del proyecto del presupuesto.",
+    "quote_sent_parties": "El cliente queda fijo una vez enviada una versión. Crea una cotización nueva para otro cliente.",
+    "quote_accepted_locked": "Esta cotización fue aceptada y no puede cambiar. Registra los cambios como una orden de cambio.",
+    "quote_sent_permanent": "Una cotización enviada se conserva. Retira su versión en su lugar.",
+    "quote_not_draft": "Solo cambia una versión en borrador. Crea una versión nueva para cambiar una cotización enviada.",
+    "quote_rpc_only": "Las versiones de una cotización cambian solo con sus acciones.",
+    "quote_draft_exists": "Esta cotización ya tiene una versión en borrador. Edita esa.",
+    "quote_valid_until": "Válida hasta ya pasó. Elige un día posterior.",
+    "quote_no_lines": "El presupuesto no tiene ninguna línea en la cotización.",
+    "quote_unpriced_lines": "Cada línea de la cotización necesita un precio al cliente. Define un recargo o un precio unitario al cliente.",
+    "quote_not_sent": "Esta versión de la cotización ya no está a la espera de una firma.",
+    "quote_expired": "Esta cotización venció y ya no se puede aceptar. Pide una versión nueva.",
+    "quote_document_locked": "Un documento de cotización sigue a su cotización. Cambia la cotización en su lugar.",
+    "budget_lines_markup_range": "El recargo va de 0 a 1000 por ciento.",
+    "expense_credit_original": "Un crédito se registra contra un gasto vigente, aprobado o pagado, de esta organización, que no sea a su vez un crédito.",
+    "expense_credit_line": "Un crédito se registra en la partida del gasto que acredita.",
+    "expense_credit_exceeds": "Los créditos de este gasto superarían su importe. Reduce este o cancela otro.",
+    "expense_credit_reimbursed": "Este gasto ya se reembolsó a quien lo pagó, así que el reembolso del proveedor le corresponde a esa persona.",
+    "expense_credit_immutable": "Un crédito sigue ligado al gasto que acredita y conserva su proveedor.",
+    "expense_credit_posted": "Un crédito aprobado ya registró su reversión, así que no va a la Papelera.",
+    "expense_credit_original_unposted": "El gasto de este crédito no tiene un asiento registrado que revertir.",
+    "expense_credit_engagement": "Un crédito sigue al gasto que acredita y no nombra un acto propio.",
+    "expense_engagement_project": "Elige un acto vigente del proyecto de este presupuesto.",
+    "expense_reimbursable_locked": "Si un gasto es reembolsable solo cambia mientras está propuesto.",
+    "expense_reimbursement_rpc": "Un gasto se reembolsa registrando su reembolso en Finanzas > Pagos.",
+    "expense_reimbursed_locked": "Un gasto reembolsado conserva su motivo y no va a la Papelera. Anula primero el reembolso.",
+    "expense_has_credits": "Un gasto con créditos no va a la Papelera mientras estos sigan vigentes. Cancélalos o recházalos primero.",
+    "expense_paid_final": "Un gasto pagado sigue pagado. Anula su reembolso para reabrirlo.",
+    "expense_reimbursement_use_rpc": "Un gasto reembolsable se paga registrando su reembolso.",
+    "expense_reimbursement_batch": "Un reembolso liquida de 1 a 200 gastos.",
+    "expense_reimbursement_date": "Indica la fecha en que se movió el dinero.",
+    "expense_reimbursement_expense": "Reembolsa gastos vigentes, aprobados y reembolsables que esta persona registró y que aún se le deben.",
+    "expense_reimbursement_currency": "Un reembolso liquida gastos en una sola moneda.",
+    "expense_reimbursement_pending_credit": "Uno de estos gastos tiene un crédito pendiente de aprobación. Decídelo primero.",
+    "expense_reimbursement_void_reason": "Di por qué se anula el reembolso, en hasta 500 caracteres.",
+    "expense_reimbursement_voided": "Este reembolso ya está anulado.",
+    "sod_reimbursement_payee": "No puedes registrar un reembolso ni un pago de viáticos a tu nombre. Pídeselo a otra persona de finanzas.",
+    "per_diem_payment_batch": "Marca de 1 a 500 viáticos como pagados a la vez.",
+    "per_diem_payment_date": "Indica la fecha en que se pagaron los viáticos.",
+    "per_diem_already_paid": "Uno de estos viáticos ya está pagado."
   },
   "collab": {
     "attachments": "Adjuntos",
@@ -373,9 +438,12 @@
     "catalogSearch": "Buscar en el catálogo",
     "catalogSentence": "Elija elementos y una categoría de precio. Cada línea toma el precio del canon para esa categoría, o Sin precio cuando el elemento no tiene precio en ella.",
     "choose": "Elija un presupuesto",
+    "committedOtherCurrency": "{count, plural, one {La línea {lines} tiene órdenes de compra en otra moneda, que no se incluyen en Comprometido.} other {Las líneas {lines} tienen órdenes de compra en otra moneda, que no se incluyen en Comprometido.}}",
+    "committedWithheld": "El comprometido está oculto: no puede leer las órdenes de compra de este proyecto",
     "columns": {
       "account": "Cuenta",
       "actual": "Real",
+      "committed": "Comprometido",
       "costCenter": "Centro de costo",
       "description": "Descripción",
       "extended": "Total de línea",
@@ -386,7 +454,17 @@
       "unitPrice": "Precio unitario",
       "unpriced": "Sin precio",
       "urid": "URID",
-      "xyz": "XYZ"
+      "xyz": "XYZ",
+      "markup": "Recargo %",
+      "markupDefault": "{percent}% predeterminado",
+      "clientUnitPrice": "Precio unitario al cliente",
+      "clientAmount": "Importe al cliente",
+      "margin": "Margen",
+      "onQuote": "En la cotización",
+      "remaining": "Compromiso pendiente",
+      "etc": "Estimado para terminar",
+      "efc": "Costo final estimado",
+      "varianceAtCompletion": "Variación al terminar"
     },
     "conflict": {
       "field": "Campo",
@@ -415,29 +493,45 @@
     "emptyProject": "{project} aún no tiene presupuesto. Cree la línea base de la compuerta 3 para empezar a ponerle precio.",
     "fields": {
       "isBaseline": "Línea base de la compuerta 3",
-      "name": "Nombre del presupuesto"
+      "name": "Nombre del presupuesto",
+      "defaultMarkup": "Recargo predeterminado %",
+      "defaultMarkupHelp": "Se aplica a las líneas sin recargo propio. En blanco significa sin recargo predeterminado."
     },
     "figures": {
       "actual": "Real",
       "changeCount": "{count, plural, =0 {Sin órdenes de cambio aprobadas} one {# orden de cambio aprobada} other {# órdenes de cambio aprobadas}}",
       "changes": "Cambios aprobados",
+      "committed": "Comprometido",
+      "committedCaption": "{count, plural, =0 {Ninguna línea comprometida} one {# línea comprometida} other {# líneas comprometidas}}{other, plural, =0 {} one {; no se incluye # línea de orden en otra moneda} other {; no se incluyen # líneas de orden en otra moneda}}. Las órdenes de cambio de OC aprobadas no se asignan a líneas y no se incluyen.",
+      "committedUnpricedCaption": "Una línea de orden de compra que usa este presupuesto no tiene precio, así que el comprometido no se totaliza.",
       "label": "Totales del presupuesto",
       "lines": "{count, plural, one {# línea} other {# líneas}}",
       "revised": "Presupuesto revisado",
       "total": "Presupuesto original",
+      "unpriced": "Sin precio",
       "unpricedCaption": "{count, plural, one {# línea está sin precio} other {# líneas están sin precio}}; las líneas con precio suman {priced}.",
       "variance": "Quedan {amount} frente al presupuesto revisado",
-      "varianceUnknown": "La variación se desconoce hasta que todas las líneas tengan precio."
+      "varianceUnknown": "La variación se desconoce hasta que todas las líneas tengan precio.",
+      "withheld": "Retenido",
+      "clientTotal": "Total al cliente",
+      "margin": "Margen",
+      "efc": "Costo final estimado",
+      "forwardExposure": "Exposición pendiente",
+      "efcUnallocated": "Incluye {amount} de cambios aprobados sin línea de presupuesto."
     },
     "grade": "Categoría de precio",
     "gridErrors": {
       "costCenter": "Ese código de centro de costo no existe. El cambio no se guardó.",
       "description": "Una línea necesita una descripción. El cambio no se guardó.",
       "urid": "Ese URID no es una disciplina ni una categoría del canon. El cambio no se guardó.",
-      "xyz": "Una disciplina necesita una etiqueta XYZ declarada. Use Agregar línea para definirla."
+      "xyz": "Una disciplina necesita una etiqueta XYZ declarada. Use Agregar línea para definirla.",
+      "markup": "El recargo va de 0 a 1000 por ciento. El cambio no se guardó.",
+      "clientPrice": "Un precio al cliente no puede ser negativo. El cambio no se guardó.",
+      "etc": "Un estimado para terminar no puede ser negativo. El cambio no se guardó."
     },
     "gridLabel": "Líneas del presupuesto",
     "kind": "Presupuesto",
+    "lineRemoved": "Otra persona eliminó la línea {line}, así que su cambio no se guardó.",
     "lineTypes": {
       "Cost": "Costo",
       "Labor": "Mano de obra",
@@ -464,6 +558,7 @@
     "pastePreview": "{count, plural, one {# línea lista} other {# líneas listas}}, {unpriced} sin precio, {problems, plural, =0 {sin problemas} one {# fila por corregir} other {# filas por corregir}}.",
     "pasteProblem": "Fila {row}: revise {field}.",
     "pasteRows": "Pegar filas",
+    "more": "Más",
     "pasteSentence": "Copie filas de Excel u otra hoja de cálculo y péguelas aquí. Se agregan como un lote que puede deshacer.",
     "pasted": "{count, plural, one {# línea pegada.} other {# líneas pegadas.}}",
     "recordRate": "Registrar un tipo en Centros de costo",
@@ -479,7 +574,102 @@
     },
     "xyzCategory": "De la categoría",
     "xyzDeclare": "Las disciplinas necesitan una etiqueta declarada.",
-    "xyzFromCategory": "La etiqueta de la categoría es {tag}; elija otra solo para declarar una distinta."
+    "xyzFromCategory": "La etiqueta de la categoría es {tag}; elija otra solo para declarar una distinta.",
+    "edited": "Se editó la línea {number}.",
+    "lodging": {
+      "title": "Alojamiento en estas líneas",
+      "load": "Mostrar alojamiento en las líneas vinculadas",
+      "failed": "No se pudo leer el alojamiento. Inténtalo de nuevo.",
+      "empty": "Ningún bloque de alojamiento se carga a estas líneas.",
+      "unpriced": "sin precio",
+      "lodgingHeld": "Alojamiento reservado {amount} ({nights} noches de habitación)",
+      "lodgingAssigned": "Alojamiento asignado {amount} ({nights} noches de habitación)",
+      "otherCurrency": "{count, plural, one {# bloque en otra moneda} other {# bloques en otra moneda}}, sin sumar"
+    },
+    "lineFields": "Campos de línea",
+    "lineFieldsSentence": "Etiquetas y otros campos que tu organización agrega a las líneas de presupuesto en Configuración, Campos personalizados. Elige una línea y luego edita sus campos.",
+    "lineFieldsLine": "Línea",
+    "filteredLines": "Se muestran {shown} de {total} líneas. Las cifras del presupuesto de arriba cubren todas las líneas.",
+    "columnSets": {
+      "label": "Columnas",
+      "cost": "Costo",
+      "client": "Precios al cliente",
+      "forecast": "Pronóstico"
+    },
+    "quoteLines": "Líneas de la cotización",
+    "quoteLinesSentence": "Las líneas que queden fuera son internas: nunca aparecen en una cotización, un total al cliente ni un PDF.",
+    "quoteLinesConflict": "Otra persona guardó primero una de estas líneas. Vuelve a abrir Líneas de la cotización para ver su cambio.",
+    "quotesLink": "Cotizaciones ({count})",
+    "importLines": "Importar líneas",
+    "unpricedHours": "{hours} horas sin precio",
+    "versions": {
+      "open": "Versiones",
+      "title": "Versiones del presupuesto",
+      "sentence": "Una versión congela el plan de este presupuesto para compararlo después. No reemplaza la línea base de la compuerta 3.",
+      "label": "Nombre de la instantánea",
+      "take": "Tomar una instantánea",
+      "empty": "Aún no hay versiones.",
+      "loadError": "Las versiones no se cargaron. Inténtalo de nuevo.",
+      "compare": "Comparar",
+      "compareTitle": "{from} a {to}",
+      "live": "Presupuesto actual",
+      "backToGrid": "Volver a la cuadrícula",
+      "deleted": "La instantánea se movió a la papelera.",
+      "costChange": "Cambio de costo",
+      "clientChange": "Cambio al cliente",
+      "added": "Agregadas",
+      "changedRemoved": "Cambiadas / eliminadas",
+      "changedOnly": "Solo cambios",
+      "allLines": "Todas las líneas",
+      "status": "Estado",
+      "fieldsChanged": "Campos cambiados",
+      "costBefore": "Costo antes",
+      "costAfter": "Costo después",
+      "purposes": {
+        "Snapshot": "Instantánea",
+        "Quote": "Captura de cotización"
+      },
+      "statuses": {
+        "added": "Agregada",
+        "removed": "Eliminada",
+        "changed": "Cambiada",
+        "unchanged": "Sin cambios"
+      },
+      "changedFields": {
+        "description": "Descripción",
+        "quantity": "Cantidad",
+        "unitPrice": "Precio unitario",
+        "lineType": "Tipo",
+        "urid": "URID",
+        "markup": "Recargo",
+        "clientPrice": "Precio al cliente",
+        "onQuote": "En la cotización"
+      }
+    },
+    "transactions": {
+      "open": "Movimientos",
+      "title": "Movimientos de esta línea",
+      "loadError": "Los movimientos no se cargaron. Inténtalo de nuevo.",
+      "expenses": "Gastos",
+      "labor": "Mano de obra",
+      "committed": "Comprometido",
+      "invoices": "Facturas de proveedores de esta línea",
+      "invoicesNote": "Las facturas de proveedores de esta línea se registran en el libro mayor y cuentan en el informe de costo final, no en Real.",
+      "withheld": "No tienes acceso a esta sección, así que no se muestra en parte.",
+      "restricted": "Restringido",
+      "teams": {
+        "OwnTeam": "Equipo propio",
+        "Agency": "Agencia",
+        "Engaged": "Persona contratada"
+      },
+      "segments": {
+        "Regular": "Normal",
+        "Overtime": "Horas extra",
+        "DoubleTime": "Horas dobles"
+      },
+      "hours": "{hours} h"
+    },
+    "laborOtherCurrency": "{count} {count, plural, one {registro de mano de obra} other {registros de mano de obra}} en otra moneda {count, plural, one {se cuenta} other {se cuentan}} aquí y {count, plural, one {queda} other {quedan}} fuera de Real."
   },
   "expenses": {
     "create": "Gasto nuevo",
@@ -493,7 +683,34 @@
     },
     "kind": "Gasto",
     "loadError": "Los gastos no se pudieron cargar. Vuelva a intentarlo.",
-    "ownExpense": "Usted envió este gasto, así que otra persona lo aprueba."
+    "ownExpense": "Usted envió este gasto, así que otra persona lo aprueba.",
+    "credit": "Crédito",
+    "creditTitle": "Crédito: {description}",
+    "creditSentence": "Un reembolso o crédito del proveedor contra este gasto. Toma la partida, la moneda y el proveedor del gasto.",
+    "recordCredit": "Registrar crédito",
+    "credited": "Acreditado",
+    "pendingCredits": "Créditos pendientes",
+    "net": "Neto",
+    "credits": "Créditos",
+    "openOriginal": "Crédito de {description}",
+    "refundReceived": "Reembolso recibido",
+    "refundReason": "Reembolso recibido del proveedor.",
+    "paidMyself": "Lo pagué yo",
+    "forAct": "Para un acto",
+    "forActNone": "Sin acto",
+    "reimbursement": "Reembolso",
+    "openReimbursements": "Abrir reembolsos",
+    "status": {
+      "Recorded": "Registrado",
+      "Owed": "Adeudado",
+      "Paid": "Pagado",
+      "Notowed": "No adeudado"
+    },
+    "duplicate": {
+      "title": "Posible duplicado",
+      "body": "Se parece a {count} {count, plural, one {gasto} other {gastos}}. Revisa antes de aprobar o pagar.",
+      "open": "Abrir gasto"
+    }
   },
   "changeOrders": {
     "addLine": "Agregar línea",
@@ -570,7 +787,8 @@
     "paymentAmountHint": "Déjalo en blanco para pagar todo el saldo.",
     "paymentReferenceHint": "La referencia de la remesa de tu banco o proveedor de pagos.",
     "payee": "Beneficiario",
-    "individual": "Individual"
+    "individual": "Individual",
+    "residual": "Total impreso {printed}. Las líneas suman {computed}. Diferencia {residual}. Esto no bloquea la aprobación."
   },
   "payments": {
     "applications": "Aplicado a facturas",
@@ -599,12 +817,20 @@
     "noApplications": "Aún no se aplicó a ninguna factura.",
     "tab": {
       "payments": "Pagos",
-      "settlements": "Liquidaciones"
+      "settlements": "Liquidaciones",
+      "due": "Por pagar",
+      "reimbursements": "Reembolsos",
+      "actCosts": "Costos por acto"
     },
-    "tabs": "Pagos y liquidaciones",
+    "tabs": "Secciones de pagos",
     "unapplied": "Sin aplicar",
     "unnumbered": "Factura sin número",
-    "individualPayee": "{name} (individual)"
+    "individualPayee": "{name} (individual)",
+    "notice": {
+      "reimbursementRecorded": "Reembolso registrado. XOS registra este pago. No mueve dinero.",
+      "reimbursementVoided": "Reembolso anulado. Sus gastos se adeudan de nuevo.",
+      "perDiemsPaid": "Pago de viáticos registrado. XOS registra este pago. No mueve dinero."
+    }
   },
   "journal": {
     "addLine": "Agregar línea",
@@ -797,6 +1023,196 @@
       "address": "Dirección",
       "payments": "Pagos",
       "amount": "Pagado en el año"
+    }
+  },
+  "quotes": {
+    "kind": "Cotización",
+    "create": "Nueva cotización",
+    "empty": "Aún no hay cotizaciones. Pon precio a un presupuesto para un cliente y crea la primera.",
+    "emptyProject": "Aún no hay cotizaciones en {project}. Crea la primera desde su presupuesto.",
+    "loadError": "Las cotizaciones no se cargaron. Inténtalo de nuevo.",
+    "states": {
+      "Draft": "Borrador",
+      "Sent": "Enviada",
+      "Expired": "Vencida",
+      "Accepted": "Aceptada",
+      "Declined": "Rechazada",
+      "Withdrawn": "Retirada",
+      "Superseded": "Reemplazada"
+    },
+    "fields": {
+      "budget": "Presupuesto",
+      "chooseBudget": "Elige un presupuesto",
+      "title": "Título",
+      "engagement": "Contratación del cliente",
+      "engagementHelp": "Obligatoria para enviar. Muestra las contrataciones de cliente del proyecto del presupuesto.",
+      "currentEngagement": "Contratación actual del cliente",
+      "validUntil": "Válida hasta",
+      "validUntilHelp": "En blanco son 30 días a partir de hoy en el calendario del proyecto.",
+      "terms": "Notas y términos",
+      "client": "Cliente",
+      "version": "Versión",
+      "sent": "Enviada",
+      "accepted": "Aceptada",
+      "pdf": "PDF"
+    },
+    "actions": {
+      "send": "Enviar cotización",
+      "newVersion": "Nueva versión",
+      "withdraw": "Retirar",
+      "decline": "Marcar como rechazada",
+      "deleteDraft": "Eliminar borrador",
+      "signingLink": "Enlace de firma"
+    },
+    "figures": {
+      "label": "Totales de la cotización",
+      "clientTotal": "Total al cliente",
+      "cost": "Costo",
+      "margin": "Margen",
+      "marginPercent": "Margen %"
+    },
+    "lines": "Líneas al cliente",
+    "versions": "Versiones",
+    "draftSection": "Borrador",
+    "internalCost": "Costo",
+    "internalMargin": "Margen",
+    "internalNote": "Interno: nunca aparece en la cotización: las columnas Costo y Margen se quedan aquí.",
+    "signature": "Firma",
+    "nameAsSigned": "Nombre como se firmó",
+    "signedAt": "Firmada",
+    "howSigned": "Cómo se firmó",
+    "signedByLink": "Enlace de firma con código de acceso, enviado a {email}",
+    "signedIn": "Con sesión iniciada en Gateway",
+    "fingerprint": "Huella del contenido (SHA-256)",
+    "lockedSentence": "Esta cotización fue aceptada y no puede cambiar. Registra los cambios como una orden de cambio.",
+    "changeOrders": "Órdenes de cambio",
+    "draftDeleted": "Borrador eliminado.",
+    "send": {
+      "sentence": "La versión se congela al enviarla. Si escribes un correo se emite un enlace de firma; si no, el cliente firma en la pestaña Documentos de Gateway.",
+      "signInGateway": "El cliente firma en la pestaña Documentos de Gateway.",
+      "reason": "Motivo",
+      "email": "Correo del destinatario",
+      "emailHelp": "Déjalo en blanco para que el cliente firme en Gateway.",
+      "reissueSentence": "Un enlace nuevo revoca los enlaces anteriores de esta cotización.",
+      "linkTitle": "Enlace de firma",
+      "linkOnce": "Copia ahora el enlace y el código. Se muestran una sola vez y nunca se guardan.",
+      "linkUrl": "Enlace",
+      "accessCode": "Código de acceso",
+      "sentTitle": "Cotización enviada",
+      "noLinkTime": "Queda menos de una hora de Válida hasta, así que no se emitió un enlace. El cliente firma en la pestaña Documentos de Gateway.",
+      "linkFailed": "La cotización se envió, pero no se emitió el enlace de firma. Cierra esto y elige Enlace de firma para intentarlo de nuevo."
+    },
+    "draftLines": "Líneas del borrador v{version}"
+  },
+  "due": {
+    "empty": "No hay nada por pagar en este momento.",
+    "emptyAction": "Ir a Finanzas",
+    "loadError": "No se pudo cargar lo que está por pagar. Inténtalo de nuevo.",
+    "summary": "Totales según su vencimiento",
+    "recordOnly": "XOS registra este pago. No mueve dinero.",
+    "perDiemOn": "Viático del {day}",
+    "unpricedCount": "Sin precio ({count} sin precio)",
+    "billedOffsetHelp": "Las facturas ya cubren parte de esto, así que aquí solo aparece el resto.",
+    "buckets": {
+      "overdue": "Vencido",
+      "thisWeek": "Esta semana",
+      "later": "Más adelante",
+      "undated": "Sin fecha de vencimiento"
+    },
+    "fields": {
+      "bucket": "Cuándo",
+      "due": "Vence",
+      "kind": "Tipo",
+      "payee": "Beneficiario",
+      "what": "Qué",
+      "scheduled": "Programado",
+      "billedOffset": "Cubierto por facturas"
+    },
+    "kinds": {
+      "invoice": "Factura",
+      "instalment": "Cuota",
+      "settlement": "Liquidación",
+      "per_diem": "Viático",
+      "reimbursement": "Reembolso",
+      "expense": "Gasto"
+    },
+    "open": {
+      "invoice": "Abrir factura",
+      "instalment": "Abrir calendario de pagos",
+      "settlement": "Abrir liquidación",
+      "reimbursement": "Abrir reembolsos",
+      "expense": "Abrir gasto",
+      "perDiem": "Abrir viático"
+    },
+    "markPaid": {
+      "title": "Marcar viáticos como pagados",
+      "perDiems": "Viáticos"
+    }
+  },
+  "reimbursements": {
+    "empty": "Todavía nadie ha pagado algo de su bolsillo.",
+    "emptyAction": "Ir a Finanzas",
+    "loadError": "No se pudieron cargar los reembolsos. Inténtalo de nuevo.",
+    "kind": "Reembolsos",
+    "countAndAmount": "{count} · {amount}",
+    "record": "Registrar reembolso",
+    "recordIn": "Registrar reembolso en {currency}",
+    "show": "Ver reembolsos",
+    "void": "Anular reembolso",
+    "voidSentence": "Di por qué este reembolso se registró por error. Sus gastos se adeudan de nuevo.",
+    "status": {
+      "Owed": "Adeudado",
+      "NotOwed": "No adeudado"
+    },
+    "fields": {
+      "payee": "Beneficiario",
+      "recorded": "Registrado",
+      "owed": "Adeudado",
+      "paid": "Pagado",
+      "lastPaid": "Último pago"
+    },
+    "sheet": {
+      "expenses": "Gastos por reembolsar",
+      "netTotal": "Total neto",
+      "pendingNote": "{count, plural, one {# gasto tiene un crédito pendiente de aprobación, así que no está seleccionado. Decide primero el crédito.} other {# gastos tienen un crédito pendiente de aprobación, así que no están seleccionados. Decide primero los créditos.}}"
+    },
+    "history": {
+      "title": "Reembolsos registrados",
+      "empty": "Todavía no hay reembolsos registrados para esta persona.",
+      "standing": "Registrado",
+      "voided": "Anulado: {reason}"
+    }
+  },
+  "actCosts": {
+    "pickProject": "Elige un proyecto para ver cuánto cuestan sus actos.",
+    "emptyAction": "Ir a Finanzas",
+    "empty": "Todavía no hay costos atribuidos a los actos de este proyecto.",
+    "loadError": "No se pudieron cargar los costos por acto. Inténtalo de nuevo.",
+    "kind": "Costo por acto",
+    "allIn": "Costo total",
+    "open": "Abrir costos por acto",
+    "items": "De qué se compone",
+    "noCurrency": "Sin moneda",
+    "unpricedTotal": "Sin precio ({count} sin precio)",
+    "noFee": "Aún no se factura ni se liquida el pago; este total no lo incluye.",
+    "partyNoFee": "{party} (aún sin pago)",
+    "partly": "Una factura cuenta solo por la parte que supera las liquidaciones del acto en esa moneda, así un pago liquidado no se cuenta dos veces.",
+    "fields": {
+      "party": "Acto",
+      "pricedTotal": "Total con precio",
+      "component": "Parte",
+      "item": "Elemento",
+      "counted": "Contado"
+    },
+    "components": {
+      "settlement": "Liquidación",
+      "invoice": "Facturas",
+      "travel": "Viajes",
+      "lodging": "Hospedaje",
+      "perDiem": "Viáticos",
+      "hospitality": "Hospitalidad",
+      "expense": "Gastos",
+      "purchaseOrder": "Órdenes de compra"
     }
   }
 }

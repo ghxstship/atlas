@@ -1,13 +1,18 @@
 import type { XosClient } from "@xos/data";
 import {
+  compareLevels,
+  getPlaceSpec,
+  listCapabilityDocuments,
   listSitePlans,
   listSpaces,
   listUridCategories,
+  listVenueLevels,
   listVenues,
   listZones,
   type ArchiveFilter,
   type Space,
   type UridCategory,
+  type VenueLevel,
   type Zone,
 } from "@xos/data/places";
 import type { TreeNode } from "@xos/ui";
@@ -40,6 +45,8 @@ import { ButtonLink } from "@/components/ui";
 import { InlineAlert, PropertyList, Tag, TemplateRecord } from "../kit/ui";
 import { MapView } from "@/components/platform/client/map-view";
 import { chooseView, matchesSearch, param, withQuery } from "../kit/views";
+import { CustomFieldsPanel } from "@/components/custom-fields/custom-fields-panel";
+import { PlaceSpecForm } from "../venues/place-spec-form";
 import { SpaceForm, ZoneForm, type VenueOption } from "./forms";
 
 const NODE = "places.spaces-and-zones";
@@ -75,7 +82,7 @@ export async function SpacesPage({
   const archive: ArchiveFilter =
     archiveParam === "archived" || archiveParam === "all" ? archiveParam : "live";
   const venueFilter = param(search, "venue");
-  const [venues, spaces, zones, plans, categories, t, held] = await Promise.all([
+  const [venues, spaces, zones, plans, categories, t, held, levels] = await Promise.all([
     listVenues(db, ctx.org.id, "live"),
     listSpaces(db, {
       orgId: ctx.org.id,
@@ -91,11 +98,13 @@ export async function SpacesPage({
     listUridCategories(db),
     getTranslate(),
     heldCapabilities(ctx),
+    listVenueLevels(db, { orgId: ctx.org.id }),
   ]);
-  for (const r of [venues, spaces, zones, plans, categories]) {
+  for (const r of [venues, spaces, zones, plans, categories, levels]) {
     if (!r.ok) throw new Error(`Cannot load spaces and zones: ${JSON.stringify(r.error)}`);
   }
-  if (!venues.ok || !spaces.ok || !zones.ok || !plans.ok || !categories.ok) return null;
+  if (!venues.ok || !spaces.ok || !zones.ok || !plans.ok || !categories.ok || !levels.ok)
+    return null;
   const canWrite = held.has("places.space.write");
   const path = nodeHref(NODE, params) ?? "/";
   const venueOptions: VenueOption[] = venues.data.map((v) => ({ id: v.id, name: v.name }));
@@ -143,6 +152,9 @@ export async function SpacesPage({
     spaceName,
     categoryName,
     units,
+    levels: levels.data,
+    orgId: ctx.org.id,
+    canWriteVenue: held.has("places.venue.write"),
   };
 
   if (peek && param(search, "full") === "1") {
@@ -192,6 +204,7 @@ export async function SpacesPage({
             org={ctx.org.slug}
             venues={venueOptions}
             categories={categories.data}
+            levels={levels.data}
             {...(venueFilter ? { defaultVenueId: venueFilter } : {})}
           />
         ) : (
@@ -258,7 +271,7 @@ export async function SpacesPage({
     body = (
       <PeekTree
         label={t("places.spaces.title")}
-        nodes={tree(venueOptions, shownSpaces, shownZones, t)}
+        nodes={tree(venueOptions, shownSpaces, shownZones, levels.data, t)}
       />
     );
   } else if (views.current === "table") {
@@ -417,10 +430,12 @@ export async function SpacesPage({
   );
 }
 
+/** Venues, then their levels (B1, lowest first, with unleveled spaces last), then spaces and their zones. */
 function tree(
   venues: readonly VenueOption[],
   spaces: readonly Space[],
   zones: readonly Zone[],
+  levels: readonly VenueLevel[],
   t: Translate,
 ): TreeNode[] {
   return venues
@@ -444,13 +459,34 @@ function tree(
           zones: zones.filter((z) => z.venueId === v.id).length,
         }),
         children: [
-          ...venueSpaces.map((s): TreeNode => ({
-            id: `space-${s.id}`,
-            label: s.name,
-            icon: "LayoutGrid",
-            expanded: true,
-            children: zones.filter((z) => z.spaceId === s.id).map(zoneNode),
-          })),
+          ...(() => {
+            const spaceNode = (s: Space): TreeNode => ({
+              id: `space-${s.id}`,
+              label: s.name,
+              icon: "LayoutGrid",
+              expanded: true,
+              children: zones.filter((z) => z.spaceId === s.id).map(zoneNode),
+            });
+            const venueLevels = levels.filter((l) => l.venueId === v.id).sort(compareLevels);
+            if (venueLevels.length === 0) return venueSpaces.map(spaceNode);
+            const onLevel = (id: string | null) => venueSpaces.filter((s) => s.venueLevelId === id);
+            return [
+              ...venueLevels
+                .filter((l) => onLevel(l.id).length > 0)
+                .map((l): TreeNode => ({
+                  label: l.name,
+                  icon: "Building2",
+                  expanded: true,
+                  children: onLevel(l.id).map(spaceNode),
+                })),
+              ...venueSpaces
+                .filter(
+                  (s) =>
+                    s.venueLevelId === null || !venueLevels.some((l) => l.id === s.venueLevelId),
+                )
+                .map(spaceNode),
+            ];
+          })(),
           ...loose.map(zoneNode),
         ],
       };
@@ -472,6 +508,9 @@ interface Detail {
   categoryName: ReadonlyMap<string, string>;
   /** The person's units (locale.units); areas are stored in square feet. */
   units: "imperial" | "metric";
+  levels: readonly VenueLevel[];
+  orgId: string;
+  canWriteVenue: boolean;
 }
 
 function Properties({
@@ -547,14 +586,62 @@ function Properties({
   );
 }
 
-function Editor(props: Detail & { selected: Selected }) {
-  const { selected, t, canWrite, org, venues, spaces, categories, db, me } = props;
+async function SpaceDepth({
+  db,
+  org,
+  orgId,
+  space,
+  canWrite,
+}: {
+  db: XosClient;
+  org: string;
+  orgId: string;
+  space: Space;
+  canWrite: boolean;
+}) {
+  const [spec, documents] = await Promise.all([
+    getPlaceSpec(db, { venueId: space.venueId, spaceId: space.id }),
+    listCapabilityDocuments(db, { orgId, venueId: space.venueId }),
+  ]);
+  if (!spec.ok || !documents.ok) return null;
   return (
     <>
+      <CustomFieldsPanel org={org} table="app.spaces" id={space.id} />
+      <PlaceSpecForm
+        org={org}
+        spec={spec.data}
+        documents={documents.data
+          .filter((d) => d.archivedAt === null)
+          .map((d) => ({ id: d.id, title: d.title }))}
+        canWrite={canWrite}
+      />
+    </>
+  );
+}
+
+function Editor(props: Detail & { selected: Selected }) {
+  const { selected, t, canWrite, org, venues, spaces, categories, db, me, levels } = props;
+  return (
+    <>
+      {selected.kind === "space" ? (
+        <SpaceDepth
+          db={db}
+          org={org}
+          orgId={props.orgId}
+          space={selected.row}
+          canWrite={canWrite}
+        />
+      ) : null}
       {canWrite ? (
         <RecordSection id="place-edit" title={t("places.kit.edit")}>
           {selected.kind === "space" ? (
-            <SpaceForm org={org} space={selected.row} venues={venues} categories={categories} />
+            <SpaceForm
+              org={org}
+              space={selected.row}
+              venues={venues}
+              categories={categories}
+              levels={levels}
+            />
           ) : (
             <ZoneForm org={org} zone={selected.row} venues={venues} spaces={spaces} />
           )}

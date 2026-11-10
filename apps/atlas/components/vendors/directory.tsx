@@ -15,13 +15,17 @@ import {
 } from "@xos/data/vendors";
 import { listCurrencies, listVendorProducts } from "@xos/data/procurement";
 import { nextStates } from "@xos/data/commercial-common";
-import { getFormatter } from "next-intl/server";
+import { regionFromLocale } from "@xos/i18n/formats";
+import { getFormatter, getLocale } from "next-intl/server";
+import { addressFormat, addressLines } from "@/lib/address";
+import { vendorBulk } from "@/lib/bulk/procurement";
 import { getCopy, type Copy } from "@/lib/collection-kit/i18n";
 import {
   addBankAccountAction,
   createVendorAction,
   transitionVendorAction,
   updateVendorAction,
+  updateVendorAddressAction,
 } from "@/app/[org]/vendors/actions";
 import { CollabPanels } from "@/components/collection-kit/collab";
 import { CollectionView } from "@/components/collection-kit/collection-view";
@@ -45,6 +49,13 @@ import type { OrgContext } from "@/lib/shell/context";
 import { PresenceFor } from "@/components/presence/presence-for";
 import { orgToday } from "@/lib/shell/time-zone";
 import { EmptyStateLink } from "@/components/ui";
+import { ArchiveControls } from "@/components/archive/archive-controls";
+import { ArchivedFilter } from "@/components/archive/archived-filter";
+import { archivedOf } from "@/lib/archive/param";
+import { peekedRow } from "@/lib/archive/peek";
+import { CustomFieldsPanel } from "@/components/custom-fields/custom-fields-panel";
+import { customFieldList } from "@/lib/custom-fields/server";
+import { CollectionPage } from "@/components/platform/collection-page";
 
 const VIEWS: readonly ViewKind[] = ["table", "list", "gallery"];
 const REFUSALS = "vendors.refusals";
@@ -65,22 +76,25 @@ export async function VendorDirectory({
 }) {
   const state = collectionState(search, VIEWS, await orgToday(ctx));
   const db = ctx.viewer.db;
-  const [t, vendors, classes, rules] = await Promise.all([
+  const canWrite = ctx.capabilities.has("vendors.vendor.write");
+  const [t, vendors, classes, rules, locale, custom, currencies] = await Promise.all([
     getCopy("vendors"),
-    listVendors(db, ctx.org.id),
+    listVendors(db, ctx.org.id, archivedOf(search)),
     listVendorClasses(db, ctx.org.id),
     listTransitionRules<VendorState>(db, "vendor"),
+    getLocale(),
+    customFieldList(ctx, "app.vendors", search),
+    // The bulk currency choices, for a person who may change vendors.
+    canWrite && !(state.peek && state.full) ? listCurrencies(db) : null,
   ]);
   const title = t("directory.title");
   if (!vendors.ok || !classes.ok || !rules.ok) {
     return (
-      <>
-        <PageHeader title={title} />
+      <CollectionPage header={<PageHeader title={title} />}>
         <ErrorPanel what={t("directory.what")} />
-      </>
+      </CollectionPage>
     );
   }
-  const canWrite = ctx.capabilities.has("vendors.vendor.write");
   const className = new Map(classes.data.map((c) => [c.id, c.name]));
   const stateLabel = (s: string) => t(`states.${s}`);
 
@@ -97,10 +111,12 @@ export async function VendorDirectory({
     );
   }
 
-  const rows: KitRow[] = vendors.data.map((v) => ({
+  const shown = vendors.data.filter((v) => custom.keep(v.id));
+  const rows: KitRow[] = shown.map((v) => ({
     id: v.id,
     key: v.counterpartyType ?? t("directory.untyped"),
     title: v.name ?? t("directory.unnamed"),
+    label: v.name ?? t("directory.unnamed"),
     state: { state: recordStateOf(v.state), label: stateLabel(v.state) },
     meta: v.classIds
       .map((c) => className.get(c))
@@ -120,11 +136,18 @@ export async function VendorDirectory({
     },
   }));
 
+  // Bulk edit (Section 11.7): state, payment terms and default currency across a selection.
+  const bulk = vendorBulk(ctx.org.slug, ctx.capabilities, t, {
+    currencies: currencies?.ok ? currencies.data.map((c) => c.code) : [],
+    terms: vendors.data.map((v) => v.paymentTermsDays),
+  });
+
   let drawer = null;
   if (state.create && canWrite) {
     drawer = <CreateVendor ctx={ctx} closeHref={withQuery(path, state)} path={path} />;
   } else if (state.peek) {
-    const vendor = vendors.data.find((v) => v.id === state.peek);
+    // A vendor the list leaves out, such as an archived one a Favorite names, is read by its id.
+    const vendor = await peekedRow(vendors.data, state.peek, (id) => getVendor(db, id));
     if (vendor) {
       drawer = (
         <PeekDrawer
@@ -133,24 +156,34 @@ export async function VendorDirectory({
           state={{ state: recordStateOf(vendor.state), label: stateLabel(vendor.state) }}
           closeHref={withQuery(path, state)}
           fullHref={withQuery(path, state, { peek: vendor.id, full: "1" })}
-          properties={vendorProperties(vendor, t, className)}
+          properties={vendorProperties(vendor, t, className, locale)}
           actions={
-            canWrite ? (
-              <TransitionButtons
-                action={transitionVendorAction}
+            <>
+              {canWrite ? (
+                <TransitionButtons
+                  action={transitionVendorAction}
+                  org={ctx.org.slug}
+                  id={vendor.id}
+                  expected={vendor.state}
+                  refusals={REFUSALS}
+                  moves={nextStates(rules.data, vendor.state).map((next) => ({
+                    next,
+                    label: t(`moves.${next}`),
+                    danger: next === "Blocked" || next === "Canceled",
+                  }))}
+                />
+              ) : null}
+              <ArchiveControls
                 org={ctx.org.slug}
+                entity="vendors"
                 id={vendor.id}
-                expected={vendor.state}
-                refusals={REFUSALS}
-                moves={nextStates(rules.data, vendor.state).map((next) => ({
-                  next,
-                  label: t(`moves.${next}`),
-                  danger: next === "Blocked" || next === "Canceled",
-                }))}
+                archivedAt={vendor.archivedAt}
+                canWrite={canWrite}
               />
-            ) : null
+            </>
           }
         >
+          <VendorCustomFields org={ctx.org.slug} vendor={vendor} />
           <PresenceFor table="vendors" id={vendor.id} />
         </PeekDrawer>
       );
@@ -171,6 +204,8 @@ export async function VendorDirectory({
         { key: "classes", label: t("fields.classes"), wrap: true },
       ]}
       rows={rows}
+      filters={<ArchivedFilter id="vendors-archived" />}
+      customFields={await custom.view(rows.map((r) => r.id))}
       actions={
         canWrite ? (
           <KitLink href={withQuery(path, state, { create: "1" })} variant="primary">
@@ -190,6 +225,7 @@ export async function VendorDirectory({
           <EmptyRefresh icon="Building2" sentence={t("directory.emptyRead")} />
         )
       }
+      bulk={bulk}
     >
       {drawer}
     </CollectionView>
@@ -198,7 +234,61 @@ export async function VendorDirectory({
 
 type T = Copy;
 
-function vendorProperties(vendor: Vendor, t: T, className: Map<string, string>) {
+/**
+ * The vendor's mailing address (A139): the country first, then its fields in that country's order
+ * with its required fields marked. A vendor without one starts in the viewer's country.
+ */
+function VendorAddressForm({
+  vendor,
+  org,
+  t,
+  locale,
+}: {
+  vendor: Vendor;
+  org: string;
+  t: T;
+  locale: string;
+}) {
+  const country = vendor.address.countryCode ?? regionFromLocale(locale) ?? "US";
+  const format = addressFormat(country);
+  return (
+    <EntityForm
+      id="vendor-address-edit"
+      action={updateVendorAddressAction}
+      hidden={{ org, id: vendor.id }}
+      refusals={REFUSALS}
+      submitLabel={t("directory.saveAddress")}
+      fields={[
+        {
+          kind: "text",
+          name: "countryCode",
+          label: t("fields.country"),
+          help: t("directory.countryHelp"),
+          defaultValue: country,
+        },
+        ...format.rows.flat().map((name) => ({
+          kind: "text" as const,
+          name,
+          label: t(`fields.${name}`),
+          required: format.required.includes(name),
+          defaultValue: vendor.address[name] ?? "",
+        })),
+      ]}
+    />
+  );
+}
+
+/** The vendor's mailing address on one line in its country's format (Section 15), or null. */
+function vendorAddress(vendor: Vendor, locale: string): string | null {
+  const { countryCode, ...address } = vendor.address;
+  const lines = addressLines(address, countryCode, {
+    locale,
+    viewerCountry: regionFromLocale(locale),
+  });
+  return lines ? lines.join(", ") : null;
+}
+
+function vendorProperties(vendor: Vendor, t: T, className: Map<string, string>, locale: string) {
   return [
     {
       label: t("fields.counterpartyType"),
@@ -212,6 +302,10 @@ function vendorProperties(vendor: Vendor, t: T, className: Map<string, string>) 
           : t("directory.termsDays", { days: vendor.paymentTermsDays }),
     },
     { label: t("fields.currency"), value: vendor.defaultCurrencyCode ?? t("directory.noCurrency") },
+    {
+      label: t("fields.address"),
+      value: vendorAddress(vendor, locale) ?? t("directory.noAddress"),
+    },
     {
       label: t("fields.classes"),
       value:
@@ -253,6 +347,7 @@ async function CreateVendor({
         refusals={REFUSALS}
         submitLabel={t("directory.create")}
         successHref={`${path}?peek={id}`}
+        customFields="app.vendors"
         fields={[
           {
             kind: "select",
@@ -312,7 +407,7 @@ async function VendorRecord({
   rules: readonly { from: VendorState; to: VendorState }[];
 }) {
   const db = ctx.viewer.db;
-  const [t, format, vendor, classes, banks, certs, prequals, scores, products, currencies] =
+  const [t, format, vendor, classes, banks, certs, prequals, scores, products, currencies, locale] =
     await Promise.all([
       getCopy("vendors"),
       getFormatter(),
@@ -324,6 +419,7 @@ async function VendorRecord({
       listScorecards(db, ctx.org.id, id),
       listVendorProducts(db, { vendorId: id }),
       listCurrencies(db),
+      getLocale(),
     ]);
   if (!vendor.ok) {
     return vendor.error.kind === "not-found" ? (
@@ -349,22 +445,31 @@ async function VendorRecord({
       recordKey={v.counterpartyType ?? t("directory.untyped")}
       title={v.name ?? t("directory.unnamed")}
       state={{ state: recordStateOf(v.state), label: stateLabel(v.state) }}
-      properties={vendorProperties(v, t, className)}
+      properties={vendorProperties(v, t, className, locale)}
       actions={
-        canWrite ? (
-          <TransitionButtons
-            action={transitionVendorAction}
+        <>
+          {canWrite ? (
+            <TransitionButtons
+              action={transitionVendorAction}
+              org={ctx.org.slug}
+              id={v.id}
+              expected={v.state}
+              refusals={REFUSALS}
+              moves={nextStates(rules, v.state).map((next) => ({
+                next,
+                label: t(`moves.${next}`),
+                danger: next === "Blocked" || next === "Canceled",
+              }))}
+            />
+          ) : null}
+          <ArchiveControls
             org={ctx.org.slug}
+            entity="vendors"
             id={v.id}
-            expected={v.state}
-            refusals={REFUSALS}
-            moves={nextStates(rules, v.state).map((next) => ({
-              next,
-              label: t(`moves.${next}`),
-              danger: next === "Blocked" || next === "Canceled",
-            }))}
+            archivedAt={v.archivedAt}
+            canWrite={canWrite}
           />
-        ) : null
+        </>
       }
     >
       <PresenceFor table="vendors" id={v.id} />
@@ -407,6 +512,12 @@ async function VendorRecord({
               },
             ]}
           />
+        </KitSection>
+      ) : null}
+
+      {canWrite ? (
+        <KitSection id="vendor-address" title={t("directory.address")}>
+          <VendorAddressForm vendor={v} org={ctx.org.slug} t={t} locale={locale} />
         </KitSection>
       ) : null}
 
@@ -533,8 +644,19 @@ async function VendorRecord({
         )}
       </KitSection>
 
+      <VendorCustomFields org={ctx.org.slug} vendor={v} />
       <StateHistory ctx={ctx} ledger="vendor" id={v.id} stateLabel={stateLabel} />
       <CollabPanels ctx={ctx} table="app.vendors" id={v.id} />
     </RecordPage>
+  );
+}
+
+/** The vendor's own custom fields, then its company's (a vendor is the vendor facet of a counterparty). */
+function VendorCustomFields({ org, vendor }: { org: string; vendor: Vendor }) {
+  return (
+    <>
+      <CustomFieldsPanel org={org} table="app.vendors" id={vendor.id} />
+      <CustomFieldsPanel org={org} table="app.counterparties" id={vendor.counterpartyId} />
+    </>
   );
 }

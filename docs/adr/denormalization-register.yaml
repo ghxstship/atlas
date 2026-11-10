@@ -15,6 +15,24 @@ derived:
     reason: Compass PowerSync filters rows by project without a join (Section 13)
     adr: "0022"
   - objects:
+      - app.guest_care_needs.project_id
+    source: "`app.guest_list_entries.project_id`"
+    refresh: Written from the guest entry by `app.set_guest_care_needs`; a guest stays on its project
+    reason: The project's read policy and the read of a project's guest needs need no join
+    adr: "0164"
+  - objects:
+      - app.live_links.project_id
+    source: "`app.run_of_show.project_id`"
+    refresh: Stamped by trigger for a Display link; a link never changes what it shows (3780)
+    reason: Every live link names its project, so the read checks, the ping triggers and the list policy need no join
+    adr: "0130"
+  - objects:
+      - app.showcaller_links.project_id
+    source: "`app.run_of_show.project_id`"
+    refresh: Stamped by trigger on insert and update; a link never changes its running order (6243)
+    reason: The read checks, the list policy and the ping triggers name the link's project without a join
+    adr: "0142"
+  - objects:
       - app.inspection_results.project_id
     source: "`app.inspections.project_id`"
     refresh: Stamped by trigger on insert (0420)
@@ -27,11 +45,24 @@ derived:
     reason: PowerSync project filter, as above
     adr: "0022"
   - objects:
+      - app.communication_marks.org_id
+      - app.communication_marks.project_id
+    source: "`app.shifts.org_id` and `app.shifts.project_id` (the marked row's)"
+    refresh: Stamped by `app.mark_communicated` on insert; the ledger is never updated (5951)
+    reason: The marks' read policy filters by project without a join to the polymorphic subject
+    adr: "0145"
+  - objects:
       - app.credentials.project_id
     source: "`app.credential_categories.project_id`"
     refresh: Stamped by trigger; changing it is refused (0470)
     reason: PowerSync project filter, as above
     adr: "0022"
+  - objects:
+      - app.subject_approvals.project_id
+    source: "`app.credentials.project_id`, `app.dock_slots.project_id` or `app.advance_allocations.project_id`, whichever subject the approval has"
+    refresh: Stamped by trigger on insert; changing it is refused (5860, 6230)
+    reason: Approvals, the reminder status and the dock schedule filter subject approvals by project without a join to their subject
+    adr: "0138"
   - objects:
       - app.access_grid.project_id
     source: "`app.credential_categories.project_id`"
@@ -58,8 +89,8 @@ derived:
     adr: "0021"
   - objects:
       - private.sync_scope_grants
-    source: Membership, assignment, shift and engagement tables through the RLS helpers
-    refresh: Triggers on each source table plus a nightly full refresh (0942)
+    source: Membership, assignment, shift, engagement and roster entry tables through the RLS helpers (rosterEntryIds, R8)
+    refresh: Triggers on each source table plus a nightly full refresh (0942; roster entries and engagement states, 4702)
     reason: PowerSync parameter queries cannot call RLS helpers or join (gate 17 benchmark, A03F)
     adr: "0022"
   - objects:
@@ -126,9 +157,108 @@ derived:
     refresh: Written only with the ciphertext, by the encrypting RPC (`app.set_org_legal_entity_tax_identifier`, `app.set_my_passport_number`, `app.set_supplier_diversity_certificate_number`, `app.set_vendor_bank_account`); each table's guard trigger refuses a write of either outside it (1200, 1340, 2010, 2011)
     reason: The number is Restricted and encrypted under a Vault key no signed-in caller holds, so the last four cannot be computed when a row is read; readers tell records apart by it, as the v1 API's `account_last4` does (ADR 0057)
     adr: "0057"
+  - objects:
+      - app.work_detail_shares.engagement_id
+      - app.work_detail_shares.person_id
+    source: "The roster entry the share serves: its engagement and the person `private.roster_people` resolves (the engagement's person on the self entry)"
+    refresh: Written from the entry by `app.share_work_details`; `private.guard_work_detail_share_entry` refuses any row whose engagement or person differs from the entry's (migration 2638, R4)
+    reason: The frozen WorkDetailShare resource of API v1 returns both, and the share's readers filter by them without the resolver; the contract change waits for R6b
+    adr: "0103"
+  - objects:
+      - app.advance_submissions.body
+    source: "The lines and files of a typed answer, summarized by `private.advance_answer_summary` (kind code, catalog code or category name, quantity, person, ISO 8601 window with its zone; file titles; GUEST_LIST_CONFIRMED)"
+    refresh: Written once by `private.record_advance_answer` with the lines and files it summarizes; the answer, its lines and its files never change (advance_submission_immutable, append-only lines and files; migration 4711, R9)
+    reason: API v1 documents an answer's body as required (packages/schemas/src/common/fields.ts), and v1 readers see only the body, so a typed answer carries its locale-neutral summary there
+    adr: "0104"
+  - objects:
+      - app.advance_answer_sources.source_excerpt
+    source: "`app.ai_suggestion_fields.source_excerpt` of the accepted suggestion"
+    refresh: Written once by `app.record_drafted_advance_answer`; the row never changes (migration 6273, B15)
+    reason: A reviewer cannot read the asker's suggestion, and retention of the answer must not hang on it
+    adr: "0154"
+  - objects:
+      - app.advance_allocations.project_id
+    source: "The holder's project: the pool engagement's, or the roster entry's engagement's"
+    refresh: Stamped by `private.stamp_allocation_project` on every write; a change is refused (allocation_project_fixed, migration 4691, R7)
+    reason: Every allocation read filters by project under advancing.packet.read without joining the engagement or the roster (ADR 0103)
+    adr: "0103"
+  - objects:
+      - app.asset_reservations.project_id
+    source: "`app.advance_allocations.project_id` of the hold's allocation"
+    refresh: Stamped by `private.guard_asset_reservation` on insert; the hold keeps it (reservation_immutable, migration 4691, R7)
+    reason: Holds are read by project or by the asset org without joining the allocation (ADR 0103)
+    adr: "0103"
+  - objects:
+      - app.asset_custody.roster_entry_id
+      - app.asset_lot_movements.roster_entry_id
+    source: "The roster entry of the allocation whose hold the hand-over names (`reservation_id`)"
+    refresh: Written by `app.apply_asset_scan` with the hold; `private.guard_custody_holder` and `private.guard_lot_movement_holder` refuse an entry other than the hold's allocation's (custody_not_reserved_holder, migration 4692, R7)
+    reason: A hand-over without a hold still names who on the engagement's roster took the asset, so the column is the fact of the scan; with a hold it is checked against the allocation, never copied later
+    adr: "0104"
+  - objects:
+      - app.asset_units.asset_state
+    source: "The unit's latest custody row: Deployed while it is checked out to a member or an engagement"
+    refresh: Written only by `app.apply_asset_scan` in the same transaction as the custody row (migration 4692, R7; moved from R0)
+    reason: Compass checks a unit's scan state offline without the custody ledger (ADR 0103 section 4); every other combined status is computed
+    adr: "0103"
+  - objects:
+      - app.over_limit_objects
+    source: Objects each object limit counts, ranked against `private.org_plan_limits` and `app.plan_limit_choices`
+    refresh: Rewritten by `private.recompute_over_limit` from triggers on subscriptions, projects, memberships, roles and plan limits, by the Owner's choice and by the hourly lifecycle job; a row goes as soon as its object is writable (3070)
+    reason: The row guard runs on every write to every org table and asks one indexed question instead of ranking an org's projects and members per write; the banner call counts without ranking
+    adr: "0081"
+  - objects:
+      - app.site_plans.image_uri
+    source: "`app.attachment_versions.object_name` of the plan's drawing"
+    refresh: Overwritten by `private.guard_site_plan_layout` on every insert and update while a drawing is set, whatever the caller sends (5901)
+    reason: The frozen v1 contract keeps a non-null image_uri; it never drifts because a version is immutable
+    adr: "0140"
+  - objects:
+      - app.capability_statements.description
+      - app.capability_statements.assertion_word
+    source: "`app.place_specs` and the validity of its `app.capability_documents` row, for rows with place_spec_id set"
+    refresh: Rewritten each time `app.provide_place_specs` runs; never automatically (5903)
+    reason: Reconciliation joins capability statements by URID; the copy is what a person added, and a computed tag shows when the spec changed or the document expired
+    adr: "0140"
+  - objects:
+      - app.space_bookings.engagement_id
+    source: "`app.engagement_cues.engagement_id` of the booking's set time, when `engagement_cue_id` is set"
+    refresh: Copied by `private.guard_space_booking` on insert and update; a different engagement is refused (space_booking_set_engagement, migration 5943, B5)
+    reason: A booking for an engagement without a set time names the engagement directly, so the board, Gateway and the act's filter read one column either way
+    adr: "0144"
 
-# Column names that describe the row itself wherever they appear. The restated-column lint never compares them and
-# never follows a foreign key made only of them.
+  # Column names that describe the row itself wherever they appear. The restated-column lint never compares them and
+  # never follows a foreign key made only of them.
+  - objects:
+      - app.vendor_intake_requests.project_id
+    source: "`app.vendor_intake_links.project_id`"
+    refresh: Stamped by trigger on insert; a request never moves to another link (6505)
+    reason: Requests are read and counted by project in the Engagements tab and the request policy without a join
+    adr: "0141"
+  - objects:
+      - app.vendor_intake_requests.invoice_draft
+    source: The first invoice the requester typed at intake
+    refresh: Validated once by app.submit_vendor_intake; never changed; read whole by app.submit_intake_invoice, which makes the invoice (6505)
+    reason: The draft becomes invoice lines only once the engagement exists and its money area opens, so no invoice row can hold it before
+    adr: "0141"
+
+  # Column names that describe the row itself wherever they appear. The restated-column lint never compares them and
+  # never follows a foreign key made only of them.
+  - objects:
+      - app.shift_no_shows.project_id
+      - app.shift_responses.project_id
+    source: "`app.shifts.project_id`"
+    refresh: Stamped on insert by the database (6510, 6512); neither table has a direct write grant
+    reason: Row-level read and the Compass project filter
+    adr: "0148"
+  - objects:
+      - app.quote_versions.accepted_name
+      - app.quote_versions.sent_client_name
+      - app.quote_versions.sent_title
+    source: "`app.quotes.title`, the client's name, and the name typed or the signer's name"
+    refresh: "Frozen at send and at signature; never refreshed (migrations 6553 and 6554)"
+    reason: "What the client signed: the fingerprint must keep describing it after a retitle or a rename"
+    adr: "0152"
 own_names:
   - name: body
     note: The row's own text.
@@ -178,9 +308,15 @@ own_names:
 # Every json and jsonb column of an app, private or xpms table, with its ADR 0002 exception: rich-text, audit-diff,
 # provider-payload, or registered (a derived entry above carries the reason).
 json:
+  - column: app.advance_issue_events.possession
+    kind: audit-diff
+    note: Ids of the possession rows one issue event wrote, by table, returned again when the event replays (migration 4691, R7).
   - column: app.ai_suggestion_fields.proposed_value
     kind: provider-payload
     note: A field value the AI model proposed, kept as it answered until a person accepts or edits it.
+  - column: app.ai_suggestions.operation_request
+    kind: provider-payload
+    note: How Atlas calls the operation a connected app proposed (path values and If-Match), as the app sent it; read whole when the person confirms (migration 6052).
   - column: app.audit_events.diff
     kind: audit-diff
     note: The audit ledger's diff of each write.
@@ -238,12 +374,18 @@ json:
   - column: app.time_entry_audit.old_values
     kind: audit-diff
     note: Clock times before a change.
+  - column: app.vendor_intake_requests.invoice_draft
+    kind: registered
+    note: The requester's first invoice, validated once by app.submit_vendor_intake and submitted whole by app.submit_intake_invoice (derived entry).
   - column: private.account_deletions.result
     kind: audit-diff
     note: What an account deletion erased and kept, as returned to the person (migration 1112).
   - column: private.account_security_events.detail
     kind: audit-diff
     note: Facts of a security event in the person's own log (migration 1560).
+  - column: private.crisis_alert_sends.message_args
+    kind: provider-payload
+    note: The same display arguments as app.notifications.message_args, held for seconds until the worker sends them (migration 6800).
   - column: private.platform_emails.args
     kind: provider-payload
     note: Template arguments for the email provider, cleared once sent (migration 1382).
@@ -253,9 +395,24 @@ arrays:
   - column: app.api_keys.scopes
     kind: reviewed
     note: Capability groups checked against the registry on every write (A22-009).
+  - column: app.calendar_feeds.sources
+    kind: reviewed
+    note: A set of fixed enum values a member picks for a feed, never joined on; null is the default set (migration 6210, ADR 0146).
+  - column: app.guest_care_needs.accessibility_needs
+    kind: reviewed
+    note: A set of fixed enum values, never joined on; a free-text note carries the rest (migration 6852).
+  - column: app.guest_care_needs.dietary_needs
+    kind: reviewed
+    note: A set of fixed enum values, never joined on; a free-text note carries the rest (migration 6852).
+  - column: app.mcp_connectors.default_scopes
+    kind: reviewed
+    note: Capability groups a connector offers by default, checked against the registry and never Restricted (migration 6052).
   - column: app.oauth_grants.scopes
     kind: reviewed
     note: Capability groups checked against the registry on every write (A22-009).
+  - column: app.person_calendar_feeds.sources
+    kind: reviewed
+    note: A set of fixed enum values a person picks for a feed, never joined on; the table has no org_id for a tenant child table (migration 6210, ADR 0146).
   - column: app.person_work_details.accessibility_needs
     kind: reviewed
     note: A set of fixed enum values a person picks, never joined on; a free-text note carries the rest (migration 1340).
@@ -277,9 +434,24 @@ arrays:
   - column: app.work_detail_events.changed_columns
     kind: reviewed
     note: Column names an edit changed, in the person's append-only log; a log payload, never a relationship (migration 1340).
+  - column: app.work_detail_events.fact_kinds
+    kind: reviewed
+    note: The set of project fact kinds an access touched, in the person's append-only log (R5, migration 4654).
   - column: app.work_detail_shares.categories
     kind: reviewed
     note: The set of work detail categories a share grants, read whole (migration 1340).
+  - column: private.legal_queue_health.failing_paths
+    kind: reviewed
+    note: The named parts of the last sweep that failed, read whole by the heartbeat and written whole by each sweep; no row refers to one (ADR 0167, migration 6862).
+  - column: private.legal_queue_rules.alert_leads
+    kind: reviewed
+    note: How long before a clock ends each alert goes out; read whole by the sweep, and no row refers to one lead (ADR 0167, migration 6860).
+  - column: private.live_view_fields.source_columns
+    kind: reviewed
+    note: The one to four columns a live link field reads, each checked against the column classifications; never joined on (migration 3780).
+  - column: private.realtime_channel_policies.roles
+    kind: reviewed
+    note: The roles a Realtime channel policy is created for, anon or authenticated, read whole by the ensure function (migration 3782).
 
 # Every column with the same name and type as a non-key column of the table one of its foreign keys references (own
 # names left out): registered (a derived entry above), fact (kept as it was when written while the parent can
@@ -294,6 +466,10 @@ restated:
     parent: app.credentials.project_id
     kind: registered
     note: Copied from the credential by `private.copy_parent_project` (derived entry).
+  - column: app.accommodation_assignments.accommodation_block_id
+    parent: app.advance_allocations.accommodation_block_id
+    kind: own
+    note: A room issued under an allocation is in the allocation's block; `private.guard_allocation_possession` refuses any other (migration 4692, R7).
   - column: app.accommodation_assignments.check_in_on
     parent: app.accommodation_blocks.check_in_on
     kind: own
@@ -302,6 +478,46 @@ restated:
     parent: app.accommodation_blocks.check_out_on
     kind: own
     note: The guest's departure, inside the block's dates.
+  - column: app.advance_allocations.asset_class_id
+    parent: app.advance_submission_lines.asset_class_id
+    kind: own
+    note: An allocation requested from an answer line is for the line's class, written once by `private.record_advance_answer`; allocations requested or assigned directly have no line (migration 4711, R9).
+  - column: app.advance_allocations.credential_category_id
+    parent: app.advance_submission_lines.credential_category_id
+    kind: own
+    note: An allocation requested from an answer line is for the line's category, written once by `private.record_advance_answer`; allocations requested or assigned directly have no line (migration 4711, R9).
+  - column: app.advance_allocations.engagement_id
+    parent: app.engagement_roster_entries.engagement_id
+    kind: own
+    note: Set only on a party pool, where no roster entry is named (`advance_allocations_one_holder`); a person's allocation names the entry and reads its engagement through it (migration 4691).
+  - column: app.advance_allocations.project_id
+    parent: app.accommodation_blocks.project_id
+    kind: registered
+    note: Stamped from the holder (derived entry); the guard requires a block of the same project (migration 4691).
+  - column: app.advance_allocations.project_id
+    parent: app.credential_categories.project_id
+    kind: registered
+    note: Stamped from the holder (derived entry); the guard requires a category of the same project (migration 4691).
+  - column: app.advance_allocations.project_id
+    parent: app.engagements.project_id
+    kind: registered
+    note: Stamped from the holder's engagement by `private.stamp_allocation_project` (derived entry, migration 4691).
+  - column: app.advance_allocations.project_id
+    parent: app.fulfillments.project_id
+    kind: registered
+    note: Stamped from the holder (derived entry); the guard requires a fulfillment of the same project (migration 4691).
+  - column: app.advance_allocations.roster_entry_id
+    parent: app.advance_submission_lines.roster_entry_id
+    kind: own
+    note: "The holder of the allocation: the line's person, or the engagement's pool when the line names nobody (NULL), and a Split share names its own person (migration 4711, R9)."
+  - column: app.advance_recipients.counterparty_id
+    parent: app.engagements.counterparty_id
+    kind: own
+    note: "The 0351 party binding: token recipients and venues have no engagement, so the recipient keeps its party; `private.guard_advance_recipient_engagement` refuses an engagement of another party (migration 4710, R9)."
+  - column: app.advance_recipients.person_id
+    parent: app.engagements.person_id
+    kind: own
+    note: "The 0351 party binding: token recipients and venues have no engagement, so the recipient keeps its party; `private.guard_advance_recipient_engagement` refuses an engagement of another party (migration 4710, R9)."
   - column: app.advance_submissions.advance_recipient_id
     parent: app.advance_recipient_tokens.advance_recipient_id
     kind: own
@@ -326,6 +542,18 @@ restated:
     parent: app.approval_policies.document_type
     kind: fact
     note: Type of the document submitted, fixed with the instance; the policy's is the type it gates.
+  - column: app.approval_rules.project_id
+    parent: app.credential_categories.project_id
+    kind: own
+    note: The project the rule gates; a Pass rule's category filter must be of the same project (`private.guard_approval_rule`, 5860).
+  - column: app.asset_custody.asset_unit_id
+    parent: app.asset_reservations.asset_unit_id
+    kind: own
+    note: The unit handed over, required on every custody row; a hold names a unit only when pinned, and `private.guard_custody_holder` then requires the same unit (migration 4692).
+  - column: app.asset_custody.project_id
+    parent: app.asset_reservations.project_id
+    kind: own
+    note: Project the asset is out for, set by the scan from the custodian engagement; a hold's project is its allocation's (migration 4692).
   - column: app.asset_custody.project_id
     parent: app.engagements.project_id
     kind: own
@@ -334,10 +562,46 @@ restated:
     parent: app.projects.venue_id
     kind: own
     note: Where the asset is kept, not the project's primary venue.
+  - column: app.asset_lot_movements.asset_lot_id
+    parent: app.asset_reservations.asset_lot_id
+    kind: own
+    note: A movement issued against a lot hold moves that lot; `private.guard_lot_movement_holder` refuses another (lot_reservation_mismatch, migration 4692).
+  - column: app.asset_lot_movements.project_id
+    parent: app.asset_reservations.project_id
+    kind: own
+    note: Project the quantity is out for, set by the scan from the custodian engagement (migration 4692).
   - column: app.asset_lot_movements.project_id
     parent: app.engagements.project_id
     kind: own
     note: Project the quantity is out for; the custodian's engagement can be for another project or for none.
+  - column: app.asset_lot_movements.receipt_line_id
+    parent: app.return_lines.receipt_line_id
+    kind: own
+    note: Set only on a Receipt movement, the receipt line the quantity came in on; a Vendor Return movement leaves it NULL and names its return line instead (asset_lot_movements_direction, migration 4681).
+  - column: app.asset_maintenance.asset_unit_id
+    parent: app.asset_maintenance_plans.asset_unit_id
+    kind: own
+    note: Work logged against a plan names the unit it was done on; a class plan has no unit, and a unit plan's work stays on it (`private.guard_asset_maintenance_plan_link`, 6534).
+  - column: app.asset_maintenance_plans.asset_class_id
+    parent: app.asset_units.asset_class_id
+    kind: own
+    note: A plan names a unit or a class, exactly one of them; a plan's class is never copied from a unit (6534).
+  - column: app.asset_reservations.project_id
+    parent: app.advance_allocations.project_id
+    kind: registered
+    note: Stamped from the allocation by `private.guard_asset_reservation` (derived entry, migration 4691).
+  - column: app.asset_reservations.quantity
+    parent: app.advance_allocations.quantity
+    kind: own
+    note: Quantity one hold keeps from its source; an allocation's holds sum to it when reserved, and a split moves quantity between them (migration 4693).
+  - column: app.asset_reservations.quantity
+    parent: app.asset_lots.quantity
+    kind: own
+    note: Quantity held from the lot, not the lot's opening count (migration 4691).
+  - column: app.asset_reservations.quantity
+    parent: app.po_lines.quantity
+    kind: own
+    note: Quantity held on the order line, at most what it can still supply (migration 4691).
   - column: app.attachment_versions.checksum_sha256
     parent: app.document_versions.checksum_sha256
     kind: own
@@ -414,10 +678,82 @@ restated:
     parent: xpms.elements.xyz
     kind: own
     note: The line's XYZ tag; `private.guard_budget_line` requires its category's tag, and the element is optional.
+  - column: app.budget_version_lines.client_unit_price_minor
+    parent: app.budget_lines.client_unit_price_minor
+    kind: fact
+    note: "Frozen at capture: the budget version keeps the line as it stood when the snapshot or the quote was taken (ADR 0152)."
+  - column: app.budget_version_lines.cost_center_id
+    parent: app.budget_lines.cost_center_id
+    kind: fact
+    note: "Frozen at capture: the budget version keeps the line as it stood when the snapshot or the quote was taken (ADR 0152)."
+  - column: app.budget_version_lines.element_id
+    parent: app.budget_lines.element_id
+    kind: fact
+    note: "Frozen at capture: the budget version keeps the line as it stood when the snapshot or the quote was taken (ADR 0152)."
+  - column: app.budget_version_lines.excluded_from_quote
+    parent: app.budget_lines.excluded_from_quote
+    kind: fact
+    note: "Frozen at capture: the budget version keeps the line as it stood when the snapshot or the quote was taken (ADR 0152)."
+  - column: app.budget_version_lines.grade_code
+    parent: app.budget_lines.grade_code
+    kind: fact
+    note: "Frozen at capture: the budget version keeps the line as it stood when the snapshot or the quote was taken (ADR 0152)."
+  - column: app.budget_version_lines.line_number
+    parent: app.budget_lines.line_number
+    kind: fact
+    note: "Frozen at capture: the budget version keeps the line as it stood when the snapshot or the quote was taken (ADR 0152)."
+  - column: app.budget_version_lines.line_type
+    parent: app.budget_lines.line_type
+    kind: fact
+    note: "Frozen at capture: the budget version keeps the line as it stood when the snapshot or the quote was taken (ADR 0152)."
+  - column: app.budget_version_lines.phase_code
+    parent: app.budget_lines.phase_code
+    kind: fact
+    note: "Frozen at capture: the budget version keeps the line as it stood when the snapshot or the quote was taken (ADR 0152)."
+  - column: app.budget_version_lines.quantity
+    parent: app.budget_lines.quantity
+    kind: fact
+    note: "Frozen at capture: the budget version keeps the line as it stood when the snapshot or the quote was taken (ADR 0152)."
+  - column: app.budget_version_lines.tier_code
+    parent: app.budget_lines.tier_code
+    kind: fact
+    note: "Frozen at capture: the budget version keeps the line as it stood when the snapshot or the quote was taken (ADR 0152)."
+  - column: app.budget_version_lines.unit_basis
+    parent: app.budget_lines.unit_basis
+    kind: fact
+    note: "Frozen at capture: the budget version keeps the line as it stood when the snapshot or the quote was taken (ADR 0152)."
+  - column: app.budget_version_lines.unit_price_minor
+    parent: app.budget_lines.unit_price_minor
+    kind: fact
+    note: "Frozen at capture: the budget version keeps the line as it stood when the snapshot or the quote was taken (ADR 0152)."
+  - column: app.budget_version_lines.urid
+    parent: app.budget_lines.urid
+    kind: fact
+    note: "Frozen at capture: the budget version keeps the line as it stood when the snapshot or the quote was taken (ADR 0152)."
+  - column: app.budget_version_lines.xyz
+    parent: app.budget_lines.xyz
+    kind: fact
+    note: "Frozen at capture: the budget version keeps the line as it stood when the snapshot or the quote was taken (ADR 0152)."
+  - column: app.budget_version_lines.xyz_basis
+    parent: app.budget_lines.xyz_basis
+    kind: fact
+    note: "Frozen at capture: the budget version keeps the line as it stood when the snapshot or the quote was taken (ADR 0152)."
+  - column: app.budget_versions.currency_code
+    parent: app.budgets.currency_code
+    kind: fact
+    note: "Frozen at capture: the currency of every amount of the version (ADR 0152)."
+  - column: app.calendar_feed_members.membership_id
+    parent: app.calendar_feeds.membership_id
+    kind: own
+    note: A member in the feed's people audience; the feed's own membership_id is its owner (migration 6210).
   - column: app.calendars.time_zone
     parent: app.projects.time_zone
     kind: own
     note: Zone the calendar's days are read in, set per calendar.
+  - column: app.capability_statements.venue_id
+    parent: app.place_specs.venue_id
+    kind: own
+    note: The venue that provides the capability, the project's venue, which owns the spec it was copied from (`app.provide_place_specs`, 5903).
   - column: app.capability_statements.venue_id
     parent: app.projects.venue_id
     kind: own
@@ -447,6 +783,10 @@ restated:
     parent: app.change_orders.requested_by
     kind: own
     note: Member who asked the client, from the session; not who requested the change.
+  - column: app.clock_punches.engagement_id
+    parent: app.engagement_roster_entries.engagement_id
+    kind: own
+    note: Set only when no roster entry is named (`clock_punches_one_worker`, migration 4751, R12).
   - column: app.clock_punches.engagement_id
     parent: app.shifts.engagement_id
     kind: own
@@ -483,6 +823,14 @@ restated:
     parent: app.time_entries.project_id
     kind: own
     note: Project worked; the time entry is linked later.
+  - column: app.clock_punches.roster_entry_id
+    parent: app.shifts.roster_entry_id
+    kind: own
+    note: Who punched; the shift link is optional (R12).
+  - column: app.clock_punches.roster_entry_id
+    parent: app.time_entries.roster_entry_id
+    kind: own
+    note: Who punched; the time entry built from punches is linked later (R12).
   - column: app.clock_punches.shift_id
     parent: app.time_entries.shift_id
     kind: own
@@ -515,6 +863,26 @@ restated:
     parent: app.time_entry_corrections.reason
     kind: own
     note: Why the state changed; the correction's reason is why the entry is wrong.
+  - column: app.credential_category_requirements.certification_id
+    parent: app.training_courses.certification_id
+    kind: own
+    note: The certification a category requires; a course row names none, and the course's own certification is the course's fact (B8, migration 6252).
+  - column: app.credential_photos.person_id
+    parent: app.consent_records.person_id
+    kind: own
+    note: The holder the badge photo shows, required on every row; the consent is set only once a photo is stored, and `app.record_credential_photo` writes it for the same person (P5).
+  - column: app.credentials.credential_category_id
+    parent: app.advance_allocations.credential_category_id
+    kind: own
+    note: A badge or pass issued under an allocation is of the allocation's category; `private.guard_allocation_possession` refuses any other (migration 4692).
+  - column: app.credentials.engagement_id
+    parent: app.advance_allocations.engagement_id
+    kind: own
+    note: Engagement the badge was issued under; an allocation names an engagement only for a pool, and an issued badge carries the roster entry's engagement (migration 4692).
+  - column: app.credentials.project_id
+    parent: app.advance_allocations.project_id
+    kind: registered
+    note: Copied from the category (derived entry); the allocation is of the same category, so of the same project.
   - column: app.credentials.project_id
     parent: app.credential_categories.project_id
     kind: registered
@@ -523,10 +891,34 @@ restated:
     parent: app.engagements.project_id
     kind: registered
     note: Copied from the category (derived entry); the optional engagement is the holder's.
+  - column: app.crew_access_links.engagement_id
+    parent: app.engagement_roster_entries.engagement_id
+    kind: own
+    note: The worker of the link when an engagement is the worker, as on app.shifts; a link names one worker column, never a copy of an entry's engagement (migration 6520, B10).
+  - column: app.crew_access_links.project_id
+    parent: app.engagements.project_id
+    kind: own
+    note: The project the link shows, chosen when it is issued; a membership has no project and a worker's engagement must be on it (migration 6520, B10).
+  - column: app.crew_registrations.person_id
+    parent: app.profile_shares.person_id
+    kind: own
+    note: The registrant; a share is optional and app.submit_crew_registration refuses another person's (migration 6522, B10).
   - column: app.cues.project_id
     parent: app.run_of_show.project_id
     kind: registered
     note: Stamped from the running order by `private.stamp_cue_project` (derived entry).
+  - column: app.cues.project_id
+    parent: app.showcaller_links.project_id
+    kind: own
+    note: A call through a link is made only within the link's running order, so the link is in the cue's project; the cue's project is its running order's (`private.stamp_cue_project`, migration 6243, B3).
+  - column: app.cues.run_of_show_id
+    parent: app.run_segment_instances.run_of_show_id
+    kind: own
+    note: The cue's own running order; `private.guard_cue_segment_instance` refuses a segment copy of another running order (migration 6241, B3).
+  - column: app.cues.run_of_show_id
+    parent: app.showcaller_links.run_of_show_id
+    kind: own
+    note: The cue's own running order; a showcaller link calls cues of its running order only, so the link it was called through is of the same one (migration 6244, B3).
   - column: app.custom_field_values.custom_field_definition_id
     parent: app.custom_field_choices.custom_field_definition_id
     kind: own
@@ -535,6 +927,10 @@ restated:
     parent: app.custom_object_field_choices.custom_object_field_id
     kind: own
     note: Field the value is for; `private.guard_custom_object_value` requires a chosen choice to be one of the field's.
+  - column: app.day_template_applications.project_id
+    parent: app.run_of_show.project_id
+    kind: own
+    note: The project the template was laid onto; the running order link is optional and checked to be of the same project.
   - column: app.delegations.valid_from
     parent: app.memberships.valid_from
     kind: own
@@ -547,6 +943,14 @@ restated:
     parent: app.doc_snapshots.generation
     kind: fact
     note: Generation the update was made against, kept so updates from before a reseed are discarded.
+  - column: app.dock_slots.ends_at
+    parent: app.delivery_windows.ends_at
+    kind: own
+    note: A booking's own time, within its window (`private.guard_dock_slot`, 6535, ADR 0150). The window's is fixed while it has live bookings.
+  - column: app.dock_slots.project_id
+    parent: app.delivery_windows.project_id
+    kind: own
+    note: A dock slot's own project, set by `app.book_delivery_window` from the window (6536). A slot booked directly has no window.
   - column: app.dock_slots.project_id
     parent: app.engagements.project_id
     kind: own
@@ -555,10 +959,38 @@ restated:
     parent: app.shipments.project_id
     kind: own
     note: The slot's project; the shipment link is optional.
+  - column: app.dock_slots.starts_at
+    parent: app.delivery_windows.starts_at
+    kind: own
+    note: A booking's own time, within its window (`private.guard_dock_slot`, 6535, ADR 0150). The window's is fixed while it has live bookings.
+  - column: app.dock_slots.zone_id
+    parent: app.delivery_windows.zone_id
+    kind: own
+    note: A booking's own gate, the window's (`delivery_booking_outside_window`, 6535). A slot booked directly has no window.
+  - column: app.document_books.ends_on
+    parent: app.projects.ends_on
+    kind: own
+    note: The last day the book covers, inside or beyond the project's dates; null with starts_on for the whole project (migration 6214).
+  - column: app.document_books.starts_on
+    parent: app.projects.starts_on
+    kind: own
+    note: The first day the book covers, chosen for the book; null with ends_on for the whole project (migration 6214).
+  - column: app.documents.archived_at
+    parent: app.projects.archived_at
+    kind: own
+    note: When the document was archived; it and its project are archived apart (ADR 0085).
   - column: app.email_digest_queue.sent_at
     parent: app.notification_deliveries.sent_at
     kind: own
     note: When the digest went out; the delivery's is when the provider accepted the message.
+  - column: app.engagement_roster_entries.person_id
+    parent: app.engagements.person_id
+    kind: own
+    note: The rostered person, never the engaged person (`roster_person_is_engaged`); NULL on the self entry, which `private.roster_people` resolves to the engagement's person (migration 2633, R4).
+  - column: app.engagement_roster_entries.role_code
+    parent: app.engagements.role_code
+    kind: own
+    note: The role this person works on the engagement, chosen per entry; the engagement's own role may be NULL (1624) and is never copied (migration 2633, R4).
   - column: app.engagements.currency_code
     parent: app.applications.currency_code
     kind: fact
@@ -567,6 +999,18 @@ restated:
     parent: xpms.std_enumeration.is_default
     kind: own
     note: The org's default for the domain; copied from the Standard Library value when the org adopts it, then the org's to change (migration 1612).
+  - column: app.expenses.counterparty_id
+    parent: app.engagements.counterparty_id
+    kind: own
+    note: Vendor paid; the optional engagement names the act the cost is for, not who was paid (migration 6547, B12).
+  - column: app.expenses.currency_code
+    parent: app.engagements.currency_code
+    kind: own
+    note: The budget's currency (`private.guard_expense`); the engagement's is the currency of its agreed rate (migration 6547, B12).
+  - column: app.expenses.currency_code
+    parent: app.expense_reimbursements.currency_code
+    kind: own
+    note: The budget's currency; `app.record_expense_reimbursement` settles expenses of one currency in it (migration 6540, B12).
   - column: app.feed_posts.department_code
     parent: app.groups.department_code
     kind: own
@@ -600,14 +1044,34 @@ restated:
     parent: app.form_templates.requires_signature
     kind: fact
     note: Whether the published version needs a signature, frozen when published.
+  - column: app.fulfillment_lines.fulfillment_id
+    parent: app.advance_allocations.fulfillment_id
+    kind: own
+    note: A catering line issued under an allocation is on the allocation's fulfillment; `private.guard_allocation_possession` refuses any other (migration 4692).
+  - column: app.fulfillment_lines.quantity
+    parent: app.advance_allocations.quantity
+    kind: own
+    note: Quantity on one line; an allocation's lines never sum beyond it (allocation_issue_exceeds, migration 4693).
   - column: app.gate_evidence.project_id
     parent: app.records.project_id
     kind: own
     note: Project the evidence is for; `private.guard_gate_evidence` requires the optional record to be of the same project.
   - column: app.gate_queue.project_id
+    parent: app.dock_slots.project_id
+    kind: own
+    note: A gate row's own project; a same-project trigger keeps a booked arrival on its slot's (6535). A vehicle may arrive with no booking.
+  - column: app.gate_queue.project_id
     parent: app.shipments.project_id
     kind: own
     note: The queue entry's project; the shipment link is optional.
+  - column: app.gate_queue.shipment_id
+    parent: app.dock_slots.shipment_id
+    kind: own
+    note: What the vehicle carried at arrival, copied once from the booking (6536); a vehicle may arrive with no booking.
+  - column: app.gate_queue.vehicle_identifier
+    parent: app.dock_slots.vehicle_identifier
+    kind: own
+    note: The plate seen at the gate, which may differ from the one the vendor gave on the booking (6536).
   - column: app.geofences.venue_id
     parent: app.zones.venue_id
     kind: own
@@ -616,6 +1080,14 @@ restated:
     parent: app.projects.archived_at
     kind: own
     note: When the group was archived.
+  - column: app.guest_care_needs.guest_email
+    parent: app.guest_list_entries.guest_email
+    kind: own
+    note: The address the guest's needs are matched to, so they can see and remove them; Restricted, unlike the entry's own email for invitations and passes (B8, 6255), which it never follows (ADR 0164, merge train 11).
+  - column: app.guest_care_needs.project_id
+    parent: app.guest_list_entries.project_id
+    kind: registered
+    note: Written from the guest entry by `app.set_guest_care_needs`, so the project's read policy needs no join (ADR 0164).
   - column: app.guest_list_entries.counterparty_id
     parent: app.engagements.counterparty_id
     kind: own
@@ -624,6 +1096,10 @@ restated:
     parent: app.engagements.person_id
     kind: own
     note: Person whose list the guest is on; the engagement link is optional.
+  - column: app.guest_list_entries.project_id
+    parent: app.credential_categories.project_id
+    kind: own
+    note: The entry's project; the pass type is a category of the same project, checked by `t39_guest_list_pass_project` (private.assert_same_project, B8 migration 6254).
   - column: app.guest_list_entries.project_id
     parent: app.engagements.project_id
     kind: own
@@ -641,6 +1117,18 @@ restated:
     parent: app.import_jobs.sheet_name
     kind: own
     note: One row per sheet of the workbook; the import's is the sheet it reads.
+  - column: app.import_jobs.project_id
+    parent: app.budgets.project_id
+    kind: own
+    note: Destination of a guest list import; a budget line import names its budget instead and leaves project_id NULL (import_jobs_one_destination).
+  - column: app.import_jobs.project_id
+    parent: app.purchase_orders.project_id
+    kind: own
+    note: Stamped once from the order by `private.guard_import_job_destination`, so one authorization path reads every project import (6537); an order never changes project.
+  - column: app.import_jobs.project_id
+    parent: app.run_of_show.project_id
+    kind: own
+    note: Destination of a guest list import; a cue import names its running order instead and leaves project_id NULL (import_jobs_one_destination).
   - column: app.import_jobs.sheet_name
     parent: app.import_job_sheets.sheet_name
     kind: own
@@ -748,10 +1236,22 @@ restated:
     parent: app.engagements.project_id
     kind: own
     note: Project of the invoice; `private.guard_invoice` requires the optional engagement's.
+  - column: app.labor_cost_postings.role_code
+    parent: app.shifts.role_code
+    kind: fact
+    note: The role the rate was resolved for at approval; the shift's role can change later (ADR 0152).
   - column: app.legal_acceptances.user_id
     parent: app.people.user_id
     kind: fact
     note: Sign-in used, kept as evidence after the sign-in is deleted.
+  - column: app.live_links.project_id
+    parent: app.run_of_show.project_id
+    kind: registered
+    note: Stamped from the running order for a Display link by `private.stamp_live_link_project` (derived entry); for a View link it is the creator's choice of project.
+  - column: app.local_contacts.venue_id
+    parent: app.projects.venue_id
+    kind: own
+    note: A venue contact names the venue and no project, a project contact the project and no venue (`local_contacts_one_home`, migration 5944).
   - column: app.marshalling_log.project_id
     parent: app.shipments.project_id
     kind: own
@@ -872,10 +1372,26 @@ restated:
     parent: app.engagements.currency_code
     kind: own
     note: Currency of the per diem.
+  - column: app.per_diems.engagement_id
+    parent: app.advance_allocations.engagement_id
+    kind: own
+    note: Engagement of an external person paid; NULL on a roster per diem, which names the entry instead (`per_diems_one_worker`, migration 4692).
+  - column: app.per_diems.engagement_id
+    parent: app.engagement_roster_entries.engagement_id
+    kind: own
+    note: Set only when no roster entry is named (`per_diems_one_worker`, migration 4692).
+  - column: app.per_diems.project_id
+    parent: app.advance_allocations.project_id
+    kind: own
+    note: A day issued under an allocation is on the allocation's project; `private.guard_allocation_possession` refuses any other (migration 4692).
   - column: app.per_diems.project_id
     parent: app.engagements.project_id
     kind: own
     note: Project of the per diem; the engagement link is optional.
+  - column: app.per_diems.roster_entry_id
+    parent: app.advance_allocations.roster_entry_id
+    kind: own
+    note: A day issued under an allocation is for the allocation's entry; `private.guard_allocation_possession` refuses any other (migration 4692).
   - column: app.permit_requirements.project_id
     parent: app.records.project_id
     kind: own
@@ -896,10 +1412,22 @@ restated:
     parent: app.people.full_name
     kind: own
     note: The contact's name, not the person's.
+  - column: app.place_specs.venue_id
+    parent: app.capability_documents.venue_id
+    kind: own
+    note: The venue the spec describes; its documenting capability document must be of the same venue (`place_spec_document_venue`).
+  - column: app.place_specs.venue_id
+    parent: app.spaces.venue_id
+    kind: own
+    note: The space's venue for space rows, derived by `private.guard_place_spec` and refused if sent otherwise (5903).
   - column: app.po_lines.element_id
     parent: app.budget_lines.element_id
     kind: own
     note: Element ordered; the budget line is optional.
+  - column: app.po_lines.element_id
+    parent: app.procurement_needs.element_id
+    kind: own
+    note: What this line orders; a need may name a class or nothing (6531).
   - column: app.po_lines.line_number
     parent: app.budget_lines.line_number
     kind: own
@@ -908,23 +1436,59 @@ restated:
     parent: app.budget_lines.quantity
     kind: own
     note: Quantity ordered, not budgeted.
+  - column: app.po_lines.quantity
+    parent: app.procurement_needs.quantity
+    kind: own
+    note: How much this line orders; the need's quantity is what the event will get, and its status compares the two (6532, ADR 0104 amendment).
   - column: app.po_lines.unit_basis
     parent: app.budget_lines.unit_basis
     kind: own
     note: Unit ordered; the budget line is optional.
+  - column: app.po_lines.unit_basis
+    parent: app.procurement_needs.unit_basis
+    kind: own
+    note: The line's own unit; `private.guard_po_line_need` refuses a different one when both name one (need_line_unit, 6531).
   - column: app.po_lines.unit_price_minor
     parent: app.budget_lines.unit_price_minor
     kind: own
     note: Price ordered, in the order currency.
+  - column: app.po_payment_instalments.due_on
+    parent: app.invoices.due_on
+    kind: own
+    note: When the instalment falls due on the schedule; the linked bill's own due date can differ and wins in the payments-due ledger (migration 6543, B12).
   - column: app.poll_votes.poll_id
     parent: app.poll_options.poll_id
     kind: finding
     note: The option is required and belongs to one poll, so the vote's poll is the option's.
     finding: A108-003
+  - column: app.procurement_needs.element_id
+    parent: app.asset_classes.element_id
+    kind: own
+    note: A need names a class or an element, at most one (6531); the element is never copied from a class.
   - column: app.profile_shares.person_id
     parent: app.engagements.person_id
     kind: own
     note: Person sharing; the engagement link is optional.
+  - column: app.project_days.project_id
+    parent: app.scope_nodes.project_id
+    kind: own
+    note: The day's project; the optional Show node narrows it and is checked to be of the same project.
+  - column: app.project_days.time_zone
+    parent: app.projects.time_zone
+    kind: own
+    note: The zone of a segment held somewhere else, such as a Travel day; NULL means the project's zone.
+  - column: app.project_days.time_zone
+    parent: app.venues.time_zone
+    kind: own
+    note: Stored only when no venue applies (check and private.guard_project_day), so it never restates a venue's zone.
+  - column: app.project_days.venue_id
+    parent: app.projects.venue_id
+    kind: own
+    note: The venue of one segment, which can differ from the project's, as on a touring Load In.
+  - column: app.project_days.venue_id
+    parent: app.scope_nodes.venue_id
+    kind: own
+    note: Set only when no Show node is named (check), so it never restates the node's venue.
   - column: app.project_measurement_corrections.measured_on
     parent: app.project_measurements.measured_on
     kind: fact
@@ -949,6 +1513,26 @@ restated:
     parent: app.memberships.valid_to
     kind: own
     note: When project access ends.
+  - column: app.project_positions.engagement_id
+    parent: app.engagement_roster_entries.engagement_id
+    kind: own
+    note: Agency whose roster fills the seat; the holder entry's engagement is checked equal by `private.guard_project_position`, and it is set before anyone holds it.
+  - column: app.project_positions.project_id
+    parent: app.engagements.project_id
+    kind: own
+    note: Project the seat is on; a member position has no engagement, and `private.guard_project_position` checks an agency one is on the same project.
+  - column: app.project_positions.role_code
+    parent: app.engagement_roster_entries.role_code
+    kind: own
+    note: Role of the seat, planned before anyone holds it; the holder's entry keeps their own.
+  - column: app.project_positions.role_code
+    parent: app.engagements.role_code
+    kind: own
+    note: Role of the seat; an engagement's role is the party's across all its seats.
+  - column: app.projects.archived_at
+    parent: app.venues.archived_at
+    kind: own
+    note: When the project was archived; it and its venue are archived apart.
   - column: app.projects.jurisdiction_id
     parent: app.venues.jurisdiction_id
     kind: own
@@ -985,10 +1569,18 @@ restated:
     parent: app.shifts.project_id
     kind: own
     note: Project of the recognition; the shift link is optional.
+  - column: app.record_position_assignments.record_id
+    parent: app.record_assignments.record_id
+    kind: own
+    note: Record planned for the seat; the link to the resolved assignment is set only when filling made one and is empty most of the row's life.
   - column: app.record_recurrences.time_zone
     parent: app.records.time_zone
     kind: own
     note: Zone the rule is evaluated in, set even when the record follows the project's zone.
+  - column: app.records.archived_at
+    parent: app.projects.archived_at
+    kind: own
+    note: When the record was archived; it and its project are archived apart (ADR 0085).
   - column: app.records.project_id
     parent: app.scope_nodes.project_id
     kind: own
@@ -1017,6 +1609,38 @@ restated:
     parent: app.projects.starts_on
     kind: own
     note: First day of the work, not of the production.
+  - column: app.return_lines.receipt_line_id
+    parent: app.asset_units.receipt_line_id
+    kind: own
+    note: The receipt line the goods go back against, required on every return line, a quantity with no unit included; for a unit, `app.return_goods` requires the unit's own receipt line (migration 4681).
+  - column: app.rfq_lines.element_id
+    parent: app.procurement_needs.element_id
+    kind: own
+    note: What this request line asks for; a need may name a class or nothing (6533).
+  - column: app.rfq_lines.quantity
+    parent: app.procurement_needs.quantity
+    kind: own
+    note: How much this request line asks for; a need's quantity is what the event will get (6533).
+  - column: app.rfq_lines.unit_basis
+    parent: app.procurement_needs.unit_basis
+    kind: own
+    note: The request line's own unit (6533).
+  - column: app.rfq_response_lines.element_id
+    parent: app.rfq_lines.element_id
+    kind: own
+    note: What the vendor quoted; defaulted once from the request line by `app.record_rfq_response`, so capacity counts the order line it becomes (6533).
+  - column: app.rfq_response_lines.quantity
+    parent: app.rfq_lines.quantity
+    kind: own
+    note: How much the vendor quoted, which may differ from what was asked (6533).
+  - column: app.riders.counterparty_id
+    parent: app.engagements.counterparty_id
+    kind: own
+    note: The account whose rider it is; `riders_one_party` never sets it together with the engagement link (migration 2611).
+  - column: app.riders.project_id
+    parent: app.engagements.project_id
+    kind: own
+    note: The rider's project; the engagement link is optional and `t39_rider_engagement_project` keeps it equal (migration 2611).
   - column: app.role_assignments.ends_on
     parent: app.projects.ends_on
     kind: own
@@ -1049,6 +1673,18 @@ restated:
     parent: app.requisitions.starts_on
     kind: own
     note: First day in the role; the requisition link is optional.
+  - column: app.roster_invitations.claimed_at
+    parent: app.advance_recipient_tokens.claimed_at
+    kind: own
+    note: When the invitee accepted the roster entry; the advance link it was sent through has its own claim (migration 4731, R10).
+  - column: app.roster_invitations.expires_at
+    parent: app.advance_recipient_tokens.expires_at
+    kind: own
+    note: When the invitation lapses, 1 hour to 30 days after it was sent; the advance link it was sent through has its own expiry (migration 4731, R10).
+  - column: app.roster_invitations.revoked_at
+    parent: app.advance_recipient_tokens.revoked_at
+    kind: own
+    note: When a manager revoked or replaced the invitation; revoking the advance link it was sent through is a separate act (migration 4731, R10).
   - column: app.run_of_show.project_id
     parent: app.records.project_id
     kind: own
@@ -1074,6 +1710,26 @@ restated:
     parent: app.projects.venue_id
     kind: own
     note: Venue of a standing venue or show node, not the project's primary venue.
+  - column: app.sensitive_data_consents.person_id
+    parent: app.guest_list_entries.person_id
+    kind: own
+    note: The person the data is about; on a guest entry, person_id names whose list the guest is on, a different person (ADR 0164).
+  - column: app.sensitive_field_records.account_id
+    parent: app.sensitive_data_consents.account_id
+    kind: own
+    note: The subject of the field; the consent is a separate fact and goes when it does, and a value from before consent has none (ADR 0164).
+  - column: app.sensitive_field_records.guest_list_entry_id
+    parent: app.sensitive_data_consents.guest_list_entry_id
+    kind: own
+    note: The subject of the field; the consent is a separate fact, and a value from before consent has none (ADR 0164).
+  - column: app.sensitive_field_records.person_id
+    parent: app.guest_list_entries.person_id
+    kind: own
+    note: The person the field is about; on a guest entry, person_id names whose list the guest is on, a different person (ADR 0164).
+  - column: app.sensitive_field_records.person_id
+    parent: app.sensitive_data_consents.person_id
+    kind: own
+    note: The subject of the field; the consent is a separate fact, and a value from before consent has none (ADR 0164).
   - column: app.service_accounts.person_id
     parent: app.memberships.person_id
     kind: finding
@@ -1115,6 +1771,14 @@ restated:
     kind: finding
     note: The shift is required, so the claim's project is the shift's.
     finding: A108-003
+  - column: app.shift_no_shows.project_id
+    parent: app.shifts.project_id
+    kind: registered
+    note: Stamped from the shift by `app.mark_shift_no_show` (derived entry).
+  - column: app.shift_responses.project_id
+    parent: app.shifts.project_id
+    kind: registered
+    note: Stamped from the shift by `private.track_shift_offer` and `private.send_shift_reconfirmations` (derived entry).
   - column: app.shift_swaps.project_id
     parent: app.shifts.project_id
     kind: registered
@@ -1123,10 +1787,26 @@ restated:
     parent: app.records.ends_at
     kind: own
     note: End of the shift; the record link is optional.
+  - column: app.shifts.engagement_id
+    parent: app.engagement_roster_entries.engagement_id
+    kind: own
+    note: An engaged worker or an agency slot; NULL once a roster entry holds the shift, which names the entry instead (`shifts_one_worker`, migration 4750, R12).
+  - column: app.shifts.engagement_id
+    parent: app.project_positions.engagement_id
+    kind: own
+    note: Who works the shift; an open shift of a member position has none, and `private.guard_shift_position` keeps it on the position's agency.
+  - column: app.shifts.membership_id
+    parent: app.project_positions.membership_id
+    kind: own
+    note: Who works the shift; a seat's holder takes shifts only through filling and may swap them away.
   - column: app.shifts.project_id
     parent: app.engagements.project_id
     kind: own
     note: Project of the shift; the engagement link is optional.
+  - column: app.shifts.project_id
+    parent: app.project_positions.project_id
+    kind: own
+    note: Project of the shift; the position link is optional, and `private.guard_shift_position` checks it is the same project.
   - column: app.shifts.project_id
     parent: app.records.project_id
     kind: own
@@ -1136,9 +1816,21 @@ restated:
     kind: own
     note: Project of the shift; the optional scope node narrows it.
   - column: app.shifts.role_code
+    parent: app.engagement_roster_entries.role_code
+    kind: own
+    note: Role the production staffs the shift with; the entry's role is what the person works on the roster, and the two may differ (R12).
+  - column: app.shifts.role_code
     parent: app.engagements.role_code
     kind: own
     note: Role worked; the engagement link is optional.
+  - column: app.shifts.role_code
+    parent: app.project_positions.role_code
+    kind: own
+    note: Role of the shift; the position link is optional, and a shift may staff a different role than its seat's label.
+  - column: app.shifts.roster_entry_id
+    parent: app.project_positions.roster_entry_id
+    kind: own
+    note: Roster person on the shift; an agency may place any accepted person of the roster on a slot (ADR 0148 decision 3).
   - column: app.shifts.scope_node_id
     parent: app.records.scope_node_id
     kind: own
@@ -1164,14 +1856,34 @@ restated:
     kind: finding
     note: The application is required and is for one opportunity, so the shortlist's opportunity is the application's.
     finding: A108-003
+  - column: app.showcaller_links.project_id
+    parent: app.run_of_show.project_id
+    kind: registered
+    note: Stamped from the running order by `private.stamp_showcaller_link_project` (derived entry).
   - column: app.site_plans.venue_id
     parent: app.projects.venue_id
     kind: own
     note: Venue drawn, not necessarily the project's primary venue.
+  - column: app.site_plans.venue_id
+    parent: app.venue_levels.venue_id
+    kind: own
+    note: The venue the plan draws; a plan with a level names the level's venue (`site_plan_level_venue`, 5900).
   - column: app.sms_summary_queue.sent_at
     parent: app.notification_deliveries.sent_at
     kind: own
     note: When the summary carrying this delivery was sent.
+  - column: app.space_bookings.engagement_id
+    parent: app.engagement_cues.engagement_id
+    kind: registered
+    note: Copied from the set time by `private.guard_space_booking` (derived entry).
+  - column: app.space_bookings.project_id
+    parent: app.engagements.project_id
+    kind: own
+    note: Project of the booking; `t39_space_booking_project` and the guard require the engagement's (migration 5943).
+  - column: app.spaces.venue_id
+    parent: app.venue_levels.venue_id
+    kind: own
+    note: The space's venue; its level is a level of that venue (`space_level_venue`, 5900).
   - column: app.spend_approvals.currency_code
     parent: app.spend_authorities.currency_code
     kind: fact
@@ -1188,10 +1900,42 @@ restated:
     parent: app.memberships.valid_to
     kind: own
     note: When the spend limit ends.
+  - column: app.sponsor_asset_files.revision
+    parent: app.sponsor_assets.revision
+    kind: fact
+    note: The revision a file was supplied with; the asset's revision moves on with each resubmission (migration 4713, R9).
   - column: app.sponsor_assets.due_on
     parent: app.sponsor_entitlements.due_on
     kind: own
     note: When the asset is needed; the entitlement's date is when it is owed.
+  - column: app.stakeholder_pack_recipients.full_name
+    parent: app.people.full_name
+    kind: own
+    note: The recipient's own name as the team entered it; revoked_by names who revoked them, not this person.
+  - column: app.stakeholder_pack_recipients.revoked_at
+    parent: app.stakeholder_packs.revoked_at
+    kind: own
+    note: When this recipient was revoked; revoking the pack is its own act (migration 6500).
+  - column: app.stakeholder_pack_recipients.revoked_by
+    parent: app.stakeholder_packs.revoked_by
+    kind: own
+    note: Who revoked this recipient; revoking the pack is its own act (migration 6500).
+  - column: app.subject_approvals.project_id
+    parent: app.advance_allocations.project_id
+    kind: registered
+    note: Copied from the allocation by `private.copy_parent_project` (derived entry, 6230).
+  - column: app.subject_approvals.project_id
+    parent: app.approval_rules.project_id
+    kind: registered
+    note: Copied from the pass, dock slot or allocation by `private.copy_parent_project` (derived entry); the rule matched that project.
+  - column: app.subject_approvals.project_id
+    parent: app.credentials.project_id
+    kind: registered
+    note: Copied from the credential by `private.copy_parent_project` (derived entry).
+  - column: app.subject_approvals.project_id
+    parent: app.dock_slots.project_id
+    kind: registered
+    note: Copied from the dock slot by `private.copy_parent_project` (derived entry).
   - column: app.submittals.project_id
     parent: app.purchase_orders.project_id
     kind: own
@@ -1214,11 +1958,19 @@ restated:
     parent: app.groups.project_id
     kind: own
     note: Project audience; the group link is optional.
+  - column: app.swap_state_transitions.reason
+    parent: app.shift_swaps.reason
+    kind: own
+    note: Why this decision was made; the swap's own reason is why it was asked for.
   - column: app.template_applications.template_id
     parent: app.template_versions.template_id
     kind: finding
     note: The version is required and belongs to one template, so the application's template is the version's.
     finding: A108-003
+  - column: app.time_entries.engagement_id
+    parent: app.engagement_roster_entries.engagement_id
+    kind: own
+    note: Set only when no roster entry is named (`time_entries_one_worker`, migration 4751, R12).
   - column: app.time_entries.engagement_id
     parent: app.shifts.engagement_id
     kind: own
@@ -1239,18 +1991,54 @@ restated:
     parent: app.shifts.project_id
     kind: own
     note: Project worked; `private.guard_time_entry` requires the optional shift's.
+  - column: app.time_entries.roster_entry_id
+    parent: app.shifts.roster_entry_id
+    kind: own
+    note: Who worked; the shift link is optional (R12).
+  - column: app.timesheets.engagement_id
+    parent: app.engagement_roster_entries.engagement_id
+    kind: own
+    note: Set only when no roster entry is named (`timesheets_one_worker`, migration 4751, R12).
   - column: app.timesheets.project_id
     parent: app.engagements.project_id
     kind: own
     note: Project of the timesheet; the engagement link is optional.
+  - column: app.transfers.fulfillment_id
+    parent: app.travel_segments.fulfillment_id
+    kind: own
+    note: Travel fulfillment the transfer belongs to; the flight it meets may belong to another or none.
+  - column: app.transfers.project_id
+    parent: app.fulfillments.project_id
+    kind: own
+    note: Project of the transfer; `t39_transfer_project` requires the fulfillment's (migration 5941).
+  - column: app.transfers.project_id
+    parent: app.transfer_vehicles.project_id
+    kind: own
+    note: Project of the transfer; `t39_transfer_project` requires the vehicle's (migration 5941).
+  - column: app.transfers.project_id
+    parent: app.travel_segments.project_id
+    kind: own
+    note: Project of the transfer; `t39_transfer_project` requires the met flight's (migration 5941).
   - column: app.travel_segments.currency_code
     parent: app.engagements.currency_code
     kind: own
     note: Currency of the fare.
+  - column: app.travel_segments.engagement_id
+    parent: app.advance_allocations.engagement_id
+    kind: own
+    note: Engagement travelled under; an issued trip carries the roster entry's engagement, which an allocation names only for a pool (migration 4692).
+  - column: app.travel_segments.fulfillment_id
+    parent: app.advance_allocations.fulfillment_id
+    kind: own
+    note: Travel fulfillment the trip belongs to; a travel allocation has no fulfillment (its target is the Travel service kind).
   - column: app.travel_segments.person_id
     parent: app.engagements.person_id
     kind: own
     note: Traveler; the engagement link is optional.
+  - column: app.travel_segments.project_id
+    parent: app.advance_allocations.project_id
+    kind: own
+    note: A trip issued under an allocation is on the allocation's project; `private.guard_allocation_possession` refuses any other (migration 4692).
   - column: app.travel_segments.project_id
     parent: app.engagements.project_id
     kind: own
@@ -1272,6 +2060,30 @@ restated:
     kind: finding
     note: The bank account is required and belongs to one vendor, so the change's vendor is the account's.
     finding: A108-003
+  - column: app.vendor_intake_links.project_id
+    parent: app.documents.project_id
+    kind: own
+    note: The project the link engages for; an org document has no project, and a project document is checked to be the link's (migration 6504).
+  - column: app.vendor_intake_requests.engagement_id
+    parent: app.invoices.engagement_id
+    kind: own
+    note: The engagement the approval created, set before any invoice; the invoice link is optional.
+  - column: app.vendor_intake_requests.project_id
+    parent: app.engagements.project_id
+    kind: own
+    note: The link's project; the engagement is created on it at approval and may not exist.
+  - column: app.vendor_intake_requests.project_id
+    parent: app.invoices.project_id
+    kind: own
+    note: The link's project; the first invoice is submitted later and may not exist.
+  - column: app.vendor_intake_requests.project_id
+    parent: app.vendor_intake_links.project_id
+    kind: registered
+    note: Stamped from the intake link by `private.stamp_vendor_intake_request` (derived entry).
+  - column: app.vendor_intake_requests.signed_at
+    parent: app.tax_forms.signed_at
+    kind: own
+    note: When the requester signed the link's agreement, not when they signed their tax form.
   - column: app.vendor_products.currency_code
     parent: app.catalog_bindings.currency_code
     kind: own
@@ -1298,20 +2110,50 @@ restated:
     kind: finding
     note: The reading is required and is for one project, so the alert's project is the reading's.
     finding: A108-003
+  - column: app.weather_holds.cleared_at
+    parent: app.weather_alerts.cleared_at
+    kind: own
+    note: When the hold's all-clear was given; the alert that prompted it clears on its own readings (B8, migration 6257).
+  - column: app.weather_holds.hazard
+    parent: app.weather_alerts.hazard
+    kind: own
+    note: The hazard the dispatcher named for the hold; the alert link is optional and need not be of it (B8, migration 6257).
+  - column: app.weather_holds.project_id
+    parent: app.weather_alerts.project_id
+    kind: own
+    note: The hold's project; the optional alert is of the same project, checked by `t39_weather_holds_same_project` (B8, migration 6257).
+  - column: app.weather_holds.project_id
+    parent: app.weather_warnings.project_id
+    kind: own
+    note: The hold's project; the optional warning is of the same project, checked by `t39_weather_holds_same_project` (B8, migration 6257).
+  - column: app.work_detail_events.engagement_id
+    parent: app.engagement_roster_entries.engagement_id
+    kind: fact
+    note: The engagement of a share, read or reveal as it was when logged, in the person's append-only access log (migration 2638, R4).
+  - column: app.work_detail_events.person_id
+    parent: app.engagement_roster_entries.person_id
+    kind: fact
+    note: Whose details were touched, as logged; the entry's person is NULL on a self entry, so the log keeps its own (migration 2638, R4).
   - column: app.work_detail_events.person_id
     parent: app.engagements.person_id
     kind: own
     note: Person whose details were touched; the engagement link is optional.
+  - column: app.work_detail_shares.engagement_id
+    parent: app.engagement_roster_entries.engagement_id
+    kind: registered
+    note: Written from the roster entry by `app.share_work_details` and guarded by `private.guard_work_detail_share_entry` (derived entry, migration 2638).
   - column: app.work_detail_shares.person_id
     parent: app.consent_records.person_id
-    kind: finding
-    note: The consent record is required and names one person, so the share's person is the consent's.
-    finding: A108-003
+    kind: registered
+    note: The sharer, written from the roster entry with their own work_details_sharing consent (derived entry, migration 2638); moved from finding A108-003 by R4.
+  - column: app.work_detail_shares.person_id
+    parent: app.engagement_roster_entries.person_id
+    kind: registered
+    note: The entry's resolved person, written by `app.share_work_details` and guarded by `private.guard_work_detail_share_entry` (derived entry, migration 2638).
   - column: app.work_detail_shares.person_id
     parent: app.engagements.person_id
-    kind: finding
-    note: The engagement is required and names one person, so the share's person is the engagement's.
-    finding: A108-003
+    kind: own
+    note: The sharer is the engagement's person only on the self entry; on another roster entry it is the rostered person (R4, migration 2638). Moved from finding A108-003.
   - column: app.work_order_bids.currency_code
     parent: app.work_orders.currency_code
     kind: own
@@ -1320,6 +2162,18 @@ restated:
     parent: app.work_orders.estimated_hours
     kind: own
     note: Hours the bidder estimates.
+  - column: app.work_orders.archived_at
+    parent: app.projects.archived_at
+    kind: own
+    note: When the work order was archived; it and its project are archived apart (ADR 0085).
+  - column: app.work_orders.archived_at
+    parent: app.records.archived_at
+    kind: own
+    note: When the work order was archived; it and the record it serves are archived apart (ADR 0085).
+  - column: app.work_orders.archived_by
+    parent: app.records.archived_by
+    kind: own
+    note: Who archived the work order, not who archived the record it serves (ADR 0085).
   - column: app.work_orders.currency_code
     parent: app.work_order_bids.currency_code
     kind: own
@@ -1364,6 +2218,14 @@ restated:
     parent: app.people.user_id
     kind: fact
     note: Deleted sign-in, kept after the sign-in is gone.
+  - column: private.advance_upload_tickets.expires_at
+    parent: app.advance_recipient_tokens.expires_at
+    kind: own
+    note: When the upload ticket closes unused, 15 minutes after it was issued; the advance link has its own expiry (migration 4730, R10).
+  - column: private.advance_upload_tickets.used_at
+    parent: app.advance_recipient_tokens.used_at
+    kind: own
+    note: When the ticket's upload was registered; the advance link records its own first answer (migration 4730, R10).
   - column: private.age_confirmations.user_id
     parent: app.people.user_id
     kind: fact
@@ -1373,6 +2235,10 @@ restated:
     kind: finding
     note: The factor is required and belongs to one sign-in, so the label's sign-in is the factor's.
     finding: A108-003
+  - column: private.block_release_reminders_sent.release_on
+    parent: app.accommodation_blocks.release_on
+    kind: fact
+    note: The release date reminded, kept as it was, so a block given a new date is reminded again (migration 5947).
   - column: private.file_download_tickets.attachment_version_id
     parent: app.share_links.attachment_version_id
     kind: fact
@@ -1381,6 +2247,38 @@ restated:
     parent: app.share_links.expires_at
     kind: own
     note: When the ticket stops working, two minutes after it was issued.
+  - column: private.file_download_tickets.expires_at
+    parent: app.vendor_intake_links.expires_at
+    kind: own
+    note: When the ticket stops working, two minutes after it was issued.
+  - column: private.form_link_grants.expires_at
+    parent: app.form_links.expires_at
+    kind: own
+    note: When the grant stops working, the link's expiry or 2 hours after the open, whichever comes first.
+  - column: private.guest_needs_disowned.person_id
+    parent: app.guest_list_entries.person_id
+    kind: own
+    note: The person an email matched who said the guest is someone else; the entry's person_id names whose list the guest is on (ADR 0164).
+  - column: private.live_link_grants.expires_at
+    parent: app.live_links.expires_at
+    kind: own
+    note: When the device grant stops working, the link's expiry or 7 days after the open, whichever comes first.
+  - column: private.notification_action_codes.delivery_id
+    parent: private.notification_action_tokens.delivery_id
+    kind: own
+    note: The approval.link_code email that carried the code; the token's is the approval request's email.
+  - column: private.notification_action_codes.expires_at
+    parent: private.notification_action_tokens.expires_at
+    kind: own
+    note: A code lives 10 minutes; its link lives 7 days.
+  - column: private.notification_action_codes.revoked_at
+    parent: private.notification_action_tokens.revoked_at
+    kind: own
+    note: When a newer code replaced this one; the link's is when a retried email replaced it.
+  - column: private.notification_action_codes.used_at
+    parent: private.notification_action_tokens.used_at
+    kind: own
+    note: When a decision used the code; the link's is when the notification was acted on.
   - column: private.session_devices.user_agent
     parent: auth.sessions.user_agent
     kind: finding
@@ -1391,6 +2289,30 @@ restated:
     kind: finding
     note: The session is required and belongs to one sign-in, so the device's sign-in is the session's.
     finding: A108-003
+  - column: private.showcaller_link_grants.expires_at
+    parent: app.showcaller_links.expires_at
+    kind: own
+    note: The device grant stops working at the link's expiry or 48 hours after the open, whichever comes first (migration 6244, B3).
+  - column: private.stakeholder_pack_links.revoked_at
+    parent: app.stakeholder_pack_recipients.revoked_at
+    kind: own
+    note: When this emailed link stopped, by a later attempt of its delivery or a failed send, as well as a revocation (migration 6503).
+  - column: private.vendor_intake_grants.expires_at
+    parent: app.vendor_intake_links.expires_at
+    kind: own
+    note: When the grant stops working, the link's expiry or 24 hours after the open, whichever comes first.
+  - column: private.wage_record_names.family_name
+    parent: app.people.family_name
+    kind: fact
+    note: The family name a deleted person's wage records keep after account deletion clears the person's (migration 6880).
+  - column: private.wage_record_names.full_name
+    parent: app.people.full_name
+    kind: fact
+    note: The full name a deleted person's wage records keep after account deletion clears the person's (migration 6880).
+  - column: private.wage_record_names.given_name
+    parent: app.people.given_name
+    kind: fact
+    note: The given name a deleted person's wage records keep after account deletion clears the person's (migration 6880).
   - column: xpms.bridge_element_metric.item
     parent: xpms.elements.item
     kind: own
@@ -1431,9 +2353,15 @@ stored:
   - column: app.addon_purchases.amount_total_minor
     kind: input
     note: Amount paid as Stripe reports it (migration 1250).
+  - column: app.asset_maintenance_plans.every_count
+    kind: input
+    note: How many intervals a plan waits between doing the work, set by a person (6534); not a total of anything.
   - column: app.beos.guest_count
     kind: input
     note: Guests the client guarantees.
+  - column: app.crew_access_links.open_count
+    kind: fact
+    note: How many times the worker opened the link; opens leave no other record (migration 6520, B10).
   - column: app.export_jobs.row_count
     kind: fact
     note: Rows a run exported; not derivable later (A22 review).
@@ -1458,6 +2386,12 @@ stored:
   - column: app.invite_links.use_count
     kind: fact
     note: Memberships do not record the link they came from (A22 review).
+  - column: app.invoices.printed_total_minor
+    kind: fact
+    note: The total a document printed, kept as read; the computed total stays in `app.invoice_totals` and `app.invoice_tie_out` compares them (migration 6274, B15).
+  - column: app.live_links.open_count
+    kind: fact
+    note: Successful opens with the access code; the anonymous open writes no other per-link record (migration 3781).
   - column: app.notification_deliveries.attempt_count
     kind: fact
     note: No attempts table exists, so the count is the only record (A22 review).
@@ -1482,6 +2416,15 @@ stored:
   - column: app.osha_annual_summaries.total_hours_worked
     kind: input
     note: The establishment's Form 300A figure; `app.osha_employment_estimate` only suggests one from time entries (migration 1385).
+  - column: app.place_specs.loading_dock_count
+    kind: input
+    note: Loading docks the venue states (5903).
+  - column: app.place_specs.rigging_point_count
+    kind: input
+    note: Rigging points the venue states (5903).
+  - column: app.place_specs.rigging_total_load_lb
+    kind: input
+    note: Total rigging load the venue states, not a sum of points (5903).
   - column: app.ratings.score
     kind: input
     note: A rating of 1 to 5.
@@ -1500,6 +2443,9 @@ stored:
   - column: app.shipments.piece_count
     kind: input
     note: Pieces shipped (migration 1180).
+  - column: app.showcaller_links.open_count
+    kind: fact
+    note: Successful opens with the access code; the anonymous open writes no other per-link record (migration 6244, B3).
   - column: app.tax_rates.rate_percent
     kind: input
     note: A tax rate.
@@ -1524,6 +2470,9 @@ stored:
   - column: app.warehouse_delivery_files.row_count
     kind: fact
     note: Rows in the file delivered to the warehouse (migration 1401).
+  - column: app.weather_forecast_periods.precipitation_percent
+    kind: input
+    note: Probability of precipitation as the provider (NWS) gives it; a cache replaced on each fetch (B8, migration 6256).
   - column: app.webhook_deliveries.attempt_count
     kind: fact
     note: No attempts table exists, so the count is the only record (A22 review).
@@ -1565,6 +2514,9 @@ tenant_exceptions:
   - table: app.active_org_selections
     kind: person-owned
     note: One row per sign-in, keyed by user_id (ADR 0007 item 1, migration 0920).
+  - table: app.airports
+    kind: platform
+    note: Airports by IATA code, seeded by migration from packages/schemas/airports/airports.csv (R5, migration 4651).
   - table: app.blocks
     kind: person-owned
     note: Blocks keyed by person_id, readable only by the blocker (A52, migration 1206).
@@ -1580,6 +2532,9 @@ tenant_exceptions:
   - table: app.feedback_submissions
     kind: person-owned
     note: Feedback a person sends the platform team, keyed by person_id, read by the sender and staff (A96, migration 1531).
+  - table: app.legal_queue_items
+    kind: platform
+    note: Legal and security work of the platform itself, most of it with no tenant; tenant_org_id is optional and only says which tenant a fed item concerns (ADR 0167, migration 6860).
   - table: app.organizations
     kind: identity
     note: The tenant itself (Section 4.8.1).
@@ -1640,9 +2595,21 @@ tenant_exceptions:
   - table: app.product_events
     kind: platform
     note: Consent-gated product analytics events, which by design name no person and no org (A96, migration 1532).
+  - table: app.product_funnel_alerts
+    kind: platform
+    note: Regression alerts of the workflow funnels for the platform team, naming a workflow and counts, never an org (A146, migration 3340).
   - table: app.profile_section_visibility
     kind: person-owned
     note: Profile rows keyed by person_id, read by others only through api_public (A30, migration 0860).
+  - table: app.rating_sharing_consents
+    kind: person-owned
+    note: A person's own opt-in to show their ratings, keyed by person_id, for no one org (ADR 0158, migration 6820).
+  - table: app.sensitive_data_consents
+    kind: person-owned
+    note: Evidence of consent, written only by the database, keyed by the person, company or guest it is about; it is withdrawn, never deleted, and has no soft delete (ADR 0164).
+  - table: app.sensitive_field_records
+    kind: person-owned
+    note: The field-level record of sensitive data, written only by the database and holding no value (ADR 0164).
   - table: app.shortcut_bindings
     kind: person-owned
     note: Keyboard shortcut bindings keyed by person_id, readable only by the person (A81, migration 1370).

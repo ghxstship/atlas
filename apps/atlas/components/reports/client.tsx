@@ -1,6 +1,7 @@
 "use client";
 
 import { toCsv } from "@xos/data/finance";
+import { emitWorkflow } from "@xos/data/workflow-signal";
 import {
   Button,
   CoordinateMatrix,
@@ -21,6 +22,7 @@ import { useNamespaceT } from "@/components/finance/kit-use-namespace-t";
 import { type Option } from "@/components/finance/kit.types";
 
 import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
+import * as enums from "@xos/data/enums";
 /**
  * Client parts of the Reports pages (A15): CSV export of what a report shows (Section 4.6.4: every
  * report exports), the coordinate matrix with drill-through, and the saved report run and share forms.
@@ -82,7 +84,9 @@ export function MatrixWithDrill({
       cells={cells}
       onCellSelect={(dept: string, phase: string) => {
         const href = hrefFor[`${dept}|${phase}`];
-        if (href) router.push(href as Route);
+        if (!href) return;
+        emitWorkflow("atlas.reports:done");
+        router.push(href as Route);
       }}
     />
   );
@@ -111,7 +115,7 @@ export function RunReportForm({
         name="format"
         label={t("format")}
         value="PDF"
-        options={["PDF", "CSV", "XLSX"].map((f) => ({ value: f, label: f }))}
+        options={enums.exportFormat.map((f) => ({ value: f, label: f }))}
       />
       <Button type="submit" loading={pending}>
         {t("run")}

@@ -23,7 +23,10 @@
         "calendar": "Calendario",
         "milestones": "Hitos",
         "baselines": "Líneas base",
-        "events": "Eventos"
+        "events": "Eventos",
+        "days": "Días",
+        "workload": "Carga de trabajo",
+        "clashes": "Conflictos"
       },
       "work": {
         "allRecords": "Todos los registros",
@@ -35,19 +38,24 @@
       "show": {
         "runOfShow": "Escaleta",
         "daySheets": "Hojas del día",
-        "callSheets": "Hojas de llamado"
+        "callSheets": "Hojas de llamado",
+        "segments": "Biblioteca de segmentos",
+        "showDay": "Día del show"
       },
       "advancing": {
         "packets": "Paquetes",
         "submissions": "Respuestas recibidas",
         "riders": "Riders",
-        "reconciliation": "Conciliación"
+        "reconciliation": "Conciliación",
+        "crew": "Lista del equipo",
+        "allocations": "Asignaciones"
       },
       "places": {
         "venues": "Recintos",
         "spacesAndZones": "Espacios y zonas",
         "capabilityDocuments": "Documentos de capacidades",
-        "sitePlans": "Planos del sitio"
+        "sitePlans": "Planos del sitio",
+        "signage": "Señalización"
       },
       "logistics": {
         "shipments": "Envíos",
@@ -57,7 +65,10 @@
       "hospitality": {
         "fulfillments": "Servicios atendidos",
         "beos": "Órdenes de banquete",
-        "accommodationBlocks": "Bloqueos de habitaciones"
+        "accommodationBlocks": "Bloqueos de habitaciones",
+        "travel": "Viajes",
+        "transfers": "Traslados",
+        "rooms": "Camerinos y salas de espera"
       },
       "assets": {
         "assetClasses": "Catálogo de clases de activos",
@@ -103,7 +114,8 @@
         "onboarding": "Incorporación",
         "engagements": "Contrataciones",
         "ratings": "Calificaciones",
-        "marketplaceSettings": "Configuración del mercado"
+        "marketplaceSettings": "Configuración del mercado",
+        "registrationPages": "Páginas de registro"
       },
       "crew": {
         "schedule": "Programación",
@@ -115,7 +127,10 @@
         "payPeriods": "Periodos de pago",
         "payrollExports": "Exportaciones de nómina",
         "timeOff": "Ausencias",
-        "perDiems": "Viáticos"
+        "perDiems": "Viáticos",
+        "accessLinks": "Enlaces de acceso del equipo",
+        "shortages": "Faltantes",
+        "positions": "Puestos"
       },
       "finance": {
         "budgets": "Presupuestos",
@@ -128,14 +143,16 @@
         "universalPostingLineExport": "Exportación de la línea de registro universal",
         "chartOfAccounts": "Catálogo de cuentas",
         "costCenters": "Centros de costos",
-        "yearEnd": "Cierre del año"
+        "yearEnd": "Cierre del año",
+        "quotes": "Cotizaciones"
       },
       "procurement": {
         "rfqs": "Solicitudes de cotización",
         "purchaseOrders": "Órdenes de compra",
         "receipts": "Recepciones",
         "invoiceMatching": "Conciliación de facturas",
-        "catalog": "Catálogo"
+        "catalog": "Catálogo",
+        "needs": "Necesidades"
       },
       "vendors": {
         "directory": "Directorio",
@@ -187,7 +204,8 @@
         "occupancy": "Aforo",
         "weather": "Clima",
         "guestCheckIn": "Registro de invitados",
-        "lostAndFound": "Objetos perdidos"
+        "lostAndFound": "Objetos perdidos",
+        "muster": "Lista de Evacuación"
       }
     },
     "items": {
@@ -398,7 +416,9 @@
       "reports": "Informes",
       "invoices": "Facturas",
       "documents": "Documentos",
-      "messages": "Mensajes"
+      "messages": "Mensajes",
+      "crew": "Equipo",
+      "projectDetails": "Datos del proyecto"
     },
     "avatar": {
       "settings": "Configuración",
@@ -430,7 +450,8 @@
       "upcoming": "Próximos",
       "engagements": "Contrataciones",
       "applications": "Postulaciones",
-      "engagement": "Contratación"
+      "engagement": "Contratación",
+      "quoteRequests": "Solicitudes de cotización"
     },
     "money": {
       "overview": "Resumen",
@@ -446,7 +467,15 @@
       "personProfile": "Perfil de persona",
       "companyProfile": "Perfil de empresa",
       "advanceForm": "Formulario de coordinación previa",
-      "agreementSigning": "Firma de acuerdo"
+      "agreementSigning": "Firma de acuerdo",
+      "crewShifts": "Enlace de mis turnos",
+      "registration": "Registro de equipo",
+      "vendorIntake": "Alta de Proveedor",
+      "publicForm": "Formulario Público",
+      "guestUnsubscribe": "Dejar de Recibir Correos"
+    },
+    "profile": {
+      "badgePhotos": "Fotos de credencial"
     }
   },
   "compass": {
@@ -474,7 +503,10 @@
       "reference": "Referencia",
       "offlineQueue": "Cola sin conexión",
       "profile": "Perfil y certificaciones",
-      "settings": "Configuración"
+      "settings": "Configuración",
+      "projectDetails": "Datos del proyecto",
+      "logisticsGate": "Puerta",
+      "drives": "Traslados que conduzco"
     },
     "reference": {
       "emergencyCodes": "Códigos de emergencia",
@@ -528,20 +560,30 @@
       "shiftCoverage": "Cobertura de turnos"
     },
     "routes": {
-      "record": "Registro"
+      "record": "Registro",
+      "clockTeam": "Fichar al equipo"
     }
   },
   "console": {
     "group": "Consola de operaciones",
     "tenants": "Organizaciones",
     "tenant": "Organización",
+    "metrics": "Métricas",
     "flags": "Indicadores de funciones",
+    "territories": "Territorios",
     "support": "Sesiones de soporte",
     "supportSession": "Sesión de soporte",
     "moderation": "Moderación",
     "listing": "Anuncio denunciado",
+    "reportedContent": "Contenido denunciado",
+    "reportedItem": "Elemento denunciado",
+    "legalQueue": "Cola legal",
+    "legalQueueItem": "Elemento de la cola legal",
     "banners": "Avisos del sistema",
+    "funnels": "Embudos",
     "team": "Equipo de la plataforma",
-    "activity": "Actividad"
+    "activity": "Actividad",
+    "ratingDisputes": "Impugnaciones de calificaciones",
+    "ratingDispute": "Impugnación de calificación"
   }
 }

@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { useActionState, useEffect, useId, useRef, useState, type ReactNode } from "react";
 import type { SettingDefinition } from "@xos/schemas/settings";
 import { saveSettingsAction, type SettingsFormState } from "@/app/[org]/settings/registry-actions";
+import { splitVisibleFields } from "@/lib/settings/visible-fields";
 
 type Translate = (key: string, values?: Record<string, string | number>) => string;
 
@@ -49,9 +50,6 @@ export interface SettingsFormProps {
   readonly scopeKind?: "Workspace" | "Team" | "Project";
   readonly scopeId?: string;
 }
-
-/** Fields shown before More fields (Section 11.10, gate 27). */
-const VISIBLE = 7;
 
 const INITIAL: SettingsFormState = {};
 
@@ -168,7 +166,18 @@ export function SettingsForm(props: SettingsFormProps) {
     const name = `value:${key}`;
     const help = f.help ? { help: f.help } : {};
     let control: ReactNode;
-    if (f.def.type === "boolean") {
+    // A layout is arranged on its dashboard (A129); here it can only be reset.
+    const layout = f.def.input === "layout";
+    if (layout) {
+      control = (
+        <div className="flex flex-col gap-4">
+          <span id={fieldId} tabIndex={-1} className="text-label-13 font-medium text-text-primary">
+            {f.label}
+          </span>
+          {f.help ? <p className="m-0 text-text-12 text-text-secondary">{f.help}</p> : null}
+        </div>
+      );
+    } else if (f.def.type === "boolean") {
       control = (
         <Checkbox
           id={fieldId}
@@ -223,8 +232,11 @@ export function SettingsForm(props: SettingsFormProps) {
                   ? "url"
                   : f.def.input === "date"
                     ? "date"
-                    : "text"
+                    : f.def.input === "phone"
+                      ? "tel"
+                      : "text"
           }
+          {...(f.def.input === "phone" ? { autoComplete: "tel" } : {})}
           {...(f.def.min !== null ? { min: f.def.min } : {})}
           {...(f.def.max !== null ? { max: f.def.max } : {})}
           {...(f.def.maxLength !== null ? { maxLength: f.def.maxLength } : {})}
@@ -248,7 +260,11 @@ export function SettingsForm(props: SettingsFormProps) {
           </p>
         ) : null}
         <p className="m-0 text-text-12 text-text-secondary">
-          {cleared ? t(inherits ? "inheritPending" : "resetPending") : f.sourceText}
+          {cleared
+            ? t(inherits ? "inheritPending" : "resetPending")
+            : layout
+              ? t(f.setHere ? "layoutCustom" : "layoutDefault")
+              : f.sourceText}
           {/* A setting deferred by a recorded decision is kept but not applied yet (A65-001). */}
           {f.def.deferred ? ` ${t("notInEffect")}` : null}
         </p>
@@ -284,8 +300,8 @@ export function SettingsForm(props: SettingsFormProps) {
     );
   };
 
-  const shown = props.fields.slice(0, VISIBLE);
-  const more = props.fields.slice(VISIBLE);
+  // A value the org locked stays above More fields, with the line saying why it is locked.
+  const { shown, more } = splitVisibleFields(props.fields);
   const savedNow = (state.saved?.length ?? 0) > 0 && failed.length === 0 && dirty.size === 0;
 
   return (

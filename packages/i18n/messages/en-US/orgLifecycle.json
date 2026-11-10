@@ -55,7 +55,7 @@
   },
   "deletion": {
     "title": "Delete the organization",
-    "description": "Deleting is separate from canceling. The organization becomes read-only at once and its data is deleted after 7 days, with no 30-day export window. Any Owner can recover it during those 7 days. You confirm with your second factor.",
+    "description": "Deleting is separate from canceling. Any paid subscription ends in Stripe at once, with no further charges, and time you already paid for is not refunded unless the law requires it. The organization becomes read-only at once and its data is deleted after 7 days, with no 30-day export window, once Stripe has accepted the cancellation. Any Owner can recover it during those 7 days, on the Access plan. You confirm with your second factor.",
     "ownerOnly": "Only the Owner deletes the organization.",
     "confirm": "Type {name} to confirm deletion",
     "reason": "Why are you deleting it?",

@@ -1,0 +1,82 @@
+appId: pro.ghxstship.compass
+# Mark a no-show offline (B9, S4.5.7-04): scripts/b9-no-show.js plans a started shift for a member who accepted it and
+# never clocked in. A supervisor opens the Crew tab, goes offline and marks them; the person leaves the late list at once,
+# the mark waits as one change and, after reconnecting, applies exactly once.
+# Named after its file: config.yaml orders flows by name.
+name: b9-no-show
+tags:
+  - airplane-mode
+---
+- runScript:
+    file: ../scripts/b9-no-show.js
+- assertTrue:
+    condition: ${output.noShow.status === "ok"}
+    label: The late shift was built (${output.noShow.status})
+- runFlow:
+    file: ../subflows/sign-in.yaml
+    env:
+      EMAIL: ${output.noShow.email}
+- tapOn:
+    id: "tab-crew"
+- extendedWaitUntil:
+    visible:
+      id: "crew-no-show-${output.noShow.shiftId}"
+    timeout: 60000
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - setAirplaneMode: enabled
+      - extendedWaitUntil:
+          visible:
+            id: "sync-offline"
+          timeout: 15000
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - runScript:
+          file: ../scripts/network.js
+          env:
+            STEP: offline
+      - assertTrue: ${output.network.ok}
+- tapOn:
+    id: "crew-no-show-${output.noShow.shiftId}"
+- tapOn:
+    id: "crew-no-show-reason"
+- inputText: "Not at the gate."
+- hideKeyboard
+- tapOn:
+    id: "crew-no-show-submit"
+# Gone from the late list at once, offline, and waiting as one change.
+- extendedWaitUntil:
+    notVisible:
+      id: "crew-no-show-${output.noShow.shiftId}"
+    timeout: 15000
+- extendedWaitUntil:
+    visible: "1 change waiting to upload"
+    timeout: 15000
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - setAirplaneMode: disabled
+      - extendedWaitUntil:
+          notVisible:
+            id: "sync-offline"
+          timeout: 30000
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - runScript:
+          file: ../scripts/network.js
+          env:
+            STEP: online
+      - assertTrue: ${output.network.ok}
+- extendedWaitUntil:
+    notVisible:
+      id: "sync-queued"
+    timeout: 90000
+- assertNotVisible:
+    id: "crew-no-show-${output.noShow.shiftId}"

@@ -13,6 +13,7 @@ Pulse **Mod+K** o **/** en cualquier lugar de Atlas para abrir el menú de coman
 - Registros e incidentes, por título o por clave (escriba `NWS-12`).
 - Personas de su organización, por nombre.
 - Documentos, SOP y artículos del manual, por título y texto.
+- Clases de activo por nombre, y unidades por etiqueta de activo, clase o número de serie (escriba `MH-002`). Aparecen en **Inventario**.
 - Configuraciones, por nombre o clave: escriba `zona horaria` para llegar a la página de Localización con el campo listo para cambiar.
 - Páginas, artículos de ayuda y acciones como **Nuevo registro** o **Aprobar hojas de horas**.
 
@@ -22,7 +23,7 @@ Solo verá lo que puede abrir. Cada palabra que escribe también coincide con el
 
 Agregue operadores para acotar una búsqueda. Aparecen como etiquetas bajo el campo de búsqueda; el menú marca los que no entiende para que pueda corregirlos.
 
-- `tipo:` un tipo de registro (`tipo:tarea`), o `persona`, `incidente`, `documento`, `sop` o `artículo`.
+- `tipo:` un tipo de registro (`tipo:tarea`), o `persona`, `incidente`, `documento`, `sop`, `artículo`, `activo` o `"clase de activo"`.
 - `proyecto:` la clave de un proyecto o el inicio de su nombre (`proyecto:NWS`).
 - `asignado:yo`, o parte del nombre de alguien (`asignado:ana`).
 - `estado:` un estado (`estado:bloqueado`), o `abierto` o `cerrado`.

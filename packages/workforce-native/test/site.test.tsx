@@ -49,7 +49,14 @@ describe("occupancyLevel", () => {
 describe("OccupancyCounterScreen", () => {
   it("counts in and out at a door and shows the alert level", async () => {
     const onCount = vi.fn(ok);
-    const ol = labels<OccupancyCounterScreenLabels>(["add", "remove", "count", "percent", "level"]);
+    const ol = labels<OccupancyCounterScreenLabels>([
+      "add",
+      "remove",
+      "count",
+      "percent",
+      "level",
+      "basis",
+    ]);
     const { container, rerender } = render(
       <OccupancyCounterScreen
         status="ready"
@@ -62,7 +69,9 @@ describe("OccupancyCounterScreen", () => {
         onCount={onCount}
       />,
     );
-    expect(screen.getByText("level(80)")).toBeTruthy();
+    // The banner and the counter name the load for its basis: only a permit makes it a permitted load.
+    expect(screen.getByText('level(80,"Space Capacity")')).toBeTruthy();
+    expect(screen.getByText('basis("Space Capacity")')).toBeTruthy();
     expect(screen.getByText("count(250,300)")).toBeTruthy();
     expect(screen.getByText("closed")).toBeTruthy();
     fireEvent.change(screen.getByLabelText("door"), { target: { value: " Gate A " } });
@@ -75,7 +84,7 @@ describe("OccupancyCounterScreen", () => {
     expect(onCount).toHaveBeenLastCalledWith("oc1", -1, null);
     await expectAccessible(container);
     fireEvent.click(screen.getByRole("radio", { name: "Bar Tent" }));
-    expect(screen.getByLabelText("percent(0)")).toBeTruthy();
+    expect(screen.getByLabelText('percent(0,"Space Capacity")')).toBeTruthy();
 
     rerender(
       <OccupancyCounterScreen
@@ -85,7 +94,7 @@ describe("OccupancyCounterScreen", () => {
         onCount={refused("The counter is closed.")}
       />,
     );
-    expect(screen.getByText("level(100)")).toBeTruthy();
+    expect(screen.getByText('level(100,"Space Capacity")')).toBeTruthy();
     await press("add(1)");
     expect(screen.getByText("The counter is closed.")).toBeTruthy();
   });
@@ -118,7 +127,14 @@ const board: WeatherBoard = {
     },
   ],
   readings: [
-    { id: "wr1", hazard: "Wind", value: 24, observedAt: "2026-10-02T09:00:00Z", recordedBy: "Ana" },
+    {
+      id: "wr1",
+      hazard: "Wind",
+      value: 24,
+      observedAt: "2026-10-02T09:00:00Z",
+      recordedBy: "Ana",
+      source: "Manual",
+    },
   ],
   alerts: [
     {
@@ -140,8 +156,8 @@ const board: WeatherBoard = {
 };
 
 const weatherLabels = labels<WeatherScreenLabels>(
-  ["value", "alertLine", "readingLine", "thresholdLine"],
-  ["hazards", "levels"],
+  ["value", "alertLine", "readingLine", "thresholdLine", "holdSince", "defaultHold"],
+  ["hazards", "levels", "severities"],
 );
 
 describe("WeatherScreen", () => {
@@ -165,6 +181,79 @@ describe("WeatherScreen", () => {
     await press("save");
     expect(onRecord).toHaveBeenCalledWith("Lightning", 6);
     expect((field as HTMLInputElement).value).toBe("");
+  });
+
+  it("lets a dispatcher call a hold prefilled from the template, and shows the hold and warnings (B8)", async () => {
+    const onCallHold = vi.fn(ok);
+    const feed = {
+      status: {
+        supported: true,
+        feedId: "f1",
+        lastSuccessAt: null,
+        lastFailureAt: null,
+        lastError: null,
+        failuresSinceSuccess: 0,
+      },
+      warnings: [
+        {
+          id: "w1",
+          event: "Severe Thunderstorm Warning",
+          severity: "Severe" as const,
+          headline: "Until 9:45 PM",
+          description: null,
+          instruction: null,
+          onset: null,
+          endsAt: null,
+          expiresAt: null,
+        },
+      ],
+      forecast: [],
+      openHold: null,
+      templates: { Hold: { id: "t1", body: "Stop work and shelter." } },
+    };
+    const { rerender } = render(
+      <WeatherScreen
+        status="ready"
+        labels={weatherLabels}
+        board={board}
+        onRecord={ok}
+        feed={feed}
+        canDispatch
+        onCallHold={onCallHold}
+        onAllClear={vi.fn(ok)}
+      />,
+    );
+    expect(screen.getByText("Severe Thunderstorm Warning")).toBeTruthy();
+    fireEvent.click(button("callHold"));
+    expect((screen.getByLabelText("message") as HTMLTextAreaElement).value).toBe(
+      "Stop work and shelter.",
+    );
+    await press("send");
+    expect(onCallHold).toHaveBeenCalledWith("Stop work and shelter.", "Wind");
+    rerender(
+      <WeatherScreen
+        status="ready"
+        labels={weatherLabels}
+        board={board}
+        onRecord={ok}
+        feed={{
+          ...feed,
+          openHold: {
+            id: "h1",
+            hazard: null,
+            message: "Stop work and shelter.",
+            calledAt: "2026-10-02T09:05:00Z",
+            clearedAt: null,
+            allClearMessage: null,
+          },
+        }}
+        canDispatch={false}
+      />,
+    );
+    expect(
+      screen.getByText('holdSince("2026-10-02T09:05:00Z"): Stop work and shelter.'),
+    ).toBeTruthy();
+    expect(screen.queryByText("callHold")).toBeNull();
   });
 
   it("shows the quiet board and a missing board", () => {
@@ -193,6 +282,12 @@ const guest = (over: Partial<DoorGuest> = {}): DoorGuest => ({
   checkedInAt: null,
   plusOnesAdmitted: null,
   door: null,
+  passCode: null,
+  passCategoryCode: null,
+  passCategoryName: null,
+  tableLabel: null,
+  hostPersonId: null,
+  hostName: null,
   ...over,
 });
 
@@ -200,7 +295,13 @@ describe("DoorCheckInScreen", () => {
   it("admits a guest with fewer plus-ones at a door", async () => {
     const onCheckIn = vi.fn(ok);
     const onSearch = vi.fn();
-    const dl = labels<DoorCheckInScreenLabels>(["sheetTitle", "plusOnes", "admitted"]);
+    const dl = labels<DoorCheckInScreenLabels>([
+      "sheetTitle",
+      "plusOnes",
+      "admitted",
+      "passType",
+      "table",
+    ]);
     const { container } = render(
       <DoorCheckInScreen
         status="ready"
@@ -238,9 +339,186 @@ describe("DoorCheckInScreen", () => {
     expect(screen.queryByRole("dialog")).toBeNull();
   });
 
+  it("finds a guest by the pass the door scans, and says when a pass is not on the list (B8)", async () => {
+    const onCheckIn = vi.fn(ok);
+    const dl = labels<DoorCheckInScreenLabels>([
+      "sheetTitle",
+      "plusOnes",
+      "admitted",
+      "passType",
+      "table",
+    ]);
+    const listed = guest({
+      passCode: "GP-ABCDEFGHIJ",
+      passCategoryCode: "VIP",
+      passCategoryName: "VIP Guest",
+      tableLabel: "Table 4",
+    });
+    const { rerender } = render(
+      <DoorCheckInScreen
+        status="ready"
+        labels={dl}
+        guests={[listed]}
+        search=""
+        onSearch={vi.fn()}
+        onCheckIn={onCheckIn}
+      />,
+    );
+    expect(screen.getByText('passType("VIP Guest") · table("Table 4")')).toBeTruthy();
+    fireEvent.change(screen.getByLabelText("pass"), { target: { value: "XOSGP1:GP-ZZZZZZZZZZ" } });
+    fireEvent.click(button("checkPass"));
+    // The list searched by that code arrives, and it does not hold the pass.
+    rerender(
+      <DoorCheckInScreen
+        status="ready"
+        labels={dl}
+        guests={[listed]}
+        search="GP-ZZZZZZZZZZ"
+        onSearch={vi.fn()}
+        onCheckIn={onCheckIn}
+      />,
+    );
+    expect(screen.getByText("passNotListed")).toBeTruthy();
+    fireEvent.change(screen.getByLabelText("pass"), { target: { value: "XOSGP1:GP-ABCDEFGHIJ" } });
+    fireEvent.click(button("checkPass"));
+    expect(screen.getByText("plusOnes(2,2)")).toBeTruthy();
+    await press("confirm");
+    expect(onCheckIn).toHaveBeenCalledWith("g1", 2, null);
+    rerender(
+      <DoorCheckInScreen
+        status="error"
+        labels={dl}
+        guests={[]}
+        search=""
+        onSearch={vi.fn()}
+        onCheckIn={onCheckIn}
+      />,
+    );
+    expect(screen.getByText("errorSentence passOffline")).toBeTruthy();
+  });
+
+  it("looks a typed pass up by its code when the search has narrowed the list (B8)", () => {
+    const dl = labels<DoorCheckInScreenLabels>([
+      "sheetTitle",
+      "plusOnes",
+      "admitted",
+      "passType",
+      "table",
+    ]);
+    const onSearch = vi.fn();
+    const found = guest({ passCode: "GP-ABCDEFGHIJ" });
+    const screenAt = (guests: readonly DoorGuest[], search: string) => (
+      <DoorCheckInScreen
+        status="ready"
+        labels={dl}
+        guests={guests}
+        search={search}
+        onSearch={onSearch}
+        onCheckIn={vi.fn(ok)}
+      />
+    );
+    const view = render(screenAt([], "smith"));
+    fireEvent.change(screen.getByLabelText("pass"), { target: { value: "XOSGP1:GP-ABCDEFGHIJ" } });
+    fireEvent.click(button("checkPass"));
+    expect(onSearch).toHaveBeenCalledWith("GP-ABCDEFGHIJ");
+    expect(screen.queryByText("passNotListed")).toBeNull();
+    view.rerender(screenAt([found], "GP-ABCDEFGHIJ"));
+    expect(screen.queryByText("passNotListed")).toBeNull();
+    expect(screen.getByText("plusOnes(2,2)")).toBeTruthy();
+  });
+
+  it("says a pass is not on the list once the search by its code finds nothing (B8)", () => {
+    const dl = labels<DoorCheckInScreenLabels>([
+      "sheetTitle",
+      "plusOnes",
+      "admitted",
+      "passType",
+      "table",
+    ]);
+    const screenAt = (guests: readonly DoorGuest[], search: string) => (
+      <DoorCheckInScreen
+        status="ready"
+        labels={dl}
+        guests={guests}
+        search={search}
+        onSearch={vi.fn()}
+        onCheckIn={vi.fn(ok)}
+      />
+    );
+    const view = render(screenAt([], "smith"));
+    fireEvent.change(screen.getByLabelText("pass"), { target: { value: "XOSGP1:GP-ZZZZZZZZZZ" } });
+    fireEvent.click(button("checkPass"));
+    expect(screen.queryByText("passNotListed")).toBeNull();
+    view.rerender(screenAt([], "GP-ZZZZZZZZZZ"));
+    expect(screen.getByText("passNotListed")).toBeTruthy();
+  });
+
+  it("says a pass was already used, with who came in and when (B8)", () => {
+    const dl = labels<DoorCheckInScreenLabels>(["sheetTitle", "plusOnes", "admitted", "passUsed"]);
+    render(
+      <DoorCheckInScreen
+        status="ready"
+        labels={dl}
+        guests={[
+          guest({
+            passCode: "GP-ABCDEFGHIJ",
+            state: "Checked In",
+            checkedInAt: "2027-06-02T20:00:00Z",
+          }),
+        ]}
+        search=""
+        onSearch={vi.fn()}
+        onCheckIn={vi.fn(ok)}
+      />,
+    );
+    fireEvent.change(screen.getByLabelText("pass"), { target: { value: "GP-ABCDEFGHIJ" } });
+    fireEvent.click(button("checkPass"));
+    expect(screen.getByText(/^passUsed\(.*2027-06-02T20:00:00Z"?\)$/)).toBeTruthy();
+    expect(screen.queryByText("plusOnes(2,2)")).toBeNull();
+  });
+
+  it("opens the guest of a pass scanned on the Scan tab once the list has loaded (B8)", () => {
+    const dl = labels<DoorCheckInScreenLabels>(["sheetTitle", "plusOnes", "admitted", "passUsed"]);
+    const listed = guest({ passCode: "GP-ABCDEFGHIJ" });
+    const props = {
+      labels: dl,
+      search: "GP-ABCDEFGHIJ",
+      scannedPass: "GP-ABCDEFGHIJ",
+      onSearch: vi.fn(),
+      onCheckIn: vi.fn(ok),
+    };
+    const { rerender } = render(<DoorCheckInScreen {...props} status="loading" guests={[]} />);
+    expect(screen.queryByText("plusOnes(2,2)")).toBeNull();
+    rerender(<DoorCheckInScreen {...props} status="ready" guests={[listed]} />);
+    expect(screen.getByText("plusOnes(2,2)")).toBeTruthy();
+  });
+
+  it("says a scanned pass is not on the list, and answers only once (B8)", () => {
+    const dl = labels<DoorCheckInScreenLabels>(["sheetTitle", "plusOnes", "admitted", "passUsed"]);
+    const props = {
+      labels: dl,
+      search: "GP-ZZZZZZZZZZ",
+      scannedPass: "GP-ZZZZZZZZZZ",
+      onSearch: vi.fn(),
+      onCheckIn: vi.fn(ok),
+      status: "ready" as const,
+    };
+    const { rerender } = render(<DoorCheckInScreen {...props} guests={[]} />);
+    expect(screen.getByText("passNotListed")).toBeTruthy();
+    // A later reload holding the guest, after the door dismissed the answer, does not reopen anything by itself.
+    rerender(<DoorCheckInScreen {...props} guests={[guest({ passCode: "GP-ZZZZZZZZZZ" })]} />);
+    expect(screen.queryByText("plusOnes(2,2)")).toBeNull();
+  });
+
   it("keeps the sheet open on a refusal and clears an empty search", async () => {
     const onSearch = vi.fn();
-    const dl = labels<DoorCheckInScreenLabels>(["sheetTitle", "plusOnes", "admitted"]);
+    const dl = labels<DoorCheckInScreenLabels>([
+      "sheetTitle",
+      "plusOnes",
+      "admitted",
+      "passType",
+      "table",
+    ]);
     const { rerender } = render(
       <DoorCheckInScreen
         status="ready"

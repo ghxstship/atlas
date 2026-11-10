@@ -89,7 +89,9 @@
     "notActiveTitle": "Tu contratación aún no está activa",
     "notActive": "Esto se abre cuando tu contratación pase a Activa. Termina la incorporación en Gateway.",
     "closedTitle": "Tu contratación terminó",
-    "closed": "El acceso a Compass terminó al completarse tu contratación. Pagos y documentos siguen en Gateway."
+    "closed": "El acceso a Compass terminó al completarse tu contratación. Pagos y documentos siguen en Gateway.",
+    "rosterMemberTitle": "Tu empresa se encarga de esto",
+    "rosterMember": "Trabajas en este proyecto en el equipo de tu empresa, así que tu empresa lleva tu tiempo, cambios de turno y gastos. Pregúntale a quien dirige tu equipo."
   },
   "sync": {
     "offline": "Sin conexión. Los cambios se guardan en este dispositivo.",
@@ -155,9 +157,25 @@
       "settlement_lines": "líneas de liquidación",
       "shared_reports": "informes compartidos",
       "sponsor_entitlements": "beneficios del patrocinador",
+      "proof_of_performance_photos": "fotos de comprobación de cumplimiento",
       "engagement_documents": "documentos de la contratación",
       "profile_certifications": "tus certificaciones",
-      "profile_documents": "tus documentos"
+      "profile_documents": "tus documentos",
+      "cue_calls": "llamadas de departamento",
+      "roster_entries": "entradas de lista",
+      "advance_allocations": "artículos asignados a ti",
+      "parking_passes": "pases de estacionamiento",
+      "delivery_windows": "franjas de entrega",
+      "shift_no_shows": "ausencias",
+      "break_types": "tipos de descanso",
+      "itinerary_changes": "cambios del itinerario",
+      "my_transfers": "Traslados que conduzco",
+      "local_contacts": "Contactos locales",
+      "client_approvals": "aprobaciones pendientes",
+      "vendor_delivery_windows": "ventanas de carga y descarga",
+      "briefings": "sesiones informativas",
+      "hospitality": "hospitalidad",
+      "space_bookings": "agenda de activación"
     }
   },
   "queue": {
@@ -226,7 +244,8 @@
       "_me_notification_matrix": "Opción de notificación",
       "_me_notification_settings": "Horas de silencio y resumen",
       "_me_party_preferences": "Opción de notificación",
-      "_me_quiet_hours": "Horas de silencio"
+      "_me_quiet_hours": "Horas de silencio",
+      "weather_holds": "Suspensión por clima"
     },
     "punchActions": {
       "in": "Registrar entrada",
@@ -270,10 +289,31 @@
       "serverState": "{title}, ahora {state}",
       "serverCue": "{label}, dado a las {time}",
       "serverGeneric": "El servidor tiene otra versión de este registro: {kind}.",
-      "expenseReceipt": "Gasto: {description}, {day}"
+      "expenseReceipt": "Gasto: {description}, {day}",
+      "noShow": "Marcar a un miembro del equipo como ausente",
+      "proofPhoto": "Foto de comprobación de cumplimiento, {time}",
+      "bookingArrival": "Registrar la llegada a la puerta de un vehículo con reserva",
+      "accessExit": "Escaneo de salida a las {time}",
+      "accessExitZone": "Escaneo de salida en {zone}, {time}",
+      "accessOverride": "Anular un escaneo denegado: {reason}",
+      "weatherHold": "Suspender por clima",
+      "weatherAllClear": "Dar fin a la suspensión por clima"
     },
     "refusedPermission": "El servidor rechazó este cambio: tu rol no puede hacer esto en este proyecto. Pide a tu supervisor que revise tu acceso.",
-    "refusedTechnical": "El servidor no pudo guardar este cambio. Envíalo de nuevo, o conserva la versión del servidor y avisa a tu supervisor."
+    "refusedTechnical": "El servidor no pudo guardar este cambio. Envíalo de nuevo, o conserva la versión del servidor y avisa a tu supervisor.",
+    "refusedScanNotDenied": "El servidor dejó pasar a esta persona de todos modos; no hacía falta autorizarla.",
+    "refusedScanOverrideRevoked": "Nunca se deja pasar una credencial revocada.",
+    "refusedScanOverrideStale": "La denegación tenía más de 15 minutos. Escanee la credencial de nuevo.",
+    "refusedScanOverrideTaken": "Otra persona ya autorizó esta denegación.",
+    "refusedScanOverrideSelf": "Nadie autoriza la denegación de su propia credencial. Pida a otro supervisor.",
+    "refusedWeatherHoldOpen": "Ya había una suspensión por clima abierta en este proyecto.",
+    "refusedWeatherHoldClosed": "Esta suspensión por clima ya tenía su aviso de fin.",
+    "refusedWeatherHoldStale": "Este fin de suspensión se creó más de 10 minutos antes de llegar al servidor y no se envió. Revise el clima y vuelva a darlo.",
+    "refusedWeatherHoldIdTaken": "Otra suspensión ya usa este identificador.",
+    "settledTitle": "Resuelto sin su cambio",
+    "settledScanNotDenied": "El servidor dejó pasar a esta persona al subir el escaneo, así que la autorización que dejó en cola no hacía falta y no se envió.",
+    "settledDismiss": "Descartar",
+    "refusedScanOverrideNotApproved": "Este pase está a la espera de su aprobación, así que no se puede dejar entrar en la puerta."
   },
   "today": {
     "title": "Hoy",
@@ -287,7 +327,70 @@
     "callTime": "Llamado {time}",
     "blockEmpty": "Nada aquí hoy.",
     "orgChip": "{org}",
-    "nextCueAt": "Previsto para el {day} a las {time}"
+    "nextCueAt": "Previsto para el {day} a las {time}",
+    "roster": {
+      "callTitle": "Tu citación",
+      "arrival": "Llega el {day}, de {start} a {end}",
+      "fromShift": "Tu primer turno de hoy.",
+      "noArrival": "Tu llegada aún no está definida. Tu empresa la define en la lista.",
+      "parkingTitle": "Estacionamiento",
+      "noParking": "No tienes pase de estacionamiento en este proyecto.",
+      "showPass": "Mostrar pase",
+      "gearTitle": "Equipo asignado",
+      "noGear": "Todavía no tienes nada asignado.",
+      "holding": "Lo tienes contigo",
+      "pickup": "Recoger en el mostrador: {status}",
+      "status": {
+        "approved": "Aprobado",
+        "reserved": "Reservado",
+        "awaitingOrder": "Esperando pedido",
+        "onOrder": "Pedido",
+        "confirmed": "Confirmado",
+        "received": "Recibido"
+      },
+      "contactTitle": "Contacto",
+      "contactSentence": "Pregúntale sobre tu citación, tu equipo o el estacionamiento.",
+      "projectDetails": "Actualizar datos del proyecto"
+    },
+    "blocks": {
+      "due": "Vence el {day}",
+      "requested": "Solicitado el {day}",
+      "arriveAt": "Llega a {zone}",
+      "quoteReference": "Da la referencia {reference} al llegar",
+      "placesLeftOne": "Queda 1 lugar",
+      "placesLeftOther": "Quedan {count} lugares",
+      "quantity": "× {count}",
+      "deliverableState": {
+        "Open": "Por entregar",
+        "Returned": "Devuelto para cambios"
+      },
+      "fulfilled": "Cumplido",
+      "canceled": "Cancelado",
+      "loading": "Leyendo la lista de invitados…",
+      "guestListOffline": "La lista de invitados se lee en línea. Conéctate para verla.",
+      "guestListFailed": "Compass no pudo leer la lista de invitados. Inténtalo de nuevo cuando tengas conexión.",
+      "guestPlusOnesOne": "{name} + 1",
+      "guestPlusOnesOther": "{name} + {count}",
+      "guestState": {
+        "Requested": "Solicitado",
+        "Approved": "Aprobado",
+        "Declined": "Rechazado",
+        "CheckedIn": "Registrado"
+      },
+      "empty": {
+        "approvalsWaiting": "Nada espera tu aprobación.",
+        "dockSlot": "No tienes un turno de muelle reservado en este proyecto.",
+        "loadInAndLoadOutWindows": "No hay ventanas de carga ni descarga abiertas.",
+        "deliveryInstructions": "Las instrucciones de entrega aparecen cuando se te reserva un turno de muelle.",
+        "tasksAndDeliverablesDue": "No tienes entregas pendientes.",
+        "siteAccessTimes": "Aún no tienes una credencial de acceso en este proyecto.",
+        "briefings": "No hay sesiones informativas convocadas para este proyecto.",
+        "hospitality": "No hay hospitalidad registrada para tu grupo.",
+        "guestList": "Tu lista de invitados está vacía.",
+        "activationSchedule": "Aún no hay espacio de activación reservado.",
+        "entitlementChecklist": "No hay beneficios registrados para este proyecto."
+      }
+    }
   },
   "orgs": {
     "title": "Organizaciones",
@@ -300,6 +403,21 @@
     "combinedTitle": "Hoy en todas tus organizaciones",
     "nothingToday": "Nada para hoy."
   },
+  "roleLens": {
+    "title": "Rol",
+    "hint": "Limita Hoy, Agenda, la Bandeja y tus herramientas a uno de tus roles. Tu acceso no cambia.",
+    "all": "Todos los roles",
+    "switch": "Organización: {org}, rol: {role}. Cambiar de organización o de rol",
+    "roles": {
+      "owner": "Propietario",
+      "admin": "Administrador",
+      "manager": "Gerente",
+      "member": "Miembro",
+      "collaborator": "Colaborador",
+      "field": "Campo",
+      "viewer": "Observador"
+    }
+  },
   "glance": {
     "today": "Hoy",
     "noCue": "No hay cue hoy.",
@@ -309,7 +427,14 @@
     "since": "Desde las {time}",
     "cueTitle": "Siguiente cue: {cue}",
     "cueBody": "{project} a las {time}",
-    "channel": "Turno y siguiente cue"
+    "channel": "Turno y siguiente cue",
+    "cueTbc": "{cue} · Por confirmar",
+    "gallery": {
+      "todayName": "Compass Hoy",
+      "todayDescription": "Tus turnos de hoy y el siguiente cue.",
+      "nextCueName": "Siguiente cue de Compass",
+      "nextCueDescription": "El tiempo que falta para el siguiente cue."
+    }
   },
   "wallet": {
     "holder": "Nombre",
@@ -343,6 +468,7 @@
     "locationCoarse": "Tu ubicación aún no es precisa. Sal al exterior o espera un momento.",
     "locationOff": "La ubicación está apagada. Actívala en Ajustes para marcar en el lugar.",
     "unfenced": "Este proyecto no tiene geocerca; tu ubicación se guarda con la marcación.",
+    "checkedOnPunch": "El límite del lugar se comprueba al marcar; tu ubicación se guarda con la marcación.",
     "queued": "Guardado en este dispositivo. Se sube cuando vuelvas a tener conexión.",
     "forgotten": "Tu último turno pasó de 16 horas y se cerró para que tu supervisor lo revise.",
     "skewReview": "El reloj de tu teléfono parece desfasado; tu supervisor revisará esta marcación.",
@@ -365,7 +491,11 @@
     },
     "shortcut": {
       "clockedIn": "Entrada registrada en {project}. Descanso y Salida están en su pantalla de bloqueo."
-    }
+    },
+    "breakTypeTitle": "¿Qué descanso?",
+    "breakTypeCancel": "Cancelar",
+    "breakTypePaid": "{name} (pagado)",
+    "breakTypeUnpaid": "{name} (sin pagar)"
   },
   "schedule": {
     "title": "Agenda",
@@ -438,12 +568,50 @@
     "enterCode": "Escribe un código",
     "submitCode": "Buscar",
     "vendorEmpty": "Aún no tienes entregas reservadas en este proyecto. Los turnos de muelle aparecen aquí al reservarse.",
-    "assignedEmpty": "Aún no tienes equipo asignado. Los artículos aparecen aquí cuando tu jefe de equipo te los entrega."
+    "assignedEmpty": "Aún no tienes equipo asignado. Los artículos aparecen aquí cuando tu jefe de equipo te los entrega.",
+    "receiveOrder": {
+      "title": "Recibir contra una orden",
+      "close": "Cerrar",
+      "open": "Recibir contra una orden",
+      "resume": "Revisar la recepción",
+      "scanHint": "Elige una línea con etiquetas y escanea cada unidad. Usa los botones para las demás líneas.",
+      "tagged": "{count} de {open} etiquetadas",
+      "removeTag": "Quitar {tag}",
+      "counted": "{count} de {open} contadas",
+      "less": "Una menos de {line}",
+      "more": "Una más de {line}",
+      "note": "Estado o excepciones",
+      "submit": "Recibir",
+      "otherOrder": "Elegir otra orden",
+      "loading": "Cargando órdenes.",
+      "offline": "Las órdenes solo se cargan con conexión. Los escaneos siguen en la cola de ingreso.",
+      "retry": "Reintentar",
+      "none": "Ninguna orden aprobada o enviada de este proyecto tiene líneas por recibir.",
+      "order": "OC {number}",
+      "unnamedVendor": "Proveedor sin nombre",
+      "tagAdded": "Etiqueta agregada",
+      "tagSkipped": "Ya etiquetada, o la línea está completa",
+      "queued": "{count} recibidas; se sincroniza cuando tengas conexión"
+    },
+    "directionLabel": "Sentido del escaneo en esta zona",
+    "in": "Entrada",
+    "out": "Salida",
+    "exitRecorded": "Salida registrada",
+    "insideNow": "Adentro ahora: {count}",
+    "insideNowNote": "Personas que entraron a esta zona con escaneo. Aquí no se cuentan los registros de entrada ni los invitados registrados en las puertas.",
+    "override": "Anular",
+    "overrideTitle": "Dejar pasar a esta persona",
+    "overrideReason": "Motivo",
+    "overrideReasonHelp": "Indica por qué, en 1 a 300 caracteres.",
+    "overrideSubmit": "Dejar pasar",
+    "overrideQueued": "Anulación registrada"
   },
   "incidents": {
     "title": "Incidentes",
     "new": "Reportar incidente",
     "empty": "No hay incidentes en este proyecto. Repórtalo en el momento en que ocurra.",
+    "emergencyFirst": "En una emergencia, llama primero a tu número local de emergencias. XOS no avisa a los servicios de emergencia.",
+    "nearMiss": "¿Casi accidente? Si pudo lastimar a alguien o causar daños, pero no lo hizo, elige Level 5 - Advisory y empieza Qué pasó con las palabras Near miss, para encontrarlo después.",
     "step": "Paso {step} de 3",
     "severity": "¿Qué tan grave es?",
     "location": "Ubicación",
@@ -460,7 +628,7 @@
     "submit": "Enviar reporte",
     "holdHint": "Mantén para enviar",
     "sent": "Reporte enviado.",
-    "queued": "Reporte guardado. Se envía cuando vuelvas a tener conexión.",
+    "queued": "Reporte guardado, pero aún no enviado. Se envía cuando vuelvas a tener conexión. Si es una emergencia, llama ahora a tu número local de emergencias.",
     "dispatch": "Despachar",
     "contain": "Contenido",
     "dispatchTitle": "Tablero de despacho",
@@ -500,12 +668,13 @@
     "fail": "Falla",
     "progress": "{done} de {total} revisados",
     "failNote": "Qué está mal",
+    "failNoteHelp": "Nombra la unidad, por ejemplo su etiqueta o número de serie.",
     "failNoteMissing": "Indica qué falló para que alguien lo arregle.",
     "failPhoto": "Agregar foto",
     "failPhotoMissing": "Agrega una foto de la falla.",
     "saveFail": "Guardar falla",
     "submit": "Enviar inspección",
-    "criticalFailures": "Elementos críticos fallidos: {count}. Detén el uso hasta que se arreglen.",
+    "criticalFailures": "Elementos críticos fallidos: {count}. Saca el elemento de uso y avisa a tu supervisor ahora. Nombra la unidad en la inspección. XOS no la ha bloqueado ni le da seguimiento.",
     "submitted": "Inspección enviada.",
     "queued": "Inspección guardada. Se sube cuando vuelvas a tener conexión.",
     "signOff": "Aprobar",
@@ -534,7 +703,24 @@
     "countdownLabel": "{minutes} min {seconds} s para {cue}",
     "countdownLate": "{minutes} min {seconds} s de retraso en {cue}",
     "countdownSoon": "{cue} en {seconds} segundos",
-    "countdownGo": "{cue}: ya"
+    "countdownGo": "{cue}: ya",
+    "tbc": "Por confirmar",
+    "onStandby": "En espera",
+    "department": "Tu departamento",
+    "allDepartments": "Todos",
+    "departments": {
+      "audio": "Audio",
+      "lighting": "Iluminación",
+      "video": "Video",
+      "sfx": "Efectos especiales",
+      "stage": "Escenario"
+    },
+    "yourCallNow": "Tu llamada ahora: {cue}",
+    "yourCallNext": "Tu próxima llamada: {cue}",
+    "callLine": "{department} · {instruction}",
+    "noCall": "Sin llamada de {department}",
+    "noCalls": "Sin llamadas de departamento",
+    "countdownTbc": "{cue}: hora por confirmar"
   },
   "kiosk": {
     "title": "Quiosco",
@@ -587,7 +773,9 @@
     "empty": "Estás al día. Las aprobaciones y mensajes aparecen aquí.",
     "update": "Novedad",
     "updateFrom": "Novedad de {org}",
-    "new": "Nuevo"
+    "new": "Nuevo",
+    "crisisAlert": "Alerta de crisis en {project}: {code}",
+    "crisisAllClear": "Fin de alerta en {project}: {code}"
   },
   "more": {
     "title": "Más",
@@ -614,7 +802,15 @@
     "boardEmpty": "Nadie ha marcado entrada en este proyecto todavía.",
     "late": "Tarde",
     "approvalsEmpty": "No hay hojas de horas por aprobar.",
-    "coverageEmpty": "Todos los turnos de hoy están cubiertos."
+    "coverageEmpty": "Todos los turnos de hoy están cubiertos.",
+    "noShow": {
+      "mark": "Marcar ausencia",
+      "title": "Marcar a {name} como ausente",
+      "cancel": "Cancelar",
+      "submit": "Marcar ausencia",
+      "reason": "Qué pasó",
+      "reasonHelp": "Lo leen la persona y quienes planifican los turnos. Espera en este dispositivo si no tienes conexión."
+    }
   },
   "profile": {
     "title": "Perfil",
@@ -650,6 +846,82 @@
     "manageInAtlas": "Administrar en Atlas",
     "manageInGateway": "Administrar en Gateway"
   },
+  "legalGate": {
+    "age": {
+      "title": "Confirma tu edad",
+      "sentence": "Elige la opción que sea cierta para ti.",
+      "over": "Tengo 18 años o más",
+      "under": "Tengo menos de 18 años"
+    },
+    "under": {
+      "title": "Las cuentas de XOS son para personas de 18 años en adelante",
+      "sentence": "Nos dijiste que tienes menos de 18 años, así que no puedes usar Compass con este inicio de sesión. Si continúas, lo cerramos.",
+      "keeps": "También eliminamos tu perfil y sus archivos, tus fotos de credencial, tu configuración, lo que enviaste a nuestro equipo de soporte y las respuestas y los acuerdos personales que diste a XOS. Cualquier organización con la que hayas trabajado conserva los registros que exige la ley, como las horas que trabajaste, y una nota con tu correo electrónico que indica que tu cuenta se eliminó, y XOS conserva un registro de esa eliminación con los identificadores de tu cuenta, sin tu nombre. XOS también conserva un recuento mensual de las personas menores de 18 años que rechazó, que no te identifica. Los datos eliminados permanecen en las copias de seguridad hasta que caducan.",
+      "confirm": "Cerrar este inicio de sesión",
+      "back": "Volver",
+      "queuedOne": "1 cambio en este dispositivo no se ha subido, como las horas que trabajaste. Al cerrar este inicio de sesión se elimina. Si puedes, conéctate y deja que se suba primero.",
+      "queuedOther": "{count} cambios en este dispositivo no se han subido, como las horas que trabajaste. Al cerrar este inicio de sesión se eliminan. Si puedes, conéctate y deja que se suban primero."
+    },
+    "refused": {
+      "title": "Tu inicio de sesión está cerrado",
+      "sentence": "Ya no tienes una cuenta de XOS.",
+      "minors": "Si trabajas o asistes a un evento, el adulto o la organización responsable de ti puede guardar tus datos en sus propios registros. No necesitas una cuenta para eso."
+    },
+    "held": {
+      "title": "Todavía no pudimos cerrarlo",
+      "legalHold": "{org} conserva tus registros bajo una retención legal, así que tu cuenta no se puede eliminar ahora.",
+      "onShift": "Marcaste entrada en {org}, así que tu cuenta no se puede eliminar ahora.",
+      "soleOwner": "Eres el único propietario de {org}, así que tu cuenta no se puede eliminar ahora.",
+      "other": "Tu cuenta no se puede eliminar ahora.",
+      "next": "Listo cierra tu sesión, en todos los dispositivos cuando tienes conexión. Hasta que la cuenta se cierre, Compass te lo volverá a preguntar cada vez que inicies sesión. Contáctanos y terminaremos de cerrarla.",
+      "contact": "Contáctanos"
+    },
+    "documents": {
+      "title": "Revisa y acepta",
+      "lead": "Lee estos documentos antes de usar Compass. Cada uno se abre en tu navegador.",
+      "limits": "Limitan lo que te debemos si algo sale mal e indican dónde se resuelven las disputas. En un iPhone también se aplican los términos de Apple.",
+      "agree": "Leí estos documentos y los acepto",
+      "accept": "Aceptar y continuar",
+      "decline": "No acepto",
+      "later": "Ahora no",
+      "effective": "Entra en vigor el {date}"
+    },
+    "documentNames": {
+      "mobile-eula": "Contrato de licencia de usuario final de la app móvil",
+      "worker-terms": "Términos para trabajadores"
+    },
+    "declined": {
+      "title": "Compass necesita tu aceptación",
+      "sentence": "No puedes usar Compass sin aceptar estos documentos. Puedes revisarlos de nuevo, cerrar sesión o eliminar tu cuenta.",
+      "back": "Revisar de nuevo",
+      "queuedOne": "1 cambio en este dispositivo no se ha subido, como las horas que trabajaste. Al cerrar sesión o eliminar tu cuenta se elimina de este dispositivo.",
+      "queuedOther": "{count} cambios en este dispositivo no se han subido, como las horas que trabajaste. Al cerrar sesión o eliminar tu cuenta se eliminan de este dispositivo."
+    },
+    "connection": {
+      "title": "Conéctate para continuar",
+      "sentence": "Antes de usar Compass, te pregunta tu edad y si aceptas sus términos, y guarda tus respuestas en nuestros servidores. Para eso necesita conexión. Conéctate y vuelve a intentarlo."
+    },
+    "online": "Este paso necesita conexión. Compass guarda tus respuestas en nuestros servidores para que valgan en todos tus dispositivos y se puedan mostrar más adelante.",
+    "needsConnection": "No pudimos registrar eso, así que nada cambió. Compass necesita conexión para este paso. Revisa tu conexión y vuelve a intentarlo.",
+    "upcoming": "{document} cambia el {date}. Revísalo y acéptalo.",
+    "review": "Revisar"
+  },
+  "aiDisclosure": {
+    "title": "¿Permitir las funciones de IA en Compass?",
+    "provider": "Las funciones de IA envían datos a un proveedor externo de IA. Hoy ese proveedor es Anthropic, que opera los modelos Claude para nosotros.",
+    "sent": "Lo que se le envía: las preguntas que le haces al asistente, junto con los SOP, las páginas del manual y los registros relacionados que ya puedes ver, y las fotos de recibos que tomas para un gasto cuando tu organización tiene activada la lectura de recibos.",
+    "notSent": "No se envían los registros médicos ni los campos restringidos, como tarifas de pago, datos bancarios e identificaciones oficiales. Sí se envía todo lo que se vea en una foto que tomes. El proveedor no entrena sus modelos con estos datos.",
+    "change": "Compass no envía nada tuyo al proveedor hasta que lo permitas. Si no lo permites, las funciones de IA quedan desactivadas para ti en todo XOS y Compass funciona sin ellas. Puedes cambiarlo en Configuración.",
+    "others": "Esta elección cubre las funciones de IA que usas tú. Hasta que elijas, las funciones de IA que uses en las aplicaciones web de XOS siguen la configuración de tu organización. Si tu organización tiene activadas las funciones de IA, otras personas de ella pueden seguir usándolas con los registros que pueden ver, incluidos los registros sobre ti.",
+    "notice": "Leer el Aviso de funciones de IA",
+    "allow": "Permitir",
+    "decline": "No permitir",
+    "failed": "No pudimos guardar tu elección, así que nada cambió y no se envió nada. Revisa tu conexión y vuelve a intentarlo.",
+    "declined": "Las funciones de IA están desactivadas, como elegiste. Para usarlas, permítelas abajo.",
+    "settingsTitle": "Funciones de IA",
+    "settingsLabel": "Usar funciones de IA",
+    "settingsHelp": "Envía tus preguntas y fotos de recibos a un proveedor externo de IA. Si lo desactivas, las funciones de IA quedan desactivadas para ti en todo XOS. No impide que otras personas de tu organización las usen con los registros que pueden ver."
+  },
   "settings": {
     "title": "Ajustes",
     "theme": "Tema",
@@ -684,7 +956,7 @@
     "actionsPost": "Denunciar o bloquear: publicación de {name}",
     "actionsMessage": "Denunciar o bloquear: mensaje de {name}",
     "actionsShoutOut": "Denunciar o bloquear: reconocimiento de {name}",
-    "intro": "Los moderadores de tu organización revisan cada denuncia en {hours} horas. No se avisa a nadie de quién denunció.",
+    "intro": "Los moderadores de tu organización revisan cada denuncia en {hours} horas, y GHXSTSHIP revisa las que dejen sin decidir. No se avisa a nadie de quién denunció.",
     "reportPost": "Denunciar esta publicación",
     "reportMessage": "Denunciar este mensaje",
     "reportShoutOut": "Denunciar este reconocimiento",
@@ -701,7 +973,7 @@
     "details": "Algo que los moderadores deban saber (opcional)",
     "submit": "Enviar denuncia",
     "reportedTitle": "Denuncia enviada",
-    "reported": "Gracias. Los moderadores de tu organización la revisarán en {hours} horas y te dirán qué decidieron.",
+    "reported": "Gracias. Los moderadores de tu organización la revisarán en {hours} horas, o lo hará GHXSTSHIP si no lo hacen, y sabrás qué se decidió.",
     "blockToo": "Bloquear también a {name}",
     "confirmTitle": "¿Bloquear a {name}?",
     "confirm": "Dejarás de ver sus publicaciones, comentarios, reconocimientos y mensajes, en todas las conversaciones. No se le avisa. Puedes desbloquearlo cuando quieras en Ajustes, Personas bloqueadas.",
@@ -829,6 +1101,8 @@
     "inputHelp": "Pregunta con una frase, como ¿A qué hora es mi llamado mañana?",
     "notInPlan": "Aurora AI viene con los planes Core, Pro, Team y Enterprise. Pide a un Propietario que cambie el plan en Atlas, Configuración, Facturación y plan.",
     "offTitle": "Aurora está desactivada en esta organización",
+    "declinedTitle": "Las funciones de IA están desactivadas para ti",
+    "declined": "Las desactivaste. Para usarlas, actívalas en Configuración, Funciones de IA.",
     "limit": "Tu organización usó las {allowance} solicitudes de este mes. El límite se renueva el primer día del mes próximo.",
     "noAnswer": "Los registros que puedes ver no responden esto. Pregunta por un turno, un SOP o el manual.",
     "confirmReason": "Confirmado en Compass.",
@@ -862,12 +1136,15 @@
     },
     "keptTitle": "Qué se conserva y por qué",
     "kept": {
-      "time_and_pay": "Tus registros de tiempo y pago, conservados 7 años porque lo exige la ley de nómina.",
+      "time_and_pay": "Tus registros de tiempo y pago, conservados 7 años, con tu nombre guardado aparte para los registros salariales que exige la ley.",
       "tax_forms": "Tus formularios fiscales, conservados 7 años porque lo exige la ley fiscal.",
       "engagements": "Tus registros de contratación y acuerdos firmados, conservados 7 años.",
       "org_records": "Los registros que creaste para una organización, como reportes de incidentes, que esa organización conserva sin tu nombre.",
+      "billing_consent": "Los términos de renovación que aceptaste al comprar un plan de pago para una organización, con tu correo de acceso y tus iniciales, conservados 7 años y durante un año después de que termine ese plan, como prueba de lo acordado.",
       "audit_trail": "El registro de auditoría de seguridad, conservado 7 años. Tus datos personales se quitan a los 90 días.",
-      "erasure_request": "Un registro de que pediste este borrado, para que cada organización pueda demostrar que se hizo."
+      "erasure_request": "Un registro de que pediste este borrado, para que cada organización pueda demostrar que se hizo.",
+      "rating_sharing": "Tu registro de haber decidido mostrar tus calificaciones, con su hora y dirección IP, conservado 7 años después de cerrarse como prueba de lo que elegiste.",
+      "rating_disputes": "Las impugnaciones de calificaciones que presentaste, conservadas con el registro de la calificación para poder mostrar la decisión."
     },
     "emailLabel": "Escribe tu correo de acceso para confirmar",
     "emailHelp": "Inicias sesión como {email}.",
@@ -883,7 +1160,8 @@
     "doneTitle": "Tu cuenta está eliminada",
     "doneSentence": "Tu acceso, tu nombre y tu perfil están borrados. Organizaciones avisadas: {count}.",
     "done": "Listo",
-    "signOutFailed": "Compass no pudo limpiar este dispositivo: {reason}. Toca Listo otra vez."
+    "signOutFailed": "Compass no pudo limpiar este dispositivo: {reason}. Toca Listo otra vez.",
+    "back": "Volver"
   },
   "notifications": {
     "title": "Compass",
@@ -899,6 +1177,22 @@
     "prompt": "Activa las notificaciones para aprobar hojas de horas y otras solicitudes desde la alerta.",
     "denied": "Las notificaciones de Compass están desactivadas. Actívalas en Ajustes para aprobar desde la alerta.",
     "turnOn": "Activar notificaciones"
+  },
+  "offerActions": {
+    "accept": "Aceptar",
+    "decline": "Rechazar",
+    "reply": "Responder",
+    "send": "Enviar",
+    "replyPrompt": "Escribe una respuesta",
+    "shiftAccepted": "Turno aceptado. Ya estás en el horario.",
+    "shiftDeclined": "Turno rechazado. Quien programa lo ve de nuevo en Borrador.",
+    "offerAccepted": "Oferta aceptada. La organización prepara tu contratación a continuación.",
+    "offerDeclined": "Oferta rechazada.",
+    "replied": "Respuesta enviada.",
+    "coming": "Voy a ir",
+    "notComing": "No puedo ir",
+    "reconfirmComing": "Confirmado. Nos vemos allí.",
+    "reconfirmNotComing": "Ya se le avisó a quien planifica."
   },
   "help": {
     "title": "Ayuda",
@@ -950,5 +1244,83 @@
   "systemBanner": {
     "details": "Detalles",
     "dismiss": "Ocultar"
+  },
+  "gateView": {
+    "title": "Puerta",
+    "open": "Abrir la vista de puerta",
+    "find": "Buscar una reserva",
+    "findHelp": "Código de referencia o placa.",
+    "notFound": "Ninguna reserva coincide. Revisa el código o la placa.",
+    "selected": "Seleccionada",
+    "empty": "No hay franjas de entrega en esta puerta hoy.",
+    "window": "{start} a {end}: {booked} de {limit} vehículos",
+    "noPlate": "Sin placa todavía",
+    "arrived": "Llegó",
+    "arrivalQueued": "Llegada guardada. Se envía ahora o cuando vuelvas a tener conexión.",
+    "status": {
+      "expected": "Esperado",
+      "waiting": "En espera",
+      "released": "Liberado",
+      "checkedIn": "Registrado"
+    }
+  },
+  "drives": {
+    "empty": "No tienes traslados hoy ni próximos. Aquí aparecen los traslados que te asignan conducir.",
+    "route": "{from} a {to}",
+    "window": "Recogida {pickup}, llegada {dropoff}",
+    "vehicle": "{label}, {seats} asientos",
+    "passengers": "Pasajeros: {names}",
+    "primary": "{name} (principal)",
+    "noPassengers": "Todavía sin pasajeros",
+    "meets": "Recibe el vuelo {flight}, aterriza {time}",
+    "landingUnknown": "hora de aterrizaje desconocida",
+    "status": {
+      "unassigned": "Sin asignar",
+      "assigned": "Asignado",
+      "underway": "En curso",
+      "done": "Terminado"
+    },
+    "noTransportContact": "No hay un contacto de transporte con teléfono para este día.",
+    "call": "Llamar a {name}"
+  },
+  "localContacts": {
+    "title": "Contactos locales",
+    "call": "Toca para llamar"
+  },
+  "clockTeam": {
+    "open": "Fichar al equipo",
+    "listTitle": "Equipo de hoy",
+    "selected": "{count} seleccionados",
+    "selectAll": "Seleccionar todos",
+    "select": "Seleccionar a {name}",
+    "window": "{start} a {end}",
+    "unnamed": "Miembro del equipo",
+    "pending": "Pendiente de sincronizar",
+    "in": "Dentro",
+    "refused": "Sin fichar",
+    "empty": "Nadie a quien supervisas tiene turno en este proyecto hoy.",
+    "refresh": "Actualizar",
+    "hint": "Cada persona se ficha con tu hora y tu ubicación. Si el servidor rechaza a alguien, el motivo aparece junto a su nombre.",
+    "clockIn": "Fichar entrada",
+    "clockOut": "Fichar salida",
+    "outsideGeofence": "Estás fuera de la geocerca del proyecto, así que las entradas pueden rechazarse. Ficha al equipo en el lugar.",
+    "agencyShift": "Turno de agencia",
+    "refusals": {
+      "supervisor_punch_batch": "Ficha entre 1 y 100 personas a la vez.",
+      "supervisor_punch_batch_required": "Este fichaje de equipo no tiene identificador de lote. Vuelve a fichar al equipo.",
+      "supervisor_punch_project": "Este turno ya no está en este proyecto o se canceló.",
+      "supervisor_punch_no_worker": "Nadie tiene este turno todavía.",
+      "supervisor_punch_not_lead": "No supervisas el turno de esta persona.",
+      "supervisor_punch_self": "Ficha tu propia entrada desde tu reloj.",
+      "supervisor_punch_outside_shift": "La entrada se abre dos horas antes del inicio del turno y se cierra cuando termina.",
+      "punch_already_in": "Ya fichó la entrada.",
+      "punch_not_in": "No ha fichado la entrada.",
+      "punch_shift_not_accepted": "Este turno no está publicado o no es suyo.",
+      "punch_id_conflict": "Este fichaje ya se usó para otro. Vuelve a fichar.",
+      "punch_location_required": "Este proyecto necesita tu ubicación para fichar al equipo.",
+      "punch_outside_geofence": "Estás fuera de la geocerca del proyecto.",
+      "punch_before_clock_in": "Una salida cuenta después de la entrada.",
+      "roster_entry_not_working": "Su entrada en el equipo está retirada o su contratación no está activa."
+    }
   }
 }

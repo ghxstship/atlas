@@ -217,6 +217,7 @@ describe("Aurora status and features", () => {
     const { api } = app({
       "rpc:ai_enabled_features": [ok(["extraction", "assistant"])],
       "rpc:ai_allowance": [ok([{ used: 12, allowance: 500, plan_includes_aurora: true }])],
+      "rpc:ai_declined_by_me": [ok(false)],
     });
     const body = await expectContract(await api.request("/aurora/status"), "aurora.status");
     expect(body).toEqual({
@@ -224,7 +225,18 @@ describe("Aurora status and features", () => {
       used: 12,
       allowance: 500,
       plan_includes_aurora: true,
+      declined_by_person: false,
     });
+  });
+
+  it("says when the caller turned AI features off for themselves, so no surface blames an Admin", async () => {
+    const { api } = app({
+      "rpc:ai_enabled_features": [ok([])],
+      "rpc:ai_allowance": [ok([{ used: 0, allowance: 500, plan_includes_aurora: true }])],
+      "rpc:ai_declined_by_me": [ok(true)],
+    });
+    const body = await expectContract(await api.request("/aurora/status"), "aurora.status");
+    expect(body).toMatchObject({ enabled_features: [], declined_by_person: true });
   });
 
   it("asks the assistant, reading through the API and citing what it read", async () => {

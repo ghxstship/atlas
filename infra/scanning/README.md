@@ -13,7 +13,7 @@ Production deployment is in `infra/runbooks/production.md`, under "Upload scanni
    - Files for the public buckets `profile-media` and `org-brand` are uploaded to the private
      `upload-staging` bucket as `<bucket>/<name>` (migration 1265). Nobody signed in writes the public
      buckets.
-2. The `upload-scan` Edge Function runs on a schedule with the service key and calls `runUploadScans`
+2. The `upload-scan` Edge Function runs on a schedule with a secret key on the `apikey` header and calls `runUploadScans`
    from `@xos/platform`. For each due scan it:
    - downloads the file and, for attachments, checks its SHA-256 against the one given at upload;
    - checks the leading bytes against the declared type and the extension
@@ -45,11 +45,11 @@ Production deployment is in `infra/runbooks/production.md`, under "Upload scanni
 
 `selectVirusScanner` (`packages/platform/src/scanning/select.ts`) reads the function's environment:
 
-| Environment                                             | Scanner                                                                                               |
-| ------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| `XOS_CLAMAV_HOST` set (`XOS_CLAMAV_PORT`, default 3310) | ClamAV                                                                                                |
-| No host, local stack                                    | Pass-through: every file is marked clean, with a warning logged for each one. Local development only. |
-| No host, anywhere else                                  | None. `upload-scan` answers 503 and claims nothing, so files stay quarantined until a scanner is set. |
+| Environment                                             | Scanner                                                                                                   |
+| ------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `XOS_CLAMAV_HOST` set (`XOS_CLAMAV_PORT`, default 3310) | ClamAV, over mutual TLS with `XOS_CLAMAV_TLS_CA`, `_CERT` and `_KEY` (all three or none, `fly/README.md`) |
+| No host, local stack                                    | Pass-through: every file is marked clean, with a warning logged for each one. Local development only.     |
+| No host, anywhere else                                  | None. `upload-scan` answers 503 and claims nothing, so files stay quarantined until a scanner is set.     |
 
 A local stack means `SUPABASE_URL` points at `kong`, `localhost`, `127.0.0.1`, `::1`,
 `host.docker.internal` or a `*.localhost` name, and `XOS_ENVIRONMENT` is not `production`.
@@ -61,10 +61,10 @@ docker compose -f infra/scanning/docker-compose.yaml -p xos4-clamav up -d
 ```
 
 Add `XOS_CLAMAV_HOST=host.docker.internal` and `XOS_CLAMAV_PORT=3310` to `supabase/functions/.env`,
-serve the functions, and call the worker with the service key:
+serve the functions, and call the worker with a secret key (`supabase status`, Secret) on the apikey header:
 
 ```sh
-curl -X POST "$SUPABASE_URL/functions/v1/upload-scan" -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY"
+curl -X POST "$SUPABASE_URL/functions/v1/upload-scan" -H "apikey: $SUPABASE_SECRET_KEY"
 ```
 
 Without those two variables, the local stack uses the logged pass-through. Uploads still need the worker

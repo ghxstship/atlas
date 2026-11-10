@@ -12,6 +12,7 @@ select plan(23);
 
 -- ivy declares one for herself; victor (Account Owner) one for the vendor account acct_v.
 select pg_temp.as_user('ivy');
+select app.give_sensitive_consent('Supplier Diversity', '2026-11-06', 'en-US', 'Gateway');
 select lives_ok($$select app.add_supplier_diversity_certification('Women-Owned', 'Florida Office of Supplier Diversity',
   p_person_id => pg_temp.id('ivy'), p_certificate_number => 'FL-WBE-2026-118842', p_issued_on => '2026-01-15',
   p_expires_on => '2028-01-15')$$,
@@ -21,9 +22,10 @@ select throws_ok($$select certificate_number from app.supplier_diversity_certifi
   'the certificate number is Restricted: nobody signed in selects it, the owner included');
 select is((select certificate_number_last4 from app.my_supplier_diversity()), '8842', 'the owner sees its last four characters');
 select throws_ok($$insert into app.supplier_diversity_certifications (person_id, diversity_kind, certifying_body)
-  values (pg_temp.id('quinn'), 'Veteran-Owned', 'Self-Declared')$$, '42501', null, 'nobody declares one for someone else');
+  values (pg_temp.id('quinn'), 'Veteran-Owned', 'Self-Declared')$$, 'XR001', null, 'nobody declares one for someone else: Quinn gave no consent');
 
 select pg_temp.as_user('victor');
+select app.give_sensitive_consent('Supplier Diversity', '2026-11-06', 'en-US', 'Gateway', pg_temp.id('acct_v'), true, true);
 select lives_ok(format($$insert into app.supplier_diversity_certifications (account_id, diversity_kind, certifying_body)
   values (%L, 'Minority-Owned', 'National Minority Supplier Development Council')$$, pg_temp.id('acct_v')),
   'an account Owner declares one for the company');
@@ -59,14 +61,14 @@ select results_eq($$select person_name, diversity_kind::text, certificate_number
   $$values ('Ivy Marchetti'::text, 'Women-Owned'::text, '8842'::text)$$,
   'the Owner reads the shared certification, the number masked to its last four even with the government identifier capability');
 select pg_temp.as_user('dave');
-select results_eq($$select certificate_number_last4 from app.shared_supplier_diversity(pg_temp.id('org_a'))$$,
-  $$values ('8842'::text)$$, 'a member with vendors.vendor.read sees the same last four');
+select is_empty($$select certificate_number_last4 from app.shared_supplier_diversity(pg_temp.id('org_a'))$$,
+  'a member with vendors.vendor.read alone reads none: the kind is Restricted (ADR 0164)');
 select pg_temp.as_user('gina');
 select throws_ok($$select * from app.shared_supplier_diversity(pg_temp.id('org_a'))$$, '42501', null,
   'a viewer without vendors.vendor.read reads nothing');
 select pg_temp.as_platform();
 select ok((select count(*) from app.supplier_diversity_events e where e.supplier_diversity_certification_id = :'v_ivy_cert'
-           and e.action = 'supplier_diversity.viewed' and e.org_id = pg_temp.id('org_a')) = 2, 'each read lands in ivy''s access log');
+           and e.action = 'supplier_diversity.viewed' and e.org_id = pg_temp.id('org_a')) = 1, 'each read lands in ivy''s access log');
 select ok(exists (select 1 from app.audit_events a where a.org_id = pg_temp.id('org_a') and a.action = 'supplier_diversity.viewed'),
   'and in the org''s audit ledger');
 select pg_temp.as_user('ivy');

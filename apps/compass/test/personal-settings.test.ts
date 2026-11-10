@@ -1,6 +1,7 @@
 import type { XosClient } from "@xos/data";
 import { clearPersonalSetting, setPersonalSetting } from "@xos/data/settings";
 import { getMessages } from "@xos/i18n";
+import { regionFromLocale, toE164 } from "@xos/i18n/formats";
 import { SETTINGS, type SettingDefinition } from "@xos/schemas/settings";
 import type { Mutation } from "@xos/sync";
 import { describe, expect, it } from "vitest";
@@ -21,6 +22,7 @@ import {
   sectionSettings,
   settingOf,
   sourceKey,
+  withOfferedChoices,
 } from "../src/settings/preferences";
 
 /**
@@ -102,6 +104,11 @@ describe("what each section shows", () => {
     expect(registryKeys()).not.toContain("me.theme");
   });
 
+  it("never offers a dashboard layout, which a person arranges on its Atlas dashboard (A129)", () => {
+    expect(registryKeys()).not.toContain("me.dashboard_layout.home");
+    expect(registryKeys()).not.toContain("me.dashboard_layout.partner");
+  });
+
   it("never offers a hidden setting", () => {
     const hidden: SettingDefinition = { ...def("me.sounds"), key: "me.secret", hidden: true };
     expect(
@@ -136,6 +143,13 @@ describe("how a setting is edited on a phone", () => {
     expect(controlOf(def("me.out_of_office.starts_on"))).toBe("date");
     expect(controlOf(def("me.out_of_office.auto_reply"))).toBe("multiline");
     expect(controlOf(def("workforce.work_phone"))).toBe("text");
+  });
+
+  it("offers only the languages of open territories, and leaves every other setting alone (ADR 0160)", () => {
+    const language = withOfferedChoices(def("locale.language"), ["en-US", "es-US"]);
+    expect(language.type === "choice" ? language.choices : []).toEqual(["en-US", "es-US"]);
+    expect(controlOf(language)).toBe("segments");
+    expect(withOfferedChoices(def("me.text_size"), [])).toBe(def("me.text_size"));
   });
 });
 
@@ -249,15 +263,65 @@ describe("a typed value", () => {
 
   it("is text no longer than the registry allows, blank meaning none", () => {
     const phone = def("workforce.work_phone");
-    expect(checkSettingValue(phone, " +1 305 555 0142 ")).toEqual({
+    expect(checkSettingValue(phone, " +13055550142 ")).toEqual({
       ok: true,
-      value: "+1 305 555 0142",
+      value: "+13055550142",
     });
     expect(checkSettingValue(phone, "  ")).toEqual({ ok: true, value: null });
     expect(checkSettingValue(phone, "5".repeat(33))).toEqual({
       ok: false,
       problem: "setting_too_long",
     });
+  });
+
+  it("is refused with a slur in the automatic reply other people read, as migration 6892 refuses it", () => {
+    const reply = def("me.out_of_office.auto_reply");
+    expect(checkSettingValue(reply, "Away. Ask the w3tbacks on the dock.")).toEqual({
+      ok: false,
+      problem: "content_objectionable",
+    });
+    expect(checkSettingValue(reply, " Away at the Scunthorpe show until Monday. ")).toEqual({
+      ok: true,
+      value: "Away at the Scunthorpe show until Monday.",
+    });
+    // Only text other people read is filtered: a date, a zone or a phone is the person's own.
+    expect(checkSettingValue(def("me.out_of_office.ends_on"), "2026-12-24")).toEqual({
+      ok: true,
+      value: "2026-12-24",
+    });
+  });
+
+  it("is a phone read into E.164 in the person's region, refusing anything else (A139)", () => {
+    const phone = def("workforce.work_phone");
+    const inUs = (input: string) => toE164(input, "US");
+    expect(phone.input).toBe("phone");
+    expect(checkSettingValue(phone, "(305) 555-0142", inUs)).toEqual({
+      ok: true,
+      value: "+13055550142",
+    });
+    expect(checkSettingValue(phone, "+44 20 7946 0958", inUs)).toEqual({
+      ok: true,
+      value: "+442079460958",
+    });
+    expect(checkSettingValue(phone, "desk 4412", inUs)).toEqual({ ok: false, problem: "phone" });
+    expect(checkSettingValue(phone, "+1 305 555 0142")).toEqual({ ok: false, problem: "phone" });
+  });
+
+  it("finds the person's region from their language on Hermes, which has no Intl.Locale (A139)", () => {
+    const phone = def("workforce.work_phone");
+    const locale = Intl.Locale;
+    try {
+      (Intl as { Locale?: unknown }).Locale = undefined;
+      // As RegistrySettings reads it: the region of i18n.language.
+      const region = regionFromLocale("es-US");
+      expect(region).toBe("US");
+      expect(checkSettingValue(phone, "(305) 555-0142", (input) => toE164(input, region))).toEqual({
+        ok: true,
+        value: "+13055550142",
+      });
+    } finally {
+      (Intl as { Locale?: unknown }).Locale = locale;
+    }
   });
 
   it("is a zone the phone knows", () => {

@@ -208,7 +208,8 @@ nodes:
                     label: nav.atlas.projectTabs.hospitality
                     route: "/{org}/p/{projectKey}/hospitality"
                     twin: hospitality
-                    list: { views: [list, table, calendar], default: list }
+                    list:
+                      { views: [list, table, calendar, resource-schedule, matrix], default: list }
                   - id: project.assets
                     kind: tab
                     label: nav.atlas.projectTabs.assets
@@ -320,6 +321,21 @@ nodes:
             label: nav.atlas.pages.schedule.events
             route: "/{org}/schedule/events"
             list: { views: [list, calendar, table], default: list }
+          - id: schedule.days
+            kind: page
+            label: nav.atlas.pages.schedule.days
+            route: "/{org}/schedule/days"
+            list: { views: [table, calendar, list], default: table }
+          - id: schedule.workload
+            kind: page
+            label: nav.atlas.pages.schedule.workload
+            route: "/{org}/schedule/workload"
+            list: { views: [heatmap, table], default: heatmap }
+          - id: schedule.clashes
+            kind: page
+            label: nav.atlas.pages.schedule.clashes
+            route: "/{org}/schedule/clashes"
+            list: { views: [list, table], default: list }
       - id: work
         kind: item
         label: nav.atlas.items.work
@@ -374,6 +390,16 @@ nodes:
             label: nav.atlas.pages.show.callSheets
             route: "/{org}/show/call-sheets"
             list: { views: [list, table, calendar], default: list }
+          # B6 (G-179): one project's show day on the Dashboard template: sets by stage, run of show, arrivals, hotels.
+          - id: show.show-day
+            kind: page
+            label: nav.atlas.pages.show.showDay
+            route: "/{org}/show/show-day"
+          - id: show.segments
+            kind: page
+            label: nav.atlas.pages.show.segments
+            route: "/{org}/show/segments"
+            list: { views: [list, table], default: list }
       - id: advancing
         kind: item
         label: nav.atlas.items.advancing
@@ -401,6 +427,16 @@ nodes:
             label: nav.atlas.pages.advancing.reconciliation
             route: "/{org}/advancing/reconciliation"
             list: { views: [table, matrix], default: table }
+          - id: advancing.crew
+            kind: page
+            label: nav.atlas.pages.advancing.crew
+            route: "/{org}/advancing/crew"
+            list: { views: [list, table], default: list }
+          - id: advancing.allocations
+            kind: page
+            label: nav.atlas.pages.advancing.allocations
+            route: "/{org}/advancing/allocations"
+            list: { views: [list, table, matrix], default: list }
   - id: group.operations
     kind: group
     label: nav.atlas.groups.operations
@@ -441,6 +477,11 @@ nodes:
             label: nav.atlas.pages.places.sitePlans
             route: "/{org}/places/site-plans"
             list: { views: [gallery, site-plan, list], default: gallery }
+          - id: places.signage
+            kind: page
+            label: nav.atlas.pages.places.signage
+            route: "/{org}/places/signage"
+            list: { views: [list, table, board], default: list }
       - id: logistics
         kind: item
         label: nav.atlas.items.logistics
@@ -484,7 +525,22 @@ nodes:
             kind: page
             label: nav.atlas.pages.hospitality.accommodationBlocks
             route: "/{org}/hospitality/accommodation-blocks"
-            list: { views: [list, table, calendar], default: list }
+            list: { views: [list, table, calendar, matrix], default: list }
+          - id: hospitality.travel
+            kind: page
+            label: nav.atlas.pages.hospitality.travel
+            route: "/{org}/hospitality/travel"
+            list: { views: [table, list], default: table }
+          - id: hospitality.transfers
+            kind: page
+            label: nav.atlas.pages.hospitality.transfers
+            route: "/{org}/hospitality/transfers"
+            list: { views: [list, table, resource-schedule, calendar], default: list }
+          - id: hospitality.rooms
+            kind: page
+            label: nav.atlas.pages.hospitality.rooms
+            route: "/{org}/hospitality/rooms"
+            list: { views: [list, table, resource-schedule], default: list }
       - id: assets
         kind: item
         label: nav.atlas.items.assets
@@ -618,6 +674,11 @@ nodes:
             label: nav.atlas.pages.siteOps.lostAndFound
             route: "/{org}/site-ops/lost-and-found"
             list: { views: [table, list, gallery], default: table }
+          - id: site-ops.muster
+            kind: page
+            label: nav.atlas.pages.siteOps.muster
+            route: "/{org}/site-ops/muster"
+            list: { views: [table, list], default: table }
   - id: group.people
     kind: group
     label: nav.atlas.groups.people
@@ -737,6 +798,11 @@ nodes:
             label: nav.atlas.pages.opportunities.pools
             route: "/{org}/opportunities/pools"
             list: { views: [list, table], default: list }
+          - id: opportunities.registration-pages
+            kind: page
+            label: nav.atlas.pages.opportunities.registrationPages
+            route: "/{org}/opportunities/registration-pages"
+            list: { views: [list, table], default: list }
           - id: opportunities.onboarding
             kind: page
             label: nav.atlas.pages.opportunities.onboarding
@@ -781,11 +847,52 @@ nodes:
             label: nav.atlas.pages.crew.shifts
             route: "/{org}/crew/shifts"
             list: { views: [resource-schedule, list, table, calendar], default: resource-schedule }
+          - id: crew.access-links
+            kind: page
+            label: nav.atlas.pages.crew.accessLinks
+            route: "/{org}/crew/access-links"
+            list: { views: [list, table], default: list }
+            visibility:
+              owner: full
+              admin: full
+              manager: full
+              member: hidden
+              collaborator: hidden
+              field: hidden
+              viewer: hidden
           - id: crew.swaps
             kind: page
             label: nav.atlas.pages.crew.swaps
             route: "/{org}/crew/swaps"
             list: { views: [list, table, board], default: list }
+          # What is not covered yet, and the seats shifts and records are planned against (B9, ADR 0148). Own-reach Field
+          # users would get no rows and could act on nothing, so these two are hidden from them.
+          - id: crew.shortages
+            kind: page
+            label: nav.atlas.pages.crew.shortages
+            route: "/{org}/crew/shortages"
+            list: { views: [list, table], default: list }
+            visibility:
+              owner: full
+              admin: full
+              manager: full
+              member: read
+              collaborator: hidden
+              field: hidden
+              viewer: hidden
+          - id: crew.positions
+            kind: page
+            label: nav.atlas.pages.crew.positions
+            route: "/{org}/crew/positions"
+            list: { views: [table, list], default: table }
+            visibility:
+              owner: full
+              admin: full
+              manager: full
+              member: read
+              collaborator: hidden
+              field: hidden
+              viewer: hidden
           - id: crew.time-entries
             kind: page
             label: nav.atlas.pages.crew.timeEntries
@@ -846,6 +953,11 @@ nodes:
             label: nav.atlas.pages.finance.budgets
             route: "/{org}/finance/budgets"
             list: { views: [spreadsheet, table, matrix], default: spreadsheet }
+          - id: finance.quotes
+            kind: page
+            label: nav.atlas.pages.finance.quotes
+            route: "/{org}/finance/quotes"
+            list: { views: [table, board], default: table }
           - id: finance.expenses
             kind: page
             label: nav.atlas.pages.finance.expenses
@@ -903,6 +1015,12 @@ nodes:
         level: both
         module: procurement
         children:
+          # B11 (G-180): what every event will get, consolidated from requests, with computed status.
+          - id: procurement.needs
+            kind: page
+            label: nav.atlas.pages.procurement.needs
+            route: "/{org}/procurement/needs"
+            list: { views: [table, list, board], default: table }
           - id: procurement.rfqs
             kind: page
             label: nav.atlas.pages.procurement.rfqs

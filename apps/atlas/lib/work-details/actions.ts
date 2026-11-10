@@ -23,21 +23,31 @@ import {
   parseNamePartsForm,
   parsePassportForm,
   parseShareForm,
-  parseTravelForm,
-  parseUniformForm,
+  shareFormError,
   workDetailErrorKey,
   type Parsed,
 } from "@xos/data/work-details-forms";
 import type { WorkDetailsPatch } from "@xos/data/work-details";
+import {
+  disownSensitiveEntry,
+  giveSensitiveConsent,
+  removeSensitiveEntry,
+  SENSITIVE_CATEGORIES,
+  withdrawSensitiveConsent,
+  type SensitiveCategory,
+} from "@xos/data/sensitive-consent";
 import { regionFromLocale, toE164 } from "@xos/i18n/formats";
 import { getLocale } from "next-intl/server";
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
+import { clientIp } from "@/lib/auth/legal";
 import { redirect } from "next/navigation";
 import { getOrgContext, getViewer } from "@/lib/shell/context";
 
 /**
- * Server actions for Work Details (Section 4.5.6 item 10, migration 1340): the viewer's own sizes,
- * needs, travel profile, passport, emergency contacts and loyalty programs, their per-engagement
+ * Server actions for Work Details (Section 4.5.6 item 10, migration 1340): the viewer's own needs,
+ * passport, emergency contacts and loyalty programs (sizes and travel preferences are asked per
+ * project since R6a), their per-engagement
  * shares, their Section 15 name parts, and the engaging org's passport reveal. Each runs with the
  * viewer's client, so the owner-only policies and the RPCs decide; the field parsers are shared with
  * Gateway (@xos/data/work-details-forms) and refusals come back as `workDetails.errors.*` keys.
@@ -50,6 +60,8 @@ export interface WorkDetailsFormState {
   readonly ok?: boolean;
   /** A revealed passport number, shown once and never stored. */
   readonly revealed?: string;
+  /** A consent was withdrawn while a legal hold keeps the values, hidden, until it ends (ADR 0164). */
+  readonly held?: boolean;
 }
 
 type State = WorkDetailsFormState;
@@ -78,11 +90,60 @@ async function savePatch(form: FormData, parsed: Parsed<WorkDetailsPatch>): Prom
   return done(form, await saveMyWorkDetails(db, parsed.value));
 }
 
-// Work details ------------------------------------------------------------------------------------------
+// Consent for sensitive data (ADR 0164) --------------------------------------------------------------------------------
 
-export async function saveUniformAction(_: State, form: FormData): Promise<State> {
-  return savePatch(form, parseUniformForm(form));
+const CATEGORY_NAMES: readonly string[] = SENSITIVE_CATEGORIES;
+
+function categoryOf(form: FormData): SensitiveCategory | null {
+  const value = form.get("category");
+  return typeof value === "string" && CATEGORY_NAMES.includes(value)
+    ? (value as SensitiveCategory)
+    : null;
 }
+
+/** Records the viewer's consent with the wording's version, the language it was shown in and the surface. */
+export async function giveSensitiveConsentAction(_: State, form: FormData): Promise<State> {
+  const category = categoryOf(form);
+  if (!category) return { error: "invalid" };
+  const { db } = await viewerPerson();
+  return done(
+    form,
+    await giveSensitiveConsent(db, {
+      category,
+      locale: await getLocale(),
+      surface: "Atlas",
+      clientIp: clientIp(await headers()),
+    }),
+  );
+}
+
+/** Withdraws a category in one call: use stops at once and the values are cleared. */
+export async function withdrawSensitiveConsentAction(_: State, form: FormData): Promise<State> {
+  const category = categoryOf(form);
+  if (!category) return { error: "invalid" };
+  const { db } = await viewerPerson();
+  const result = await withdrawSensitiveConsent(db, category);
+  const state = done(form, result);
+  return result.ok && !result.data.erased ? { ...state, held: true } : state;
+}
+
+/** Removes what someone else entered about the viewer. */
+export async function removeSensitiveEntryAction(_: State, form: FormData): Promise<State> {
+  const id = parseId(form, "consentId");
+  if (!id) return { error: "invalid" };
+  const { db } = await viewerPerson();
+  return done(form, await removeSensitiveEntry(db, id));
+}
+
+/** The viewer says a guest list entry their email matched is about someone else; the guest's needs stay with the keeper. */
+export async function disownSensitiveEntryAction(_: State, form: FormData): Promise<State> {
+  const id = parseId(form, "consentId");
+  if (!id) return { error: "invalid" };
+  const { db } = await viewerPerson();
+  return done(form, await disownSensitiveEntry(db, id));
+}
+
+// Work details ------------------------------------------------------------------------------------------
 
 export async function saveDietaryAction(_: State, form: FormData): Promise<State> {
   return savePatch(form, parseDietaryForm(form));
@@ -90,10 +151,6 @@ export async function saveDietaryAction(_: State, form: FormData): Promise<State
 
 export async function saveAccessibilityAction(_: State, form: FormData): Promise<State> {
   return savePatch(form, parseAccessibilityForm(form));
-}
-
-export async function saveTravelAction(_: State, form: FormData): Promise<State> {
-  return savePatch(form, parseTravelForm(form));
 }
 
 export async function savePassportAction(_: State, form: FormData): Promise<State> {
@@ -153,9 +210,7 @@ export async function removeLoyaltyAction(_: State, form: FormData): Promise<Sta
 export async function shareAction(_: State, form: FormData): Promise<State> {
   const parsed = parseShareForm(form);
   if (!parsed.ok) {
-    return {
-      error: parsed.fields.includes("categories") ? "work_detail_share_categories" : "invalid",
-    };
+    return { error: shareFormError(parsed.fields) };
   }
   const { db } = await viewerPerson();
   return done(form, await shareWorkDetails(db, parsed.value.engagementId, parsed.value.categories));

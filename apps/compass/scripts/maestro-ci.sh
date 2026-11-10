@@ -9,7 +9,7 @@
 #                                                                   sets airplane mode only on Android
 #
 # On iOS the airplane-mode flows go offline by cutting the server: start
-# apps/compass/scripts/maestro-network.ts serve first (SUPABASE_URL and SUPABASE_PROJECT_ID set), as the
+# apps/compass/scripts/maestro-network.ts serve first (SUPABASE_URL and XOS_SUPABASE_STACK set), as the
 # nightly job and apps/compass/scripts/maestro-ios.sh do.
 #
 # Extra arguments go to `maestro test`. The JUnit report and each flow's screenshots and logs land in

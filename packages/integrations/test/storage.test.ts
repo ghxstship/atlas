@@ -44,6 +44,7 @@ function source(links: FileLink[], overrides: Partial<StorageSource> = {}) {
       finished.push(args);
       return "Scanning";
     },
+    storeCredential: async () => undefined,
     ...overrides,
   };
   return { value, refreshed, finished };

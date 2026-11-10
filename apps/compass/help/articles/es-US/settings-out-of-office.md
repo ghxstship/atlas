@@ -10,6 +10,6 @@ Ajustes, Fuera de la oficina avisa que no estás. Mientras tanto, tus aprobacion
 
 - **Fuera de la oficina**: actívalo mientras no estés.
 - **Ausente desde** y **De vuelta el**: escribe cada fecha como año-mes-día, por ejemplo 2026-12-21, y toca **Guardar**. De vuelta el es igual o posterior a Ausente desde.
-- **Respuesta automática**: se envía una vez a cada persona que te escriba mientras no estás.
+- **Respuesta automática**: se envía una vez a cada persona que te escriba mientras no estás. Una respuesta con un insulto discriminatorio no se guarda, y Compass conserva lo que escribiste para que lo cambies.
 
 Una vez que abriste Fuera de la oficina con conexión, también se abre sin conexión. Los cambios se guardan en este teléfono y se suben cuando vuelves a tener conexión; la Cola sin conexión los muestra.

@@ -19,7 +19,17 @@ import { listEngagedGuests, type GuestEntryState } from "@/lib/party";
 import { enumLabelKey } from "@/lib/shell/translate";
 import { engagementTitle } from "@/lib/engagement-state";
 import { toneFor, type Tone } from "@/lib/states";
+import {
+  ContactLinks,
+  readRooms,
+  readSharedContacts,
+  readTransfers,
+  YourRooms,
+} from "./ground-and-contacts";
+import { ItinerarySections, loadItinerary } from "./itinerary";
 import { AreaClosed, RowList, TabEmpty } from "./rows";
+import { listGuestNeedsStates } from "@xos/data/sensitive-consent";
+import { GuestNeedsTrigger } from "./guest-needs-trigger";
 import { GuestRequestForm, SettlementResponseForm } from "./party-forms";
 import { DocumentsTab } from "./tabs-common";
 import type { TabProps } from "./tab-context";
@@ -29,11 +39,23 @@ import type { TabProps } from "./tab-context";
  * list and settlement, and the representative's roster of artists.
  */
 
+/**
+ * Riders of this engagement: one Atlas assigned to the engagement itself (an artist booked as a
+ * person, R2), or the rider of the account that supplies it. The view holds every rider the viewer
+ * may read on the project, so another engagement's rider is filtered out here.
+ */
 export async function RiderTab({ view, t, engagementKey }: TabProps) {
-  const riders = await readView(view.ctx.db, "riders", {
+  const read = await readView(view.ctx.db, "riders", {
     eq: { project_id: view.engagement.projectId },
   });
-  if (!riders.ok) return <RegionError />;
+  if (!read.ok) return <RegionError />;
+  const riders = {
+    data: read.data.filter(
+      (r) =>
+        r.engagement_id === view.engagement.id ||
+        (r.account_id !== null && r.account_id === view.engagement.accountId),
+    ),
+  };
   const ids = riders.data.flatMap((r) => (r.id ? [r.id] : []));
   const lines = await readView(view.ctx.db, "rider_lines", { in: ["rider_id", ids] });
   if (!lines.ok) return <RegionError />;
@@ -84,7 +106,14 @@ export async function SetTimesTab({ view, t, locale, engagementKey }: TabProps) 
     }),
   ]);
   if (!cues.ok || !sheets.ok) return <RegionError />;
-  if (cues.data.length === 0 && sheets.data.length === 0) {
+  // The act's rooms and each day's Shared local contacts (B5).
+  const [rooms, contacts] = await Promise.all([
+    YourRooms({ view, t, locale }),
+    readSharedContacts(view, locale),
+  ]);
+  const contactsFor = (day: string | null) =>
+    (contacts ?? []).filter((c) => c.day === null || c.day === day);
+  if (cues.data.length === 0 && sheets.data.length === 0 && rooms === null) {
     return (
       <TabEmpty
         icon="Clock"
@@ -103,14 +132,16 @@ export async function SetTimesTab({ view, t, locale, engagementKey }: TabProps) 
             id: c.id ?? "",
             title: c.label ?? "",
             meta: [
-              c.planned_at
-                ? formatScheduleTime(
-                    locale,
-                    c.planned_at,
-                    view.engagement.projectTimeZone,
-                    view.scheduleView,
-                  )
-                : null,
+              c.planned_at && c.start_tbc
+                ? t("gateway.common.tbc")
+                : c.planned_at
+                  ? formatScheduleTime(
+                      locale,
+                      c.planned_at,
+                      view.engagement.projectTimeZone,
+                      view.scheduleView,
+                    )
+                  : null,
               c.duration,
             ],
             ...(c.called_at
@@ -133,13 +164,37 @@ export async function SetTimesTab({ view, t, locale, engagementKey }: TabProps) 
             items={sheets.data.map((d) => ({
               id: d.id ?? "",
               title: d.day ? formatDate(locale, d.day) : "",
-              detail: d.body ? (
-                <p className="m-0 whitespace-pre-line text-text-13">{d.body}</p>
-              ) : undefined,
+              detail:
+                d.body || contactsFor(d.day).length > 0 ? (
+                  <div className="flex flex-col gap-8">
+                    {d.body ? (
+                      <p className="m-0 whitespace-pre-line text-text-13">{d.body}</p>
+                    ) : null}
+                    {contactsFor(d.day).length > 0 ? (
+                      <ul
+                        aria-label={t("gateway.engagement.localContacts.title")}
+                        className="m-0 flex list-none flex-col gap-4 p-0"
+                      >
+                        {contactsFor(d.day).map((c) => (
+                          <li key={c.id} className="flex flex-col gap-2 text-text-13">
+                            <span>
+                              {t("gateway.engagement.localContacts.line", {
+                                role: t(enumLabelKey("localContactRole", c.role)),
+                                name: c.name,
+                              })}
+                            </span>
+                            <ContactLinks contact={c} />
+                          </li>
+                        ))}
+                      </ul>
+                    ) : null}
+                  </div>
+                ) : undefined,
             }))}
           />
         </Section>
       ) : null}
+      {rooms}
     </div>
   );
 }
@@ -148,7 +203,7 @@ export async function HospitalityTab({ view, t, locale, engagementKey }: TabProp
   if (!hasArea(view, "operational")) {
     return <AreaClosed view={view} t={t} engagementKey={engagementKey} />;
   }
-  const [hospitality, lodging, travel] = await Promise.all([
+  const [hospitality, lodging, travel, sets] = await Promise.all([
     readView(view.ctx.db, "hospitality", {
       eq: { project_id: view.engagement.projectId },
       order: ["starts_at", "asc"],
@@ -162,53 +217,35 @@ export async function HospitalityTab({ view, t, locale, engagementKey }: TabProp
       eq: { engagement_id: view.engagement.id },
       order: ["departs_at", "asc"],
     }),
+    // The artist's own set times on the project (0760), placed in the itinerary on their day.
+    readView(view.ctx.db, "cues", {
+      eq: { project_id: view.engagement.projectId, is_my_set: true },
+      order: ["planned_at", "asc"],
+    }),
   ]);
-  if (!hospitality.ok || !lodging.ok || !travel.ok) return <RegionError />;
-  const rows = [
-    ...travel.data.map((s) => ({
-      id: `travel-${s.id}`,
-      title: t("gateway.engagement.travel.route", {
-        from: s.departs_from ?? "",
-        to: s.arrives_at_place ?? "",
-      }),
-      meta: [
-        [s.operator_name, s.service_identifier].filter(Boolean).join(" "),
-        s.travel_mode ? t(enumLabelKey("travelMode", s.travel_mode)) : null,
-        s.departs_at
-          ? t("gateway.engagement.travel.departs", {
-              time: formatDateTime(locale, s.departs_at, s.departs_time_zone),
-            })
-          : null,
-        s.arrives_at
-          ? t("gateway.engagement.travel.arrives", {
-              time: formatDateTime(locale, s.arrives_at, s.arrives_time_zone),
-            })
-          : null,
-        s.confirmation_identifier
-          ? t("gateway.engagement.travel.confirmation", { code: s.confirmation_identifier })
-          : null,
-      ],
-    })),
-    ...lodging.data.map((l) => ({
-      id: `lodging-${l.id}`,
-      title: l.hotel_name ?? l.block_title ?? "",
-      meta: [
-        t(enumLabelKey("fulfillmentKind", "Lodging")),
-        formatDateRange(locale, l.check_in_on, l.check_out_on),
-        l.guest_name,
-      ],
-    })),
-    ...hospitality.data.map((h) => ({
-      id: h.id ?? "",
-      title: h.title ?? h.description ?? "",
-      meta: [
-        h.fulfillment_kind ? t(enumLabelKey("fulfillmentKind", h.fulfillment_kind)) : null,
-        h.starts_at ? formatDateTime(locale, h.starts_at) : null,
-        h.supplier_name,
-      ],
-    })),
-  ];
-  if (rows.length === 0) {
+  if (!hospitality.ok || !lodging.ok || !travel.ok || !sets.ok) return <RegionError />;
+  // Transfers carrying the artist or the people the caller answers for, and the act's booked rooms (B5): each takes
+  // its day in the itinerary. As B5 had it, a failed read of either leaves it out rather than failing the tab.
+  const [transfers, rooms] = await Promise.all([
+    readTransfers(view, ["Passenger", "Party"]).then((r) => r ?? []),
+    readRooms(view).then((r) => r ?? []),
+  ]);
+  const lines = hospitality.data.map((h) => ({
+    id: h.id ?? "",
+    title: h.title ?? h.description ?? "",
+    meta: [
+      h.fulfillment_kind ? t(enumLabelKey("fulfillmentKind", h.fulfillment_kind)) : null,
+      h.starts_at ? formatDateTime(locale, h.starts_at) : null,
+      h.supplier_name,
+    ],
+  }));
+  const hasStay =
+    travel.data.length > 0 ||
+    lodging.data.length > 0 ||
+    sets.data.length > 0 ||
+    transfers.length > 0 ||
+    rooms.length > 0;
+  if (!hasStay && lines.length === 0) {
     return (
       <TabEmpty
         icon="UtensilsCrossed"
@@ -218,7 +255,35 @@ export async function HospitalityTab({ view, t, locale, engagementKey }: TabProp
       />
     );
   }
-  return <RowList label={t("nav.gateway.engagementTabs.hospitality")} items={rows} />;
+  // The itinerary first (B6): travel, nights, transfers, rooms and set times by day, marked where they changed since
+  // the last look; then the hospitality lines alone.
+  const stay = hasStay
+    ? await loadItinerary(view, {
+        travel: travel.data,
+        lodging: lodging.data,
+        setTimes: sets.data,
+        transfers,
+        rooms,
+      })
+    : null;
+  if (hasStay && !stay) return <RegionError />;
+  return (
+    <div className="flex flex-col gap-16">
+      {stay ? (
+        <ItinerarySections
+          itinerary={stay.itinerary}
+          baselineAt={stay.baselineAt}
+          lookup={stay.lookup}
+          view={view}
+          t={t}
+          locale={locale}
+        />
+      ) : null}
+      {lines.length > 0 ? (
+        <RowList label={t("nav.gateway.engagementTabs.hospitality")} items={lines} />
+      ) : null}
+    </div>
+  );
 }
 
 /**
@@ -229,8 +294,13 @@ export async function GuestListTab({ view, t, locale, engagementKey }: TabProps)
   if (!hasArea(view, "operational")) {
     return <AreaClosed view={view} t={t} engagementKey={engagementKey} />;
   }
-  const guests = await listEngagedGuests(view.ctx.db, view.engagement.id);
+  const [guests, needs] = await Promise.all([
+    listEngagedGuests(view.ctx.db, view.engagement.id),
+    listGuestNeedsStates(view.ctx.db, view.engagement.projectId),
+  ]);
   if (!guests.ok) return <RegionError />;
+  const needsOf = (guestId: string) =>
+    (needs.ok ? needs.data : []).find((n) => n.guestListEntryId === guestId) ?? null;
   const form = <GuestRequestForm engagementId={view.engagement.id} />;
   if (guests.data.length === 0) {
     return (
@@ -263,6 +333,18 @@ export async function GuestListTab({ view, t, locale, engagementKey }: TabProps)
             label: t(enumLabelKey("guestEntryState", g.state)),
             tone: guestTone(g.state),
           },
+          ...(g.state === "Declined"
+            ? {}
+            : {
+                action: (
+                  <GuestNeedsTrigger
+                    hidden={{}}
+                    guestId={g.id}
+                    guestName={g.guestName}
+                    state={needsOf(g.id)}
+                  />
+                ),
+              }),
         }))}
       />
       <Section title={t("gateway.engagement.guestList.request")}>{form}</Section>

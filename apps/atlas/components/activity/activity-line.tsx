@@ -8,7 +8,7 @@ import { useTranslations } from "next-intl";
 import { Fragment } from "react";
 import type { ActivityDescription } from "./describe";
 import { useRecordKeyHovers } from "@/components/hover/use-hover-cards";
-import { peekHref as shellPeekHref } from "@/lib/shell/peek";
+import { shellPeekHref } from "@/lib/shell/peek-link";
 
 /**
  * What an entry acted on, each value its own text node (a key, a name, a role, a start), never one string built from
@@ -43,8 +43,10 @@ export function ActivityLine({
   const pathname = usePathname();
   const search = useSearchParams();
   const org = pathname.split("/")[1] ?? "";
-  // A peek where the shell opens it, else the record page (lib/shell/peek).
-  const peekHref = (key: string) => shellPeekHref(org, pathname, search.toString(), key) as Route;
+  // The record opens in the shell's peek: the feeds sit on pages that do not peek their own rows
+  // (Home, project Overview, the activity pages; test/shell-peek.test.ts holds it), so this needs no
+  // sitemap, which would load with every page that shows a feed (ADR 0027).
+  const peekHref = (key: string) => shellPeekHref(pathname, search.toString(), key) as Route;
   const hover = useRecordKeyHovers(org);
   return (
     <article className="flex max-w-(--layout-peek) items-start gap-12" {...hover.hoverProps}>

@@ -1,5 +1,5 @@
 import { readFileSync } from "node:fs";
-import { expect, settle, test, type Browser, type Page } from "./engine-test";
+import { expect as baseExpect, settle, test, type Browser, type Page } from "./engine-test";
 import { expectAccessible, uniqueId } from "./support";
 
 /**
@@ -11,9 +11,13 @@ import { expectAccessible, uniqueId } from "./support";
  *   7  a period is closed and a posting into it is refused
  *   8  the Universal Posting Line exported through each of the four canon mappings
  *   23 the final cost report against the gate 3 baseline
- *   33 two people edit one budget line; the second sees the conflict dialog and keeps theirs
+ *   33 two people edit one budget line at once; the one saving second sees the conflict dialog and
+ *      takes theirs
  *   34 200 spreadsheet rows pasted as one batch, then undone
  *   37 budget totals shown in EUR at the recorded rate, with its date
+ * and, for A118 (ADR 0077), an undo of a budget cell edit refused once someone else saved the line, an undo of
+ * Keep mine that writes back the other person's line, a removed invoice line brought back with Cmd or Ctrl+Z and
+ * removed again with Shift, and a removed settlement line brought back the same way.
  * plus the spend authority and separation of duties refusals. Every page is checked with axe in both
  * themes. Names carry a per-run id so reruns never collide.
  */
@@ -24,7 +28,8 @@ const DEMO_PASSWORD = `xos-demo-${"2026"}`;
 
 test.use({ reducedMotion: "reduce" });
 test.setTimeout(240_000);
-expect.configure({ timeout: 20_000 });
+// configure returns a new expect; the file-level timeout applies only through it.
+const expect = baseExpect.configure({ timeout: 20_000 });
 
 async function signIn(page: Page, email: string) {
   await page.goto(`/auth/sign-in?next=${encodeURIComponent(`/${ORG}/home`)}`);
@@ -54,11 +59,15 @@ async function expectAccessibleInBothThemes(page: Page) {
   await settle(page);
 }
 
-/** A status message, or a toast in the page's Notifications live region (no status role there). */
+/**
+ * A status message, or a toast in the page's Notifications live region or the shell's Undo notifications region (no
+ * status role there).
+ */
 const status = (page: Page, text: string | RegExp) =>
   page
     .getByRole("status")
     .or(page.getByRole("region", { name: "Notifications", exact: true }))
+    .or(page.getByRole("region", { name: "Undo notifications", exact: true }))
     .filter({ hasText: text });
 
 /** Creates a working budget on NWS through the UI and opens it; returns its id. */
@@ -100,7 +109,12 @@ test.describe("Budgets (journeys 3, 33, 34 and 37)", () => {
     await newBudget(page, `Journey 3 ${id}`);
     await expectAccessibleInBothThemes(page);
 
-    await page.getByRole("button", { name: "Add from catalog" }).click();
+    // Add from catalog sits in the toolbar's More menu (gate 27: five actions at most).
+    await page
+      .getByRole("toolbar", { name: "Budget actions" })
+      .getByRole("button", { name: "More" })
+      .click();
+    await page.getByRole("menuitem", { name: "Add from catalog" }).click();
     const catalog = page.getByRole("dialog", { name: "Add from catalog" });
     await catalog.getByLabel("Search the catalog").fill("4000.01.01");
     await catalog.getByRole("button", { name: "Search" }).click();
@@ -151,7 +165,9 @@ test.describe("Budgets (journeys 3, 33, 34 and 37)", () => {
       page.getByText("20 lines are unpriced; priced lines total $57,500.00."),
     ).toBeVisible();
     await page.getByRole("button", { name: "Undo" }).click();
-    await expect(page.getByText("This budget has no lines yet.", { exact: false })).toBeVisible();
+    await expect(page.getByText("This budget has no lines yet.", { exact: false })).toBeVisible({
+      timeout: 15_000,
+    });
   });
 
   test("a line saved by someone else opens the conflict dialog", async ({ page, browser }) => {
@@ -165,23 +181,238 @@ test.describe("Budgets (journeys 3, 33, 34 and 37)", () => {
 
     const grid = (p: Page) => p.getByRole("grid", { name: "Budget lines" });
     const description = (p: Page) => grid(p).getByRole("gridcell", { name: /Delay towers/ });
-    await description(other).dblclick();
-    await other.keyboard.press("ControlOrMeta+a");
-    await other.keyboard.type("Delay towers, two sets");
-    await other.keyboard.press("Enter");
-    await expect(grid(other)).toContainText("Delay towers, two sets");
-    // The grid shows the edit before the save lands; the conflict needs the save committed first.
     await settle(other);
-
+    // The grid is live (P4): an idle grid takes the other person's value as it lands, so the
+    // producer opens the cell and types before the owner's save.
     await description(page).dblclick();
     await page.keyboard.press("ControlOrMeta+a");
     await page.keyboard.type("Delay towers, one set");
+
+    await description(other).dblclick();
+    await other.keyboard.press("ControlOrMeta+a");
+    await other.keyboard.type("Delay towers, two sets");
+    // The grid shows the edit before the save lands; the conflict needs the save committed first.
+    const committed = other.waitForResponse((r) => r.request().method() === "POST");
+    await other.keyboard.press("Enter");
+    await committed;
+    await expect(grid(other)).toContainText("Delay towers, two sets");
+
+    // The open draft is kept while the other value arrives; saving it finds the newer version.
+    await expect(grid(page).getByRole("textbox")).toHaveValue("Delay towers, one set");
     await page.keyboard.press("Enter");
     const dialog = page.getByRole("dialog", { name: "This line changed while you edited it" });
     await expect(dialog).toBeVisible();
     await expectAccessible(page);
     await dialog.getByRole("button", { name: "Take theirs" }).click();
     await expect(grid(page)).toContainText("Delay towers, two sets");
+  });
+
+  test("an undo of a cell edit is refused once someone else saved the line", async ({
+    page,
+    browser,
+  }) => {
+    const id = uniqueId();
+    const name = `A118 undo ${id}`;
+    await signIn(page, "producer@example.com");
+    const budget = await newBudget(page, name);
+    await addLine(page, "Delay towers", "1500.00");
+
+    const grid = (p: Page) => p.getByRole("grid", { name: "Budget lines" });
+    const edit = async (p: Page, from: RegExp, to: string) => {
+      await grid(p).getByRole("gridcell", { name: from }).dblclick();
+      await p.keyboard.press("ControlOrMeta+a");
+      await p.keyboard.type(to);
+      await p.keyboard.press("Enter");
+      await expect(grid(p)).toContainText(to);
+      await settle(p);
+    };
+    await edit(page, /Delay towers/, "Delay towers, two sets");
+
+    const other = await asPerson(browser, "owner@example.com");
+    await other.goto(`/${ORG}/finance/budgets?project=${PROJECT}&budget=${budget}`);
+    await settle(other);
+    await edit(other, /Delay towers, two sets/, "Delay towers, three sets");
+
+    // A new line reloads the grid, which now holds the other person's version of the edited line.
+    await addLine(page, "Spare cable", "200.00");
+    await expect(grid(page)).toContainText("Delay towers, three sets");
+    await page.getByRole("heading", { name, exact: false }).first().click();
+    await page.keyboard.press("ControlOrMeta+z");
+    await expect(
+      status(page, "Someone changed this line after your edit; reload to see the change."),
+    ).toBeVisible();
+    await expect(grid(page)).toContainText("Delay towers, three sets");
+    await other.reload();
+    await expect(grid(other)).toContainText("Delay towers, three sets");
+    await other.context().close();
+  });
+
+  test("an undo of Keep mine writes back the other person's line, not the stale one", async ({
+    page,
+    browser,
+  }) => {
+    const id = uniqueId();
+    const name = `A118 keep mine ${id}`;
+    await signIn(page, "producer@example.com");
+    const budget = await newBudget(page, name);
+    await addLine(page, "Delay towers", "1500.00");
+
+    const other = await asPerson(browser, "owner@example.com");
+    await other.goto(`/${ORG}/finance/budgets?project=${PROJECT}&budget=${budget}`);
+
+    const grid = (p: Page) => p.getByRole("grid", { name: "Budget lines" });
+    const type = async (p: Page, to: string) => {
+      await grid(p)
+        .getByRole("gridcell", { name: /Delay towers/ })
+        .dblclick();
+      await p.keyboard.press("ControlOrMeta+a");
+      await p.keyboard.type(to);
+    };
+    await settle(other);
+    // The grid is live (P4): an idle grid takes the other person's value as it lands, so the producer opens the
+    // cell and types before the owner's save.
+    await type(page, "Delay towers, one set");
+    await type(other, "Delay towers, two sets");
+    const committed = other.waitForResponse((r) => r.request().method() === "POST");
+    await other.keyboard.press("Enter");
+    await committed;
+    await expect(grid(other)).toContainText("Delay towers, two sets");
+
+    await expect(grid(page).getByRole("textbox")).toHaveValue("Delay towers, one set");
+    await page.keyboard.press("Enter");
+    const dialog = page.getByRole("dialog", { name: "This line changed while you edited it" });
+    // The typed value shows throughout, and the save goes on the undo stack only once it commits.
+    const kept = page.waitForResponse((r) => r.request().method() === "POST");
+    await dialog.getByRole("button", { name: "Keep mine" }).click();
+    await kept;
+    await expect(dialog).toBeHidden();
+    await expect(grid(page)).toContainText("Delay towers, one set");
+    await settle(page);
+
+    // The undo restores the row Keep mine replaced, the other person's two sets, never the original line.
+    await page.getByRole("heading", { name, exact: false }).first().click();
+    // The save goes on the undo stack as its answer arrives, so the press repeats until it finds the entry. A press
+    // once the entry is undone finds the stack empty and does nothing.
+    await expect(async () => {
+      await page.keyboard.press("ControlOrMeta+z");
+      await expect(grid(page)).toContainText("Delay towers, two sets", { timeout: 3_000 });
+    }).toPass({ timeout: 20_000 });
+    await settle(page);
+    await other.reload();
+    await expect(grid(other)).toContainText("Delay towers, two sets");
+    await other.context().close();
+  });
+});
+
+test.describe("Invoice and settlement lines (A118)", () => {
+  test("a removed line comes back with Cmd or Ctrl+Z and goes again with Shift", async ({
+    page,
+  }) => {
+    const id = uniqueId();
+    const description = `Truss rental ${id}`;
+    await signIn(page, "producer@example.com");
+    await page.goto(`/${ORG}/finance/invoices?project=${PROJECT}&create=1`);
+    const sheet = page.getByRole("dialog", { name: "New invoice" });
+    await sheet.getByLabel("Counterparty").selectOption({ index: 1 });
+    await sheet.getByLabel("Invoice number").fill(`A118-${id}`);
+    await sheet.getByRole("button", { name: "New invoice" }).click();
+    await page.waitForURL(/peek=/);
+    await settle(page);
+
+    const lineForm = page.getByRole("form", { name: "Add line" });
+    await lineForm.getByLabel("Description").fill(description);
+    await lineForm.getByLabel("Unit price in USD").fill("900.00");
+    await lineForm.getByRole("button", { name: "Add line" }).click();
+    const lines = page.getByRole("table", { name: "Lines" });
+    await expect(lines).toContainText(description);
+    await settle(page);
+
+    await lines.getByRole("button", { name: "Remove" }).click();
+    await expect(page.getByText("No lines yet.", { exact: false })).toBeVisible();
+    await expect(status(page, `Removed ${description}.`).first()).toBeVisible();
+    await expectAccessible(page);
+
+    await page.keyboard.press("ControlOrMeta+z");
+    await expect(status(page, `Undone: Removed ${description}.`)).toBeVisible();
+    await expect(lines).toContainText(description);
+    await expect(lines).toContainText("$900.00");
+
+    await page.keyboard.press("ControlOrMeta+Shift+z");
+    await expect(status(page, `Redone: Removed ${description}.`)).toBeVisible();
+    await expect(page.getByText("No lines yet.", { exact: false })).toBeVisible();
+  });
+
+  test("a removed settlement line comes back with Cmd or Ctrl+Z", async ({ page }) => {
+    const id = uniqueId();
+    const description = `Sell-out bonus ${id}`;
+    await signIn(page, "producer@example.com");
+    await page.goto(`/${ORG}/finance/payments?project=${PROJECT}&tab=settlements&create=1`);
+    const sheet = page.getByRole("dialog", { name: "New settlement" });
+    await sheet.getByLabel("Engagement").selectOption({ index: 1 });
+    await sheet.getByLabel("Title").fill(`A118 settlement ${id}`);
+    await sheet.getByRole("button", { name: "New settlement" }).click();
+    await page.waitForURL(/peek=/);
+    await settle(page);
+
+    const lineForm = page.getByRole("form", { name: "Add line" });
+    await lineForm.getByLabel("Kind").selectOption("Bonus");
+    await lineForm.getByLabel("Description").fill(description);
+    await lineForm.getByLabel("Amount in USD").fill("500.00");
+    await lineForm.getByRole("button", { name: "Add line" }).click();
+    const lines = page.getByRole("table", { name: "Lines" });
+    await expect(lines).toContainText(description);
+    await settle(page);
+
+    await lines.getByRole("button", { name: "Remove" }).click();
+    await expect(page.getByText("No lines yet.", { exact: false })).toBeVisible();
+    await expect(status(page, `Removed ${description}.`).first()).toBeVisible();
+
+    await page.keyboard.press("ControlOrMeta+z");
+    await expect(status(page, `Undone: Removed ${description}.`)).toBeVisible();
+    await expect(lines).toContainText(description);
+    await expect(lines).toContainText("$500.00");
+  });
+
+  test("a client price saved by someone else opens the conflict dialog and names the field", async ({
+    page,
+    browser,
+  }) => {
+    const id = uniqueId();
+    await signIn(page, "producer@example.com");
+    const budget = await newBudget(page, `Journey 33 client ${id}`);
+    await addLine(page, "Delay towers", "1500.00");
+
+    const path = `/${ORG}/finance/budgets?project=${PROJECT}&budget=${budget}&columns=client`;
+    await page.goto(path);
+    const other = await asPerson(browser, "owner@example.com");
+    await other.goto(path);
+    await settle(page);
+    await settle(other);
+
+    const grid = (p: Page) => p.getByRole("grid", { name: "Budget lines" });
+    // Client unit price is the seventh data column, after Description, URID, Type, Quantity, Unit price and Markup %
+    // (B13).
+    const clientPrice = (p: Page) =>
+      grid(p)
+        .getByRole("row", { name: /Delay towers/ })
+        .getByRole("gridcell")
+        .nth(7);
+    await clientPrice(page).dblclick();
+    await page.keyboard.press("ControlOrMeta+a");
+    await page.keyboard.type("1800");
+
+    await clientPrice(other).dblclick();
+    await other.keyboard.press("ControlOrMeta+a");
+    await other.keyboard.type("2100");
+    await other.keyboard.press("Enter");
+    await settle(other);
+
+    await page.keyboard.press("Enter");
+    const dialog = page.getByRole("dialog", { name: "This line changed while you edited it" });
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByRole("rowheader", { name: "Client unit price" })).toBeVisible();
+    await dialog.getByRole("button", { name: "Take theirs" }).click();
+    await expect(grid(page)).toContainText("$2,100.00");
   });
 });
 

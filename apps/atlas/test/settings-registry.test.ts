@@ -124,6 +124,10 @@ describe("parsing submitted values", () => {
     expect(parseSettingValue(base, "")).toEqual({ ok: false, error: "required" });
     expect(parseSettingValue(base, "toolong")).toEqual({ ok: false, error: "setting_too_long" });
     expect(parseSettingValue(base, "fine")).toEqual({ ok: true, value: "fine" });
+    expect(parseSettingValue({ ...base, maxLength: null, input: "phone" }, "555")).toEqual({
+      ok: false,
+      error: "phone",
+    });
     const text = { ...base, maxLength: null };
     const cases: [SettingDefinition["input"], string, boolean][] = [
       ["email", "a@b.co", true],
@@ -140,6 +144,10 @@ describe("parsing submitted values", () => {
       ["workspace", "01920000-0000-7000-8000-000000000401", true],
       ["workspace", "miami", false],
       ["multiline", "line one\nline two", true],
+      // The action reads a typed phone into E.164 first (A139); only that form passes here.
+      ["phone", "+13055550199", true],
+      ["phone", "(305) 555-0199", false],
+      ["phone", "+0123456789", false],
     ];
     for (const [input, raw, valid] of cases) {
       expect(parseSettingValue({ ...text, input }, raw).ok, `${input} ${raw}`).toBe(valid);

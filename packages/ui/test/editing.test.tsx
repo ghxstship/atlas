@@ -133,6 +133,60 @@ describe("ColorPicker", () => {
   });
 });
 
+describe("ColorPicker in a form", () => {
+  it("measures a check under its overlay, as the contrast gate composites a hover state", async () => {
+    const onChange = vi.fn();
+    // Black on #767676 is 4.6:1, just above AA; a 10% black pressed overlay takes it under.
+    render(
+      <ColorPicker
+        label="Accent"
+        value="#767676"
+        checks={[
+          { label: "Label on accent", fg: "#000000" },
+          {
+            label: "Label on accent, pressed",
+            fg: "#000000",
+            overlay: { color: "#000000", opacity: 0.1 },
+          },
+        ]}
+        onChange={onChange}
+      />,
+    );
+    expect(screen.getAllByText("Passes AA")).toHaveLength(1);
+    expect(screen.getAllByText("Fails AA")).toHaveLength(1);
+    expect(screen.getByText("This color can't be saved until every check passes.")).toBeTruthy();
+    const hex = screen.getByRole("textbox", { name: "Accent hex value" });
+    await userEvent.clear(hex);
+    await userEvent.type(hex, "#959595");
+    expect(onChange).toHaveBeenLastCalledWith("#959595", true);
+  });
+
+  it("shows help and a server refusal, and locks both inputs when disabled", async () => {
+    const { container } = render(
+      <ColorPicker
+        id="accent"
+        label="Accent"
+        value="#4F57D9"
+        checks={[{ label: "Text on accent", fg: "#FFFFFF" }]}
+        help="A hex color."
+        error="This accent fails contrast."
+        disabled
+      />,
+    );
+    const hex = screen.getByRole("textbox", { name: "Accent hex value" });
+    expect(hex.id).toBe("accent");
+    expect((hex as HTMLInputElement).disabled).toBe(true);
+    expect((container.querySelector('input[type="color"]') as HTMLInputElement).disabled).toBe(
+      true,
+    );
+    expect(hex.getAttribute("aria-describedby")).toBe("accent-status accent-help");
+    expect(hex.getAttribute("aria-invalid")).toBe("true");
+    expect(screen.getByRole("alert").textContent).toContain("This accent fails contrast.");
+    expect(screen.getByText("A hex color.")).toBeTruthy();
+    await expectAccessible(container);
+  });
+});
+
 describe("DiffViewer", () => {
   it("marks before and after with strike and underline", async () => {
     const { container } = render(

@@ -50,6 +50,14 @@ from auth.users u
 where u.email like 'load-%@load.example.test'
 on conflict (provider_id, provider) do nothing;
 
+-- Answered as a sign-up form records it, so a load user opens the pages under test (ADR 0156).
+insert into private.age_confirmations (person_id, user_id, minimum_age, surface)
+select p.id, u.id, 18, 'Atlas'
+from auth.users u
+join app.people p on p.user_id = u.id
+where u.email like 'load-%@load.example.test'
+on conflict (person_id, minimum_age) do nothing;
+
 \if :{?join_org}
 -- Tenant shape: every user joins the existing org.
 create temporary table load_org on commit drop as

@@ -11,6 +11,15 @@ import {
   type Representation,
   type SharedRecord,
 } from "@xos/data/gateway";
+import { parkingLines } from "./roster-member";
+import type { ParkingPass, RosterEngagement } from "@xos/data/gateway-allocations";
+import {
+  pendingRosterAnswers,
+  type MyRosterEntry,
+  type PendingInvitation,
+  type UnconfirmedMembership,
+} from "@xos/data/roster";
+import type { StillComingItem } from "@xos/data/notification-actions";
 
 /**
  * Gateway Home (Section 4.5.8): the Up Next card for the person's next shift, set time, delivery
@@ -40,11 +49,15 @@ export type UpNext =
     }
   | { readonly kind: "engagement"; readonly engagement: Engagement };
 
-/** The soonest dated record ahead, else the next engagement to start. */
+/**
+ * The soonest dated record ahead, else the next engagement to start: one the person holds by its
+ * start date, or one they work on a party's roster (R8) by the start of their arrival window.
+ */
 export function pickUpNext(
   records: readonly SharedRecord[],
   engagements: readonly Engagement[],
   now: Date,
+  rosterEngagements: readonly RosterEngagement[] = [],
 ): UpNext | null {
   const at = now.toISOString();
   const today = at.slice(0, 10);
@@ -61,10 +74,18 @@ export function pickUpNext(
       engagement: engagements.find((e) => e.projectId === next.projectId) ?? null,
     };
   }
-  const starting = engagements
+  const held = engagements
     .filter((e) => isCurrentEngagement(e) && (e.endDate ?? e.startDate) >= today)
-    .sort((a, b) => a.startDate.localeCompare(b.startDate))[0];
-  return starting ? { kind: "engagement", engagement: starting } : null;
+    .map((e) => ({ engagement: e, from: e.startDate }));
+  const rostered = rosterEngagements
+    .filter(
+      (e) =>
+        isCurrentEngagement(e) &&
+        (e.arrivalEndsAt ? e.arrivalEndsAt >= at : (e.endDate ?? e.startDate) >= today),
+    )
+    .map((e) => ({ engagement: e as Engagement, from: e.arrivalStartsAt ?? e.startDate }));
+  const starting = [...held, ...rostered].sort((a, b) => a.from.localeCompare(b.from))[0];
+  return starting ? { kind: "engagement", engagement: starting.engagement } : null;
 }
 
 export type FeedItem =
@@ -86,11 +107,19 @@ export type FeedItem =
       readonly application: ApplicationWithOpportunity;
       readonly at: string;
     }
-  | { readonly kind: "rate"; readonly engagement: Engagement };
+  | { readonly kind: "rate"; readonly engagement: Engagement }
+  // R4: an invitation to an account or onto a roster, a membership to confirm, a roster entry to answer.
+  | { readonly kind: "invitation"; readonly invitation: PendingInvitation }
+  | { readonly kind: "membership"; readonly membership: UnconfirmedMembership }
+  | { readonly kind: "roster"; readonly entry: MyRosterEntry }
+  // B9: "Still coming?" about a shift the person works.
+  | { readonly kind: "stillComing"; readonly ask: StillComingItem };
 
 /**
- * Things that need the person, most urgent first: documents to sign, offers to answer, blocking
- * onboarding, representations to accept, interviews ahead, then completed engagements to rate.
+ * Things that need the person, most urgent first: "Still coming?" asks (B9: the shift starts soon), invitations, memberships to confirm and roster
+ * entries to answer (R4: nothing about the person flows until they do), documents to sign, offers to
+ * answer, blocking onboarding, representations to accept, interviews ahead, then completed engagements
+ * to rate.
  */
 export function needsYou(input: {
   readonly engagements: readonly Engagement[];
@@ -98,12 +127,21 @@ export function needsYou(input: {
   readonly onboarding: readonly OnboardingItem[];
   readonly applications: readonly ApplicationWithOpportunity[];
   readonly representations: readonly Representation[];
+  readonly invitations?: readonly PendingInvitation[];
+  readonly memberships?: readonly UnconfirmedMembership[];
+  readonly rosterEntries?: readonly MyRosterEntry[];
+  readonly stillComing?: readonly StillComingItem[];
   readonly personId: string;
   readonly now: Date;
 }): FeedItem[] {
   const today = input.now.toISOString().slice(0, 10);
   const byId = new Map(input.engagements.map((e) => [e.id, e]));
   const items: FeedItem[] = [];
+  for (const ask of input.stillComing ?? []) items.push({ kind: "stillComing", ask });
+  for (const invitation of input.invitations ?? []) items.push({ kind: "invitation", invitation });
+  for (const membership of input.memberships ?? []) items.push({ kind: "membership", membership });
+  for (const entry of pendingRosterAnswers(input.rosterEntries ?? []))
+    items.push({ kind: "roster", entry });
   for (const document of awaitingSignature(input.documents)) {
     const engagement = byId.get(document.engagementId);
     if (engagement) items.push({ kind: "sign", document, engagement });
@@ -151,4 +189,104 @@ export function needsYou(input: {
 
 function isoDaysAgo(now: Date, days: number): string {
   return new Date(now.getTime() - days * 86_400_000).toISOString().slice(0, 10);
+}
+
+/** How many things to bring the Up Next card lists before it says how many more there are. */
+export const BRING_LIMIT = 5;
+
+export type UpNextCallKind = "shift" | "dockSlot" | "set";
+
+const CALL_KINDS: Readonly<Record<string, UpNextCallKind>> = {
+  Shift: "shift",
+  "Dock Slot": "dockSlot",
+  Set: "set",
+};
+
+export interface UpNextDetails {
+  /** The next call while the operational area is open: when, in which zone, and what it is. */
+  readonly call: {
+    readonly at: string;
+    readonly timeZone: string;
+    readonly kind: UpNextCallKind;
+    /** True when the call is a set whose time is still to be confirmed: show TBC, not the time. */
+    readonly tbc: boolean;
+  } | null;
+  /** The venue's name and address, joined; null when the project names no venue. */
+  readonly where: string | null;
+  /** Whom to ask: the member who set up the engagement, else the org. */
+  readonly contact: string;
+  /** The person's live parking passes on the project: zones, then the vehicle (R8); never a plate. */
+  readonly parking: readonly string[];
+  /** Badge categories, then gear with its asset tag, at most BRING_LIMIT. */
+  readonly bring: readonly string[];
+  /** How many more things to bring than the list shows. */
+  readonly bringMore: number;
+}
+
+/**
+ * What the Up Next card adds for an engagement (R2, api_external.engagement_up_next): the next call,
+ * where, whom to ask, and what to bring (the person's live badges on the project and the gear the
+ * engagement holds), and the person's own parking passes with their zones and vehicle (R8). For a person
+ * on a party's roster the contact is the party's lead (api_external.my_roster_engagements).
+ */
+export function upNextDetails(input: {
+  readonly row: {
+    readonly venue_name: string | null;
+    readonly venue_street_address: string | null;
+    readonly venue_locality: string | null;
+    readonly venue_postal_code: string | null;
+    readonly contact_name: string | null;
+    readonly next_call_at: string | null;
+    readonly next_call_time_zone: string | null;
+    readonly next_call_kind: string | null;
+    readonly next_call_tbc?: boolean | null;
+  } | null;
+  readonly orgName: string;
+  readonly badges: readonly {
+    readonly category_name: string | null;
+    readonly revoked_at: string | null;
+  }[];
+  readonly gear: readonly {
+    readonly class_name: string | null;
+    readonly asset_tag: string | null;
+  }[];
+  readonly parking?: readonly ParkingPass[];
+  /** The party's lead, for a person on its roster; it comes before the org's contact. */
+  readonly lead?: string | null;
+}): UpNextDetails {
+  const row = input.row;
+  const kind = row?.next_call_kind ? CALL_KINDS[row.next_call_kind] : undefined;
+  const call =
+    row?.next_call_at && row.next_call_time_zone && kind
+      ? {
+          at: row.next_call_at,
+          timeZone: row.next_call_time_zone,
+          kind,
+          tbc: row.next_call_tbc === true,
+        }
+      : null;
+  const place = row
+    ? [row.venue_name, row.venue_street_address, row.venue_locality, row.venue_postal_code]
+        .map((v) => v?.trim() ?? "")
+        .filter((v) => v !== "")
+    : [];
+  const badges = [
+    ...new Set(
+      input.badges.flatMap((b) =>
+        b.revoked_at === null && b.category_name ? [b.category_name] : [],
+      ),
+    ),
+  ];
+  const gear = input.gear.flatMap((g) =>
+    g.class_name ? [g.asset_tag ? `${g.class_name} (${g.asset_tag})` : g.class_name] : [],
+  );
+  const all = [...badges, ...gear];
+  return {
+    call,
+    where: place.length > 0 ? place.join(", ") : null,
+    contact: input.lead?.trim() || row?.contact_name?.trim() || input.orgName,
+    parking: parkingLines(input.parking ?? []),
+    bring: all.slice(0, BRING_LIMIT),
+    bringMore: Math.max(0, all.length - BRING_LIMIT),
+  };
 }

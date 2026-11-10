@@ -3,9 +3,10 @@ import type { Json } from "./database.types.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 
 /**
- * Bulk edit (Section 11.7, ADR 0044) over the transactional bulk RPCs (migrations 1451, 2150 and
- * 2151): one property across a selection, previewed, all or nothing, with the inverse rows that undo
- * it. Each resource has its own RPC; adding one is a row function, a registry row and a name here.
+ * Bulk edit (Section 11.7, ADR 0044) over the transactional bulk RPCs (migrations 1451, 2130, 2150,
+ * 2151, 2635, 4696, 3140 and 6122): one property across a selection, previewed, all or nothing, with the
+ * inverse rows that undo it. Each resource has its own RPC; adding one is a row function, a registry row
+ * and a name here.
  */
 
 export const BULK_RESOURCES = [
@@ -13,18 +14,32 @@ export const BULK_RESOURCES = [
   "shifts",
   "invoices",
   "asset_units",
+  "projects",
+  "work_orders",
+  "punch_items",
+  "documents",
   "shipments",
   "dock_slots",
   "fulfillments",
   "beos",
   "accommodation_blocks",
   "guest_list_entries",
+  "engagement_roster_entries",
+  "purchase_orders",
+  "rfqs",
+  "vendors",
+  "advance_allocations",
+  "cues",
 ] as const;
 export type BulkResource = (typeof BULK_RESOURCES)[number];
 
 export type BulkValue = string | number | boolean | null;
 
-/** One row of a bulk change: the values to set and, optionally, the values it must still hold. */
+/**
+ * One row of a bulk change: the values to set and, optionally, the values it must still hold. `expect` may carry
+ * `updated_at`, the version the caller loaded: a row saved since is refused as stale only over a field both people
+ * changed (migration 6100).
+ */
 export interface BulkRow {
   readonly id: string;
   readonly set: Readonly<Record<string, BulkValue>>;
@@ -36,6 +51,11 @@ export interface BulkRefusal {
   readonly id: string | null;
   readonly rule: string;
   readonly message: string;
+  /**
+   * For a stale row (bulk_stale, migration 6100): the values the row holds now for every field the row set or
+   * expected, and its updated_at, so the person sees theirs beside their own and a resend can expect that version.
+   */
+  readonly current?: Readonly<Record<string, BulkValue>>;
 }
 
 export interface BulkOutcome {
@@ -90,6 +110,9 @@ export function toBulkOutcome(raw: unknown): BulkOutcome {
       id: typeof r["id"] === "string" ? r["id"] : null,
       rule: typeof r["rule"] === "string" ? r["rule"] : "refused",
       message: typeof r["message"] === "string" ? r["message"] : "",
+      ...(typeof r["current"] === "object" && r["current"] !== null
+        ? { current: asValues(r["current"]) }
+        : {}),
     })),
     inverse: list(o["inverse"]).flatMap((r) =>
       typeof r["id"] === "string"
@@ -104,12 +127,22 @@ const RPC = {
   shifts: "bulk_update_shifts",
   invoices: "bulk_update_invoices",
   asset_units: "bulk_update_asset_units",
+  projects: "bulk_update_projects",
+  work_orders: "bulk_update_work_orders",
+  punch_items: "bulk_update_punch_items",
+  documents: "bulk_update_documents",
   shipments: "bulk_update_shipments",
   dock_slots: "bulk_update_dock_slots",
   fulfillments: "bulk_update_fulfillments",
   beos: "bulk_update_beos",
   accommodation_blocks: "bulk_update_accommodation_blocks",
   guest_list_entries: "bulk_update_guest_list_entries",
+  engagement_roster_entries: "bulk_update_roster_entries",
+  purchase_orders: "bulk_update_purchase_orders",
+  rfqs: "bulk_update_rfqs",
+  vendors: "bulk_update_vendors",
+  advance_allocations: "bulk_update_advance_allocations",
+  cues: "bulk_update_cues",
 } as const satisfies Record<BulkResource, string>;
 
 /**

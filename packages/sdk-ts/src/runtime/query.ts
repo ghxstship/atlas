@@ -78,7 +78,8 @@ export function buildPath(
   spec: OperationSpec,
   path: Readonly<Record<string, string | number>> | undefined,
 ): string {
-  return spec.path.replace(/\{([^}]+)\}/g, (_match, name: string) => {
+  // A name stops at the next brace, so a run of unclosed `{` reads in one pass.
+  return spec.path.replace(/\{([^{}]+)\}/g, (_match, name: string) => {
     const value = path?.[name];
     if (value === undefined || value === "") {
       throw new TypeError(`${spec.id} requires the path parameter "${name}".`);

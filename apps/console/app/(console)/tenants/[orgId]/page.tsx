@@ -1,6 +1,7 @@
 import {
   can,
   getOrgDetail,
+  getPartnerClientGrant,
   listActionLog,
   type OrgDetail,
   type PlanOverride,
@@ -18,6 +19,7 @@ import {
   clearFlagOverrideAction,
   endPlanOverrideAction,
   setFlagOverrideAction,
+  setPartnerClientsAction,
   setPlanOverrideAction,
 } from "@/lib/actions/tenants";
 import { getConsoleFormat, type ConsoleFormat } from "@/lib/format";
@@ -55,10 +57,11 @@ export default async function TenantPage({ params }: PageProps<"/tenants/[orgId]
   const { orgId } = await params;
   if (!z.uuid().safeParse(orgId).success) notFound();
   const ctx = await requirePermission("tenants.read");
-  const [detail, log, f] = await Promise.all([
+  const [detail, log, f, partnerClients] = await Promise.all([
     getOrgDetail(ctx.db, orgId),
     listActionLog(ctx.db, { orgId, limit: 25 }),
     getConsoleFormat(),
+    getPartnerClientGrant(ctx.db, orgId),
   ]);
   if (!detail.ok) {
     if (detail.error.kind === "not-found") notFound();
@@ -362,7 +365,7 @@ export default async function TenantPage({ params }: PageProps<"/tenants/[orgId]
                       hidden={{ orgId: d.org.id, flagKey: flag.flagKey }}
                       submitLabel={t("tenant.setFlag")}
                       successLabel={t("tenant.flagSaved")}
-                      label={`${t("tenant.setFlag")} ${flag.flagKey}`}
+                      label={t("tenant.setFlagFor", { flag: flag.flagKey })}
                     >
                       <OnOffField t={t} id={`flag-${flag.flagKey}-enabled`} />
                       <ExpiryField t={t} id={`flag-${flag.flagKey}-days`} />
@@ -375,7 +378,7 @@ export default async function TenantPage({ params }: PageProps<"/tenants/[orgId]
                         submitLabel={t("tenant.clearFlag")}
                         successLabel={t("tenant.flagCleared")}
                         variant="secondary"
-                        label={`${t("tenant.clearFlag")} ${flag.flagKey}`}
+                        label={t("tenant.clearFlagFor", { flag: flag.flagKey })}
                       >
                         <ReasonField t={t} id={`flag-${flag.flagKey}-clear`} maxLength={300} />
                       </ActionForm>
@@ -387,6 +390,44 @@ export default async function TenantPage({ params }: PageProps<"/tenants/[orgId]
           ))}
         </ul>
       </Section>
+
+      {d.org.parent ? null : (
+        <Section id="partner-clients" title={t("tenant.partnerClients")}>
+          <Panel>
+            <p className="m-0 text-text-13" data-testid="partner-clients-state">
+              {!partnerClients.ok
+                ? t("tenant.partnerClientsUnknown")
+                : partnerClients.data.allowed
+                  ? t("tenant.partnerClientsOn", {
+                      when: instant(partnerClients.data.grantedAt ?? ""),
+                      reason: partnerClients.data.reason ?? "",
+                    })
+                  : t("tenant.partnerClientsOff")}
+            </p>
+          </Panel>
+          {plansWrite && partnerClients.ok ? (
+            <Panel>
+              <ActionForm
+                action={setPartnerClientsAction}
+                hidden={{
+                  orgId: d.org.id,
+                  enabled: partnerClients.data.allowed ? "off" : "on",
+                }}
+                submitLabel={
+                  partnerClients.data.allowed
+                    ? t("tenant.partnerClientsTurnOff")
+                    : t("tenant.partnerClientsTurnOn")
+                }
+                successLabel={t("tenant.partnerClientsSaved")}
+                label={t("tenant.partnerClients")}
+                testId="partner-clients-form"
+              >
+                <ReasonField t={t} id="partner-clients-reason" />
+              </ActionForm>
+            </Panel>
+          ) : null}
+        </Section>
+      )}
 
       <Section id="support" title={t("tenant.supportSessions")}>
         {d.supportSessions.length === 0 ? (

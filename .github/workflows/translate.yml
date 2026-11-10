@@ -4,12 +4,12 @@ on:
   workflow_dispatch:
     inputs:
       command:
-        description: "translate (missing and stale, es-US and the Beta locales), review (es-US), or all (glossary, translate, review)"
+        description: "translate (missing and stale in es-US; the Beta locale of a closed territory only when named below), review (es-US), or all (glossary, translate, review)"
         type: choice
         options: [translate, review, all]
         default: translate
       locale:
-        description: "Only this target locale (for example fr-FR); empty for every target"
+        description: "Only this target locale (for example fr-FR); empty for every target whose territory is open"
         type: string
         default: ""
 

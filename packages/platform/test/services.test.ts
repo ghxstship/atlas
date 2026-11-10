@@ -297,10 +297,12 @@ describe("inbound mail", () => {
     expect(localPartFor(["someone@else.test"], "in.xos.test")).toBeNull();
   });
 
-  it("hands the stripped message to the database and skips mail for other domains", async () => {
+  const REPLY_LOCAL_PART = `r-${"a".repeat(32)}-${"b".repeat(32)}-${"c".repeat(32)}`;
+
+  it("hands the stripped reply to the database and skips mail for other domains", async () => {
     const { db, calls } = fakeDb({ receive_inbound_email: () => "msg-1" });
     const message = {
-      to: ["r-abc@in.xos.test"],
+      to: [`${REPLY_LOCAL_PART}@in.xos.test`],
       from: "Erin <ERIN@northwind.test>",
       subject: "Re: Opening night",
       messageId: "<r1@northwind.test>",
@@ -310,7 +312,7 @@ describe("inbound mail", () => {
     };
     await expect(receiveInbound(inboundStore(db), message, "in.xos.test")).resolves.toBe("msg-1");
     expect(calls[0]?.args).toMatchObject({
-      p_local_part: "r-abc",
+      p_local_part: REPLY_LOCAL_PART,
       p_from_address: "erin@northwind.test",
       p_body_text: "Confirmed.",
       p_dkim_verified: true,
@@ -319,6 +321,43 @@ describe("inbound mail", () => {
       receiveInbound(inboundStore(db), { ...message, to: ["x@other.test"] }, "in.xos.test"),
     ).resolves.toBeNull();
     expect(calls).toHaveLength(1);
+  });
+
+  describe("a forward to a project inbox keeps its whole text", () => {
+    const INBOX = "nwl-3f9a1c0d7e@in.xos.test";
+    const message = {
+      from: "erin@northwind.test",
+      subject: "Fwd: Load in",
+      messageId: "<f1@northwind.test>",
+      dkimPass: true,
+      rawObjectPath: "raw/f1.eml",
+    };
+    const bodyFor = async (to: string, text: string) => {
+      const { db, calls } = fakeDb({ receive_inbound_email: () => "msg-1" });
+      await receiveInbound(inboundStore(db), { ...message, to: [to], text }, "in.xos.test");
+      return calls[0]?.args["p_body_text"];
+    };
+
+    it("from Gmail, whose forward has a marker and a From: line", async () => {
+      const gmail =
+        "FYI\n\n---------- Forwarded message ---------\nFrom: Sam <sam@bayside-audio.test>\nDate: Tue, Oct 13, 2026\nSubject: Load in\n\nWe load in at 6 PM on Thursday.";
+      await expect(bodyFor(INBOX, gmail)).resolves.toBe(gmail);
+    });
+
+    it("from Outlook, whose forward starts at a rule and a From: line", async () => {
+      const outlook =
+        "Please see below.\n\n________________________________\nFrom: Sam <sam@bayside-audio.test>\nSent: Tuesday, October 13, 2026\nSubject: Load in\n\nWe load in at 6 PM on Thursday.\n-----Original Message-----\nFrom: Erin";
+      await expect(bodyFor(INBOX, outlook)).resolves.toBe(outlook);
+    });
+
+    it("while a reply to a signed address is still stripped", async () => {
+      await expect(
+        bodyFor(
+          `${REPLY_LOCAL_PART}@in.xos.test`,
+          "Confirmed.\nFrom: Erin <erin@northwind.test>\nCan you confirm?",
+        ),
+      ).resolves.toBe("Confirmed.");
+    });
   });
 });
 
@@ -331,6 +370,9 @@ describe("stores", () => {
         sync_subscription_from_stripe: () => "active",
         record_addon_purchase_from_stripe: () => "purchase-1",
         finish_billing_checkout_from_stripe: () => true,
+        reconcile_stripe_subscription: () => "proceed",
+        note_stripe_subscription_terms: () => true,
+        note_stripe_charge: () => false,
       },
       { stripe_events: { processed_at: null }, stripe_subscription_links: { org_id: "org-7" } },
     );
@@ -358,6 +400,8 @@ describe("stores", () => {
         currentPeriodEnd: null,
         livemode: false,
         extraSeats: 3,
+        pauseCollection: { resumesAt: new Date("2027-01-01T00:00:00Z") },
+        eventCreatedAt: new Date("2026-10-30T12:00:00Z"),
       }),
     ).resolves.toBe("active");
     await expect(
@@ -373,12 +417,54 @@ describe("stores", () => {
       }),
     ).resolves.toBe("purchase-1");
     await expect(store.finishCheckout("cs_test_2", "Completed")).resolves.toBe(true);
+    await expect(
+      store.reconcileSubscription({
+        orgId: "org-7",
+        customerId: "cus_1",
+        subscriptionId: "sub_1",
+        status: "active",
+        livemode: false,
+        eventCreatedAt: new Date(0),
+      }),
+    ).resolves.toBe("proceed");
+    await expect(
+      store.noteSubscriptionTerms({
+        subscriptionId: "sub_1",
+        cancelAt: new Date(0),
+        amountMinor: 100,
+        currency: "usd",
+        eventCreatedAt: new Date(0),
+      }),
+    ).resolves.toBe(true);
+    await expect(
+      store.noteSubscriptionTerms({
+        subscriptionId: "sub_1",
+        cancelAt: null,
+        amountMinor: null,
+        currency: null,
+        eventCreatedAt: new Date(0),
+      }),
+    ).resolves.toBe(true);
+    await expect(
+      store.noteCharge({
+        subscriptionId: "sub_1",
+        invoiceId: "in_1",
+        amountMinor: 100,
+        currency: "usd",
+        billingReason: null,
+        paidAt: new Date(0),
+      }),
+    ).resolves.toBe(false);
     expect(calls.map((c) => c.fn)).toEqual([
       "record_stripe_event",
       "finish_stripe_event",
       "sync_subscription_from_stripe",
       "record_addon_purchase_from_stripe",
       "finish_billing_checkout_from_stripe",
+      "reconcile_stripe_subscription",
+      "note_stripe_subscription_terms",
+      "note_stripe_subscription_terms",
+      "note_stripe_charge",
     ]);
     expect(calls[4]?.args).toEqual({
       p_stripe_checkout_session_id: "cs_test_2",
@@ -386,6 +472,11 @@ describe("stores", () => {
     });
     expect(calls[2]?.args["p_current_period_end"]).toBeNull();
     expect(calls[2]?.args["p_extra_seats"]).toBe(3);
+    expect(calls[2]?.args).toMatchObject({
+      p_pause_collection: true,
+      p_pause_resumes_at: "2027-01-01T00:00:00.000Z",
+      p_event_created_at: "2026-10-30T12:00:00.000Z",
+    });
     expect(calls[3]?.args).toMatchObject({
       p_addon_code: "aurora_requests_1000",
       p_quantity: 2,
@@ -412,6 +503,8 @@ describe("stores", () => {
         recipient_setting: () => null,
         reply_address_local_part: () => "r-abc",
         record_notification_delivery: () => null,
+        // No white label in force (3310): the platform brand.
+        email_brand_for_org: () => [],
       },
       {
         organizations: { slug: "northwind-live", name: "Northwind Live" },
@@ -632,6 +725,24 @@ describe("stores", () => {
         "Content-Profile": "app",
       });
       expect(JSON.parse(String(calls[0]?.init.body))).toEqual({ p_pin: "4821", p_photo_uri: null });
+    });
+
+    it("posts to another schema when one is named, as the guest unsubscribe does in api_public", async () => {
+      const calls: { url: string; init: RequestInit }[] = [];
+      const db = restDb({
+        url: "http://kong:8000",
+        serviceKey,
+        schema: "api_public",
+        fetch: async (url, init) => {
+          calls.push({ url, init });
+          return Response.json({ org_name: null });
+        },
+      });
+      await db.rpc("unsubscribe_guest_email", { p_token: "t" });
+      expect(calls[0]?.url).toBe("http://kong:8000/rest/v1/rpc/unsubscribe_guest_email");
+      expect((calls[0]?.init.headers as Record<string, string>)["Content-Profile"]).toBe(
+        "api_public",
+      );
     });
 
     it("answers null for an empty body and a scalar for a scalar function", async () => {

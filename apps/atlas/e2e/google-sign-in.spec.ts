@@ -151,7 +151,7 @@ test.describe("without JavaScript", () => {
     const signIn = await page.goto("/auth/sign-in");
     // Supabase Auth then sends the browser on to Google; the CSP lets the form's redirects go there.
     expect(signIn?.headers()["content-security-policy"]).toMatch(
-      /form-action 'self' \S+ https:\/\/accounts\.google\.com(;|$)/,
+      /form-action 'self' [^;]*https:\/\/accounts\.google\.com/,
     );
     await page.getByRole("button", { name: "Continue with Google" }).click();
     await expect(page.getByRole("heading", { name: "Stopped before Google" })).toBeVisible();

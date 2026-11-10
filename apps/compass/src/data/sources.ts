@@ -44,15 +44,34 @@ const INTERNAL_SOURCES: readonly Source[] = [
     schema: "app",
     relation: "shifts",
     select:
-      "id,org_id,project_id,membership_id,engagement_id,role_code,starts_at,ends_at,time_zone,shift_state,scope_node_id",
+      "id,org_id,project_id,membership_id,engagement_id,roster_entry_id,project_position_id,role_code,starts_at,ends_at,time_zone,shift_state,scope_node_id",
     projectColumn: "project_id",
+  },
+  {
+    // No-shows of the project's shifts (B9), so the Crew tab leaves out who was marked. Never the reason: it is
+    // Confidential, and the device only needs to know the mark exists. A withdrawn mark comes down with its deleted_at
+    // and stays on the device, since a project's pull removes nothing, so the Crew tab reads live marks only.
+    table: "shift_no_shows",
+    schema: "app",
+    relation: "shift_no_shows",
+    select: "id,org_id,project_id,shift_id,recorded_at,deleted_at",
+    projectColumn: "project_id",
+  },
+  {
+    // The org's break types (B9), so Break offers them offline. A retired type is still readable and the device drops
+    // it: a punch naming it is refused break_type_unknown.
+    table: "break_types",
+    schema: "app",
+    relation: "break_types",
+    select: "id,org_id,name,paid,planned_minutes,is_default,deleted_at",
+    map: (r) => (r["deleted_at"] ? {} : r),
   },
   {
     table: "clock_punches",
     schema: "app",
     relation: "clock_punches",
     select:
-      "id,org_id,project_id,membership_id,engagement_id,shift_id,punch_kind,device_time,effective_at,source,geofence_verified,skew_flagged",
+      "id,org_id,project_id,membership_id,engagement_id,roster_entry_id,shift_id,punch_kind,device_time,effective_at,source,geofence_verified,skew_flagged",
     projectColumn: "project_id",
   },
   {
@@ -60,7 +79,7 @@ const INTERNAL_SOURCES: readonly Source[] = [
     schema: "app",
     relation: "time_entries",
     select:
-      "id,org_id,project_id,membership_id,engagement_id,shift_id,clock_in,clock_out,break_minutes,needs_review,auto_closed_at",
+      "id,org_id,project_id,membership_id,engagement_id,roster_entry_id,shift_id,clock_in,clock_out,break_minutes,needs_review,auto_closed_at",
     projectColumn: "project_id",
   },
   {
@@ -84,11 +103,25 @@ const INTERNAL_SOURCES: readonly Source[] = [
     projectColumn: "project_id",
   },
   {
+    // A removed cue is soft-deleted and row level security does not hide it, so the device drops it (ADR 0131).
     table: "cues",
     schema: "app",
     relation: "cues",
-    select: "id,org_id,project_id,run_of_show_id,position,label,planned_at,duration,called_at",
+    select:
+      "id,org_id,project_id,run_of_show_id,position,label,planned_at,duration,called_at,start_tbc,standby_at,deleted_at",
     projectColumn: "project_id",
+    map: (r) => (r["deleted_at"] ? {} : r),
+  },
+  {
+    // Department calls (G-74): a cleared call is soft-deleted (app.save_cue_calls) and row level security does not
+    // hide it, so the device drops it, as it drops a removed emergency code. Calls carry no project; each takes its
+    // cue's, pulled just before.
+    table: "cue_calls",
+    schema: "app",
+    relation: "cue_calls",
+    select: "id,org_id,cue_id,call_kind,instruction,deleted_at",
+    parent: { table: "cues", column: "cue_id" },
+    map: (r) => (r["deleted_at"] ? {} : r),
   },
   {
     table: "incidents",
@@ -161,14 +194,22 @@ const INTERNAL_SOURCES: readonly Source[] = [
     schema: "app",
     relation: "dock_slots",
     select:
-      "id,org_id,project_id,zone_id,shipment_id,starts_at,ends_at,checked_in_at,engagement_id",
+      "id,org_id,project_id,zone_id,shipment_id,starts_at,ends_at,checked_in_at,engagement_id,delivery_window_id,reference_code,vehicle_identifier",
+    projectColumn: "project_id",
+  },
+  {
+    table: "delivery_windows",
+    schema: "app",
+    relation: "delivery_windows",
+    select: "id,org_id,project_id,zone_id,starts_at,ends_at,vehicle_limit,is_open",
     projectColumn: "project_id",
   },
   {
     table: "gate_queue",
     schema: "app",
     relation: "gate_queue",
-    select: "id,org_id,project_id,shipment_id,vehicle_identifier,arrived_at,released_at",
+    select:
+      "id,org_id,project_id,shipment_id,vehicle_identifier,arrived_at,released_at,dock_slot_id",
     projectColumn: "project_id",
   },
   {
@@ -243,9 +284,32 @@ const INTERNAL_SOURCES: readonly Source[] = [
     schema: "app",
     relation: "expenses",
     select:
-      "id,org_id,budget_line_id,submitter_person_id,description,incurred_on,amount_minor,currency_code,expense_state,created_at,deleted_at",
+      "id,org_id,budget_line_id,submitter_person_id,description,incurred_on,amount_minor,currency_code,expense_state,created_at,is_reimbursable,credit_of_expense_id,deleted_at",
     personColumn: "submitter_person_id",
     map: (r) => (r["deleted_at"] ? {} : { ...r, amount_minor: Number(r["amount_minor"]) }),
+  },
+  // B5: the person's transfers (driver, passenger or a passenger's principal) and the project's local contacts, members'
+  // work phones read live, for Drives and Today.
+  {
+    table: "my_transfers",
+    schema: "api_external",
+    relation: "my_transfers",
+    select:
+      "id,project_id,project_name,transfer_key,my_role,pickup_place,pickup_at,pickup_time_zone,dropoff_place,dropoff_at,dropoff_time_zone,vehicle_label,vehicle_type,seats,driver_name,passenger_count,passenger_names,primary_passenger_name,meets_service_identifier,meets_arrives_at,status",
+    projectColumn: "project_id",
+  },
+  {
+    table: "local_contacts",
+    schema: "app",
+    relation: "project_local_contacts",
+    select:
+      "id,project_id,day,contact_role,contact_title,source,display_name,organization_name,phone,email,audience,member_active",
+    projectColumn: "project_id",
+    // A row is keyed per project it is listed for, since a venue contact is listed on each project at the venue.
+    map: (r) => ({
+      ...r,
+      id: r["member_active"] === false ? null : `${String(r["id"])}:${String(r["project_id"])}`,
+    }),
   },
 ];
 
@@ -262,7 +326,7 @@ const EXTERNAL_SOURCES: readonly Source[] = [
     schema: "api_external",
     relation: "clock_punches",
     select:
-      "id,engagement_id,project_id,shift_id,punch_kind,device_time,effective_at,source,geofence_verified,skew_flagged",
+      "id,engagement_id,roster_entry_id,project_id,shift_id,punch_kind,device_time,effective_at,source,geofence_verified,skew_flagged",
     projectColumn: "project_id",
   },
   {
@@ -273,32 +337,87 @@ const EXTERNAL_SOURCES: readonly Source[] = [
     projectColumn: "project_id",
   },
   {
-    // The gear the person's engagements hold now; the view's names map back to the table's.
+    // The gear the person's engagements hold now, and what they hold on their own roster entry (R8); the
+    // view's names map back to the table's.
     table: "asset_custody",
     schema: "api_external",
     relation: "asset_custody",
-    select: "id,asset_unit_id,engagement_id,project_id,held_since",
+    select:
+      "id,asset_unit_id,asset_tag,class_name,engagement_id,project_id,held_since,roster_entry_id",
     map: (r) => ({
       id: r["id"],
       asset_unit_id: r["asset_unit_id"],
+      asset_tag: r["asset_tag"],
+      class_name: r["class_name"],
       custodian_engagement_id: r["engagement_id"],
+      roster_entry_id: r["roster_entry_id"],
       project_id: r["project_id"],
       created_at: r["held_since"],
     }),
+  },
+  // A person on a party's roster (R8): their own entries accepted by both sides, what is allocated on them,
+  // and their parking passes. Pool rows and entries still in review stay off the device.
+  {
+    table: "roster_entries",
+    schema: "api_external",
+    relation: "my_roster_entries",
+    select:
+      "id,engagement_id,project_id,org_name,project_name,party_name,role_type,role_code,job_title,arrival_starts_at,arrival_ends_at,arrival_time_zone,entry_state,person_response,is_self",
+    projectColumn: "project_id",
+    // An entry still in review, or the self entry of the person's own engagement, has no id here and is dropped.
+    map: (r) => ({
+      ...r,
+      id:
+        r["entry_state"] === "Accepted" &&
+        r["person_response"] === "Accepted" &&
+        r["is_self"] !== true
+          ? r["id"]
+          : null,
+    }),
+  },
+  {
+    table: "advance_allocations",
+    schema: "api_external",
+    relation: "advance_allocations",
+    select:
+      "allocation_id,engagement_id,roster_entry_id,kind,item_name,quantity,allocation_state,display_status,issued_quantity,needed_from,needed_to,needed_time_zone",
+    // The party's pool has no entry and stays off the device.
+    map: (r) => ({ ...r, id: r["roster_entry_id"] ? r["allocation_id"] : null }),
+  },
+  {
+    table: "parking_passes",
+    schema: "api_external",
+    relation: "my_parking_passes",
+    select:
+      "credential_id,project_id,credential_number,category_name,valid_from,valid_to,revoked_at,zone_codes,zone_names,vehicle_make,vehicle_model,vehicle_color,holder_person_id",
+    projectColumn: "project_id",
+    personColumn: "holder_person_id",
+    map: (r) => ({ ...r, id: r["credential_id"] }),
   },
   {
     table: "shifts",
     schema: "api_external",
     relation: "shifts",
+    // Agency staff's own roster shifts, and for a staffing agency's lead its slots and its roster's shifts with the
+    // holder's name (R12), so the lead clocks the team in offline.
     select:
-      "id,engagement_id,project_id,project_name,role_code,job_title,starts_at,ends_at,time_zone,shift_state",
+      "id,engagement_id,roster_entry_id,holder_name,is_agency_slot,project_position_id,has_no_show,project_id,project_name,role_code,job_title,starts_at,ends_at,time_zone,shift_state",
     projectColumn: "project_id",
+  },
+  {
+    // The break types of the orgs the person works for (B9): crew and staff take breaks.
+    table: "break_types",
+    schema: "api_external",
+    relation: "break_types",
+    select: "id,org_id,name,paid,planned_minutes,is_default",
+    audiences: ["crew", "staff"],
   },
   {
     table: "time_entries",
     schema: "api_external",
     relation: "time_entries",
-    select: "id,engagement_id,project_id,shift_id,clock_in,clock_out,break_minutes,source",
+    select:
+      "id,engagement_id,roster_entry_id,project_id,shift_id,clock_in,clock_out,break_minutes,source",
     projectColumn: "project_id",
   },
   {
@@ -319,7 +438,7 @@ const EXTERNAL_SOURCES: readonly Source[] = [
     table: "cues",
     schema: "api_external",
     relation: "cues",
-    select: "id,run_of_show_id,position,label,planned_at,duration,called_at,is_my_set",
+    select: "id,run_of_show_id,position,label,planned_at,duration,called_at,is_my_set,start_tbc",
     // External cues carry no project; it comes from their running order.
     parent: { table: "run_of_show", column: "run_of_show_id" },
   },
@@ -336,7 +455,7 @@ const EXTERNAL_SOURCES: readonly Source[] = [
     schema: "api_external",
     relation: "dock_slots",
     select:
-      "id,project_id,project_name,zone_code,zone_name,shipment_id,direction,tracking_identifier,starts_at,ends_at,engagement_id",
+      "id,project_id,project_name,zone_code,zone_name,shipment_id,direction,tracking_identifier,starts_at,ends_at,engagement_id,reference_code",
     projectColumn: "project_id",
   },
   // The external More screens (Section 4.5.7 role table, A92), each for the role types whose menu lists it. Parents
@@ -376,12 +495,27 @@ const EXTERNAL_SOURCES: readonly Source[] = [
     personColumn: "person_id",
     audiences: ["crew", "staff"],
   },
+  // What changed on the person's itinerary since they last looked (B6, 5952), so Travel and lodging marks it offline.
+  // A row is keyed by what it is about and the engagement whose itinerary holds it.
+  {
+    table: "itinerary_changes",
+    schema: "api_external",
+    relation: "itinerary_changes",
+    select:
+      "subject_kind,subject_id,engagement_id,project_id,change_kind,changed_fields,changed_at,baseline_at,title",
+    projectColumn: "project_id",
+    audiences: ["crew", "staff"],
+    map: (r) => ({
+      ...r,
+      id: `${String(r["subject_kind"])}:${String(r["subject_id"])}:${String(r["engagement_id"])}`,
+    }),
+  },
   {
     table: "onboarding_items",
     schema: "api_external",
     relation: "onboarding_items",
     select:
-      "id,engagement_id,name,item_kind,is_blocking,verification_method,submitted_at,latest_outcome,expires_on,passes,satisfied",
+      "id,engagement_id,name,item_kind,is_blocking,verification_method,submitted_at,latest_outcome,expires_on,passes,satisfied,awaiting_review",
     audiences: ["crew", "staff"],
   },
   {
@@ -499,9 +633,57 @@ const EXTERNAL_SOURCES: readonly Source[] = [
     table: "sponsor_entitlements",
     schema: "api_external",
     relation: "sponsor_entitlements",
-    select: "id,project_id,project_name,description,quantity,due_on,fulfilled_at,is_overdue",
+    // keep_photo_location: the org's photo-location rule for proof photos of the entitlement (A140, 3333).
+    select:
+      "id,project_id,project_name,description,quantity,due_on,fulfilled_at,is_overdue,keep_photo_location",
     projectColumn: "project_id",
     audiences: ["sponsor"],
+  },
+  // Today's blocks for outside parties (Compass Today): a vendor's open delivery windows, an artist's hospitality,
+  // a client's approvals waiting, a sponsor's activation bookings and outside crew's project briefings (904090002).
+  {
+    table: "vendor_delivery_windows",
+    schema: "api_external",
+    relation: "delivery_windows",
+    select:
+      "id,project_id,project_name,time_zone,zone_code,zone_name,starts_at,ends_at,places_left",
+    projectColumn: "project_id",
+    audiences: ["vendor"],
+  },
+  {
+    table: "hospitality",
+    schema: "api_external",
+    relation: "hospitality",
+    select:
+      "id,fulfillment_id,project_id,project_name,fulfillment_kind,title,supplier_name,starts_at,ends_at,description,quantity,person_id",
+    projectColumn: "project_id",
+    audiences: ["artist", "artist-representative"],
+  },
+  {
+    table: "client_approvals",
+    schema: "api_external",
+    relation: "client_approvals",
+    select:
+      "id,engagement_id,project_id,project_name,subject_kind,message,requested_at,decision,decided_at",
+    projectColumn: "project_id",
+    audiences: ["client"],
+  },
+  {
+    table: "space_bookings",
+    schema: "api_external",
+    relation: "space_bookings",
+    select: "id,engagement_id,project_id,space_name,purpose,starts_at,ends_at,set_label",
+    projectColumn: "project_id",
+    audiences: ["sponsor"],
+  },
+  {
+    table: "briefings",
+    schema: "api_external",
+    relation: "briefings",
+    select:
+      "id,project_id,project_name,time_zone,title,agenda,location,starts_at,ends_at,canceled_at,cancel_reason",
+    projectColumn: "project_id",
+    audiences: ["crew", "staff"],
   },
   {
     table: "engagement_documents",
@@ -509,6 +691,33 @@ const EXTERNAL_SOURCES: readonly Source[] = [
     relation: "engagement_documents",
     select: "id,engagement_id,document_kind,title,expires_on,engagement_document_state",
     audiences: ["sponsor"],
+  },
+  {
+    // Proof photos on the sponsor's engagements while capture is open (A140, 3332).
+    table: "proof_of_performance_photos",
+    schema: "api_external",
+    relation: "proof_of_performance_photos",
+    select: "id,engagement_id,sponsor_entitlement_id,project_id,media_uri,captured_at,created_at",
+    projectColumn: "project_id",
+    audiences: ["sponsor"],
+  },
+  // B5: the person's transfers and the project's Shared local contacts (a member's with no phone or email).
+  {
+    table: "my_transfers",
+    schema: "api_external",
+    relation: "my_transfers",
+    select:
+      "id,project_id,project_name,transfer_key,my_role,pickup_place,pickup_at,pickup_time_zone,dropoff_place,dropoff_at,dropoff_time_zone,vehicle_label,vehicle_type,seats,driver_name,passenger_count,passenger_names,primary_passenger_name,meets_service_identifier,meets_arrives_at,status",
+    projectColumn: "project_id",
+  },
+  {
+    table: "local_contacts",
+    schema: "api_external",
+    relation: "local_contacts",
+    select:
+      "id,project_id,day,contact_role,contact_title,display_name,organization_name,phone,email,source",
+    projectColumn: "project_id",
+    map: (r) => ({ ...r, id: `${String(r["id"])}:${String(r["project_id"])}` }),
   },
 ];
 

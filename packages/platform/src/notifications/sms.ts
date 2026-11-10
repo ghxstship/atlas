@@ -1,6 +1,5 @@
-import { formatMessage } from "@xos/email/messages";
 import { z } from "zod";
-import { clip, localeOf, notificationText } from "./copy.ts";
+import { clip, loadNotificationCopy, localeOf, notificationText } from "./copy.ts";
 import type { DeliveryOutcome, Recipient } from "./dispatch.ts";
 
 /**
@@ -312,7 +311,11 @@ export interface SmsStore {
   claimSms(limit: number): Promise<readonly ClaimedSms[]>;
   /** The recipient as an org writes to them: their name, its language for them and their time zone. */
   recipient(personId: string, orgId: string): Promise<Recipient>;
-  orgName(orgId: string): Promise<string>;
+  /**
+   * Who a text names as its sender (A138): XOS for the platform's own notices, else the org's brand name while white
+   * label is in force, else its name.
+   */
+  senderName(orgId: string, kind: string): Promise<string>;
   /** Link that opens the notification, kept short for the text. */
   linkFor(claim: ClaimedSms): Promise<string>;
   /** Records the outcome; a sent text counts its billed segments toward usage (1393). */
@@ -327,11 +330,12 @@ export interface SmsStore {
 
 /** The text of one SMS: the org, the kind's body, the link and the opt-out line (10DLC). */
 export async function smsBody(claim: ClaimedSms, store: SmsStore): Promise<string> {
+  const formatMessage = await loadNotificationCopy();
   const recipient = await store.recipient(claim.recipientPersonId, claim.orgId);
   const locale = localeOf(recipient.locale);
   const text = notificationText(claim.kind, claim.messageArgs, locale, recipient.timeZone);
   return formatMessage(locale, "sms.message", {
-    orgName: clip(await store.orgName(claim.orgId), 40),
+    orgName: clip(await store.senderName(claim.orgId, claim.kind), 40),
     body: clip(text.body, 300),
     url: await store.linkFor(claim),
   });
@@ -401,7 +405,8 @@ export interface SmsSummaryStore {
   claimSummaries(limit: number): Promise<readonly ClaimedSmsSummary[]>;
   /** The recipient as an org writes to them: their name, its language for them and their time zone. */
   recipient(personId: string, orgId: string): Promise<Recipient>;
-  orgName(orgId: string): Promise<string>;
+  /** Who the summary names as its sender, after its most important text's kind (SmsStore.senderName). */
+  senderName(orgId: string, kind: string): Promise<string>;
   /** The org's Inbox, where every held notification waits. */
   inboxLink(orgId: string): Promise<string>;
   /** Records the outcome for every held delivery; a sent summary counts its billed segments (1393). */
@@ -424,10 +429,11 @@ export async function smsSummaryBody(
   summary: ClaimedSmsSummary,
   store: SmsSummaryStore,
 ): Promise<string> {
+  const formatMessage = await loadNotificationCopy();
   const recipient = await store.recipient(summary.recipientPersonId, summary.orgId);
   const locale = localeOf(recipient.locale);
   const args = {
-    orgName: clip(await store.orgName(summary.orgId), 40),
+    orgName: clip(await store.senderName(summary.orgId, summary.kind), 40),
     url: await store.inboxLink(summary.orgId),
   };
   if (summary.heldCount <= 1) {
@@ -494,6 +500,7 @@ export async function dispatchSmsSummaries(
 
 // Inbound: keywords, signatures and status callbacks ------------------------------------------------------
 
+// eslint-disable-next-line xos/no-restated-enums -- below @xos/data; test/database-enums.test.ts holds it equal
 export type SmsKeywordAction = "Opt Out" | "Opt In" | "Help";
 
 /** Twilio's standard opt-out, opt-in and help keywords (10DLC), matched on the whole trimmed message. */
@@ -644,5 +651,6 @@ export async function handleTwilioWebhook(
       : keyword.action === "Opt In"
         ? "sms.start"
         : "sms.help";
+  const formatMessage = await loadNotificationCopy();
   return twiml(formatMessage("en-US", key, { helpContact: options.helpContact }));
 }

@@ -4,7 +4,7 @@
  * sounds), units, and the org's clock, kiosk and claiming rules. The server enforces the org rules again
  * (migrations 1321 and 1322); here they shape what the device offers before it queues anything.
  */
-import { isLocale, type Locale } from "@xos/i18n/locales";
+import { isLocale, launchLocales, type Locale } from "@xos/i18n/locales";
 import { resolveUnitSystem, type UnitsPreference, type UnitSystem } from "@xos/i18n/units";
 import type { ThemeOptions } from "@xos/ui-native/theme";
 
@@ -29,6 +29,7 @@ export const COMPASS_SETTING_KEYS: readonly string[] = [
   "time.kiosk_enabled",
   "time.photo_on_punch",
   "scheduling.open_shift_claiming",
+  "media.keep_photo_location",
 ];
 
 /** Rows of app.resolve_settings as values by key. */
@@ -66,11 +67,15 @@ export function compassValuesFromRows(
 
 /**
  * The language Compass renders in: locale.language as resolved for the person (their org's when it locks it,
- * else their own from any device or shell, else their org's), or null to keep the device's language.
+ * else their own from any device or shell, else their org's), or null to keep the device's language. Only a language
+ * offered now counts (ADR 0160): a saved choice of a closed territory's language reads as no choice.
  */
-export function languageOf(values: ResolvedValues): Locale | null {
+export function languageOf(
+  values: ResolvedValues,
+  offered: readonly Locale[] = launchLocales,
+): Locale | null {
   const value = values.get("locale.language");
-  return typeof value === "string" && isLocale(value) ? value : null;
+  return typeof value === "string" && isLocale(value) && offered.includes(value) ? value : null;
 }
 
 /** Text size, contrast and motion for the native theme (me.text_size, me.high_contrast, me.reduced_motion). */
@@ -143,6 +148,14 @@ export function soundsOn(values: ResolvedValues): boolean {
  */
 export function requiresGeofence(values: ResolvedValues, geofences: number): boolean {
   return geofences > 0 && values.get("time.geofence_required") !== false;
+}
+
+/**
+ * Whether a field photo keeps where it was taken (media.keep_photo_location, A140): off unless the org turns it on,
+ * so a resized photo leaves the device without its location by default.
+ */
+export function keepsPhotoLocation(values: ResolvedValues): boolean {
+  return values.get("media.keep_photo_location") === true;
 }
 
 /** The kiosk's rules: kiosks on (time.kiosk_enabled) and a photo on every punch (time.photo_on_punch). */

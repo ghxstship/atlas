@@ -8,7 +8,11 @@
     "sections": "Hospitality sections",
     "fulfillments": "Fulfillments",
     "beos": "BEOs",
-    "blocks": "Accommodation blocks"
+    "blocks": "Accommodation blocks",
+    "travel": "Travel",
+    "transfers": "Transfers",
+    "rooms": "Green rooms",
+    "rooming": "Rooming list"
   },
   "fulfillments": {
     "title": "Fulfillments",
@@ -147,6 +151,16 @@
       "unitPrice": "Unit price",
       "currency": "Currency",
       "remove": "Remove {description}"
+    },
+    "rosterCounts": {
+      "title": "Roster counts",
+      "sentence": "People allocated this catering, and what they shared. The guest count above stays your own figure.",
+      "headcount": "Headcount",
+      "fewerThanFive": "Fewer than 5",
+      "allergies": "Allergies",
+      "load": "Show roster counts",
+      "empty": "No one is allocated this catering yet.",
+      "failed": "Roster counts could not be read."
     }
   },
   "blocks": {
@@ -194,6 +208,248 @@
       "checkOutOn": "Check-out",
       "stay": "{from} to {to}",
       "remove": "Remove {name}"
+    },
+    "matrix": {
+      "view": "Matrix",
+      "title": "Rooms by night",
+      "block": "Block",
+      "value": "{assigned} of {held}",
+      "cell": "{assigned} of {held} assigned, {free} free",
+      "releaseDue": "{free} free, releases {date}"
+    },
+    "budgetLine": {
+      "label": "Budget line",
+      "help": "The line this block's cost draws on. Amounts are worked out from the block and never written to the budget.",
+      "option": "{budget} line {number}: {description}",
+      "held": "Lodging held",
+      "assigned": "Lodging assigned"
     }
+  },
+  "travelGrid": {
+    "title": "Flights",
+    "empty": "No flights booked yet. Flights booked under a Travel fulfillment show here.",
+    "emptyFiltered": "No flights match this view.",
+    "emptyAction": "Open fulfillments",
+    "phase": {
+      "upcoming": "Upcoming",
+      "inFlight": "In flight",
+      "departed": "Departed",
+      "landed": "Landed"
+    },
+    "leg": "Leg {leg} of {count}",
+    "arrivalUnknown": "Arrival not known",
+    "finalArrival": "Final arrival {place}, {at}",
+    "route": "{from} to {to}",
+    "views": {
+      "upcoming": "Upcoming",
+      "inFlight": "In flight",
+      "all": "All flights"
+    },
+    "columns": {
+      "traveler": "Traveler",
+      "flight": "Flight",
+      "route": "Route",
+      "departs": "Departs",
+      "arrives": "Arrives",
+      "finalArrival": "Final arrival",
+      "leg": "Leg",
+      "confirmation": "Confirmation",
+      "phase": "Phase"
+    }
+  },
+  "transfers": {
+    "title": "Transfers",
+    "kind": "Transfer",
+    "new": "New transfer",
+    "editTitle": "Edit {key}",
+    "cancel": "Cancel transfer",
+    "canceled": "{key} canceled",
+    "empty": "No transfers yet. Book a pickup for an arriving flight or a run between the hotel and the venue.",
+    "emptyReadOnly": "No transfers on these projects yet.",
+    "travelLink": "Back to hospitality",
+    "route": "{from} to {to}",
+    "window": "{pickup} to {dropoff}",
+    "status": {
+      "unassigned": "Unassigned",
+      "assigned": "Assigned",
+      "underway": "Underway",
+      "done": "Done"
+    },
+    "warnings": {
+      "tightTurnaround": "Tight turnaround",
+      "flightAfterPickup": "Flight lands after pickup",
+      "none": "None"
+    },
+    "fields": {
+      "project": "Project",
+      "pickupPlace": "Pickup place",
+      "pickupAt": "Pickup",
+      "dropoffPlace": "Drop-off place",
+      "dropoffAt": "Drop-off",
+      "dropoffHelp": "Your estimate of when the run ends. Drive times are not computed.",
+      "vehicle": "Vehicle",
+      "driver": "Driver",
+      "meetsFlight": "Meets flight",
+      "notes": "Notes for the desk",
+      "warnings": "Warnings",
+      "key": "Transfer",
+      "route": "Route",
+      "passengers": "Passengers",
+      "status": "Status"
+    },
+    "flightOption": "{flight}, {traveler}, lands {arrives}",
+    "meets": "{flight}, lands {arrives}",
+    "arrivalUnknown": "landing time not known",
+    "passengers": {
+      "title": "Passengers ({count} of {seats} seats)",
+      "empty": "No passengers yet.",
+      "primary": "Primary passenger",
+      "makePrimary": "Make {name} primary",
+      "remove": "Remove {name}",
+      "add": "Add passenger",
+      "person": "Person"
+    },
+    "passengerCount": "{count, plural, one {# passenger} other {# passengers}}",
+    "lanes": {
+      "label": "Lanes and week",
+      "driver": "By driver",
+      "vehicle": "By vehicle",
+      "unassigned": "Unassigned",
+      "caption": "Transfers, week of {date}"
+    }
+  },
+  "vehicles": {
+    "kind": "Vehicles",
+    "title": "Vehicles",
+    "count": "{count, plural, one {# vehicle} other {# vehicles}}",
+    "empty": "No vehicles yet.",
+    "manage": "Vehicles",
+    "option": "{label} ({seats} seats)",
+    "detail": "{type}, {seats} seats",
+    "remove": "Remove {label}",
+    "add": "Add vehicle",
+    "fields": {
+      "label": "Label",
+      "labelHint": "Van 1",
+      "type": "Type",
+      "seats": "Passenger seats",
+      "seatsHelp": "Seats for passengers; the driver is not counted.",
+      "supplier": "Car service"
+    },
+    "types": {
+      "Sedan": "Sedan",
+      "SUV": "SUV",
+      "Van": "Van",
+      "Sprinter": "Sprinter",
+      "Minibus": "Minibus",
+      "Coach": "Coach",
+      "Other": "Other"
+    }
+  },
+  "rooms": {
+    "title": "Green rooms and dressing rooms",
+    "kind": "Space booking",
+    "new": "Book a room",
+    "fromSet": "Book from set time",
+    "editTitle": "Edit booking",
+    "cancel": "Cancel booking",
+    "canceled": "Booking canceled",
+    "empty": "No rooms booked yet. Book a green room or dressing room, or book one from a set time.",
+    "emptyReadOnly": "No rooms booked on these projects yet.",
+    "window": "{in} to {out}",
+    "purpose": {
+      "GreenRoom": "Green room",
+      "DressingRoom": "Dressing room",
+      "ProductionOffice": "Production office",
+      "HospitalitySuite": "Hospitality suite",
+      "Other": "Other"
+    },
+    "mode": {
+      "Exclusive": "Exclusive",
+      "Shared": "Shared"
+    },
+    "flags": {
+      "overCapacity": "Over capacity",
+      "setMoved": "Set moved",
+      "none": "None"
+    },
+    "fields": {
+      "space": "Space",
+      "purpose": "Booked as",
+      "mode": "Use",
+      "modeHelp": "Exclusive holds the room alone. Shared bookings may overlap.",
+      "setTime": "Set time",
+      "in": "In",
+      "out": "Out",
+      "partySize": "People",
+      "notes": "Notes for the desk",
+      "when": "When",
+      "flags": "Flags",
+      "act": "Act"
+    },
+    "spaceOption": "{name} (capacity {capacity})",
+    "setOption": "{label}, {at}",
+    "notPlanned": "not scheduled",
+    "conflicts": {
+      "title": "{count, plural, one {# overlap to check} other {# overlaps to check}}",
+      "group": "{space}: {count} overlapping bookings, up to {peak} people at once"
+    },
+    "capacity": "Capacity {capacity}",
+    "lanesCaption": "Rooms, week of {date}"
+  },
+  "rooming": {
+    "title": "Rooming list",
+    "sentence": "Who needs a room, the nights suggested from their passes or travel dates, and what is still uncovered. Each read is recorded in each person's access log.",
+    "load": "Load the rooming list",
+    "reload": "Reload",
+    "failed": "The rooming list could not be read. Try again.",
+    "needsRead": "Reading the rooming list needs hospitality.fulfillment.read on the project.",
+    "filters": {
+      "label": "Show only"
+    },
+    "status": {
+      "Covered": "Covered",
+      "Partial": "Partial",
+      "Missing": "Missing",
+      "NoDates": "No dates"
+    },
+    "columns": {
+      "person": "Person",
+      "party": "Party",
+      "role": "Role",
+      "suggested": "Suggested stays",
+      "assigned": "Assigned",
+      "uncovered": "Uncovered nights",
+      "status": "Status",
+      "cost": "Cost",
+      "actions": "Actions"
+    },
+    "stay": "{from} to {to}",
+    "source": {
+      "Credentials": "from passes",
+      "Travel": "from travel dates"
+    },
+    "noDates": "No dates yet",
+    "none": "None",
+    "unpriced": "{nights, plural, one {# night} other {# nights}}, unpriced",
+    "assign": "Assign room",
+    "assigned": "Room assigned.",
+    "issueFailed": "The allocation could not be opened. Reload the list.",
+    "room": "Room",
+    "unnamed": "Unnamed person",
+    "empty": "No one on the travel party needs a room.",
+    "emptyFiltered": "No one matches these filters.",
+    "noBlocks": "No block covers these nights. Contract a block first.",
+    "block": "Block",
+    "checkIn": "Check-in",
+    "checkOut": "Check-out",
+    "confirm": "Confirm room",
+    "cancel": "Cancel",
+    "checkFields": "Check the block and the dates.",
+    "stayWithSource": "{stay} ({source})"
+  },
+  "actsWithoutRooms": {
+    "count": "{count, plural, one {# act without rooms} other {# acts without rooms}}",
+    "row": "{name} ({people, plural, one {# person} other {# people}})"
   }
 }

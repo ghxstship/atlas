@@ -1,7 +1,7 @@
 /**
  * The demo removal against the linked hosted project, through the Supabase CLI's own login (RRR-109).
  *
- * `supabase db query --linked` runs SQL through the Management API and `supabase storage rm --linked` deletes
+ * `supabase db query --remote` runs SQL through the Management API and `supabase storage rm --remote` deletes
  * objects through the Storage API, so this path needs neither DATABASE_URL (the database password) nor the
  * service role key: only `supabase login` and `supabase link` on the owner's machine. The SQL is the same script
  * the psql path runs, translated for one mode by plain-sql.ts.
@@ -93,7 +93,8 @@ export function runLinked<T>(source: string, mode: RemovalMode, repoRoot: string
   try {
     const file = join(dir, `remove-demo-data.${mode}.sql`);
     writeFileSync(file, toPlainSql(source, mode));
-    return parseReport<T>(run(["db", "query", "--linked", "-o", "json", "-f", file]));
+    // CLI 3: --remote is the linked project; --yes is the consent a hosted change needs unattended.
+    return parseReport<T>(run(["db", "query", "--remote", "--yes", "-o", "json", "-f", file]));
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
@@ -112,7 +113,7 @@ export function deleteStorageLinked(
     run([
       "storage",
       "rm",
-      "--linked",
+      "--remote",
       "--experimental",
       "--yes",
       ...batch.map((o) => `ss:///${o.bucket}/${o.name}`),

@@ -87,7 +87,9 @@ import {
 } from "@xos/data/workforce-help-desk";
 import {
   addWeatherAlertRole,
+  callWeatherHold,
   checkInGuest,
+  giveWeatherAllClear,
   claimLostItem,
   closeOccupancyCounter,
   createOccupancyCounter,
@@ -96,8 +98,11 @@ import {
   recordOccupancyCount,
   recordWeatherReading,
   removeWeatherAlertRole,
+  saveWeatherTemplate,
   setWeatherThreshold,
   settleLostItemClaim,
+  turnOffWeatherFeed,
+  turnOnWeatherFeed,
   LOST_ITEM_CATEGORIES,
   WEATHER_HAZARDS,
   WEATHER_LEVELS,
@@ -122,6 +127,8 @@ import { parseFieldList, parseSurveyQuestions } from "./parse";
 import { uploadFormMedia } from "./media";
 import { storedHazardValue, UNIT_SYSTEMS } from "./units";
 import type { UnitSystem } from "@xos/ui/preferences";
+import type { Database } from "@xos/data/database.types";
+import * as enums from "@xos/data/enums";
 
 /**
  * Workforce suite actions (A29, Section 4.9). Row level security and the 0800 to 0808 RPCs decide
@@ -138,7 +145,7 @@ function audienceOf(form: FormData) {
   const target = uuid(form, "audienceTarget");
   const department = text(form, "audienceTarget");
   return {
-    kind: kind as "Organization" | "Project" | "Team" | "Department" | "Role" | "Group",
+    kind: kind as Database["app"]["Enums"]["audience_kind"],
     projectId: kind === "Project" ? target : null,
     teamId: kind === "Team" ? target : null,
     roleId: kind === "Role" ? target : null,
@@ -386,8 +393,8 @@ export async function createSurveyAction(_: ActionState, form: FormData): Promis
 export async function transitionSurveyAction(_: ActionState, form: FormData): Promise<ActionState> {
   const ctx = await actionContext(form);
   const id = uuid(form, "id");
-  const expected = of<SurveyState>(text(form, "expected"), ["Draft", "Open", "Closed"]);
-  const next = of<SurveyState>(text(form, "next"), ["Draft", "Open", "Closed"]);
+  const expected = of<SurveyState>(text(form, "expected"), enums.surveyState);
+  const next = of<SurveyState>(text(form, "next"), enums.surveyState);
   const reason = reasonOf(form);
   if (id === null || expected === null || next === null) return { error: "notFound" };
   if (reason === null) return { fieldErrors: { reason: "required" } };
@@ -934,7 +941,7 @@ export async function transitionRequestAction(
 ): Promise<ActionState> {
   const ctx = await actionContext(form);
   const id = uuid(form, "id");
-  const states: SupportTicketState[] = ["Open", "Waiting", "Resolved", "Closed"];
+  const states: readonly SupportTicketState[] = enums.supportTicketState;
   const expected = of(text(form, "expected"), states);
   const next = of(text(form, "next"), states);
   const reason = reasonOf(form);
@@ -1047,6 +1054,91 @@ export async function recordReadingAction(_: ActionState, form: FormData): Promi
       hazard,
       storedHazardValue(hazard, value, units),
     ),
+    ctx,
+    "site-ops",
+  );
+}
+
+// Official feed, holds and the all-clear (B8, 6256 and 6257) ----------------------------------------------------------
+
+export async function turnOnWeatherFeedAction(
+  _: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  const ctx = await actionContext(form);
+  const project = uuid(form, "projectId");
+  if (project === null) return { error: "notFound" };
+  return finish(await turnOnWeatherFeed(ctx.viewer.db, project), ctx, "site-ops");
+}
+
+export async function turnOffWeatherFeedAction(
+  _: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  const ctx = await actionContext(form);
+  const id = uuid(form, "id");
+  if (id === null) return { error: "notFound" };
+  return finish(await turnOffWeatherFeed(ctx.viewer.db, id), ctx, "site-ops");
+}
+
+/** Calls a hold with the message the dispatcher confirmed; the database notifies everyone at once. */
+export async function callWeatherHoldAction(_: ActionState, form: FormData): Promise<ActionState> {
+  const ctx = await actionContext(form);
+  const errors = new FieldErrors();
+  const project = errors.need("projectId", uuid(form, "projectId"));
+  const message = errors.need("message", requiredText(form, "message", 1000));
+  if (errors.any || !project || !message) return errors.state;
+  const hazard = of<WeatherHazard>(text(form, "hazard"), WEATHER_HAZARDS);
+  return finish(
+    await callWeatherHold(ctx.viewer.db, {
+      projectId: project,
+      message,
+      hazard: hazard ?? null,
+      weatherAlertId: uuid(form, "weatherAlertId"),
+      weatherWarningId: uuid(form, "weatherWarningId"),
+    }),
+    ctx,
+    "site-ops",
+  );
+}
+
+export async function giveWeatherAllClearAction(
+  _: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  const ctx = await actionContext(form);
+  const errors = new FieldErrors();
+  const hold = errors.need("id", uuid(form, "id"));
+  const message = errors.need("message", requiredText(form, "message", 1000));
+  if (errors.any || !hold || !message) return errors.state;
+  return finish(await giveWeatherAllClear(ctx.viewer.db, hold, message), ctx, "site-ops");
+}
+
+/** Saves the project's hold and all-clear texts (safety.emergency_code.write). */
+export async function saveWeatherTemplatesAction(
+  _: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  const ctx = await actionContext(form);
+  const errors = new FieldErrors();
+  const project = errors.need("projectId", uuid(form, "projectId"));
+  const hold = errors.need("hold", requiredText(form, "hold", 1000));
+  const allClear = errors.need("allClear", requiredText(form, "allClear", 1000));
+  if (errors.any || !project || !hold || !allClear) return errors.state;
+  const saved = await saveWeatherTemplate(ctx.viewer.db, {
+    projectId: project,
+    kind: "Hold",
+    body: hold,
+    id: uuid(form, "holdId"),
+  });
+  if (!saved.ok) return finish(saved, ctx, "site-ops");
+  return finish(
+    await saveWeatherTemplate(ctx.viewer.db, {
+      projectId: project,
+      kind: "All Clear",
+      body: allClear,
+      id: uuid(form, "allClearId"),
+    }),
     ctx,
     "site-ops",
   );

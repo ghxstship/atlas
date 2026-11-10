@@ -9,6 +9,7 @@ import {
   createZone,
   freezeCapabilityDocument,
   moveSitePlanPin,
+  renameSitePlan,
   setPlaceArchived,
   setVenueLocation,
   updateCapabilityDocument,
@@ -29,6 +30,8 @@ import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 import { count, errorKey, text, type ActionState } from "@/components/places/kit/action-state";
+import { ADDRESS_ERROR, readAddress, VENUE_ADDRESS } from "@/lib/address";
+import { customFieldsOf } from "@/lib/custom-fields/form";
 import { getOrgContext } from "@/lib/shell/context";
 
 /**
@@ -67,6 +70,14 @@ export async function saveVenueAction(_: ActionState, form: FormData): Promise<A
   const longitude = text(form, "longitude");
   const lat = latitude === null ? null : Number(latitude);
   const lng = longitude === null ? null : Number(longitude);
+  // The venue's state is its jurisdiction's, so the form does not ask for it; the other fields are
+  // optional, but a postal code must fit the jurisdiction's country.
+  const address = readAddress(form, jurisdictionId?.slice(0, 2) ?? null, VENUE_ADDRESS);
+  if (!address.ok) {
+    for (const [field, problem] of Object.entries(address.problems)) {
+      fieldErrors[field] = ADDRESS_ERROR[problem];
+    }
+  }
   if ((lat === null) !== (lng === null)) fieldErrors["latitude"] = "locationPair";
   if (lat !== null && (!Number.isFinite(lat) || lat < -90 || lat > 90)) {
     fieldErrors["latitude"] = "latitude";
@@ -74,23 +85,27 @@ export async function saveVenueAction(_: ActionState, form: FormData): Promise<A
   if (lng !== null && (!Number.isFinite(lng) || lng < -180 || lng > 180)) {
     fieldErrors["longitude"] = "longitude";
   }
-  if (Object.keys(fieldErrors).length > 0 || !name || !jurisdictionId || !timeZone) {
+  if (Object.keys(fieldErrors).length > 0 || !name || !jurisdictionId || !timeZone || !address.ok) {
     return { fieldErrors };
   }
   const input = {
     name,
     jurisdictionId,
     timeZone,
-    streetAddress: text(form, "streetAddress"),
-    locality: text(form, "locality"),
-    postalCode: text(form, "postalCode"),
+    streetAddress: address.value.streetAddress,
+    locality: address.value.locality,
+    postalCode: address.value.postalCode,
   };
   const id = text(form, "id");
+  // An edit saves custom fields from the venue's own section, so only a create is held to them here.
+  const custom = await customFieldsOf(ctx, "app.venues", id === null ? form : undefined);
+  if (custom.fieldErrors) return { error: "invalid", fieldErrors: custom.fieldErrors };
   const saved =
     id === null
       ? await createVenue(ctx.viewer.db, ctx.org.id, input)
       : await updateVenue(ctx.viewer.db, id, input);
   if (!saved.ok) return { error: errorKey(saved.error) };
+  if (id === null) await custom.save(saved.data.id);
   const located = await setVenueLocation(
     ctx.viewer.db,
     saved.data.id,
@@ -110,6 +125,8 @@ const ARCHIVABLE: readonly PlacesTable[] = [
   "capability_documents",
   "site_plans",
   "site_plan_pins",
+  "venue_levels",
+  "site_plan_shapes",
 ];
 
 export async function setPlaceArchivedAction(_: ActionState, form: FormData): Promise<ActionState> {
@@ -153,13 +170,18 @@ export async function saveSpaceAction(_: ActionState, form: FormData): Promise<A
     urid: text(form, "urid"),
     areaSqFt: area === "invalid" ? null : area,
     capacity: capacity === "invalid" ? null : capacity,
+    venueLevelId: text(form, "venueLevelId"),
   };
   const id = text(form, "id");
+  // As for venues, an edit saves custom fields from the space's own section (A117, B1).
+  const custom = await customFieldsOf(ctx, "app.spaces", id === null ? form : undefined);
+  if (custom.fieldErrors) return { error: "invalid", fieldErrors: custom.fieldErrors };
   const saved =
     id === null
       ? await createSpace(ctx.viewer.db, { ...input, venueId: venueId.data })
       : await updateSpace(ctx.viewer.db, id, input);
   if (!saved.ok) return { error: errorKey(saved.error) };
+  if (id === null) await custom.save(saved.data.id);
   refresh(ctx.org.slug);
   return { ok: true, id: saved.data.id };
 }
@@ -256,15 +278,27 @@ export async function saveSitePlanAction(_: ActionState, form: FormData): Promis
   const projectId = uuid.safeParse(form.get("projectId"));
   const fieldErrors: Record<string, string> = {};
   if (!title || title.length > 200) fieldErrors["title"] = "title";
-  if (!imageUri) fieldErrors["imageUri"] = "imageUri";
+  // attachments/ names a stored drawing, which only the database derives (ADR 0140 D3).
+  if (imageUri !== null && imageUri.startsWith("attachments/"))
+    fieldErrors["imageUri"] = "imageUri";
   const id = text(form, "id");
   if (id === null && !projectId.success) fieldErrors["projectId"] = "project";
-  if (Object.keys(fieldErrors).length > 0 || !title || !imageUri) return { fieldErrors };
+  if (Object.keys(fieldErrors).length > 0 || !title) return { fieldErrors };
   const venueId = text(form, "venueId");
+  const venueLevelId = venueId ? text(form, "venueLevelId") : null;
+  // A plan outside Draft takes only its title (B1, ADR 0140 D1); a new plan waits for its drawing upload.
   const saved =
     id === null && projectId.success
-      ? await createSitePlan(ctx.viewer.db, { projectId: projectId.data, venueId, title, imageUri })
-      : await updateSitePlan(ctx.viewer.db, id ?? "", { venueId, title, imageUri });
+      ? await createSitePlan(ctx.viewer.db, {
+          projectId: projectId.data,
+          venueId,
+          venueLevelId,
+          title,
+          imageUri,
+        })
+      : text(form, "titleOnly") === "1"
+        ? await renameSitePlan(ctx.viewer.db, id ?? "", title)
+        : await updateSitePlan(ctx.viewer.db, id ?? "", { venueId, venueLevelId, title, imageUri });
   if (!saved.ok) return { error: errorKey(saved.error) };
   refresh(ctx.org.slug);
   return { ok: true, id: saved.data.id };

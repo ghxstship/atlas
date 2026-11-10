@@ -6,6 +6,15 @@ export const HELP_CONTENT: HelpIndex = {
   articles: {
     "en-US": [
       {
+        slug: "approve-from-email",
+        title: "Approve from email",
+        summary:
+          "Decide a request an organization sends you from the email itself, with a code it emails you, without signing in.",
+        kind: "workflow",
+        nodes: ["home"],
+        order: 3,
+      },
+      {
         slug: "company-danger-zone",
         title: "Company danger zone",
         summary: "Transferring ownership or closing a company account.",
@@ -77,6 +86,14 @@ export const HELP_CONTENT: HelpIndex = {
         kind: "workflow",
         nodes: ["*"],
         order: 1,
+      },
+      {
+        slug: "crew-shifts",
+        title: "My shifts by link",
+        summary: "See and accept your shifts from a link and a code, without signing in.",
+        kind: "page",
+        nodes: ["crew-shifts"],
+        order: 62,
       },
       {
         slug: "documents",
@@ -153,6 +170,14 @@ export const HELP_CONTENT: HelpIndex = {
         summary: "The credentials issued to you for the project, and downloading your badge.",
         kind: "page",
         nodes: ["engagement.credentials"],
+        order: 1,
+      },
+      {
+        slug: "engagement-crew",
+        title: "Crew",
+        summary: "Put your people on an engagement, submit the roster and see who accepted.",
+        kind: "page",
+        nodes: ["engagement.crew"],
         order: 1,
       },
       {
@@ -262,6 +287,14 @@ export const HELP_CONTENT: HelpIndex = {
         summary: "Your shifts grouped by the position each one fills.",
         kind: "page",
         nodes: ["engagement.positions"],
+        order: 1,
+      },
+      {
+        slug: "engagement-project-details",
+        title: "Project details",
+        summary: "The travel, uniform sizes and vehicle a project asks of you.",
+        kind: "page",
+        nodes: ["engagement.project-details"],
         order: 1,
       },
       {
@@ -512,13 +545,38 @@ export const HELP_CONTENT: HelpIndex = {
         order: 1,
       },
       {
+        slug: "profile-badge-photos",
+        title: "Badge photos",
+        summary:
+          "Give each organization you hold a credential with a photo for your badge, choose your profile photo instead, or take it back.",
+        kind: "page",
+        nodes: ["profile.badge-photos"],
+        order: 2,
+      },
+      {
         slug: "profile",
         title: "Your profile",
         summary:
-          "What organizations see about you, how complete it is, your certifications, availability, ratings and shares.",
+          "What organizations see about you, how complete it is, your certifications, availability and shares, and who reads your ratings.",
         kind: "page",
         nodes: ["profile"],
         order: 1,
+      },
+      {
+        slug: "quote-requests",
+        title: "Quote requests",
+        summary: "What companies have asked your account to quote for, and how to answer.",
+        kind: "workflow",
+        nodes: ["work.quote-requests"],
+        order: 1,
+      },
+      {
+        slug: "registration",
+        title: "Registering with an organization",
+        summary: "Join an organization's crew list from its registration page.",
+        kind: "page",
+        nodes: ["registration"],
+        order: 63,
       },
       {
         slug: "settings-accessibility",
@@ -637,7 +695,8 @@ export const HELP_CONTENT: HelpIndex = {
       {
         slug: "settings-work-details",
         title: "Work details",
-        summary: "Where the facts about how you work come from.",
+        summary:
+          "Your emergency contacts, dietary and accessibility needs, loyalty programs and passport, and who sees them.",
         kind: "page",
         nodes: ["settings.work-details"],
         order: 1,
@@ -670,6 +729,15 @@ export const HELP_CONTENT: HelpIndex = {
       },
     ],
     "es-US": [
+      {
+        slug: "approve-from-email",
+        title: "Aprobar desde el correo",
+        summary:
+          "Decide una solicitud que te envía una organización desde el mismo correo, con un código que te envía, sin iniciar sesión.",
+        kind: "workflow",
+        nodes: ["home"],
+        order: 3,
+      },
       {
         slug: "company-danger-zone",
         title: "Zona de peligro de la empresa",
@@ -747,6 +815,14 @@ export const HELP_CONTENT: HelpIndex = {
         order: 1,
       },
       {
+        slug: "crew-shifts",
+        title: "Mis turnos por enlace",
+        summary: "Ve y acepta tus turnos con un enlace y un código, sin iniciar sesión.",
+        kind: "page",
+        nodes: ["crew-shifts"],
+        order: 62,
+      },
+      {
         slug: "documents",
         title: "Documentos",
         summary:
@@ -822,6 +898,14 @@ export const HELP_CONTENT: HelpIndex = {
           "Las acreditaciones emitidas para ti en el proyecto, y cómo descargar tu credencial.",
         kind: "page",
         nodes: ["engagement.credentials"],
+        order: 1,
+      },
+      {
+        slug: "engagement-crew",
+        title: "Equipo",
+        summary: "Incluye a tu gente en una contratación, envía la lista y ve quién aceptó.",
+        kind: "page",
+        nodes: ["engagement.crew"],
         order: 1,
       },
       {
@@ -935,6 +1019,14 @@ export const HELP_CONTENT: HelpIndex = {
         summary: "Tus turnos agrupados por el puesto que cubre cada uno.",
         kind: "page",
         nodes: ["engagement.positions"],
+        order: 1,
+      },
+      {
+        slug: "engagement-project-details",
+        title: "Datos del proyecto",
+        summary: "El viaje, las tallas de uniforme y el vehículo que un proyecto te pide.",
+        kind: "page",
+        nodes: ["engagement.project-details"],
         order: 1,
       },
       {
@@ -1188,13 +1280,38 @@ export const HELP_CONTENT: HelpIndex = {
         order: 1,
       },
       {
+        slug: "profile-badge-photos",
+        title: "Fotos de credencial",
+        summary:
+          "Da a cada organización con la que tienes una credencial una foto para tu credencial, elige tu foto de perfil o retírala.",
+        kind: "page",
+        nodes: ["profile.badge-photos"],
+        order: 2,
+      },
+      {
         slug: "profile",
         title: "Tu perfil",
         summary:
-          "Lo que ven las organizaciones sobre ti, qué tan completo está, tus certificaciones, disponibilidad, calificaciones y perfiles compartidos.",
+          "Lo que ven las organizaciones sobre ti, qué tan completo está, tus certificaciones, disponibilidad y perfiles compartidos, y quién lee tus calificaciones.",
         kind: "page",
         nodes: ["profile"],
         order: 1,
+      },
+      {
+        slug: "quote-requests",
+        title: "Solicitudes de cotización",
+        summary: "Lo que las empresas pidieron cotizar a tu cuenta y cómo responder.",
+        kind: "workflow",
+        nodes: ["work.quote-requests"],
+        order: 1,
+      },
+      {
+        slug: "registration",
+        title: "Registrarte con una organización",
+        summary: "Únete a la lista de equipo de una organización desde su página de registro.",
+        kind: "page",
+        nodes: ["registration"],
+        order: 63,
       },
       {
         slug: "settings-accessibility",
@@ -1318,7 +1435,8 @@ export const HELP_CONTENT: HelpIndex = {
       {
         slug: "settings-work-details",
         title: "Datos laborales",
-        summary: "De dónde vienen los datos sobre cómo trabajas.",
+        summary:
+          "Tus contactos de emergencia, necesidades alimentarias y de accesibilidad, programas de lealtad y pasaporte, y quién los ve.",
         kind: "page",
         nodes: ["settings.work-details"],
         order: 1,

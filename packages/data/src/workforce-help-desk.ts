@@ -14,6 +14,8 @@ import {
   strOrNull,
   type Raw,
 } from "./workforce-shared.ts";
+import type { Database } from "./database.types.ts";
+import * as enums from "./enums.generated.ts";
 
 /**
  * The help desk (Section 4.9 Help desk; migration 0805), imported as `@xos/data/workforce-help-desk`.
@@ -22,33 +24,14 @@ import {
  * and resolve them. Teams are set up by org.help.write holders.
  */
 
-export type HelpDeskTeamKind = "Operations" | "IT" | "HR" | "Facilities" | "Other";
-export type SupportCategory =
-  "Question" | "Problem" | "Access" | "Billing" | "Account" | "Feature Request";
-export type SupportSeverity = "Severity 1" | "Severity 2" | "Severity 3" | "Severity 4";
-export type SupportTicketState = "Open" | "Waiting" | "Resolved" | "Closed";
+export type HelpDeskTeamKind = Database["app"]["Enums"]["help_desk_team_kind"];
+export type SupportCategory = Database["app"]["Enums"]["support_category"];
+export type SupportSeverity = Database["app"]["Enums"]["support_severity"];
+export type SupportTicketState = Database["app"]["Enums"]["support_ticket_state"];
 
-export const HELP_DESK_TEAM_KINDS: readonly HelpDeskTeamKind[] = [
-  "Operations",
-  "IT",
-  "HR",
-  "Facilities",
-  "Other",
-];
-export const SUPPORT_CATEGORIES: readonly SupportCategory[] = [
-  "Question",
-  "Problem",
-  "Access",
-  "Billing",
-  "Account",
-  "Feature Request",
-];
-export const SUPPORT_SEVERITIES: readonly SupportSeverity[] = [
-  "Severity 1",
-  "Severity 2",
-  "Severity 3",
-  "Severity 4",
-];
+export const HELP_DESK_TEAM_KINDS: readonly HelpDeskTeamKind[] = enums.helpDeskTeamKind;
+export const SUPPORT_CATEGORIES: readonly SupportCategory[] = enums.supportCategory;
+export const SUPPORT_SEVERITIES: readonly SupportSeverity[] = enums.supportSeverity;
 
 /** Responder moves of a request from each state. */
 export const HELP_DESK_NEXT: Readonly<Record<SupportTicketState, readonly SupportTicketState[]>> = {

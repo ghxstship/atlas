@@ -13,6 +13,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Audience, DownloadScope } from "@xos/sync";
 import type { CompassIdentity, EngagementState, EngagementSummary } from "../domain/access";
+import type { LensRole } from "../domain/roleLens";
 
 /**
  * Field Supervisor and above hold one of these (Section 4.5.7 supervisor mode). The Field role holds none
@@ -65,19 +66,85 @@ export function scopeFor(
   readableProjectIds: readonly string[],
 ): DownloadScope {
   const open = identity.engagements.filter((e) => e.state === "Active" || e.state === "Closing");
+  // A party's engagement reached through its roster is never the person's own (R8): they hold their
+  // roster entry, and the engagement's project.
+  const own = open.filter((e) => e.via !== "roster");
   return {
     audience: identity.audience,
     personIds: [identity.personId],
     orgIds,
     membershipIds: identity.membershipId ? [identity.membershipId] : [],
     readableProjectIds,
-    engagementIds: open.map((e) => e.id),
+    engagementIds: own.map((e) => e.id),
     engagedProjectIds: [...new Set(open.map((e) => e.projectId))],
     // The onboarding checklist opens before operational access does (A92).
     onboardingEngagementIds: identity.engagements
-      .filter((e) => e.state !== "Complete" && e.state !== "Canceled")
+      .filter((e) => e.via !== "roster" && e.state !== "Complete" && e.state !== "Canceled")
       .map((e) => e.id),
+    rosterEntryIds: open.flatMap((e) =>
+      e.via === "roster" && e.rosterEntryId ? [e.rosterEntryId] : [],
+    ),
+    engagedOrgIds: [...new Set(open.map((e) => e.orgId))],
   };
+}
+
+interface EngagementRow {
+  readonly id: unknown;
+  readonly org_id: unknown;
+  readonly org_name: unknown;
+  readonly project_id: unknown;
+  readonly project_name: unknown;
+  readonly role_type: unknown;
+  readonly engagement_state: unknown;
+  readonly roster_entry_id?: unknown;
+  readonly lead_name?: unknown;
+  readonly areas?: unknown;
+}
+
+/**
+ * The person's engagements as Compass summaries: their own (api_external.engagements), then the ones they
+ * work only on a party's roster (api_external.my_roster_engagements, R8) as crew, each once.
+ */
+export function engagementSummaries(
+  own: readonly EngagementRow[],
+  rostered: readonly EngagementRow[],
+): EngagementSummary[] {
+  const summaries: EngagementSummary[] = [];
+  for (const e of own) {
+    const audience = audienceForRoleType(String(e.role_type));
+    if (!audience) continue;
+    summaries.push({
+      id: String(e.id),
+      orgId: String(e.org_id),
+      orgName: String(e.org_name),
+      projectId: String(e.project_id),
+      projectName: String(e.project_name),
+      roleType: audience,
+      state: e.engagement_state as EngagementState,
+      via: "engagement",
+      rosterEntryId: null,
+      areas: Array.isArray(e.areas) ? e.areas.map(String) : [],
+    });
+  }
+  const seen = new Set(summaries.map((s) => s.id));
+  for (const e of rostered) {
+    if (seen.has(String(e.id)) || !e.roster_entry_id) continue;
+    seen.add(String(e.id));
+    summaries.push({
+      id: String(e.id),
+      orgId: String(e.org_id),
+      orgName: String(e.org_name),
+      projectId: String(e.project_id),
+      projectName: String(e.project_name),
+      roleType: "crew",
+      state: e.engagement_state as EngagementState,
+      via: "roster",
+      rosterEntryId: String(e.roster_entry_id),
+      leadName: e.lead_name ? String(e.lead_name) : null,
+      partyRoleType: e.role_type ? String(e.role_type) : null,
+    });
+  }
+  return summaries;
 }
 
 export interface ProjectRef {
@@ -93,6 +160,10 @@ export interface OrgContext {
   readonly identity: CompassIdentity;
   readonly scope: DownloadScope;
   readonly projects: readonly ProjectRef[];
+  /** A member's org roles with their capabilities, for the role lens (A128); absent when they could not be read. */
+  readonly roles?: readonly LensRole[];
+  /** The capabilities a member holds in the org through no role (grants, delegations), for the lens's Inbox. */
+  readonly personalCapabilities?: readonly string[];
 }
 
 /**
@@ -207,6 +278,31 @@ async function memberContexts(
         .is("deleted_at", null)
     : { data: [], error: null };
   if (caps.error) throw new IdentityError("capabilities", caps.error.message);
+  // Role codes and names for the role lens (A128), and the capabilities held through no role, which keep their
+  // notices under every lens; a failed read only leaves the lens out.
+  const roleInfo = roleIds.length
+    ? await client.from("roles").select("id, code, name, org_id").in("id", roleIds)
+    : { data: [], error: null };
+  const personal = await client.rpc("role_lens_personal_capabilities");
+  const lensReadable = !roleInfo.error && !personal.error;
+  const roleById = new Map(
+    (
+      (lensReadable ? (roleInfo.data ?? []) : []) as {
+        id: string;
+        code: string;
+        name: string | null;
+        org_id: string | null;
+      }[]
+    ).map((r) => [String(r.id), r] as const),
+  );
+  const personalByOrg = new Map<string, string[]>();
+  for (const p of (lensReadable ? (personal.data ?? []) : []) as {
+    org_id: string;
+    capability_code: string;
+  }[]) {
+    const org = String(p.org_id);
+    personalByOrg.set(org, [...(personalByOrg.get(org) ?? []), String(p.capability_code)]);
+  }
   // A project role adds capabilities on its project (SIM-007: the Field Supervisor dispatches).
   const projectRoleCaps = await client.rpc("my_project_role_capabilities");
   if (projectRoleCaps.error) throw new IdentityError("capabilities", projectRoleCaps.error.message);
@@ -259,10 +355,28 @@ async function memberContexts(
       membershipId: membership.id,
       engagements: [],
     };
+    const roles: LensRole[] = roleRows
+      .filter((r) => String(r.membership_id) === membership.id)
+      .flatMap((r) => {
+        const role = roleById.get(String(r.role_id));
+        return role
+          ? [
+              {
+                id: String(role.id),
+                code: String(role.code),
+                name: role.name ?? null,
+                system: role.org_id === null || role.org_id === undefined,
+                capabilities: capsByRole.get(String(r.role_id)) ?? [],
+              },
+            ]
+          : [];
+      });
     contexts.push({
       orgId: membership.org_id,
       orgName: orgName.get(membership.org_id) ?? "",
       kind: "member",
+      roles,
+      personalCapabilities: personalByOrg.get(membership.org_id) ?? [],
       identity,
       scope: scopeFor(
         identity,
@@ -352,24 +466,21 @@ export async function resolveIdentity(
   const engagements = await client
     .schema("api_external")
     .from("engagements")
-    .select("id, org_id, org_name, project_id, project_name, role_type, engagement_state");
+    .select("id, org_id, org_name, project_id, project_name, role_type, engagement_state, areas");
   // A member whose engagement read fails still opens their own orgs; only an external sign-in needs it.
   if (engagements.error && members.length === 0)
     throw new IdentityError("engagements", engagements.error.message);
-  const summaries: EngagementSummary[] = [];
-  for (const e of engagements.error ? [] : engagements.data) {
-    const audience = audienceForRoleType(String(e.role_type));
-    if (!audience) continue;
-    summaries.push({
-      id: String(e.id),
-      orgId: String(e.org_id),
-      orgName: String(e.org_name),
-      projectId: String(e.project_id),
-      projectName: String(e.project_name),
-      roleType: audience,
-      state: e.engagement_state as EngagementState,
-    });
-  }
+  // The engagements the person works only on a party's roster (R8); a failed read leaves them out.
+  const rostered = await client
+    .schema("api_external")
+    .from("my_roster_engagements")
+    .select(
+      "id, org_id, org_name, project_id, project_name, role_type, engagement_state, roster_entry_id, lead_name",
+    );
+  const summaries = engagementSummaries(
+    engagements.error ? [] : (engagements.data as EngagementRow[]),
+    rostered.error ? [] : (rostered.data as EngagementRow[]),
+  );
   const contexts = [
     ...members,
     ...engagedContexts(personId, displayName, summaries, new Set(members.map((c) => c.orgId))),

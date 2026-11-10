@@ -8,7 +8,8 @@
     "inMaintenance": "En mantenimiento",
     "damaged": "Dañado",
     "lost": "Perdido",
-    "retired": "Dado de baja"
+    "retired": "Dado de baja",
+    "returned": "Devuelto"
   },
   "actions": {
     "checkOut": "Entregar",
@@ -21,7 +22,12 @@
     "board": "Tablero",
     "gallery": "Galería",
     "calendar": "Calendario",
-    "resource-schedule": "Programación"
+    "resource-schedule": "Programación",
+    "builtIn": {
+      "damaged": "Dañadas",
+      "hiredIn": "Alquiladas",
+      "unavailable": "No disponibles"
+    }
   },
   "collection": {
     "view": "Vista",
@@ -87,7 +93,9 @@
     "eventId": "Evento de escaneo",
     "action": "Acción",
     "comment": "Comentario",
-    "file": "Archivo"
+    "file": "Archivo",
+    "everyCount": "Repetir cada",
+    "everyUnit": "Unidad"
   },
   "errors": {
     "field": "Revisa {field}.",
@@ -118,7 +126,21 @@
     "asset_scan_unavailable": "Este activo no está en servicio, así que no se puede entregar ni devolver. Primero pásalo a Disponible.",
     "asset_scan_event_reused": "Ese escaneo ya se usó para otro elemento. Cierra esta ventana y escanea de nuevo.",
     "asset_scan_engagement_closed": "Esa contratación está Completa o Cancelada. El equipo se entrega a una contratación que siga abierta.",
-    "asset_scan_engagement_project": "Esa contratación pertenece a otro proyecto. Elige su proyecto o mantén el actual."
+    "asset_scan_engagement_project": "Esa contratación pertenece a otro proyecto. Elige su proyecto o mantén el actual.",
+    "asset_returned_through_goods_return": "Una unidad vuelve a su proveedor mediante una devolución en su orden de compra, no cambiando su estado.",
+    "unit_receipt_element": "La clase de la unidad no es el artículo que pidió esa línea de recepción.",
+    "unit_receipt_exceeds": "Esa línea de recepción ya ingresó tantas unidades como recibió.",
+    "unit_receipt_immutable": "Una unidad conserva la línea de recepción con la que llegó.",
+    "asset_reserved_for_other": "Esta unidad está reservada para otra persona ahora. Entrégala contra su asignación.",
+    "asset_class_held_for_reservations": "Las unidades que quedan están reservadas para otros ahora. Entrégala contra una asignación.",
+    "custody_not_reserved_holder": "Esa asignación es de otra persona.",
+    "custody_reservation_exhausted": "Ya está fuera todo lo que cubre esa asignación.",
+    "custody_reservation_window": "Las fechas de esa asignación terminaron.",
+    "custody_roster_engagement": "La persona no está en el equipo de esa contratación.",
+    "custody_roster_entry_not_live": "El equipo va a una entrada aceptada por el revisor y por la persona.",
+    "lot_held_for_reservations": "Lo que queda de este lote está reservado para otros ahora.",
+    "lot_reservation_mismatch": "Esa reserva es de otro lote.",
+    "maintenance_plan_unit": "Este plan no cubre esta unidad. Elige una unidad a la que se aplique."
   },
   "load": {
     "loading": "Cargando activos",
@@ -334,5 +356,78 @@
     "unitsTitle": "Activos en {project}",
     "empty": "Aún no hay equipo entregado a {project}. Entrega unidades a este proyecto desde el registro de custodia.",
     "emptyAction": "Abrir el registro de custodia"
+  },
+  "hire": {
+    "endsAt": "Fin del alquiler",
+    "offHire": "Devolución",
+    "offHireDue": "Devolución pendiente",
+    "acquisition": "Adquisición",
+    "purchase": "Comprada",
+    "rental": "Alquilada"
+  },
+  "provenance": {
+    "title": "Procedencia",
+    "order": "Orden de compra",
+    "rental": "Alquiler",
+    "vendor": "Proveedor",
+    "receivedAt": "Recibida",
+    "hireEnds": "Fin del alquiler"
+  },
+  "availability": {
+    "line": "Disponibles {available} de {total} {unit} para estas fechas",
+    "loading": "Comprobando disponibilidad.",
+    "failed": "No se pudo comprobar la disponibilidad."
+  },
+  "reservations": {
+    "title": "Reservas",
+    "empty": "No hay reservas de esta unidad ni de su clase.",
+    "pinned": "Reservada para una asignación",
+    "classStock": "Reserva del inventario de la clase",
+    "window": "{from} a {to}",
+    "conflict": "En conflicto: {conflict}",
+    "allocation": "Asignación",
+    "noAllocation": "Sin asignación",
+    "allocationHelp": "Asignaciones aprobadas de esta clase con reservas pendientes. La unidad va a la persona de la reserva."
+  },
+  "schedule": {
+    "sections": "Secciones de mantenimiento",
+    "schedule": "Programa",
+    "log": "Registro",
+    "title": "Programa de mantenimiento",
+    "all": "Todos",
+    "filterLabel": "Filtrar por estado",
+    "statuses": {
+      "pending": "Pendiente",
+      "overdue": "Vencido",
+      "completed": "Completado"
+    },
+    "empty": "Nada programado aquí. Agrega un plan para que el trabajo venza por sí solo.",
+    "line": "{status}. Vence {due}. Último realizado {last}.",
+    "noDate": "sin definir",
+    "everyUnitOf": "Cada unidad de {name}",
+    "nextDue": "{title} vence próximamente el {date}.",
+    "intervals": {
+      "Day": "Días",
+      "Week": "Semanas",
+      "Month": "Meses",
+      "Year": "Años"
+    },
+    "complete": "Completar",
+    "completeLabel": "Completar {title} en {unit}",
+    "create": {
+      "open": "Agregar plan",
+      "title": "Agregar un plan de mantenimiento",
+      "description": "Indica qué vence, cuándo por primera vez y con qué frecuencia. Deja el intervalo en blanco para un trabajo único.",
+      "submit": "Agregar plan",
+      "appliesTo": "Se aplica a",
+      "planTitle": "Qué se debe hacer",
+      "firstDue": "Primer vencimiento",
+      "every": "Cada",
+      "everyHelp": "Cuántas de la unidad de abajo entre cada vez.",
+      "unit": "Unidad",
+      "once": "Solo una vez",
+      "instructions": "Instrucciones"
+    },
+    "rowTitle": "{title} · {tag}"
   }
 }

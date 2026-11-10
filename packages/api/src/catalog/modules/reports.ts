@@ -10,6 +10,7 @@ import { defineAdditions } from "../additions.ts";
 import { editDefinition, editShape, orNull, putActions } from "../correct.ts";
 import { collectionQuery, resource } from "../define.ts";
 import { reportMetricCorrections } from "./parts/report-metrics.ts";
+import { Constants } from "@xos/data/database.types";
 
 const label = (values: readonly [string, ...string[]], description: string) =>
   z.enum(values).meta({ description, example: values[0] });
@@ -54,7 +55,7 @@ const ReportDelivery = editDefinition(
   { nullable: ["created_by", "updated_by"] },
 );
 
-const FORMATS = ["CSV", "XLSX", "PDF"] as const;
+const FORMATS = Constants.app.Enums.export_format;
 
 export const additions = defineAdditions("Reports", {
   resources: [
@@ -80,7 +81,7 @@ export const additions = defineAdditions("Reports", {
         remove: ["rrule", "format"],
         add: {
           cadence: {
-            schema: label(["Daily", "Weekly", "Monthly"], "How often the report is sent."),
+            schema: label(Constants.app.Enums.schedule_cadence, "How often the report is sent."),
             create: "required",
           },
           local_hour: {
@@ -159,7 +160,7 @@ export const additions = defineAdditions("Reports", {
         remove: ["definition"],
         add: {
           chart: {
-            schema: label(["Table", "Bar", "Line", "Area", "Pie", "Number"], "Chart type."),
+            schema: label(Constants.app.Enums.report_chart, "Chart type."),
             create: "optional",
           },
           group_by_field: {
@@ -191,7 +192,7 @@ export const additions = defineAdditions("Reports", {
         remove: ["document_id"],
         add: {
           run_status: {
-            schema: label(["Queued", "Running", "Succeeded", "Failed"], "Run status."),
+            schema: label(Constants.app.Enums.run_status, "Run status."),
           },
           run_for_membership_id: { schema: fields.ref("membership the run is for") },
           started_at: { schema: orNull(fields.instant("When the run started.")) },

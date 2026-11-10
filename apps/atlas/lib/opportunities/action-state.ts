@@ -16,6 +16,8 @@ export interface OpportunityActionState {
 
 /** Refusal rules with their own sentence in the catalog; any other rule reads the generic refusal with its code. */
 export const KNOWN_RULES: ReadonlySet<string> = new Set([
+  // ADR 0164: a question cannot ask for what no consent step covers.
+  "question_sensitive",
   "requisition_required",
   "requisition_not_approved",
   "requisition_mismatch",
@@ -56,6 +58,10 @@ export const KNOWN_RULES: ReadonlySet<string> = new Set([
   "pool_member_own_org",
   "rating_engagement_not_complete",
   "rating_not_released",
+  "rating_dispute_decided",
+  "rating_dispute_answered",
+  "rating_dispute_response",
+  "sod_rating_dispute_answer",
   "sod_rating_self",
   "deliverable_return_reason",
   "sod_deliverable_self",
@@ -68,7 +74,69 @@ export const KNOWN_RULES: ReadonlySet<string> = new Set([
   "XOS-ENG-6",
   "plan_limit_exceeded",
   "transition_reason_required",
+  "question_template_not_found",
+  "question_template_not_draft",
+  "opportunity_hidden_client_named",
+  "opportunity_hidden_client_published",
+  "XOS_ENG_1",
+  "XOS_ENG_2",
+  "XOS_ENG_3",
+  "XOS_ENG_4",
+  "XOS_ENG_5",
+  "XOS_ENG_6",
+  "insureds_none_required",
+  "insureds_vendor_only",
+  "registration_page_pool",
+  "registration_page_slug_fixed",
+  "registration_page_minimum_age_fixed",
+  "registration_page_not_draft",
+  "registration_page_closed",
+  "registration_question_fixed",
+  "registration_not_found",
+  "sod_registration_self",
+  "registration_not_submitted",
+  "registration_person_excluded",
+  "registration_decide_batch",
+  "registration_invite_limit",
+  "document_template_fields",
+  "document_template_kind",
+  "document_template_rate_title",
+  "document_template_in_use",
+  "document_template_not_found",
+  "document_batch_size",
+  "document_batch_requirement",
+  "document_batch_person",
+  "document_merge_unresolved",
+  "document_merge_rate_restricted",
+  "document_batch_title",
+  "document_batch_body",
+  "document_batch_duplicate",
+  "document_batch_no_item",
+  "document_text_signed",
+  "document_text_fixed",
+  "document_text_sign_with_hash",
+  "pool_invitation_pool",
+  "pool_invitation_phone",
+  "pool_invitation_duplicate",
+  "pool_invitation_declined",
+  "pool_invitation_daily_limit",
+  "pool_invitation_answered",
+  "pool_invitation_fixed",
+  "pool_rate_not_permitted",
+  "pool_rate_invalid",
+  "invitation_email",
+  "invite_expiry_range",
+  "invitation_closed",
 ]);
+
+/** Refusals that point at fields, with each field's key under `opportunities.fieldErrors` (3870). */
+const RULE_FIELDS: Readonly<Record<string, Readonly<Record<string, string>>>> = {
+  opportunity_hidden_client_named: {
+    title: "hiddenClientNamed",
+    description: "hiddenClientNamed",
+  },
+  opportunity_hidden_client_published: { hideClientUntilBooked: "hiddenClientPublished" },
+};
 
 /** A repository error as the state a form shows. */
 export function errorState(
@@ -79,8 +147,9 @@ export function errorState(
   switch (error.kind) {
     case "refusal": {
       const key = error.rule.replace(/-/g, "_");
+      const fields = RULE_FIELDS[error.rule];
       return KNOWN_RULES.has(error.rule)
-        ? { ...base, error: `refusal.${key}` }
+        ? { ...base, error: `refusal.${key}`, ...(fields ? { fieldErrors: fields } : {}) }
         : { ...base, error: "refusal.generic", rule: error.rule };
     }
     case "not-found":

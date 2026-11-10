@@ -122,7 +122,7 @@ describe("Compass help content", () => {
 
   it("calls a project gate a compuerta in Spanish (decision 27)", () => {
     // Logistics names the physical vehicle gate, which stays a gate (acceso, puerta) in Spanish.
-    const PHYSICAL = new Set(["logistics"]);
+    const PHYSICAL = new Set(["logistics", "logistics-gate"]);
     for (const a of english.filter((x) => !PHYSICAL.has(x.slug))) {
       if (!/\bgates?\b/i.test(`${a.title} ${a.summary} ${bodyText(a.body)}`)) continue;
       const es = content.articles["es-US"].find((x) => x.slug === a.slug);

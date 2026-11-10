@@ -69,6 +69,14 @@ export async function resolveSettings(
   );
 }
 
+/** The org's locale.language setting, or null when it cannot be read. It says how the org writes numbers and phones. */
+export async function readOrgLanguage(db: XosClient, orgId: string): Promise<string | null> {
+  const settings = await resolveSettings(db, { orgId });
+  if (!settings.ok) return null;
+  const value = settings.data.get("locale.language")?.value;
+  return typeof value === "string" && value !== "" ? value : null;
+}
+
 /**
  * The time zone dates resolve in for the signed-in person in an org: its locale.time_zone setting,
  * UTC when unset, unknown or unreadable, the same calendar Atlas pages use (A71). The Aurora API reads
@@ -541,6 +549,21 @@ export async function removeFavorite(db: XosClient, favoriteId: string): Promise
     .select("id");
   if (error) return fail(toDataError(error));
   return data.length === 1 ? ok(null) : fail({ kind: "not-found" });
+}
+
+/**
+ * Puts the person's favorites in an org in the order given (app.reorder_favorites, migration 2090): one update
+ * that runs as the caller, so only their own favorites change. Returns how many took a position.
+ */
+export async function reorderFavorites(
+  db: XosClient,
+  input: { readonly orgId: string; readonly favoriteIds: readonly string[] },
+): Promise<Result<number>> {
+  const { data, error } = await db.rpc("reorder_favorites", {
+    p_org_id: input.orgId,
+    p_favorite_ids: [...input.favoriteIds],
+  });
+  return error ? fail(toDataError(error)) : ok(data);
 }
 
 // Persona -------------------------------------------------------------------------------------------

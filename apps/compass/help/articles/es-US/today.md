@@ -8,6 +8,10 @@ order: 1
 
 Hoy es la primera pestaña. Desliza hacia abajo para actualizar.
 
+## Búsqueda
+
+El cuadro de búsqueda de arriba encuentra tus turnos, tareas, registros, personas, referencia como procedimientos operativos, canales de radio y códigos de emergencia, y acciones como **Reportar un incidente**. Busca en lo que ya está en tu teléfono, así que funciona sin conexión. Escribe un código completo, como el de un procedimiento o el número de un canal, para que aparezca primero. Toca un resultado para abrirlo.
+
 ## Marcar entrada y salida
 
 Si trabajas por turnos, la tarjeta del reloj muestra dónde estás respecto al límite del sitio. **Marcar entrada** funciona cuando tienes un turno aceptado hoy en el proyecto, tu ubicación está activada y estás dentro del límite. En turno, la tarjeta muestra el tiempo trabajado con **Iniciar descanso**, **Terminar descanso** y **Marcar salida**. En iPhone el reloj también aparece en la pantalla bloqueada.

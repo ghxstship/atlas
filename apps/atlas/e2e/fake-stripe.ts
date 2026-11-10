@@ -12,6 +12,14 @@ import { serviceClient } from "./a79-support";
  * and a portal page. Paying on the Checkout page delivers what Stripe would: `checkout.session.completed`
  * and `customer.subscription.created`, signed with a webhook secret made up for the run and applied through
  * the platform's webhook handler against the local stack, as the stripe-webhook Edge Function does.
+ *
+ * ADR 0161: it also keeps the subscriptions it created and answers their cancel, delivering
+ * `customer.subscription.deleted` or `customer.subscription.updated` as Stripe would. `setDown(true)` makes every
+ * subscription call fail with a 503, which is how the journeys see Stripe unreachable.
+ * Every id it hands out carries a token made up for the run. The database keeps the sessions, events and
+ * subscriptions of earlier runs, and each Playwright worker (another engine, a retry, a rerun) starts its own fake,
+ * so ids counted from 1 again would name rows an earlier run recorded: record_billing_checkout would keep the old
+ * session, the event would count as a duplicate and the subscription would belong to another org.
  */
 
 /** The fake Stripe key the journey server runs with: allowlisted as fake in .gitleaks.toml. */
@@ -28,10 +36,26 @@ interface FakeSession {
   customer: string | null;
   customerEmail: string | null;
   trialEnd: number | null;
+  /** The renewal terms Checkout repeats above its pay button (ADR 0161). */
+  renewalMessage: string | null;
+  /** The currency Checkout was told to charge. */
+  currency: string;
   lineItems: { price: string; quantity: number }[];
   successUrl: string;
   cancelUrl: string;
   expiresAt: number;
+}
+
+interface FakeSubscription {
+  id: string;
+  object: "subscription";
+  customer: string;
+  currency: string;
+  status: string;
+  cancel_at_period_end: boolean;
+  cancel_at: number | null;
+  metadata: { org_id: string };
+  items: { object: "list"; data: unknown[] };
 }
 
 export interface FakeStripe {
@@ -39,6 +63,12 @@ export interface FakeStripe {
   readonly sessions: ReadonlyMap<string, FakeSession>;
   /** Every API request Atlas made, in order. */
   readonly requests: readonly { method: string; path: string }[];
+  /** The subscriptions Checkout created, by id. */
+  readonly subscriptions: ReadonlyMap<string, FakeSubscription>;
+  /** Makes subscription calls fail with a 503, as if Stripe were unreachable. */
+  setDown(down: boolean): void;
+  /** Delivers a signed event as Stripe would, for a state the journey needs. */
+  deliver(type: string, object: unknown): Promise<void>;
   close(): Promise<void>;
 }
 
@@ -107,14 +137,19 @@ export async function startFakeStripe(port: number = FAKE_STRIPE_PORT): Promise<
   const sessions = new Map<string, FakeSession>();
   const portals = new Map<string, { customer: string; returnUrl: string }>();
   const requests: { method: string; path: string }[] = [];
+  const subscriptions = new Map<string, FakeSubscription>();
+  let down = false;
   const lookupKeys = knownLookupKeys();
+  const run = randomBytes(6).toString("hex");
   let next = 1;
+  /** A Stripe-shaped id no earlier run handed out: the prefix, the run's token and a counter. */
+  const newId = (prefix: string) => `${prefix}${run}${String(next++)}`;
   const store = billingStore(supabaseDb(serviceClient()));
   const base = `http://127.0.0.1:${String(port)}`;
 
   async function deliver(type: string, object: unknown): Promise<void> {
     const body = JSON.stringify({
-      id: `evt_fake${String(next++)}`,
+      id: newId("evt_fake"),
       object: "event",
       type,
       livemode: false,
@@ -136,8 +171,8 @@ export async function startFakeStripe(port: number = FAKE_STRIPE_PORT): Promise<
   }
 
   async function pay(session: FakeSession): Promise<void> {
-    const customer = session.customer ?? `cus_fake${String(next++)}`;
-    const subscription = `sub_fake${String(next++)}`;
+    const customer = session.customer ?? newId("cus_fake");
+    const subscription = newId("sub_fake");
     session.status = "complete";
     session.customer = customer;
     await deliver("checkout.session.completed", {
@@ -151,27 +186,71 @@ export async function startFakeStripe(port: number = FAKE_STRIPE_PORT): Promise<
       metadata: { org_id: session.orgId },
     });
     const periodEnd = session.trialEnd ?? now() + 30 * 86_400;
-    await deliver("customer.subscription.created", {
+    const created: FakeSubscription = {
       id: subscription,
       object: "subscription",
       customer,
+      currency: session.currency,
       status: session.trialEnd === null ? "active" : "trialing",
+      cancel_at_period_end: false,
+      cancel_at: null,
       metadata: { org_id: session.orgId },
       items: {
         object: "list",
         data: session.lineItems.map((item, i) => ({
-          id: `si_fake${String(i)}`,
+          id: `si_fake${run}${String(i)}`,
           quantity: item.quantity,
           current_period_end: periodEnd,
           price: { id: item.price, lookup_key: lookupKeyOf(item.price) },
         })),
       },
-    });
+    };
+    subscriptions.set(subscription, created);
+    await deliver("customer.subscription.created", created);
+  }
+
+  /** Stripe's subscription calls: read, cancel at once, and cancel at period end. */
+  async function subscriptionApi(
+    request: IncomingMessage,
+    response: ServerResponse,
+    id: string,
+  ): Promise<void> {
+    if (down) {
+      json(response, 503, { error: { type: "api_error", message: "Stripe is unavailable" } });
+      return;
+    }
+    const found = subscriptions.get(id);
+    if (!found || (found.status === "canceled" && request.method !== "GET")) {
+      missing(response, "subscription");
+      return;
+    }
+    if (request.method === "DELETE") {
+      found.status = "canceled";
+      json(response, 200, found);
+      await deliver("customer.subscription.deleted", found);
+      return;
+    }
+    if (request.method === "POST") {
+      const form = await readForm(request);
+      if (form.get("cancel_at_period_end") === "true") {
+        found.cancel_at_period_end = true;
+        found.cancel_at = now() + 30 * 86_400;
+      }
+      json(response, 200, found);
+      await deliver("customer.subscription.updated", found);
+      return;
+    }
+    json(response, 200, found);
   }
 
   async function api(request: IncomingMessage, response: ServerResponse, url: URL): Promise<void> {
     requests.push({ method: request.method ?? "GET", path: url.pathname });
     const route = `${request.method ?? "GET"} ${url.pathname}`;
+    const subscriptionPath = /^\/v1\/subscriptions\/(sub_[A-Za-z0-9]+)$/.exec(url.pathname);
+    if (subscriptionPath) {
+      await subscriptionApi(request, response, subscriptionPath[1] ?? "");
+      return;
+    }
     if (route === "GET /v1/prices") {
       const key = url.searchParams.get("lookup_keys[0]") ?? "";
       json(response, 200, {
@@ -186,7 +265,7 @@ export async function startFakeStripe(port: number = FAKE_STRIPE_PORT): Promise<
     }
     if (route === "POST /v1/checkout/sessions") {
       const form = await readForm(request);
-      const id = `cs_test_Fake${String(next++)}`;
+      const id = newId("cs_test_Fake");
       const lineItems: FakeSession["lineItems"] = [];
       for (let i = 0; form.has(`line_items[${String(i)}][price]`); i += 1) {
         lineItems.push({
@@ -195,6 +274,7 @@ export async function startFakeStripe(port: number = FAKE_STRIPE_PORT): Promise<
         });
       }
       const trialEnd = form.get("subscription_data[trial_end]");
+      const renewalMessage = form.get("custom_text[submit][message]");
       const session: FakeSession = {
         id,
         status: "open",
@@ -202,6 +282,8 @@ export async function startFakeStripe(port: number = FAKE_STRIPE_PORT): Promise<
         customer: form.get("customer"),
         customerEmail: form.get("customer_email"),
         trialEnd: trialEnd === null ? null : Number(trialEnd),
+        renewalMessage,
+        currency: form.get("currency") ?? "usd",
         lineItems,
         successUrl: form.get("success_url") ?? "",
         cancelUrl: form.get("cancel_url") ?? "",
@@ -242,7 +324,7 @@ export async function startFakeStripe(port: number = FAKE_STRIPE_PORT): Promise<
     }
     if (route === "POST /v1/billing_portal/sessions") {
       const form = await readForm(request);
-      const id = `bps_fake${String(next++)}`;
+      const id = newId("bps_fake");
       portals.set(id, {
         customer: form.get("customer") ?? "",
         returnUrl: form.get("return_url") ?? "",
@@ -282,12 +364,13 @@ export async function startFakeStripe(port: number = FAKE_STRIPE_PORT): Promise<
 <ul aria-label="Line items">${items}</ul>
 <p>${session.trialEnd === null ? "Charged today." : `Trial until ${new Date(session.trialEnd * 1000).toISOString().slice(0, 10)}.`}</p>
 <p>Customer: ${escape(session.customer ?? session.customerEmail ?? "new")}</p>
+<p data-testid="renewal-message">${escape(session.renewalMessage ?? "")}</p>
 <form method="post"><button type="submit">Pay and subscribe</button></form>
 <p><a href="${escape(session.cancelUrl)}">Back to XOS</a></p>`,
       );
       return;
     }
-    const portal = /^\/portal\/(bps_fake[0-9]+)$/.exec(url.pathname);
+    const portal = /^\/portal\/(bps_fake[0-9a-f]+)$/.exec(url.pathname);
     if (portal) {
       const found = portals.get(portal[1] ?? "");
       if (!found) return missing(response, "portal session");
@@ -317,6 +400,11 @@ export async function startFakeStripe(port: number = FAKE_STRIPE_PORT): Promise<
     url: base,
     sessions,
     requests,
+    subscriptions,
+    setDown: (value) => {
+      down = value;
+    },
+    deliver,
     close: () => new Promise<void>((resolve) => server.close(() => resolve())),
   };
 }

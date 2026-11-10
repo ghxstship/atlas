@@ -8,6 +8,7 @@
  * are removed and sending stays the `send` action (app.send_advance_packet, 0430).
  */
 import { z } from "@hono/zod-openapi";
+import { Constants } from "@xos/data/database.types";
 import { defineResource, fields } from "@xos/schemas";
 import { defineAdditions } from "../additions.ts";
 import {
@@ -19,11 +20,25 @@ import {
   removeActions,
   setCapabilities,
 } from "../correct.ts";
-import { itemAction, resource } from "../define.ts";
+import { collectionAction, collectionQuery, itemAction, resource } from "../define.ts";
+import {
+  ADVANCE_TRACKS,
+  advanceTrackActions,
+  advanceTrackCapabilities,
+  advanceTrackResources,
+} from "./parts/advance-tracks.ts";
+import { allocationCapabilities, allocationResources } from "./parts/allocations.ts";
+import { rosterEntryCapabilities, rosterEntryResources } from "./parts/roster-project-facts.ts";
+import {
+  SECTION_KINDS,
+  WINDOW_KINDS,
+  typedAdvanceCapabilities,
+  typedAdvanceResources,
+} from "./parts/typed-advances.ts";
 
 const SINCE = "1.0.0-draft.2";
 
-const ReviewOutcome = z.enum(["Accepted", "Returned"]);
+const ReviewOutcome = z.enum(Constants.app.Enums.advance_review_outcome);
 
 const reviewBody = z
   .object({
@@ -38,7 +53,7 @@ const reviewBody = z
   })
   .meta({ id: "AdvanceSubmissionReviewRequest", description: "Review of one advance answer." });
 
-const GuestState = z.enum(["Requested", "Approved", "Declined", "Checked In"]);
+const GuestState = z.enum(Constants.app.Enums.guest_entry_state);
 
 /**
  * app.guest_list_entries (0431, 0965). The audit people are nullable, as ADR 0023 made them for
@@ -70,6 +85,27 @@ const GuestListEntry = editDefinition(
       decided_by: orNull(fields.ref("person who decided, set by the database")),
       checked_in_at: orNull(fields.instant("When the guest was checked in. Set by the database.")),
       checked_in_by: orNull(fields.ref("person who checked the guest in, set by the database")),
+      // B8 (6254): the guest's pass, set by the production while the guest is not checked in.
+      pass_category_id: orNull(
+        fields.ref("pass type: an Access credential category of the same project"),
+      ),
+      table_label: orNull(fields.text("Table or seat.", "Table 4", 60)),
+      host_person_id: orNull(
+        fields.ref("project person hosting the guest, alerted when the guest arrives"),
+      ),
+      guest_email: orNull(
+        fields.text(
+          "Where the guest's pass and messages go, lowercased. Confidential.",
+          "sasha@example.com",
+          320,
+        ),
+      ),
+      pass_code: orNull(
+        fields.code(
+          "Pass code the door scans (XOSGP1:<code>), stamped by the database on approval.",
+          "GP-ABCDEFGHIJ",
+        ),
+      ),
     },
     serverSet: [
       "person_id",
@@ -80,14 +116,135 @@ const GuestListEntry = editDefinition(
       "decided_by",
       "checked_in_at",
       "checked_in_by",
+      "pass_code",
     ],
     immutable: ["project_id"],
   }),
   { nullable: ["created_by", "updated_by"] },
 );
 
+const GuestEmailKind = z.enum(Constants.app.Enums.guest_email_kind);
+
+/** app.guest_email_sends (6255, B8): one bulk email staff sent to a project's guests. */
+const GuestEmailSend = defineResource({
+  name: "GuestEmailSend",
+  table: "app.guest_email_sends",
+  description:
+    "A bulk email staff sent to a project's guests (gap G-71): an invitation, their pass or a message, in one language. Written only by the send-email action.",
+  serverSet: ["project_id", "email_kind", "subject", "body", "locale", "created_by", "updated_by"],
+  fields: {
+    project_id: fields.ref("project"),
+    email_kind: GuestEmailKind.meta({
+      description: "Invitation, Pass or Message.",
+      example: "Pass",
+    }),
+    subject: orNull(fields.text("Subject of a Message.", "Doors open at 7", 150)),
+    body: orNull(
+      fields.text(
+        "Text of a Message, or a note on an invitation or pass.",
+        "See you tonight.",
+        5000,
+      ),
+    ),
+    locale: z
+      .enum(["en-US", "es-US"])
+      .meta({ description: "Language of the email.", example: "en-US" }),
+    created_by: orNull(fields.uuid("Person who sent it.")),
+    updated_by: orNull(fields.uuid("Always null: a send is never changed.")),
+  },
+});
+
+const sendEmailBody = z
+  .object({
+    project_id: fields.uuid("Project of the guests."),
+    guest_list_entry_ids: z
+      .array(fields.uuid("Guest list entry."))
+      .min(1)
+      .max(500)
+      .meta({
+        description: "The guests to email, 1 to 500.",
+        example: ["0192a000-0000-7000-8000-000000000001"],
+      }),
+    email_kind: GuestEmailKind.meta({
+      description: "Invitation, Pass (their pass attached as a PDF) or Message.",
+      example: "Pass",
+    }),
+    subject: z.string().min(1).max(150).optional().meta({
+      description: "Subject; required for a Message, not allowed otherwise.",
+      example: "Doors open at 7",
+    }),
+    body: z.string().min(1).max(5000).optional().meta({
+      description: "Text; required for a Message.",
+      example: "See you tonight.",
+    }),
+    locale: z
+      .enum(["en-US", "es-US"])
+      .optional()
+      .meta({ description: "Language of the email; en-US when left out.", example: "es-US" }),
+  })
+  .meta({ id: "GuestEmailSendRequest", description: "An email to selected guests of a project." });
+
+const sendEmailResponse = z
+  .object({ send_id: fields.uuid("The send; read its rows' states at /guest-email-sends/{id}.") })
+  .meta({ id: "GuestEmailSendQueued", description: "A queued guest email send." });
+const GuestNeedsRequest = z
+  .object({
+    dietary_needs: z.array(z.enum(Constants.app.Enums.dietary_need)).optional(),
+    allergies: orNull(
+      fields.text("Allergies, with how severe.", "Peanuts, severe", 500),
+    ).optional(),
+    dietary_notes: orNull(fields.text("Other dietary notes.", "No pork.", 500)).optional(),
+    accessibility_needs: z.array(z.enum(Constants.app.Enums.accessibility_need)).optional(),
+    accessibility_notes: orNull(
+      fields.text("Accessibility needs in words.", "Needs a seat near the exit.", 1000),
+    ).optional(),
+    guest_email: orNull(
+      fields.text(
+        "The guest's email, so they can see this and remove it. Left out, the email on file stays.",
+        "jo@example.com",
+        320,
+      ),
+    ).optional(),
+    clear_guest_email: fields.bool("Removes the email on file.", false).optional(),
+    authority_confirmed: fields.bool("The caller has the guest's authority to enter this.", true),
+    notice_confirmed: fields.bool(
+      "The guest has been told what is entered, why and who sees it.",
+      true,
+    ),
+    dietary_notice_version: orNull(
+      fields.text("Version of the dietary wording the caller read.", "2026-11-06", 20),
+    ).optional(),
+    accessibility_notice_version: orNull(
+      fields.text("Version of the accessibility wording the caller read.", "2026-11-06", 20),
+    ).optional(),
+    locale: fields.text("Language the wording was shown in.", "en-US", 10),
+  })
+  .meta({
+    id: "GuestNeedsRequest",
+    description: "A guest's needs, under the caller's attestation.",
+  });
+
+const GuestNeeds = z
+  .object({
+    guest_list_entry_id: fields.uuid("The guest."),
+    guest_name: fields.text("Name the guest gives at the door.", "Jordan Vale", 200),
+    dietary_needs: z.array(z.enum(Constants.app.Enums.dietary_need)),
+    allergies: orNull(fields.text("Allergies.", "Peanuts, severe", 500)),
+    dietary_notes: orNull(fields.text("Other dietary notes.", "No pork.", 500)),
+    accessibility_needs: z.array(z.enum(Constants.app.Enums.accessibility_need)),
+    accessibility_notes: orNull(fields.text("Accessibility notes.", "Near the exit.", 1000)),
+  })
+  .meta({
+    id: "GuestNeeds",
+    description: "A guest's needs, for a holder of the medical capability.",
+  });
+
 export const additions = defineAdditions("Advancing", {
   resources: [
+    ...rosterEntryResources,
+    ...allocationResources,
+    ...typedAdvanceResources,
+    ...advanceTrackResources,
     resource("Advancing", "/guest-list-entries", GuestListEntry, {
       actions: [
         itemAction("decide", {
@@ -103,20 +260,68 @@ export const additions = defineAdditions("Advancing", {
             })
             .meta({ id: "GuestDecisionRequest", description: "Decision on a requested guest." }),
         }),
+        itemAction("setNeeds", {
+          summary: "Set a guest's dietary and access needs",
+          description:
+            "Sets the guest's needs through `app.set_guest_care_needs`, as a full replacement, all optional; nothing given clears them. Whoever keeps the entry confirms they have the guest's authority and that the guest has had notice (422 sensitive_attestation_required), with the version of the wording they were shown for each category they enter and its language (422 sensitive_notice_version). Attested per category with who gave it, and audited without values; another keeper or another matched person is a new attestation. An email matching a verified sign-in names that person, who is told and can remove it. A person who withdrew that category, or who removed this entry, is not attested back in until they give their own consent: it is not saved, and the answer is the same. Refuses 422 guest_needs_declined for a declined guest. The values never come back here.",
+          body: GuestNeedsRequest,
+        }),
+        itemAction("clearNeeds", {
+          summary: "Remove a guest's dietary and access needs",
+          description:
+            "Deletes the guest's needs and withdraws the attestation through `app.clear_guest_care_needs`, also while the org is read-only.",
+        }),
+        collectionQuery("needs", {
+          summary: "Read guests' dietary and access needs",
+          description:
+            "The guests' needs on a project through `app.read_guest_care_needs`, for holders of data.restricted.read.medical on it, else 403. Every read is written to the org's audit ledger and to the access log of each guest with an account. Standard exports never carry these columns.",
+          paged: true,
+          response: GuestNeeds,
+          query: z.object({
+            project_id: fields.ref("project"),
+          }),
+        }),
         itemAction("checkIn", {
           summary: "Check a guest in",
           description:
             "Moves an Approved guest to Checked In at the door; the database stamps who checked them in and when. Any other state is refused (422).",
         }),
+        collectionAction("sendEmail", {
+          summary: "Email guests",
+          description:
+            "Queues an email to the selected guests of a project, sent by the org with an unsubscribe link and its postal address (B8, ADR 0147 decision 7). Every guest gets a row: Queued, Suppressed (the address is on the org's suppression list) or Skipped (no email, not live, or no pass for a Pass email). Refuses guest_email_batch (1 to 500), guest_email_rate (2,000 a day per org) and guest_email_message (422).",
+          body: sendEmailBody,
+          response: sendEmailResponse,
+          status: 202,
+          segment: "send-email",
+          rpc: "app.queue_guest_emails",
+        }),
       ],
     }),
+    resource("Advancing", "/guest-email-sends", GuestEmailSend, {
+      verbs: ["list", "get"],
+      order: { by: ["created_at"], numeric: false, descending: true },
+    }),
   ],
+  actions: advanceTrackActions,
   capabilities: {
+    ...rosterEntryCapabilities,
+    ...allocationCapabilities,
+    ...typedAdvanceCapabilities,
+    ...advanceTrackCapabilities,
     guestListEntries: {
       read: "advancing.packet.read",
       write: "advancing.rider.write",
-      actions: { decide: "advancing.submission.review", checkIn: "advancing.rider.write" },
+      actions: {
+        decide: "advancing.submission.review",
+        checkIn: "advancing.rider.write",
+        sendEmail: "advancing.rider.write",
+        setNeeds: "advancing.rider.write",
+        clearNeeds: "advancing.rider.write",
+        needs: "data.restricted.read.medical",
+      },
     },
+    guestEmailSends: { read: "advancing.packet.read" },
   },
   corrections: [
     {
@@ -169,6 +374,186 @@ export const additions = defineAdditions("Advancing", {
           },
         },
       }),
+    },
+    {
+      id: "advance-section-kinds",
+      since: SINCE,
+      resources: ["advanceSections"],
+      components: ["schemas/AdvanceSectionConfigureRequest"],
+      change:
+        "Adds `section_kind`, `window_kind`, `max_lines` and `per_person`, optional on create, and the `configure` action that changes them while the packet is a draft.",
+      reason:
+        "app.advance_sections (4710, R9) stores the section kind (Text, File, Schedule Window, Item Request, Crew Roster, Guest List or Credential Request) and its configuration, held to the kind by advance_sections_kind_fields and fixed once the packet is sent (advance_packet_sections_fixed).",
+      apply: all(
+        editShape({
+          add: {
+            section_kind: {
+              schema: z.enum(SECTION_KINDS).meta({
+                description: "What the section asks for; Text unless given.",
+                example: "Item Request",
+              }),
+              create: "optional",
+              update: false,
+            },
+            window_kind: {
+              schema: orNull(
+                z.enum(WINDOW_KINDS).meta({
+                  description: "For a Schedule Window section, what the window is.",
+                  example: "Load In",
+                }),
+              ),
+              create: "optional",
+              update: false,
+            },
+            max_lines: {
+              schema: orNull(
+                fields.int(
+                  "Most files (1 to 10), windows (1 to 5) or lines (1 to 50) of one answer.",
+                  6,
+                  1,
+                ),
+              ),
+              create: "optional",
+              update: false,
+            },
+            per_person: {
+              schema: fields.bool(
+                "For an Item Request or Credential Request, true when every line names one person on the roster.",
+                false,
+              ),
+              create: "optional",
+              update: false,
+            },
+          },
+        }),
+        putActions(
+          [
+            itemAction("configure", {
+              summary: "Configure an advance section",
+              description:
+                "Sets a draft section's kind and configuration. The kind decides which of window_kind, max_lines and per_person apply (23514 as 422 otherwise); a sent packet's sections are fixed (advance_packet_sections_fixed, 422), and a section with choices keeps its kind (advance_section_kind_choices, 422).",
+              body: z
+                .object({
+                  section_kind: z
+                    .enum(SECTION_KINDS)
+                    .meta({ description: "Section kind.", example: "Schedule Window" }),
+                  window_kind: z.enum(WINDOW_KINDS).nullable().optional().meta({
+                    description: "Window kind, for a Schedule Window.",
+                    example: "Load In",
+                  }),
+                  max_lines: z
+                    .number()
+                    .int()
+                    .min(1)
+                    .max(50)
+                    .nullable()
+                    .optional()
+                    .meta({ description: "Most lines or files of one answer.", example: 2 }),
+                  per_person: z
+                    .boolean()
+                    .optional()
+                    .meta({ description: "Every line names a person.", example: false }),
+                })
+                .meta({
+                  id: "AdvanceSectionConfigureRequest",
+                  description: "The kind and configuration of a section.",
+                }),
+            }),
+          ],
+          { configure: "advancing.packet.write" },
+        ),
+      ),
+    },
+    {
+      id: "advance-section-track",
+      since: SINCE,
+      resources: ["advanceSections"],
+      change:
+        "Adds `track`, the track the section is grouped under (Finance, Technical, Hospitality, Catering, Travel, Logistics or General), optional on create and General unless given; the `setTrack` action changes it.",
+      reason:
+        "app.advance_sections.track (6223, R11, parity gap G-176) groups a packet's sections into tracks a reviewer signs off one by one; it is a grouping label that stays editable after the packet is sent, and defaults to General.",
+      apply: editShape({
+        add: {
+          track: {
+            schema: z.enum(ADVANCE_TRACKS).meta({
+              description: "Track the section is grouped under; General unless given.",
+              example: "Hospitality",
+            }),
+            create: "optional",
+            update: false,
+          },
+        },
+      }),
+    },
+    {
+      id: "advance-recipient-engagement",
+      since: SINCE,
+      resources: ["advanceRecipients"],
+      components: [
+        "schemas/AdvanceRecipientBindEngagementRequest",
+        "schemas/AdvanceRecipientSetNamesDueRequest",
+      ],
+      change:
+        "Adds `engagement_id`, the engagement the recipient answers under, and `names_due_at`, the naming deadline (both optional on create), with the `bindEngagement` and `setNamesDue` actions.",
+      reason:
+        "app.advance_recipients.engagement_id (4710, R9) links a recipient to a live engagement of the same party on the packet's project, fixed once the packet is sent (advance_recipient_engagement); names_due_at (4716, G-141) is when the party stops naming people on requested passes, only with an engagement and editable after send.",
+      apply: all(
+        editShape({
+          add: {
+            engagement_id: {
+              schema: orNull(fields.ref("engagement the recipient answers under")),
+              create: "optional",
+              update: false,
+            },
+            names_due_at: {
+              schema: orNull(
+                fields.instant(
+                  "When the party stops naming people on the passes it requested through this recipient.",
+                ),
+              ),
+              create: "optional",
+              update: false,
+            },
+          },
+        }),
+        putActions(
+          [
+            itemAction("bindEngagement", {
+              summary: "Link a recipient to its engagement",
+              description:
+                "Sets or clears the engagement a draft packet's recipient answers under: a live engagement of the same party on the packet's project (advance_recipient_engagement, 422); fixed once the packet is sent.",
+              body: z
+                .object({
+                  engagement_id: z.uuid().nullable().meta({
+                    description: "The engagement, or null to clear it.",
+                    example: "01920000-0000-7000-8000-000000000001",
+                  }),
+                })
+                .meta({
+                  id: "AdvanceRecipientBindEngagementRequest",
+                  description: "The engagement a recipient answers under.",
+                }),
+            }),
+            itemAction("setNamesDue", {
+              summary: "Set a recipient's naming deadline",
+              description:
+                "Sets or clears when the party stops naming, renaming and unnaming people on the passes it requested through this recipient (G-141). Production can still change them afterwards. Needs an engagement (advance_recipients_names_due_engagement, 422); editable after the packet is sent.",
+              body: z
+                .object({
+                  names_due_at: z.iso.datetime({ offset: true }).nullable().meta({
+                    description: "The deadline, or null to clear it.",
+                    example: "2027-05-20T23:59:00Z",
+                  }),
+                })
+                .meta({
+                  id: "AdvanceRecipientSetNamesDueRequest",
+                  description: "A recipient's naming deadline.",
+                }),
+            }),
+          ],
+          { bindEngagement: "advancing.packet.write", setNamesDue: "advancing.packet.write" },
+        ),
+      ),
     },
     {
       id: "advance-submission-answer-and-review",

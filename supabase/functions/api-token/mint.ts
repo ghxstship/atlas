@@ -2,7 +2,8 @@
 // Web Crypto only, so it runs in Deno and in the @xos/api tests: a presented `xos_live_` key is resolved
 // by app.exchange_api_key and answered with a short-lived Supabase JWT whose subject is the key's service
 // account, carrying the key's org and scopes. PostgREST verifies the signature, and RLS sees an ordinary
-// member. The signing key comes from the environment and never appears in code or tests. A personal API token
+// member. The function is handed a signer (packages/platform/src/jwt/project-token.ts, ADR 0168): a private JWK
+// imported as one of the project's JWT signing keys, never the legacy JWT secret; the key never appears here. A personal API token
 // (`xos_pat_`, A86, migration 1432) takes the same exchange: its subject is the token's own person, and
 // xos_service_account_id is null.
 
@@ -24,36 +25,10 @@ export type ExchangeResult =
 
 export interface TokenDeps {
   readonly exchange: (secret: string) => Promise<ExchangeResult>;
-  readonly signingKey: string;
+  /** Signs the token's claims with the project signing key (project-token.ts). */
+  readonly sign: (claims: Record<string, unknown>) => Promise<string>;
   readonly issuer: string;
   readonly now?: () => number;
-}
-
-function base64url(bytes: Uint8Array): string {
-  let binary = "";
-  for (const byte of bytes) binary += String.fromCharCode(byte);
-  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-}
-
-function encodeJson(value: unknown): string {
-  return base64url(new TextEncoder().encode(JSON.stringify(value)));
-}
-
-/** An HS256 JWT over `payload`. */
-export async function signJwt(
-  payload: Record<string, unknown>,
-  signingKey: string,
-): Promise<string> {
-  const head = `${encodeJson({ alg: "HS256", typ: "JWT" })}.${encodeJson(payload)}`;
-  const key = await crypto.subtle.importKey(
-    "raw",
-    new TextEncoder().encode(signingKey),
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["sign"],
-  );
-  const signature = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(head));
-  return `${head}.${base64url(new Uint8Array(signature))}`;
 }
 
 /** Claims of the token minted for one exchange. */
@@ -129,7 +104,7 @@ export async function handleTokenRequest(request: Request, deps: TokenDeps): Pro
     });
   }
   const nowSeconds = Math.floor((deps.now?.() ?? Date.now()) / 1000);
-  const accessToken = await signJwt(tokenClaims(result, deps.issuer, nowSeconds), deps.signingKey);
+  const accessToken = await deps.sign(tokenClaims(result, deps.issuer, nowSeconds));
   return new Response(
     JSON.stringify({
       access_token: accessToken,

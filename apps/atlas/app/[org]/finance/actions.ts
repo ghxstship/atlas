@@ -10,7 +10,9 @@ import { z } from "zod";
 import { applySuggestions, suggestionIds } from "@/lib/aurora/suggestions";
 import { exponentOf, getExponents } from "@/lib/finance/money";
 import { getOrgContext, type OrgContext } from "@/lib/shell/context";
+import { customFieldsOf } from "@/lib/custom-fields/form";
 import { observability } from "@/lib/observability";
+import * as enums from "@xos/data/enums";
 
 /**
  * Finance mutations (A15). Every action resolves the viewer's org context again (404 when it is
@@ -121,12 +123,26 @@ export async function saveBudgetAction(_: ActionState, form: FormData): Promise<
   const name = text(200).safeParse(f["name"]);
   if (!name.success) return inputError("name");
   const isBaseline = f["isBaseline"] === "on" || f["isBaseline"] === "true";
+  // Typed as a percent; a blank field is no default markup, stored as NULL.
+  const markupText = (f["defaultMarkupPercent"] ?? "").trim();
+  const markupPercent = markupText === "" ? null : Number(markupText);
+  if (
+    markupPercent !== null &&
+    !(Number.isFinite(markupPercent) && markupPercent >= 0 && markupPercent <= 1000)
+  ) {
+    return inputError("defaultMarkupPercent");
+  }
+  const defaultMarkupBp = markupPercent === null ? null : Math.round(markupPercent * 100);
   if (f["id"]) {
     const id = z.uuid().safeParse(f["id"]);
     if (!id.success) return { error: { kind: "not-found" } };
     return finish(
       ctx,
-      await finance.updateBudget(ctx.viewer.db, id.data, { name: name.data, isBaseline }),
+      await finance.updateBudget(ctx.viewer.db, id.data, {
+        name: name.data,
+        isBaseline,
+        ...("defaultMarkupPercent" in f ? { defaultMarkupBp } : {}),
+      }),
     );
   }
   const projectId = z.uuid().safeParse(f["projectId"]);
@@ -138,6 +154,7 @@ export async function saveBudgetAction(_: ActionState, form: FormData): Promise<
     name: name.data,
     currency: code.data,
     isBaseline,
+    defaultMarkupBp,
   });
   return finish(ctx, result, result.ok ? { id: result.data.id } : {});
 }
@@ -151,7 +168,7 @@ export async function deleteBudgetAction(_: ActionState, form: FormData): Promis
 
 const LineSchema = z.object({
   description: text(500),
-  lineType: z.enum(["Cost", "Labor", "Fee", "Contingency"]),
+  lineType: z.enum(enums.budgetLineType),
   urid: z.string().regex(/^\d{4}\.\d{2}(\.\d{2})?$/),
   costCenterId: z.uuid().nullable(),
   gradeCode: z.string().min(1).nullable(),
@@ -160,7 +177,11 @@ const LineSchema = z.object({
   unitBasis: z.string().min(1).nullable(),
   unitPriceMinor: z.number().int().min(0).nullable(),
   xyz: z.enum(["X", "Y", "Z"]),
-  xyzBasis: z.enum(["Category", "Declared"]),
+  xyzBasis: z.enum(enums.xyzBasis),
+  markupBp: z.number().int().min(0).max(100000).nullable().optional(),
+  clientUnitPriceMinor: z.number().int().min(0).nullable().optional(),
+  excludedFromQuote: z.boolean().optional(),
+  etcMinor: z.number().int().min(0).nullable().optional(),
 });
 
 /** Appends one or many lines (single add, catalog picks or a spreadsheet paste) as one batch. */
@@ -257,12 +278,16 @@ export async function saveExpenseAction(_: ActionState, form: FormData): Promise
   if (amount === "invalid" || amount === null || amount <= 0) return inputError("amount");
   const counterparty = optionalId.safeParse(f["counterpartyId"] ?? "");
   if (!counterparty.success) return inputError("counterpartyId");
+  const engagement = optionalId.safeParse(f["engagementId"] ?? "");
+  if (!engagement.success) return inputError("engagementId");
   const common = {
     counterpartyId: counterparty.data,
     description: description.data,
     incurredOn: incurredOn.data,
     amountMinor: amount,
     currency: code.data,
+    isReimbursable: f["isReimbursable"] === "on",
+    engagementId: engagement.data,
   };
   if (f["id"]) {
     const id = z.uuid().safeParse(f["id"]);
@@ -396,17 +421,26 @@ export async function saveInvoiceAction(_: ActionState, form: FormData): Promise
   if (!project.success) return inputError("projectId");
   const counterparty = z.uuid().safeParse(f["counterpartyId"]);
   if (!counterparty.success) return inputError("counterpartyId");
-  const direction = z.enum(["Receivable", "Payable"]).safeParse(f["direction"]);
+  const direction = z.enum(enums.moneyDirection).safeParse(f["direction"]);
   if (!direction.success) return inputError("direction");
   const code = currency.safeParse(f["currency"]);
   if (!code.success) return inputError("currency");
+  const custom = await customFieldsOf(ctx, "app.invoices", form);
+  const problem = Object.entries(custom.fieldErrors ?? {})[0];
+  if (problem) return inputError(...problem);
+  // The total a document printed, filled by Aurora in one hidden field (B15): never a visible field.
+  const printed = f["printedTotal"]
+    ? finance.parseMoney(f["printedTotal"], exponentOf(await getExponents(ctx), code.data))
+    : null;
   const result = await finance.createInvoice(ctx.viewer.db, ctx.org.id, {
     ...dates,
     projectId: project.data,
     counterpartyId: counterparty.data,
     direction: direction.data,
     currency: code.data,
+    printedTotalMinor: typeof printed === "number" ? printed : null,
   });
+  if (result.ok) await custom.save(result.data.id);
   // A form Aurora filled from a document closes its suggestions with the invoice written (A95).
   if (result.ok) {
     await applySuggestions(
@@ -422,10 +456,15 @@ export async function saveInvoiceAction(_: ActionState, form: FormData): Promise
 export async function saveInvoiceLineAction(_: ActionState, form: FormData): Promise<ActionState> {
   const ctx = await contextFor(form);
   const f = fields(form);
-  if (f["delete"] === "1") {
+  if (f["delete"] === "1" || f["restore"] === "1") {
     const id = z.uuid().safeParse(f["id"]);
     if (!id.success) return { error: { kind: "not-found" } };
-    return finish(ctx, await finance.deleteInvoiceLine(ctx.viewer.db, id.data));
+    return finish(
+      ctx,
+      f["restore"] === "1"
+        ? await finance.restoreInvoiceLine(ctx.viewer.db, id.data)
+        : await finance.deleteInvoiceLine(ctx.viewer.db, id.data),
+    );
   }
   const invoice = z.uuid().safeParse(f["invoiceId"]);
   if (!invoice.success) return { error: { kind: "not-found" } };
@@ -455,7 +494,7 @@ export async function savePaymentAction(_: ActionState, form: FormData): Promise
   const f = fields(form);
   const counterparty = z.uuid().safeParse(f["counterpartyId"]);
   if (!counterparty.success) return inputError("counterpartyId");
-  const direction = z.enum(["Receivable", "Payable"]).safeParse(f["direction"]);
+  const direction = z.enum(enums.moneyDirection).safeParse(f["direction"]);
   if (!direction.success) return inputError("direction");
   const code = currency.safeParse(f["currency"]);
   if (!code.success) return inputError("currency");
@@ -626,7 +665,7 @@ export async function saveCostCenterAction(_: ActionState, form: FormData): Prom
   if (!code.success) return inputError("code", "costCenterCode");
   const name = text(200).safeParse(f["name"]);
   if (!name.success) return inputError("name");
-  const kind = z.enum(["Standing", "Overhead", "Event"]).safeParse(f["kind"]);
+  const kind = z.enum(enums.costCenterKind).safeParse(f["kind"]);
   if (!kind.success) return inputError("kind");
   const scope = optionalId.safeParse(f["scopeNodeId"] ?? "");
   if (!scope.success || (kind.data === "Event" && !scope.data))
@@ -886,10 +925,15 @@ export async function saveSettlementLineAction(
 ): Promise<ActionState> {
   const ctx = await contextFor(form);
   const f = fields(form);
-  if (f["delete"] === "1") {
+  if (f["delete"] === "1" || f["restore"] === "1") {
     const id = z.uuid().safeParse(f["id"]);
     if (!id.success) return { error: { kind: "not-found" } };
-    return finish(ctx, await settlements.deleteSettlementLine(ctx.viewer.db, id.data));
+    return finish(
+      ctx,
+      f["restore"] === "1"
+        ? await settlements.restoreSettlementLine(ctx.viewer.db, id.data)
+        : await settlements.deleteSettlementLine(ctx.viewer.db, id.data),
+    );
   }
   const settlement = z.uuid().safeParse(f["settlementId"]);
   if (!settlement.success) return { error: { kind: "not-found" } };

@@ -1,44 +1,51 @@
 ---
 title: Open Source Licenses
-version: 1.0.0-draft
-effective_date: The date this version is published at /legal
-status: Draft for review by counsel before launch
+version: 1.0.0
+effective_date: 2026-11-10
+status: In effect
 ---
 
 # Open Source Licenses
 
-> **Draft for review by counsel before launch.** This document is a draft. It is not in effect and no one may rely on it. It takes effect only when GHXSTSHIP Industries LLC publishes it at /legal, and its effective date is that date of publication.
-
-XOS 4.0 is open source. This page explains the licenses on our own code and data, how to get the source of the hosted service, and where to find the licenses of every third-party component in each release.
+XOS is open source. This page explains the licenses on our own code and data, how to get the source of the hosted service and of Compass, and where to find the licenses of the third-party components in each release. Using the hosted service is governed by our terms. These licenses govern the code and data, and each has its own warranty disclaimer.
 
 ## 1. Our Licenses
 
-| Component                                                                                                            | License       |
-| -------------------------------------------------------------------------------------------------------------------- | ------------- |
-| Platform: `apps/atlas`, `apps/gateway`, `apps/compass`, `apps/console`, `packages/api`, `packages/data`, `supabase/` | AGPL-3.0-only |
-| SDKs, design tokens, UI libraries, schemas, i18n, shared configuration, the CLI and the MCP server                   | MIT           |
-| Canon data: the XOS Bible as published data in `canon/` and the generated `xpms` seed                                | CC BY 4.0     |
+| Component                                                                                                                                                                                                                                                                                                                                                       | License       |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------- |
+| Platform: `apps/atlas`, `apps/gateway`, `apps/compass`, `apps/console`, `apps/docs`, `packages/ai`, `packages/api`, `packages/data`, `packages/email`, `packages/integrations`, `packages/platform`, `packages/testing`, `packages/workforce-native`, `supabase/`                                                                                               | AGPL-3.0-only |
+| SDKs, design tokens, UI libraries, schemas, i18n, shared configuration, the CLI and the MCP server: `packages/cli`, `packages/config`, `packages/help`, `packages/i18n`, `packages/ia`, `packages/icons`, `packages/mcp`, `packages/schemas`, `packages/sdk-python`, `packages/sdk-ts`, `packages/sync`, `packages/tokens`, `packages/ui`, `packages/ui-native` | MIT           |
+| Canon data: the XOS Bible as published data in `canon/` and the generated `xpms` seed                                                                                                                                                                                                                                                                           | CC BY 4.0     |
 
-Copyright GHXSTSHIP Industries LLC. The `LICENSE` and `NOTICE` files in the repository and the `LICENSE` file in each package are the authoritative statements. The XOS, Atlas, Gateway and Compass names and logos are not licensed under any of these licenses; see the Trademark Policy.
+Copyright GHXSTSHIP Industries LLC. The license field and `LICENSE` file of each package are the authoritative statement for that package. A package without a `LICENSE` file of its own, and anything else in the repository not listed above, is covered by the `LICENSE` file at the repository root, which is AGPL-3.0-only. The XOS, Atlas, Gateway, Compass, Aurora and GHXSTSHIP names and logos are not licensed under any of these licenses; see the Trademark Policy.
 
-## 2. Source Code of the Hosted Service
+CC BY 4.0 requires attribution. When you use the canon data, credit "XOS Bible, GHXSTSHIP Industries LLC", link to the license, and say if you changed the data. Attribution must not suggest that GHXSTSHIP endorses you or your use.
 
-The source code of every release of the platform is available at the public repository `github.com/ghxstship/atlas`, tagged by version. Section 13 of the AGPL-3.0 entitles users who interact with a modified version of the platform over a network to the source of that version. The hosted XOS service runs the tagged release shown in Help, What's New, and the source of that release is at the matching tag. Anyone running a modified version for others must offer its source to their users in the same way.
+## 2. Source Code of the Hosted Service and of Compass
+
+The source code of the platform is available at no charge from the public repository `github.com/ghxstship/atlas`. Each release is tagged by version, for example `v4.5.0`. The hosted XOS service is deployed from the repository's `main` branch, and a release moves `main` to the tagged commit, so the source of the running service is in `main` and the source of each release is at its tag. Compass shows its version at the bottom of Settings, and its source is in `apps/compass` at the matching tag.
+
+Section 13 of the AGPL-3.0 applies to anyone who modifies the platform and lets others use the modified version over a network. That version must prominently offer those users its corresponding source, from a network server at no charge.
 
 ## 3. Third-Party Components
 
-Each release ships a software bill of materials in CycloneDX format. This page is generated from it at release time and lists, for every third-party component in the web applications, the mobile application and the API:
+Each release has two files attached to it on the public repository once the release is published:
 
-- component name and version
-- license identifier (SPDX)
-- copyright notice where the license requires one
-- the full license text, grouped by license
+- `xos-<version>.cdx.json`, a software bill of materials in CycloneDX format, listing the production dependencies of that release
+- `xos-<version>-third-party-notices.md`, generated from that file, which lists every npm component by name and version, grouped by license, with the license identifier (SPDX)
 
-The CycloneDX file for each release is attached to its release on the public repository, so anyone can verify this page against it.
+Each npm package's own `LICENSE` file, in the package on the npm registry, carries its copyright notice and full license text. The notices list covers npm components. Native libraries added when the iOS and Android apps are built are not on it. If you need information about a component that is not listed, or a release's files are not yet public, ask support@ghxstship.pro with "Legal Notice" in the subject line in Section 6.
 
 ## 4. License Compliance
 
-Our CI checks every dependency's license on every change. It blocks licenses that are incompatible with the license of the package that uses them, such as GPL-licensed dependencies in MIT packages. Mobile app stores receive the same third-party notices inside the Compass app under Profile, Settings, About.
+Our continuous integration checks the license of every production dependency on every change, against a list of licenses that permit use in both the AGPL-3.0 platform and the MIT packages. A license outside that list fails the check, unless it is recorded with its reason in `packages/config/license-exceptions.json`, which anyone can read in the repository.
+
+That file records two exceptions now. Both were approved by the Owner on 2026-10-24:
+
+- the Sentry command line tool, under FSL-1.1-Apache-2.0, which uploads source maps at build time and is not served to users
+- prebuilt libvips for sharp, under LGPL-3.0-or-later, which is loaded as an unmodified shared library to optimize images on the server
+
+Compass does not yet carry third-party notices inside the app. The list in Section 3 covers its npm components and not its native libraries, and it gives license identifiers, not the notice text.
 
 ## 5. Contributing
 
@@ -46,4 +53,4 @@ Contributions are accepted under the Developer Certificate of Origin described i
 
 ## 6. Questions
 
-License questions go to the legal notices mailbox listed on our contact page at /legal/contact. A license change requires the Owner's written approval under `GOVERNANCE.md`.
+License questions go to support@ghxstship.pro with "Legal Notice" in the subject line. A license change requires the Owner's written approval under `GOVERNANCE.md`.

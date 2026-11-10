@@ -17,7 +17,32 @@
     "someRow": "Una fila seleccionada",
     "done": "{count, plural, one {Se cambió # fila.} other {Se cambiaron # filas.}}",
     "failed": "No se pudo guardar el cambio. Inténtelo de nuevo.",
-    "none": "Ninguno"
+    "none": "Ninguno",
+    "staleTitle": "{count, plural, one {# fila cambió} other {# filas cambiaron}} después de que cargó la página",
+    "staleBody": "Alguien guardó estas filas después de que usted abrió esta página. Conserve su cambio en ellas, o tome el suyo y déjelas fuera de este cambio.",
+    "staleRow": "{row}: usted eligió {mine}; otra persona guardó {theirs}.",
+    "keepMine": "Conservar el mío",
+    "takeTheirs": "Tomar el suyo",
+    "shift": {
+      "action": "Mover hora",
+      "title": "Mover la hora de {count, plural, one {# registro} other {# registros}}",
+      "minutes": "Minutos",
+      "minutesHelp": "Más tarde con +, más temprano con -, hasta 10.080 minutos (siete días).",
+      "minutesInvalid": "Escriba minutos enteros distintos de 0, como +15 o -30, hasta 10.080.",
+      "presets": "Cambios habituales",
+      "preset": "{minutes} min",
+      "explain": "La vista previa muestra cada registro que se mueve, incluidos los sucesores que se desplazan para mantener sus dependencias.",
+      "preview": "Vista previa",
+      "apply": "Mover {count, plural, one {# registro} other {# registros}}",
+      "cancel": "Cancelar",
+      "moves": "{count, plural, one {Se mueve # registro seleccionado} other {Se mueven # registros seleccionados}} {minutes} min.",
+      "pushed": "{count, plural, one {Se desplaza # sucesor fuera de la selección:} other {Se desplazan # sucesores fuera de la selección:}}",
+      "pushedMore": "{count, plural, one {y # más.} other {y # más.}}",
+      "skipped": "{count, plural, one {# registro seleccionado no tiene fechas o está cancelado, así que se queda donde está.} other {# registros seleccionados no tienen fechas o están cancelados, así que se quedan donde están.}}",
+      "nothing": "Ninguno de los registros seleccionados tiene una fecha que mover.",
+      "someRecord": "Un registro",
+      "done": "{count, plural, one {Se movió # registro} other {Se movieron # registros}} {minutes} min."
+    }
   },
   "undo": {
     "notifications": "Avisos de deshacer",
@@ -61,7 +86,28 @@
     "notSet": "Sin definir",
     "trash": "En la papelera",
     "restored": "Restaurado",
-    "unavailable": "No se pudo cargar el historial de campos."
+    "unavailable": "No se pudo cargar el historial de campos.",
+    "yes": "Sí",
+    "no": "No",
+    "minorUnits": "{amount} unidades menores",
+    "money": {
+      "agreed_rate_minor": "Tarifa acordada",
+      "amount_minor": "Importe",
+      "budget_minor": "Presupuesto",
+      "cost_minor": "Costo",
+      "coverage_limit_minor": "Límite de cobertura",
+      "default_unit_price_minor": "Precio predeterminado",
+      "nightly_rate_minor": "Tarifa por noche",
+      "pay_max_minor": "Pago hasta",
+      "pay_min_minor": "Pago desde",
+      "price_minor": "Tarifa",
+      "printed_total_minor": "Total impreso",
+      "proposed_fee_minor": "Honorarios propuestos",
+      "rate_minor": "Tarifa",
+      "shipping_minor": "Envío",
+      "tax_minor": "Impuesto",
+      "printed_total_minor": "Total impreso"
+    }
   },
   "coedit": {
     "open": "Editar en conjunto",
@@ -76,8 +122,33 @@
     "saved": "Guardado. Todas las personas en el documento ven los cambios mientras escribe.",
     "done": "Listo"
   },
+  "conflict": {
+    "title": "{subject} cambió mientras lo editaba",
+    "sentence": "Alguien guardó los mismos campos después de que usted los abrió. Elija qué valores conservar; nada se sobrescribe hasta que elija.",
+    "field": "Campo",
+    "mineColumn": "Su cambio",
+    "theirsColumn": "Guardado por otra persona",
+    "mine": "Conservar el mío",
+    "theirs": "Tomar el suyo"
+  },
   "presence": {
     "label": "También están viendo",
+    "editingLine": "{name} está editando la línea {line}",
     "viewing": "{count, plural, one {# persona más aquí} other {# personas más aquí}}"
+  },
+  "preview": {
+    "open": "Vista previa",
+    "loading": "Cargando la vista previa…",
+    "failed": "No se pudo cargar la vista previa. Inténtalo de nuevo o descarga el archivo.",
+    "office": "Los archivos de Office no tienen vista previa aquí. Descarga el archivo para abrirlo.",
+    "unsupported": "Este tipo de archivo no tiene vista previa. Descarga el archivo para abrirlo.",
+    "tooLarge": "Este archivo es demasiado grande para la vista previa. Descarga el archivo para abrirlo.",
+    "download": "Descargar",
+    "watermarked": "Los archivos Confidenciales y Restringidos se ven como se descargan: con tu correo electrónico y la hora en cada página.",
+    "pages": "{count, plural, one {# página} other {# páginas}}",
+    "pageOf": "Página {page} de {count}",
+    "image": "Imagen",
+    "video": "Video",
+    "videoLabel": "Video: {name}"
   }
 }

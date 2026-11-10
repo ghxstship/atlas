@@ -15,7 +15,6 @@ import {
   RecordRow,
   Select,
   TemplateCollection,
-  Timeline,
   rememberOverlayOpener,
   type RecordKind,
 } from "@xos/ui";
@@ -24,18 +23,28 @@ import dynamic from "next/dynamic";
 import { useFormatter, useLocale } from "next-intl";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState, type ReactNode } from "react";
+import { useCustomFieldColumns } from "@/components/custom-fields/list";
 import { ActionErrorAlert, useAction, useCopy } from "./action-ui";
 import { transitionRecordAction } from "./actions";
-import { formatScheduleTime, formatWhen, stateToken, withQuery } from "./format";
+import { formatScheduleTime, formatStartTime, formatWhen, stateToken, withQuery } from "./format";
 import { useScheduleView } from "./use-schedule-view";
 import { displayTimeZone } from "@xos/ui/preferences";
-import { TransitionDialog } from "./record-panels";
+import { TransitionDialog, useStateUndo } from "./record-transition";
 import { CollectionViews } from "@/components/views/collection-views";
+import { isConditionParam } from "@/lib/views/query";
 import type { BulkConfig } from "@/components/bulk/types";
 import { useBulk } from "@/components/bulk/use-bulk";
 import { useHoverCards } from "@/components/hover/use-hover-cards";
 import { useRowMenu } from "@/components/menus/use-row-menu";
+import { ArchivedFilter } from "@/components/archive/archived-filter";
 import type { RecordQuickAddProps } from "@/components/quick-add/record-quick-add";
+import { Timeline } from "@/components/lazy-ui/timeline";
+import { timelineView, type TimelineExtras } from "@/components/schedule/timeline-view";
+
+// Drag to reschedule on the timeline (A133), for people who may change it; loads with that view.
+const RescheduleTimeline = dynamic(() =>
+  import("@/components/schedule/timeline-reschedule").then((m) => m.RescheduleTimeline),
+);
 
 // Shown only to people who may create records; its date parser loads with it (ADR 0027).
 const RecordQuickAdd = dynamic(() =>
@@ -80,6 +89,8 @@ export function RecordCollection({
   today,
   timeZone,
   timeline,
+  canReschedule = false,
+  backlog = [],
   canCreate,
   create,
   peek,
@@ -87,6 +98,9 @@ export function RecordCollection({
   hideKindFilter = false,
   bulk,
   quickAdd,
+  emptyAction,
+  dayTypes,
+  anchor,
 }: {
   title: string;
   label: string;
@@ -106,6 +120,10 @@ export function RecordCollection({
   today: string;
   timeZone: string;
   timeline: TimelineModel | null;
+  /** Timeline bars move and resize (A133). */
+  canReschedule?: boolean;
+  /** Undated records to place on the timeline, beside it (P8); only with canReschedule. */
+  backlog?: readonly { id: string; label: string }[];
   canCreate: boolean;
   create?: ReactNode;
   peek?: ReactNode;
@@ -118,6 +136,12 @@ export function RecordCollection({
   bulk?: BulkConfig | null;
   /** The inline quick add row (Section 11.7), for people who may create records here. */
   quickAdd?: RecordQuickAddProps | null;
+  /** Shown under either empty state, such as Aurora's draft of an empty risk list (P6). */
+  emptyAction?: ReactNode;
+  /** Each date's day-type tags (B4), for the calendar and the timeline. */
+  dayTypes?: TimelineExtras["dayTypes"];
+  /** The project's anchor day (B4), drawn on the timeline as a gate the offsets count from. */
+  anchor?: TimelineExtras["anchor"];
 }) {
   const t = useCopy("work");
   const format = useFormatter();
@@ -127,14 +151,20 @@ export function RecordCollection({
   const params = useSearchParams();
   const [search, setSearch] = useState(filters.q);
   const move = useAction();
+  const pushUndo = useStateUndo(org);
   const [pendingMove, setPendingMove] = useState<{ record: RecordSummary; next: string } | null>(
     null,
   );
 
-  const bulkRows = useMemo(() => records.map((r) => ({ id: r.id, label: r.key })), [records]);
+  const bulkRows = useMemo(
+    () => records.map((r) => ({ id: r.id, label: r.key, version: r.updatedAt })),
+    [records],
+  );
   const bulkKit = useBulk(ITEM_VIEWS.has(view) ? bulk : null, bulkRows);
   const { selection, bar } = bulkKit;
   const rowMenu = useRowMenu();
+  // The org's filterable record fields (A117), from the CustomFieldList the page wraps this in.
+  const custom = useCustomFieldColumns();
   const go = (changes: Record<string, string | null>) =>
     router.replace(withQuery(pathname, params, changes) as Route, { scroll: false });
   // The page renders the peek for `?peek` after the section's loading state, which can take focus
@@ -154,7 +184,18 @@ export function RecordCollection({
       r.startsAt && r.startsAt > new Date().toISOString()
         ? r.startsAt
         : (r.dueAt ?? r.endsAt ?? r.startsAt);
-    return when(at, r.timeZone ?? r.projectTimeZone);
+    // A start to be confirmed reads "TBC · est. <time>" (G-40); it still sorts by the estimate.
+    return at === r.startsAt
+      ? formatStartTime(
+          at,
+          r.startTbc,
+          locale,
+          r.timeZone ?? r.projectTimeZone,
+          zoneView,
+          "dateTime",
+          (time) => t("values.tbcEstimate", { time }),
+        )
+      : when(at, r.timeZone ?? r.projectTimeZone);
   };
   const byId = new Map(records.map((r) => [r.id, r]));
   // A record's menu, the same in every view (Section 11.7).
@@ -278,14 +319,18 @@ export function RecordCollection({
         options={SORTS.map((s) => ({ value: s, label: t(`collection.sorts.${s}`) }))}
         onChange={(e) => go({ sort: e.target.value })}
       />
+      <ArchivedFilter id="records-archived" />
     </>
   );
 
+  // The Add filter control's conditions (A117) count as filters, and Clear removes them too.
+  const conditions = [...params.keys()].filter(isConditionParam);
   const filtered =
     filters.q !== "" ||
     filters.kinds.length > 0 ||
     filters.states.length > 0 ||
-    filters.project !== "";
+    filters.project !== "" ||
+    conditions.length > 0;
 
   let body: ReactNode;
   if (total === 0 && !filtered) {
@@ -297,7 +342,11 @@ export function RecordCollection({
         onAction={() => (canCreate ? go({ create: "1" }) : router.push(`/${org}/my-work` as Route))}
       />
     );
-  } else if (records.length === 0) {
+  } else if (
+    records.length === 0 &&
+    !(view === "timeline" && canReschedule && backlog.length > 0)
+  ) {
+    // Schedule pages load dated records only: with none dated, the Unscheduled list still has them to place (P8).
     body = (
       <EmptyState
         icon="SearchX"
@@ -305,7 +354,14 @@ export function RecordCollection({
         actionLabel={t("collection.clear")}
         onAction={() => {
           setSearch("");
-          go({ q: null, kind: null, state: null, project: null });
+          go({
+            q: null,
+            kind: null,
+            state: null,
+            project: null,
+            archived: null,
+            ...Object.fromEntries(conditions.map((name) => [name, null])),
+          });
         }}
       />
     );
@@ -321,6 +377,7 @@ export function RecordCollection({
           { key: "owner", label: t("columns.owner") },
           { key: "next", label: t("columns.next") },
           { key: "project", label: t("columns.project") },
+          ...custom.columns,
         ]}
         rows={records.map((r) => ({
           id: r.id,
@@ -333,6 +390,7 @@ export function RecordCollection({
           owner: r.ownerName ?? t("values.unassigned"),
           next: nextOf(r) ?? t("values.noDate"),
           project: r.projectName,
+          ...custom.cells(r.id),
         }))}
         onRowActivate={(row) => open(String(row["key"]))}
         onRowContextMenu={(row, _index, at, cell) => menuFor(String(row["id"]), at, cell)}
@@ -395,13 +453,16 @@ export function RecordCollection({
               setPendingMove({ record, next });
               return;
             }
-            move.run(() =>
-              transitionRecordAction(org, {
-                recordId: record.id,
-                expected: record.state,
-                next,
-                reason: t("transition.boardReason", { state: stateLabel(next) }),
-              }),
+            const reason = t("transition.boardReason", { state: stateLabel(next) });
+            move.run(
+              () =>
+                transitionRecordAction(org, {
+                  recordId: record.id,
+                  expected: record.state,
+                  next,
+                  reason,
+                }),
+              () => pushUndo(record, next, { reason }),
             );
           }}
         />
@@ -446,6 +507,13 @@ export function RecordCollection({
           month={month}
           today={today}
           events={events}
+          {...(dayTypes
+            ? {
+                days: dayTypes
+                  .filter((d) => d.date.startsWith(month.slice(0, 7)))
+                  .map((d) => ({ date: d.date, tags: [...d.tags] })),
+              }
+            : {})}
           onEventSelect={(e) => {
             const r = e.id ? byId.get(e.id) : undefined;
             if (r) open(r.key);
@@ -462,32 +530,19 @@ export function RecordCollection({
     );
   } else if (view === "timeline") {
     body =
-      timeline && timeline.bars.length > 0 ? (
+      timeline && (timeline.bars.length > 0 || (canReschedule && backlog.length > 0)) ? (
         <div className="min-w-0">
-          <Timeline
-            label={label}
-            days={timeline.days.map((d) => ({
-              dow: format.dateTime(new Date(`${d.day}T12:00:00Z`), {
-                weekday: "narrow",
-                timeZone: "UTC",
-              }),
-              date: d.date,
-              weekend: d.weekend,
-            }))}
-            dayWidth={timeline.days.length > 60 ? 16 : 32}
-            {...(timeline.today !== undefined ? { today: timeline.today } : {})}
-            rows={timeline.bars.map((b) => ({
-              key: b.record.key,
-              title: b.record.title,
-              state: stateToken(b.record.state),
-              start: b.start,
-              end: b.end,
-              ...(b.milestone ? { milestone: true } : {}),
-              ...(b.dependsOn !== undefined ? { dependsOn: b.dependsOn } : {}),
-              ...(b.baselineStart !== undefined ? { baselineStart: b.baselineStart } : {}),
-              ...(b.baselineEnd !== undefined ? { baselineEnd: b.baselineEnd } : {}),
-            }))}
-          />
+          {canReschedule ? (
+            <RescheduleTimeline
+              org={org}
+              label={label}
+              timeline={timeline}
+              backlog={backlog}
+              extras={{ dayTypes, anchor }}
+            />
+          ) : (
+            <Timeline label={label} {...timelineView(timeline, format, { dayTypes, anchor })} />
+          )}
         </div>
       ) : (
         <EmptyState
@@ -518,6 +573,14 @@ export function RecordCollection({
           />
         ))}
       </RecordList>
+    );
+  }
+  if (emptyAction && records.length === 0) {
+    body = (
+      <div className="flex flex-col items-center gap-12">
+        {body}
+        {emptyAction}
+      </div>
     );
   }
 

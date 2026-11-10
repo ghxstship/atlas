@@ -4,6 +4,7 @@ import { cookies, headers } from "next/headers";
 import { NextIntlClientProvider } from "next-intl";
 import { getTranslations } from "next-intl/server";
 import { ThemeFollower, XOSProvider } from "@/components/ui";
+import { formattingLocale, localeDirection } from "@/i18n/negotiate";
 import { clientMessages, negotiatedLocale, uiMessages } from "@/i18n/request";
 import { THEME_COOKIE, preferenceFromCookie, renderedTheme } from "@/lib/theme";
 import "./globals.css";
@@ -17,7 +18,10 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-/** The console document: System theme by default (Section 11.6) and the negotiated locale. */
+/**
+ * The console document: System theme by default (Section 11.6) and the negotiated locale (a pseudo-locale in
+ * development), which picks the language, direction and messages; XOSProvider formats with its formatting locale.
+ */
 export default async function RootLayout({ children }: { children: ReactNode }) {
   const [locale, cookieStore, headerStore] = await Promise.all([
     negotiatedLocale(),
@@ -28,10 +32,18 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   const theme = renderedTheme(preference, headerStore.get("sec-ch-prefers-color-scheme"));
   const overrides = uiMessages(locale);
   return (
-    <html lang={locale} dir="ltr" data-theme={theme} data-theme-preference={preference}>
+    <html
+      lang={locale}
+      dir={localeDirection(locale)}
+      data-theme={theme}
+      data-theme-preference={preference}
+    >
       <body>
         <NextIntlClientProvider messages={clientMessages(locale)}>
-          <XOSProvider locale={locale} {...(overrides ? { messages: overrides } : {})}>
+          <XOSProvider
+            locale={formattingLocale(locale)}
+            {...(overrides ? { messages: overrides } : {})}
+          >
             {preference === "system" ? <ThemeFollower /> : null}
             {children}
           </XOSProvider>

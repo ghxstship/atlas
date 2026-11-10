@@ -174,7 +174,28 @@
     "title": "Reglas que cumple toda organización",
     "description": "Separación de funciones: una misma persona nunca realiza las dos mitades de estos actos. La base de datos aplica cada regla, para toda organización.",
     "enforcedOn": "Se comprueba en {where}",
-    "tighten": "Ninguna regla se puede flexibilizar. Las políticas de aprobación agregan más aprobadores donde los necesite."
+    "tighten": "Ninguna regla se puede desactivar. Las políticas de aprobación agregan más aprobadores donde los necesite, y las opciones más estrictas de abajo agregan comprobaciones.",
+    "alwaysOn": "Siempre activa",
+    "options": {
+      "title": "Opciones más estrictas",
+      "description": "Su organización puede hacer más estricta la separación de funciones, nunca más flexible. Cada opción que active agrega una comprobación a las reglas que cumple toda organización.",
+      "on": "Activada",
+      "off": "Desactivada",
+      "turnOn": "Activar",
+      "turnOff": "Desactivar",
+      "tightens": "Hace más estricta la regla {rule}",
+      "readOnly": "Solo quien puede hacer más estricta la separación de funciones activa o desactiva estas opciones.",
+      "offConfirm": {
+        "title": "¿Desactivar esta opción?",
+        "body": "{option} Las reglas que cumple toda organización siguen activas.",
+        "confirm": "Desactivar"
+      },
+      "names": {
+        "sod_change_order_requester_steps": "Quien solicita una orden de cambio no puede decidir ningún paso de su aprobación.",
+        "sod_document_creator": "Quien creó una orden de compra, orden de cambio, factura, requisición, gasto, nómina o liquidación no puede aprobarla ni decidir un paso de su aprobación.",
+        "sod_receiver_po_approver": "La mercancía la recibe una persona distinta de quien aprobó la orden de compra o un cambio en ella."
+      }
+    }
   },
   "customFields": {
     "title": "Campos personalizados",
@@ -225,7 +246,36 @@
       "asset_units": "Unidades de activos",
       "purchase_orders": "Órdenes de compra",
       "invoices": "Facturas",
-      "incidents": "Incidentes"
+      "incidents": "Incidentes",
+      "cues": "Cues",
+      "spaces": "Espacios",
+      "signs": "Letreros",
+      "budget_lines": "Líneas de presupuesto"
+    },
+    "colors": {
+      "none": "Sin color",
+      "cat-1": "Naranja",
+      "cat-2": "Celeste",
+      "cat-3": "Verde",
+      "cat-4": "Amarillo",
+      "cat-5": "Azul",
+      "cat-6": "Bermellón",
+      "cat-7": "Morado"
+    },
+    "choiceColor": "Color",
+    "choiceColorHelp": "Opcional. El nombre siempre se muestra junto al color.",
+    "choiceWithColor": "{label} ({color})",
+    "audienceList": "Para: {audiences}",
+    "audiencesFor": "Para quién es {label}",
+    "audiencesLabel": "Se muestra a",
+    "audiencesHelp": "Equipo lo ve en Atlas. Llamado del show lo muestra en los enlaces de llamado. Cliente lo muestra en Gateway.",
+    "audiencesCrewOnly": "Los campos de Persona, Dinero y Correo quedan con el equipo: los enlaces de llamado y los clientes nunca los ven.",
+    "audiencesSave": "Guardar audiencias",
+    "audiences": {
+      "Crew": "Equipo",
+      "Showcaller": "Llamado del show",
+      "Client": "Cliente",
+      "none": "nadie todavía"
     }
   },
   "canon": {
@@ -479,11 +529,13 @@
     "legal_hold_table_unknown": "Elija datos que tengan un período de retención.",
     "legal_hold_released": "Esta retención ya está levantada.",
     "legal_hold_immutable": "Una retención nunca se edita, solo se levanta.",
+    "legal_hold_queue": "GHXSTSHIP puso esta retención mientras devuelve los datos que su exportación dejó fuera. Se levanta cuando termina la devolución. Para retirar la solicitud, escriba a support@ghxstship.pro con Return of Data en el asunto.",
     "department_unknown": "Uno de los departamentos no está en el canon.",
     "discipline_unknown": "Una de las disciplinas no está en el canon.",
     "discipline_department_not_in_use": "Elija también el departamento de cada disciplina.",
     "jurisdiction_unknown": "Elija una jurisdicción del canon.",
-    "time_zone_unknown": "Elija una zona horaria de la lista."
+    "time_zone_unknown": "Elija una zona horaria de la lista.",
+    "separation_option_unknown": "Solo se puede activar o desactivar una opción más estricta. Las reglas que cumple toda organización siempre están activas."
   },
   "fieldErrors": {
     "name": "Ingrese un nombre de hasta 200 caracteres.",

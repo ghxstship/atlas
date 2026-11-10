@@ -43,6 +43,9 @@ import {
   parseRecordKey,
   parseRrule,
   removeChecklistItem,
+  replaceRecurrence,
+  restoreAssignment,
+  restoreChecklistItem,
   replanShift,
   resolveXyz,
   restoreRecord,
@@ -223,7 +226,7 @@ describe("canon", () => {
   });
 
   it("lists counterparties and venues by name", async () => {
-    const { db } = moduleClient({
+    const { db, calls } = moduleClient({
       "from:counterparties": [
         okResponse([
           { id: "c2", organization: { name: "Zeta Rigging" } },
@@ -241,6 +244,13 @@ describe("canon", () => {
     expect(parties.ok && parties.data.map((p) => p.label)).toEqual(["c1", "Zeta Rigging"]);
     const venues = await listVenueOptions(db, "o1");
     expect(venues.ok && venues.data.map((v) => v.label)).toEqual(["Arena", "Pier"]);
+    // Archived venues are not offered for an Event record (A124).
+    expect(
+      stepsOf(
+        calls.find((c) => c.target === "from:venues"),
+        "is",
+      ),
+    ).toContainEqual(["archived_at", null]);
   });
 });
 
@@ -348,7 +358,22 @@ describe("records", () => {
       "and(starts_at.lt.2027-06-08,ends_at.gte.2027-06-01)",
     );
     expect(stepsOf(call, "limit")).toEqual([[10]]);
-    expect(stepsOf(call, "is")).toEqual([["deleted_at", null]]);
+    expect(stepsOf(call, "is")).toEqual([
+      ["deleted_at", null],
+      ["archived_at", null],
+    ]);
+  });
+
+  it("leaves archived records out unless the query asks for them (A124)", async () => {
+    const { db, calls } = moduleClient({
+      "from:records": [okResponse([]), okResponse([]), okResponse([])],
+    });
+    await listRecords(db, { orgId: "o1", archived: "only" });
+    expect(stepsOf(calls[0], "not")).toEqual([["archived_at", "is", null]]);
+    await listRecords(db, { orgId: "o1", archived: "include" });
+    expect(stepsOf(calls[1], "is")).toEqual([["deleted_at", null]]);
+    await listRecords(db, { orgId: "o1", trashed: true, archived: "only" });
+    expect(stepsOf(calls[2], "not")).toEqual([["deleted_at", "is", null]]);
   });
 
   it("reads Trash and open-ended windows", async () => {
@@ -359,6 +384,57 @@ describe("records", () => {
     expect(stepsOf(calls[0], "not")).toEqual([["deleted_at", "is", null]]);
     expect(stepsOf(calls[0], "or")[0]?.[0]).toContain("starts_at.lt.infinity");
     expect((await listRecords(db, { orgId: "o1", to: "2027-06-01" })).ok).toBe(false);
+  });
+
+  it("finds undated open records behind a full read of dated ones (P8 Unscheduled list)", async () => {
+    // A stand-in that applies is, not-in, order and limit to its rows, as PostgREST would: 600 dated
+    // records come first in key order, then closed undated ones, then the one to schedule.
+    const rows = [
+      ...Array.from({ length: 600 }, (_, i) =>
+        recordRow({ id: `d${i}`, record_number: i + 1, starts_at: "2027-06-01T14:00:00Z" }),
+      ),
+      recordRow({ id: "c1", record_number: 601, record_state: "Complete" }),
+      recordRow({ id: "c2", record_number: 602, record_state: "Canceled" }),
+      recordRow({ id: "u1", record_number: 603, owner_party_id: null, owner: null }),
+    ];
+    const steps: [string, unknown[]][] = [];
+    const builder: Record<string, unknown> = new Proxy(
+      {},
+      {
+        get(_target, prop: string) {
+          if (prop !== "then") {
+            return (...args: unknown[]) => {
+              steps.push([prop, args]);
+              return builder;
+            };
+          }
+          return (resolve: (r: { data: unknown; error: null }) => unknown) => {
+            let out: Record<string, unknown>[] = rows;
+            for (const [method, args] of steps) {
+              const [column, a, b] = args as [string, unknown, unknown];
+              if (method === "is") out = out.filter((r) => r[column] === a);
+              if (method === "not" && a === "in") {
+                const closed = String(b).slice(1, -1).split(",");
+                out = out.filter((r) => !closed.includes(String(r[column])));
+              }
+              if (method === "limit") out = out.slice(0, column as unknown as number);
+            }
+            return resolve({ data: out, error: null });
+          };
+        },
+      },
+    );
+    const db = { from: () => builder } as unknown as Parameters<typeof listRecords>[0];
+    const result = await listRecords(db, {
+      orgId: "o1",
+      undatedOnly: true,
+      excludeStates: ["Canceled", "Complete"],
+    });
+    expect(result.ok && result.data.map((r) => r.id)).toEqual(["u1"]);
+    expect(steps.filter(([m]) => m === "not")).toContainEqual([
+      "not",
+      ["record_state", "in", "(Canceled,Complete)"],
+    ]);
   });
 
   it("reads a record's parent and sub-records", async () => {
@@ -376,6 +452,11 @@ describe("records", () => {
     expect(stepsOf(calls[0], "eq")).toEqual([["id", "r1"]]);
     expect(stepsOf(calls[1], "eq")).toContainEqual(["parent_record_id", "r1"]);
     expect(stepsOf(calls[2], "in")).toEqual([["id", ["r0"]]]);
+    // An archived parent or sub-record is still a related record (A124): no archived_at filter.
+    for (const call of [calls[1], calls[2]]) {
+      expect(stepsOf(call, "is")).toEqual([["deleted_at", null]]);
+      expect(stepsOf(call, "not")).toEqual([]);
+    }
   });
 
   it("calls a parent the viewer cannot read hidden, and a record without one has none", async () => {
@@ -812,6 +893,34 @@ describe("checklist", () => {
     });
   });
 
+  it("brings a removed item back in its place, or at the end when its place was taken", async () => {
+    const { db, calls } = moduleClient({
+      "from:record_checklist_items": [
+        okResponse([{ id: "i1" }]),
+        errorResponse("23505", "position"),
+        okResponse([{ id: "i3", position: 4, label: "Ropes", checked_at: null, checker: null }]),
+        okResponse([{ id: "i1" }]),
+        okResponse([]),
+        errorResponse("XX000", "boom"),
+      ],
+    });
+    expect(await restoreChecklistItem(db, { recordId: "r1", itemId: "i1" })).toEqual({
+      ok: true,
+      data: null,
+    });
+    expect(stepsOf(calls[0], "update")[0]?.[0]).toEqual({ deleted_at: null });
+    expect(await restoreChecklistItem(db, { recordId: "r1", itemId: "i1" })).toEqual({
+      ok: true,
+      data: null,
+    });
+    expect(stepsOf(calls[3], "update")[0]?.[0]).toEqual({ deleted_at: null, position: 5 });
+    expect(await restoreChecklistItem(db, { recordId: "r1", itemId: "i1" })).toEqual({
+      ok: false,
+      error: { kind: "not-found" },
+    });
+    expect((await restoreChecklistItem(db, { recordId: "r1", itemId: "i1" })).ok).toBe(false);
+  });
+
   it("surfaces checklist errors", async () => {
     const { db } = moduleClient({
       "from:record_checklist_items": [
@@ -844,7 +953,7 @@ describe("assignments and watchers", () => {
         ]),
         okResponse([{ id: "a2", membership_id: "m2", membership: null }]),
         errorResponse("XX000", "boom"),
-        okResponse(null),
+        okResponse({ id: "a3" }),
         errorResponse("23505", "dup"),
         okResponse([{ id: "a1" }]),
         okResponse([]),
@@ -856,9 +965,10 @@ describe("assignments and watchers", () => {
     const unnamed = await listAssignments(db, "r1");
     expect(unnamed.ok && unnamed.data[0]?.name).toBeNull();
     expect((await listAssignments(db, "r1")).ok).toBe(false);
-    expect((await assignRecord(db, { orgId: "o1", recordId: "r1", membershipId: "m1" })).ok).toBe(
-      true,
-    );
+    expect(await assignRecord(db, { orgId: "o1", recordId: "r1", membershipId: "m1" })).toEqual({
+      ok: true,
+      data: { id: "a3" },
+    });
     expect(await assignRecord(db, { orgId: "o1", recordId: "r1", membershipId: "m1" })).toEqual({
       ok: false,
       error: { kind: "conflict", message: "dup" },
@@ -868,13 +978,30 @@ describe("assignments and watchers", () => {
     expect((await unassignRecord(db, "a1")).ok).toBe(false);
   });
 
+  it("brings a removed assignment back, and refuses when the person was assigned again", async () => {
+    const { db, calls } = moduleClient({
+      "from:record_assignments": [
+        okResponse([{ id: "a1" }]),
+        okResponse([]),
+        errorResponse("23505", "dup"),
+      ],
+    });
+    expect(await restoreAssignment(db, "a1")).toEqual({ ok: true, data: null });
+    expect(stepsOf(calls[0], "update")[0]?.[0]).toEqual({ deleted_at: null });
+    expect(await restoreAssignment(db, "a1")).toEqual({ ok: false, error: { kind: "not-found" } });
+    expect(await restoreAssignment(db, "a1")).toEqual({
+      ok: false,
+      error: { kind: "conflict", message: "dup" },
+    });
+  });
+
   it("watches and unwatches, treating a repeat watch as done", async () => {
     const { db } = moduleClient({
       "from:record_watchers": [
         okResponse({ id: "w1" }),
         okResponse(null),
         errorResponse("XX000", "boom"),
-        okResponse(null),
+        okResponse({ id: "a3" }),
         errorResponse("23505", "dup"),
         errorResponse("42501", "denied"),
         okResponse(null),
@@ -904,7 +1031,7 @@ describe("recurrence", () => {
   };
 
   it("reads rules by record and lists recurring records", async () => {
-    const { db } = moduleClient({
+    const { db, calls } = moduleClient({
       "from:record_recurrences": [
         okResponse([rule]),
         okResponse([rule]),
@@ -918,6 +1045,13 @@ describe("recurrence", () => {
     expect(map.ok && map.data.get("r1")?.rrule).toBe("FREQ=WEEKLY;BYDAY=MO");
     const recurring = await listRecurringRecords(db, { orgId: "o1", projectId: "p1" });
     expect(recurring.ok && recurring.data[0]?.record.key).toBe("NWL-7");
+    // A rule keeps running while its record is archived, so the record is not filtered on archived_at.
+    expect(
+      stepsOf(
+        calls.find((c) => c.target === "from:records"),
+        "is",
+      ),
+    ).toEqual([["deleted_at", null]]);
     expect(await listRecurringRecords(db, { orgId: "o1" })).toEqual({ ok: true, data: [] });
     expect((await listRecurringRecords(db, { orgId: "o1" })).ok).toBe(false);
   });
@@ -968,6 +1102,47 @@ describe("recurrence", () => {
     ).toBe(false);
     const clear = moduleClient({ "from:record_recurrences": [okResponse(null)] });
     expect((await clearRecurrence(clear.db, "r1")).ok).toBe(true);
+  });
+
+  it("replaces a rule only while it is still the one expected", async () => {
+    const to = { rrule: "FREQ=WEEKLY", timeZone: "UTC", untilAt: null };
+    const { db, calls } = moduleClient({
+      "from:record_recurrences": [
+        okResponse([{ id: "c1" }]),
+        okResponse(null),
+        okResponse([]),
+        okResponse([{ id: "c2" }]),
+        errorResponse("23505", "record_recurrences_record_key"),
+        okResponse([]),
+        okResponse([{ id: "c3" }]),
+      ],
+    });
+    const base = { orgId: "o1", recordId: "r1" };
+    expect(await replaceRecurrence(db, { ...base, from: "FREQ=DAILY", to })).toEqual({
+      ok: true,
+      data: null,
+    });
+    expect(stepsOf(calls[0], "eq")).toContainEqual(["rrule", "FREQ=DAILY"]);
+    expect(stepsOf(calls[1], "insert")[0]?.[0]).toMatchObject({ rrule: "FREQ=WEEKLY" });
+    // Someone changed the rule since: nothing is written.
+    expect(await replaceRecurrence(db, { ...base, from: "FREQ=DAILY", to })).toEqual({
+      ok: false,
+      error: { kind: "conflict", message: "recurrence_changed" },
+    });
+    expect(await replaceRecurrence(db, { ...base, from: "FREQ=WEEKLY", to: null })).toEqual({
+      ok: true,
+      data: null,
+    });
+    // No rule expected, but someone set one since: the insert is refused.
+    expect((await replaceRecurrence(db, { ...base, from: null, to })).ok).toBe(false);
+    expect(await replaceRecurrence(db, { ...base, from: null, to: null })).toEqual({
+      ok: true,
+      data: null,
+    });
+    expect(await replaceRecurrence(db, { ...base, from: null, to: null })).toEqual({
+      ok: false,
+      error: { kind: "conflict", message: "recurrence_changed" },
+    });
   });
 
   it("builds, parses and expands rules", () => {

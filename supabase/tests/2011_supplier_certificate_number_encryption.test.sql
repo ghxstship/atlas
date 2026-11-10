@@ -30,6 +30,8 @@ select results_eq($$select column_name, classification::text, read_capability fr
 select is_empty($$select c.table_name || '.' || c.column_name from private.column_classifications c
   join pg_attribute a on a.attrelid = c.table_name::regclass and a.attname = c.column_name and not a.attisdropped
   where c.read_capability in ('data.restricted.read.banking', 'data.restricted.read.government_id')
+    -- ADR 0164: a supplier diversity kind is Restricted under this capability too, and it is an enum, not an identifier.
+    and (c.table_name, c.column_name) <> ('app.supplier_diversity_certifications', 'diversity_kind')
     and format_type(a.atttypid, a.atttypmod) <> 'bytea'$$,
   'no Restricted banking or government identifier column stores plain text: every one is pgcrypto ciphertext');
 select ok(not has_column_privilege('authenticated', 'app.supplier_diversity_certifications', 'certificate_number', 'SELECT')
@@ -40,6 +42,7 @@ select ok(not has_column_privilege('authenticated', 'app.supplier_diversity_cert
 
 -- The owner sets the number -------------------------------------------------------------------------------------------------
 select pg_temp.as_user('ivy');
+select app.give_sensitive_consent('Supplier Diversity', '2026-11-06', 'en-US', 'Gateway');
 select lives_ok($$select app.add_supplier_diversity_certification('Women-Owned', 'Florida Office of Supplier Diversity',
   p_person_id => pg_temp.id('ivy'), p_certificate_number => 'fl-wbe-2026-118842', p_issued_on => '2026-01-15',
   p_expires_on => '2028-01-15')$$,
@@ -84,6 +87,7 @@ select app.set_setting(pg_temp.id('org_a'), 'gateway.supplier_diversity_program'
 select pg_temp.as_user('ivy');
 select app.share_supplier_diversity(:'v_cert', pg_temp.id('org_a')) as v_share \gset
 select pg_temp.as_user('victor');
+select app.give_sensitive_consent('Supplier Diversity', '2026-11-06', 'en-US', 'Gateway', pg_temp.id('acct_v'), true, true);
 insert into app.supplier_diversity_certifications (account_id, diversity_kind, certifying_body)
   values (pg_temp.id('acct_v'), 'Minority-Owned', 'National Minority Supplier Development Council');
 select id as v_acct_cert from app.supplier_diversity_certifications where account_id = pg_temp.id('acct_v') \gset

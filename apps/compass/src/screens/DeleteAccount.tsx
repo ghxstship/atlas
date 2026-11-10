@@ -37,13 +37,19 @@ type Load =
  * Delete the account from inside Compass (SIM-004, journey 38; App Store guideline
  * 5.1.1(v)). Shows what blocks deletion and what is kept and why, asks for the sign-in email and a device
  * check (Face ID, Touch ID or passcode, when the device has one), then calls app.delete_my_account and shows
- * the confirmation. Online only: deletion never queues. Settings, Account shows it, and so does the screen a
- * sign-in with no membership or engagement lands on, so every account Compass can open can be deleted.
+ * the confirmation. Online only: deletion never queues. Settings, Account shows it, and so do the screen a
+ * sign-in with no membership or engagement lands on and the first sign-in step (LegalGate), so nobody has to agree to
+ * anything to delete an account Compass can open.
  * An account that signs in with Apple first confirms with Apple's sheet, so Compass's Apple tokens are revoked
  * (ADR 0033 decision 58); when Compass cannot revoke them, the confirmation says how to remove Compass from the
  * Apple Account.
  */
-export function DeleteAccount(): ReactElement {
+export function DeleteAccount({
+  onBack,
+}: {
+  /** Where the person came from, when this screen stands in for the app's own navigation. */
+  readonly onBack?: () => void;
+} = {}): ReactElement {
   const { t } = useTranslation();
   const { client, config, network, store } = useCompass();
   const [load, setLoad] = useState<Load>({ kind: "loading" });
@@ -248,6 +254,16 @@ export function DeleteAccount(): ReactElement {
           />
         </>
       )}
+      {onBack ? (
+        <Button
+          testID="account-back"
+          variant="ghost"
+          block
+          disabled={busy}
+          label={t("compass.account.back")}
+          onPress={onBack}
+        />
+      ) : null}
     </Screen>
   );
 }

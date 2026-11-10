@@ -2,13 +2,13 @@
 title: Information Security Policy
 version: 1.0.0-draft
 effective_date: The date this version is approved by the Owner
-status: Draft for review by counsel before launch
+status: Draft before launch
 audience: Internal
 ---
 
 # Information Security Policy
 
-> **Draft for review by counsel before launch.** This internal policy is a draft. It takes effect when the Owner approves it, and its effective date is that date of approval.
+> **Draft before launch.** This internal policy is a draft. It takes effect when the Owner approves it, and its effective date is that date of approval.
 
 ## 1. Purpose
 
@@ -50,7 +50,7 @@ This policy applies to:
 
 4.8 **Asset management.** GHXSTSHIP keeps an inventory of systems, repositories, cloud accounts, domains, devices and data stores, each with an owner and a classification.
 
-4.9 **Logging and monitoring.** Security-relevant events are logged to append-only stores, monitored, and alerted to an on-call rotation with runbooks.
+4.9 **Logging and monitoring.** Security-relevant events are logged to append-only stores, monitored, and alerted to the person on call, with runbooks.
 
 4.10 **Compliance.** GHXSTSHIP identifies the legal, regulatory and contractual requirements that apply to it, records them in the compliance matrix (`legal/compliance-matrix.md`), and tracks each to an artifact and a test.
 

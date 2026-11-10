@@ -8,7 +8,8 @@ import {
   type Theme,
 } from "./checks";
 import { triage } from "./known";
-import { activeRoles, DEMO_ORG, storageStatePath } from "./roles";
+import { activeRoles, storageStatePath } from "./roles";
+import { NETWORK_RESTRICTED } from "./routes";
 
 /**
  * The page the proxy sends a member to when an org's IP allow-list refuses their network (A52,
@@ -16,9 +17,9 @@ import { activeRoles, DEMO_ORG, storageStatePath } from "./roles";
  * emergency access form (migration 1203); every other role sees only the explanation.
  */
 const THEMES: readonly Theme[] = ["dark", "light"];
-const PATH = `/auth/network-restricted?org=${DEMO_ORG}`;
+const PATH = NETWORK_RESTRICTED.path;
 
-for (const { role } of activeRoles().filter((r) => r.role === "owner" || r.role === "field")) {
+for (const { role } of activeRoles().filter((r) => NETWORK_RESTRICTED.roles.includes(r.role))) {
   test.describe(`${role}`, () => {
     test.use({ storageState: storageStatePath(role) });
     test(`network-restricted ${PATH}`, async ({ page }, info) => {

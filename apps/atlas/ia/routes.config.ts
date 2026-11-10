@@ -30,6 +30,9 @@ export const SHELL_ROUTES: Readonly<Record<string, string>> = {
   "/auth/sign-in": "Auth template: password, magic link and OAuth sign-in.",
   "/auth/sign-up": "Auth template: account creation with legal acceptance.",
   "/auth/check-email": "Auth template: magic link and confirmation sent.",
+  "/auth/age": "Auth template: the age question for anyone who has not answered at 18 (ADR 0156).",
+  "/auth/age-refused":
+    "Auth template: what someone who answered under 18 is told, with no account left (ADR 0156).",
   "/auth/callback": "Route handler: OAuth and PKCE code exchange.",
   "/auth/confirm": "Route handler: email link token verification.",
   "/auth/sign-out": "Route handler: ends the session (POST only).",
@@ -40,6 +43,8 @@ export const SHELL_ROUTES: Readonly<Record<string, string>> = {
   "/auth/network-restricted":
     "Auth template: an org's IP allow-list refused this network; an Owner may take emergency access (A52).",
   "/auth/invite/{token}": "Auth template: preview and accept an invitation.",
+  "/auth/act/{token}":
+    "Auth template: confirm a one-tap action from a notification email; opening it never acts (A127, ADR 0106).",
   "/auth/mfa":
     "Auth template: the second factor after the first, or setting one up an org requires (A77).",
   "/auth/session-ended":
@@ -58,10 +63,18 @@ export const SHELL_ROUTES: Readonly<Record<string, string>> = {
     "Route handler: the OAuth 2.1 token endpoint (code with PKCE, refresh with rotation), answered by Supabase Auth (A99, ADR 0055).",
   "/oauth/consent":
     "Auth template: an app asks to act for the person in its org; Restricted capability groups need step-up (A99, ADR 0055).",
+  "/oauth/integrations/callback":
+    "Route handler: Google Drive and OneDrive sign-in returns here; stores the refresh token and connects (B16, ADR 0155 D5).",
+  "/oauth/integrations/problem":
+    "Auth template: why connecting a storage account did not finish (B16, ADR 0155 D5).",
   "/{org}/export":
     "Route handler: the full org export archive for the Owner (A36, Section 14.7 and 14.8).",
   "/{org}/documents/{kind}/{id}":
     "Route handler: a generated document as tagged PDF/UA (Section 11.9, ADR 0031).",
+  "/{org}/documents/badges":
+    "Route handler: up to 100 credential badges in one streamed PDF/UA file, on Letter, A4, A6 or CR80 (P5, ADR 0031 amendment).",
+  "/{org}/documents/books/{id}":
+    "Route handler: a tour or production book, its cover, contents and up to 100 documents, in one streamed PDF/UA file on Letter or A4 (B7, ADR 0146).",
   "/{org}/deletion-certificates/{id}":
     "Route handler: a deletion certificate PDF for the former Owner it was issued to (A79, Section 14.7).",
   "/{org}/forms/{form}/{id}":
@@ -70,16 +83,57 @@ export const SHELL_ROUTES: Readonly<Record<string, string>> = {
     "Auth template: opens a share link with its access code; no session needed (Section 8.6, A82).",
   "/share/{token}/file":
     "Route handler: opens a share link and sends the file, watermarked when Confidential (Section 8.6).",
+  "/share/view/{token}":
+    "Public frame: a saved view live link with its access code and device grant; no session needed (P1, ADR 0130).",
+  "/share/view/{token}/open":
+    "Route handler: opens a saved view live link with its access code and sets the device grant (P1, ADR 0130).",
+  "/share/screen/{token}":
+    "Display screen: a running order as a room clock, presenter timer or backstage screen; no session needed (P1, ADR 0130).",
+  "/share/screen/{token}/open":
+    "Route handler: opens a display screen link with its access code and sets the device grant (P1, ADR 0130).",
+  "/share/showcaller/{token}":
+    "Public frame: a showcaller link's portal for a signed-in person on the project, calling and editing one running order with its access code and device grant; no session needed (B3, ADR 0142).",
+  "/share/showcaller/{token}/open":
+    "Route handler: opens a showcaller link with its access code and sets the device grant (B3, ADR 0142).",
+  "/share/showcaller/{token}/clock":
+    "Display screen: a showcaller portal's pop-out room clock and presenter timer, fed by the portal's own read (B3, ADR 0142).",
+  "/share/pack/{token}":
+    "Public frame: a stakeholder pack with its recipient's access code and device grant; no session needed (B2, ADR 0141).",
+  "/share/pack/{token}/open":
+    "Route handler: opens a stakeholder pack with the code or a device grant, and sets the grant (B2, ADR 0141).",
+  "/share/pack/{token}/items/{itemId}":
+    "Public frame: one live item of a stakeholder pack, read as the live link's creator (B2, ADR 0141).",
+  "/share/pack/{token}/items/{itemId}/file":
+    "Route handler: downloads a stakeholder pack's file item by a single-use ticket (B2, ADR 0141).",
+  "/share/pack/{token}/items/{itemId}/sign":
+    "Route handler: records a typed-name acknowledgement of a stakeholder pack item (B2, ADR 0141).",
+  "/share/pack/unsubscribe/{token}":
+    "Public frame: confirm stopping a stakeholder pack's emails; opening never acts (B2, ADR 0141).",
+  "/share/pack/unsubscribe/{token}/confirm":
+    "Route handler: stops a stakeholder pack's emails on the confirm button's POST (B2, ADR 0141).",
   "/files/{version}":
     "Route handler: a Confidential or Restricted file, logged, held to the export capability and watermarked (Section 8.6).",
+  "/files/party/{version}":
+    "Route handler: a file a party uploaded to party-uploads (an advance answer's or a supplied sponsor asset's), for a reader app.party_file_object admits, served under the caller's session behind the scan gate (R9).",
   "/api/v1/openapi.json": "Public API: the generated OpenAPI document (A04, ADR 0005 item 3).",
   "/api/v1/{...path}": "Public API: every v1 operation, served by the @xos/api Hono app (A04R).",
   "/api/client-errors": "Route handler: browser error reports, forwarded to Sentry (ADR 0025).",
   "/api/system-banners": "Route handler: the live platform system banners, cached a minute (A90).",
+  "/api/mcp":
+    "Route handler: the hosted MCP endpoint, stateless Streamable HTTP; writes are proposals (B16, ADR 0155 D1).",
   "/.well-known/apple-app-site-association":
     "Route handler: universal links to Compass for Continue on another device (ADR 0030).",
   "/.well-known/assetlinks.json":
     "Route handler: Android App Links to Compass for Continue on another device (ADR 0030).",
+  "/.well-known/security.txt": "The vulnerability disclosure contact (RFC 9116), not a screen",
+  "/.well-known/oauth-protected-resource":
+    "Route handler: OAuth protected-resource metadata of the hosted MCP endpoint (RFC 9728; B16).",
+  "/.well-known/oauth-protected-resource/mcp":
+    "Route handler: the same metadata for the API host's /mcp (RFC 9728; B16).",
+  "/.well-known/oauth-protected-resource/api/mcp":
+    "Route handler: the same metadata for Atlas's /api/mcp (RFC 9728; B16).",
+  "/.well-known/oauth-authorization-server":
+    "Route handler: OAuth authorization-server metadata of /oauth/authorize and /oauth/token (RFC 8414; B16).",
 };
 
 /**

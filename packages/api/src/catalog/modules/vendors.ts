@@ -6,11 +6,14 @@
 import { z } from "@hono/zod-openapi";
 import { fields } from "@xos/schemas";
 import { defineAdditions } from "../additions.ts";
+import { archivedListQuery } from "./parts/archived-filter.ts";
 import { all, editShape, orNull, putActions, removeActions } from "../correct.ts";
 import { itemAction, transition } from "../define.ts";
+import { fieldHistoryAction } from "./parts/bulk-edit-and-history.ts";
 import { insuredCapabilities, insuredResources } from "./parts/insureds.ts";
 import { vendorFieldHomes } from "./parts/playbook-field-homes.ts";
 import { vendorFieldExposure } from "./parts/playbook-field-exposure.ts";
+import { Constants } from "@xos/data/database.types";
 
 const SINCE = "1.0.0-draft.2";
 
@@ -20,7 +23,9 @@ const label = (values: readonly [string, ...string[]], description: string) =>
 const score = (what: string) => orNull(fields.int(`${what}, 1 to 5; null when not scored.`, 4, 1));
 
 export const additions = defineAdditions("Vendors", {
+  listQuery: { vendors: archivedListQuery },
   resources: [...insuredResources],
+  actions: { vendors: [fieldHistoryAction("vendor")] },
   capabilities: { ...insuredCapabilities },
   corrections: [
     {
@@ -51,10 +56,7 @@ export const additions = defineAdditions("Vendors", {
               create: "optional",
             },
             vendor_state: {
-              schema: label(
-                ["Prospect", "Onboarded", "Active", "Blocked", "Canceled"],
-                "Vendor state.",
-              ),
+              schema: label(Constants.app.Enums.vendor_state, "Vendor state."),
             },
           },
         }),
@@ -104,7 +106,9 @@ export const additions = defineAdditions("Vendors", {
               create: "required",
             },
             decision: {
-              schema: orNull(label(["Approved", "Rejected"], "Decision; null while pending.")),
+              schema: orNull(
+                label(Constants.app.Enums.approval_decision, "Decision; null while pending."),
+              ),
             },
             decided_by: { schema: orNull(fields.ref("person who decided")) },
             decided_at: { schema: orNull(fields.instant("When it was decided.")) },
@@ -119,7 +123,7 @@ export const additions = defineAdditions("Vendors", {
                 "Approves or rejects a pending prequalification through app.decide_prequalification: vendors.prequalification.approve, never by the requester, final once decided. A refusal returns 422 and names the rule.",
               body: z
                 .object({
-                  decision: label(["Approved", "Rejected"], "Decision."),
+                  decision: label(Constants.app.Enums.approval_decision, "Decision."),
                   valid_to: z.iso
                     .date()
                     .optional()

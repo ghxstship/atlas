@@ -16,6 +16,7 @@ import {
   listGateCriteria,
   listGateEvidence,
   listJurisdictions,
+  listMovableStates,
   listPhases,
   listPhaseTransitions,
   listProductionStateHistory,
@@ -206,6 +207,25 @@ describe("projects", () => {
     await setProjectArchived(db, "p1", false);
     expect(calls[0]?.steps[0]).toEqual(["update", [{ archived_at: now.toISOString() }]]);
     expect(calls[1]?.steps[0]).toEqual(["update", [{ archived_at: null }]]);
+  });
+
+  it("reads the states a lifecycle can leave, once each", async () => {
+    const { db } = fakeClient({
+      "from:lifecycle_transition_rules": [
+        okResponse([
+          { from_state: "Proposed" },
+          { from_state: "Active" },
+          { from_state: "Proposed" },
+          { from_state: null },
+        ]),
+        errorResponse("XX000", "x"),
+      ],
+    });
+    expect(await listMovableStates(db, "project")).toEqual({
+      ok: true,
+      data: ["Proposed", "Active"],
+    });
+    expect((await listMovableStates(db, "project")).ok).toBe(false);
   });
 
   it("reads allowed transitions and moves both lifecycles", async () => {

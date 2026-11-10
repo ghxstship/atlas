@@ -1,3 +1,6 @@
+import { execFileSync } from "node:child_process";
+import { readdirSync, readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
   REDACTED,
@@ -76,11 +79,12 @@ describe("redactString", () => {
   // A69-008: request logs keep the path, and bearer links carry their token in it.
   it("replaces the tokens of bearer links, in paths too", () => {
     const hex = "a".repeat(64);
-    for (const prefix of ["xadv", "xagr", "xcal", "xdoc", "xinv", "xlnk", "xos_scim"]) {
+    for (const prefix of ["xadv", "xagr", "xcal", "xcrw", "xdoc", "xinv", "xlnk", "xos_scim"]) {
       expect(redactString(`${prefix}_${hex}`), prefix).toBe("[token]");
     }
     expect(redactUrl(`/advance/xadv_${hex}?code=1`)).toBe("/advance/[token]");
     expect(redactUrl(`/sign/xdoc_${hex}`)).toBe("/sign/[token]");
+    expect(redactUrl(`/shifts/xcrw_${hex}`)).toBe("/shifts/[token]");
     expect(redactUrl(`/auth/invite/xinv_${hex}`)).toBe("/auth/invite/[token]");
     expect(redactString("xadv_short")).toBe("xadv_short");
   });
@@ -89,7 +93,21 @@ describe("redactString", () => {
   // ticket, and kiosk keys, subprocessor notice links and personal access tokens share the shape.
   it("replaces share link tokens, download tickets and the other prefixed secrets", () => {
     const hex = "d".repeat(64);
-    for (const prefix of ["xshr", "xdlt", "xkio", "xspn", "xspu", "xos_pat"]) {
+    for (const prefix of [
+      "xshr",
+      "xdlt",
+      "xkio",
+      "xspn",
+      "xspu",
+      "xos_pat",
+      "xshv",
+      "xscr",
+      "xlgr",
+      "xlch",
+      "xscl",
+      "xcgr",
+      "xcch",
+    ]) {
       expect(redactString(`${prefix}_${hex}`), prefix).toBe("[token]");
       expect(redactString(`${prefix.toUpperCase()}_${hex.toUpperCase()}`), prefix).toBe("[token]");
     }
@@ -110,6 +128,60 @@ describe("redactString", () => {
       "GET /share/[token] 404",
     );
     expect(redactUrl("/share/abc")).toBe("/share/[token]");
+    // B2 (ADR 0141): stakeholder packs, intake links and public forms.
+    for (const prefix of ["xpkl", "xpkg", "xpku", "xvin", "xvig", "xfrm", "xfrg"]) {
+      expect(redactString(`${prefix}_${hex}`), prefix).toBe("[token]");
+    }
+    expect(redactUrl(`/share/pack/xpkl_${hex}`)).toBe("/share/pack/[token]");
+    expect(redactUrl(`/share/pack/not-a-token/open`)).toBe("/share/pack/[token]/open");
+    expect(redactUrl(`/share/pack/unsubscribe/abc`)).toBe("/share/pack/unsubscribe/[token]");
+    expect(redactUrl(`/onboard/abc`)).toBe("/onboard/[token]");
+    expect(redactUrl(`/forms/abc/open`)).toBe("/forms/[token]/open");
+    expect(redactString("GET https://gateway.example.test/forms/abc 200")).toBe(
+      "GET https://gateway.example.test/forms/[token] 200",
+    );
+    // Atlas's Knowledge forms stay: /forms/ there follows a path, not a host.
+    expect(redactUrl("/northwind/knowledge/forms")).toBe("/northwind/knowledge/forms");
+    expect(redactUrl("/northwind/knowledge/forms/abc")).toBe("/northwind/knowledge/forms/abc");
+    expect(redactString("GET https://atlas.example.test/northwind/onboard/abc 200")).toBe(
+      "GET https://atlas.example.test/northwind/onboard/abc 200",
+    );
+    // P1 (ADR 0130): live links, their open handler, device grants and channel keys.
+    expect(redactUrl(`/share/view/xshv_${hex}`)).toBe("/share/view/[token]");
+    expect(redactUrl(`/share/screen/xscr_${hex}/open?reason=live_link_access_code`)).toBe(
+      "/share/screen/[token]/open",
+    );
+    expect(redactString(`POST https://atlas.example.test/share/view/xshv_${hex}/open 303`)).toBe(
+      "POST https://atlas.example.test/share/view/[token]/open 303",
+    );
+    expect(redactString("GET /share/screen/xscr_truncated 200")).toBe(
+      "GET /share/screen/[token] 200",
+    );
+    expect(redactString(`Set-Cookie: xos_link_grant=xlgr_${hex}; HttpOnly`)).toBe(
+      "Set-Cookie: xos_link_grant=[token]; HttpOnly",
+    );
+    expect(redactString(`realtime join xlink:xlch_${hex}`)).toBe("realtime join xlink:[token]");
+    // B3 (ADR 0142): showcaller links, their open handler and clock, device grants and channel keys.
+    expect(redactUrl(`/share/showcaller/xscl_${hex}`)).toBe("/share/showcaller/[token]");
+    expect(redactUrl(`/share/showcaller/xscl_${hex}/open?reason=showcaller_link_access_code`)).toBe(
+      "/share/showcaller/[token]/open",
+    );
+    expect(redactUrl(`/share/showcaller/xscl_${hex}/clock`)).toBe(
+      "/share/showcaller/[token]/clock",
+    );
+    expect(redactString("POST /share/showcaller/MISTYPED-token 303")).toBe(
+      "POST /share/showcaller/[token] 303",
+    );
+    expect(redactString(`Set-Cookie: xos_showcaller_grant=xcgr_${hex}; HttpOnly`)).toBe(
+      "Set-Cookie: xos_showcaller_grant=[token]; HttpOnly",
+    );
+    expect(redactString(`realtime join xcall:xcch_${hex}`)).toBe("realtime join xcall:[token]");
+    // A127 (ADR 0106): a one-tap action link's nonce and its signature both go.
+    const action = `xact_${"a".repeat(48)}.${"b".repeat(32)}`;
+    expect(redactUrl(`/auth/act/${action}`)).toBe("/auth/act/[token]");
+    expect(redactString(`GET https://gateway.example.test/auth/act/${action}?next=1 200`)).toBe(
+      "GET https://gateway.example.test/auth/act/[token]?next=1 200",
+    );
     expect(redactString("/share/")).toBe("/share/");
     expect(redactString("at /usr/share/zoneinfo/UTC")).toBe("at /usr/share/zoneinfo/UTC");
     expect(redactString("at file:///usr/share/nodejs/undici/index.js:12:3")).toBe(
@@ -299,5 +371,103 @@ describe("redactAttributes", () => {
     expect(redactAttributes({ notes: "kept" }, { allowKeys: ["notes"] })).toEqual({
       notes: "kept",
     });
+  });
+});
+
+describe("the log drain's transform (infra/runbooks/production.md, finding A69-012)", () => {
+  const repo = fileURLToPath(new URL("../../../", import.meta.url));
+  const prefixesIn = (text: string, marker: RegExp) =>
+    [...(marker.exec(text)?.[1] ?? "").split("|")].filter(Boolean).toSorted();
+
+  const redactSource = readFileSync(`${repo}infra/observability/src/redact.ts`, "utf8");
+  const runbook = readFileSync(`${repo}infra/runbooks/production.md`, "utf8");
+  const appPrefixes = prefixesIn(redactSource, /\/\(\?:(xa[^)]+)\)_\[0-9a-f\]\{16,\}/);
+
+  it("masks every prefix the app's redactor masks", () => {
+    expect(appPrefixes.length).toBeGreaterThan(10);
+    expect(prefixesIn(runbook, /r'\(\?i\)\(\?:(xa[^)]+)\)_\[0-9a-f\]\{16,\}/)).toEqual(appPrefixes);
+  });
+
+  // VRL runs Rust's regex; these two patterns need nothing JavaScript reads differently, once (?i) is a flag.
+  // This exercises the patterns through JavaScript, not the transform in VRL.
+  const transform = runbook.slice(runbook.indexOf("# A69-012:"));
+  const [paths, tokens] = [...transform.matchAll(/, r'([^']+)'/g)].map((match) => match[1] ?? "");
+  const pathPattern = new RegExp(paths ?? "", "g");
+  const tokenPattern = new RegExp((tokens ?? "").replace("(?i)", ""), "gi");
+  const mask = (line: string) =>
+    line.replace(pathPattern, "$1$2[token]").replace(tokenPattern, "[token]");
+  const git = (...args: string[]) =>
+    execFileSync("git", args, { cwd: repo, encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
+
+  it("masks tokens in the paths and shapes the routes use", () => {
+    const hex = "d".repeat(64);
+    for (const [line, masked] of [
+      [`GET /share/xshr_${hex}`, "GET /share/[token]"],
+      [`GET /share/view/xshv_${hex}`, "GET /share/view/[token]"],
+      [`GET /share/screen/xscr_${hex}/open`, "GET /share/screen/[token]/open"],
+      [`GET /advance/xadv_${hex}`, "GET /advance/[token]"],
+      [`GET /sign/xdoc_${hex}`, "GET /sign/[token]"],
+      [`GET /auth/invite/xinv_${hex}`, "GET /auth/invite/[token]"],
+      [`GET /ical/xcal_${hex}`, "GET /ical/[token]"],
+      [`GET /auth/act/xact_${"a".repeat(48)}.${"b".repeat(32)}`, "GET /auth/act/[token]"],
+      [`cookie xlgr_${hex}`, "cookie [token]"],
+      [`action xact_${"a".repeat(48)}.${"b".repeat(32)} used`, "action [token] used"],
+    ] as const) {
+      expect(mask(line)).toBe(masked);
+    }
+  });
+
+  it("masks every token prefix the database mints", () => {
+    const directory = `${repo}supabase/migrations`;
+    const minted = new Set<string>();
+    for (const file of readdirSync(directory)) {
+      for (const match of readFileSync(`${directory}/${file}`, "utf8").matchAll(
+        /'(x[a-z]{3})_'/g,
+      )) {
+        minted.add(match[1] ?? "");
+      }
+    }
+    expect(minted.size).toBeGreaterThan(10);
+    expect(
+      [...minted].filter((prefix) => !appPrefixes.includes(prefix)),
+      "A migration mints a bearer token with a prefix redact.ts and the runbook's transform do not mask.",
+    ).toEqual([]);
+  });
+
+  it("masks every token prefix the code writes as a literal", () => {
+    // A prefix on its own in quotes, or starting a template. One assembled any other way is not seen.
+    const literals = git(
+      "grep",
+      "-hoIE",
+      "[\"'`]x[a-z]{3}_([\"'`]|[$][{])",
+      "--",
+      "apps",
+      "packages",
+      "infra",
+      "supabase/functions",
+      ":!*.test.*",
+      ":!*.spec.*",
+    );
+    const prefixes = new Set([...literals.matchAll(/x[a-z]{3}/g)].map((match) => match[0]));
+    expect(prefixes.size).toBeGreaterThan(0);
+    expect(
+      [...prefixes].filter((prefix) => !appPrefixes.includes(prefix)),
+      "Code mints a token with a prefix redact.ts and the runbook's transform do not mask.",
+    ).toEqual([]);
+  });
+
+  it("masks the token of every route with a [token] segment", () => {
+    // A bearer token in a segment with another name is not seen.
+    const prefixes = new Set<string>();
+    for (const file of git("ls-files", "apps").split("\n")) {
+      const route = /^apps\/[^/]+\/app\/(.*?)\/?\[token\]\//.exec(file)?.[1];
+      if (route === undefined) continue;
+      prefixes.add(route.replace(/\([^)]+\)\//g, ""));
+    }
+    expect(prefixes.size).toBeGreaterThan(3);
+    expect(
+      [...prefixes].filter((path) => mask(`GET /${path}/guess`) !== `GET /${path}/[token]`),
+      "A route takes a token in its path and the runbook's transform leaves it in the log store. Add the path to it.",
+    ).toEqual([]);
   });
 });

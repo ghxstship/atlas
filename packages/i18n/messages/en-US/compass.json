@@ -89,7 +89,9 @@
     "notActiveTitle": "Your engagement is not active yet",
     "notActive": "This opens when your engagement becomes Active. Finish onboarding in Gateway.",
     "closedTitle": "Your engagement has ended",
-    "closed": "Compass access ended when your engagement completed. Money and documents stay in Gateway."
+    "closed": "Compass access ended when your engagement completed. Money and documents stay in Gateway.",
+    "rosterMemberTitle": "Your company handles this",
+    "rosterMember": "You work this project on your company's crew, so your company keeps your time, swaps and expenses. Ask your crew lead."
   },
   "sync": {
     "offline": "You're offline. Changes save on this device.",
@@ -155,9 +157,25 @@
       "settlement_lines": "settlement lines",
       "shared_reports": "shared reports",
       "sponsor_entitlements": "sponsor entitlements",
+      "proof_of_performance_photos": "proof-of-performance photos",
       "engagement_documents": "engagement documents",
       "profile_certifications": "your certifications",
-      "profile_documents": "your documents"
+      "profile_documents": "your documents",
+      "cue_calls": "department calls",
+      "roster_entries": "roster entries",
+      "advance_allocations": "items assigned to you",
+      "parking_passes": "parking passes",
+      "delivery_windows": "delivery windows",
+      "shift_no_shows": "no-shows",
+      "break_types": "break types",
+      "itinerary_changes": "itinerary changes",
+      "my_transfers": "Drives",
+      "local_contacts": "Local contacts",
+      "client_approvals": "approvals waiting",
+      "vendor_delivery_windows": "load-in and load-out windows",
+      "briefings": "briefings",
+      "hospitality": "hospitality",
+      "space_bookings": "activation schedule"
     }
   },
   "queue": {
@@ -226,7 +244,8 @@
       "_me_notification_matrix": "Notification choice",
       "_me_notification_settings": "Quiet hours and digest",
       "_me_party_preferences": "Notification choice",
-      "_me_quiet_hours": "Quiet hours"
+      "_me_quiet_hours": "Quiet hours",
+      "weather_holds": "Weather hold"
     },
     "punchActions": {
       "in": "Clock in",
@@ -270,10 +289,31 @@
       "serverState": "{title}, now {state}",
       "serverCue": "{label}, called at {time}",
       "serverGeneric": "The server holds a different version of this {kind}.",
-      "expenseReceipt": "Expense: {description}, {day}"
+      "expenseReceipt": "Expense: {description}, {day}",
+      "noShow": "Mark a crew member as a no-show",
+      "proofPhoto": "Proof of performance photo, {time}",
+      "bookingArrival": "Record a booked vehicle's arrival at the gate",
+      "accessExit": "Exit scan at {time}",
+      "accessExitZone": "Exit scan at {zone}, {time}",
+      "accessOverride": "Override a denied scan: {reason}",
+      "weatherHold": "Call a weather hold",
+      "weatherAllClear": "Give the weather all-clear"
     },
     "refusedPermission": "The server refused this change: your role cannot do this on this project. Ask your supervisor to check your access.",
-    "refusedTechnical": "The server could not save this change. Send it again, or keep the server's version and tell your supervisor."
+    "refusedTechnical": "The server could not save this change. Send it again, or keep the server's version and tell your supervisor.",
+    "refusedScanNotDenied": "The server let this person in after all; no override was needed.",
+    "refusedScanOverrideRevoked": "A revoked badge is never let in.",
+    "refusedScanOverrideStale": "The denial was more than 15 minutes old. Scan the badge again.",
+    "refusedScanOverrideTaken": "Someone already overrode this denial.",
+    "refusedScanOverrideSelf": "Nobody overrides a denial of their own badge. Ask another supervisor.",
+    "refusedWeatherHoldOpen": "A weather hold was already open on this project.",
+    "refusedWeatherHoldClosed": "This weather hold already had its all-clear.",
+    "refusedWeatherHoldStale": "This all-clear was made more than 10 minutes before it reached the server and was not sent. Check the weather and give it again.",
+    "refusedWeatherHoldIdTaken": "Another hold already uses this id.",
+    "settledTitle": "Settled without you",
+    "settledScanNotDenied": "The server let this person in when the scan uploaded, so the override you queued was not needed and was not sent.",
+    "settledDismiss": "Dismiss",
+    "refusedScanOverrideNotApproved": "This pass is waiting on its approval, so it cannot be let in at the door."
   },
   "today": {
     "title": "Today",
@@ -287,7 +327,70 @@
     "callTime": "Call {time}",
     "blockEmpty": "Nothing here today.",
     "orgChip": "{org}",
-    "nextCueAt": "Planned for {day} at {time}"
+    "nextCueAt": "Planned for {day} at {time}",
+    "roster": {
+      "callTitle": "Your call",
+      "arrival": "Arrive {day}, {start} to {end}",
+      "fromShift": "Your first shift today.",
+      "noArrival": "Your arrival is not set yet. Your company sets it on the roster.",
+      "parkingTitle": "Parking",
+      "noParking": "No parking pass for you on this project.",
+      "showPass": "Show pass",
+      "gearTitle": "Assigned gear",
+      "noGear": "Nothing is assigned to you yet.",
+      "holding": "With you now",
+      "pickup": "Pick up at the desk: {status}",
+      "status": {
+        "approved": "Approved",
+        "reserved": "Reserved",
+        "awaitingOrder": "Awaiting order",
+        "onOrder": "On order",
+        "confirmed": "Confirmed",
+        "received": "Received"
+      },
+      "contactTitle": "Contact",
+      "contactSentence": "Ask them about your call, gear or parking.",
+      "projectDetails": "Update project details"
+    },
+    "blocks": {
+      "due": "Due {day}",
+      "requested": "Asked {day}",
+      "arriveAt": "Arrive at {zone}",
+      "quoteReference": "Give reference {reference} on arrival",
+      "placesLeftOne": "1 place left",
+      "placesLeftOther": "{count} places left",
+      "quantity": "× {count}",
+      "deliverableState": {
+        "Open": "To hand in",
+        "Returned": "Returned for changes"
+      },
+      "fulfilled": "Fulfilled",
+      "canceled": "Canceled",
+      "loading": "Reading the guest list…",
+      "guestListOffline": "The guest list is read live. Connect to see it.",
+      "guestListFailed": "Compass could not read the guest list. Try again when you are connected.",
+      "guestPlusOnesOne": "{name} + 1",
+      "guestPlusOnesOther": "{name} + {count}",
+      "guestState": {
+        "Requested": "Requested",
+        "Approved": "Approved",
+        "Declined": "Declined",
+        "CheckedIn": "Checked in"
+      },
+      "empty": {
+        "approvalsWaiting": "Nothing is waiting on your approval.",
+        "dockSlot": "No dock slot is booked for you on this project.",
+        "loadInAndLoadOutWindows": "No load-in or load-out windows are open.",
+        "deliveryInstructions": "Delivery instructions appear when a dock slot is booked for you.",
+        "tasksAndDeliverablesDue": "Nothing is due from you.",
+        "siteAccessTimes": "You hold no site credential on this project yet.",
+        "briefings": "No briefings are called for this project.",
+        "hospitality": "No hospitality is listed for your party.",
+        "guestList": "Your guest list is empty.",
+        "activationSchedule": "No activation space is booked yet.",
+        "entitlementChecklist": "No entitlements are listed for this project."
+      }
+    }
   },
   "orgs": {
     "title": "Organizations",
@@ -300,6 +403,21 @@
     "combinedTitle": "Today in all your organizations",
     "nothingToday": "Nothing today."
   },
+  "roleLens": {
+    "title": "Role",
+    "hint": "Narrow Today, Schedule, Inbox and your tools to one of your roles. Your access does not change.",
+    "all": "All roles",
+    "switch": "Organization: {org}, role: {role}. Change organization or role",
+    "roles": {
+      "owner": "Owner",
+      "admin": "Admin",
+      "manager": "Manager",
+      "member": "Member",
+      "collaborator": "Collaborator",
+      "field": "Field",
+      "viewer": "Viewer"
+    }
+  },
   "glance": {
     "today": "Today",
     "noCue": "No cue today.",
@@ -309,7 +427,14 @@
     "since": "Since {time}",
     "cueTitle": "Next cue: {cue}",
     "cueBody": "{project} at {time}",
-    "channel": "Shift and next cue"
+    "channel": "Shift and next cue",
+    "cueTbc": "{cue} · TBC",
+    "gallery": {
+      "todayName": "Compass Today",
+      "todayDescription": "Your shifts today and the next cue.",
+      "nextCueName": "Compass Next Cue",
+      "nextCueDescription": "The time to the next cue."
+    }
   },
   "wallet": {
     "holder": "Name",
@@ -343,6 +468,7 @@
     "locationCoarse": "Your location is not precise enough yet. Step outside or wait a moment.",
     "locationOff": "Location is off. Turn it on in Settings to clock in on site.",
     "unfenced": "This project has no geofence; your location is recorded with the punch.",
+    "checkedOnPunch": "The venue boundary is checked when you punch; your location is recorded with it.",
     "queued": "Saved on this device. It uploads when you're back online.",
     "forgotten": "Your last shift ran past 16 hours and closed for your supervisor to review.",
     "skewReview": "Your phone's clock looks off, so this punch goes to your supervisor to check.",
@@ -365,7 +491,11 @@
     },
     "shortcut": {
       "clockedIn": "Clocked in at {project}. Break and Clock Out are on your lock screen."
-    }
+    },
+    "breakTypeTitle": "Which break?",
+    "breakTypeCancel": "Cancel",
+    "breakTypePaid": "{name} (paid)",
+    "breakTypeUnpaid": "{name} (unpaid)"
   },
   "schedule": {
     "title": "Schedule",
@@ -438,12 +568,50 @@
     "enterCode": "Type a code",
     "submitCode": "Look Up",
     "vendorEmpty": "No deliveries booked for you on this project yet. Dock slots appear here once booked.",
-    "assignedEmpty": "No gear is assigned to you yet. Items appear here when your crew lead hands them over."
+    "assignedEmpty": "No gear is assigned to you yet. Items appear here when your crew lead hands them over.",
+    "receiveOrder": {
+      "title": "Receive Against an Order",
+      "close": "Close",
+      "open": "Receive Against an Order",
+      "resume": "Review Order Receipt",
+      "scanHint": "Choose a tagged line, then scan each unit. Use the steppers for the other lines.",
+      "tagged": "{count} of {open} tagged",
+      "removeTag": "Remove {tag}",
+      "counted": "{count} of {open} counted",
+      "less": "One fewer {line}",
+      "more": "One more {line}",
+      "note": "Condition or exceptions",
+      "submit": "Receive",
+      "otherOrder": "Choose Another Order",
+      "loading": "Loading orders.",
+      "offline": "Orders load only online. Scans still queue to intake.",
+      "retry": "Try Again",
+      "none": "No approved or sent order on this project has lines left to receive.",
+      "order": "PO {number}",
+      "unnamedVendor": "Unnamed vendor",
+      "tagAdded": "Tag added",
+      "tagSkipped": "Already tagged, or the line is full",
+      "queued": "{count} received; it syncs when you are online"
+    },
+    "directionLabel": "Scan direction for this zone",
+    "in": "In",
+    "out": "Out",
+    "exitRecorded": "Exit recorded",
+    "insideNow": "Inside now: {count}",
+    "insideNowNote": "People scanned in at this zone. Clock-ins and guests checked in at doors are not counted here.",
+    "override": "Override",
+    "overrideTitle": "Let this person in",
+    "overrideReason": "Reason",
+    "overrideReasonHelp": "Say why, in 1 to 300 characters.",
+    "overrideSubmit": "Let in",
+    "overrideQueued": "Override recorded"
   },
   "incidents": {
     "title": "Incidents",
     "new": "Report Incident",
     "empty": "No incidents on this project. Report one the moment it happens.",
+    "emergencyFirst": "In an emergency, call your local emergency number first. XOS does not alert emergency services.",
+    "nearMiss": "Near miss? If it could have hurt someone or caused damage but did not, choose Level 5 - Advisory and start What happened with the words Near miss, so it can be found later.",
     "step": "Step {step} of 3",
     "severity": "How serious is it?",
     "location": "Location",
@@ -460,7 +628,7 @@
     "submit": "Send Report",
     "holdHint": "Hold to send",
     "sent": "Report sent.",
-    "queued": "Report saved. It sends when you're back online.",
+    "queued": "Report saved but not sent yet. It sends when you're back online. If this is an emergency, call your local emergency number now.",
     "dispatch": "Dispatch",
     "contain": "Contained",
     "dispatchTitle": "Dispatch Board",
@@ -500,12 +668,13 @@
     "fail": "Fail",
     "progress": "{done} of {total} checked",
     "failNote": "What is wrong",
+    "failNoteHelp": "Name the unit, such as its tag or serial number.",
     "failNoteMissing": "Say what failed so someone can fix it.",
     "failPhoto": "Add Photo",
     "failPhotoMissing": "Add a photo of the failure.",
     "saveFail": "Save Fail",
     "submit": "Submit Inspection",
-    "criticalFailures": "Critical items failed: {count}. Stop use until they are fixed.",
+    "criticalFailures": "Critical items failed: {count}. Take the item out of use and tell your supervisor now. Name the unit in the inspection. XOS has not blocked or tracked it.",
     "submitted": "Inspection submitted.",
     "queued": "Inspection saved. It uploads when you're back online.",
     "signOff": "Sign Off",
@@ -534,7 +703,24 @@
     "countdownLabel": "{minutes} min {seconds} s to {cue}",
     "countdownLate": "{minutes} min {seconds} s late for {cue}",
     "countdownSoon": "{cue} in {seconds} seconds",
-    "countdownGo": "{cue}: go"
+    "countdownGo": "{cue}: go",
+    "tbc": "TBC",
+    "onStandby": "Standby",
+    "department": "Your department",
+    "allDepartments": "All",
+    "departments": {
+      "audio": "Audio",
+      "lighting": "Lighting",
+      "video": "Video",
+      "sfx": "Special Effects",
+      "stage": "Stage"
+    },
+    "yourCallNow": "Your call now: {cue}",
+    "yourCallNext": "Your call next: {cue}",
+    "callLine": "{department} · {instruction}",
+    "noCall": "No {department} call",
+    "noCalls": "No department calls",
+    "countdownTbc": "{cue}: time to be confirmed"
   },
   "kiosk": {
     "title": "Kiosk",
@@ -587,7 +773,9 @@
     "empty": "You're all caught up. Approvals and messages appear here.",
     "update": "Update",
     "updateFrom": "Update from {org}",
-    "new": "New"
+    "new": "New",
+    "crisisAlert": "Crisis alert at {project}: {code}",
+    "crisisAllClear": "All clear at {project}: {code}"
   },
   "more": {
     "title": "More",
@@ -614,7 +802,15 @@
     "boardEmpty": "No one is clocked in on this project yet.",
     "late": "Late",
     "approvalsEmpty": "No timesheets waiting for approval.",
-    "coverageEmpty": "Every shift today is filled."
+    "coverageEmpty": "Every shift today is filled.",
+    "noShow": {
+      "mark": "Mark no-show",
+      "title": "Mark {name} as a no-show",
+      "cancel": "Cancel",
+      "submit": "Mark no-show",
+      "reason": "What happened",
+      "reasonHelp": "The worker and shift planners read this. It waits on this device if you are offline."
+    }
   },
   "profile": {
     "title": "Profile",
@@ -650,6 +846,82 @@
     "manageInAtlas": "Manage in Atlas",
     "manageInGateway": "Manage in Gateway"
   },
+  "legalGate": {
+    "age": {
+      "title": "Confirm your age",
+      "sentence": "Choose the one that is true for you.",
+      "over": "I am 18 or older",
+      "under": "I am under 18"
+    },
+    "under": {
+      "title": "XOS accounts are for people 18 and older",
+      "sentence": "You told us you are under 18, so you cannot use Compass with this sign-in. If you continue, we close it.",
+      "keeps": "We also delete your profile and its files, your badge photos, your settings, what you sent our support team, and the answers and personal agreements you gave XOS. Any organization you worked with keeps the records the law requires, such as hours you worked, and a note with your email address that your account was deleted, and XOS keeps a record of that deletion with your account IDs but no name. XOS also keeps a monthly count of people under 18 it turned away, which does not identify you. Deleted data stays in backups until they expire.",
+      "confirm": "Close This Sign-In",
+      "back": "Go Back",
+      "queuedOne": "1 change on this device has not uploaded, such as hours you worked. Closing this sign-in deletes it. Connect and let it upload first if you can.",
+      "queuedOther": "{count} changes on this device have not uploaded, such as hours you worked. Closing this sign-in deletes them. Connect and let them upload first if you can."
+    },
+    "refused": {
+      "title": "Your sign-in is closed",
+      "sentence": "You no longer have an XOS account.",
+      "minors": "If you are working or attending an event, the adult or organization responsible for you can keep your details in their own records. You do not need an account for that."
+    },
+    "held": {
+      "title": "We could not close this yet",
+      "legalHold": "{org} keeps your records under a legal hold, so your account cannot be deleted now.",
+      "onShift": "You are clocked in at {org}, so your account cannot be deleted now.",
+      "soleOwner": "You are the only owner of {org}, so your account cannot be deleted now.",
+      "other": "Your account cannot be deleted now.",
+      "next": "Done signs you out, on every device when you are online. Until the account is closed, Compass asks again each time you sign in. Contact us and we will finish closing it.",
+      "contact": "Contact Us"
+    },
+    "documents": {
+      "title": "Review and accept",
+      "lead": "Read these before you use Compass. Each one opens in your browser.",
+      "limits": "They limit what we owe you if something goes wrong and say where disputes are heard. On an iPhone, Apple's terms apply too.",
+      "agree": "I have read and agree to these documents",
+      "accept": "Agree and Continue",
+      "decline": "Do Not Agree",
+      "later": "Not Now",
+      "effective": "Takes effect {date}"
+    },
+    "documentNames": {
+      "mobile-eula": "Mobile End User License Agreement",
+      "worker-terms": "Worker Terms"
+    },
+    "declined": {
+      "title": "Compass needs your agreement",
+      "sentence": "You cannot use Compass without agreeing to these documents. You can review them again, sign out or delete your account.",
+      "back": "Review Again",
+      "queuedOne": "1 change on this device has not uploaded, such as hours you worked. Signing out or deleting your account deletes it from this device.",
+      "queuedOther": "{count} changes on this device have not uploaded, such as hours you worked. Signing out or deleting your account deletes them from this device."
+    },
+    "connection": {
+      "title": "Connect to continue",
+      "sentence": "Before you use Compass, it asks your age and for your agreement to its terms, and records your answers on our servers. That needs a connection. Connect, then try again."
+    },
+    "online": "This step needs a connection. Compass records your answers on our servers, so they count on every device and can be shown later.",
+    "needsConnection": "We could not record that, so nothing changed. Compass needs a connection for this step. Check your connection and try again.",
+    "upcoming": "{document} changes on {date}. Review and accept it.",
+    "review": "Review"
+  },
+  "aiDisclosure": {
+    "title": "Allow AI features in Compass?",
+    "provider": "AI features send data to a third-party AI provider. Today that provider is Anthropic, which runs the Claude models for us.",
+    "sent": "What goes to it: the questions you ask the assistant, with the matching SOPs, handbook pages and records you can already see, and the receipt photos you take for an expense when your organization has receipt reading on.",
+    "notSent": "Medical records and Restricted fields, such as pay rates, bank details and government IDs, are not sent. Anything visible in a photo you take is. The provider does not train its models on this data.",
+    "change": "Compass sends nothing of yours to the provider until you allow it. If you do not, AI features stay off for you everywhere in XOS and Compass works without them. You can change this in Settings.",
+    "others": "This choice covers the AI features you use yourself. Until you choose, AI features you use in the XOS web apps follow your organization's setting. If your organization has AI features on, other people in it can still use them on records they can see, including records about you.",
+    "notice": "Read the AI Features Notice",
+    "allow": "Allow",
+    "decline": "Don't Allow",
+    "failed": "We could not save your choice, so nothing changed and nothing was sent. Check your connection and try again.",
+    "declined": "AI features are off, as you chose. To use them, allow them below.",
+    "settingsTitle": "AI features",
+    "settingsLabel": "Use AI features",
+    "settingsHelp": "Sends your questions and receipt photos to a third-party AI provider. Turning this off turns AI features off for you everywhere in XOS. It does not stop other people in your organization using them on records they can see."
+  },
   "settings": {
     "title": "Settings",
     "theme": "Theme",
@@ -684,7 +956,7 @@
     "actionsPost": "Report or block: post by {name}",
     "actionsMessage": "Report or block: message from {name}",
     "actionsShoutOut": "Report or block: shout-out from {name}",
-    "intro": "Your organization's moderators review every report within {hours} hours. Nobody is told who reported.",
+    "intro": "Your organization's moderators review every report within {hours} hours, and GHXSTSHIP reviews any they leave undecided. Nobody is told who reported.",
     "reportPost": "Report This Post",
     "reportMessage": "Report This Message",
     "reportShoutOut": "Report This Shout-Out",
@@ -701,7 +973,7 @@
     "details": "Anything moderators should know (optional)",
     "submit": "Send Report",
     "reportedTitle": "Report Sent",
-    "reported": "Thank you. Your organization's moderators will review it within {hours} hours and tell you what they decide.",
+    "reported": "Thank you. Your organization's moderators will review it within {hours} hours, or GHXSTSHIP will if they do not, and you will hear what was decided.",
     "blockToo": "Block {name} Too",
     "confirmTitle": "Block {name}?",
     "confirm": "You will no longer see their posts, comments, shout-outs or messages, in any conversation. They are not told. Unblock them any time in Settings, Blocked People.",
@@ -829,6 +1101,8 @@
     "inputHelp": "Ask in a sentence, such as When is my call time tomorrow?",
     "notInPlan": "Aurora AI comes with the Core, Pro, Team and Enterprise plans. Ask an Owner to change the plan in Atlas, Settings, Billing and Plan.",
     "offTitle": "Aurora is off for this org",
+    "declinedTitle": "AI features are off for you",
+    "declined": "You turned them off. To use them, turn them on in Settings, AI Features.",
     "limit": "Your org has used all {allowance} requests this month. The allowance resets on the first of next month.",
     "noAnswer": "The records you can see do not answer this. Ask about a shift, an SOP or the handbook.",
     "confirmReason": "Confirmed in Compass.",
@@ -862,12 +1136,15 @@
     },
     "keptTitle": "What is kept, and why",
     "kept": {
-      "time_and_pay": "Your time and pay records, kept 7 years because payroll law requires it.",
+      "time_and_pay": "Your time and pay records, kept 7 years, with your name kept apart for the wage records the law requires.",
       "tax_forms": "Your tax forms, kept 7 years because tax law requires it.",
       "engagements": "Your engagement records and signed agreements, kept 7 years.",
       "org_records": "Records you created for an organization, such as incident reports, kept by that organization without your name.",
+      "billing_consent": "The renewal terms you agreed to when you bought a paid plan for an organization, with your sign-in email and initials, kept 7 years and for a year after that plan ends, as proof of what was agreed.",
       "audit_trail": "The security audit trail, kept 7 years. Your personal details in it are removed after 90 days.",
-      "erasure_request": "A record that you asked for this erasure, so each organization can show it was done."
+      "erasure_request": "A record that you asked for this erasure, so each organization can show it was done.",
+      "rating_sharing": "Your record of choosing to show your ratings, with its time and IP address, kept 7 years after it closed as evidence of what you chose.",
+      "rating_disputes": "Any rating dispute you filed, kept with the rating's record so the decision can be shown."
     },
     "emailLabel": "Type your sign-in email to confirm",
     "emailHelp": "You sign in as {email}.",
@@ -883,7 +1160,8 @@
     "doneTitle": "Your account is deleted",
     "doneSentence": "Your sign-in, name and profile are erased. Organizations told: {count}.",
     "done": "Done",
-    "signOutFailed": "Compass could not clear this device: {reason}. Try Done again."
+    "signOutFailed": "Compass could not clear this device: {reason}. Try Done again.",
+    "back": "Go Back"
   },
   "notifications": {
     "title": "Compass",
@@ -899,6 +1177,22 @@
     "prompt": "Turn on notifications to approve timesheets and other requests right from the alert.",
     "denied": "Notifications are off for Compass. Turn them on in Settings to approve from the alert.",
     "turnOn": "Turn On Notifications"
+  },
+  "offerActions": {
+    "accept": "Accept",
+    "decline": "Decline",
+    "reply": "Reply",
+    "send": "Send",
+    "replyPrompt": "Write a reply",
+    "shiftAccepted": "Shift accepted. You're on the schedule.",
+    "shiftDeclined": "Shift declined. The scheduler sees it back in Draft.",
+    "offerAccepted": "Offer accepted. The organization sets up your engagement next.",
+    "offerDeclined": "Offer declined.",
+    "replied": "Reply sent.",
+    "coming": "I'm coming",
+    "notComing": "Can't make it",
+    "reconfirmComing": "Confirmed. See you there.",
+    "reconfirmNotComing": "Your planner has been told."
   },
   "help": {
     "title": "Help",
@@ -950,5 +1244,83 @@
   "systemBanner": {
     "details": "Details",
     "dismiss": "Dismiss"
+  },
+  "gateView": {
+    "title": "Gate",
+    "open": "Open gate view",
+    "find": "Find a booking",
+    "findHelp": "Reference code or plate.",
+    "notFound": "No booking matches. Check the code or plate.",
+    "selected": "Selected",
+    "empty": "No delivery windows at this gate today.",
+    "window": "{start} to {end}: {booked} of {limit} vehicles",
+    "noPlate": "No plate yet",
+    "arrived": "Arrived",
+    "arrivalQueued": "Arrival saved. It sends now, or when you're back online.",
+    "status": {
+      "expected": "Expected",
+      "waiting": "Waiting",
+      "released": "Released",
+      "checkedIn": "Checked In"
+    }
+  },
+  "drives": {
+    "empty": "No drives today or ahead. Transfers you are assigned to drive show here.",
+    "route": "{from} to {to}",
+    "window": "Pickup {pickup}, drop-off {dropoff}",
+    "vehicle": "{label}, {seats} seats",
+    "passengers": "Passengers: {names}",
+    "primary": "{name} (primary)",
+    "noPassengers": "No passengers yet",
+    "meets": "Meets {flight}, lands {time}",
+    "landingUnknown": "landing time not known",
+    "status": {
+      "unassigned": "Unassigned",
+      "assigned": "Assigned",
+      "underway": "Underway",
+      "done": "Done"
+    },
+    "noTransportContact": "No transport contact with a phone for this day.",
+    "call": "Call {name}"
+  },
+  "localContacts": {
+    "title": "Local contacts",
+    "call": "Tap to call"
+  },
+  "clockTeam": {
+    "open": "Clock in team",
+    "listTitle": "Today's team",
+    "selected": "{count} selected",
+    "selectAll": "Select all",
+    "select": "Select {name}",
+    "window": "{start} to {end}",
+    "unnamed": "Crew member",
+    "pending": "Waiting to sync",
+    "in": "In",
+    "refused": "Not punched",
+    "empty": "No one you supervise has a shift on this project today.",
+    "refresh": "Refresh",
+    "hint": "Each person is punched at your time and location. Anyone the server refuses shows why beside their name.",
+    "clockIn": "Clock in",
+    "clockOut": "Clock out",
+    "outsideGeofence": "You are outside the project's geofence, so clock-ins may be refused. Punch the team in on site.",
+    "agencyShift": "Agency shift",
+    "refusals": {
+      "supervisor_punch_batch": "Punch between 1 and 100 people at a time.",
+      "supervisor_punch_batch_required": "This team punch has no batch id. Punch the team again.",
+      "supervisor_punch_project": "This shift is no longer on this project, or it was canceled.",
+      "supervisor_punch_no_worker": "Nobody holds this shift yet.",
+      "supervisor_punch_not_lead": "You do not supervise this person's shift.",
+      "supervisor_punch_self": "Clock yourself in from your own clock.",
+      "supervisor_punch_outside_shift": "Clock-in opens two hours before the shift starts and closes when it ends.",
+      "punch_already_in": "Already clocked in.",
+      "punch_not_in": "Not clocked in.",
+      "punch_shift_not_accepted": "This shift is not published or not theirs.",
+      "punch_id_conflict": "This punch was already used for another punch. Punch again.",
+      "punch_location_required": "This project needs your location to clock the team in.",
+      "punch_outside_geofence": "You are outside the project's geofence.",
+      "punch_before_clock_in": "A clock-out counts after the clock-in.",
+      "roster_entry_not_working": "Their roster entry is withdrawn or their engagement is not active."
+    }
   }
 }

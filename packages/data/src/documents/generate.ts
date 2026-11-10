@@ -1,19 +1,20 @@
 import type { XosClient } from "../client.ts";
+import { credentialStatus, getIssuedCredentials } from "../credentials.ts";
+import { badgePhotos, loadBadgePhotoBytes } from "../credential-photos.ts";
 import { fail, ok, type Result } from "../result.ts";
 import { getOrgBrand } from "../settings.ts";
 import { documentTranslator, formatter } from "./format.ts";
-import type { DocumentKind, DocumentLogo, DocumentModel, Paper } from "./model.ts";
+import type { DocumentKind, DocumentLogo, DocumentModel, Paper, PrintSize } from "./model.ts";
 import type { Orientation } from "./render.ts";
-import { isEmbeddableImage, renderDocumentPdf } from "./render.ts";
-import { loadDocumentData } from "./sources.ts";
-import { loadExternalDocumentData, type ExternalDocumentKind } from "./sources-external.ts";
+import { isEmbeddableImage, MAX_BATCH, renderDocumentPdf, streamDocumentsPdf } from "./render.ts";
+import { documentProject, loadDocumentData, type LoadOptions } from "./sources.ts";
 import {
-  DESCRIBE,
-  TEMPLATES,
-  templateFor,
-  type DocumentDataMap,
-  type TemplateRegistry,
-} from "./templates.ts";
+  loadExternalDocumentData,
+  quoteDataFromFields,
+  type ExternalDocumentKind,
+  type QuoteBrandFields,
+} from "./sources-external.ts";
+import { DESCRIBE, type DocumentDataMap } from "./templates.ts";
 
 /**
  * The document pipeline (Section 11.9, ADR 0031): load the record as the caller, pick the template
@@ -21,20 +22,9 @@ import {
  * tagged PDF/UA-1. Server only.
  */
 
-export type DocumentBrand = DocumentModel["brand"];
+import { buildDocumentModel, type DocumentBrand } from "./build.ts";
 
-export interface BuildOptions {
-  readonly locale: string;
-  /** The `documents` namespace of the caller's catalog. */
-  readonly messages: unknown;
-  readonly brand: DocumentBrand;
-  readonly recordUrl: string;
-  readonly now?: Date;
-  /** Defaults to the shipped templates; tests pass their own versions. */
-  readonly registry?: TemplateRegistry;
-  /** The Section 8.6 watermark text for a Confidential or Restricted copy (see watermarkText). */
-  readonly watermark?: string;
-}
+export { buildDocumentModel, type BuildOptions, type DocumentBrand } from "./build.ts";
 
 /**
  * The Section 8.6 watermark line: who received the copy and when, in the reader's language and the
@@ -51,43 +41,6 @@ export function watermarkText(
   const t = documentTranslator(messages);
   const f = formatter(locale, timeZone, t);
   return t("facts.watermark", { email, time: f.dateTime(at.toISOString()) });
-}
-
-/** The model of one document from loaded record data. Pure, so tests and the veraPDF check use it. */
-export function buildDocumentModel<K extends DocumentKind>(
-  kind: K,
-  data: DocumentDataMap[K],
-  options: BuildOptions,
-): DocumentModel {
-  const now = options.now ?? new Date();
-  const t = documentTranslator(options.messages);
-  const { recordKey, issuedAt } = DESCRIBE[kind](data, now);
-  const timeZone = "project" in data && data.project ? data.project.timeZone : "UTC";
-  const f = formatter(options.locale, timeZone, t);
-  const template = templateFor((options.registry ?? TEMPLATES)[kind], issuedAt);
-  const out = template.build(data, { t, f, generatedAt: now });
-  return {
-    kind,
-    lang: options.locale,
-    title: out.title,
-    brand: options.brand,
-    facts: {
-      recordKey,
-      templateVersion: template.version,
-      generatedAt: f.dateTime(now.toISOString()),
-      generatedAtIso: now.toISOString(),
-      recordUrl: options.recordUrl,
-      labels: {
-        recordKey: t("facts.recordKey"),
-        version: t("facts.version"),
-        generatedAt: t("facts.generatedAt"),
-        qrAlt: t("facts.qrAlt", { key: recordKey }),
-        page: (page, total) => t("facts.page", { page, total }),
-      },
-    },
-    blocks: out.blocks,
-    ...(options.watermark ? { watermark: { text: options.watermark } } : {}),
-  };
 }
 
 export interface SharedImageInput {
@@ -209,7 +162,8 @@ export interface GenerateInput {
   readonly id: string;
   readonly locale: string;
   readonly messages: unknown;
-  readonly paper: Paper;
+  /** Letter or A4; the credential badge also prints on A6 and CR80 cards (isPrintSizeFor). */
+  readonly paper: PrintSize;
   /** The link the QR code opens: the record in the shell that serves the document. */
   readonly recordUrl: (record: {
     readonly recordKey: string;
@@ -218,7 +172,12 @@ export interface GenerateInput {
   readonly now?: Date;
   /** The Section 8.6 watermark text, set for Confidential and Restricted documents. */
   readonly watermark?: string;
+  /** The orientation when the kind does not choose its own from its data (DESCRIBE). */
   readonly orientation?: Orientation;
+  /** The request's search params, passed to the template (the site plan's layers and legend, B1). */
+  readonly options?: Readonly<Record<string, string | undefined>>;
+  /** What the loader needs beyond the id: a day sheet's audience, the wrap-up's ledger reach and units (B7). */
+  readonly load?: LoadOptions;
 }
 
 export interface GeneratedDocument {
@@ -227,14 +186,24 @@ export interface GeneratedDocument {
   readonly templateVersion: number;
 }
 
-/** File names keep letters, digits, dots and dashes. */
-export function documentFileName(kind: DocumentKind, recordKey: string, paper: Paper): string {
-  const key = recordKey.replace(/[^A-Za-z0-9.-]+/g, "-").replace(/^-+|-+$/g, "");
-  return `${kind}-${key || "document"}-${paper}.pdf`;
+/** A name as a file name part: letters, digits, dots and dashes. */
+export const fileNamePart = (text: string) =>
+  text.replace(/[^A-Za-z0-9.-]+/g, "-").replace(/^-+|-+$/g, "");
+
+/** File names keep letters, digits, dots and dashes; a copy for an audience carries its slug (B7). */
+export function documentFileName(
+  kind: DocumentKind,
+  recordKey: string,
+  paper: PrintSize,
+  audience?: string | null,
+): string {
+  const key = fileNamePart(recordKey);
+  const slug = audience ? fileNamePart(audience.toLowerCase()) : "";
+  return `${kind}-${key || "document"}${slug ? `-${slug}` : ""}-${paper}.pdf`;
 }
 
 export async function generateDocument(input: GenerateInput): Promise<Result<GeneratedDocument>> {
-  const data = await loadDocumentData(input.db, input.orgId, input.kind, input.id);
+  const data = await loadDocumentData(input.db, input.orgId, input.kind, input.id, input.load);
   if (!data.ok) return data;
   return renderLoaded(input, input.kind, data.data, input.orgId, input.orgName);
 }
@@ -249,39 +218,107 @@ export async function generateExternalDocument(
 ): Promise<Result<GeneratedDocument>> {
   const loaded = await loadExternalDocumentData(input.db, input.kind, input.id);
   if (!loaded.ok) return loaded;
-  return renderLoaded(input, input.kind, loaded.data.data, loaded.data.orgId, loaded.data.orgName);
+  return renderLoaded(
+    input,
+    input.kind,
+    loaded.data.data,
+    loaded.data.orgId,
+    loaded.data.orgName,
+    loaded.data.brand,
+  );
+}
+
+/**
+ * A quote from the fields of api_public.token_quote, for a signing link's Download PDF. The token
+ * reader already checked the link and code; nothing here reads a record, and the brand comes from the
+ * same fields because anon cannot read app.org_brands.
+ */
+export async function generateTokenQuoteDocument(
+  input: Omit<ExternalGenerateInput, "kind" | "id"> & {
+    readonly quote: Readonly<Record<string, unknown>>;
+  },
+): Promise<Result<GeneratedDocument>> {
+  const q = input.quote as Parameters<typeof quoteDataFromFields>[0] & {
+    readonly org_id?: string;
+    readonly org_name?: string;
+    readonly legal_entity_name?: string | null;
+    readonly brand_accent_hex?: string | null;
+    readonly brand_logo_path?: string | null;
+    readonly lines?: Parameters<typeof quoteDataFromFields>[1];
+  };
+  const data = quoteDataFromFields(q, q.lines ?? []);
+  return renderLoaded(input, "quote", data, q.org_id ?? "", q.org_name ?? "", {
+    legalEntityName: q.legal_entity_name ?? null,
+    accentHex: q.brand_accent_hex ?? null,
+    logoPath: q.brand_logo_path ?? null,
+  });
+}
+
+/** The brand from a record's own fields; the org-brand bucket is public, so anon can fetch the logo. */
+async function brandFromFields(
+  db: XosClient,
+  name: string,
+  fields: QuoteBrandFields,
+  logoAlt: (name: string) => string,
+): Promise<DocumentBrand> {
+  let logo: DocumentLogo | null = null;
+  if (fields.logoPath) {
+    const { data } = await db.storage.from("org-brand").download(fields.logoPath);
+    if (data) {
+      const bytes = new Uint8Array(await data.arrayBuffer());
+      if (isEmbeddableImage(bytes)) logo = { bytes, alt: logoAlt(name) };
+    }
+  }
+  return {
+    name,
+    legalEntity: fields.legalEntityName?.trim() || null,
+    accentHex: fields.accentHex,
+    logo,
+  };
 }
 
 async function renderLoaded<K extends DocumentKind>(
-  input: Omit<GenerateInput, "orgId" | "orgName" | "kind">,
+  input: Omit<GenerateInput, "orgId" | "orgName" | "kind" | "id">,
   kind: K,
   data: DocumentDataMap[K],
   orgId: string,
   orgName: string,
+  brandFields?: QuoteBrandFields,
 ): Promise<Result<GeneratedDocument>> {
   const t = documentTranslator(input.messages);
-  const brand = await loadDocumentBrand(input.db, orgId, orgName, (name) =>
-    t("facts.logoAlt", { name }),
-  );
+  const logoAlt = (name: string) => t("facts.logoAlt", { name });
+  const brand = brandFields
+    ? await brandFromFields(input.db, orgName, brandFields, logoAlt)
+    : await loadDocumentBrand(input.db, orgId, orgName, logoAlt);
   const project = "project" in data ? data.project : null;
   const now = input.now ?? new Date();
-  const { recordKey } = DESCRIBE[kind](data, now);
+  const described = DESCRIBE[kind](data, now);
+  const { recordKey } = described;
   const model = buildDocumentModel(kind, data, {
     locale: input.locale,
     messages: input.messages,
     brand,
     recordUrl: input.recordUrl({ recordKey, projectKey: project?.key || null }),
     now,
+    paper: input.paper,
     ...(input.watermark ? { watermark: input.watermark } : {}),
+    ...(input.options ? { options: input.options } : {}),
   });
+  // The kind's own choice, made after its data loaded (the site plan follows its drawing), wins over the route's.
+  const orientation = described.orientation ?? input.orientation;
   try {
     const bytes = await renderDocumentPdf(model, {
       paper: input.paper,
-      ...(input.orientation ? { orientation: input.orientation } : {}),
+      ...(orientation ? { orientation } : {}),
     });
+    const audience =
+      "audience" in data && data.audience
+        ? (data.audience.label ??
+          (data.audience.showDepartment ? data.audience.showDepartment : null))
+        : null;
     return ok({
       bytes,
-      fileName: documentFileName(kind, model.facts.recordKey, input.paper),
+      fileName: documentFileName(kind, model.facts.recordKey, input.paper, audience),
       templateVersion: model.facts.templateVersion,
     });
   } catch (error) {
@@ -290,4 +327,101 @@ async function renderLoaded<K extends DocumentKind>(
       message: error instanceof Error ? error.message : String(error),
     });
   }
+}
+
+export interface BadgeBatchInput {
+  readonly db: XosClient;
+  readonly orgId: string;
+  readonly orgName: string;
+  /** 1 to 100 credential ids, printed in this order. */
+  readonly ids: readonly string[];
+  readonly locale: string;
+  /** The `documents` namespace of the caller's catalog. */
+  readonly messages: unknown;
+  readonly paper: PrintSize;
+  readonly recordUrl: (record: {
+    readonly id: string;
+    readonly recordKey: string;
+    readonly projectKey: string | null;
+  }) => string;
+  readonly now?: Date;
+}
+
+export interface BadgeBatch {
+  /** The PDF, streamed as each badge is drawn (P5: a run with photos is larger than a buffered response allows). */
+  readonly stream: ReadableStream<Uint8Array>;
+  readonly fileName: string;
+  readonly rendered: number;
+  /** Ids left out: unreadable, of another org, revoked or expired. */
+  readonly skipped: number;
+}
+
+/**
+ * A print run of credential badges in one PDF (P5): the credentials and their photos are read as the caller in one
+ * pass each and the brand once. A credential the caller cannot read, one whose project is not in the org (the
+ * single route answers 404 there, ADR 0003), and a revoked or expired one are left out and counted as skipped.
+ * Refuses 0 or more than 100 ids; not found when nothing is left to print.
+ */
+export async function generateBadgeBatch(input: BadgeBatchInput): Promise<Result<BadgeBatch>> {
+  const ids = [...new Set(input.ids)];
+  if (ids.length < 1 || ids.length > MAX_BATCH) {
+    return fail({ kind: "invalid", message: `A batch prints 1 to ${MAX_BATCH} badges.` });
+  }
+  const now = input.now ?? new Date();
+  const found = await getIssuedCredentials(input.db, ids);
+  if (!found.ok) return found;
+  const byId = new Map(found.data.map((c) => [c.id, c]));
+  const live = ids
+    .map((id) => byId.get(id))
+    .filter((c): c is NonNullable<typeof c> => {
+      if (!c) return false;
+      const status = credentialStatus(c, now);
+      return status !== "revoked" && status !== "expired";
+    });
+  const projects = new Map<string, Awaited<ReturnType<typeof documentProject>>>();
+  for (const projectId of new Set(live.map((c) => c.projectId))) {
+    projects.set(projectId, await documentProject(input.db, input.orgId, projectId));
+  }
+  const printable = live.filter((c) => projects.get(c.projectId)?.ok === true);
+  if (printable.length === 0) return fail({ kind: "not-found" });
+  const photoRows = await badgePhotos(
+    input.db,
+    printable.map((c) => c.id),
+  );
+  const photos = photoRows.ok ? await loadBadgePhotoBytes(input.db, photoRows.data) : new Map();
+  const t = documentTranslator(input.messages);
+  const brand = await loadDocumentBrand(input.db, input.orgId, input.orgName, (name) =>
+    t("facts.logoAlt", { name }),
+  );
+  const models = printable.map((credential) => {
+    const project = projects.get(credential.projectId);
+    const data = {
+      project: (project as { ok: true; data: DocumentDataMap["credential-badge"]["project"] }).data,
+      credential,
+      photo: photos.get(credential.id) ?? null,
+    };
+    const { recordKey } = DESCRIBE["credential-badge"](data, now);
+    return buildDocumentModel("credential-badge", data, {
+      locale: input.locale,
+      messages: input.messages,
+      brand,
+      recordUrl: input.recordUrl({
+        id: credential.id,
+        recordKey,
+        projectKey: data.project.key || null,
+      }),
+      now,
+      paper: input.paper,
+    });
+  });
+  return ok({
+    stream: streamDocumentsPdf(models, {
+      paper: input.paper,
+      title: t("credentialBadge.batchTitle", { count: models.length }),
+      lang: input.locale,
+    }),
+    fileName: `credential-badges-${models.length}-${input.paper}.pdf`,
+    rendered: models.length,
+    skipped: ids.length - models.length,
+  });
 }

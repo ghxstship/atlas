@@ -1,7 +1,8 @@
 import { dayOf, getOrgBannerStatus, readOnlyOn, windowLastDay } from "@xos/data/org-lifecycle";
+import type { Route } from "next";
 import { getTranslations } from "next-intl/server";
-import { BillingPortalButton, CheckoutButton } from "@/components/settings/billing-forms";
-import { Button, Card, InlineAlert } from "@/components/ui";
+import { BillingPortalButton } from "@/components/settings/billing-forms";
+import { Button, ButtonLink, Card, InlineAlert } from "@/components/ui";
 import { getFormatters } from "@/lib/platform/format";
 import type { OrgContext } from "@/lib/shell/context";
 import { getOrgTimeZone } from "@/lib/shell/time-zone";
@@ -9,8 +10,8 @@ import { getOrgTimeZone } from "@/lib/shell/time-zone";
 /**
  * The trial and dunning state at the top of Billing and Plan (A79; Section 14.7 and Section 16), where the
  * org banners send the Owner to fix billing. Once billing is open (ADR 0033 decision 59), adding a
- * card opens Stripe Checkout for the trial's plan, carrying the rest of the trial so nothing is charged
- * before it ends, and updating the payment method opens the Stripe customer portal. Until then the button
+ * card shows the renewal terms of the trial's plan (ADR 0161), then opens Stripe Checkout, carrying the rest of the
+ * trial so nothing is charged before it ends, and updating the payment method opens the Stripe customer portal. Until then the button
  * stays disabled and the copy says how to get it done; while a paid checkout waits for its subscription to
  * sync, it stays disabled and the page says Stripe is confirming. Dates are days on the org's calendar.
  */
@@ -21,9 +22,15 @@ export async function BillingLifecycleNotice({
   ctx: OrgContext;
   /**
    * Whether billing is open, whether the org has a Stripe customer whose portal can open, and whether a paid
-   * checkout still waits for its subscription to sync.
+   * checkout still waits for its subscription to sync, and whether the renewal terms are already on the page, so the
+   * screen keeps its one primary action.
    */
-  billing: { readonly open: boolean; readonly portal: boolean; readonly awaiting: boolean };
+  billing: {
+    readonly open: boolean;
+    readonly portal: boolean;
+    readonly awaiting: boolean;
+    readonly reviewing?: boolean;
+  };
 }) {
   const status = await getOrgBannerStatus(ctx.viewer.db, ctx.org.id);
   if (!status.ok) return null;
@@ -39,14 +46,19 @@ export async function BillingLifecycleNotice({
   const button =
     s.billingState && billing.open && billing.portal ? (
       <BillingPortalButton org={ctx.org.slug} label={action} variant="primary" />
+    ) : !s.billingState && billing.reviewing ? (
+      <></>
     ) : !s.billingState && billing.open && !billing.awaiting && s.trialPlan ? (
-      <CheckoutButton
-        org={ctx.org.slug}
-        plan={s.trialPlan}
-        interval="Monthly"
-        label={action}
-        variant="primary"
-      />
+      <div>
+        <ButtonLink
+          variant="primary"
+          href={
+            `/${ctx.org.slug}/settings/billing-and-plan?review=${s.trialPlan}#renewal-review` as Route
+          }
+        >
+          {action}
+        </ButtonLink>
+      </div>
     ) : null;
   return (
     <Card>

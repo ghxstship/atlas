@@ -23,7 +23,7 @@ export {
 export {
   MAX_ADDON_QUANTITY,
   MAX_EXTRA_SEATS,
-  PORTAL_CONFIGURATION_KEY,
+  PORTAL_CONFIGURATION_KEYS,
   PriceNotFoundError,
   createAddonCheckoutSession,
   createCheckoutSession,
@@ -52,6 +52,17 @@ export {
   type StripeWebhookRequest,
   type WebhookOutcome,
 } from "./billing/webhook.ts";
+export { stripeCancellationStore } from "./billing/cancel-store.ts";
+export {
+  runStripeCancellations,
+  sendStripeCancel,
+  stripeStatusEnded,
+  type BillingAlert,
+  type BillingAlertSink,
+  type StripeCancelJob,
+  type StripeCancellationRun,
+  type StripeCancellationStore,
+} from "./billing/cancel.ts";
 export { signWebhook, verifyWebhook, type VerifyOptions } from "./webhooks/signing.ts";
 export {
   dispatchWebhooks,
@@ -99,6 +110,10 @@ export {
   dispatchPush,
   expoPushClient,
   outcomeOf,
+  ENGAGEMENT_OFFER_CATEGORY,
+  MESSAGE_REPLY_CATEGORY,
+  SHIFT_OFFER_CATEGORY,
+  pushCategoryFor,
   pushEnvSchema,
   pushMessage,
   readPushEnv,
@@ -119,6 +134,16 @@ export {
   type WebPushStore,
   webPushPayload,
 } from "./notifications/push.ts";
+export {
+  ACTION_PATH,
+  ACTION_TOKEN,
+  actionLinks,
+  actionPath,
+  isActionToken,
+  type ActionAudience,
+  type ActionLinkBases,
+  type MintedAction,
+} from "./notifications/action-links.ts";
 export {
   RecordingWebPushClient,
   WEB_PUSH_MAX_PAYLOAD,
@@ -237,13 +262,16 @@ export {
   type ResendReceivedEvent,
   type ResendSignatureHeaders,
 } from "./inbound/resend.ts";
+export { billingStore } from "./billing/store.ts";
 export {
   PUNCH_KINDS,
   PlatformDbError,
-  billingStore,
   inboundStore,
+  isPlatformEmailKind,
   kioskPunch,
   gatewayLink,
+  mailbox,
+  mailboxAddress,
   notificationStore,
   recipientProfile,
   restDb,
@@ -304,6 +332,7 @@ export {
 export { scanStore, supabaseStorage } from "./scanning/stores.ts";
 export {
   buildPkpass,
+  passImages,
   passJson,
   readAppleWalletEnv,
   unconfiguredPassSigner,
@@ -311,6 +340,7 @@ export {
   type ApplePassConfig,
   type AppleSignerKeys,
   type AppleWalletEnv,
+  type PassFile,
   type PassSigner,
   type WalletLabels,
   type WalletPass,
@@ -349,7 +379,9 @@ export {
   callerPassLoader,
   parseWalletRequest,
   passFromRow,
+  publicBrandLogo,
   walletPassResponse,
+  type BrandLogo,
   type WalletDeps,
   type WalletRequest,
   type WalletResponse,
@@ -366,3 +398,12 @@ export {
   type ScannerEnv,
   type SelectedScanner,
 } from "./scanning/select.ts";
+export {
+  importProjectSigningKey,
+  projectTokenSigner,
+  ProjectSigningKeyError,
+  signProjectToken,
+  type ProjectSigningKey,
+  type ProjectTokenClaims,
+  type ProjectTokenSigner,
+} from "./jwt/project-token.ts";

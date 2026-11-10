@@ -88,6 +88,8 @@ with f as (insert into app.fulfillments (project_id, fulfillment_kind, title, st
   values (pg_temp.id('prj_a'), 'Catering', 'Load-In Lunch', '2027-06-01 16:00+00', '2027-06-01 17:00+00') returning id)
   insert into world select 'lunch', id from f;
 insert into app.fulfillment_lines (fulfillment_id, description, person_id) values (pg_temp.id('lunch'), 'Vegetarian plate', pg_temp.id('sam'));
+-- Per diem is an offering since R3 (2625): prj_a offers it.
+select app.set_setting(pg_temp.id('org_a'), 'offerings.per_diem', 'Project', pg_temp.id('prj_a'), 'provided');
 insert into app.per_diems (project_id, engagement_id, day, amount_minor, currency_code)
 values (pg_temp.id('prj_a'), pg_temp.id('eng_vendor_a'), '2027-06-01', 6500, 'USD');
 select pg_temp.as_platform();
@@ -132,8 +134,8 @@ select pg_temp.move_engagement('eng_vendor_a', 'Closing', 'Complete');
 select is(pg_temp.reads('victor', m.view_name), 0, 'Complete closes ' || m.view_name || ' for the Owner') from matrix m;
 select is(pg_temp.reads('sam', m.view_name), 0, 'and for the person') from matrix m;
 
--- Columns keep their order ----------------------------------------------------------------------------------------------------------
-select is(pg_temp.columns_of('credentials'), array['id', 'project_id', 'project_name', 'category_code', 'category_name', 'holder_person_id',
+-- Columns keep their order; later packages append only (R8 adds credentials.category_kind and per_diems.roster_entry_id) ---------
+select is((pg_temp.columns_of('credentials'))[1:12], array['id', 'project_id', 'project_name', 'category_code', 'category_name', 'holder_person_id',
   'holder_name', 'credential_number', 'valid_from', 'valid_to', 'revoked_at', 'engagement_id'], 'credentials keeps its columns in order');
 select is(pg_temp.columns_of('lodging'), array['id', 'project_id', 'project_name', 'block_title', 'hotel_name', 'person_id', 'guest_name',
   'check_in_on', 'check_out_on'], 'lodging keeps its columns in order');
@@ -142,7 +144,7 @@ select is(pg_temp.columns_of('hospitality'), array['id', 'fulfillment_id', 'proj
 select is(pg_temp.columns_of('travel'), array['id', 'engagement_id', 'project_id', 'project_name', 'travel_mode', 'operator_name',
   'service_identifier', 'confirmation_identifier', 'departs_from', 'departs_at', 'departs_time_zone', 'arrives_at_place', 'arrives_at',
   'arrives_time_zone'], 'travel keeps its columns in order');
-select is(pg_temp.columns_of('per_diems'), array['id', 'engagement_id', 'project_id', 'project_name', 'day', 'amount_minor', 'currency_code'],
+select is((pg_temp.columns_of('per_diems'))[1:7], array['id', 'engagement_id', 'project_id', 'project_name', 'day', 'amount_minor', 'currency_code'],
   'per_diems keeps its columns in order');
 select ok(has_table_privilege('authenticated', 'api_external.' || m.view_name, 'select'), m.view_name || ' stays readable by signed-in users')
 from matrix m;

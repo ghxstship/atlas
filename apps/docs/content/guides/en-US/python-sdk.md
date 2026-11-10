@@ -7,6 +7,12 @@ order: 8
 
 `xos-sdk` covers every operation in the OpenAPI document. Its models, methods and operation table are generated from the document by CI and never edited by hand. It uses only the Python standard library, so it installs anywhere Python 3.9 or later runs.
 
+## Install
+
+```bash
+pip install xos-sdk
+```
+
 ## Create a client
 
 ```python

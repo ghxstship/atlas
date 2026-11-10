@@ -4,6 +4,8 @@ import { locales } from "@xos/i18n";
 import {
   EmailSendError,
   GuardedTransport,
+  MAX_ATTACHMENT_BYTES,
+  MailpitTransport,
   RecipientRefusedError,
   RecordingTransport,
   ResendTransport,
@@ -38,6 +40,11 @@ const samples: { readonly [C in TemplateCode]: TemplateProps[C] } = {
     args: { actorName: "Bob Okafor", title: "Rigging rental" },
     url: "https://atlas.xos.test/r/1",
   },
+  billing_notice: {
+    kind: "billing.renewal_reminder",
+    args: { plan: "Team", price: "1,490.00 USD", renewsOn: Date.UTC(2027, 10, 6, 12) },
+    url: "https://atlas.xos.test/settings/billing",
+  },
   digest: {
     frequency: "weekly",
     items: [
@@ -64,6 +71,16 @@ const samples: { readonly [C in TemplateCode]: TemplateProps[C] } = {
     periodLabel: "October 2026",
     format: "PDF",
     url: "https://atlas.xos.test/rep/1",
+    rows: 42,
+    unpriced: 1,
+  },
+  stakeholder_pack: {
+    senderName: "Alice Moreno",
+    packName: "Sponsor recap",
+    message: "Here is the recap.",
+    itemTitles: ["Attendance", "Activation photos"],
+    url: "https://atlas.xos.test/pack/xpkl_1",
+    expiresText: "Nov 17, 2026, 5:00 PM EST",
   },
   export_ready: { exportName: "Vendors", expiresAt: when, url: "https://atlas.xos.test/exp/1" },
   import_finished: {
@@ -86,6 +103,50 @@ const samples: { readonly [C in TemplateCode]: TemplateProps[C] } = {
     summary: "Adds Example Mail Inc. (United States) to receive inbound email for project inboxes.",
     effectiveOn: new Date("2026-12-01T12:00:00Z"),
     listUrl: "https://atlas.xos.test/legal/subprocessors",
+  },
+  party_invitation: {
+    kind: "roster",
+    inviterName: "Victor Osei",
+    accountName: "Bayside Audio",
+    projectName: "Northwind Summer Series",
+    partyName: "Bayside Audio",
+    expiresAt: new Date("2027-06-01T12:00:00Z"),
+    signInUrl: "https://gateway.xos.test/auth/sign-in",
+  },
+  approval_link_code: { code: "482913", orgName: "Northwind Live", expiresInMinutes: 10 },
+  guest_message: {
+    kind: "Pass",
+    guestName: "Sasha Bell",
+    projectName: "Northwind Summer Series",
+    showName: "Opening Night",
+    showDate: new Date("2027-06-02T23:00:00Z"),
+    plusOnes: 2,
+  },
+  legal_clock_alert: {
+    audience: "operator",
+    overdue: 1,
+    dueSoon: 1,
+    items: [
+      {
+        reference: "LQ-2026-00001",
+        matter: "DMCA Counter-Notice",
+        clock: "Due",
+        at: new Date("2026-11-17T04:59:59Z"),
+        overdue: true,
+      },
+      { reference: "LQ-2026-00002", clock: "First Response", at: when, overdue: false },
+    ],
+    queueUrl: "https://console.xos.test/legal-queue",
+  },
+  moderation_notice: {
+    kind: "moderation_appeal.decided",
+    args: {
+      title: "Summer Series Riggers",
+      outcome: "Upheld",
+      statement: "We applied again and were not asked for a fee.",
+      reviewer: "same",
+      reviewerName: "",
+    },
   },
 };
 
@@ -196,6 +257,97 @@ describe("catalog", () => {
         "UTC",
       ),
     ).toContain("November 4, 2026");
+  });
+
+  it("tells the person who re-reviewed an appeal, and never implies a second employee (6863)", () => {
+    const args = { title: "Riggers", outcome: "Upheld", statement: "Stands.", reviewerName: "" };
+    const same = { ...args, reviewer: "same" };
+    expect(formatMessage("en-US", "kinds.moderation_appeal.decided.body", same)).toBe(
+      "We looked at your appeal afresh and kept the decision. The person who made the first decision did this review. Stands.",
+    );
+    expect(formatMessage("es-US", "kinds.moderation_appeal.decided.body", same)).toContain(
+      "La persona que tomó la primera decisión hizo esta revisión",
+    );
+    expect(
+      formatMessage("en-US", "kinds.moderation_appeal.decided.body", {
+        ...args,
+        reviewer: "outside",
+        reviewerName: "Noor Adeyemi",
+      }),
+    ).toContain("Noor Adeyemi, an outside reviewer, did this review.");
+    for (const locale of ["en-US", "es-US"] as const) {
+      for (const reviewer of ["same", "outside", "other"]) {
+        expect(
+          formatMessage(locale, "kinds.moderation_appeal.decided.body", { ...args, reviewer }),
+        ).not.toMatch(/Another reviewer|Otra persona/);
+      }
+    }
+  });
+
+  it("offers a reporter an appeal only where the database takes one, and says where (1473)", () => {
+    const args = { title: "Riggers", statement: "Stands." };
+    for (const locale of ["en-US", "es-US"] as const) {
+      for (const action of ["No Action", "Restored"]) {
+        expect(
+          formatMessage(locale, "kinds.listing_report.decided.body", { ...args, action }),
+        ).toContain("support@ghxstship.pro");
+      }
+      for (const action of ["Removed", "Restricted"]) {
+        expect(
+          formatMessage(locale, "kinds.listing_report.decided.body", { ...args, action }),
+        ).not.toMatch(/appeal|apelar/i);
+      }
+    }
+    expect(
+      formatMessage("en-US", "kinds.listing_report.decided.body", { ...args, action: "No Action" }),
+    ).toBe(
+      "We took no action on the listing. Stands. You can appeal this decision within six months by writing to support@ghxstship.pro with Appeal in the subject line.",
+    );
+  });
+
+  it("names every legal queue matter in both languages (6860)", () => {
+    const enums = readFileSync(
+      new URL("../../data/src/enums.generated.ts", import.meta.url),
+      "utf8",
+    );
+    const list = /legalQueueMatter = \[([^\]]*)\]/.exec(enums)?.[1] ?? "";
+    const matters = [...list.matchAll(/"([^"]+)"/g)].map((m) => m[1] ?? "");
+    expect(matters.length).toBeGreaterThan(0);
+    for (const locale of ["en-US", "es-US"] as const) {
+      for (const matter of matters) {
+        expect(hasMessage(locale, `legal_clock_alert.matters.${matter}`), matter).toBe(true);
+      }
+    }
+  });
+
+  it("gives a legal clock alert a link only for an operator, and never the matter to anyone else", async () => {
+    const render = (audience: "operator" | "backup" | "reviewer") =>
+      renderEmail(
+        "legal_clock_alert",
+        {
+          audience,
+          overdue: 1,
+          dueSoon: 0,
+          items: [
+            {
+              reference: "LQ-2026-00007",
+              clock: "Due",
+              at: new Date("2026-11-17T04:59:59Z"),
+              overdue: true,
+            },
+          ],
+          queueUrl: "https://console.xos.test/legal-queue",
+        },
+        { locale: "en-US", sender, recipientName: "Dave", timeZone: "America/New_York" },
+      );
+    const operator = await render("operator");
+    expect(operator.subject).toBe("XOS legal queue: 1 clock is overdue");
+    expect(operator.html).toContain("https://console.xos.test/legal-queue");
+    expect(operator.text).toContain("November 16, 2026 at 11:59");
+    const backup = await render("backup");
+    expect(backup.html).not.toContain("console.xos.test");
+    expect(backup.text).toContain("backup contact");
+    expect((await render("reviewer")).text).toContain("outside reviewer");
   });
 
   it("never ships a raw key or an unfilled argument", () => {
@@ -459,5 +611,105 @@ describe("sendEmail", () => {
     });
     expect(transport.sent[0]?.headers).toEqual({});
     expect(transport.sent[0]?.idempotencyKey).toBeUndefined();
+  });
+});
+
+describe("attachments (B8)", () => {
+  const pass = {
+    filename: "guest-pass.pdf",
+    content: new Uint8Array([37, 80, 68, 70]),
+    contentType: "application/pdf",
+  };
+
+  it("keep the files on a recorded send, through the recipient guard", async () => {
+    const recording = new RecordingTransport();
+    const guarded = new GuardedTransport(recording, {
+      allowed: ["northwind.test"],
+      deliverToAny: false,
+    });
+    await sendEmail({
+      transport: guarded,
+      template: "guest_message",
+      props: samples.guest_message,
+      locale: "en-US",
+      sender,
+      recipientName: "Sasha Bell",
+      from: "Northwind Live <guests@northwind.test>",
+      to: "sasha@northwind.test",
+      attachments: [pass],
+      tags: [{ name: "org_id", value: "org-a" }],
+      idempotencyKey: "guest-email-1",
+    });
+    const sent = recording.sent[0];
+    expect(sent?.attachments).toEqual([pass]);
+    expect(sent?.subject).toBe("Your pass for Northwind Summer Series");
+    expect(sent?.headers?.["List-Unsubscribe-Post"]).toBe("List-Unsubscribe=One-Click");
+    expect(sent?.tags).toContainEqual({ name: "org_id", value: "org-a" });
+    expect(sent?.idempotencyKey).toBe("guest-email-1");
+    expect(sent?.text).toContain("100 Harbor Way, Miami, FL 33132");
+    expect(sent?.text).toContain("guest list");
+  });
+
+  it("go to Resend as base64", async () => {
+    const { client, calls } = fakeResend({ data: { id: "re_msg_2" }, error: null, headers: null });
+    await new ResendTransport(client).send({ ...message, attachments: [pass] });
+    expect(calls[0]?.payload).toMatchObject({
+      attachments: [
+        { filename: "guest-pass.pdf", content: "JVBERg==", contentType: "application/pdf" },
+      ],
+    });
+  });
+
+  it("go to Mailpit as base64", async () => {
+    const bodies: unknown[] = [];
+    const fakeFetch = (async (_url: string, init?: RequestInit) => {
+      bodies.push(JSON.parse(String(init?.body)));
+      return new Response(JSON.stringify({ ID: "m1" }), { status: 200 });
+    }) as typeof fetch;
+    await new MailpitTransport("http://127.0.0.1:61314", fakeFetch).send({
+      ...message,
+      attachments: [pass],
+    });
+    expect(bodies[0]).toMatchObject({
+      Attachments: [
+        { Content: "JVBERg==", Filename: "guest-pass.pdf", ContentType: "application/pdf" },
+      ],
+    });
+  });
+
+  it("are capped at 10 MB together before any transport runs", async () => {
+    const recording = new RecordingTransport();
+    const big = { ...pass, content: new Uint8Array(MAX_ATTACHMENT_BYTES + 1) };
+    await expect(
+      sendEmail({
+        transport: recording,
+        template: "guest_message",
+        props: samples.guest_message,
+        locale: "en-US",
+        sender,
+        recipientName: "Sasha Bell",
+        from: "guests@northwind.test",
+        to: "sasha@northwind.test",
+        attachments: [big],
+      }),
+    ).rejects.toMatchObject({ code: "attachment_size" });
+    expect(recording.sent).toHaveLength(0);
+  });
+
+  it("render the guest message in Spanish, with the guest's own subject for a Message", async () => {
+    const rendered = await renderEmail(
+      "guest_message",
+      {
+        ...samples.guest_message,
+        kind: "Message",
+        subject: "Puertas a las 7",
+        body: "Las puertas abren a las 7.",
+      },
+      { locale: "es-US", sender, recipientName: "Sasha Bell" },
+    );
+    expect(rendered.subject).toBe("Puertas a las 7");
+    expect(rendered.text).toContain("Las puertas abren a las 7.");
+    expect(rendered.text).toContain("lista de invitados de Northwind Live");
+    expect(rendered.transactional).toBe(false);
   });
 });

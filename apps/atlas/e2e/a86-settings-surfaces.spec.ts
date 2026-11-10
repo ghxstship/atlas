@@ -74,7 +74,9 @@ test("every settings section A86 filled shows its surface, axe clean in both the
   for (const [section, heading] of ORG_SECTIONS) {
     const response = await page.goto(`/${slug}/settings/${section}`);
     expect(response?.status(), section).toBe(200);
-    await expect(page.getByRole("heading", { level: 2, name: heading }).first()).toBeVisible();
+    await expect(
+      page.getByRole("heading", { level: 2, name: heading, exact: true }).first(),
+    ).toBeVisible();
     await expectAccessible(page);
   }
   for (const [section, heading] of [
@@ -83,7 +85,7 @@ test("every settings section A86 filled shows its surface, axe clean in both the
   ] as const) {
     const response = await page.goto(`/${slug}/me/${section}`);
     expect(response?.status(), section).toBe(200);
-    await expect(page.getByRole("heading", { level: 2, name: heading })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 2, name: heading, exact: true })).toBeVisible();
     await expectAccessible(page);
   }
   // Developer exists only where the org allows personal tokens (off by default).

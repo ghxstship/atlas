@@ -1,14 +1,18 @@
 import { fillRoute, flattenRoutes, isNodeVisible, type NavContext, type Sitemap } from "@xos/ia";
 import type { SavedViewType } from "@xos/schemas/views";
 import { collectionKeyFor, viewToQuery } from "./query";
+import type { Database } from "@xos/data/database.types";
 
 export interface SavedViewQuery {
   readonly collectionKey: string;
   readonly viewType: SavedViewType;
   readonly searchText: string | null;
   readonly groupByField: string | null;
-  readonly filters: readonly { field: string; value: string | null }[];
-  readonly sorts: readonly { field: string; direction: "Ascending" | "Descending" }[];
+  readonly filters: readonly { field: string; operator?: string; value: string | null }[];
+  readonly sorts: readonly {
+    field: string;
+    direction: Database["app"]["Enums"]["sort_direction"];
+  }[];
 }
 
 export type SavedViewTarget =

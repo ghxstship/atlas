@@ -155,6 +155,15 @@ const activity = source("app.activity_export", [
   "project_id",
 ]);
 
+// The collections A124 archives hide archived rows unless `?archived=include` (every row) or
+// `?archived=only` (the archived ones), as their loaders do (packages/data/src/archive.ts).
+const ARCHIVED = {
+  column: "archived_at",
+  param: "archived",
+  options: { include: "any", only: "set" },
+  fallback: "unset",
+} as const satisfies ExportPresenceSpec;
+
 const records = source(
   "app.records",
   [
@@ -170,18 +179,14 @@ const records = source(
     "due_at",
     "project_id",
   ],
-  { filters: { kind: "record_kind", state: "record_state" } },
+  { filters: { kind: "record_kind", state: "record_state" }, presence: [ARCHIVED] },
 );
 
-const homeRecords = source("app.records", [
-  "record_number",
-  "title",
-  "record_kind",
-  "record_state",
-  "due_at",
-  "updated_at",
-  "project_id",
-]);
+const homeRecords = source(
+  "app.records",
+  ["record_number", "title", "record_kind", "record_state", "due_at", "updated_at", "project_id"],
+  { presence: [ARCHIVED] },
+);
 
 const gateCriteria = source("app.gate_criteria_status", [
   "project_id",
@@ -244,6 +249,34 @@ const guests = source("app.guest_list_entries", [
   "note",
   "project_id",
 ]);
+// R4: the crew roster, through the producing org's read view (the person resolved, no profile value).
+const crewRoster = source("app.roster_entry_people", [
+  "full_name",
+  "party_name",
+  "job_title",
+  "arrival_starts_at",
+  "arrival_ends_at",
+  "arrival_time_zone",
+  "entry_state",
+  "person_response",
+  "project_id",
+]);
+
+// R7: what each party and person is given, read from the computed status (no prices).
+const allocations = source("app.advance_allocation_status", [
+  "item_name",
+  "kind",
+  "quantity",
+  "display_status",
+  "allocation_state",
+  "origin",
+  "needed_time_zone",
+  "reserved_quantity",
+  "issued_quantity",
+  "returned_quantity",
+  "decline_reason",
+  "project_id",
+]);
 
 const custody = source("app.asset_custody", [
   "created_at",
@@ -295,7 +328,9 @@ const shifts = source(
   { filters: { state: "shift_state" } },
 );
 
-const documents = source("app.documents", ["title", "project_id", "updated_at"]);
+const documents = source("app.documents", ["title", "project_id", "updated_at"], {
+  presence: [ARCHIVED],
+});
 
 const fulfillments = source("app.fulfillments", [
   "fulfillment_number",
@@ -325,6 +360,67 @@ const blocks = source("app.accommodation_blocks", [
   "release_on",
   "nightly_rate_minor",
   "currency_code",
+  "project_id",
+]);
+
+// The flight grid (B5, G-58) exports Flight rows only, filtered by the phase its built-in views set.
+const travelGrid = source(
+  "app.travel_grid",
+  [
+    "traveler_name",
+    "service_identifier",
+    "operator_name",
+    "departs_from",
+    "departs_at",
+    "departs_time_zone",
+    "arrives_at_place",
+    "arrives_at",
+    "arrives_time_zone",
+    "final_arrival_place",
+    "final_arrival_at",
+    "leg_number",
+    "leg_count",
+    "confirmation_identifier",
+    "phase",
+    "project_id",
+  ],
+  { filters: { phase: "phase" }, fixed: { travel_mode: "Flight" } },
+);
+const transfers = source("app.transfer_board", [
+  "transfer_key",
+  "pickup_place",
+  "pickup_at",
+  "pickup_time_zone",
+  "dropoff_place",
+  "dropoff_at",
+  "dropoff_time_zone",
+  "driver_name",
+  "vehicle_label",
+  "vehicle_type",
+  "seats",
+  "passenger_count",
+  "primary_passenger_name",
+  "meets_service_identifier",
+  "meets_flight_arrives_at",
+  "status",
+  "tight_turnaround",
+  "meets_flight_after_pickup",
+  "project_id",
+]);
+const spaceBookings = source("app.space_booking_board", [
+  "space_name",
+  "act_name",
+  "purpose",
+  "booking_mode",
+  "party_size",
+  "starts_at",
+  "ends_at",
+  "set_label",
+  "set_planned_at",
+  "set_moved",
+  "group_size",
+  "group_peak_party",
+  "over_capacity",
   "project_id",
 ]);
 
@@ -429,6 +525,8 @@ const budgetLines = source("app.budget_line_facts", [
   "cost_center_code",
   "extended_minor",
   "is_unpriced",
+  "committed_minor",
+  "is_committed_withheld",
   "actual_minor",
   "currency_code",
   "project_id",
@@ -467,6 +565,8 @@ const payments = source("app.payments", [
 export const EXPORT_SOURCES: Readonly<Record<string, ExportEntry>> = {
   "activity/feed": activity,
 
+  "advancing/crew": crewRoster,
+  "advancing/allocations": allocations,
   "advancing/packets": packets,
   "advancing/reconciliation": reconciliations,
   "advancing/riders": riders,
@@ -604,6 +704,15 @@ export const EXPORT_SOURCES: Readonly<Record<string, ExportEntry>> = {
   ),
   "crew/schedule": shifts,
   "crew/shifts": shifts,
+  "crew/positions": source("app.project_positions", [
+    "project_id",
+    "title",
+    "role_code",
+    "engagement_id",
+    "membership_id",
+    "roster_entry_id",
+    "filled_at",
+  ]),
   "crew/swaps": source(
     "app.shift_swaps",
     [
@@ -612,6 +721,7 @@ export const EXPORT_SOURCES: Readonly<Record<string, ExportEntry>> = {
       "requested_by_membership_id",
       "proposed_membership_id",
       "swap_state",
+      "reason",
     ],
     { filters: { state: "swap_state" } },
   ),
@@ -621,6 +731,7 @@ export const EXPORT_SOURCES: Readonly<Record<string, ExportEntry>> = {
     "clock_in",
     "clock_out",
     "break_minutes",
+    "paid_break_minutes",
     "source",
     "needs_review",
   ]),
@@ -644,6 +755,21 @@ export const EXPORT_SOURCES: Readonly<Record<string, ExportEntry>> = {
     "total_minor",
     "revised_total_minor",
     "actual_minor",
+  ]),
+  "finance/quotes": source("app.quote_statuses", [
+    "quote_key",
+    "title",
+    "project_id",
+    "client_name",
+    "current_version_number",
+    "display_state",
+    "client_total_minor",
+    "margin_minor",
+    "currency_code",
+    "valid_until",
+    "sent_at",
+    "accepted_at",
+    "has_draft",
   ]),
   "finance/change_orders": source("app.change_orders", [
     "change_order_number",
@@ -670,6 +796,9 @@ export const EXPORT_SOURCES: Readonly<Record<string, ExportEntry>> = {
     "amount_minor",
     "currency_code",
     "expense_state",
+    "credit_of_expense_id",
+    "is_reimbursable",
+    "engagement_id",
   ]),
   "finance/invoices": source("app.invoices", [
     "invoice_number",
@@ -701,6 +830,9 @@ export const EXPORT_SOURCES: Readonly<Record<string, ExportEntry>> = {
   "hospitality/accommodation_blocks": blocks,
   "hospitality/beos": beos,
   "hospitality/fulfillments": fulfillments,
+  "hospitality/rooms": spaceBookings,
+  "hospitality/transfers": transfers,
+  "hospitality/travel": travelGrid,
 
   "knowledge/documents": documents,
   "knowledge/feed": source("app.feed_posts", [
@@ -755,6 +887,7 @@ export const EXPORT_SOURCES: Readonly<Record<string, ExportEntry>> = {
   // Custom objects: every page under /objects/<key> shares this source (exportSourceFor).
   "objects/*": source("app.custom_object_records", ["title", "created_at", "updated_at"], {
     objectType: true,
+    presence: [ARCHIVED],
   }),
 
   "project/activity": inProject(activity),
@@ -763,6 +896,8 @@ export const EXPORT_SOURCES: Readonly<Record<string, ExportEntry>> = {
     riders: inProject(riders),
     reconciliation: inProject(reconciliations),
     guests: inProject(guests),
+    crew: inProject(crewRoster),
+    allocations: inProject(allocations),
     submissions,
   }),
   "project/assets": inProject(custody),
@@ -780,13 +915,15 @@ export const EXPORT_SOURCES: Readonly<Record<string, ExportEntry>> = {
     fulfillments: inProject(fulfillments),
     beos: inProject(beos),
     blocks: inProject(blocks),
+    travel: inProject(travelGrid),
+    transfers: inProject(transfers),
+    rooms: inProject(spaceBookings),
   }),
   "project/logistics": sections("section", "shipments", {
     shipments: inProject(shipments),
     dock: inProject(dockSlots),
     yard: inProject(yard),
   }),
-  "project/overview": inProject(activity),
   "project/procurement": sections("section", "purchase-orders", {
     "purchase-orders": inProject(purchaseOrders),
     receipts: inProject(receipts),
@@ -878,7 +1015,19 @@ export const EXPORT_SOURCES: Readonly<Record<string, ExportEntry>> = {
     "valid_to",
     "is_frozen",
   ]),
-  "places/site_plans": source("app.site_plans", ["title", "venue_id", "project_id"]),
+  "places/signage": source("app.signs", [
+    "sign_number",
+    "title",
+    "sign_type",
+    "quantity",
+    "width_in",
+    "height_in",
+    "substrate",
+    "location_text",
+    "needed_by",
+    "project_id",
+  ]),
+  "places/site_plans": source("app.site_plans", ["title", "venue_id", "project_id", "plan_state"]),
   "places/spaces_and_zones": source("app.spaces", [
     "name",
     "venue_id",
@@ -887,14 +1036,11 @@ export const EXPORT_SOURCES: Readonly<Record<string, ExportEntry>> = {
     "area_sq_ft",
     "description",
   ]),
-  "places/venues": source("app.venues", [
-    "name",
-    "jurisdiction_id",
-    "time_zone",
-    "street_address",
-    "locality",
-    "postal_code",
-  ]),
+  "places/venues": source(
+    "app.venues",
+    ["name", "jurisdiction_id", "time_zone", "street_address", "locality", "postal_code"],
+    { presence: [ARCHIVED] },
+  ),
 
   "procurement/catalog": source("app.catalog_bindings", [
     "item_id",
@@ -913,6 +1059,16 @@ export const EXPORT_SOURCES: Readonly<Record<string, ExportEntry>> = {
   ]),
   "procurement/purchase_orders": purchaseOrders,
   "procurement/receipts": receipts,
+  "procurement/needs": source("app.procurement_need_status", [
+    "need_number",
+    "description",
+    "need_status",
+    "quantity",
+    "requested_quantity",
+    "drafted_quantity",
+    "ordered_quantity",
+    "received_quantity",
+  ]),
   "procurement/rfqs": rfqs,
 
   projects,
@@ -992,6 +1148,17 @@ export const EXPORT_SOURCES: Readonly<Record<string, ExportEntry>> = {
     "created_at",
   ]),
   "schedule/calendar": records,
+  // B4 (G-38): the projects' day types.
+  "schedule/days": source("app.project_days", [
+    "day_on",
+    "day_type",
+    "sort_order",
+    "label",
+    "location_text",
+    "time_zone",
+    "team_code",
+    "project_id",
+  ]),
   "schedule/events": source("app.workforce_events", [
     "event_kind",
     "title",
@@ -1004,7 +1171,11 @@ export const EXPORT_SOURCES: Readonly<Record<string, ExportEntry>> = {
   "schedule/milestones": source(
     "app.records",
     ["record_number", "title", "record_state", "due_at", "project_id"],
-    { filters: { state: "record_state" }, fixed: { record_kind: "Milestone" } },
+    {
+      filters: { state: "record_state" },
+      fixed: { record_kind: "Milestone" },
+      presence: [ARCHIVED],
+    },
   ),
   "schedule/timeline": records,
 
@@ -1023,6 +1194,25 @@ export const EXPORT_SOURCES: Readonly<Record<string, ExportEntry>> = {
     "storage_location",
     "project_id",
   ]),
+  // B8's muster list (6251, G-149), with the names on screen, filtered by the page's project and zone.
+  "site_ops/muster": source(
+    "app.muster_list",
+    [
+      "full_name",
+      "guest_name",
+      "zone_code",
+      "zone_name",
+      "entered_at",
+      "source",
+      "category_code",
+      "credential_number",
+      "party_name",
+      "plus_ones",
+      "door",
+      "project_id",
+    ],
+    { filters: { zone: "zone_id" } },
+  ),
   "site_ops/occupancy": source("app.occupancy_counters", [
     "name",
     "current_count",
@@ -1034,13 +1224,17 @@ export const EXPORT_SOURCES: Readonly<Record<string, ExportEntry>> = {
   ]),
 
   "vendors/classes": source("app.vendor_classes", ["name", "std_vendor_class_id", "description"]),
-  "vendors/directory": source("app.vendors", [
-    "counterparty_id",
-    "vendor_state",
-    "payment_terms_days",
-    "default_currency_code",
-    "default_account_code",
-  ]),
+  "vendors/directory": source(
+    "app.vendors",
+    [
+      "counterparty_id",
+      "vendor_state",
+      "payment_terms_days",
+      "default_currency_code",
+      "default_account_code",
+    ],
+    { presence: [ARCHIVED] },
+  ),
   "vendors/insurance_certificates": source("app.insurance_certificates", [
     "vendor_id",
     "coverage_type",
@@ -1091,16 +1285,20 @@ export const EXPORT_SOURCES: Readonly<Record<string, ExportEntry>> = {
     "time_zone",
     "until_at",
   ]),
-  "work/work_orders": source("app.work_orders", [
-    "work_order_number",
-    "title",
-    "work_order_state",
-    "budget_minor",
-    "currency_code",
-    "bid_due_at",
-    "scheduled_starts_at",
-    "project_id",
-  ]),
+  "work/work_orders": source(
+    "app.work_orders",
+    [
+      "work_order_number",
+      "title",
+      "work_order_state",
+      "budget_minor",
+      "currency_code",
+      "bid_due_at",
+      "scheduled_starts_at",
+      "project_id",
+    ],
+    { presence: [ARCHIVED] },
+  ),
 };
 
 /** The entry of a collection key; custom object pages share one. Null for a collection without one. */
@@ -1109,10 +1307,21 @@ export const EXPORT_SOURCES: Readonly<Record<string, ExportEntry>> = {
  * this list instead of asking these pages for a source.
  */
 export const NOT_EXPORTED: Readonly<Record<string, string>> = {
+  "crew/shortages":
+    "Computed at read time by app.crew_shortages across shifts and order lines (B9): no one table holds it.",
   // ADR 0033 decision 57: nobody is told who reported, and the queue reads through content_moderation_queue,
   // which shows a moderator what they need to decide and nothing to carry away.
   "people/moderation":
     "Reported content stays in the moderation queue; an export would carry it out.",
+  // ADR 0143 decision 5: computed when read, never stored, so there is no relation to export from.
+  "schedule/workload":
+    "Hours are worked out from shifts and estimates as the page is read; nothing is stored to export.",
+  "schedule/clashes":
+    "Clashes are worked out as the page is read and shown only to someone who reads both sides; nothing is stored to export.",
+  // B3 (ADR 0142): a library segment is a template of cues, not a record of the show; the running orders that copy
+  // it export with show/run_of_show and its PDF.
+  "show/segments":
+    "Library segments are templates copied into running orders; the running orders export instead.",
 };
 
 export function exportEntryFor(collectionKey: string | null): ExportEntry | null {

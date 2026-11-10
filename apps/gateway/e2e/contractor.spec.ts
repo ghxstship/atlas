@@ -1,3 +1,4 @@
+import { acceptAnswer, expectNoSidewaysScroll, sendTypedPacket } from "./advance-builder";
 import { expect as baseExpect, test } from "./engine-test";
 import { atlasAs, ORG } from "./atlas";
 import {
@@ -172,4 +173,109 @@ test("journey 44: pay range required to publish, milestone delivered and invoice
   await expect(owner.page.getByText(/step-up authentication/).first()).toBeVisible();
   await expectAccessible(owner.page);
   await owner.context.close();
+});
+
+/**
+ * R9 (RRR-189, ADR 0100 section 8): a contractor gets the Advance tab. The org sends a packet with a
+ * site access window and a credential request; the contractor proposes the window and asks for a
+ * site pass for the whole team, Atlas accepts both, and the pass reads Approved in Gateway. Nothing
+ * of the packet or the answers is written with SQL.
+ */
+test("contractor advance: site access window and credential request", async ({ page, browser }) => {
+  const tag = suffix();
+  const engagement = await roleEngagement({
+    person: ROLE_PEOPLE.contractor,
+    account: ROLE_ACCOUNTS.studio,
+    roleType: "Contractor",
+    roleCode: "9000.50.03",
+  });
+  const passName = `Site Pass ${tag}`;
+  const [category] = await sql<{ id: string }>(
+    "insert into app.credential_categories (project_id, code, name) values ($1, $2, $3) returning id",
+    [DEMO.project, `SP${tag}`, passName],
+    PEOPLE.owner,
+  );
+  const access = `Site access ${tag}`;
+  const passes = `Site passes ${tag}`;
+  let atlas: { close: () => Promise<void> } | null = null;
+  try {
+    const sent = await sendTypedPacket(browser, {
+      project: "NWS · Northwind Summer Series",
+      title: `Contractor Advance ${tag}`,
+      sections: [
+        { title: access, kind: "Schedule window", windowKind: "Arrival" },
+        { title: passes, kind: "Credential request", choices: [passName] },
+      ],
+      party: `person:${ROLE_PEOPLE.contractor}`,
+      engagementId: engagement.id,
+    });
+    atlas = sent.context;
+
+    await signIn(page, "contractor@example.com", `/work/engagements/${engagement.key}/advance`);
+    await expect(
+      page.getByRole("navigation", { name: "Engagement sections" }).getByRole("link", {
+        name: "Advance",
+      }),
+    ).toBeVisible();
+    const sentOk = page
+      .getByRole("status")
+      .filter({ hasText: "Sent. The organization reviews your answer." });
+    const window = page
+      .getByRole("form", { name: access })
+      .getByRole("group", { name: "Window 1" });
+    await window.getByLabel("Starts", { exact: true }).fill("2027-06-04T07:00");
+    await window.getByLabel("Ends", { exact: true }).fill("2027-06-04T08:30");
+    await page
+      .getByRole("form", { name: access })
+      .getByRole("button", { name: "Send answer" })
+      .click();
+    await expect(sentOk).toBeVisible();
+    await page.reload();
+    const pass = page.getByRole("form", { name: passes });
+    await pass
+      .getByRole("group", { name: "Line 1" })
+      .getByLabel("Pass", { exact: true })
+      .selectOption({ label: passName });
+    await pass.getByRole("button", { name: "Send answer" }).click();
+    await expect(sentOk).toBeVisible();
+    await page.reload();
+    const answered = page.getByRole("listitem").filter({ hasText: access });
+    await expect(answered.getByText("Awaiting review")).toBeVisible();
+    await expect(page.getByText(`1 × ${passName}`)).toBeVisible();
+    await expectAccessibleInBothThemes(page);
+    await page.setViewportSize({ width: 375, height: 812 });
+    await page.reload();
+    await expectNoSidewaysScroll(page);
+    await page.setViewportSize({ width: 1280, height: 900 });
+
+    // Atlas accepts both; the pass is approved for the contractor's engagement.
+    await sent.page.goto(sent.url);
+    await acceptAnswer(sent.page, access, "Demo Contractor");
+    await acceptAnswer(sent.page, passes, "Demo Contractor");
+    await expect
+      .poll(async () => {
+        const [row] = await sql<{ state: string }>(
+          `select allocation_state::text as state from app.advance_allocations
+            where engagement_id = $1 and credential_category_id = $2 and deleted_at is null`,
+          [engagement.id, category?.id],
+        );
+        return row?.state;
+      })
+      .toBe("Approved");
+    await page.reload();
+    await expect(
+      page.getByRole("list", { name: "What you asked for" }).getByText("Approved", { exact: true }),
+    ).toBeVisible();
+  } finally {
+    await atlas?.close();
+    await sql(
+      `update app.advance_allocations set deleted_at = now() where engagement_id = $1 and deleted_at is null`,
+      [engagement.id],
+    ).catch(() => undefined);
+    await sql(
+      `update app.advance_packets set deleted_at = now()
+        where id in (select advance_packet_id from app.advance_recipients where engagement_id = $1) and deleted_at is null`,
+      [engagement.id],
+    ).catch(() => undefined);
+  }
 });

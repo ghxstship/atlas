@@ -41,6 +41,10 @@ export interface NavItem {
   badge?: number;
   href?: string;
   onSelect?: () => void;
+  /** Items listed under this one in the Sidebar, indented one step (the recent projects under Projects). */
+  items?: NavItem[];
+  /** Names the list of `items` for screen readers. */
+  itemsLabel?: string;
 }
 
 export type SidebarProps = Omit<ReferenceSidebarProps, "groups"> & {

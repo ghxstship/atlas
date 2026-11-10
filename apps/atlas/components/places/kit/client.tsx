@@ -18,6 +18,7 @@ import { useCallback, type ReactNode } from "react";
 import type { ViewType } from "./views";
 import { useRowMenu } from "@/components/menus/use-row-menu";
 import { CollectionViews } from "@/components/views/collection-views";
+import { useCustomFieldColumns } from "@/components/custom-fields/list";
 
 /**
  * Client pieces shared by the Places and Safety collections. Navigation state (view, peek, create,
@@ -118,6 +119,8 @@ export function PeekTable({
   pinStart?: string[];
 }) {
   const navigate = useQueryNavigation();
+  // The list's filterable custom fields (A117), when the page wraps it in a CustomFieldList.
+  const custom = useCustomFieldColumns();
   const pathname = usePathname();
   const search = useSearchParams();
   const rowMenu = useRowMenu();
@@ -133,8 +136,8 @@ export function PeekTable({
       <DataTable
         label={label}
         caption={label}
-        columns={columns}
-        rows={rows}
+        columns={[...columns, ...custom.columns]}
+        rows={custom.columns.length > 0 ? rows.map((r) => ({ ...r, ...custom.cells(r.id) })) : rows}
         height="auto"
         {...(pinStart ? { pinStart } : {})}
         onRowActivate={(row) => navigate({ peek: String(row["id"]) })}

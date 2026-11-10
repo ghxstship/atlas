@@ -1,7 +1,10 @@
+import { applyArchived, type ArchivedFilter } from "./archive.ts";
 import type { Database, XosClient } from "./client.ts";
-import { fillPersonNames } from "./person-names.ts";
+import { fillPersonNames, personNames } from "./person-names.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
+import { enumValues } from "./setup.ts";
 import { untyped } from "./untyped.ts";
+import { saveVersioned, type FieldValue, type FieldValues } from "./versioned.ts";
 
 /**
  * Work repository (Section 3.10, Section 4.2 Work): the record spine for all 26 record kinds, their
@@ -245,6 +248,8 @@ export interface RecordSummary {
   readonly accountableId: string | null;
   readonly scopeNodeId: string | null;
   readonly startsAt: string | null;
+  /** True while the start is an estimate to be confirmed: shown as TBC, still sorted by the estimate. */
+  readonly startTbc: boolean;
   readonly endsAt: string | null;
   readonly dueAt: string | null;
   readonly timeZone: string | null;
@@ -253,10 +258,14 @@ export interface RecordSummary {
   readonly createdAt: string;
   readonly updatedAt: string;
   readonly deletedAt: string | null;
+  /** When the record was archived (A124); archived records leave lists unless asked for. */
+  readonly archivedAt: string | null;
+  /** B14 (6264): Complete only after the latest review is Approved. Absent reads as false. */
+  readonly requiresReview?: boolean;
 }
 
 const RECORD_COLUMNS =
-  "id, project_id, record_number, record_kind, record_subtype, record_state, title, phase_code, urid, xyz, owner_party_id, accountable_party_id, scope_node_id, starts_at, ends_at, due_at, time_zone, blocker_text, replan_reason, created_at, updated_at, deleted_at, project:projects!records_project_id_fkey!inner(project_key, name, time_zone), owner:people!records_owner_party_id_fkey(full_name)";
+  "id, project_id, record_number, record_kind, record_subtype, record_state, title, phase_code, urid, xyz, owner_party_id, accountable_party_id, scope_node_id, starts_at, start_tbc, ends_at, due_at, time_zone, blocker_text, replan_reason, requires_review, created_at, updated_at, deleted_at, archived_at, project:projects!records_project_id_fkey!inner(project_key, name, time_zone), owner:people!records_owner_party_id_fkey(full_name)";
 
 interface RecordRow {
   id: string;
@@ -273,14 +282,17 @@ interface RecordRow {
   accountable_party_id: string | null;
   scope_node_id: string | null;
   starts_at: string | null;
+  start_tbc: boolean;
   ends_at: string | null;
   due_at: string | null;
   time_zone: string | null;
   blocker_text: string | null;
   replan_reason: string | null;
+  requires_review?: boolean;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
+  archived_at: string | null;
   project: { project_key: string; name: string; time_zone: string } | null;
   owner: { full_name: string | null } | null;
 }
@@ -307,6 +319,7 @@ export function toRecordSummary(row: RecordRow): RecordSummary {
     accountableId: row.accountable_party_id,
     scopeNodeId: row.scope_node_id,
     startsAt: row.starts_at,
+    startTbc: row.start_tbc ?? false,
     endsAt: row.ends_at,
     dueAt: row.due_at,
     timeZone: row.time_zone,
@@ -315,6 +328,8 @@ export function toRecordSummary(row: RecordRow): RecordSummary {
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     deletedAt: row.deleted_at,
+    archivedAt: row.archived_at,
+    requiresReview: row.requires_review ?? false,
   };
 }
 
@@ -336,8 +351,17 @@ export interface RecordQuery {
   readonly to?: string;
   /** Only records with a start, end or due time. */
   readonly datedOnly?: boolean;
+  /** Only records with no start, end or due time (P8: the Unscheduled list). */
+  readonly undatedOnly?: boolean;
+  /** Leaves out records in these states. */
+  readonly excludeStates?: readonly string[];
   /** Trash: only soft-deleted records. Otherwise soft-deleted records are left out. */
   readonly trashed?: boolean;
+  /**
+   * Archived records: left out by default, or every record, or only the archived ones (A124). A
+   * lookup of known records (a parent, a dependency end, a baseline item) passes "include".
+   */
+  readonly archived?: ArchivedFilter;
   readonly limit?: number;
 }
 
@@ -371,7 +395,13 @@ export async function listRecords(
   const window = windowFilter(query.from, query.to);
   if (window) q = q.or(window);
   if (query.datedOnly) q = q.or("starts_at.not.is.null,ends_at.not.is.null,due_at.not.is.null");
+  if (query.undatedOnly) q = q.is("starts_at", null).is("ends_at", null).is("due_at", null);
+  if (query.excludeStates && query.excludeStates.length > 0) {
+    q = q.not("record_state", "in", `(${query.excludeStates.join(",")})`);
+  }
   q = query.trashed ? q.not("deleted_at", "is", null) : q.is("deleted_at", null);
+  // Trash shows every trashed record, archived or not.
+  if (!query.trashed) q = applyArchived(q, query.archived);
   const { data, error } = await q
     .order("project_id")
     .order("record_number")
@@ -468,13 +498,14 @@ export async function getRecordFamily(
 ): Promise<Result<RecordFamily>> {
   const [own, children] = await Promise.all([
     db.from("records").select("parent_record_id").eq("id", recordId).maybeSingle(),
-    listRecords(db, { orgId, parentId: recordId, limit: 100 }),
+    // Related records resolve known rows, so archived ones stay in (A124).
+    listRecords(db, { orgId, parentId: recordId, archived: "include", limit: 100 }),
   ]);
   if (own.error) return fail(toDataError(own.error));
   if (!children.ok) return children;
   const parentId = own.data?.parent_record_id ?? null;
   if (!parentId) return ok({ parent: null, parentHidden: false, children: children.data });
-  const parent = await listRecords(db, { orgId, ids: [parentId] });
+  const parent = await listRecords(db, { orgId, ids: [parentId], archived: "include" });
   if (!parent.ok) return parent;
   const found = parent.data[0] ?? null;
   return ok({ parent: found, parentHidden: found === null, children: children.data });
@@ -528,6 +559,8 @@ export interface RecordInput {
   readonly ownerId?: string | null | undefined;
   readonly accountableId?: string | null | undefined;
   readonly startsAt?: string | null | undefined;
+  /** The start is an estimate to be confirmed; the database clears it while the start is empty. */
+  readonly startTbc?: boolean | undefined;
   readonly endsAt?: string | null | undefined;
   readonly dueAt?: string | null | undefined;
   readonly timeZone?: string | null | undefined;
@@ -539,7 +572,7 @@ export interface RecordInput {
 export function resolveXyz(
   categoryXyz: string | null,
   declared: string | null | undefined,
-): { xyz: string; basis: "Category" | "Declared" } | null {
+): { xyz: string; basis: Database["app"]["Enums"]["xyz_basis"] } | null {
   if (categoryXyz && (!declared || declared === categoryXyz)) {
     return { xyz: categoryXyz, basis: "Category" };
   }
@@ -593,6 +626,7 @@ export async function createRecord(
       owner_party_id: input.ownerId ?? null,
       accountable_party_id: input.accountableId ?? null,
       starts_at: input.startsAt ?? null,
+      start_tbc: input.startTbc ?? false,
       ends_at: input.endsAt ?? null,
       due_at: input.dueAt ?? null,
       time_zone: input.timeZone ?? null,
@@ -618,11 +652,14 @@ export interface RecordPatch {
   readonly ownerId?: string | null | undefined;
   readonly accountableId?: string | null | undefined;
   readonly startsAt?: string | null | undefined;
+  readonly startTbc?: boolean | undefined;
   readonly endsAt?: string | null | undefined;
   readonly dueAt?: string | null | undefined;
   readonly timeZone?: string | null | undefined;
   /** Logged with the replan when the record is Scheduled or later (Section 3.10). */
   readonly replanReason?: string | null | undefined;
+  /** Turning it on needs work.record.write, off projects.settings.write (record_review_flag_locked). */
+  readonly requiresReview?: boolean | undefined;
 }
 
 /** Edits a record. From Scheduled onward a date change is written to the replan log. */
@@ -639,14 +676,97 @@ export async function updateRecord(
   if (patch.ownerId !== undefined) row.owner_party_id = patch.ownerId;
   if (patch.accountableId !== undefined) row.accountable_party_id = patch.accountableId;
   if (patch.startsAt !== undefined) row.starts_at = patch.startsAt;
+  if (patch.startTbc !== undefined) row.start_tbc = patch.startTbc;
   if (patch.endsAt !== undefined) row.ends_at = patch.endsAt;
   if (patch.dueAt !== undefined) row.due_at = patch.dueAt;
   if (patch.timeZone !== undefined) row.time_zone = patch.timeZone;
   if (patch.replanReason !== undefined) row.replan_reason = patch.replanReason;
+  if (patch.requiresReview !== undefined) row.requires_review = patch.requiresReview;
   if (Object.keys(row).length === 0) return ok(null);
   const { data, error } = await db.from("records").update(row).eq("id", id).select("id");
   if (error) return fail(toDataError(error));
   return data.length === 1 ? ok(null) : fail({ kind: "not-found" });
+}
+
+/** The record properties a versioned save writes (record page, peek), by the column that holds them. */
+const RECORD_FIELD_COLUMNS = {
+  title: "title",
+  subtype: "record_subtype",
+  scopeNodeId: "scope_node_id",
+  phaseCode: "phase_code",
+  ownerId: "owner_party_id",
+  accountableId: "accountable_party_id",
+  startsAt: "starts_at",
+  startTbc: "start_tbc",
+  endsAt: "ends_at",
+  dueAt: "due_at",
+} as const;
+
+export type RecordField = keyof typeof RECORD_FIELD_COLUMNS;
+/** Each property as text: dates as instants, startTbc as "true" or "false" (the column is a boolean). */
+export type RecordFields = Partial<Record<RecordField, string | null>>;
+
+export type RecordSaveOutcome =
+  | { readonly saved: true; readonly version: string }
+  | { readonly saved: false; readonly current: RecordFields; readonly version: string };
+
+function toColumns(fields: RecordFields): Record<string, FieldValue> {
+  const out: Record<string, FieldValue> = {};
+  for (const [field, column] of Object.entries(RECORD_FIELD_COLUMNS)) {
+    const value = fields[field as RecordField];
+    if (value === undefined) continue;
+    if (field === "startTbc") out[column] = value === "true";
+    else out[column] = field === "title" && typeof value === "string" ? value.trim() : value;
+  }
+  return out;
+}
+
+function fromColumns(values: FieldValues): RecordFields {
+  const out: Record<string, string | null> = {};
+  for (const [field, column] of Object.entries(RECORD_FIELD_COLUMNS)) {
+    if (column in values) {
+      const v = values[column];
+      out[field] = v === null || v === undefined ? null : String(v);
+    }
+  }
+  return out;
+}
+
+/**
+ * Saves a record's properties against the version the person edited (Section 11.7): `expect` holds the values they
+ * started from and `version` the record's updated_at. A save over someone else's change to the same property comes
+ * back as the record's current values instead of overwriting them. The replan reason is written with the save and
+ * never compared.
+ */
+export async function saveRecordFields(
+  db: XosClient,
+  id: string,
+  input: {
+    readonly set: RecordFields;
+    readonly expect?: RecordFields;
+    readonly version?: string | null;
+    readonly replanReason?: string | null;
+  },
+): Promise<Result<RecordSaveOutcome>> {
+  const set = toColumns(input.set);
+  if (input.replanReason) set["replan_reason"] = input.replanReason;
+  if (Object.keys(set).length === 0) return fail({ kind: "invalid", message: "Nothing to save." });
+  const result = await saveVersioned(
+    db,
+    "records",
+    { column: "id", value: id },
+    {
+      set,
+      ...(input.expect ? { expect: toColumns(input.expect) } : {}),
+      ...(input.version ? { version: input.version } : {}),
+    },
+  );
+  if (!result.ok) return result;
+  return ok(
+    result.data.saved
+      ? { saved: true, version: result.data.version }
+      : { saved: false, current: fromColumns(result.data.current), version: result.data.version },
+  );
 }
 
 export interface TransitionInput {
@@ -701,11 +821,17 @@ export async function restoreRecord(db: XosClient, id: string): Promise<Result<n
 /**
  * Copies a record into a new Proposed record of the same project (journey 70): kind, subtype,
  * title, scope, phase, URID, XYZ tag, people, dates and the kind's attributes. With children, the
- * checklist is copied too, every item open.
+ * checklist is copied too, every item open. `withoutDates` leaves the copy undated, so it waits in
+ * the schedule's Unscheduled list (P8).
  */
 export async function duplicateRecord(
   db: XosClient,
-  input: { readonly orgId: string; readonly recordId: string; readonly withChildren?: boolean },
+  input: {
+    readonly orgId: string;
+    readonly recordId: string;
+    readonly withChildren?: boolean;
+    readonly withoutDates?: boolean;
+  },
 ): Promise<Result<{ id: string; number: number }>> {
   const source = await getRecord(db, input.recordId);
   if (!source.ok) return source;
@@ -724,9 +850,10 @@ export async function duplicateRecord(
     xyz: r.xyz,
     ownerId: r.ownerId,
     accountableId: r.accountableId,
-    startsAt: r.startsAt,
-    endsAt: r.endsAt,
-    dueAt: r.dueAt,
+    startsAt: input.withoutDates ? null : r.startsAt,
+    startTbc: input.withoutDates ? false : r.startTbc,
+    endsAt: input.withoutDates ? null : r.endsAt,
+    dueAt: input.withoutDates ? null : r.dueAt,
     timeZone: r.timeZone,
     extension: extension.data,
   });
@@ -823,6 +950,49 @@ export async function saveRecordExtension(
       record_kind: input.kind,
     });
   return error ? fail(toDataError(error)) : ok(null);
+}
+
+export type ExtensionSaveOutcome =
+  { readonly saved: true } | { readonly saved: false; readonly current: ExtensionValues };
+
+/**
+ * Saves some of the kind's own attributes against the values the person started from (Section 11.7): when someone
+ * else changed one of the same attributes since, the save comes back with the current values instead. A record
+ * without its attribute row yet gets one, as in saveRecordExtension.
+ */
+export async function saveRecordExtensionFields(
+  db: XosClient,
+  input: {
+    readonly orgId: string;
+    readonly recordId: string;
+    readonly kind: string;
+    readonly set: ExtensionValues;
+    readonly expect: ExtensionValues;
+  },
+): Promise<Result<ExtensionSaveOutcome>> {
+  const editable = (values: ExtensionValues) =>
+    Object.fromEntries(
+      Object.entries(values).filter(([c]) => !EXTENSION_MACHINERY.has(c) && c !== "score"),
+    );
+  const set = editable(input.set);
+  if (Object.keys(set).length === 0) return ok({ saved: true });
+  const result = await saveVersioned(
+    db,
+    extensionTable(input.kind),
+    { column: "record_id", value: input.recordId },
+    { set, expect: editable(input.expect) },
+  );
+  if (!result.ok && result.error.kind === "not-found") {
+    const created = await saveRecordExtension(db, {
+      orgId: input.orgId,
+      recordId: input.recordId,
+      kind: input.kind,
+      fields: set,
+    });
+    return created.ok ? ok({ saved: true }) : created;
+  }
+  if (!result.ok) return result;
+  return ok(result.data.saved ? { saved: true } : { saved: false, current: result.data.current });
 }
 
 // History ----------------------------------------------------------------------------------------------
@@ -997,6 +1167,35 @@ export async function removeChecklistItem(db: XosClient, itemId: string): Promis
   return data.length === 1 ? ok(null) : fail({ kind: "not-found" });
 }
 
+/**
+ * Brings a removed item back (the undo of a remove, Section 11.7), tick and all. It keeps its place when that is
+ * still free; when an item added since holds it, it goes to the end.
+ */
+export async function restoreChecklistItem(
+  db: XosClient,
+  input: { readonly recordId: string; readonly itemId: string },
+): Promise<Result<null>> {
+  const back = async (patch: { deleted_at: null; position?: number }) => {
+    const { data, error } = await db
+      .from("record_checklist_items")
+      .update(patch)
+      .eq("id", input.itemId)
+      .eq("record_id", input.recordId)
+      .not("deleted_at", "is", null)
+      .select("id");
+    if (error) return fail(toDataError(error));
+    return data.length === 1 ? ok(null) : fail({ kind: "not-found" });
+  };
+  const kept = await back({ deleted_at: null });
+  if (kept.ok || kept.error.kind !== "conflict") return kept;
+  const current = await listChecklist(db, input.recordId);
+  if (!current.ok) return current;
+  return back({
+    deleted_at: null,
+    position: Math.max(0, ...current.data.map((i) => i.position)) + 1,
+  });
+}
+
 // Assignments and watchers -----------------------------------------------------------------------------
 
 export interface Assignment {
@@ -1035,13 +1234,17 @@ export async function listAssignments(
 export async function assignRecord(
   db: XosClient,
   input: { readonly orgId: string; readonly recordId: string; readonly membershipId: string },
-): Promise<Result<null>> {
-  const { error } = await db.from("record_assignments").insert({
-    org_id: input.orgId,
-    record_id: input.recordId,
-    membership_id: input.membershipId,
-  });
-  return error ? fail(toDataError(error)) : ok(null);
+): Promise<Result<{ id: string }>> {
+  const { data, error } = await db
+    .from("record_assignments")
+    .insert({
+      org_id: input.orgId,
+      record_id: input.recordId,
+      membership_id: input.membershipId,
+    })
+    .select("id")
+    .single();
+  return error ? fail(toDataError(error)) : ok({ id: data.id });
 }
 
 export async function unassignRecord(db: XosClient, assignmentId: string): Promise<Result<null>> {
@@ -1049,6 +1252,24 @@ export async function unassignRecord(db: XosClient, assignmentId: string): Promi
     .from("record_assignments")
     .update({ deleted_at: new Date().toISOString() })
     .eq("id", assignmentId)
+    .select("id");
+  if (error) return fail(toDataError(error));
+  return data.length === 1 ? ok(null) : fail({ kind: "not-found" });
+}
+
+/**
+ * Brings a removed assignment back (the undo of a remove, Section 11.7), without a second assignment notice. When
+ * the person was assigned again since, it is a conflict.
+ */
+export async function restoreAssignment(
+  db: XosClient,
+  assignmentId: string,
+): Promise<Result<null>> {
+  const { data, error } = await db
+    .from("record_assignments")
+    .update({ deleted_at: null })
+    .eq("id", assignmentId)
+    .not("deleted_at", "is", null)
     .select("id");
   if (error) return fail(toDataError(error));
   return data.length === 1 ? ok(null) : fail({ kind: "not-found" });
@@ -1144,9 +1365,11 @@ export async function listRecurringRecords(
   const { data, error } = await q;
   if (error) return fail(toDataError(error));
   if (data.length === 0) return ok([]);
+  // A recurrence keeps running while its record is archived, so the rule stays listed.
   const records = await listRecords(db, {
     orgId: query.orgId,
     ids: data.map((r) => r.record_id),
+    archived: "include",
     ...(query.projectId ? { projectId: query.projectId } : {}),
   });
   if (!records.ok) return records;
@@ -1201,6 +1424,56 @@ export async function clearRecurrence(db: XosClient, recordId: string): Promise<
     .update({ deleted_at: new Date().toISOString() })
     .eq("record_id", recordId)
     .is("deleted_at", null);
+  return error ? fail(toDataError(error)) : ok(null);
+}
+
+/**
+ * Replaces the record's rule only while it is still `from` (null: no rule), for the undo and redo of a recurrence
+ * edit (Section 11.7). A rule someone else set or cleared since is a conflict and nothing changes.
+ */
+export async function replaceRecurrence(
+  db: XosClient,
+  input: {
+    readonly orgId: string;
+    readonly recordId: string;
+    readonly from: string | null;
+    readonly to: {
+      readonly rrule: string;
+      readonly timeZone: string;
+      readonly untilAt: string | null;
+    } | null;
+  },
+): Promise<Result<null>> {
+  if (input.from !== null) {
+    const { data, error } = await db
+      .from("record_recurrences")
+      .update({ deleted_at: new Date().toISOString() })
+      .eq("record_id", input.recordId)
+      .eq("rrule", input.from)
+      .is("deleted_at", null)
+      .select("id");
+    if (error) return fail(toDataError(error));
+    if (data.length !== 1) return fail({ kind: "conflict", message: "recurrence_changed" });
+  }
+  if (input.to === null) {
+    if (input.from !== null) return ok(null);
+    // Clearing a rule that was not there: it is a conflict only when someone set one since.
+    const { data, error } = await db
+      .from("record_recurrences")
+      .select("id")
+      .eq("record_id", input.recordId)
+      .is("deleted_at", null);
+    if (error) return fail(toDataError(error));
+    return data.length === 0 ? ok(null) : fail({ kind: "conflict", message: "recurrence_changed" });
+  }
+  // With no rule expected, a rule set since holds the record's one active slot and the insert is refused.
+  const { error } = await db.from("record_recurrences").insert({
+    org_id: input.orgId,
+    record_id: input.recordId,
+    rrule: input.to.rrule,
+    time_zone: input.to.timeZone,
+    until_at: input.to.untilAt,
+  });
   return error ? fail(toDataError(error)) : ok(null);
 }
 
@@ -1411,7 +1684,7 @@ export async function listCounterpartyOptions(
   );
 }
 
-/** The org's venues by name, for Event records. */
+/** The org's live venues by name, for Event records; archived venues are not offered (A124). */
 export async function listVenueOptions(
   db: XosClient,
   orgId: string,
@@ -1420,7 +1693,8 @@ export async function listVenueOptions(
     .from("venues")
     .select("id, name")
     .eq("org_id", orgId)
-    .is("deleted_at", null);
+    .is("deleted_at", null)
+    .is("archived_at", null);
   if (error) return fail(toDataError(error));
   return ok(
     data
@@ -1442,4 +1716,155 @@ export async function listCurrencyOptions(
       )
       .sort((a, b) => a.code.localeCompare(b.code)),
   );
+}
+
+// Reviews (B14, G-268, migration 6264) -----------------------------------------------------------------
+
+export type ReviewDecision = Database["app"]["Enums"]["approval_decision"];
+export const REVIEW_DECISIONS = enumValues<ReviewDecision>({ Approved: true, Rejected: true });
+
+export interface RecordReview {
+  /** The Approval record that asks for the review. */
+  readonly approvalRecordId: string;
+  readonly approvalKey: string;
+  readonly approvalState: string;
+  readonly reviewerId: string | null;
+  readonly reviewerName: string | null;
+  readonly requesterId: string;
+  readonly requesterName: string | null;
+  readonly decision: ReviewDecision | null;
+  readonly approverName: string | null;
+  readonly decidedAt: string | null;
+  readonly requestedAt: string;
+}
+
+/**
+ * Reviews of a record, latest first: each Approval record in the record's own project whose approval names it
+ * (app.record_approval), with its reviewer (the Approval record's owner), requester and decision. The latest live one
+ * that is not Canceled decides whether a flagged record may be Complete; the gate ignores an Approval record in another
+ * project, so this list does too. Names come through app.person_names, which also knows engaged externals.
+ */
+export async function listRecordReviews(
+  db: XosClient,
+  recordId: string,
+  projectId: string,
+): Promise<Result<RecordReview[]>> {
+  const { data, error } = await untyped(db)
+    .from("record_approval")
+    .select(
+      "record_id, requester_person_id, approver_person_id, decision, decided_at, approval:records!record_approval_record_kind_fkey!inner(project_id, record_number, record_state, owner_party_id, created_at, deleted_at, project:projects!records_project_id_fkey(project_key))",
+    )
+    .eq("subject_record_id", recordId)
+    .is("approval.deleted_at", null);
+  if (error) return fail(toDataError(error));
+  type Row = {
+    record_id: string;
+    requester_person_id: string;
+    approver_person_id: string | null;
+    decision: ReviewDecision | null;
+    decided_at: string | null;
+    approval: {
+      project_id: string;
+      record_number: number;
+      record_state: string;
+      owner_party_id: string | null;
+      created_at: string;
+      project: { project_key: string } | null;
+    };
+  };
+  const rows = (data as unknown as Row[]).filter((r) => r.approval.project_id === projectId);
+  const names = await personNames(
+    db,
+    rows.flatMap((r) => [r.requester_person_id, r.approver_person_id, r.approval.owner_party_id]),
+  );
+  const nameOf = (id: string | null) => (id ? (names.get(id) ?? null) : null);
+  return ok(
+    rows
+      .map((r) => ({
+        approvalRecordId: r.record_id,
+        approvalKey: formatRecordKey(
+          r.approval.project?.project_key ?? "",
+          r.approval.record_number,
+        ),
+        approvalState: r.approval.record_state,
+        reviewerId: r.approval.owner_party_id,
+        reviewerName: nameOf(r.approval.owner_party_id),
+        requesterId: r.requester_person_id,
+        requesterName: nameOf(r.requester_person_id),
+        decision: r.decision,
+        approverName: nameOf(r.approver_person_id),
+        decidedAt: r.decided_at,
+        requestedAt: r.approval.created_at,
+      }))
+      .sort((a, b) => b.requestedAt.localeCompare(a.requestedAt)),
+  );
+}
+
+/**
+ * Who may be asked to review a record (app.eligible_record_reviewers): the people who could decide it, leaving out the
+ * caller and the record's owner. Needs work.record.write; names come through app.person_names.
+ */
+export async function listEligibleReviewers(
+  db: XosClient,
+  recordId: string,
+): Promise<Result<{ readonly personId: string; readonly name: string | null }[]>> {
+  const { data, error } = await db.rpc("eligible_record_reviewers", { p_record_id: recordId });
+  if (error) return fail(toDataError(error));
+  const ids = data ?? [];
+  const names = await personNames(db, ids);
+  return ok(
+    ids
+      .map((personId) => ({ personId, name: names.get(personId) ?? null }))
+      .sort((a, b) => (a.name ?? "").localeCompare(b.name ?? "")),
+  );
+}
+
+/** The review that decides a flagged record: the latest one whose Approval record is not Canceled. */
+export function currentReview(reviews: readonly RecordReview[]): RecordReview | null {
+  return reviews.find((r) => r.approvalState !== "Canceled") ?? null;
+}
+
+/**
+ * Asks for a review of an Active record (app.request_record_review): an Approval record owned by the reviewer, the
+ * record In Review, and approval.requested to the reviewer. A review names its reviewer, never the asker or the
+ * record's owner (sod_record_review_owner). Returns the Approval record id.
+ */
+export async function requestRecordReview(
+  db: XosClient,
+  input: {
+    readonly recordId: string;
+    readonly reviewerId: string;
+    readonly note?: string | null;
+  },
+): Promise<Result<{ approvalRecordId: string }>> {
+  const { data, error } = await untyped(db).rpc("request_record_review", {
+    p_record_id: input.recordId,
+    p_reviewer_person_id: input.reviewerId,
+    p_note: input.note?.trim() ? input.note.trim() : null,
+  });
+  if (error) return fail(toDataError(error));
+  return typeof data === "string"
+    ? ok({ approvalRecordId: data })
+    : fail({ kind: "unexpected", message: "no approval id" });
+}
+
+/**
+ * Decides a review (app.decide_record_review): Approved, or Rejected with a note, which moves the record back to
+ * Active. The requester never decides (sod_approval_requester).
+ */
+export async function decideRecordReview(
+  db: XosClient,
+  input: {
+    readonly approvalRecordId: string;
+    readonly decision: ReviewDecision;
+    readonly note?: string | null;
+  },
+): Promise<Result<null>> {
+  const { error } = await untyped(db).rpc("decide_record_review", {
+    p_approval_record_id: input.approvalRecordId,
+    p_decision: input.decision,
+    p_note: input.note?.trim() ? input.note.trim() : null,
+  });
+  if (error) return fail(toDataError(error));
+  return ok(null);
 }

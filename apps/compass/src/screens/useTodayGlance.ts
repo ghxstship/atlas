@@ -79,9 +79,12 @@ export function useTodayGlance(): TodayGlance {
     const at = Date.parse(next.planned_at);
     if (cue && cue.at <= at) continue;
     const p = project(next.project_id ?? "");
+    // A cue to be confirmed stays the next cue, labelled TBC and never counted down (G-40, ADR 0131).
+    const tbc = next.start_tbc === true;
     cue = {
-      label: next.label,
+      label: tbc ? t("compass.glance.cueTbc", { cue: next.label }) : next.label,
       at,
+      ...(tbc ? { tbc } : {}),
       project: p?.name ?? null,
       zone: display(itemZone(null, p?.time_zone, personZone)),
     };

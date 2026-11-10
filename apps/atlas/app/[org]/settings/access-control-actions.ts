@@ -15,6 +15,7 @@ import {
   openAccessReview,
   removeAllowedNetwork,
   removeLegalEntity,
+  setLegalEntityAddress,
   startBreakGlass,
   unblock,
 } from "@xos/data/access-controls";
@@ -22,8 +23,10 @@ import type { DataError, Result } from "@xos/data/result";
 import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
 import { z } from "zod";
+import { ADDRESS_ERROR, readAddress } from "@/lib/address";
 import { getProjectContextFor } from "@/lib/projects/context";
 import { getOrgContext } from "@/lib/shell/context";
+import * as enums from "@xos/data/enums";
 
 /**
  * Settings actions for the features A52 built (RRR-97): legal entities, the IP allow-list,
@@ -64,6 +67,7 @@ const KNOWN_RULES = new Set([
   "sod_self_grant",
   "project_share_own_org",
   "project_share_deleted_project",
+  "postal_code_invalid",
 ]);
 
 function errorKey(error: DataError): string {
@@ -148,6 +152,38 @@ export async function legalEntityAction(
       ? await removeLegalEntity(ctx.viewer.db, id.data)
       : await makeLegalEntityPrimary(ctx.viewer.db, id.data);
   return finish(ctx.org.slug, "settings/legal-entities-and-fiscal", result);
+}
+
+/**
+ * Records or clears an entity's registered address (A139), checked against the entity's country: the
+ * fields it requires and a postal code that fits, written as the country writes it.
+ */
+export async function legalEntityAddressAction(
+  _: AccessControlFormState,
+  form: FormData,
+): Promise<AccessControlFormState> {
+  const ctx = await contextFor(form);
+  const id = uuid.safeParse(form.get("legalEntityId"));
+  if (!id.success) return { error: "unexpected" };
+  const { data: entity } = await ctx.viewer.db
+    .from("org_legal_entities_masked")
+    .select("country_code")
+    .eq("id", id.data)
+    .maybeSingle();
+  if (!entity?.country_code) return { error: "denied" };
+  const address = readAddress(form, entity.country_code);
+  if (!address.ok) {
+    return {
+      fieldErrors: Object.fromEntries(
+        Object.entries(address.problems).map(([field, problem]) => [field, ADDRESS_ERROR[problem]]),
+      ),
+    };
+  }
+  return finish(
+    ctx.org.slug,
+    "settings/legal-entities-and-fiscal",
+    await setLegalEntityAddress(ctx.viewer.db, id.data, address.value),
+  );
 }
 
 // IP allow-list -------------------------------------------------------------------------------------------
@@ -305,13 +341,7 @@ export async function unblockAction(
 
 // Project roles and shares (project settings) ------------------------------------------------------------
 
-const PROJECT_ROLES = [
-  "Producer",
-  "Department Head",
-  "Coordinator",
-  "Field Supervisor",
-  "Field",
-] as const;
+const PROJECT_ROLES = enums.projectRole;
 
 async function projectFor(form: FormData) {
   const org = form.get("org");

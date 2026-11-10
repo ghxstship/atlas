@@ -4,15 +4,9 @@
  * feature listed here, is refused there. Display names live in the `integrations` i18n namespace.
  */
 
-export const INTEGRATION_CATEGORIES = [
-  "Accounting",
-  "Calendar",
-  "Storage",
-  "Communication",
-  "Payroll",
-  "Shipping",
-  "Ticketing",
-] as const;
+import type { Database } from "@xos/data/database.types";
+import * as enums from "@xos/data/enums";
+export const INTEGRATION_CATEGORIES = enums.integrationCategory;
 export type IntegrationCategory = (typeof INTEGRATION_CATEGORIES)[number];
 
 export type PlanFeature = "upl_export" | "payroll_export";
@@ -163,37 +157,16 @@ export const PROVIDERS = [
 
 export type ProviderCode = (typeof PROVIDERS)[number]["code"];
 
-export const SYNC_SCOPES = [
-  "Ledger Export",
-  "Payment Sync",
-  "Calendar Sync",
-  "File Import",
-  "Notification Delivery",
-  "Payroll Export",
-  "Tracking Refresh",
-  "Attendance Import",
-] as const;
+export const SYNC_SCOPES = enums.integrationSyncScope;
 export type SyncScope = (typeof SYNC_SCOPES)[number];
 
-export type SyncDirection = "Inbound" | "Outbound" | "Two Way";
+export type SyncDirection = Database["app"]["Enums"]["integration_sync_direction"];
 
-export type SyncRunState = "Queued" | "Running" | "Succeeded" | "Retrying" | "Failed" | "Canceled";
+export type SyncRunState = Database["app"]["Enums"]["integration_sync_run_state"];
 
-export type ConnectionState = "Pending" | "Connected" | "Error" | "Paused" | "Disconnected";
+export type ConnectionState = Database["app"]["Enums"]["integration_connection_state"];
 
-export type IntegrationEntity =
-  | "Record"
-  | "Shift"
-  | "Payment"
-  | "Invoice"
-  | "Journal Entry"
-  | "Journal Line"
-  | "Document"
-  | "Shipment"
-  | "Payroll Run"
-  | "Counterparty"
-  | "Membership"
-  | "Earning Code";
+export type IntegrationEntity = Database["app"]["Enums"]["integration_entity"];
 
 /** The category a sync scope belongs to (mirrors `private.integration_scope_category`). */
 export const SCOPE_CATEGORY: Readonly<Record<SyncScope, IntegrationCategory>> = {

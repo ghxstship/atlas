@@ -1,10 +1,12 @@
 import {
   APP_ENUMS,
+  getRatingSharing,
   listAccountMembers,
   listMyAccounts,
   listPayoutAccounts,
   listRepresentations,
   listTaxForms,
+  RATING_SHARING_NOTICE_VERSION,
   readView,
   representationStanding,
 } from "@xos/data/gateway";
@@ -18,10 +20,12 @@ import {
   listSectionVisibility,
   PROFILE_SECTIONS,
 } from "@xos/data/profiles";
-import { listMyPersonCalendarFeeds } from "@xos/data/calendar-feeds";
+import { DEFAULT_FEED_SOURCES, listMyPersonCalendarFeeds } from "@xos/data/calendar-feeds";
+import { listAccountInvitations } from "@xos/data/roster";
 import { getAccountNotificationDefaults } from "@xos/data/company-settings";
 import { getMyQuietHours, listMyNotificationPreferences } from "@xos/data/party-notifications";
 import { resolveSettings } from "@xos/data/settings";
+import { formatPhone, regionFromLocale } from "@xos/i18n/formats";
 import { getNode } from "@xos/ia";
 import type { Route } from "next";
 import Link from "next/link";
@@ -31,6 +35,9 @@ import { ActionButton } from "@/components/actions/action-button";
 import { RowList, TabEmpty } from "@/components/engagement/rows";
 import { SimpleForm } from "@/components/forms/simple-form";
 import { RegionError, Section } from "@/components/page/page";
+import { countryOptions } from "@xos/i18n/formats";
+import { currentOffering } from "@/lib/offering";
+import { offeredTerritoriesPhrase } from "@/lib/territory";
 import { InlineAlert } from "@/components/ui";
 import { revokeProfileShareAction, revokeRepresentationAction } from "@/lib/actions/engagement";
 import {
@@ -43,6 +50,7 @@ import {
   removeProfileItemAction,
   saveCompanyProfileAction,
   saveNameAction,
+  saveRatingSharingAction,
   savePrivacyAction,
   saveProfileAction,
 } from "@/lib/actions/profile";
@@ -65,6 +73,8 @@ import {
   RegionsSurface,
 } from "./surfaces";
 import { SecurityPanels } from "./security-panels";
+import { TeamInviteForm } from "./team-invite-form";
+import { revokeAccountInvitationAction } from "@/lib/actions/roster";
 import {
   MyAccessLogPanel,
   MySharingPanel,
@@ -100,11 +110,15 @@ function Header({ t, node, children }: { t: Translate; node: string; children?: 
 }
 
 /** The registry settings of a personal section, each with where its value comes from. */
-async function RegistrySettings({ ctx, t, node }: SectionProps) {
+async function RegistrySettings({ ctx, t, node, locale }: SectionProps) {
   const defs = personalSettings(node);
   if (defs.length === 0) return null;
-  const resolved = await resolveSettings(ctx.db, { orgId: NO_ORG });
+  const [resolved, offering] = await Promise.all([
+    resolveSettings(ctx.db, { orgId: NO_ORG }),
+    currentOffering(),
+  ]);
   if (!resolved.ok) return <InlineAlert tone="danger">{t("settings.loadFailed")}</InlineAlert>;
+  const offeredLocales: readonly string[] = offering.locales;
   const zones = ["UTC", ...Intl.supportedValuesOf("timeZone").filter((z) => z !== "UTC")];
   return (
     <ul
@@ -114,7 +128,15 @@ async function RegistrySettings({ ctx, t, node }: SectionProps) {
       {defs.map((def) => {
         const r = resolved.data.get(def.key);
         const source = r?.source ?? "Default";
-        const initial = r ? formText(r.value) : def.default === null ? "" : formText(def.default);
+        // A phone reads in the viewer's national format (A139); saving reads it back into E.164.
+        const initial =
+          r && def.input === "phone" && typeof r.value === "string"
+            ? formatPhone(r.value, regionFromLocale(locale))
+            : r
+              ? formText(r.value)
+              : def.default === null
+                ? ""
+                : formText(def.default);
         return (
           <li key={`${def.key}:${initial}`}>
             <PersonalSetting
@@ -132,7 +154,11 @@ async function RegistrySettings({ ctx, t, node }: SectionProps) {
               setHere={source === "Personal"}
               options={
                 def.type === "choice"
-                  ? def.choices.map((c) => ({ value: c, label: t(choiceLabelKey(def.key, c)) }))
+                  ? // The registry keeps every language; only those of open territories are choices (ADR 0160).
+                    (def.key === "locale.language"
+                      ? def.choices.filter((c) => offeredLocales.includes(c))
+                      : def.choices
+                    ).map((c) => ({ value: c, label: t(choiceLabelKey(def.key, c)) }))
                   : def.input === "time_zone"
                     ? zones.map((z) => ({ value: z, label: z.replaceAll("_", " ") }))
                     : []
@@ -422,12 +448,13 @@ async function ProfileSection(props: SectionProps) {
 
 async function PrivacySection(props: SectionProps) {
   const { ctx, t, locale } = props;
-  const [profile, sections, shares] = await Promise.all([
+  const [profile, sections, shares, ratingSharing] = await Promise.all([
     getMyProfile(ctx.db),
     listSectionVisibility(ctx.db, ctx.personId),
     readView(ctx.db, "my_profile_shares", { order: ["shared_at", "desc"] }),
+    getRatingSharing(ctx.db),
   ]);
-  if (!profile.ok || !sections.ok || !shares.ok) return <RegionError />;
+  if (!profile.ok || !sections.ok || !shares.ok || !ratingSharing.ok) return <RegionError />;
   const visibility = APP_ENUMS.profile_visibility.map((v) => ({
     value: v,
     label: t(enumLabelKey("profileVisibility", v)),
@@ -475,6 +502,29 @@ async function PrivacySection(props: SectionProps) {
           })),
         ]}
       />
+      <Section title={t("gateway.settings.privacy.ratings.title")}>
+        <p className="m-0 text-text-13 text-text-secondary">
+          {t("gateway.settings.privacy.ratings.body")}
+        </p>
+        <SimpleForm
+          id="rating-sharing"
+          action={saveRatingSharingAction}
+          hidden={{ noticeVersion: RATING_SHARING_NOTICE_VERSION }}
+          label={t("gateway.settings.privacy.ratings.title")}
+          errorsNamespace="gateway.profile.errors"
+          submitLabel={t("gateway.settings.privacy.ratings.save")}
+          doneLabel={t("settings.saved")}
+          variant="secondary"
+          fields={[
+            {
+              name: "shareRatings",
+              label: t("gateway.settings.privacy.ratings.choice"),
+              kind: "checkbox",
+              defaultChecked: ratingSharing.data,
+            },
+          ]}
+        />
+      </Section>
       <Section title={t("gateway.profile.shares.title")}>
         <p className="m-0 text-text-13 text-text-secondary">
           {t("gateway.settings.privacy.sharesBody")}
@@ -570,8 +620,11 @@ function SecuritySection(props: SectionProps) {
 }
 
 async function OrganizationsSection(props: SectionProps) {
-  const { ctx, t } = props;
-  const accounts = await listMyAccounts(ctx.db);
+  const { ctx, t, locale } = props;
+  const [accounts, territories] = await Promise.all([
+    listMyAccounts(ctx.db),
+    offeredTerritoriesPhrase(),
+  ]);
   const members = accounts.ok
     ? await Promise.all(accounts.data.map((a) => listAccountMembers(ctx.db, a.id)))
     : [];
@@ -614,6 +667,9 @@ async function OrganizationsSection(props: SectionProps) {
         <p className="m-0 text-text-13 text-text-secondary">
           {t("gateway.settings.organizations.createBody")}
         </p>
+        <p className="m-0 text-text-13 text-text-secondary">
+          {t("gateway.settings.organizations.availability", { territories })}
+        </p>
         <SimpleForm
           id="create-account"
           action={createAccountAction}
@@ -634,6 +690,16 @@ async function OrganizationsSection(props: SectionProps) {
               label: t("gateway.settings.organizations.slug"),
               required: true,
               help: t("gateway.settings.organizations.slugHelp"),
+            },
+            {
+              name: "countryCode",
+              kind: "select",
+              label: t("gateway.settings.organizations.country"),
+              required: true,
+              options: [
+                { value: "", label: t("gateway.settings.organizations.countryChoose") },
+                ...countryOptions(locale),
+              ],
             },
           ]}
         />
@@ -690,8 +756,9 @@ async function PayoutTaxSection(props: SectionProps & { account?: boolean }) {
 
 /**
  * The person's own calendar feeds across every org they work with (Section 4.5.8 Work, Upcoming
- * "with a calendar feed"; Section 4.6.5; A84, migration 1410): each with the last four characters
- * of its link, a new link and revoke, and a form to add one. Links are shown once, when made.
+ * "with a calendar feed"; Section 4.6.5; A84, migration 1410): each with its name (B7), what it
+ * shows and the last four characters of its link, Edit, a new link and revoke, and a form to add
+ * one. Links are shown once, when made.
  */
 async function CalendarFeedsSection(props: SectionProps) {
   const { ctx, t, locale } = props;
@@ -711,8 +778,13 @@ async function CalendarFeedsSection(props: SectionProps) {
           label={t(`${C}.listLabel`)}
           items={feeds.data.map((feed) => ({
             id: feed.id,
-            title: t(`${C}.feedName`),
+            title: feed.name ?? t(`${C}.feedName`),
             meta: [
+              t(`${C}.filterSummary`, {
+                sources: (feed.sources ?? DEFAULT_FEED_SOURCES)
+                  .map((s) => t(`${C}.sources.${s.toLowerCase()}`))
+                  .join(", "),
+              }),
               t(`${C}.hint`, { hint: feed.tokenHint }),
               feed.rotatedAt
                 ? t(`${C}.rotated`, { date: formatDate(locale, feed.rotatedAt) })
@@ -721,7 +793,14 @@ async function CalendarFeedsSection(props: SectionProps) {
                 ? t(`${C}.lastFetched`, { date: formatDate(locale, feed.lastAccessedAt) })
                 : t(`${C}.neverFetched`),
             ],
-            action: <PersonFeedActions id={feed.id} hint={feed.tokenHint} />,
+            action: (
+              <PersonFeedActions
+                id={feed.id}
+                hint={feed.tokenHint}
+                name={feed.name}
+                sources={feed.sources}
+              />
+            ),
           }))}
         />
       )}
@@ -848,8 +927,11 @@ async function CompanyProfileSection(props: SectionProps) {
 async function TeamSection(props: SectionProps) {
   const { ctx, t, locale } = props;
   if (!ctx.acting) return null;
-  const members = await listAccountMembers(ctx.db, ctx.acting.id);
   const admin = ctx.acting.roles.some((r) => r === "Account Owner" || r === "Account Admin");
+  const [members, invitations] = await Promise.all([
+    listAccountMembers(ctx.db, ctx.acting.id),
+    admin ? listAccountInvitations(ctx.db, ctx.acting.id) : null,
+  ]);
   return (
     <>
       <Header t={t} node={props.node} />
@@ -865,6 +947,15 @@ async function TeamSection(props: SectionProps) {
               m.roles.map((r) => t(enumLabelKey("accountRole", r))).join(", "),
               t("gateway.profile.company.since", { date: formatDate(locale, m.validFrom) }),
             ],
+            // R4: a member an admin added confirms before they can be rostered or assigned.
+            ...(m.acceptedAt === null
+              ? {
+                  tag: {
+                    label: t("gateway.settings.company.notConfirmed"),
+                    tone: "warning" as const,
+                  },
+                }
+              : {}),
             ...(admin && m.personId !== ctx.personId
               ? {
                   action: (
@@ -879,6 +970,35 @@ async function TeamSection(props: SectionProps) {
           }))}
         />
       )}
+      {invitations?.ok && invitations.data.length > 0 ? (
+        <RowList
+          label={t("gateway.settings.company.invitations")}
+          items={invitations.data.map((i) => ({
+            id: i.id,
+            title: i.email,
+            meta: [
+              t(enumLabelKey("accountRole", i.accountRole)),
+              t("gateway.settings.company.invitationExpires", {
+                date: formatDate(locale, i.expiresAt),
+              }),
+            ],
+            tag: { label: t("gateway.settings.company.invited"), tone: "accent" as const },
+            action: (
+              <ActionButton
+                action={revokeAccountInvitationAction.bind(null, i.id)}
+                label={t("gateway.settings.company.revokeInvitation")}
+                variant="ghost"
+              />
+            ),
+          }))}
+        />
+      ) : null}
+      {admin ? (
+        <TeamInviteForm
+          accountId={ctx.acting.id}
+          owner={ctx.acting.roles.includes("Account Owner")}
+        />
+      ) : null}
       <p className="m-0 text-text-13 text-text-secondary">
         {t("gateway.settings.company.inviteNote")}
       </p>

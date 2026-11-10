@@ -7,6 +7,7 @@
  */
 import { uuidv7, type MutationInput } from "@xos/sync";
 import type { LocationFix } from "./geo";
+import type { Database } from "@xos/data/database.types";
 
 /** A row of the canon Incident Severity enumeration, cached on device. */
 export interface Severity {
@@ -296,7 +297,7 @@ export interface IncidentRow {
   readonly incident_number: number | null;
   readonly title: string;
   readonly severity_enum_id: string;
-  readonly incident_state: "Reported" | "Dispatched" | "Contained" | "Closed";
+  readonly incident_state: Database["app"]["Enums"]["incident_state"];
   readonly occurred_at: string;
   readonly zone_id: string | null;
 }

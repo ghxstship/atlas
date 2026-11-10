@@ -4,6 +4,7 @@ import { Input, Select } from "@xos/ui";
 import { useActionState } from "react";
 import { saveInvoiceAction } from "@/app/[org]/finance/actions";
 import { ActionFeedback } from "./kit-action-feedback";
+import { CustomFieldInputs } from "@/components/custom-fields/inputs";
 import { fieldError } from "./kit-field-error";
 import { useAfterSave } from "./kit-use-after-save";
 import { useFinanceT } from "./kit-use-finance-t";
@@ -53,8 +54,10 @@ export function InvoiceForm({
               issued_on: { name: "issuedOn" },
               due_on: { name: "dueOn" },
               currency_code: { name: "currency" },
+              printed_total_minor: { name: "printedTotal", as: "money" },
             }}
           />
+          <input type="hidden" name="printedTotal" defaultValue="" />
           {projectId ? (
             <input type="hidden" name="projectId" value={projectId} />
           ) : (
@@ -119,6 +122,7 @@ export function InvoiceForm({
           error={fieldError(t, state, "dueOn")}
         />
       </div>
+      {invoice ? null : <CustomFieldInputs table="app.invoices" />}
       <ActionFeedback state={state} />
       <Submit label={invoice ? t("common.save") : t("invoices.create")} pending={pending} />
     </form>

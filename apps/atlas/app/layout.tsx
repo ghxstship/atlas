@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getTranslations } from "next-intl/server";
 import appIcon from "@xos/ui/brand/app-icon.svg";
@@ -11,7 +11,9 @@ import { CookieBanner } from "@/components/privacy/cookie-banner";
 import { XOSProvider } from "@/components/xos-provider";
 import { localeDirection } from "@/i18n/negotiate";
 import { clientMessages, negotiatedLocale, uiMessages } from "@/i18n/request";
+import { PATH_HEADER } from "@/lib/auth/assurance";
 import { productAnalyticsConsent } from "@/lib/privacy/product-analytics";
+import { hidesCookieBanner, isPublicLivePath } from "@/lib/shell/public-live-path";
 import { THEME_COOKIE, themeFromCookie } from "@/lib/theme";
 import { PREFERENCES_COOKIE, decodePreferences, documentAttributes } from "@xos/ui/preferences";
 import "./globals.css";
@@ -33,12 +35,19 @@ export const viewport: Viewport = { themeColor: themeColors() };
 export default async function RootLayout({ children }: { children: ReactNode }) {
   // The negotiated locale (a pseudo-locale in development) picks the language, direction and messages; next-intl's
   // locale, which XOSProvider formats with, is its formatting locale (i18n/request.ts, A53-001).
-  const [locale, formatting, cookieStore, analytics] = await Promise.all([
+  const [locale, formatting, cookieStore, analytics, requestHeaders] = await Promise.all([
     negotiatedLocale(),
     getLocale(),
     cookies(),
     productAnalyticsConsent(),
+    headers(),
   ]);
+  // Public live link pages (P1, ADR 0130), stakeholder packs (B2, ADR 0141) and the showcaller portal (B3, ADR 0142) set
+  // only the strictly necessary grant cookie and load no product analytics; a display screen and the portal also keep
+  // the cookie banner off. A pack's own display item keeps the banner: the layout sees only the path, not the item.
+  const path = requestHeaders.get(PATH_HEADER) ?? "";
+  const publicLive = isPublicLivePath(path);
+  const bannerOff = hidesCookieBanner(path);
   const theme = themeFromCookie(cookieStore.get(THEME_COOKIE)?.value);
   // The person's display preferences (A65-001), kept in a cookie the shell syncs from their settings.
   const preferences = decodePreferences(cookieStore.get(PREFERENCES_COOKIE)?.value);
@@ -52,14 +61,10 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
     >
       <body>
         <NextIntlClientProvider messages={clientMessages(locale)}>
-          <XOSProvider
-            locale={formatting}
-            preferences={preferences}
-            {...(overrides ? { messages: overrides } : {})}
-          >
-            <CookieBanner />
+          <XOSProvider locale={formatting} preferences={preferences} messages={overrides}>
+            {bannerOff ? null : <CookieBanner />}
             {children}
-            <PwaRuntime analytics={analytics} />
+            <PwaRuntime analytics={analytics && !publicLive} />
           </XOSProvider>
         </NextIntlClientProvider>
       </body>

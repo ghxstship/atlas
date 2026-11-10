@@ -75,7 +75,11 @@ export const REPORT_DETAILS_MAX = 2000;
 /** The steps of the sheet. */
 export type SafetyStep = "menu" | "report" | "reported" | "confirm-block" | "blocked";
 
-/** Where the sheet opens: straight on Report when Block is not possible, else on the choice of the two. */
-export function firstStep(target: ContentActionTarget): SafetyStep {
+/**
+ * Where the sheet opens: straight on Report when Block is not possible, else on the choice of the two. Opened to block
+ * only (a person's card in the Directory, which has nothing to report), it opens on the block's confirmation.
+ */
+export function firstStep(target: ContentActionTarget, blockOnly = false): SafetyStep {
+  if (blockOnly) return "confirm-block";
   return canBlock(target) ? "menu" : "report";
 }

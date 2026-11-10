@@ -354,11 +354,32 @@ describe("QuickAdd with a resolver", () => {
     await userEvent.type(screen.getByRole("textbox"), "Rig @dan @x ~open #zz");
     await screen.findByText("Dana Kim");
     expect(screen.getByRole("button", { name: "Remove Dana Kim" })).toBeTruthy();
-    const choice = screen.getByRole("combobox", { name: "~open" });
+    // The scope resolves in a later lookup than the person, so wait for its choice too.
+    const choice = await screen.findByRole("combobox", { name: "~open" });
     expect(within(choice).getByRole("option", { name: "open (2)" })).toBeTruthy();
     await waitFor(() =>
       // The second person, the unchosen scope and the unknown tag stay in the title.
       expect(screen.getByRole("status").textContent).toBe("Rig @x ~open #zz and Dana Kim"),
     );
+  });
+});
+
+describe("the quick add parser on demand", () => {
+  it("reads the line as plain text until it loads, and a line saved before then once it has", async () => {
+    vi.resetModules();
+    const { renderHook } = await import("@testing-library/react");
+    const { useQuickAdd } = await import("../src/Editing/useQuickAdd.ts");
+    const { result } = renderHook(() =>
+      useQuickAdd({ text: "Load-in tomorrow @dana", referenceDate: monday, timeZone: ny.timeZone }),
+    );
+    expect(result.current.parse).toEqual({
+      text: "Load-in tomorrow @dana",
+      title: "Load-in tomorrow @dana",
+      tokens: [],
+    });
+    const saved = await result.current.finalize();
+    expect(saved.title).toBe("Load-in");
+    expect(saved.tokens.map((t) => t.type).sort()).toEqual(["date", "person"]);
+    await waitFor(() => expect(result.current.parse.tokens).toHaveLength(2));
   });
 });

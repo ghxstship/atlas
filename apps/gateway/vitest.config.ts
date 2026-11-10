@@ -3,6 +3,8 @@ import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   resolve: { alias: { "@": fileURLToPath(new URL("./", import.meta.url)) } },
+  // tsconfig leaves JSX to Next (`preserve`); tests that render a component compile it themselves, as in Atlas.
+  oxc: { jsx: { runtime: "automatic" } },
   test: {
     include: ["test/**/*.test.ts"],
     /* Render and catalog loading take several seconds on a loaded CI runner (run 40123982182), as in Atlas. */

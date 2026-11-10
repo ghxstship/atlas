@@ -7,8 +7,9 @@ import { Input, Select } from "@/components/ui";
 import { grantOperatorAction, revokeOperatorAction } from "@/lib/actions/operations";
 import { getConsoleFormat } from "@/lib/format";
 import { requirePermission } from "@/lib/operator";
+import * as enums from "@xos/data/enums";
 
-const ROLES = ["Support", "Trust and Safety", "Administrator"] as const;
+const ROLES = enums.platformOperatorRole;
 
 export async function generateMetadata(): Promise<Metadata> {
   const { t } = await getConsoleFormat();
@@ -74,7 +75,7 @@ export default async function TeamPage() {
                     submitLabel={t("team.revoke")}
                     successLabel={t("team.revoked")}
                     variant="danger"
-                    label={`${t("team.revoke")} ${g.email ?? ""}`}
+                    label={t("team.revokeFor", { email: g.email ?? "" })}
                   >
                     <ReasonField t={t} id={`revoke-${g.id}`} />
                   </ActionForm>

@@ -1,5 +1,6 @@
 import { findRoute } from "@xos/ia";
 import { clientSitemap, listNodes } from "@/ia/sitemap.client.generated";
+import { shellPeekHref } from "./peek-link";
 import type { PeekHandoff } from "./peek-handoff";
 
 /**
@@ -21,6 +22,7 @@ const NO_OWN_PEEK_NODES: ReadonlySet<string> = new Set([
   "activity.feed",
   "approvals",
   "credentials.access-grid",
+  "crew.access-links",
   "credentials.scan-log",
   "finance.chart-of-accounts",
   "finance.universal-posting-line-export",
@@ -28,12 +30,15 @@ const NO_OWN_PEEK_NODES: ReadonlySet<string> = new Set([
   "home.gate-readiness",
   "home.recent",
   "home.today",
+  // The flight grid (B5) peeks no row of its own; its rows open the Travel fulfillment they belong to.
+  "hospitality.travel",
   "inbox",
   "my-work",
   "opportunities.engagements",
   "opportunities.onboarding",
   "opportunities.pipeline",
   "opportunities.pools",
+  "opportunities.registration-pages",
   "opportunities.postings",
   "opportunities.ratings",
   "opportunities.requisitions",
@@ -51,6 +56,11 @@ const NO_OWN_PEEK_NODES: ReadonlySet<string> = new Set([
   "reports.labor",
   "reports.measurement",
   "reports.purchase-order-exposure",
+  // B4: Days opens its own day editor (?day=), Workload its cell (?cell=), and Clashes links to each side's page.
+  "schedule.clashes",
+  "schedule.days",
+  "schedule.workload",
+  "site-ops.muster",
   "site-ops.weather",
   "trash",
 ]);
@@ -102,8 +112,5 @@ export function shellOpensPeek(
  */
 export function peekHref(org: string, pathname: string, search: string, recordKey: string): string {
   if (pageOwnsPeek(pathname)) return `/${org}/r/${encodeURIComponent(recordKey)}`;
-  const params = new URLSearchParams(search);
-  params.set("peek", recordKey);
-  params.delete("full");
-  return `${pathname}?${params.toString()}`;
+  return shellPeekHref(pathname, search, recordKey);
 }

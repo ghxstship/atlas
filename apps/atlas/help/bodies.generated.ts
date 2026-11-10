@@ -66,12 +66,87 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Crew roster" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Each party puts its people on its engagements: a vendor's technicians, a band and its touring crew, a sponsor's activation staff. Crew Roster lists them by party with their role, arrival, review state and whether they accepted. Accept or return each submitted entry, one by one or in bulk with one reason; you never review an entry you added or submitted. Open a person to see what they share, read and logged when you open it. Allergies show as on file unless you may read them.",
+          },
+        ],
+      },
+      { t: "h2", v: "Allocations" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Allocations say what each party and person is given for a production: badges, parking passes, radios and carts, catering, rooms, trips and per diems. A coordinator requests one for a party's pool or for one person; a reviewer who did not request it approves or declines it. Approving equipment holds it from class stock, a lot or the order it arrives on, and the dialog shows how many are available for those dates and how much of the allowance remains. Split a party's pool to its people, then issue each item: issuing confirms the person has it. The status reads held, ordered, received, issued and returned from the rows that record them. Holds that no longer fit what can supply them show in a banner. Radio allocations take channels, and Print radio hand-out gives the sheet people sign.",
+          },
+        ],
+      },
       {
         t: "p",
         c: [
           { t: "text", v: "Related: " },
           { t: "link", v: "Venues, spaces and site plans", href: "help:places" },
           { t: "text", v: "." },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "A guest's dietary and access needs are optional and have their own step on the guest's row, not the door note. You confirm you have the guest's authority and that they have had notice, and the record shows it was you. You see only who attested and when; the Owner, the catering lead and on-site medical roles, and anyone else the organization gives medical data access read them, and each read is logged. Give the guest's email and, if they have an XOS account, they are told and can remove it. The email stays on file when you save again with the field empty; to take it off, tick Remove the email on file.",
+          },
+        ],
+      },
+      { t: "h2", v: "Guest passes and guest emails" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Each guest can have a pass type (an Access category of the project, such as GUEST or VIP), a table, a host from the project's people, and an email address. Add guest asks for the pass type and email; set the table and host from the guest's pass details. When a guest is approved they get a pass code; Print pass and Download pass give their A6 pass with the code the door scans. Guests have passes, not credentials.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Email guests sends the guests you choose an invitation, their pass as a PDF, or a message with a subject and text, in English or Spanish. Guests without an email, and, for a pass, guests not yet approved, are skipped, and addresses that asked your organization to stop are not emailed. Every guest email comes from your organization, with an unsubscribe link and the postal address. Each send lists what happened to every guest.",
+          },
+        ],
+      },
+      { t: "h2", v: "Draft answers from a reply" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "When a party answers by email or sends a tour book or rider, a reviewer can choose ",
+          },
+          { t: "strong", v: "Draft Answers from a Reply" },
+          {
+            t: "text",
+            v: " on a recipient of a sent packet. Aurora reads one source, verified mail in the project inbox or a file you choose, into proposed answers for the recipient's open sections, with the words it read and who sent the mail. It never drafts a guest list, a file, a crew roster or a per-person section. Each answer you accept is recorded for the recipient: someone else reviews it, the recipient is told, and they can ask you to return it.",
+          },
+        ],
+      },
+      { t: "h2", v: "Contracts and riders with Aurora" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "On the engagements list, " },
+          { t: "strong", v: "Read Contracts and Riders" },
+          {
+            t: "text",
+            v: " reads contracts and riders, groups them by act and adds each booking you keep as an Artist engagement at Onboarding. You choose the party and the terms; Aurora creates no person, account or counterparty. A fee is read only for people allowed to read pay. A fee printed as a total fills in only on a flat fee, because an engagement's rate is per unit, and a contract's file is kept Restricted.",
+          },
         ],
       },
     ],
@@ -257,6 +332,73 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Scan direction and overrides" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Each scan is In or Out. Choose the direction at the scan desk, or on the gate in Compass, where it stays chosen for each zone. An Out scan is never refused, and it ends the person's time in the zone.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "A denied In scan shows why: the badge is revoked, not valid yet or expired, has no access to the zone, or the scan was outside the access window. Denials recorded before this change show only that they were denied.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Someone who can issue credentials on the project, and who is not the badge holder, can let a denied person in within 15 minutes, with a reason. The log keeps the denial and adds an Overridden entry with who let them in and why. A revoked badge is never let in.",
+          },
+        ],
+      },
+      { t: "h2", v: "Inside now" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "The scan log shows, for the chosen project, how many people each zone holds now: those scanned In in the last 24 hours who have not scanned Out, split by category and by team. It counts people scanned in, not the venue's load: the permitted-load alerts come from the occupancy counters. It updates every 30 seconds. Use Pause updates to stop it.",
+          },
+        ],
+      },
+      { t: "h2", v: "Required before issue" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "A category can require a training course or a certification. Add them in the category's Required before issue. Issuing that category to someone who does not hold each one now is refused. Members meet a course by passing it; anyone meets a certification once a verifier records it, which is how a pass desk records an in-person induction. A certification's holder can change only their consent to public verification, never its dates.",
+          },
+        ],
+      },
+      { t: "h2", v: "Checks on the Issued page" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "The issue form lists what blocks a badge before you issue it: missing training, or a live badge of the same category for an overlapping window. Revoke the earlier badge first. Parking passes are exempt, because one person may hold passes for several vehicles. It also warns when the person holds another badge on the project, someone else on the project has the same name, or they are booked on another production at the same time.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Issued shows each badge's source and the same checks as chips. Choose Needs attention to see only flagged badges.",
+          },
+        ],
+      },
     ],
     "crew-time-payroll": [
       { t: "h2", v: "Shifts and schedule" },
@@ -267,6 +409,26 @@ export const HELP_BODIES: HelpBodies = {
             t: "text",
             v: "Shifts open as a resource schedule in Atlas, with people down the side and time across. Publish shifts so crew can accept them in Compass. Swaps between crew members need approval.",
           },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "XOS tells the person on a published shift when it is assigned to them and when its times move. Other changes, such as a new role, a cancellation or a return to Draft, are not announced, so the shift shows ",
+          },
+          { t: "strong", v: "Needs review" },
+          {
+            t: "text",
+            v: " with the number of changes since the person was told. The shift's peek shows how and when they were last told (by notification, by accepting the shift, or by your mark) and what changed since. After you tell them, choose ",
+          },
+          { t: "strong", v: "Mark as communicated" },
+          { t: "text", v: "; with " },
+          { t: "strong", v: "Review" },
+          { t: "text", v: " set to " },
+          { t: "strong", v: "Needs review" },
+          { t: "text", v: ", you can mark every listed shift at once." },
         ],
       },
       {
@@ -317,6 +479,84 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Shortages" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Crew > Shortages lists what is not covered yet between two days, across every project you can read: open shifts, agency slots nobody on the roster holds, offers nobody has answered, Still coming? asks unanswered or declined, no-shows without a replacement, and unacknowledged labor lines of Approved or Sent purchase orders. Rows run by day, in each shift's own time zone, and each opens its shift or order. A range can be up to 62 days.",
+          },
+        ],
+      },
+      { t: "h2", v: "Positions" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Crew > Positions holds seats filled later, such as Stage Manager or Rigger 2. Hold shifts for a position from the shift form and assign records to it from the record. Nobody claims or is dragged onto a held shift. Filling the position gives its shifts to the holder and shows what was filled, skipped or warned about at the top of the page. Vacating returns shifts that have not started and removes only the assignments filling made. Someone asking to swap a held shift is refused. A new shift on a filled position goes to its holder.",
+          },
+        ],
+      },
+      { t: "h2", v: "Still coming? and no-shows" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Turn on Settings > Scheduling > Ask crew if they are still coming, and the worker of an accepted shift is asked once before it starts. They answer from email, push, Gateway Home or the shift itself until the shift starts. When someone can't make it, the shift reopens, or goes back to its agency, unless you turn that off. Mark no-show on a started shift when the worker did not arrive and has not clocked in. A later clock-in withdraws it.",
+          },
+        ],
+      },
+      { t: "h2", v: "Scheduling warnings" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Minimum rest and maximum daily and weekly hours on Settings > Scheduling are your organization's warnings, shown on the scheduling board, the shift record and swap and claim approval. They never refuse an assignment and they are not pay or state overtime rules. A shift's minutes count on the day it starts, and the week tag means the week starting on your payroll week start, which can differ from the ISO week the board's hours use.",
+          },
+        ],
+      },
+      { t: "h2", v: "Break types" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Settings > Time and Attendance defines breaks, each paid or unpaid. A paid break is worked time, so its minutes are not subtracted from hours and show as Paid break beside Break. Compass asks which break when there are two or more types. An organization with no types behaves as before.",
+          },
+        ],
+      },
+      { t: "h2", v: "Crew access links" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Some crew never open the app. A crew access link shows one worker their own shifts on one project in Gateway, without signing in, and lets them accept their own Published shift. Open Crew access links, choose Issue links, pick the project and the people, and choose how long the links last, 1 hour to 30 days.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Each person gets a link and a 6-digit code, shown once. Copy them or print a card now, because they are not shown again. A printed card never carries the code, so a card left in place opens nothing; send the code another way, so a lost card opens nothing.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "A link closes when the person stops working on the project, when they delete their account, or when you revoke it. Five wrong codes lock it, and issuing again replaces it. A link shows no rate, no note and nobody else's shift, and nobody can punch or decline through one. A person has to have accepted something once, such as a membership, an engagement or a roster place, to be on a shift at all.",
+          },
+        ],
+      },
     ],
     finance: [
       {
@@ -340,6 +580,123 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: " and is never counted as zero; the totals say how many lines are still unpriced. A project in another currency shows converted totals with the rate date.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Client pricing sits beside cost. Set a " },
+          { t: "strong", v: "Default markup %" },
+          { t: "text", v: " on the budget or a " },
+          { t: "strong", v: "Markup %" },
+          { t: "text", v: " on a line, or type a " },
+          { t: "strong", v: "Client unit price" },
+          {
+            t: "text",
+            v: " to override both; clearing it returns to the markup. A line with no cost price and no override has no client price and shows ",
+          },
+          { t: "strong", v: "Unpriced" },
+          { t: "text", v: ". " },
+          { t: "strong", v: "Quote lines" },
+          {
+            t: "text",
+            v: " chooses which lines go on quotes; the rest stay internal. Switch the grid between ",
+          },
+          { t: "strong", v: "Cost" },
+          { t: "text", v: ", " },
+          { t: "strong", v: "Client pricing" },
+          { t: "text", v: " and " },
+          { t: "strong", v: "Forecast" },
+          { t: "text", v: "." },
+        ],
+      },
+      { t: "h2", v: "Versions" },
+      {
+        t: "p",
+        c: [
+          { t: "strong", v: "Versions" },
+          { t: "text", v: " freezes the budget's plan with " },
+          { t: "strong", v: "Take snapshot" },
+          { t: "text", v: ", and " },
+          { t: "strong", v: "Compare" },
+          {
+            t: "text",
+            v: " shows what was added, removed and changed against the live budget or another version, with deltas that stay blank when either side is unpriced. A version does not replace the gate 3 baseline. Quotes keep their own captures, which cannot be deleted.",
+          },
+        ],
+      },
+      { t: "h2", v: "Forecast" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "The " },
+          { t: "strong", v: "Forecast" },
+          { t: "text", v: " columns show " },
+          { t: "strong", v: "Remaining commitment" },
+          { t: "text", v: ", " },
+          { t: "strong", v: "Estimate to complete" },
+          { t: "text", v: " (type a figure, or leave it blank to derive it), " },
+          { t: "strong", v: "Estimated final cost" },
+          { t: "text", v: " and " },
+          { t: "strong", v: "Variance at completion" },
+          {
+            t: "text",
+            v: ". They are derived from Actual, Committed and approved change orders, so they move with each expense, approval and purchase order. If you can't read the project's purchase orders, expenses or change orders, the figures stay blank rather than partial.",
+          },
+        ],
+      },
+      { t: "h2", v: "Actual and Transactions" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Actual is approved and paid expenses plus approved crew hours. A shift names the Labor line its time posts to, and approving a timesheet posts that time at the rate in force on each work date. Time with no rate posts unpriced: it shows as ",
+          },
+          { t: "strong", v: "n unpriced hours" },
+          { t: "text", v: " and is never counted as zero. Select a line and choose " },
+          { t: "strong", v: "Transactions" },
+          {
+            t: "text",
+            v: " to see what stands behind Actual and Committed. Vendor invoices on the line are listed apart: they post to the ledger and count in the final cost report, not in Actual.",
+          },
+        ],
+      },
+      { t: "h2", v: "Quotes" },
+      {
+        t: "p",
+        c: [
+          { t: "strong", v: "Quotes" },
+          {
+            t: "text",
+            v: " builds a client quote from a budget. A Draft reads live prices, with cost and margin shown only to you under ",
+          },
+          { t: "strong", v: "Internal: never on the quote" },
+          {
+            t: "text",
+            v: ". Choose the client engagement on the Draft until a version has been sent; ",
+          },
+          { t: "strong", v: "Send quote" },
+          {
+            t: "text",
+            v: " needs one. With a new version open, the page shows the Draft's lines and totals, since those are what you send next. ",
+          },
+          { t: "strong", v: "Send quote" },
+          {
+            t: "text",
+            v: " freezes the version and its content fingerprint. Enter an email to get a signing link and access code, shown once, or leave it blank and the client signs in Gateway's Documents tab. Sending a new version supersedes the last one. When the client signs, the quote is accepted and locked; record later changes as a change order. Atlas never holds funds, so a quote has no payment state.",
+          },
+        ],
+      },
+      { t: "h2", v: "Import lines" },
+      {
+        t: "p",
+        c: [
+          { t: "strong", v: "Import lines" },
+          {
+            t: "text",
+            v: " brings budget lines in from .xlsx or .csv through the import wizard, with a reason for every cell it can't read. A row with a line number updates that line, changing only the cells the sheet fills, and the word Unpriced clears its price. Other rows are added in sheet order, and a blank price there stays unpriced. Undo removes the lines the batch created, unless something has come to depend on them since.",
           },
         ],
       },
@@ -395,6 +752,31 @@ export const HELP_BODIES: HelpBodies = {
               v: " lists contractors paid the 1099-NEC threshold and downloads the filing file. Full tax identifiers need a Restricted export with step-up.",
             },
           ],
+        ],
+      },
+      { t: "h2", v: "Review an invoice's lines from the document" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "When Aurora fills an invoice from a document, its lines wait on the saved invoice. ",
+          },
+          { t: "strong", v: "Review Lines from the Document" },
+          {
+            t: "text",
+            v: " shows them with the live difference from the printed total and what the vendor last billed. You choose each budget line: ",
+          },
+          { t: "strong", v: "Use This Budget Line" },
+          {
+            t: "text",
+            v: " fills it only when you click. When the lines and the total differ, check ",
+          },
+          { t: "strong", v: "I checked the difference" },
+          {
+            t: "text",
+            v: " before you add them. A residual then shows on the invoice as a warning, and it blocks neither approval nor posting.",
+          },
         ],
       },
     ],
@@ -468,6 +850,16 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Near misses at gate 7" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Gate 7 attests that every incident, injury and near miss was logged and dispositioned. XOS has no near-miss type, so log a near miss as an incident at Level 5 - Advisory with What happened starting with the words Near miss. Filter Incidents by that severity to find them.",
+          },
+        ],
+      },
       { t: "h2", v: "Definitions" },
       {
         t: "p",
@@ -475,6 +867,21 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "Hover over or focus any gate or phase chip to see its definition from the XOS canon. The glossary in Help lists every term.",
+          },
+        ],
+      },
+      { t: "h2", v: "Required documents and details" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "When a project has an event type, its gates also check what the type requires. Each Required document type due by the gate needs a project document of that type with at least one version, and each required detail needs a value. Under each gate, ",
+          },
+          { t: "strong", v: "Required documents and details" },
+          {
+            t: "text",
+            v: " lists what is done and what is missing, and the pass button names what is missing. Recommended items show in the list and on the Overview's Setup card, but never stop a gate. A project without an event type passes its gates exactly as before.",
           },
         ],
       },
@@ -657,7 +1064,33 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Today lists the records assigned to you or waiting on your decision, ordered by when they are due. Use ",
+            v: "Today is a dashboard of tiles you can widen or narrow; it keeps your layout. ",
+          },
+          { t: "strong", v: "Doors" },
+          {
+            t: "text",
+            v: " counts down to the next doors of an event in the next 14 days, in its project's time zone. ",
+          },
+          { t: "strong", v: "Waiting for your approval" },
+          {
+            t: "text",
+            v: " counts the approvals your Inbox asks you to decide and lists the first five. ",
+          },
+          { t: "strong", v: "Since your last visit" },
+          {
+            t: "text",
+            v: " names what others changed on the records you are assigned to or watch and on your shifts, and who changed it; a visit lasts 30 minutes, so refreshing keeps the list, and ",
+          },
+          { t: "strong", v: "Mark all as seen" },
+          { t: "text", v: " clears it. It starts from your second visit." },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Below the tiles, the day's work lists the records assigned to you or waiting on your decision, ordered by when they are due. Use ",
           },
           { t: "strong", v: "J" },
           { t: "text", v: " and " },
@@ -739,6 +1172,68 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Flights" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Hospitality > Travel lists every flight booked under a Travel fulfillment, across the org or in the project's Travel section. Legs a traveler flies within 24 hours of the last landing are one journey, so each row shows Leg 1 of 3 and the journey's final arrival. Each time shows in the zone it was entered in. The built-in views show Upcoming flights, those In flight, or All; save one as your own view, and export the rows on screen as CSV, Excel or PDF. The fare never appears.",
+          },
+        ],
+      },
+      { t: "h2", v: "Transfers" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "A transfer is one vehicle run: a pickup and a drop-off, a vehicle, a driver and the passengers riding. Type the drop-off time you expect; drive times are not computed and no map is drawn. Manage the project's vehicles from Vehicles. XOS refuses a driver, vehicle or passenger booked on two transfers at once, more passengers than seats, and the driver riding as a passenger. Each transfer shows Unassigned, Assigned, Underway or Done, and warns of a Tight turnaround (the driver's previous drop-off plus the turnaround in Settings > Scheduling) or a flight that lands after the pickup. The resource schedule lays transfers out by driver or by vehicle for the week. The driver is told when they are assigned.",
+          },
+        ],
+      },
+      { t: "h2", v: "Green rooms and dressing rooms" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Book a space at the project's venue for an act or a team, or use Book from set time: in is filled in 90 minutes before the set and out 60 minutes after it ends, and you can change both. An exclusive booking holds the room alone; shared bookings may overlap, and the overlaps to check list them together with the most people in the room at once against its capacity. Set moved shows when the set's planned time leaves the booking.",
+          },
+        ],
+      },
+      { t: "h2", v: "Rooms by night and acts without rooms" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "The Matrix view of accommodation blocks shows each block's rooms assigned of held on every night. A night with free rooms is highlighted when the block releases within 14 days, and the block's creator and last editor get a reminder at 14, 7 and 1 days. The header counts the artists with lodging offered whose people hold no room yet. Link a block to a budget line to see its lodging held and assigned on the budget; nothing is written to the budget.",
+          },
+        ],
+      },
+      { t: "h2", v: "Rooming list" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "The project's Rooming section lists the people of the travel party who need a room: the stays their passes or travel dates suggest, the rooms they hold, the nights still uncovered and what they cost. Filter to Missing, Partial or No dates. Assign room opens the allocation to issue when the person has one approved, and otherwise the room form filled in with the suggested stay; nothing is saved until you confirm. Each read of the list is recorded in each person's access log, so it loads only when you ask, and it cannot be exported.",
+          },
+        ],
+      },
+      { t: "h2", v: "Read itineraries with Aurora" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "On a Travel fulfillment, " },
+          { t: "strong", v: "Read Itineraries" },
+          {
+            t: "text",
+            v: " reads up to 25 confirmations. Each file is one Aurora request from this month's allowance. You choose who each passenger is, and you confirm each zone, because Aurora infers zones from the airport or city. A year the confirmation does not print is the next time that date comes, and it says so. A line matching a segment already booked starts unchecked. Lines you leave stay open for 7 days, so you can come back to them.",
+          },
+        ],
+      },
     ],
     "import-and-trash": [
       { t: "h2", v: "Import" },
@@ -751,6 +1246,103 @@ export const HELP_BODIES: HelpBodies = {
         ],
       },
       { t: "p", c: [{ t: "text", v: "You can undo the whole batch for 7 days." }] },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Instead of a file you can paste rows copied from Excel, Google Sheets or Shoflo, header row first. A preview shows the first rows as they will be read. While you map the columns, each one shows its first values, and a preview lays the first rows out by your choices.",
+          },
+        ],
+      },
+      { t: "h2", v: "Import a rundown" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Open a running order and choose Import cues, or choose Run of show cues on the import page and pick the running order. The rows become cues of that running order only.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            {
+              t: "text",
+              v: "A cue number such as 12, Q12 or CUE-07 sets the cue's position. Fractions such as 12.5 are refused.",
+            },
+          ],
+          [
+            {
+              t: "text",
+              v: "Rows without a cue number are added after the highest cue, in the order of the sheet, once the numbered rows are in.",
+            },
+          ],
+          [
+            {
+              t: "text",
+              v: "Times such as 19:30 or 7:30 PM are read on the show date, in the project's time zone. Durations are minutes, m:ss or h:mm:ss.",
+            },
+          ],
+          [
+            {
+              t: "text",
+              v: "Importing the same rundown again updates the cues it matches, by cue number or, without one, by cue and time. It never adds them twice, and it never changes a cue that was already called.",
+            },
+          ],
+          [
+            {
+              t: "text",
+              v: "Two rows with the same cue number in one sheet are refused as repeats.",
+            },
+          ],
+        ],
+      },
+      { t: "h2", v: "Import a guest list" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Open a project's guest list and choose Import guests, or choose Guest list on the import page and pick the project.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            {
+              t: "text",
+              v: "Every imported guest is added as Requested. An import never approves, declines or checks in a guest.",
+            },
+          ],
+          [
+            {
+              t: "text",
+              v: "A guest already on the list under the same name for the same show is updated instead of added. A similar name, or the same name for another show, waits for you to decide: merge into the guest on the list, or keep them separate. Nothing merges on its own.",
+            },
+          ],
+          [{ t: "text", v: "A merge keeps the guest's name and show." }],
+          [
+            {
+              t: "text",
+              v: "Neither the person who uploaded the list nor the person who committed it may approve or decline those guests. Another reviewer decides them.",
+            },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Undo removes the cues and guests the batch added and restores the ones it changed, for 7 days. A cue called or a guest decided or checked in after the import is kept, and the batch says why.",
+          },
+        ],
+      },
       { t: "h2", v: "Trash" },
       {
         t: "p",
@@ -768,6 +1360,25 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "An Admin defines custom objects in settings. Each one gets its own list of records, with the same views, filters and API access as any other collection.",
+          },
+        ],
+      },
+      { t: "h2", v: "Importing freelancers" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "The Freelancers and crew to invite target sends each row an invitation into a Talent pool. It never creates a person or a profile. Choose how the file writes amounts, such as 1,234.56 or 1.234,56, and the pool for rows that name none. A rate can name its currency and how it is paid, such as 1.250,50 € per day, and needs the payroll capability. This target takes its own upload, not another sheet of a workbook already read, because only the upload asks for those two choices.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Email inside the pool is the exact match: a pending invitation is updated with no new email, and an expired one is sent again. In duplicate review, Merged skips the row because the person is already invited or in a pool, and Keep separate sends a new invitation. Someone who declined in the last 12 months is skipped, and an organization sends at most 2,000 invitation emails in 24 hours. Undo keeps invitations already answered.",
           },
         ],
       },
@@ -839,6 +1450,15 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "XOS has no near-miss type. Report something that could have hurt someone or caused damage but did not as an incident at Level 5 - Advisory, with What happened starting with the words Near miss. Filter Incidents by that severity to find them later.",
+          },
+        ],
+      },
       { t: "h2", v: "Dispatch board" },
       {
         t: "p",
@@ -846,6 +1466,16 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "The dispatch board shows open incidents by state and on the map. Assign responders, move incidents through their states and follow them to close. The table view lists every incident for the keyboard and screen readers.",
+          },
+        ],
+      },
+      { t: "h2", v: "Crisis alerts" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Announcing a crisis alert on the Emergency codes page tells the people clocked in on or assigned to the project and its dispatchers, through their Inbox, push, email and, for those who turned it on, text, and the alert shows how many were told. The Inbox has it at once; push and text reach phones within minutes, and email can take longer for a large alert. It also sends the all-clear to them. XOS does not contact emergency services: in an emergency, call your local emergency number.",
           },
         ],
       },
@@ -866,7 +1496,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Atlas can be used end to end with the keyboard. Focus is always visible, and every icon button names its shortcut in its tooltip. Help lists every shortcut with the keys it has for you.",
+            v: "Atlas can be used end to end with the keyboard. Focus is always visible, and every icon button names its shortcut in its tooltip. Help lists every shortcut with the keys it has for you. The lists below show the default keys; Mod is Cmd on a Mac and Ctrl elsewhere.",
           },
         ],
       },
@@ -876,66 +1506,140 @@ export const HELP_BODIES: HelpBodies = {
         items: [
           [
             { t: "strong", v: "Mod+K" },
-            { t: "text", v: " or " },
+            { t: "text", v: ": Open the command menu" },
+          ],
+          [
             { t: "strong", v: "/" },
-            {
-              t: "text",
-              v: " opens the command menu. It shows the keys for each section next to its name.",
-            },
+            { t: "text", v: ": Search pages and settings" },
           ],
           [
             { t: "strong", v: "C" },
-            {
-              t: "text",
-              v: " opens the Create menu. What you create on the page you are on comes first, so ",
-            },
-            { t: "strong", v: "C" },
-            { t: "text", v: " then " },
-            { t: "strong", v: "Enter" },
-            { t: "text", v: " starts it." },
-          ],
-          [
-            { t: "strong", v: "G" },
-            { t: "text", v: ", then a letter, goes to a section: " },
-            { t: "strong", v: "G H" },
-            { t: "text", v: " Home, " },
-            { t: "strong", v: "G I" },
-            { t: "text", v: " Inbox, " },
-            { t: "strong", v: "G M" },
-            { t: "text", v: " My Work, " },
-            { t: "strong", v: "G P" },
-            { t: "text", v: " Projects, " },
-            { t: "strong", v: "G F" },
-            { t: "text", v: " Finance and more. After " },
-            { t: "strong", v: "G" },
-            { t: "text", v: ", a hint lists the letters; " },
-            { t: "strong", v: "Esc" },
-            { t: "text", v: " cancels." },
+            { t: "text", v: ": Create something new" },
           ],
           [
             { t: "strong", v: "?" },
-            { t: "text", v: " opens help for the page you are on." },
-          ],
-          [
-            { t: "strong", v: "Mod+J" },
-            { t: "text", v: " asks Aurora, when your organization has turned it on." },
+            { t: "text", v: ": Open help for this page" },
           ],
           [
             { t: "strong", v: "Mod+." },
-            { t: "text", v: " turns focus mode on and off." },
+            { t: "text", v: ": Turn focus mode on or off" },
+          ],
+          [
+            { t: "strong", v: "Mod+J" },
+            { t: "text", v: ": Ask Aurora" },
           ],
           [
             { t: "strong", v: "Esc" },
-            { t: "text", v: " closes the open menu, dialog or side peek." },
+            { t: "text", v: ": Close a menu, dialog or peek" },
+          ],
+          [
+            { t: "strong", v: "Mod+Z" },
+            { t: "text", v: ": Undo the last change" },
+          ],
+          [
+            { t: "strong", v: "Mod+Shift+Z" },
+            { t: "text", v: ": Redo the change you undid" },
           ],
         ],
       },
       {
         t: "p",
         c: [
-          { t: "text", v: "Shortcuts never act while you type in a field, except the ones with " },
+          {
+            t: "text",
+            v: "The command menu shows the keys for each section next to its name, and the Create menu puts what you create on the page you are on first, so Enter starts it. Shortcuts never act while you type in a field, except the ones with ",
+          },
           { t: "strong", v: "Mod" },
           { t: "text", v: "." },
+        ],
+      },
+      { t: "h2", v: "Go to a section" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Each is two keys, one after the other. After the first, a hint lists the keys that can follow; ",
+          },
+          { t: "strong", v: "Esc" },
+          { t: "text", v: " cancels." },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "G H" },
+            { t: "text", v: ": Go to Home" },
+          ],
+          [
+            { t: "strong", v: "G I" },
+            { t: "text", v: ": Go to Inbox" },
+          ],
+          [
+            { t: "strong", v: "G M" },
+            { t: "text", v: ": Go to My Work" },
+          ],
+          [
+            { t: "strong", v: "G P" },
+            { t: "text", v: ": Go to Projects" },
+          ],
+          [
+            { t: "strong", v: "G S" },
+            { t: "text", v: ": Go to Schedule" },
+          ],
+          [
+            { t: "strong", v: "G W" },
+            { t: "text", v: ": Go to Work" },
+          ],
+          [
+            { t: "strong", v: "G O" },
+            { t: "text", v: ": Go to Show" },
+          ],
+          [
+            { t: "strong", v: "G A" },
+            { t: "text", v: ": Go to Advancing" },
+          ],
+          [
+            { t: "strong", v: "G L" },
+            { t: "text", v: ": Go to Logistics" },
+          ],
+          [
+            { t: "strong", v: "G E" },
+            { t: "text", v: ": Go to People" },
+          ],
+          [
+            { t: "strong", v: "G C" },
+            { t: "text", v: ": Go to Crew" },
+          ],
+          [
+            { t: "strong", v: "G F" },
+            { t: "text", v: ": Go to Finance" },
+          ],
+          [
+            { t: "strong", v: "G B" },
+            { t: "text", v: ": Go to Procurement" },
+          ],
+          [
+            { t: "strong", v: "G V" },
+            { t: "text", v: ": Go to Vendors" },
+          ],
+          [
+            { t: "strong", v: "G K" },
+            { t: "text", v: ": Go to Knowledge" },
+          ],
+          [
+            { t: "strong", v: "G R" },
+            { t: "text", v: ": Go to Reports" },
+          ],
+          [
+            { t: "strong", v: "G Y" },
+            { t: "text", v: ": Go to Activity" },
+          ],
+          [
+            { t: "strong", v: "G T" },
+            { t: "text", v: ": Go to Settings" },
+          ],
         ],
       },
       { t: "h2", v: "In lists and tables" },
@@ -944,26 +1648,146 @@ export const HELP_BODIES: HelpBodies = {
         items: [
           [
             { t: "strong", v: "J" },
-            { t: "text", v: " and " },
+            { t: "text", v: ": Next row" },
+          ],
+          [
             { t: "strong", v: "K" },
-            { t: "text", v: ", or the arrow keys, move between rows." },
+            { t: "text", v: ": Previous row" },
           ],
           [
             { t: "strong", v: "Enter" },
-            { t: "text", v: " opens the focused record in the side peek." },
+            { t: "text", v: ": Open the focused record" },
           ],
           [
             { t: "strong", v: "X" },
-            {
-              t: "text",
-              v: " selects the focused row. The bulk action bar appears with the actions every selected row allows.",
-            },
+            { t: "text", v: ": Select the focused row" },
           ],
           [
-            { t: "strong", v: "Home" },
-            { t: "text", v: " and " },
-            { t: "strong", v: "End" },
-            { t: "text", v: " jump to the first and last row." },
+            { t: "strong", v: "Shift+X" },
+            { t: "text", v: ": Select the rows from the last selected one to the focused one" },
+          ],
+          [
+            { t: "strong", v: "Mod+A" },
+            { t: "text", v: ": Select every loaded row" },
+          ],
+          [
+            { t: "strong", v: "Shift+F10" },
+            { t: "text", v: ": Open the focused row's actions" },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "The arrow keys also move between rows, and " },
+          { t: "strong", v: "Home" },
+          { t: "text", v: " and " },
+          { t: "strong", v: "End" },
+          {
+            t: "text",
+            v: " jump to the first and last row. Selecting rows shows the bulk action bar with the actions every selected row allows.",
+          },
+        ],
+      },
+      { t: "h2", v: "On a record" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "These work on a record's full page and in the side peek, while focus is in the record.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "S" },
+            { t: "text", v: ": Change the state" },
+          ],
+          [
+            { t: "strong", v: "A" },
+            { t: "text", v: ": Assign an owner" },
+          ],
+          [
+            { t: "strong", v: "M" },
+            { t: "text", v: ": Add a comment" },
+          ],
+          [
+            { t: "strong", v: "E" },
+            { t: "text", v: ": Edit the title" },
+          ],
+          [
+            { t: "strong", v: "O" },
+            { t: "text", v: ": Open the full page" },
+          ],
+          [
+            { t: "strong", v: "L" },
+            { t: "text", v: ": Copy the link" },
+          ],
+          [
+            { t: "strong", v: "Mod+Backspace" },
+            { t: "text", v: ": Move to Trash" },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "A key does nothing on a record that does not offer its action to you." },
+        ],
+      },
+      { t: "h2", v: "In a view" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "These work on a collection while focus is in it: its view switcher, its filters, your saved views and export.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "V" },
+            { t: "text", v: ": Switch the view" },
+          ],
+          [
+            { t: "strong", v: "F" },
+            { t: "text", v: ": Open the filters" },
+          ],
+          [
+            { t: "strong", v: "Shift+S" },
+            { t: "text", v: ": Save the view" },
+          ],
+          [
+            { t: "strong", v: "Shift+E" },
+            { t: "text", v: ": Export the view" },
+          ],
+        ],
+      },
+      { t: "h2", v: "In the Inbox" },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "A" },
+            { t: "text", v: ": Approve the focused item" },
+          ],
+          [
+            { t: "strong", v: "R" },
+            { t: "text", v: ": Reject the focused item with a reason" },
+          ],
+          [
+            { t: "strong", v: "E" },
+            { t: "text", v: ": Mark the focused item done" },
+          ],
+          [
+            { t: "strong", v: "H" },
+            { t: "text", v: ": Snooze the focused item until tomorrow" },
           ],
         ],
       },
@@ -978,6 +1802,124 @@ export const HELP_BODIES: HelpBodies = {
           { t: "text", v: " to drop it, and " },
           { t: "strong", v: "Esc" },
           { t: "text", v: " to put it back." },
+        ],
+      },
+      { t: "h2", v: "In the showcaller console" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "While you call a show live, " },
+          { t: "strong", v: "J" },
+          { t: "text", v: " and " },
+          { t: "strong", v: "K" },
+          { t: "text", v: " move the standby, " },
+          { t: "strong", v: "S" },
+          { t: "text", v: " puts the selected cue on standby, " },
+          { t: "strong", v: "T" },
+          { t: "text", v: " jumps to a cue, " },
+          { t: "strong", v: "[" },
+          { t: "text", v: " and " },
+          { t: "strong", v: "]" },
+          { t: "text", v: " nudge the remaining plan by a minute and " },
+          { t: "strong", v: "D" },
+          { t: "text", v: " changes the department. " },
+          { t: "strong", v: "Space" },
+          { t: "text", v: " on the cue list calls the cue. A Stream Deck sends " },
+          { t: "strong", v: "F13" },
+          { t: "text", v: " to " },
+          { t: "strong", v: "F20" },
+          {
+            t: "text",
+            v: " (Go, Standby, Previous, Next, Nudge later, Nudge earlier, Jump and Department); set each key to a ",
+          },
+          { t: "strong", v: "Hotkey" },
+          { t: "text", v: " action." },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "The show channel beside the running cue answers " },
+          { t: "strong", v: "M" },
+          { t: "text", v: ", which moves to its message box." },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "Space" },
+            { t: "text", v: ": Call the selected cue" },
+          ],
+          [
+            { t: "strong", v: "J" },
+            { t: "text", v: ": Move the standby to the next cue" },
+          ],
+          [
+            { t: "strong", v: "K" },
+            { t: "text", v: ": Move the standby to the previous cue" },
+          ],
+          [
+            { t: "strong", v: "S" },
+            { t: "text", v: ": Put the selected cue on standby" },
+          ],
+          [
+            { t: "strong", v: "T" },
+            { t: "text", v: ": Jump to a cue" },
+          ],
+          [
+            { t: "strong", v: "]" },
+            { t: "text", v: ": Nudge the remaining plan one minute later" },
+          ],
+          [
+            { t: "strong", v: "[" },
+            { t: "text", v: ": Nudge the remaining plan one minute earlier" },
+          ],
+          [
+            { t: "strong", v: "D" },
+            { t: "text", v: ": Show the next department's calls" },
+          ],
+          [
+            { t: "strong", v: "M" },
+            { t: "text", v: ": Focus the show channel message box" },
+          ],
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "F13" },
+            { t: "text", v: ": Call the selected cue" },
+          ],
+          [
+            { t: "strong", v: "F14" },
+            { t: "text", v: ": Put the selected cue on standby" },
+          ],
+          [
+            { t: "strong", v: "F15" },
+            { t: "text", v: ": Move the standby to the previous cue" },
+          ],
+          [
+            { t: "strong", v: "F16" },
+            { t: "text", v: ": Move the standby to the next cue" },
+          ],
+          [
+            { t: "strong", v: "F17" },
+            { t: "text", v: ": Nudge the remaining plan one minute later" },
+          ],
+          [
+            { t: "strong", v: "F18" },
+            { t: "text", v: ": Nudge the remaining plan one minute earlier" },
+          ],
+          [
+            { t: "strong", v: "F19" },
+            { t: "text", v: ": Jump to a cue" },
+          ],
+          [
+            { t: "strong", v: "F20" },
+            { t: "text", v: ": Show the next department's calls" },
+          ],
         ],
       },
       { t: "h2", v: "Make the keys your own" },
@@ -995,13 +1937,17 @@ export const HELP_BODIES: HelpBodies = {
           { t: "strong", v: "Reset" },
           { t: "text", v: " brings back the default. Turn off " },
           { t: "strong", v: "Keyboard shortcuts" },
-          { t: "text", v: " there to stop every shortcut without " },
+          { t: "text", v: " there to stop every character-key shortcut without " },
           { t: "strong", v: "Mod" },
           { t: "text", v: ", " },
           { t: "strong", v: "Ctrl" },
           { t: "text", v: " or " },
           { t: "strong", v: "Alt" },
-          { t: "text", v: "." },
+          { t: "text", v: "; function keys " },
+          { t: "strong", v: "F13" },
+          { t: "text", v: " to " },
+          { t: "strong", v: "F20" },
+          { t: "text", v: " keep working, since they type no character." },
         ],
       },
       {
@@ -1075,6 +2021,43 @@ export const HELP_BODIES: HelpBodies = {
             { t: "strong", v: "Training" },
             { t: "text", v: ": build short courses for your crew." },
           ],
+        ],
+      },
+      { t: "h2", v: "Document types" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "File each document under one of your organization's " },
+          { t: "strong", v: "document types" },
+          { t: "text", v: ", such as a site plan or an insurance certificate. Manage them in " },
+          { t: "strong", v: "Settings, Templates, Document types" },
+          { t: "text", v: ", where " },
+          { t: "strong", v: "Add standard types" },
+          {
+            t: "text",
+            v: " adds the XOS Standard Library's types you do not have yet. On a project's Documents tab, ",
+          },
+          { t: "strong", v: "Required documents" },
+          {
+            t: "text",
+            v: " shows how many of the event type's Required and Recommended documents are on file; choose ",
+          },
+          { t: "strong", v: "Add" },
+          { t: "text", v: " beside a missing one to create it with its type already chosen." },
+        ],
+      },
+      { t: "h2", v: "Public form links" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "A Published form without a photo, signature or GPS stamp can have a " },
+          { t: "strong", v: "Public link" },
+          { t: "text", v: ". It belongs to a project, whose " },
+          { t: "strong", v: "Outside access" },
+          {
+            t: "text",
+            v: " section lists, revokes and regenerates it. People outside the organization open it with an access code, then sign in or create an account to answer; their account's name and email go with the response. A response becomes a record only when someone approves it. Responses show in Submissions with a Public link label.",
+          },
         ],
       },
     ],
@@ -1166,7 +2149,64 @@ export const HELP_BODIES: HelpBodies = {
           { t: "strong", v: "Prompt members to rate parties" },
           {
             t: "text",
-            v: " in Settings, Gateway and Marketplace only decides whether members see the engagements waiting for their rating. Turning it off never hides or removes a rating, and you can still rate from the engagement. Ratings are moderated only for abuse or personal data, never for their score.",
+            v: " in Settings, Gateway and Marketplace only decides whether members see the engagements waiting for their rating. Turning it off never hides or removes a rating, and you can still rate from the engagement. Ratings are moderated only for abuse, personal data or a wrong or false statement, never for their score.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "A rating of a person stays with your organization and that person: no other organization can read it unless that person chooses to show all their ratings on their profile, and even then it never appears on a hiring, search or crew screen, and no one with hiring, booking or staffing access in XOS can read it. A rating of a company can be read by anyone signed in. A person you rated may dispute the rating; you can answer once on the Ratings page, and our platform team decides.",
+          },
+        ],
+      },
+      { t: "h2", v: "Registration pages" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "A registration page is your public page for crew and volunteers. It fills one of your Talent pools and never names it. Write the title and introduction, choose the pool and the minimum age, add questions or apply a question template, then publish. Ask about the work, never about a protected attribute. Copy the page's link to share it, or invite the people already in the pool.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "People register from their own Gateway account, and you approve or decline them in the queue. Approving makes them a member of the pool. Every registrant is 18 or older, as every XOS account is; set a higher minimum age when the work needs one.",
+          },
+        ],
+      },
+      { t: "h2", v: "Inviting people into a pool" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "On a Talent pool, invite someone by email, or use Import people to send a whole list. Nothing creates a person: they sign in to Gateway with that address and accept on Home. A standing rate is informational and needs the payroll capability. Only pool managers see invitations, since they hold the contact details of people who never joined.",
+          },
+        ],
+      },
+      { t: "h2", v: "Agreement templates and batches" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "On Onboarding, write your own agreement with merge fields such as the person's name, the shifts and the rate. XOS supplies no wording. On a project's Engagements tab, choose Generate agreements, pick the template and the people, and read the preview. A person with a missing field is left out until it is filled. Create, then Send.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "People read the full text in Gateway and sign with their typed name, or decline with a reason. Countersign the signed ones from the batch; an Automatic Electronic Signature item then passes. Once a template has been used its wording is fixed, so duplicate it to change it. Without the payroll capability, a text with a rate shows no body and no hash.",
           },
         ],
       },
@@ -1311,6 +2351,15 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "A venue's levels name its floors in order, with basements below zero; spaces and site plans name the level they are on. Its technical specs record house power, dock and access, dimensions, rigging and network facts. A blank spec is not recorded and never passes a check. Never enter a network password: share credentials in a Restricted capability document.",
+          },
+        ],
+      },
       { t: "h2", v: "Spaces and zones" },
       {
         t: "p",
@@ -1337,7 +2386,36 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "A site plan is a drawing of a venue with pins for spaces, assets and points of interest. Switch to the table view for an accessible list of every pin.",
+            v: "A site plan is a project's drawing of a venue with pins for spaces, assets and points of interest. Upload a PNG, JPEG or PDF as its drawing; from a PDF, the page you choose becomes the drawing. On a Draft plan, draw routes, barriers, areas and labels, set the scale from one known distance, and measure lengths and areas. Every tool also takes its points as Across and Down percentages, and the arrow keys nudge the selected point.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "A plan moves from Draft to Locked when its layout is fixed, and to Live when crews work from it; one plan per venue and level is live. Comments, notes at a point, mentions and Resolve work in every state. Export PDF prints the drawing with the layers and legend you choose.",
+          },
+        ],
+      },
+      { t: "h2", v: "Signage" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "The signage register lists each project's signs with their text, size, material, place and artwork. Mark a sign ordered, printed and placed, or link it to a purchase order line so the order says when it is ordered and received. The build sheet prints the signs to build and place, grouped by plan and pin.",
+          },
+        ],
+      },
+      { t: "h2", v: "Venue specs in advancing and permits" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "On a project's scope, Add venue specs as capabilities copies the venue's known power, rigging and connectivity specs into capabilities for reconciliation, documented when a current capability document backs them. Permits show the venue facts that matter to each rule; they never change which permits apply.",
           },
         ],
       },
@@ -1418,7 +2496,7 @@ export const HELP_BODIES: HelpBodies = {
             { t: "strong", v: "Insurance Certificates" },
             {
               t: "text",
-              v: ": collect a certificate from each vendor, with the additional insureds you require. Aurora can read a certificate and show its confidence in each field before you confirm.",
+              v: ": collect a certificate from each vendor, with the additional insureds you require. Aurora can read a certificate and show its confidence in each field before you confirm. Files vendors upload for onboarding items wait at the top of this page, where you can open one and record it as a certificate; recording does not verify the onboarding item.",
             },
           ],
           [
@@ -1504,6 +2582,115 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Event types and the staged intake" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Your organization can describe the kinds of event it produces in " },
+          { t: "strong", v: "Settings, Templates, Event types" },
+          {
+            t: "text",
+            v: ": a festival, a gala, a trade show. Each event type picks the template a new project starts from by its scale (Intimate up to 500 people, Small 500 to 2,500, Medium 2,500 to 10,000, Large 10,000 to 50,000, Major over 50,000) and its audience, asks for its own project details at intake, and names the documents a project needs by a gate.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "When your organization has event types, " },
+          { t: "strong", v: "New project" },
+          { t: "text", v: " walks through steps: " },
+          { t: "strong", v: "Start" },
+          {
+            t: "text",
+            v: " (the event type, and whether to start from its template, another template, a past project or blank), ",
+          },
+          { t: "strong", v: "Scale and audience" },
+          { t: "text", v: ", " },
+          { t: "strong", v: "Basics" },
+          {
+            t: "text",
+            v: " (the key, name, show dates, time zone and venue, with the load-in and load-out days under More fields), ",
+          },
+          { t: "strong", v: "Details" },
+          { t: "text", v: " (the type's fields and its guidance), " },
+          { t: "strong", v: "Copy" },
+          { t: "text", v: " (only when starting from a past project) and " },
+          { t: "strong", v: "Review" },
+          {
+            t: "text",
+            v: ", which names the template that will be applied and what the type requires. Create makes the project in one step; if anything is refused, nothing is created. Without event types, New project stays a single screen.",
+          },
+        ],
+      },
+      { t: "h2", v: "Show days, bump-in and bump-out" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "The first and last show days are the project's start and end dates. Load-in and load-out days are project days on the schedule; the days around the show give the ",
+          },
+          { t: "strong", v: "bump-in" },
+          { t: "text", v: " and " },
+          { t: "strong", v: "bump-out" },
+          {
+            t: "text",
+            v: " windows, which the Overview lists, the dock schedule shades and procurement compares hires with. Atlas warns, without refusing, when a load-in falls after the first show day, a load-out before the last, the windows overlap or one is longer than 60 days.",
+          },
+        ],
+      },
+      { t: "h2", v: "Copy from another project" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "In " },
+          { t: "strong", v: "Project settings" },
+          { t: "text", v: ", " },
+          { t: "strong", v: "Copy from a project" },
+          {
+            t: "text",
+            v: " copies the plan, pass categories, hotel blocks, budgets and advance forms of a past project into this one, moved by a number of days (filled in from the two first show days). Times keep their local time, also across a daylight saving change. Preview shows every item with what is copied and what is skipped and why; Copy writes exactly that. Shifts, people, engagements, credentials and the answers of the companies you engage are never copied.",
+          },
+        ],
+      },
+      { t: "h2", v: "Outside access" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "The last section of Project settings lists everything that reaches the project from outside the organization: live links, file links, advance and signing links, roster invitations, stakeholder pack recipients, intake links, form links and engagements. Each row shows who has it, its state, when it ends and how often it was opened. Revoke or regenerate from the row. A new link and code show once, above the list, until you dismiss them.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "A " },
+          { t: "strong", v: "stakeholder pack" },
+          {
+            t: "text",
+            v: " bundles live links and Public or Internal files for people outside the organization. Each recipient gets an access code you give by phone or message; it is never emailed. Packs can email a fresh sign-in link on a schedule. Report files themselves stay with members.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "An " },
+          { t: "strong", v: "intake link" },
+          {
+            t: "text",
+            v: " lets many vendors or contractors send a request through one link. Each signs in to Gateway, gives a tax form and a payout reference, and signs the agreement. Approve requests from ",
+          },
+          { t: "strong", v: "Intake requests" },
+          {
+            t: "text",
+            v: " on the Engagements tab; approving makes an Onboarding engagement, and a reviewer still verifies its items. Never ask for bank numbers: the link refuses them.",
+          },
+        ],
+      },
     ],
     reports: [
       { t: "h2", v: "Standard reports" },
@@ -1513,6 +2700,62 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "Gate Readiness, Coordinate Matrix, Budget versus Actual, Labor, Purchase Order Exposure, Incidents and the Final Cost Report each read live data you can see. The final cost report is produced when a project closes and compares it with its gate 3 baseline.",
+          },
+        ],
+      },
+      { t: "h2", v: "Wrap-up" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "A project's " },
+          { t: "strong", v: "Reports" },
+          {
+            t: "text",
+            v: " tab starts with its wrap-up: the debrief and a management summary, printed with budget against actuals, attendance, sustainability and carbon, and incidents as the wrap-up report PDF.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            {
+              t: "text",
+              v: "Add debrief points by area: what went well, what to improve, and actions, each action with an owner.",
+            },
+          ],
+          [
+            { t: "text", v: "Write the management summary, or choose " },
+            { t: "strong", v: "Summarize" },
+            {
+              t: "text",
+              v: " to have Aurora draft one from the project's figures and debrief points. ",
+            },
+            { t: "strong", v: "Use as management summary" },
+            { t: "text", v: " puts the draft in the box; nothing is saved until you choose " },
+            { t: "strong", v: "Save summary" },
+            {
+              t: "text",
+              v: '. A saved draft prints as "Drafted with Aurora and reviewed by" you, with the date.',
+            },
+          ],
+          [
+            { t: "strong", v: "Complete debrief" },
+            { t: "text", v: " locks the points and the summary. " },
+            { t: "strong", v: "Reopen debrief" },
+            {
+              t: "text",
+              v: " unlocks them. While the debrief is completed, a deleted point cannot be restored from Trash either; reopen the debrief first.",
+            },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: 'Each section of the report shows only what you may read; the others say "Not included". A figure that was not measured reads Unmeasured, never 0.',
           },
         ],
       },
@@ -1670,6 +2913,62 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Share a view live" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "A saved Schedule, Show, Run of show or Day sheets view can be shared with people who have no account, such as a venue or a vendor.",
+          },
+        ],
+      },
+      {
+        t: "ol",
+        items: [
+          [
+            { t: "text", v: "Open the saved view, then choose " },
+            { t: "strong", v: "Share live" },
+            { t: "text", v: " in the Saved views menu." },
+          ],
+          [
+            {
+              t: "text",
+              v: "On an organization page, pick the project the link shows. Pick when the link expires, at most 90 days ahead, and add a note for your team if you like.",
+            },
+          ],
+          [
+            {
+              t: "text",
+              v: "Copy the link and the 6-digit access code. They are shown only once; send the code separately from the link.",
+            },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "The person opens the link, enters the code once on their device, and sees the view update while they watch. The page shows only the columns a public page may show: never owners, accountable people, blockers, notes, costs or custom fields. A view that filters, sorts or groups by anything else cannot be shared live, and a link stops when its view is deleted or changed that way, or when you lose access to the project.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "strong", v: "Regenerate" },
+          {
+            t: "text",
+            v: " gives the link a new address and code, and every device must enter the new code. ",
+          },
+          { t: "strong", v: "Revoke" },
+          {
+            t: "text",
+            v: " stops it for good. Five wrong codes lock a link; regenerate it to open it again.",
+          },
+        ],
+      },
       {
         t: "p",
         c: [
@@ -1717,6 +3016,191 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "A baseline freezes the plan at a point in time. Compare the current plan with any baseline to see which records slipped and by how much.",
+          },
+        ],
+      },
+      { t: "h2", v: "Days" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Schedule, Days marks what each project day is for: " },
+          { t: "strong", v: "Load In" },
+          { t: "text", v: ", " },
+          { t: "strong", v: "Show" },
+          { t: "text", v: ", " },
+          { t: "strong", v: "Load Out" },
+          { t: "text", v: ", " },
+          { t: "strong", v: "Travel" },
+          { t: "text", v: ", " },
+          { t: "strong", v: "Off" },
+          { t: "text", v: ", " },
+          { t: "strong", v: "Rehearsal" },
+          { t: "text", v: " or " },
+          { t: "strong", v: "Other" },
+          {
+            t: "text",
+            v: ". Each day reads as text with an icon beside its colour, on the timeline, the calendar, the day sheet, Crew, Shifts and the portfolio timeline.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "text", v: "Choose " },
+            { t: "strong", v: "Add day" },
+            {
+              t: "text",
+              v: ", or open a day, to set its type, a label, where it happens (a venue, one of the project's shows, or a place in words), its time zone and its team.",
+            },
+          ],
+          [
+            { t: "strong", v: "Split day" },
+            {
+              t: "text",
+              v: " adds a part, up to four, such as a load-out in the morning and travel to the next city in the afternoon. A part at a venue reads in the venue's time zone.",
+            },
+          ],
+          [
+            { t: "text", v: "Removing a part moves it to Trash; " },
+            { t: "strong", v: "Undo" },
+            { t: "text", v: " brings it back." },
+          ],
+        ],
+      },
+      { t: "h2", v: "Edit a day as a grid" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Open a day and choose " },
+          { t: "strong", v: "Edit as grid" },
+          {
+            t: "text",
+            v: " to type its records like a spreadsheet: Time, Title, Kind, Owner and TBC. Tab and Shift+Tab move across cells, Enter saves a cell and moves down, and typing in the last row adds a record.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            {
+              t: "text",
+              v: 'Time takes shorthand on the project\'s clock: 8, 8a, 830p, 8:30 pm, 20:30, noon, or a range such as 8a-10:30a. An end before the start is the next day. Phrases such as "tomorrow 9am" work too.',
+            },
+          ],
+          [
+            { t: "strong", v: "Save" },
+            {
+              t: "text",
+              v: " shows how many records are new, changed and refused, with each refusal on its cell. ",
+            },
+            { t: "strong", v: "Apply" },
+            { t: "text", v: " writes every row or none." },
+          ],
+        ],
+      },
+      { t: "h2", v: "Day templates" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Save a day's records and cues as a template with " },
+          { t: "strong", v: "Save day as template" },
+          { t: "text", v: "; times are kept from local midnight. On another day, " },
+          { t: "strong", v: "Apply day template" },
+          {
+            t: "text",
+            v: " lays the template beside what the day already holds, by time: new items are marked ",
+          },
+          { t: "strong", v: "New" },
+          { t: "text", v: ", items already on the day are marked " },
+          { t: "strong", v: "Already on this day" },
+          {
+            t: "text",
+            v: " and unticked, and overlaps are counted. Untick what you do not want and apply; ",
+          },
+          { t: "strong", v: "Undo" },
+          {
+            t: "text",
+            v: " moves what was added to Trash. Templates are listed and edited on Projects, Templates.",
+          },
+        ],
+      },
+      { t: "h2", v: "The anchor" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "The project Schedule tab shows the project's " },
+          { t: "strong", v: "Anchor" },
+          {
+            t: "text",
+            v: ", the day the plan counts from, usually the show day. The timeline draws it, and its table lists each record's offset, such as D−3 for three days before.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "Set anchor" },
+            { t: "text", v: " sets the first anchor; it moves nothing." },
+          ],
+          [
+            { t: "strong", v: "Move anchor" },
+            {
+              t: "text",
+              v: " previews what moves and what stays: dated records move by whole days on the project's clock, with the running orders, cues, day types and unpublished sheets. Records pinned to their dates, complete or locked into a baseline stay, published sheets stay, and shifts never move: reschedule booked people on Crew, Shifts. ",
+            },
+            { t: "strong", v: "Move back" },
+            { t: "text", v: " in the toast moves the plan back." },
+          ],
+          [
+            { t: "text", v: "On a record, " },
+            { t: "strong", v: "Stays on its dates when the anchor moves" },
+            { t: "text", v: " pins it." },
+          ],
+        ],
+      },
+      { t: "h2", v: "Workload" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Schedule, Workload shows hours per person per day for a week, from shifts and estimated tasks, as a heatmap or a table. Each cell shows its hours as text; a day over the organization's limit (10 hours unless changed under Settings, Scheduling) shows ",
+          },
+          { t: "strong", v: "Over 10 h" },
+          {
+            t: "text",
+            v: " with an icon. A shift past midnight counts on each day in its own time zone. Open a cell to see its shift hours, task hours and tasks with no estimate.",
+          },
+        ],
+      },
+      { t: "h2", v: "Clashes" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Schedule, Clashes lists people on two shifts at once, shifts during a person's travel, suppliers on two productions at different venues, artists on two stages, short changeovers, travel too close to a call and running orders past curfew. Each is a ",
+          },
+          { t: "strong", v: "Clash" },
+          { t: "text", v: " or a " },
+          { t: "strong", v: "Warning" },
+          {
+            t: "text",
+            v: ", says what clashes, and links to where it is fixed; nothing is fixed for you. A time to be confirmed lowers a clash to a warning. You see a clash only when you can read both of its sides.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Hospitality leads can also choose " },
+          { t: "strong", v: "Check travel requests" },
+          {
+            t: "text",
+            v: " to compare requested travel dates with each person's calls. Each check is recorded in the person's access log.",
           },
         ],
       },
@@ -1808,6 +3292,16 @@ export const HELP_BODIES: HelpBodies = {
           [{ t: "text", v: "People in your organization, by name." }],
           [{ t: "text", v: "Documents, SOPs and handbook articles, by title and text." }],
           [
+            {
+              t: "text",
+              v: "Asset classes by name, and units by asset tag, class or serial (type ",
+            },
+            { t: "code", v: "MH-002" },
+            { t: "text", v: "). They show under " },
+            { t: "strong", v: "Inventory" },
+            { t: "text", v: "." },
+          ],
+          [
             { t: "text", v: "Settings, by name or key: type " },
             { t: "code", v: "time zone" },
             { t: "text", v: " to reach the Localization page with the field ready to change." },
@@ -1857,8 +3351,12 @@ export const HELP_BODIES: HelpBodies = {
             { t: "code", v: "document" },
             { t: "text", v: ", " },
             { t: "code", v: "sop" },
-            { t: "text", v: " or " },
+            { t: "text", v: ", " },
             { t: "code", v: "article" },
+            { t: "text", v: ", " },
+            { t: "code", v: "asset" },
+            { t: "text", v: " or " },
+            { t: "code", v: '"asset class"' },
             { t: "text", v: "." },
           ],
           [
@@ -1971,6 +3469,389 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h3", v: "Build the running order" },
+      {
+        t: "ul",
+        items: [
+          [
+            {
+              t: "text",
+              v: "Add each cue with its planned time and length. When a time is still an estimate, check ",
+            },
+            { t: "strong", v: "Time to be confirmed" },
+            { t: "text", v: ": Atlas shows " },
+            { t: "strong", v: "TBC · est." },
+            { t: "text", v: " with the estimate, Compass, Gateway and the PDF show " },
+            { t: "strong", v: "TBC" },
+            {
+              t: "text",
+              v: ", and calendar subscriptions mark it tentative. Records offer the same box, ",
+            },
+            { t: "strong", v: "Start time to be confirmed" },
+            { t: "text", v: ", beside " },
+            { t: "strong", v: "Starts" },
+            { t: "text", v: "." },
+          ],
+          [
+            {
+              t: "text",
+              v: "Choose the pencil on a cue to edit it in place: label, time, length and one call for each department (Audio, Lighting, Video, Special Effects and Stage). ",
+            },
+            { t: "strong", v: "Esc" },
+            { t: "text", v: " cancels." },
+          ],
+          [
+            { t: "text", v: "Use the arrows to move a cue one place, or " },
+            { t: "strong", v: "Move to position…" },
+            {
+              t: "text",
+              v: " to put it anywhere after the last called cue in one step. Called cues keep their places, and the cues are renumbered 1, 2, 3 after a move.",
+            },
+          ],
+          [
+            { t: "text", v: "Choose a " },
+            { t: "strong", v: "Department" },
+            {
+              t: "text",
+              v: " to see only that department's calls. Cues that have one are marked; the others say there is no call. The choice stays in the page address, so you can share it.",
+            },
+          ],
+          [
+            { t: "text", v: "Set a " },
+            { t: "strong", v: "Curfew" },
+            { t: "text", v: " in the details when the show has a hard stop." },
+          ],
+        ],
+      },
+      { t: "h3", v: "Call the show" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Choose " },
+          { t: "strong", v: "Run live" },
+          {
+            t: "text",
+            v: ". If you may call cues, the showcaller console opens with the show clock, the time of day, how far the show runs behind or ahead of the plan and, when a curfew is set, the projected end against it.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "Call next cue" },
+            { t: "text", v: " calls the cue on standby, or else the next cue. " },
+            { t: "strong", v: "Go" },
+            { t: "text", v: " calls the cue you selected." },
+          ],
+          [
+            { t: "strong", v: "Standby" },
+            {
+              t: "text",
+              v: " puts the selected cue on standby; everyone following sees it within a second or two. ",
+            },
+            { t: "strong", v: "Previous cue" },
+            { t: "text", v: " and " },
+            { t: "strong", v: "Next cue" },
+            { t: "text", v: " move the standby, and " },
+            { t: "strong", v: "Jump to cue" },
+            { t: "text", v: " picks any uncalled cue. Cues you jump past are marked " },
+            { t: "strong", v: "Skipped" },
+            { t: "text", v: "." },
+          ],
+          [
+            { t: "strong", v: "Nudge −1 min" },
+            { t: "text", v: " and " },
+            { t: "strong", v: "Nudge +1 min" },
+            { t: "text", v: " move every remaining planned time." },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "With focus in the console, " },
+          { t: "strong", v: "J" },
+          { t: "text", v: " and " },
+          { t: "strong", v: "K" },
+          { t: "text", v: " move the standby, " },
+          { t: "strong", v: "S" },
+          { t: "text", v: " stands by, " },
+          { t: "strong", v: "T" },
+          { t: "text", v: " jumps, " },
+          { t: "strong", v: "[" },
+          { t: "text", v: " and " },
+          { t: "strong", v: "]" },
+          { t: "text", v: " nudge and " },
+          { t: "strong", v: "D" },
+          { t: "text", v: " changes the department; " },
+          { t: "strong", v: "Space" },
+          { t: "text", v: " on the cue list goes." },
+        ],
+      },
+      { t: "h3", v: "Set Stream Deck Hotkey actions to F13 to F20" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Give each Stream Deck key a " },
+          { t: "strong", v: "Hotkey" },
+          { t: "text", v: " action: " },
+          { t: "strong", v: "F13" },
+          { t: "text", v: " Go, " },
+          { t: "strong", v: "F14" },
+          { t: "text", v: " Standby, " },
+          { t: "strong", v: "F15" },
+          { t: "text", v: " Previous cue, " },
+          { t: "strong", v: "F16" },
+          { t: "text", v: " Next cue, " },
+          { t: "strong", v: "F17" },
+          { t: "text", v: " Nudge +1 min, " },
+          { t: "strong", v: "F18" },
+          { t: "text", v: " Nudge −1 min, " },
+          { t: "strong", v: "F19" },
+          { t: "text", v: " Jump to cue and " },
+          { t: "strong", v: "F20" },
+          {
+            t: "text",
+            v: " Department. They work while the console has focus, even with single-key shortcuts turned off, and you can change them in ",
+          },
+          { t: "strong", v: "Me, Keyboard shortcuts" },
+          { t: "text", v: "." },
+        ],
+      },
+      { t: "h3", v: "Display screens" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Put the running order on any TV or laptop with no sign-in. Open the running order, choose ",
+          },
+          { t: "strong", v: "Display screens" },
+          {
+            t: "text",
+            v: ", pick the mode the screen opens in and when the link expires (by default the end of the day after the show), and copy the link and its 6-digit access code, shown only once. You need permission to edit the run of show.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "Room clock" },
+            { t: "text", v: " shows the local time, the running cue and its time left." },
+          ],
+          [
+            { t: "strong", v: "Presenter timer" },
+            { t: "text", v: " counts the current cue down, or up when it has no duration." },
+          ],
+          [
+            { t: "strong", v: "Backstage" },
+            {
+              t: "text",
+              v: " shows the cue on now, the next cue with its planned time, the three after it, and whether the show is running late.",
+            },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "When a cue runs past its duration the timer turns red and reads " },
+          { t: "strong", v: "Over by" },
+          {
+            t: "text",
+            v: " the time, until the next cue is called. On the screen, keys 1, 2 and 3 switch modes, ",
+          },
+          { t: "strong", v: "Open in new window" },
+          { t: "text", v: " pops the screen out to a second display, and " },
+          { t: "strong", v: "Fullscreen" },
+          {
+            t: "text",
+            v: " fills the screen. The screen follows cues within a few seconds of them being called. Revoke the link to take it off every screen.",
+          },
+        ],
+      },
+      { t: "h3", v: "Edit the running order as a grid" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Choose " },
+          { t: "strong", v: "Edit as grid" },
+          {
+            t: "text",
+            v: " to type the cues like a spreadsheet: Time, Duration, Label, Segment and TBC, in running order. Time takes shorthand such as 830p or 20:30, and +1 marks a cue after midnight; Duration takes 45, 45m or 1h30. Typing in the last row adds a cue, and ",
+          },
+          { t: "strong", v: "Move up" },
+          { t: "text", v: " and " },
+          { t: "strong", v: "Move down" },
+          {
+            t: "text",
+            v: " reorder. Called cues, and the cues before the last called one, keep their places. ",
+          },
+          { t: "strong", v: "Save" },
+          { t: "text", v: " previews; " },
+          { t: "strong", v: "Apply" },
+          { t: "text", v: " writes every row or none and renumbers the cues." },
+        ],
+      },
+      { t: "h3", v: "Cue fields and colors" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Add your own columns to cues in " },
+          { t: "strong", v: "Settings, Custom fields" },
+          { t: "text", v: ": choose " },
+          { t: "strong", v: "Cues" },
+          { t: "text", v: " as the table, then a type. A " },
+          { t: "strong", v: "Choice" },
+          {
+            t: "text",
+            v: " field can give each option one of seven colors; the option's name always shows beside its color. For each cue field, choose who it is for: ",
+          },
+          { t: "strong", v: "Crew" },
+          { t: "text", v: " sees it in Atlas, " },
+          { t: "strong", v: "Showcaller" },
+          { t: "text", v: " shows it on showcaller links, and " },
+          { t: "strong", v: "Client" },
+          {
+            t: "text",
+            v: " shows it in Gateway to a Client engaged on the project. Every new cue field starts with Crew. Person, Money and Email fields stay with the crew. Crew is a display choice: members still see every value their access allows.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "The cue editor has tabs. " },
+          { t: "strong", v: "Cue" },
+          { t: "text", v: " holds the label, the time, the length, the " },
+          { t: "strong", v: "Segment" },
+          { t: "text", v: " and its " },
+          { t: "strong", v: "Segment color" },
+          {
+            t: "text",
+            v: ", which colors the whole segment at once and follows the segment you type. ",
+          },
+          { t: "strong", v: "Words" },
+          { t: "text", v: " holds the " },
+          { t: "strong", v: "Description" },
+          { t: "text", v: " and the " },
+          { t: "strong", v: "Script" },
+          { t: "text", v: ", up to 20,000 characters. " },
+          { t: "strong", v: "Calls" },
+          { t: "text", v: " holds the five department calls, and " },
+          { t: "strong", v: "Fields" },
+          {
+            t: "text",
+            v: " your cue fields, when your organization has any. What you type stays while you move between tabs, and one ",
+          },
+          { t: "strong", v: "Save" },
+          { t: "text", v: " saves the cue; " },
+          { t: "strong", v: "Fields" },
+          {
+            t: "text",
+            v: " saves on its own. In live mode the running cue shows its segment color and a ",
+          },
+          { t: "strong", v: "Script" },
+          { t: "text", v: " you can open." },
+        ],
+      },
+      { t: "h3", v: "Segment library" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Keep blocks you run in many shows, such as a walk-in, an awards block or a sponsor moment, in ",
+          },
+          { t: "strong", v: "Show, Segment library" },
+          {
+            t: "text",
+            v: ": each segment has a name, a color, a description and cues with their department calls. To use one, open a running order and choose ",
+          },
+          { t: "strong", v: "Insert segment" },
+          {
+            t: "text",
+            v: ": pick the segment, where it goes (after the last called cue) and, if you like, the time it starts. The copies are yours to edit in that running order.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "When you change a library segment, it shows " },
+          { t: "strong", v: "Library updated" },
+          { t: "text", v: ". Choose " },
+          { t: "strong", v: "Publish to shows" },
+          {
+            t: "text",
+            v: " and pick the running orders to update, at most 50 at a time; the ones out of date are already picked. In each, the segment's uncalled cues are replaced with the current version, and local edits to those cues, their custom field values included, are lost. Shows where a cue of the segment was called (",
+          },
+          { t: "strong", v: "Has called cues" },
+          { t: "text", v: ") or is an artist's set time (" },
+          { t: "strong", v: "Has set times" },
+          {
+            t: "text",
+            v: ") are left as they are. The segment lists what happened in each after you publish.",
+          },
+        ],
+      },
+      { t: "h3", v: "Show channel" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "In live mode, the show channel sits beside the running cue: the project's crew chat, which Clients are never in. Choose ",
+          },
+          { t: "strong", v: "Open the show channel" },
+          {
+            t: "text",
+            v: " the first time (it needs permission to edit the run of show) and the project's members join it; others choose ",
+          },
+          { t: "strong", v: "Join the show channel" },
+          { t: "text", v: ". New messages appear as they are sent, and " },
+          { t: "strong", v: "M" },
+          { t: "text", v: " moves to the message box from the console." },
+        ],
+      },
+      { t: "h3", v: "Showcaller links" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Let someone on the project call the show. The showcaller signs in and enters the code; someone with no XOS account accepts their invitation and finishes onboarding first, and the link then opens. Open the running order, choose ",
+          },
+          { t: "strong", v: "Showcaller links" },
+          {
+            t: "text",
+            v: ", name the showcaller, pick when the link expires (by default the end of the day after the show, at most 14 days) and copy the link and its 6-digit access code, shown only once. You need permission to edit the run of show and to call cues.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Anyone on the project with the link and code can call cues and edit this running order until it expires: call, standby, nudge, move, add, edit and remove uncalled cues, and change department calls. They never reach another running order. A cue they call reads ",
+          },
+          { t: "strong", v: "Called by" },
+          { t: "text", v: " their name " },
+          { t: "strong", v: "through a showcaller link" },
+          { t: "text", v: ". A link works on up to 5 devices; " },
+          { t: "strong", v: "Sign out devices" },
+          { t: "text", v: " makes every device enter the code again, " },
+          { t: "strong", v: "Regenerate" },
+          { t: "text", v: " gives a new link and code, and " },
+          { t: "strong", v: "Revoke" },
+          { t: "text", v: " stops it for good. On the link, " },
+          { t: "strong", v: "Open clock" },
+          { t: "text", v: " pops out a room clock and presenter timer." },
+        ],
+      },
       { t: "h2", v: "Day sheets" },
       {
         t: "p",
@@ -1979,6 +3860,66 @@ export const HELP_BODIES: HelpBodies = {
             t: "text",
             v: "A day sheet summarizes one day of a project: times, locations, contacts and notes. Publish it when it is ready; people see the latest published version.",
           },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "The day sheet PDF lists the day's notes, its calls, its meetings, milestones and deadlines, and the cues of that show date. ",
+          },
+          { t: "strong", v: "Download for…" },
+          {
+            t: "text",
+            v: " prints a copy for one team or one department: only their calls and the records assigned to, owned by or accountable to them, never more than you can see. Pick a show department to keep only the cues with that department's call, and choose Letter or A4.",
+          },
+        ],
+      },
+      { t: "h3", v: "Books" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "A book prints a project's show documents as one PDF with a cover and contents. Open the project's ",
+          },
+          { t: "strong", v: "Documents" },
+          { t: "text", v: " tab and choose " },
+          { t: "strong", v: "New book" },
+          { t: "text", v: ":" },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "text", v: "A " },
+            { t: "strong", v: "Tour Book" },
+            {
+              t: "text",
+              v: " covers dated show days: day sheets, call sheets, runs of show, banquet event orders, inspections and incidents, in day order.",
+            },
+          ],
+          [
+            { t: "text", v: "A " },
+            { t: "strong", v: "Production Book" },
+            {
+              t: "text",
+              v: " covers the whole project or a period and can also hold the final cost report and the wrap-up report.",
+            },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Day sheets and call sheets go in once they are published, and records you cannot open are left out; the cover says how many. A book holds up to 100 documents: narrow its dates to download a longer one. Deleting a book moves it to Trash, and ",
+          },
+          { t: "strong", v: "Undo" },
+          { t: "text", v: " brings it back." },
         ],
       },
       { t: "h2", v: "Call sheets" },
@@ -1991,6 +3932,47 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Local contacts" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "A day sheet lists the local contacts for its day: the venue's contacts, the project's contacts for every day, and that day's. Add a member of the org, whose current name and directory work phone always show, or type a contact with a business phone and email. Shared contacts also reach the people engaged or rostered on the project in Gateway and Compass; a member's work phone never leaves the org. Manage a venue's own contacts from its peek in Places > Venues.",
+          },
+        ],
+      },
+      { t: "h2", v: "Show day" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Show day puts one project's show day on one page. Pick the project and the day, or step a day back or forward. ",
+          },
+          { t: "strong", v: "Sets by stage" },
+          {
+            t: "text",
+            v: " lists each artist's set with its time and length, what has been called and what is up next. ",
+          },
+          { t: "strong", v: "Run of show" },
+          { t: "text", v: " shows how many cues each running order has called and the next one. " },
+          { t: "strong", v: "Arrivals" },
+          { t: "text", v: " lists who lands that day, in the arrival's own time zone, and " },
+          { t: "strong", v: "Hotels" },
+          {
+            t: "text",
+            v: " who sleeps where that night and who checks in or out; both need access to hospitality. Anything changed since you last looked carries a tag naming what changed, and ",
+          },
+          { t: "strong", v: "Mark all as seen" },
+          {
+            t: "text",
+            v: " clears the tags. The page updates live as cues are called. From a project's Show tab, ",
+          },
+          { t: "strong", v: "Open show day" },
+          { t: "text", v: " opens today's." },
+        ],
+      },
     ],
     "site-operations": [
       { t: "h2", v: "Occupancy" },
@@ -1999,7 +3981,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Set up a counter for each space you count at the doors. Its permitted load comes from a permit, the space capacity, or the occupant load factor. Atlas alerts at 90 percent of the permitted load.",
+            v: "Set up a counter for each space you count at the doors. Its load comes from a permit, the space capacity, or the occupant load factor. Only a load from a permit is a permitted load; one from the area and a load factor is a calculated load, and the counter says which it has. Atlas alerts at 90 percent of the load.",
           },
         ],
       },
@@ -2013,6 +3995,26 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h3", v: "Official feed" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "For a venue with a location in the US, turn on the official feed. Every 10 minutes from three days before the project to the day after it ends, it records wind and heat readings from the nearest National Weather Service station, stores the active warnings for the venue's location and the next hours of the forecast. Its readings meet your thresholds as on-site readings do, but a reading from the feed never lowers or clears an alert someone recorded on site, and never goes below the level of the latest reading recorded on site. A new Severe or Extreme warning reaches the people in the alert roles and the dispatchers once, even in quiet hours. Warnings are shown in English, as the National Weather Service issues them. Lightning stays a reading you record.",
+          },
+        ],
+      },
+      { t: "h3", v: "Weather hold and all-clear" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "A dispatcher can call a weather hold. The message comes from your hold text, with the hazard, and you can change it before you send it. It reaches the people in the alert roles, the dispatchers and everyone inside the project's zones at once. The hold starts with the hazard or warning filled in when an alert is at Restrict or Evacuate or a Severe or Extreme warning is active, and the message starts again when you change either. Give the all-clear when it is over; it reaches the same people as they are then. Set the hold and all-clear texts under the thresholds. A hold called in Compass while offline is still sent however late it arrives, and says when it was called; an all-clear that reaches the server more than 10 minutes after it was given is not sent, so give it again.",
+          },
+        ],
+      },
       { t: "h2", v: "Guest check-in" },
       {
         t: "p",
@@ -2023,6 +4025,15 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "A guest's pass shows a code the door can scan, or type: the door list finds the guest by it, with their pass type, table and host. A pass that is not on the list says so. When a guest checks in, their host hears that they arrived.",
+          },
+        ],
+      },
       { t: "h2", v: "Lost and found" },
       {
         t: "p",
@@ -2030,6 +4041,16 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "Log each item someone hands in, with its category. Describe it well enough to check a claim, record each claim, and record the return when the item goes back to its owner.",
+          },
+        ],
+      },
+      { t: "h2", v: "Muster list" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "The muster list shows everyone placed in a zone now, by an entry scan or a clock-in inside a zone's geofence, and the guests checked in in the last 24 hours, at a door or in bulk. Rows are grouped by zone with the count of each, as a table or a list. Filter by project and zone, print it with the headings on every page, or export it as CSV, .xlsx or PDF. It reads itself again every 30 seconds; Pause updates stops it. It shows only the people you may see, and says which sources it leaves out: entry scans need the scan log, clock-ins the time entries, guests the guest list, and their doors and plus-ones guest check-in. Someone whose newer scan you cannot see may show in the last zone you can.",
           },
         ],
       },
@@ -2106,6 +4127,40 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Reviews" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Turn on " },
+          { t: "strong", v: "Requires review" },
+          {
+            t: "text",
+            v: " on a record, or on a template's record item, when the work must be checked before it is done. A record that requires review becomes Complete only after its latest review is approved. While the record is Active, choose ",
+          },
+          { t: "strong", v: "Request review" },
+          {
+            t: "text",
+            v: ", pick a reviewer and add a note: the record moves to In Review and the reviewer is notified. The reviewer, or any other approver who may change the project's records, chooses ",
+          },
+          { t: "strong", v: "Approve" },
+          { t: "text", v: " or " },
+          { t: "strong", v: "Request changes" },
+          {
+            t: "text",
+            v: " with a note; asking for changes moves the record back to Active with the note in its history. Whoever asked for the review never decides it. Only someone who may change the project's settings turns Requires review off.",
+          },
+        ],
+      },
+      { t: "h2", v: "File reviews" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "On a submittal or a record, each version of a file can be approved or sent back with what to change, by someone other than the person who uploaded it. Each version keeps its own history, and a new version starts unreviewed. A submittal cannot be approved while the current version of one of its files has changes requested.",
+          },
+        ],
+      },
       {
         t: "p",
         c: [
@@ -2145,7 +4200,7 @@ export const HELP_BODIES: HelpBodies = {
             { t: "strong", v: "Reported Content" },
             {
               t: "text",
-              v: ": posts, comments and messages people reported, for the Owners, Admins and anyone else who manages communication. Decide each within 24 hours: remove it or take no action, name the rule, the facts and your statement of reasons. The people who reported it, and on removal its author, receive the statement; nobody is told who decided. Reports about your own posts, comments and messages never reach you: another moderator decides them.",
+              v: ": posts, comments and messages people reported, for the Owners, Admins and anyone else who manages communication. Decide each within 24 hours: remove it or take no action, name the rule, the facts and your statement of reasons. The people who reported it, and on removal its author, receive the statement; nobody is told who decided. Reports about your own posts, comments and messages never reach you: another moderator decides them. A report still undecided after 24 hours also goes to the GHXSTSHIP Trust and Safety team, which may decide it; its decision shows as GHXSTSHIP's, and the item leaves their list once you decide it. Posts, comments and messages with a slur are refused before anyone sees them.",
             },
           ],
         ],
@@ -2199,6 +4254,19 @@ export const HELP_BODIES: HelpBodies = {
           { t: "text", v: "Set your language, time zone, theme and reduced motion. In " },
           { t: "strong", v: "Preferences" },
           { t: "text", v: ", you can replay any guided tour and show the contextual tips again." },
+        ],
+      },
+      { t: "h2", v: "Calendar feeds" },
+      {
+        t: "p",
+        c: [
+          { t: "strong", v: "Me, Calendar Feeds" },
+          {
+            t: "text",
+            v: " subscribes your calendar app to your schedule in this organization, or to a project's. Give each feed a name, which your calendar shows, and choose what it shows: shifts, meetings, milestones, deadlines and, on a project feed, cues. A project feed can also follow only some people, one team or one department, and only the cues with one show department's call. A feed never shows more than you may see. ",
+          },
+          { t: "strong", v: "Edit" },
+          { t: "text", v: " changes a feed without changing its link." },
         ],
       },
       { t: "h2", v: "Notifications" },
@@ -2272,6 +4340,81 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "Compara cada requisito del rider con los documentos de capacidad de la sede. Un requisito que la sede no puede cumplir, o uno marcado como UNKNOWN en un elemento crítico, aparece como una brecha para la próxima compuerta.",
+          },
+        ],
+      },
+      { t: "h2", v: "Lista del equipo" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Cada parte incluye a su gente en sus contrataciones: los técnicos de un proveedor, una banda y su equipo de gira, el personal de activación de un patrocinador. Lista del equipo los muestra por parte con su puesto, su llegada, el estado de revisión y si aceptaron. Acepte o devuelva cada entrada enviada, una por una o en bloque con un solo motivo; nunca revisa una entrada que usted agregó o envió. Abra a una persona para ver lo que comparte, que se lee y se registra al abrirlo. Las alergias aparecen como registradas salvo que usted pueda leerlas.",
+          },
+        ],
+      },
+      { t: "h2", v: "Asignaciones" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Las asignaciones dicen lo que recibe cada parte y cada persona para una producción: credenciales, pases de estacionamiento, radios y carritos, catering, habitaciones, viajes y viáticos. Un coordinador solicita una para la reserva común de una parte o para una persona; un revisor que no la solicitó la aprueba o la rechaza. Aprobar equipo lo reserva del inventario de la clase, de un lote o del pedido en el que llega, y el diálogo muestra cuántos hay disponibles para esas fechas y cuánto queda de la asignación permitida. Divida la reserva común de una parte entre su gente y luego entregue cada artículo: entregar confirma que la persona lo tiene. El estado lee lo reservado, pedido, recibido, entregado y devuelto de los registros que lo anotan. Las reservas que ya no caben en lo que puede suministrarse aparecen en un aviso. Las asignaciones de radios llevan canales, e Imprimir hoja de radios da la hoja que la gente firma.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Las necesidades de dieta y acceso de un invitado son opcionales y tienen su propio paso en la fila del invitado, no en la nota de acceso. Confirmas que tienes la autorización del invitado y que se le ha avisado, y el registro muestra que fuiste tú. Solo ves quién lo declaró y cuándo; el Propietario, los roles de jefe de catering y personal médico en sitio, y cualquier otra persona a quien la organización dé acceso a datos médicos las leen, y cada lectura queda registrada. Si das el correo del invitado y tiene una cuenta de XOS, se le avisa y puede eliminarlas. El correo sigue registrado cuando guardas de nuevo con el campo vacío; para quitarlo, marca Quitar el correo registrado.",
+          },
+        ],
+      },
+      { t: "h2", v: "Pases de invitado y correos a invitados" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Cada invitado puede tener un tipo de pase (una categoría de acceso del proyecto, como GUEST o VIP), una mesa, un anfitrión entre las personas del proyecto y una dirección de correo. Agregar invitado pide el tipo de pase y el correo; la mesa y el anfitrión se definen en los datos del pase del invitado. Cuando se aprueba un invitado, recibe un código de pase; Imprimir pase y Descargar pase dan su pase A6 con el código que se escanea a la entrada. Los invitados tienen pases, no credenciales.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Enviar correo a invitados manda a los invitados que elija una invitación, su pase en PDF o un mensaje con asunto y texto, en inglés o en español. Se omiten los invitados sin correo y, para un pase, los que aún no están aprobados, y no se envía a las direcciones que pidieron a su organización que deje de escribirles. Cada correo a invitados sale de su organización, con un enlace para darse de baja y la dirección postal. Cada envío muestra qué pasó con cada invitado.",
+          },
+        ],
+      },
+      { t: "h2", v: "Redactar respuestas desde una respuesta recibida" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Cuando una parte responde por correo o envía un libro de gira o un rider, quien revisa puede elegir ",
+          },
+          { t: "strong", v: "Redactar respuestas desde una respuesta recibida" },
+          {
+            t: "text",
+            v: " en un destinatario de un paquete enviado. Aurora lee una fuente, correo verificado de la bandeja del proyecto o un archivo que elijas, y propone respuestas para las secciones abiertas del destinatario, con las palabras que leyó y quién envió el correo. Nunca redacta una lista de invitados, un archivo, un equipo ni una sección por persona. Cada respuesta que aceptes se registra para el destinatario: otra persona la revisa, se le avisa al destinatario y puede pedirte que la devuelvas.",
+          },
+        ],
+      },
+      { t: "h2", v: "Contratos y riders con Aurora" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "En la lista de contrataciones, " },
+          { t: "strong", v: "Leer contratos y riders" },
+          {
+            t: "text",
+            v: " lee contratos y riders, los agrupa por acto y agrega cada contratación que conserves como una contratación de artista en incorporación. Tú eliges la parte y las condiciones; Aurora no crea personas, cuentas ni contrapartes. Un honorario solo se lee para quienes pueden ver pagos. Un honorario impreso como total solo se completa en una tarifa fija, porque la tarifa de una contratación es por unidad, y el archivo de un contrato queda como Restringido.",
           },
         ],
       },
@@ -2462,6 +4605,73 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Dirección del escaneo y autorizaciones" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Cada escaneo es de entrada o de salida. Elija la dirección en el puesto de escaneo, o en el acceso en Compass, donde queda elegida para cada zona. Un escaneo de salida nunca se rechaza y termina el tiempo de la persona en la zona.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Un escaneo de entrada denegado muestra el motivo: la credencial está revocada, aún no es válida o venció, no tiene acceso a la zona, o el escaneo fue fuera del horario de acceso. Las denegaciones registradas antes de este cambio solo indican que se denegaron.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Quien puede emitir credenciales en el proyecto, y no es el titular de la credencial, puede dejar pasar a una persona denegada en un plazo de 15 minutos, con un motivo. El registro conserva la denegación y agrega una entrada Autorizada con quién la dejó pasar y por qué. Nunca se deja pasar una credencial revocada.",
+          },
+        ],
+      },
+      { t: "h2", v: "Dentro ahora" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "El registro de escaneos muestra, para el proyecto elegido, cuántas personas hay ahora en cada zona: las que escanearon la entrada en las últimas 24 horas y no escanearon la salida, por categoría y por equipo. Cuenta personas que entraron con escaneo, no la carga del recinto: las alertas de aforo permitido vienen de los contadores de ocupación. Se actualiza cada 30 segundos. Use Pausar actualizaciones para detenerlo.",
+          },
+        ],
+      },
+      { t: "h2", v: "Requisitos antes de emitir" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Una categoría puede exigir un curso de capacitación o una certificación. Agréguelos en Requisitos antes de emitir de la categoría. Emitir esa categoría a alguien que no tenga cada uno ahora se rechaza. Los miembros cumplen un curso al aprobarlo; cualquier persona cumple una certificación cuando un verificador la registra, que es como un puesto de pases registra una inducción presencial. El titular de una certificación solo puede cambiar su consentimiento para la verificación pública, nunca sus fechas.",
+          },
+        ],
+      },
+      { t: "h2", v: "Revisiones en la página Emitidas" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "El formulario de emisión muestra lo que bloquea una credencial antes de emitirla: capacitación pendiente, o una credencial vigente de la misma categoría para un periodo que se superpone. Revoque primero la anterior. Los pases de estacionamiento quedan exentos, porque una persona puede tener pases para varios vehículos. También avisa cuando la persona tiene otra credencial en el proyecto, otra persona del proyecto tiene el mismo nombre, o está reservada en otra producción al mismo tiempo.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Emitidas muestra el origen de cada credencial y las mismas revisiones como etiquetas. Elija Requiere atención para ver solo las marcadas.",
+          },
+        ],
+      },
     ],
     "crew-time-payroll": [
       { t: "h2", v: "Turnos y horario" },
@@ -2472,6 +4682,26 @@ export const HELP_BODIES: HelpBodies = {
             t: "text",
             v: "Los turnos se abren como un programa de recursos en Atlas, con personas a un lado y el tiempo a lo largo. Publique turnos para que el equipo los acepte en Compass. Los intercambios requieren aprobación.",
           },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "XOS avisa a la persona de un turno publicado cuando se le asigna y cuando cambian sus horas. Otros cambios, como un rol nuevo, una cancelación o la vuelta a Borrador, no se anuncian, así que el turno muestra ",
+          },
+          { t: "strong", v: "Requiere revisión" },
+          {
+            t: "text",
+            v: " con el número de cambios desde el aviso. La vista rápida del turno muestra cómo y cuándo se le avisó por última vez (por notificación, al aceptar el turno o con su marca) y qué cambió desde entonces. Después de avisarle, elija ",
+          },
+          { t: "strong", v: "Marcar como comunicado" },
+          { t: "text", v: "; con " },
+          { t: "strong", v: "Revisión" },
+          { t: "text", v: " en " },
+          { t: "strong", v: "Requiere revisión" },
+          { t: "text", v: ", puede marcar todos los turnos de la lista a la vez." },
         ],
       },
       {
@@ -2522,6 +4752,84 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Faltantes" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Crew > Faltantes muestra lo que aún no está cubierto entre dos días, en todos los proyectos que puedes leer: turnos abiertos, plazas de agencia que nadie de la lista ocupa, ofertas sin responder, preguntas de ¿Sigues yendo? sin responder o rechazadas, ausencias sin reemplazo y líneas de mano de obra sin acuse en órdenes de compra aprobadas o enviadas. Las filas van por día, en la zona horaria de cada turno, y cada una abre su turno u orden. Un rango puede tener hasta 62 días.",
+          },
+        ],
+      },
+      { t: "h2", v: "Puestos" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Crew > Puestos guarda plazas que se cubren después, como Jefe de escena o Aparejador 2. Reserva turnos para un puesto desde el formulario del turno y asígnale registros desde el registro. Nadie reclama ni se arrastra a un turno reservado. Cubrir el puesto da sus turnos a quien lo ocupa y muestra arriba de la página lo cubierto, omitido o con avisos. Dejarlo vacante devuelve los turnos que no han empezado y quita solo las asignaciones que hizo la cobertura. Se rechaza la solicitud de cambio de un turno reservado. Un turno nuevo en un puesto cubierto pasa a su titular.",
+          },
+        ],
+      },
+      { t: "h2", v: "¿Sigues yendo? y ausencias" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Activa Ajustes > Programación > Preguntar al equipo si sigue yendo, y a quien trabaja un turno aceptado se le pregunta una vez antes de que empiece. Responde por correo, notificación, Inicio de Gateway o el propio turno hasta que empiece. Si alguien no puede ir, el turno se reabre o vuelve a su agencia, salvo que lo desactives. Marca la ausencia en un turno ya empezado cuando la persona no llegó ni registró su entrada. Un registro de entrada posterior la retira.",
+          },
+        ],
+      },
+      { t: "h2", v: "Avisos de programación" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "El descanso mínimo y las horas máximas por día y por semana en Ajustes > Programación son avisos de tu organización, visibles en el tablero de programación, el registro del turno y la aprobación de cambios y reclamos. Nunca rechazan una asignación ni son reglas de pago o de horas extra estatales. Los minutos de un turno cuentan el día en que empieza, y la etiqueta semanal se refiere a la semana que empieza en el inicio de semana de tu nómina, que puede diferir de la semana ISO que usan las horas del tablero.",
+          },
+        ],
+      },
+      { t: "h2", v: "Tipos de descanso" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Ajustes > Tiempo y asistencia define los descansos, cada uno pagado o sin pagar. Un descanso pagado es tiempo trabajado, así que sus minutos no se restan de las horas y aparecen como Descanso pagado junto a Descanso. Compass pregunta qué descanso cuando hay dos o más tipos. Una organización sin tipos funciona como antes.",
+          },
+        ],
+      },
+      { t: "h2", v: "Enlaces de acceso del equipo" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Algunas personas del equipo nunca abren la app. Un enlace de acceso muestra a una persona sus propios turnos en un proyecto en Gateway, sin iniciar sesión, y le permite aceptar su propio turno publicado. Abre Enlaces de acceso del equipo, elige Emitir enlaces, elige el proyecto y las personas, y cuánto duran los enlaces, de 1 hora a 30 días.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Cada persona recibe un enlace y un código de 6 dígitos, que se muestran una sola vez. Cópialos o imprime una tarjeta ahora, porque no se vuelven a mostrar. Una tarjeta impresa nunca lleva el código, así una tarjeta olvidada no abre nada; envía el código por otra vía.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Un enlace se cierra cuando la persona deja de trabajar en el proyecto, cuando elimina su cuenta o cuando lo revocas. Cinco códigos incorrectos lo bloquean, y emitirlo de nuevo lo reemplaza. Un enlace no muestra tarifas, notas ni turnos de otras personas, y nadie puede registrar tiempo ni rechazar con él. Para estar en un turno, una persona debe haber aceptado algo una vez, como una membresía, una contratación o un lugar en el equipo.",
+          },
+        ],
+      },
     ],
     finance: [
       {
@@ -2545,6 +4853,123 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: " y nunca cuenta como cero; los totales indican cuántas líneas siguen sin precio. Un proyecto en otra moneda muestra los totales convertidos con la fecha del tipo de cambio.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Los precios al cliente están junto al costo. Define un " },
+          { t: "strong", v: "Recargo predeterminado %" },
+          { t: "text", v: " en el presupuesto o un " },
+          { t: "strong", v: "Recargo %" },
+          { t: "text", v: " en una línea, o escribe un " },
+          { t: "strong", v: "Precio unitario al cliente" },
+          {
+            t: "text",
+            v: " para reemplazar ambos; al borrarlo vuelve al recargo. Una línea sin precio de costo y sin precio escrito no tiene precio al cliente y muestra ",
+          },
+          { t: "strong", v: "Sin precio" },
+          { t: "text", v: ". " },
+          { t: "strong", v: "Líneas de la cotización" },
+          {
+            t: "text",
+            v: " elige qué líneas van en las cotizaciones; las demás son internas. Cambia la cuadrícula entre ",
+          },
+          { t: "strong", v: "Costo" },
+          { t: "text", v: ", " },
+          { t: "strong", v: "Precios al cliente" },
+          { t: "text", v: " y " },
+          { t: "strong", v: "Pronóstico" },
+          { t: "text", v: "." },
+        ],
+      },
+      { t: "h2", v: "Versiones" },
+      {
+        t: "p",
+        c: [
+          { t: "strong", v: "Versiones" },
+          { t: "text", v: " congela el plan del presupuesto con " },
+          { t: "strong", v: "Tomar una instantánea" },
+          { t: "text", v: ", y " },
+          { t: "strong", v: "Comparar" },
+          {
+            t: "text",
+            v: " muestra lo agregado, eliminado y cambiado frente al presupuesto actual u otra versión, con diferencias que quedan en blanco cuando alguno de los lados no tiene precio. Una versión no reemplaza la línea base de la compuerta 3. Las cotizaciones guardan sus propias capturas, que no se pueden eliminar.",
+          },
+        ],
+      },
+      { t: "h2", v: "Pronóstico" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Las columnas de " },
+          { t: "strong", v: "Pronóstico" },
+          { t: "text", v: " muestran " },
+          { t: "strong", v: "Compromiso pendiente" },
+          { t: "text", v: ", " },
+          { t: "strong", v: "Estimado para terminar" },
+          { t: "text", v: " (escribe una cifra o déjalo en blanco para derivarla), " },
+          { t: "strong", v: "Costo final estimado" },
+          { t: "text", v: " y " },
+          { t: "strong", v: "Variación al terminar" },
+          {
+            t: "text",
+            v: ". Se derivan de Real, Comprometido y las órdenes de cambio aprobadas, así que cambian con cada gasto, aprobación y orden de compra. Si no puedes leer las órdenes de compra, los gastos o las órdenes de cambio del proyecto, las cifras quedan en blanco en lugar de parciales.",
+          },
+        ],
+      },
+      { t: "h2", v: "Real y Movimientos" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Real son los gastos aprobados y pagados más las horas aprobadas del equipo. Un turno indica la línea de mano de obra donde se registra su tiempo, y al aprobar una hoja de horas ese tiempo se registra con la tarifa vigente en cada fecha de trabajo. El tiempo sin tarifa se registra sin precio: aparece como ",
+          },
+          { t: "strong", v: "n horas sin precio" },
+          { t: "text", v: " y nunca cuenta como cero. Selecciona una línea y elige " },
+          { t: "strong", v: "Movimientos" },
+          {
+            t: "text",
+            v: " para ver qué hay detrás de Real y Comprometido. Las facturas de proveedores de la línea se muestran aparte: se registran en el libro mayor y cuentan en el informe de costo final, no en Real.",
+          },
+        ],
+      },
+      { t: "h2", v: "Cotizaciones" },
+      {
+        t: "p",
+        c: [
+          { t: "strong", v: "Cotizaciones" },
+          {
+            t: "text",
+            v: " crea una cotización para el cliente a partir de un presupuesto. Un borrador usa los precios actuales, con costo y margen visibles solo para ti bajo ",
+          },
+          { t: "strong", v: "Interno: nunca aparece en la cotización" },
+          {
+            t: "text",
+            v: ". Elige la contratación del cliente en el borrador hasta que se haya enviado una versión; ",
+          },
+          { t: "strong", v: "Enviar cotización" },
+          {
+            t: "text",
+            v: " la necesita. Con una versión nueva abierta, la página muestra las líneas y los totales del borrador, porque es lo que envías después. ",
+          },
+          { t: "strong", v: "Enviar cotización" },
+          {
+            t: "text",
+            v: " congela la versión y la huella de su contenido. Escribe un correo para obtener un enlace de firma y un código de acceso, que se muestran una sola vez, o déjalo en blanco y el cliente firma en la pestaña Documentos de Gateway. Enviar una versión nueva reemplaza la anterior. Cuando el cliente firma, la cotización queda aceptada y bloqueada; registra los cambios posteriores como una orden de cambio. Atlas nunca retiene fondos, así que una cotización no tiene estado de pago.",
+          },
+        ],
+      },
+      { t: "h2", v: "Importar líneas" },
+      {
+        t: "p",
+        c: [
+          { t: "strong", v: "Importar líneas" },
+          {
+            t: "text",
+            v: " trae líneas de presupuesto desde .xlsx o .csv con el asistente de importación, con un motivo para cada celda que no pueda leer. Una fila con número de línea actualiza esa línea, cambiando solo las celdas que la hoja llena, y la palabra Unpriced borra su precio. Las demás se agregan en el orden de la hoja, y un precio en blanco queda sin precio. Deshacer quita las líneas que creó el lote, salvo que algo dependa de ellas desde entonces.",
           },
         ],
       },
@@ -2602,6 +5027,31 @@ export const HELP_BODIES: HelpBodies = {
               v: " lista a los contratistas que alcanzaron el umbral del 1099-NEC y descarga el archivo para presentarlo. Los identificadores fiscales completos requieren una exportación Restringida con verificación adicional.",
             },
           ],
+        ],
+      },
+      { t: "h2", v: "Revisar las líneas de una factura desde el documento" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Cuando Aurora completa una factura desde un documento, sus líneas esperan en la factura guardada. ",
+          },
+          { t: "strong", v: "Revisar líneas del documento" },
+          {
+            t: "text",
+            v: " las muestra con la diferencia con el total impreso y lo que el proveedor cobró antes. Tú eliges cada línea de presupuesto: ",
+          },
+          { t: "strong", v: "Usar esta línea de presupuesto" },
+          {
+            t: "text",
+            v: " la completa solo cuando haces clic. Cuando las líneas y el total difieren, marca ",
+          },
+          { t: "strong", v: "Revisé la diferencia" },
+          {
+            t: "text",
+            v: " antes de agregarlas. La diferencia aparece después en la factura como una advertencia y no bloquea la aprobación ni el asiento.",
+          },
         ],
       },
     ],
@@ -2675,6 +5125,16 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Casi accidentes en la compuerta 7" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "La compuerta 7 atestigua que cada incidente, lesión y casi accidente se registró y se resolvió. XOS no tiene un tipo de casi accidente, así que registre un casi accidente como incidente en Level 5 - Advisory, con Qué pasó empezando con las palabras Near miss. Filtre Incidentes por esa severidad para encontrarlos.",
+          },
+        ],
+      },
       { t: "h2", v: "Definiciones" },
       {
         t: "p",
@@ -2682,6 +5142,21 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "Pase el puntero o enfoque cualquier chip de compuerta o fase para ver su definición del canon de XOS.",
+          },
+        ],
+      },
+      { t: "h2", v: "Documentos y detalles obligatorios" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Cuando un proyecto tiene un tipo de evento, sus compuertas también revisan lo que el tipo requiere. Cada tipo de documento Obligatorio para la compuerta necesita un documento del proyecto de ese tipo con al menos una versión, y cada detalle obligatorio necesita un valor. Bajo cada compuerta, ",
+          },
+          { t: "strong", v: "Documentos y detalles obligatorios" },
+          {
+            t: "text",
+            v: " muestra lo que está listo y lo que falta, y el botón para pasar nombra lo que falta. Los elementos recomendados aparecen en la lista y en la tarjeta Configuración del Resumen, pero nunca detienen una compuerta. Un proyecto sin tipo de evento pasa sus compuertas igual que antes.",
           },
         ],
       },
@@ -2879,7 +5354,28 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Hoy muestra los registros asignados a usted o que esperan su decisión, ordenados por vencimiento. Use ",
+            v: "Hoy es un tablero de mosaicos que puede ensanchar o estrechar; conserva su diseño. El primer mosaico cuenta el tiempo hasta la próxima apertura de un evento en los próximos 14 días, en la zona horaria de su proyecto. ",
+          },
+          { t: "strong", v: "Esperan tu aprobación" },
+          {
+            t: "text",
+            v: " cuenta las aprobaciones que su Bandeja de entrada le pide decidir y muestra las cinco primeras. ",
+          },
+          { t: "strong", v: "Desde tu última visita" },
+          {
+            t: "text",
+            v: " nombra lo que otros cambiaron en los registros que tiene asignados o sigue y en sus turnos, y quién lo cambió; una visita dura 30 minutos, así que al actualizar la lista se mantiene, y ",
+          },
+          { t: "strong", v: "Marcar todo como visto" },
+          { t: "text", v: " la vacía. Empieza a partir de su segunda visita." },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Debajo de los mosaicos, el trabajo del día muestra los registros asignados a usted o que esperan su decisión, ordenados por vencimiento. Use ",
           },
           { t: "strong", v: "J" },
           { t: "text", v: " y " },
@@ -2961,6 +5457,68 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Vuelos" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Hospitalidad > Viajes muestra cada vuelo reservado en una gestión de viaje, en toda la organización o en la sección Viajes del proyecto. Los tramos que un viajero vuela dentro de las 24 horas del último aterrizaje forman un viaje, así que cada fila muestra Tramo 1 de 3 y la llegada final del viaje. Cada hora se muestra en la zona en que se escribió. Las vistas incluidas muestran los vuelos Próximos, los que están En vuelo o Todos; guarde una como vista propia y exporte las filas en pantalla como CSV, Excel o PDF. La tarifa nunca aparece.",
+          },
+        ],
+      },
+      { t: "h2", v: "Traslados" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Un traslado es un recorrido de un vehículo: una recogida y un destino, un vehículo, un conductor y los pasajeros. Escriba la hora de llegada que espera; no se calculan tiempos de manejo ni se dibuja un mapa. Administre los vehículos del proyecto desde Vehículos. XOS rechaza un conductor, vehículo o pasajero reservado en dos traslados a la vez, más pasajeros que asientos y que el conductor viaje como pasajero. Cada traslado muestra Sin asignar, Asignado, En curso o Terminado, y avisa de un Margen corto (la llegada anterior del conductor más el margen de Configuración > Programación) o de un vuelo que aterriza después de la recogida. La agenda de recursos organiza los traslados por conductor o por vehículo durante la semana. Se avisa al conductor cuando se le asigna.",
+          },
+        ],
+      },
+      { t: "h2", v: "Camerinos y salas de espera" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Reserve un espacio del recinto del proyecto para un artista o un equipo, o use Reservar desde el horario de presentación: la entrada se completa 90 minutos antes de la presentación y la salida 60 minutos después de que termina, y puede cambiar ambas. Una reserva exclusiva ocupa la sala sola; las compartidas pueden superponerse, y las superposiciones por revisar las agrupan con el máximo de personas a la vez frente a la capacidad. Cambió el horario aparece cuando la hora planificada de la presentación sale de la reserva.",
+          },
+        ],
+      },
+      { t: "h2", v: "Habitaciones por noche y artistas sin habitación" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "La vista Matriz de los bloques de alojamiento muestra en cada noche las habitaciones asignadas de las reservadas. Una noche con habitaciones libres se resalta cuando el bloque se libera en 14 días o menos, y quien creó el bloque y quien lo editó por última vez reciben un recordatorio a los 14, 7 y 1 días. El encabezado cuenta los artistas con alojamiento ofrecido cuyas personas aún no tienen habitación. Vincule un bloque a una línea del presupuesto para ver su alojamiento reservado y asignado; no se escribe nada en el presupuesto.",
+          },
+        ],
+      },
+      { t: "h2", v: "Lista de alojamiento" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "La sección Lista de alojamiento del proyecto muestra a las personas del grupo de viaje que necesitan habitación: las estancias que sugieren sus pases o fechas de viaje, las habitaciones que tienen, las noches sin cubrir y su costo. Filtre por Falta, Parcial o Sin fechas. Asignar habitación abre la asignación por entregar cuando la persona tiene una aprobada y, si no, el formulario de habitación con la estancia sugerida; no se guarda nada hasta que confirme. Cada lectura de la lista queda registrada en el historial de acceso de cada persona, así que solo se carga cuando lo pide y no se puede exportar.",
+          },
+        ],
+      },
+      { t: "h2", v: "Leer itinerarios con Aurora" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "En un cumplimiento de viaje, " },
+          { t: "strong", v: "Leer itinerarios" },
+          {
+            t: "text",
+            v: " lee hasta 25 confirmaciones. Cada archivo es una solicitud de Aurora de la asignación de este mes. Tú eliges quién es cada pasajero y confirmas cada zona, porque Aurora deduce las zonas del aeropuerto o la ciudad. Un año que la confirmación no imprime es la próxima vez que llega esa fecha, y lo indica. Una línea igual a un tramo ya reservado empieza sin marcar. Las líneas que dejes siguen abiertas 7 días, para que puedas volver a ellas.",
+          },
+        ],
+      },
     ],
     "import-and-trash": [
       { t: "h2", v: "Importación" },
@@ -2973,6 +5531,103 @@ export const HELP_BODIES: HelpBodies = {
         ],
       },
       { t: "p", c: [{ t: "text", v: "Puede deshacer el lote completo durante 7 días." }] },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "En lugar de un archivo puede pegar filas copiadas de Excel, Google Sheets o Shoflo, con la fila de encabezados primero. Una vista previa muestra las primeras filas tal como se leerán. Mientras asocia las columnas, cada una muestra sus primeros valores y una vista previa ordena las primeras filas según sus opciones.",
+          },
+        ],
+      },
+      { t: "h2", v: "Importar una escaleta" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Abra una escaleta y elija Importar cues, o elija Cues de la escaleta en la página de importación y seleccione la escaleta. Las filas se convierten en cues de esa escaleta solamente.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            {
+              t: "text",
+              v: "Un número de cue como 12, Q12 o CUE-07 fija la posición del cue. Las fracciones como 12.5 se rechazan.",
+            },
+          ],
+          [
+            {
+              t: "text",
+              v: "Las filas sin número de cue se agregan después del cue más alto, en el orden de la hoja, una vez que entran las filas numeradas.",
+            },
+          ],
+          [
+            {
+              t: "text",
+              v: "Las horas como 19:30 o 7:30 PM se leen en la fecha del show, en la zona horaria del proyecto. Las duraciones van en minutos, m:ss o h:mm:ss.",
+            },
+          ],
+          [
+            {
+              t: "text",
+              v: "Importar la misma escaleta otra vez actualiza los cues que coinciden, por número de cue o, sin él, por cue y hora. Nunca los agrega dos veces y nunca cambia un cue que ya se dio.",
+            },
+          ],
+          [
+            {
+              t: "text",
+              v: "Dos filas con el mismo número de cue en una hoja se rechazan como repetidas.",
+            },
+          ],
+        ],
+      },
+      { t: "h2", v: "Importar una lista de invitados" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Abra la lista de invitados de un proyecto y elija Importar invitados, o elija Lista de invitados en la página de importación y seleccione el proyecto.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            {
+              t: "text",
+              v: "Cada invitado importado se agrega como Solicitado. Una importación nunca aprueba, rechaza ni registra la llegada de un invitado.",
+            },
+          ],
+          [
+            {
+              t: "text",
+              v: "Un invitado que ya está en la lista con el mismo nombre para el mismo show se actualiza en lugar de agregarse. Un nombre parecido, o el mismo nombre para otro show, espera su decisión: combinarlo con el invitado de la lista o mantenerlos separados. Nada se combina solo.",
+            },
+          ],
+          [{ t: "text", v: "Una combinación conserva el nombre y el show del invitado." }],
+          [
+            {
+              t: "text",
+              v: "Ni la persona que subió la lista ni la persona que la confirmó pueden aprobar o rechazar esos invitados. Los decide otro revisor.",
+            },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Deshacer quita los cues e invitados que agregó el lote y restaura los que cambió, durante 7 días. Un cue dado, o un invitado decidido o registrado después de la importación, se conserva, y el lote indica por qué.",
+          },
+        ],
+      },
       { t: "h2", v: "Papelera" },
       {
         t: "p",
@@ -2990,6 +5645,25 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "Un administrador define los objetos personalizados en la configuración. Cada uno tiene su propia lista de registros, con las mismas vistas, filtros y acceso por API que cualquier otra colección.",
+          },
+        ],
+      },
+      { t: "h2", v: "Importar personal independiente" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "El destino Personal independiente y equipo a invitar envía a cada fila una invitación a un grupo de talento. Nunca crea una persona ni un perfil. Elige cómo escribe los montos el archivo, como 1,234.56 o 1.234,56, y el grupo para las filas que no nombran uno. Una tarifa puede nombrar su moneda y cómo se paga, como 1.250,50 € por día, y requiere la capacidad de nómina. Este destino necesita su propia carga, no otra hoja de un libro ya leído, porque solo la carga pregunta esas dos opciones.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "El correo dentro del grupo es la coincidencia exacta: una invitación pendiente se actualiza sin un correo nuevo, y una vencida se envía de nuevo. En la revisión de duplicados, Combinar omite la fila porque la persona ya está invitada o en un grupo, y Mantener separada envía una invitación nueva. Quien rechazó en los últimos 12 meses se omite, y una organización envía un máximo de 2,000 correos de invitación en 24 horas. Deshacer conserva las invitaciones ya respondidas.",
           },
         ],
       },
@@ -3061,6 +5735,15 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "XOS no tiene un tipo de casi accidente. Informe algo que pudo lastimar a alguien o causar daños pero no lo hizo como incidente en Level 5 - Advisory, con Qué pasó empezando con las palabras Near miss. Filtre Incidentes por esa severidad para encontrarlos después.",
+          },
+        ],
+      },
       { t: "h2", v: "Tablero de despacho" },
       {
         t: "p",
@@ -3068,6 +5751,16 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "Muestra los incidentes abiertos por estado y en el mapa. Asigne personal de respuesta y lleve cada incidente hasta su cierre. La vista de tabla los muestra para el teclado y los lectores de pantalla.",
+          },
+        ],
+      },
+      { t: "h2", v: "Alertas de crisis" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Anunciar una alerta de crisis en la página de Códigos de emergencia avisa a quienes tienen entrada marcada en el proyecto o están asignados a él y a sus despachadores, por su Bandeja de entrada, notificaciones push, correo y, para quienes lo activaron, mensajes de texto, y la alerta muestra a cuántas personas se avisó. La Bandeja de entrada la recibe al instante; las notificaciones push y los mensajes de texto llegan a los teléfonos en minutos, y el correo puede tardar más en una alerta grande. También les envía el fin de la alerta. XOS no contacta a los servicios de emergencia: en una emergencia, llame a su número local de emergencias.",
           },
         ],
       },
@@ -3088,7 +5781,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Atlas se puede usar de principio a fin con el teclado. El foco siempre es visible y cada botón de icono indica su atajo en su descripción emergente. La Ayuda muestra todos los atajos con las teclas que tienen para usted.",
+            v: "Atlas se puede usar de principio a fin con el teclado. El foco siempre es visible y cada botón de icono indica su atajo en su descripción emergente. La Ayuda muestra todos los atajos con las teclas que tienen para usted. Las listas siguientes muestran las teclas predeterminadas; Mod es Cmd en una Mac y Ctrl en los demás equipos.",
           },
         ],
       },
@@ -3098,57 +5791,39 @@ export const HELP_BODIES: HelpBodies = {
         items: [
           [
             { t: "strong", v: "Mod+K" },
-            { t: "text", v: " o " },
+            { t: "text", v: ": Abrir el menú de comandos" },
+          ],
+          [
             { t: "strong", v: "/" },
-            {
-              t: "text",
-              v: " abre el menú de comandos. Junto al nombre de cada sección muestra sus teclas.",
-            },
+            { t: "text", v: ": Buscar páginas y ajustes" },
           ],
           [
             { t: "strong", v: "C" },
-            {
-              t: "text",
-              v: " abre el menú Crear. Lo que se crea en la página actual aparece primero, así que ",
-            },
-            { t: "strong", v: "C" },
-            { t: "text", v: " y luego " },
-            { t: "strong", v: "Enter" },
-            { t: "text", v: " lo inicia." },
-          ],
-          [
-            { t: "strong", v: "G" },
-            { t: "text", v: " y luego una letra lleva a una sección: " },
-            { t: "strong", v: "G H" },
-            { t: "text", v: " Inicio, " },
-            { t: "strong", v: "G I" },
-            { t: "text", v: " Bandeja de entrada, " },
-            { t: "strong", v: "G M" },
-            { t: "text", v: " Mi trabajo, " },
-            { t: "strong", v: "G P" },
-            { t: "text", v: " Proyectos, " },
-            { t: "strong", v: "G F" },
-            { t: "text", v: " Finanzas y más. Después de " },
-            { t: "strong", v: "G" },
-            { t: "text", v: ", una indicación muestra las letras; " },
-            { t: "strong", v: "Esc" },
-            { t: "text", v: " cancela." },
+            { t: "text", v: ": Crear algo nuevo" },
           ],
           [
             { t: "strong", v: "?" },
-            { t: "text", v: " abre la ayuda de la página actual." },
-          ],
-          [
-            { t: "strong", v: "Mod+J" },
-            { t: "text", v: " pregunta a Aurora, si su organización la activó." },
+            { t: "text", v: ": Abrir la ayuda de esta página" },
           ],
           [
             { t: "strong", v: "Mod+." },
-            { t: "text", v: " activa y desactiva el modo de enfoque." },
+            { t: "text", v: ": Activar o desactivar el modo de enfoque" },
+          ],
+          [
+            { t: "strong", v: "Mod+J" },
+            { t: "text", v: ": Preguntar a Aurora" },
           ],
           [
             { t: "strong", v: "Esc" },
-            { t: "text", v: " cierra el menú, el diálogo o el panel lateral abierto." },
+            { t: "text", v: ": Cerrar un menú, diálogo o panel" },
+          ],
+          [
+            { t: "strong", v: "Mod+Z" },
+            { t: "text", v: ": Deshacer el último cambio" },
+          ],
+          [
+            { t: "strong", v: "Mod+Shift+Z" },
+            { t: "text", v: ": Rehacer el cambio que deshizo" },
           ],
         ],
       },
@@ -3157,10 +5832,99 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Los atajos nunca actúan mientras escribe en un campo, salvo los que llevan ",
+            v: "El menú de comandos muestra las teclas de cada sección junto a su nombre, y el menú Crear pone primero lo que se crea en la página actual, así que Enter lo inicia. Los atajos nunca actúan mientras escribe en un campo, salvo los que llevan ",
           },
           { t: "strong", v: "Mod" },
           { t: "text", v: "." },
+        ],
+      },
+      { t: "h2", v: "Ir a una sección" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Cada uno son dos teclas, una después de la otra. Después de la primera, una indicación muestra las teclas que pueden seguir; ",
+          },
+          { t: "strong", v: "Esc" },
+          { t: "text", v: " cancela." },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "G H" },
+            { t: "text", v: ": Ir a Inicio" },
+          ],
+          [
+            { t: "strong", v: "G I" },
+            { t: "text", v: ": Ir a la Bandeja de entrada" },
+          ],
+          [
+            { t: "strong", v: "G M" },
+            { t: "text", v: ": Ir a Mi trabajo" },
+          ],
+          [
+            { t: "strong", v: "G P" },
+            { t: "text", v: ": Ir a Proyectos" },
+          ],
+          [
+            { t: "strong", v: "G S" },
+            { t: "text", v: ": Ir a Cronograma" },
+          ],
+          [
+            { t: "strong", v: "G W" },
+            { t: "text", v: ": Ir a Trabajo" },
+          ],
+          [
+            { t: "strong", v: "G O" },
+            { t: "text", v: ": Ir a Show" },
+          ],
+          [
+            { t: "strong", v: "G A" },
+            { t: "text", v: ": Ir a Coordinación previa" },
+          ],
+          [
+            { t: "strong", v: "G L" },
+            { t: "text", v: ": Ir a Logística" },
+          ],
+          [
+            { t: "strong", v: "G E" },
+            { t: "text", v: ": Ir a Personas" },
+          ],
+          [
+            { t: "strong", v: "G C" },
+            { t: "text", v: ": Ir a Equipo técnico" },
+          ],
+          [
+            { t: "strong", v: "G F" },
+            { t: "text", v: ": Ir a Finanzas" },
+          ],
+          [
+            { t: "strong", v: "G B" },
+            { t: "text", v: ": Ir a Compras" },
+          ],
+          [
+            { t: "strong", v: "G V" },
+            { t: "text", v: ": Ir a Proveedores" },
+          ],
+          [
+            { t: "strong", v: "G K" },
+            { t: "text", v: ": Ir a Conocimiento" },
+          ],
+          [
+            { t: "strong", v: "G R" },
+            { t: "text", v: ": Ir a Informes" },
+          ],
+          [
+            { t: "strong", v: "G Y" },
+            { t: "text", v: ": Ir a Actividad" },
+          ],
+          [
+            { t: "strong", v: "G T" },
+            { t: "text", v: ": Ir a Configuración" },
+          ],
         ],
       },
       { t: "h2", v: "En listas y tablas" },
@@ -3169,26 +5933,147 @@ export const HELP_BODIES: HelpBodies = {
         items: [
           [
             { t: "strong", v: "J" },
-            { t: "text", v: " y " },
+            { t: "text", v: ": Fila siguiente" },
+          ],
+          [
             { t: "strong", v: "K" },
-            { t: "text", v: ", o las flechas, se mueven entre filas." },
+            { t: "text", v: ": Fila anterior" },
           ],
           [
             { t: "strong", v: "Enter" },
-            { t: "text", v: " abre el registro enfocado en el panel lateral." },
+            { t: "text", v: ": Abrir el registro enfocado" },
           ],
           [
             { t: "strong", v: "X" },
+            { t: "text", v: ": Seleccionar la fila enfocada" },
+          ],
+          [
+            { t: "strong", v: "Shift+X" },
             {
               t: "text",
-              v: " selecciona la fila enfocada y aparece la barra de acciones masivas.",
+              v: ": Seleccionar las filas desde la última seleccionada hasta la enfocada",
             },
           ],
           [
-            { t: "strong", v: "Inicio" },
-            { t: "text", v: " y " },
-            { t: "strong", v: "Fin" },
-            { t: "text", v: " saltan a la primera y la última fila." },
+            { t: "strong", v: "Mod+A" },
+            { t: "text", v: ": Seleccionar todas las filas cargadas" },
+          ],
+          [
+            { t: "strong", v: "Shift+F10" },
+            { t: "text", v: ": Abrir las acciones de la fila enfocada" },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Las flechas también se mueven entre filas, e " },
+          { t: "strong", v: "Inicio" },
+          { t: "text", v: " y " },
+          { t: "strong", v: "Fin" },
+          {
+            t: "text",
+            v: " saltan a la primera y la última fila. Al seleccionar filas aparece la barra de acciones masivas con las acciones que permiten todas las filas seleccionadas.",
+          },
+        ],
+      },
+      { t: "h2", v: "En un registro" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Funcionan en la página completa de un registro y en el panel lateral, mientras el foco está en el registro.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "S" },
+            { t: "text", v: ": Cambiar el estado" },
+          ],
+          [
+            { t: "strong", v: "A" },
+            { t: "text", v: ": Asignar un responsable" },
+          ],
+          [
+            { t: "strong", v: "M" },
+            { t: "text", v: ": Agregar un comentario" },
+          ],
+          [
+            { t: "strong", v: "E" },
+            { t: "text", v: ": Editar el título" },
+          ],
+          [
+            { t: "strong", v: "O" },
+            { t: "text", v: ": Abrir la página completa" },
+          ],
+          [
+            { t: "strong", v: "L" },
+            { t: "text", v: ": Copiar el enlace" },
+          ],
+          [
+            { t: "strong", v: "Mod+Retroceso" },
+            { t: "text", v: ": Mover a la papelera" },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [{ t: "text", v: "Una tecla no hace nada en un registro que no le ofrece esa acción." }],
+      },
+      { t: "h2", v: "En una vista" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Funcionan en una colección mientras el foco está en ella: su selector de vista, sus filtros, sus vistas guardadas y la exportación.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "V" },
+            { t: "text", v: ": Cambiar de vista" },
+          ],
+          [
+            { t: "strong", v: "F" },
+            { t: "text", v: ": Abrir los filtros" },
+          ],
+          [
+            { t: "strong", v: "Shift+S" },
+            { t: "text", v: ": Guardar la vista" },
+          ],
+          [
+            { t: "strong", v: "Shift+E" },
+            { t: "text", v: ": Exportar la vista" },
+          ],
+        ],
+      },
+      { t: "h2", v: "En la Bandeja de entrada" },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "A" },
+            { t: "text", v: ": Aprobar el elemento enfocado" },
+          ],
+          [
+            { t: "strong", v: "R" },
+            { t: "text", v: ": Rechazar el elemento enfocado con un motivo" },
+          ],
+          [
+            { t: "strong", v: "E" },
+            { t: "text", v: ": Marcar como hecho el elemento enfocado" },
+          ],
+          [
+            { t: "strong", v: "H" },
+            { t: "text", v: ": Posponer el elemento enfocado hasta mañana" },
           ],
         ],
       },
@@ -3203,6 +6088,124 @@ export const HELP_BODIES: HelpBodies = {
           { t: "text", v: " para soltarla y " },
           { t: "strong", v: "Esc" },
           { t: "text", v: " para devolverla." },
+        ],
+      },
+      { t: "h2", v: "En la consola de llamado" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Mientras llama un espectáculo en vivo, " },
+          { t: "strong", v: "J" },
+          { t: "text", v: " y " },
+          { t: "strong", v: "K" },
+          { t: "text", v: " mueven la espera, " },
+          { t: "strong", v: "S" },
+          { t: "text", v: " pone en espera la señal seleccionada, " },
+          { t: "strong", v: "T" },
+          { t: "text", v: " salta a una señal, " },
+          { t: "strong", v: "[" },
+          { t: "text", v: " y " },
+          { t: "strong", v: "]" },
+          { t: "text", v: " ajustan un minuto el plan restante y " },
+          { t: "strong", v: "D" },
+          { t: "text", v: " cambia el departamento. " },
+          { t: "strong", v: "Espacio" },
+          { t: "text", v: " en la lista de señales llama la señal. Un Stream Deck envía " },
+          { t: "strong", v: "F13" },
+          { t: "text", v: " a " },
+          { t: "strong", v: "F20" },
+          {
+            t: "text",
+            v: " (Go, En espera, Anterior, Siguiente, Retrasar, Adelantar, Saltar y Departamento); asigne a cada tecla una acción ",
+          },
+          { t: "strong", v: "Hotkey" },
+          { t: "text", v: "." },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "El canal del show junto al cue en curso responde a " },
+          { t: "strong", v: "M" },
+          { t: "text", v: ", que lleva a su cuadro de mensaje." },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "Espacio" },
+            { t: "text", v: ": Llamar el cue seleccionado" },
+          ],
+          [
+            { t: "strong", v: "J" },
+            { t: "text", v: ": Pasar la espera al cue siguiente" },
+          ],
+          [
+            { t: "strong", v: "K" },
+            { t: "text", v: ": Pasar la espera al cue anterior" },
+          ],
+          [
+            { t: "strong", v: "S" },
+            { t: "text", v: ": Poner en espera el cue seleccionado" },
+          ],
+          [
+            { t: "strong", v: "T" },
+            { t: "text", v: ": Saltar a un cue" },
+          ],
+          [
+            { t: "strong", v: "]" },
+            { t: "text", v: ": Retrasar un minuto el plan restante" },
+          ],
+          [
+            { t: "strong", v: "[" },
+            { t: "text", v: ": Adelantar un minuto el plan restante" },
+          ],
+          [
+            { t: "strong", v: "D" },
+            { t: "text", v: ": Mostrar las llamadas del siguiente departamento" },
+          ],
+          [
+            { t: "strong", v: "M" },
+            { t: "text", v: ": Ir al cuadro de mensaje del canal del show" },
+          ],
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "F13" },
+            { t: "text", v: ": Llamar el cue seleccionado" },
+          ],
+          [
+            { t: "strong", v: "F14" },
+            { t: "text", v: ": Poner en espera el cue seleccionado" },
+          ],
+          [
+            { t: "strong", v: "F15" },
+            { t: "text", v: ": Pasar la espera al cue anterior" },
+          ],
+          [
+            { t: "strong", v: "F16" },
+            { t: "text", v: ": Pasar la espera al cue siguiente" },
+          ],
+          [
+            { t: "strong", v: "F17" },
+            { t: "text", v: ": Retrasar un minuto el plan restante" },
+          ],
+          [
+            { t: "strong", v: "F18" },
+            { t: "text", v: ": Adelantar un minuto el plan restante" },
+          ],
+          [
+            { t: "strong", v: "F19" },
+            { t: "text", v: ": Saltar a un cue" },
+          ],
+          [
+            { t: "strong", v: "F20" },
+            { t: "text", v: ": Mostrar las llamadas del siguiente departamento" },
+          ],
         ],
       },
       { t: "h2", v: "Adapte las teclas" },
@@ -3220,13 +6223,17 @@ export const HELP_BODIES: HelpBodies = {
           { t: "strong", v: "Restablecer" },
           { t: "text", v: " devuelve el valor predeterminado. Desactive allí " },
           { t: "strong", v: "Atajos de teclado" },
-          { t: "text", v: " para detener todos los atajos sin " },
+          { t: "text", v: " para detener todos los atajos de teclas de carácter sin " },
           { t: "strong", v: "Mod" },
           { t: "text", v: ", " },
           { t: "strong", v: "Ctrl" },
           { t: "text", v: " o " },
           { t: "strong", v: "Alt" },
-          { t: "text", v: "." },
+          { t: "text", v: "; las teclas de función " },
+          { t: "strong", v: "F13" },
+          { t: "text", v: " a " },
+          { t: "strong", v: "F20" },
+          { t: "text", v: " siguen funcionando, porque no escriben ningún carácter." },
         ],
       },
       {
@@ -3300,6 +6307,49 @@ export const HELP_BODIES: HelpBodies = {
             { t: "strong", v: "Capacitación" },
             { t: "text", v: ": cree cursos breves para su personal." },
           ],
+        ],
+      },
+      { t: "h2", v: "Tipos de documento" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Archive cada documento bajo uno de los " },
+          { t: "strong", v: "tipos de documento" },
+          {
+            t: "text",
+            v: " de su organización, como un plano del sitio o un certificado de seguro. Adminístrelos en ",
+          },
+          { t: "strong", v: "Configuración, Plantillas, Tipos de documento" },
+          { t: "text", v: ", donde " },
+          { t: "strong", v: "Agregar tipos estándar" },
+          {
+            t: "text",
+            v: " agrega los tipos de la Biblioteca Estándar de XOS que aún no tiene. En la pestaña Documentos de un proyecto, ",
+          },
+          { t: "strong", v: "Documentos obligatorios" },
+          {
+            t: "text",
+            v: " muestra cuántos de los documentos Obligatorios y Recomendados del tipo de evento están archivados; elija ",
+          },
+          { t: "strong", v: "Agregar" },
+          { t: "text", v: " junto a uno que falte para crearlo con su tipo ya elegido." },
+        ],
+      },
+      { t: "h2", v: "Enlaces públicos de formularios" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Un formulario Publicado sin foto, firma ni ubicación GPS puede tener un ",
+          },
+          { t: "strong", v: "Enlace público" },
+          { t: "text", v: ". Pertenece a un proyecto, cuya sección " },
+          { t: "strong", v: "Acceso externo" },
+          {
+            t: "text",
+            v: " lo lista, lo revoca y lo regenera. Personas fuera de la organización lo abren con un código de acceso y luego inician sesión o crean una cuenta para responder; el nombre y el correo de su cuenta van con la respuesta. Una respuesta se vuelve un registro solo cuando alguien la aprueba. Las respuestas aparecen en Envíos con la etiqueta Enlace público.",
+          },
         ],
       },
     ],
@@ -3383,7 +6433,64 @@ export const HELP_BODIES: HelpBodies = {
           { t: "strong", v: "Pedir a los miembros que valoren a las partes" },
           {
             t: "text",
-            v: ", en Configuración, Gateway y mercado, solo decide si los miembros ven los compromisos pendientes de su valoración. Desactivarlo nunca oculta ni elimina una calificación, y aún puede calificar desde el compromiso. Las calificaciones solo se moderan por abuso o datos personales, nunca por su puntuación.",
+            v: ", en Configuración, Gateway y mercado, solo decide si los miembros ven los compromisos pendientes de su valoración. Desactivarlo nunca oculta ni elimina una calificación, y aún puede calificar desde el compromiso. Las calificaciones solo se moderan por abuso, datos personales o una declaración falsa o sobre la persona equivocada, nunca por su puntuación.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "La calificación de una persona queda entre su organización y esa persona: ninguna otra organización puede leerla, salvo que esa persona decida mostrar todas sus calificaciones en su perfil, y aun así nunca aparece en una pantalla de contratación, búsqueda o equipo, y nadie con acceso de contratación, reserva o asignación de personal en XOS puede leerla. La calificación de una empresa la puede leer cualquiera con sesión iniciada. Una persona a la que calificó puede impugnar la calificación; usted puede responder una vez en la página de calificaciones, y nuestro equipo de la plataforma decide.",
+          },
+        ],
+      },
+      { t: "h2", v: "Páginas de registro" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Una página de registro es tu página pública para el equipo y los voluntarios. Llena uno de tus grupos de talento y nunca lo nombra. Escribe el título y la introducción, elige el grupo y la edad mínima, agrega preguntas o aplica una plantilla de preguntas, y publica. Pregunta sobre el trabajo, nunca sobre un atributo protegido. Copia el enlace de la página para compartirlo, o invita a las personas que ya están en el grupo.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Las personas se registran desde su propia cuenta de Gateway, y tú las apruebas o rechazas en la cola. Aprobar las hace miembros del grupo. Toda persona que se registra tiene 18 años o más, como toda cuenta de XOS; pon una edad mínima mayor cuando el trabajo la necesite.",
+          },
+        ],
+      },
+      { t: "h2", v: "Invitar personas a un grupo" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "En un grupo de talento, invita a alguien por correo, o usa Importar personas para enviar una lista completa. Nada crea una persona: inicia sesión en Gateway con esa dirección y acepta en Inicio. Una tarifa habitual es informativa y requiere la capacidad de nómina. Solo quienes gestionan grupos ven las invitaciones, porque contienen datos de contacto de personas que nunca se unieron.",
+          },
+        ],
+      },
+      { t: "h2", v: "Plantillas y lotes de acuerdos" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "En Incorporación, escribe tu propio acuerdo con campos de combinación como el nombre de la persona, los turnos y la tarifa. XOS no incluye texto. En la pestaña Contrataciones de un proyecto, elige Generar acuerdos, la plantilla y las personas, y lee la vista previa. Una persona a la que le falta un campo queda fuera hasta que se llene. Crea y luego envía.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Las personas leen el texto completo en Gateway y firman con su nombre escrito, o rechazan con un motivo. Refrenda los firmados desde el lote; un elemento de Firma electrónica automático queda aprobado. Una vez usada, el texto de una plantilla es fijo, así que duplícala para cambiarlo. Sin la capacidad de nómina, un texto con tarifa no muestra el cuerpo ni el hash.",
           },
         ],
       },
@@ -3520,6 +6627,15 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Los niveles de una sede nombran sus pisos en orden, con los sótanos por debajo de cero; los espacios y los planos del sitio indican el nivel en que están. Sus especificaciones técnicas registran energía, muelle y acceso, dimensiones, puntos de colgado y red. Una especificación en blanco no está registrada y nunca aprueba una revisión. No ingreses contraseñas de red: comparte las credenciales en un documento de capacidad Restringido.",
+          },
+        ],
+      },
       { t: "h2", v: "Espacios y zonas" },
       {
         t: "p",
@@ -3546,7 +6662,36 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Un plano del sitio es un dibujo de la sede con marcadores de espacios, activos y puntos de interés. La vista de tabla ofrece una lista accesible de cada marcador.",
+            v: "Un plano del sitio es el dibujo de una sede de un proyecto con marcadores de espacios, activos y puntos de interés. Sube un PNG, JPEG o PDF como dibujo; de un PDF, la página que elijas será el dibujo. En un plano en borrador, dibuja rutas, barreras, áreas y etiquetas, define la escala con una distancia conocida y mide longitudes y áreas. Cada herramienta también toma sus puntos como porcentajes horizontal y vertical, y las flechas mueven el punto seleccionado.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Un plano pasa de Borrador a Bloqueado cuando su diseño queda fijo, y a Activo cuando los equipos lo usan; solo un plano por sede y nivel está activo. Los comentarios, las notas en un punto, las menciones y Resolver funcionan en todos los estados. Exportar PDF imprime el dibujo con las capas y la leyenda que elijas.",
+          },
+        ],
+      },
+      { t: "h2", v: "Señalización" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "El registro de señalización enumera los letreros de cada proyecto con su texto, tamaño, material, ubicación y arte. Marca un letrero como pedido, impreso y colocado, o vincúlalo a una línea de orden de compra para que la orden indique cuándo se pide y se recibe. La hoja de montaje imprime los letreros por fabricar y colocar, agrupados por plano y marcador.",
+          },
+        ],
+      },
+      { t: "h2", v: "Especificaciones de la sede en la preparación de avanzada y los permisos" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "En el alcance de un proyecto, Agregar especificaciones del recinto como capacidades copia la energía, los puntos de colgado y la conectividad conocidos de la sede como capacidades para la conciliación, documentadas cuando las respalda un documento de capacidad vigente. Los permisos muestran los datos de la sede que importan para cada regla; nunca cambian qué permisos aplican.",
           },
         ],
       },
@@ -3615,7 +6760,7 @@ export const HELP_BODIES: HelpBodies = {
             { t: "strong", v: "Certificados de seguro" },
             {
               t: "text",
-              v: ": reúna un certificado de cada proveedor, con los asegurados adicionales que exige. Aurora puede leer un certificado y mostrar su confianza en cada campo antes de que lo confirme.",
+              v: ": reúna un certificado de cada proveedor, con los asegurados adicionales que exige. Aurora puede leer un certificado y mostrar su confianza en cada campo antes de que lo confirme. Los archivos que los proveedores suben para elementos de incorporación esperan arriba en esta página, donde puede abrir uno y registrarlo como certificado; registrarlo no verifica el elemento de incorporación.",
             },
           ],
           [
@@ -3693,6 +6838,115 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Tipos de evento y el alta por pasos" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Su organización puede describir los tipos de evento que produce en " },
+          { t: "strong", v: "Configuración, Plantillas, Tipos de evento" },
+          {
+            t: "text",
+            v: ": un festival, una gala, una feria. Cada tipo de evento elige la plantilla con la que empieza un proyecto nuevo según su escala (Íntimo hasta 500 personas, Pequeño de 500 a 2,500, Mediano de 2,500 a 10,000, Grande de 10,000 a 50,000, Masivo más de 50,000) y su público, pide sus propios detalles al crear el proyecto y nombra los documentos que el proyecto necesita para cada compuerta.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Cuando su organización tiene tipos de evento, " },
+          { t: "strong", v: "Nuevo proyecto" },
+          { t: "text", v: " avanza por pasos: " },
+          { t: "strong", v: "Inicio" },
+          {
+            t: "text",
+            v: " (el tipo de evento y si se empieza desde su plantilla, otra plantilla, un proyecto anterior o en blanco), ",
+          },
+          { t: "strong", v: "Escala y público" },
+          { t: "text", v: ", " },
+          { t: "strong", v: "Datos básicos" },
+          {
+            t: "text",
+            v: " (la clave, el nombre, las fechas del evento, la zona horaria y el recinto, con los días de montaje y desmontaje en Más campos), ",
+          },
+          { t: "strong", v: "Detalles" },
+          { t: "text", v: " (los campos del tipo y sus indicaciones), " },
+          { t: "strong", v: "Copia" },
+          { t: "text", v: " (solo al empezar desde un proyecto anterior) y " },
+          { t: "strong", v: "Revisión" },
+          {
+            t: "text",
+            v: ", que nombra la plantilla que se aplicará y lo que el tipo requiere. Crear hace el proyecto en un solo paso; si algo se rechaza, no se crea nada. Sin tipos de evento, Nuevo proyecto sigue siendo una sola pantalla.",
+          },
+        ],
+      },
+      { t: "h2", v: "Días del evento, montaje y desmontaje" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "El primer y el último día del evento son las fechas de inicio y fin del proyecto. Los días de montaje y desmontaje son días del proyecto en el cronograma; los días alrededor del evento dan los periodos de ",
+          },
+          { t: "strong", v: "montaje" },
+          { t: "text", v: " y " },
+          { t: "strong", v: "desmontaje" },
+          {
+            t: "text",
+            v: ", que el Resumen muestra, el programa del muelle sombrea y compras compara con los alquileres. Atlas avisa, sin rechazar, cuando un montaje cae después del primer día del evento, un desmontaje antes del último, los periodos se traslapan o uno dura más de 60 días.",
+          },
+        ],
+      },
+      { t: "h2", v: "Copiar de otro proyecto" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "En " },
+          { t: "strong", v: "Configuración del proyecto" },
+          { t: "text", v: ", " },
+          { t: "strong", v: "Copiar de un proyecto" },
+          {
+            t: "text",
+            v: " copia el plan, las categorías de pases, los bloques de hotel, los presupuestos y los formularios de avance de un proyecto anterior a este, movidos un número de días (que se llena con los primeros días de evento de ambos). Las horas conservan su hora local, también al cambiar el horario de verano. La vista previa muestra cada elemento con lo que se copia, lo que se omite y por qué; Copiar escribe exactamente eso. Nunca se copian turnos, personas, contrataciones, credenciales ni las respuestas de las empresas que contrata.",
+          },
+        ],
+      },
+      { t: "h2", v: "Acceso externo" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "La última sección de Configuración del proyecto muestra todo lo que llega al proyecto desde fuera de la organización: enlaces en vivo, enlaces de archivo, enlaces de avance y de firma, invitaciones al equipo, destinatarios de paquetes, enlaces de alta, enlaces de formulario y contrataciones. Cada fila muestra quién lo tiene, su estado, cuándo termina y cuántas veces se abrió. Revoca o regenera desde la fila. Un enlace y un código nuevos se muestran una vez, arriba de la lista, hasta que los descartes.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Un " },
+          { t: "strong", v: "paquete para interesados" },
+          {
+            t: "text",
+            v: " reúne enlaces en vivo y archivos Públicos o Internos para personas fuera de la organización. Cada destinatario recibe un código de acceso que le das por teléfono o mensaje; nunca se envía por correo. Los paquetes pueden enviar un enlace de acceso nuevo según una programación. Los archivos de informes siguen siendo solo para miembros.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Un " },
+          { t: "strong", v: "enlace de alta" },
+          {
+            t: "text",
+            v: " permite que muchos proveedores o contratistas envíen una solicitud por un solo enlace. Cada uno inicia sesión en Gateway, da un formulario fiscal y una referencia de pago, y firma el acuerdo. Aprueba las solicitudes desde ",
+          },
+          { t: "strong", v: "Solicitudes de alta" },
+          {
+            t: "text",
+            v: " en la pestaña Contrataciones; al aprobar se crea una contratación en incorporación, y un revisor aún verifica sus elementos. Nunca pidas números de cuenta bancaria: el enlace los rechaza.",
+          },
+        ],
+      },
     ],
     reports: [
       { t: "h2", v: "Informes estándar" },
@@ -3702,6 +6956,62 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "Preparación de compuertas, Matriz de coordenadas, Presupuesto frente a real, Mano de obra, Exposición de órdenes de compra, Incidentes y el Informe de costo final leen los datos actuales que usted puede ver. El informe de costo final se genera cuando un proyecto se cierra y lo compara con su línea base de la compuerta 3.",
+          },
+        ],
+      },
+      { t: "h2", v: "Cierre" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "La pestaña " },
+          { t: "strong", v: "Informes" },
+          {
+            t: "text",
+            v: " de un proyecto empieza con su cierre: el balance y un resumen para la dirección, impresos con el presupuesto frente a los costos reales, la asistencia, la sostenibilidad y el carbono, y los incidentes como el PDF del informe de cierre.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            {
+              t: "text",
+              v: "Agregue puntos del balance por área: lo que salió bien, lo que hay que mejorar y acciones, cada acción con un responsable.",
+            },
+          ],
+          [
+            { t: "text", v: "Escriba el resumen para la dirección, o elija " },
+            { t: "strong", v: "Resumir" },
+            {
+              t: "text",
+              v: " para que Aurora redacte uno con las cifras y los puntos del balance del proyecto. ",
+            },
+            { t: "strong", v: "Usar como resumen para la dirección" },
+            { t: "text", v: " pone el borrador en el cuadro; no se guarda nada hasta que elija " },
+            { t: "strong", v: "Guardar resumen" },
+            {
+              t: "text",
+              v: '. Un borrador guardado se imprime como "Redactado con Aurora y revisado por" usted, con la fecha.',
+            },
+          ],
+          [
+            { t: "strong", v: "Completar balance" },
+            { t: "text", v: " bloquea los puntos y el resumen. " },
+            { t: "strong", v: "Reabrir balance" },
+            {
+              t: "text",
+              v: " los desbloquea. Mientras el balance está completado, tampoco se puede restaurar desde la Papelera un punto eliminado; primero reabra el balance.",
+            },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: 'Cada sección del informe muestra solo lo que usted puede leer; las demás dicen "No incluido". Una cifra que no se midió dice Sin medir, nunca 0.',
           },
         ],
       },
@@ -3852,6 +7162,62 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Comparta una vista en vivo" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Una vista guardada de Calendario, Espectáculo, Guion del espectáculo u Hojas del día se puede compartir con personas sin cuenta, como un recinto o un proveedor.",
+          },
+        ],
+      },
+      {
+        t: "ol",
+        items: [
+          [
+            { t: "text", v: "Abra la vista guardada y elija " },
+            { t: "strong", v: "Compartir en vivo" },
+            { t: "text", v: " en el menú de vistas guardadas." },
+          ],
+          [
+            {
+              t: "text",
+              v: "En una página de la organización, elija el proyecto que muestra el enlace. Elija cuándo vence el enlace, como máximo en 90 días, y agregue una nota para su equipo si lo desea.",
+            },
+          ],
+          [
+            {
+              t: "text",
+              v: "Copie el enlace y el código de acceso de 6 dígitos. Se muestran una sola vez; envíe el código por separado del enlace.",
+            },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "La persona abre el enlace, escribe el código una vez en su dispositivo y ve la vista actualizarse mientras la mira. La página muestra solo las columnas que una página pública puede mostrar: nunca responsables, personas a cargo, bloqueos, notas, costos ni campos personalizados. Una vista que filtra, ordena o agrupa por otra cosa no se puede compartir en vivo, y un enlace se detiene cuando su vista se elimina o cambia así, o cuando usted pierde acceso al proyecto.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "strong", v: "Regenerar" },
+          {
+            t: "text",
+            v: " da al enlace una dirección y un código nuevos, y cada dispositivo debe escribir el código nuevo. ",
+          },
+          { t: "strong", v: "Revocar" },
+          {
+            t: "text",
+            v: " lo detiene para siempre. Cinco códigos incorrectos bloquean un enlace; regenérelo para abrirlo de nuevo.",
+          },
+        ],
+      },
     ],
     schedule: [
       { t: "h2", v: "Línea de tiempo" },
@@ -3891,6 +7257,191 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "Una línea base congela el plan en un momento dado. Compare el plan actual con cualquier línea base para ver qué registros se retrasaron y cuánto.",
+          },
+        ],
+      },
+      { t: "h2", v: "Días" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Programación, Días indica para qué es cada día del proyecto: " },
+          { t: "strong", v: "Montaje" },
+          { t: "text", v: ", " },
+          { t: "strong", v: "Función" },
+          { t: "text", v: ", " },
+          { t: "strong", v: "Desmontaje" },
+          { t: "text", v: ", " },
+          { t: "strong", v: "Viaje" },
+          { t: "text", v: ", " },
+          { t: "strong", v: "Día libre" },
+          { t: "text", v: ", " },
+          { t: "strong", v: "Ensayo" },
+          { t: "text", v: " u " },
+          { t: "strong", v: "Otro" },
+          {
+            t: "text",
+            v: ". Cada día se lee como texto con un icono junto a su color, en la línea de tiempo, el calendario, la hoja del día, Personal, Turnos y la línea de tiempo de la cartera.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "text", v: "Elija " },
+            { t: "strong", v: "Agregar día" },
+            {
+              t: "text",
+              v: ", o abra un día, para fijar su tipo, una etiqueta, dónde ocurre (una sede, una de las funciones del proyecto o un lugar escrito), su zona horaria y su equipo.",
+            },
+          ],
+          [
+            { t: "strong", v: "Dividir el día" },
+            {
+              t: "text",
+              v: " agrega una parte, hasta cuatro, como un desmontaje por la mañana y el viaje a la siguiente ciudad por la tarde. Una parte en una sede se lee en la zona horaria de la sede.",
+            },
+          ],
+          [
+            { t: "text", v: "Quitar una parte la mueve a la Papelera; " },
+            { t: "strong", v: "Deshacer" },
+            { t: "text", v: " la recupera." },
+          ],
+        ],
+      },
+      { t: "h2", v: "Editar un día como cuadrícula" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Abra un día y elija " },
+          { t: "strong", v: "Editar como cuadrícula" },
+          {
+            t: "text",
+            v: " para escribir sus registros como en una hoja de cálculo: Hora, Título, Tipo, Responsable y Por confirmar. Tab y Mayús+Tab se mueven entre celdas, Intro guarda una celda y baja, y escribir en la última fila agrega un registro.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            {
+              t: "text",
+              v: 'La hora acepta formas cortas en el reloj del proyecto: 8 a. m., 8:30 p. m., 20 h, 20:30, mediodía o un rango como 8a-10:30a. Un final antes del inicio es el día siguiente. También funcionan frases como "mañana 9am".',
+            },
+          ],
+          [
+            { t: "strong", v: "Guardar" },
+            {
+              t: "text",
+              v: " muestra cuántos registros son nuevos, cambiados y rechazados, con cada rechazo en su celda. ",
+            },
+            { t: "strong", v: "Aplicar" },
+            { t: "text", v: " escribe todas las filas o ninguna." },
+          ],
+        ],
+      },
+      { t: "h2", v: "Plantillas de día" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Guarde los registros y cues de un día como plantilla con " },
+          { t: "strong", v: "Guardar el día como plantilla" },
+          { t: "text", v: "; las horas se guardan desde la medianoche local. En otro día, " },
+          { t: "strong", v: "Aplicar plantilla de día" },
+          {
+            t: "text",
+            v: " pone la plantilla junto a lo que el día ya tiene, por hora: los elementos nuevos llevan ",
+          },
+          { t: "strong", v: "Nuevo" },
+          { t: "text", v: ", los que ya están en el día llevan " },
+          { t: "strong", v: "Ya está en este día" },
+          {
+            t: "text",
+            v: " y quedan desmarcados, y se cuentan las superposiciones. Desmarque lo que no quiera y aplique; ",
+          },
+          { t: "strong", v: "Deshacer" },
+          {
+            t: "text",
+            v: " mueve lo agregado a la Papelera. Las plantillas se listan y editan en Proyectos, Plantillas.",
+          },
+        ],
+      },
+      { t: "h2", v: "El ancla" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "La pestaña Cronograma del proyecto muestra el " },
+          { t: "strong", v: "Ancla" },
+          {
+            t: "text",
+            v: ", el día desde el que cuenta el plan, normalmente el día de la función. La línea de tiempo lo marca, y su tabla muestra el desfase de cada registro, como D−3 para tres días antes.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "Fijar el ancla" },
+            { t: "text", v: " fija la primera ancla; no mueve nada." },
+          ],
+          [
+            { t: "strong", v: "Mover el ancla" },
+            {
+              t: "text",
+              v: " muestra qué se mueve y qué se queda: los registros con fecha se mueven días enteros en el reloj del proyecto, junto con los órdenes de presentación, los cues, los tipos de día y las hojas sin publicar. Los registros fijados a sus fechas, completos o bloqueados en una línea base se quedan, las hojas publicadas se quedan y los turnos nunca se mueven: reprograme a las personas contratadas en Personal, Turnos. ",
+            },
+            { t: "strong", v: "Volver a mover" },
+            { t: "text", v: " en el aviso devuelve el plan." },
+          ],
+          [
+            { t: "text", v: "En un registro, " },
+            { t: "strong", v: "Se queda en sus fechas cuando se mueve el ancla" },
+            { t: "text", v: " lo fija." },
+          ],
+        ],
+      },
+      { t: "h2", v: "Carga de trabajo" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Programación, Carga de trabajo muestra las horas por persona y día de una semana, de turnos y tareas estimadas, como mapa de calor o tabla. Cada celda muestra sus horas como texto; un día sobre el límite de la organización (10 horas salvo que se cambie en Configuración, Programación) muestra ",
+          },
+          { t: "strong", v: "Más de 10 h" },
+          {
+            t: "text",
+            v: " con un icono. Un turno que pasa la medianoche cuenta en cada día en su propia zona horaria. Abra una celda para ver sus horas de turnos, horas de tareas y tareas sin estimación.",
+          },
+        ],
+      },
+      { t: "h2", v: "Conflictos" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Programación, Conflictos lista personas en dos turnos a la vez, turnos durante el viaje de una persona, proveedores en dos producciones en sedes distintas, artistas en dos escenarios, cambios cortos, viajes demasiado cerca de una llamada y órdenes de presentación después de la hora límite. Cada uno es un ",
+          },
+          { t: "strong", v: "Conflicto" },
+          { t: "text", v: " o una " },
+          { t: "strong", v: "Advertencia" },
+          {
+            t: "text",
+            v: ", dice qué choca y enlaza a donde se corrige; nada se corrige por usted. Una hora por confirmar baja un conflicto a advertencia. Solo ve un conflicto cuando puede leer ambos lados.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Los responsables de hospitalidad también pueden elegir " },
+          { t: "strong", v: "Revisar solicitudes de viaje" },
+          {
+            t: "text",
+            v: " para comparar las fechas de viaje solicitadas con las llamadas de cada persona. Cada revisión queda registrada en el registro de acceso de la persona.",
           },
         ],
       },
@@ -3982,6 +7533,16 @@ export const HELP_BODIES: HelpBodies = {
           [{ t: "text", v: "Personas de su organización, por nombre." }],
           [{ t: "text", v: "Documentos, SOP y artículos del manual, por título y texto." }],
           [
+            {
+              t: "text",
+              v: "Clases de activo por nombre, y unidades por etiqueta de activo, clase o número de serie (escriba ",
+            },
+            { t: "code", v: "MH-002" },
+            { t: "text", v: "). Aparecen en " },
+            { t: "strong", v: "Inventario" },
+            { t: "text", v: "." },
+          ],
+          [
             { t: "text", v: "Configuraciones, por nombre o clave: escriba " },
             { t: "code", v: "zona horaria" },
             {
@@ -4034,8 +7595,12 @@ export const HELP_BODIES: HelpBodies = {
             { t: "code", v: "documento" },
             { t: "text", v: ", " },
             { t: "code", v: "sop" },
-            { t: "text", v: " o " },
+            { t: "text", v: ", " },
             { t: "code", v: "artículo" },
+            { t: "text", v: ", " },
+            { t: "code", v: "activo" },
+            { t: "text", v: " o " },
+            { t: "code", v: '"clase de activo"' },
             { t: "text", v: "." },
           ],
           [
@@ -4148,6 +7713,398 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h3", v: "Arme el orden" },
+      {
+        t: "ul",
+        items: [
+          [
+            {
+              t: "text",
+              v: "Agregue cada señal con su hora planificada y su duración. Cuando una hora todavía es una estimación, marque ",
+            },
+            { t: "strong", v: "Hora por confirmar" },
+            { t: "text", v: ": Atlas muestra " },
+            { t: "strong", v: "Por confirmar · aprox." },
+            { t: "text", v: " con la estimación, Compass, Gateway y el PDF muestran " },
+            { t: "strong", v: "Por confirmar" },
+            {
+              t: "text",
+              v: ", y las suscripciones de calendario la marcan como provisional. Los registros ofrecen la misma casilla, ",
+            },
+            { t: "strong", v: "Hora de inicio por confirmar" },
+            { t: "text", v: ", junto a " },
+            { t: "strong", v: "Inicio" },
+            { t: "text", v: "." },
+          ],
+          [
+            {
+              t: "text",
+              v: "Elija el lápiz de una señal para editarla en su lugar: nombre, hora, duración y una llamada por departamento (Audio, Iluminación, Video, Efectos especiales y Escenario). ",
+            },
+            { t: "strong", v: "Esc" },
+            { t: "text", v: " cancela." },
+          ],
+          [
+            { t: "text", v: "Use las flechas para mover una señal un lugar, o " },
+            { t: "strong", v: "Mover a la posición…" },
+            {
+              t: "text",
+              v: " para ponerla en cualquier lugar después de la última señal llamada en un solo paso. Las señales llamadas conservan su lugar, y las señales se numeran de nuevo 1, 2, 3 después de mover una.",
+            },
+          ],
+          [
+            { t: "text", v: "Elija un " },
+            { t: "strong", v: "Departamento" },
+            {
+              t: "text",
+              v: " para ver solo sus llamadas. Las señales que tienen una quedan marcadas; las demás indican que no hay llamada. La elección queda en la dirección de la página, así que puede compartirla.",
+            },
+          ],
+          [
+            { t: "text", v: "Fije una " },
+            { t: "strong", v: "Hora límite" },
+            { t: "text", v: " en los detalles cuando el espectáculo tenga un final obligatorio." },
+          ],
+        ],
+      },
+      { t: "h3", v: "Llame el espectáculo" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Elija " },
+          { t: "strong", v: "Ejecutar en vivo" },
+          {
+            t: "text",
+            v: ". Si puede llamar señales, se abre la consola de llamado con el reloj del show, la hora del día, cuánto va atrasado o adelantado frente al plan y, cuando hay hora límite, el final proyectado frente a ella.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "Llamar siguiente cue" },
+            { t: "text", v: " llama la señal en espera o, si no hay, la siguiente. " },
+            { t: "strong", v: "Go" },
+            { t: "text", v: " llama la señal seleccionada." },
+          ],
+          [
+            { t: "strong", v: "En espera" },
+            {
+              t: "text",
+              v: " pone en espera la señal seleccionada; quienes siguen el show la ven en uno o dos segundos. ",
+            },
+            { t: "strong", v: "Cue anterior" },
+            { t: "text", v: " y " },
+            { t: "strong", v: "Cue siguiente" },
+            { t: "text", v: " mueven la espera, y " },
+            { t: "strong", v: "Saltar a un cue" },
+            {
+              t: "text",
+              v: " elige cualquier señal sin llamar. Las señales que salte quedan marcadas como ",
+            },
+            { t: "strong", v: "Omitido" },
+            { t: "text", v: "." },
+          ],
+          [
+            { t: "strong", v: "Ajustar −1 min" },
+            { t: "text", v: " y " },
+            { t: "strong", v: "Ajustar +1 min" },
+            { t: "text", v: " mueven todas las horas planificadas que quedan." },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Con el foco en la consola, " },
+          { t: "strong", v: "J" },
+          { t: "text", v: " y " },
+          { t: "strong", v: "K" },
+          { t: "text", v: " mueven la espera, " },
+          { t: "strong", v: "S" },
+          { t: "text", v: " pone en espera, " },
+          { t: "strong", v: "T" },
+          { t: "text", v: " salta, " },
+          { t: "strong", v: "[" },
+          { t: "text", v: " y " },
+          { t: "strong", v: "]" },
+          { t: "text", v: " ajustan el plan y " },
+          { t: "strong", v: "D" },
+          { t: "text", v: " cambia el departamento; " },
+          { t: "strong", v: "Espacio" },
+          { t: "text", v: " en la lista de señales llama." },
+        ],
+      },
+      { t: "h3", v: "Configure acciones Hotkey de Stream Deck con F13 a F20" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Asigne a cada tecla del Stream Deck una acción " },
+          { t: "strong", v: "Hotkey" },
+          { t: "text", v: ": " },
+          { t: "strong", v: "F13" },
+          { t: "text", v: " Go, " },
+          { t: "strong", v: "F14" },
+          { t: "text", v: " En espera, " },
+          { t: "strong", v: "F15" },
+          { t: "text", v: " Cue anterior, " },
+          { t: "strong", v: "F16" },
+          { t: "text", v: " Cue siguiente, " },
+          { t: "strong", v: "F17" },
+          { t: "text", v: " Ajustar +1 min, " },
+          { t: "strong", v: "F18" },
+          { t: "text", v: " Ajustar −1 min, " },
+          { t: "strong", v: "F19" },
+          { t: "text", v: " Saltar a un cue y " },
+          { t: "strong", v: "F20" },
+          {
+            t: "text",
+            v: " Departamento. Funcionan mientras la consola tiene el foco, aunque los atajos de una tecla estén desactivados, y puede cambiarlas en ",
+          },
+          { t: "strong", v: "Yo, Atajos de teclado" },
+          { t: "text", v: "." },
+        ],
+      },
+      { t: "h3", v: "Pantallas" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Muestre el guion en cualquier televisor o laptop sin iniciar sesión. Abra el guion, elija ",
+          },
+          { t: "strong", v: "Pantallas" },
+          {
+            t: "text",
+            v: ", elija el modo con el que abre la pantalla y cuándo vence el enlace (por defecto, al final del día siguiente al espectáculo), y copie el enlace y su código de acceso de 6 dígitos, que se muestran una sola vez. Necesita permiso para editar el guion.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "Reloj de sala" },
+            { t: "text", v: " muestra la hora local, la señal en curso y el tiempo que le queda." },
+          ],
+          [
+            { t: "strong", v: "Temporizador de presentador" },
+            {
+              t: "text",
+              v: " cuenta hacia atrás la señal actual, o hacia adelante cuando no tiene duración.",
+            },
+          ],
+          [
+            { t: "strong", v: "Backstage" },
+            {
+              t: "text",
+              v: " muestra la señal en curso, la siguiente con su hora prevista, las tres que siguen y si el espectáculo va atrasado.",
+            },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Cuando una señal excede su duración, el temporizador se pone rojo y dice ",
+          },
+          { t: "strong", v: "Excedido por" },
+          {
+            t: "text",
+            v: " el tiempo, hasta que se llama la siguiente señal. En la pantalla, las teclas 1, 2 y 3 cambian de modo, ",
+          },
+          { t: "strong", v: "Abrir en una ventana nueva" },
+          { t: "text", v: " lleva la pantalla a un segundo monitor y " },
+          { t: "strong", v: "Pantalla completa" },
+          {
+            t: "text",
+            v: " la llena. La pantalla sigue las señales a los pocos segundos de llamarse. Revoque el enlace para quitarlo de todas las pantallas.",
+          },
+        ],
+      },
+      { t: "h3", v: "Editar el orden de presentación como cuadrícula" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Elija " },
+          { t: "strong", v: "Editar como cuadrícula" },
+          {
+            t: "text",
+            v: " para escribir los cues como en una hoja de cálculo: Hora, Duración, Etiqueta, Segmento y Por confirmar, en el orden de presentación. La hora acepta formas cortas como 8:30 p. m. o 20:30, y +1 marca un cue después de la medianoche; Duración acepta 45, 45m o 1h30. Escribir en la última fila agrega un cue, y ",
+          },
+          { t: "strong", v: "Subir" },
+          { t: "text", v: " y " },
+          { t: "strong", v: "Bajar" },
+          {
+            t: "text",
+            v: " reordenan. Los cues llamados, y los que van antes del último llamado, conservan su lugar. ",
+          },
+          { t: "strong", v: "Guardar" },
+          { t: "text", v: " muestra la vista previa; " },
+          { t: "strong", v: "Aplicar" },
+          { t: "text", v: " escribe todas las filas o ninguna y renumera los cues." },
+        ],
+      },
+      { t: "h3", v: "Campos y colores de cues" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Agregue sus propias columnas a los cues en " },
+          { t: "strong", v: "Configuración, Campos personalizados" },
+          { t: "text", v: ": elija " },
+          { t: "strong", v: "Cues" },
+          { t: "text", v: " como tabla y luego un tipo. Un campo de " },
+          { t: "strong", v: "Opción" },
+          {
+            t: "text",
+            v: " puede dar a cada opción uno de siete colores; el nombre de la opción siempre se muestra junto a su color. Para cada campo de cue, elija para quién es: ",
+          },
+          { t: "strong", v: "Equipo" },
+          { t: "text", v: " lo ve en Atlas, " },
+          { t: "strong", v: "Llamado del show" },
+          { t: "text", v: " lo muestra en los enlaces de llamado y " },
+          { t: "strong", v: "Cliente" },
+          {
+            t: "text",
+            v: " lo muestra en Gateway a un cliente contratado en el proyecto. Cada campo nuevo empieza con Equipo. Los campos de Persona, Dinero y Correo quedan con el equipo. Equipo es una elección de presentación: los miembros siguen viendo cada valor que su acceso permite.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "El editor del cue tiene pestañas. " },
+          { t: "strong", v: "Cue" },
+          { t: "text", v: " tiene la etiqueta, la hora, la duración, el " },
+          { t: "strong", v: "Segmento" },
+          { t: "text", v: " y su " },
+          { t: "strong", v: "Color del segmento" },
+          {
+            t: "text",
+            v: ", que colorea todo el segmento a la vez y sigue el segmento que escribe. ",
+          },
+          { t: "strong", v: "Palabras" },
+          { t: "text", v: " tiene la " },
+          { t: "strong", v: "Descripción" },
+          { t: "text", v: " y el " },
+          { t: "strong", v: "Guion hablado" },
+          { t: "text", v: ", de hasta 20.000 caracteres. " },
+          { t: "strong", v: "Llamadas" },
+          { t: "text", v: " tiene las cinco llamadas de departamento, y " },
+          { t: "strong", v: "Campos" },
+          {
+            t: "text",
+            v: " sus campos de cue, cuando su organización tiene alguno. Lo que escribe se conserva al cambiar de pestaña, y un solo ",
+          },
+          { t: "strong", v: "Guardar" },
+          { t: "text", v: " guarda el cue; " },
+          { t: "strong", v: "Campos" },
+          {
+            t: "text",
+            v: " guarda por su cuenta. En vivo, el cue en curso muestra el color de su segmento y un ",
+          },
+          { t: "strong", v: "Guion hablado" },
+          { t: "text", v: " que puede abrir." },
+        ],
+      },
+      { t: "h3", v: "Biblioteca de segmentos" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Guarde los bloques que usa en muchos shows, como una entrada de público, un bloque de premios o un momento de patrocinio, en ",
+          },
+          { t: "strong", v: "Show, Biblioteca de segmentos" },
+          {
+            t: "text",
+            v: ": cada segmento tiene un nombre, un color, una descripción y cues con sus llamadas por departamento. Para usar uno, abra un guion y elija ",
+          },
+          { t: "strong", v: "Insertar segmento" },
+          {
+            t: "text",
+            v: ": elija el segmento, dónde va (después del último cue llamado) y, si quiere, la hora en que empieza. Las copias son suyas para editar en ese guion.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Cuando cambia un segmento de la biblioteca, muestra " },
+          { t: "strong", v: "Biblioteca actualizada" },
+          { t: "text", v: ". Elija " },
+          { t: "strong", v: "Publicar en shows" },
+          {
+            t: "text",
+            v: " y marque las órdenes de show que actualizar, como máximo 50 a la vez; las desactualizadas ya están marcadas. En cada una, los cues no llamados del segmento se reemplazan por la versión actual, y se pierden los cambios locales a esos cues, incluidos sus valores de campos personalizados. Los shows donde se llamó un cue del segmento (",
+          },
+          { t: "strong", v: "Tiene cues llamados" },
+          { t: "text", v: ") o uno es el horario de un artista (" },
+          { t: "strong", v: "Tiene horarios de artistas" },
+          {
+            t: "text",
+            v: ") quedan como están. El segmento muestra lo que pasó en cada una después de publicar.",
+          },
+        ],
+      },
+      { t: "h3", v: "Canal del show" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "En vivo, el canal del show está junto al cue en curso: el chat del equipo del proyecto, donde nunca están los clientes. Elija ",
+          },
+          { t: "strong", v: "Abrir el canal del show" },
+          {
+            t: "text",
+            v: " la primera vez (necesita permiso para editar el guion) y los miembros del proyecto se unen; los demás eligen ",
+          },
+          { t: "strong", v: "Unirse al canal del show" },
+          { t: "text", v: ". Los mensajes nuevos aparecen al enviarse, y " },
+          { t: "strong", v: "M" },
+          { t: "text", v: " lleva al cuadro de mensaje desde la consola." },
+        ],
+      },
+      { t: "h3", v: "Enlaces de llamado del show" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Permita que alguien sin cuenta de XOS llame el show. Abra el guion, elija ",
+          },
+          { t: "strong", v: "Enlaces de llamado del show" },
+          {
+            t: "text",
+            v: ", nombre a quien llama, elija cuándo vence el enlace (por defecto al final del día después del show, como máximo 14 días) y copie el enlace y su código de acceso de 6 dígitos, que se muestran una sola vez. Necesita permiso para editar el guion y para llamar cues.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Cualquiera con el enlace y el código puede llamar cues y editar este guion hasta que venza: llamar, poner en espera, ajustar, mover, agregar, editar y quitar cues no llamados, y cambiar las llamadas por departamento. Nunca llega a otro guion. Un cue que llame dice ",
+          },
+          { t: "strong", v: "Llamado por" },
+          { t: "text", v: " su nombre " },
+          { t: "strong", v: "con un enlace de llamado del show" },
+          { t: "text", v: ". Un enlace funciona en hasta 5 dispositivos; " },
+          { t: "strong", v: "Cerrar sesión de dispositivos" },
+          { t: "text", v: " hace que cada dispositivo ingrese el código otra vez, " },
+          { t: "strong", v: "Regenerar" },
+          { t: "text", v: " da un enlace y código nuevos, y " },
+          { t: "strong", v: "Revocar" },
+          { t: "text", v: " lo detiene para siempre. En el enlace, " },
+          { t: "strong", v: "Abrir reloj" },
+          { t: "text", v: " abre un reloj de sala y un temporizador de presentador." },
+        ],
+      },
       { t: "h2", v: "Hojas del día" },
       {
         t: "p",
@@ -4156,6 +8113,66 @@ export const HELP_BODIES: HelpBodies = {
             t: "text",
             v: "Una hoja del día resume una jornada del proyecto: horarios, lugares, contactos y notas. Publíquela cuando esté lista; las personas ven la última versión publicada.",
           },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "El PDF de la hoja del día muestra las notas del día, sus llamados, sus reuniones, hitos y plazos, y los cues de esa fecha de show. ",
+          },
+          { t: "strong", v: "Descargar para…" },
+          {
+            t: "text",
+            v: " imprime una copia para un equipo o un departamento: solo sus llamados y los registros asignados a ellos, de su propiedad o bajo su responsabilidad, nunca más de lo que usted puede ver. Elija un departamento del show para dejar solo los cues con un llamado de ese departamento, y elija carta o A4.",
+          },
+        ],
+      },
+      { t: "h3", v: "Libros" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Un libro imprime los documentos del show de un proyecto en un solo PDF con portada y contenido. Abra la pestaña ",
+          },
+          { t: "strong", v: "Documentos" },
+          { t: "text", v: " del proyecto y elija " },
+          { t: "strong", v: "Nuevo libro" },
+          { t: "text", v: ":" },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "text", v: "Un " },
+            { t: "strong", v: "libro de gira" },
+            {
+              t: "text",
+              v: " cubre días de show con fecha: hojas del día, hojas de llamado, guiones, órdenes de evento de banquete, inspecciones e incidentes, por día.",
+            },
+          ],
+          [
+            { t: "text", v: "Un " },
+            { t: "strong", v: "libro de producción" },
+            {
+              t: "text",
+              v: " cubre todo el proyecto o un período y también puede contener el informe de costo final y el informe de cierre.",
+            },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Las hojas del día y de llamado entran una vez publicadas, y se omiten los registros que usted no puede abrir; la portada dice cuántos. Un libro contiene hasta 100 documentos: acote sus fechas para descargar uno más largo. Eliminar un libro lo mueve a la papelera, y ",
+          },
+          { t: "strong", v: "Deshacer" },
+          { t: "text", v: " lo recupera." },
         ],
       },
       { t: "h2", v: "Hojas de llamado" },
@@ -4168,6 +8185,47 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Contactos locales" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Una hoja del día muestra los contactos locales de ese día: los del recinto, los del proyecto para todos los días y los de ese día. Agregue un miembro de la organización, cuyo nombre actual y teléfono de trabajo del directorio siempre se muestran, o escriba un contacto con teléfono y correo comerciales. Los contactos compartidos también llegan a las personas contratadas o en la lista del proyecto en Gateway y Compass; el teléfono de trabajo de un miembro nunca sale de la organización. Administre los contactos de un recinto desde su vista previa en Lugares > Recintos.",
+          },
+        ],
+      },
+      { t: "h2", v: "Día del show" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "El día del show reúne en una página el día de show de un proyecto. Elija el proyecto y el día, o avance o retroceda un día. ",
+          },
+          { t: "strong", v: "Presentaciones por escenario" },
+          {
+            t: "text",
+            v: " muestra la presentación de cada artista con su hora y duración, lo que ya se llamó y lo que sigue. ",
+          },
+          { t: "strong", v: "Órdenes de show" },
+          { t: "text", v: " muestra cuántos cues llamó cada orden de show y el siguiente. " },
+          { t: "strong", v: "Llegadas" },
+          { t: "text", v: " muestra quién llega ese día, en la zona horaria de su llegada, y " },
+          { t: "strong", v: "Hoteles" },
+          {
+            t: "text",
+            v: " quién duerme dónde esa noche y quién entra o sale; ambos requieren acceso a hospitalidad. Lo que cambió desde su última visita lleva una etiqueta que dice qué cambió, y ",
+          },
+          { t: "strong", v: "Marcar todo como visto" },
+          {
+            t: "text",
+            v: " quita las etiquetas. La página se actualiza en vivo a medida que se llaman los cues. Desde la pestaña Show de un proyecto, ",
+          },
+          { t: "strong", v: "Abrir día del show" },
+          { t: "text", v: " abre el de hoy." },
+        ],
+      },
     ],
     "site-operations": [
       { t: "h2", v: "Aforo" },
@@ -4176,7 +8234,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Configure un contador para cada espacio que cuenta en las puertas. Su aforo permitido viene de un permiso, de la capacidad del espacio o del factor de carga de ocupantes. Atlas avisa al llegar al 90 por ciento del aforo permitido.",
+            v: "Configure un contador para cada espacio que cuenta en las puertas. Su aforo viene de un permiso, de la capacidad del espacio o del factor de carga de ocupantes. Solo el que viene de un permiso es un aforo permitido; el que sale del área y un factor de carga es un aforo calculado, y el contador indica cuál tiene. Atlas avisa al llegar al 90 por ciento del aforo.",
           },
         ],
       },
@@ -4190,6 +8248,26 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h3", v: "Servicio oficial" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Para una sede con ubicación en EE. UU., active el servicio oficial. Cada 10 minutos, desde tres días antes del proyecto hasta el día después de que termina, registra lecturas de viento y calor de la estación más cercana del Servicio Meteorológico Nacional, guarda los avisos vigentes para la ubicación de la sede y las próximas horas del pronóstico. Sus lecturas se comparan con sus umbrales como las lecturas en el sitio, pero una lectura del servicio nunca baja ni cierra un aviso que alguien registró en el sitio, y nunca queda por debajo del nivel de la última lectura registrada en el sitio. Un aviso nuevo Grave o Extremo llega una vez a las personas de los roles de alerta y a los despachadores, incluso en horas de silencio. Los avisos se muestran en inglés, como los emite el Servicio Meteorológico Nacional. Los rayos siguen siendo una lectura que usted registra.",
+          },
+        ],
+      },
+      { t: "h3", v: "Suspensión por clima y fin de la suspensión" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Un despachador puede suspender por clima. El mensaje viene de su texto de suspensión, con el peligro, y puede cambiarlo antes de enviarlo. Llega a la vez a las personas de los roles de alerta, a los despachadores y a todos los que están dentro de las zonas del proyecto. La suspensión empieza con el peligro o el aviso ya elegidos cuando una alerta está en Restringir o Evacuar o hay un aviso Grave o Extremo vigente, y el mensaje vuelve a empezar cuando cambia cualquiera de los dos. Dé el fin de la suspensión cuando pase; llega a las mismas personas en ese momento. Configure los textos de suspensión y de fin debajo de los umbrales. Una suspensión hecha en Compass sin conexión se envía aunque llegue tarde, e indica cuándo se declaró; un fin de suspensión que llega al servidor más de 10 minutos después de darlo no se envía, así que dé el fin de nuevo.",
+          },
+        ],
+      },
       { t: "h2", v: "Entrada de invitados" },
       {
         t: "p",
@@ -4200,6 +8278,15 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "El pase de un invitado muestra un código que la puerta puede escanear o escribir: la lista de la puerta encuentra al invitado con él, con su tipo de pase, su mesa y su anfitrión. Un pase que no está en la lista lo indica. Cuando un invitado entra, su anfitrión recibe un aviso.",
+          },
+        ],
+      },
       { t: "h2", v: "Objetos perdidos" },
       {
         t: "p",
@@ -4207,6 +8294,16 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "Registre cada objeto que alguien entrega, con su categoría. Descríbalo lo suficiente para verificar un reclamo, registre cada reclamo y registre la devolución cuando el objeto vuelve a su dueño.",
+          },
+        ],
+      },
+      { t: "h2", v: "Lista de evacuación" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "La lista de evacuación muestra a todos los que están ahora en una zona, por un escaneo de entrada o un fichaje dentro de la geocerca de una zona, y a los invitados registrados en las últimas 24 horas, en una puerta o en bloque. Las filas se agrupan por zona con el total de cada una, en tabla o en lista. Filtre por proyecto y zona, imprímala con los encabezados en cada página o expórtela en CSV, .xlsx o PDF. Se vuelve a leer cada 30 segundos; Pausar actualizaciones lo detiene. Solo muestra a las personas que usted puede ver, e indica qué fuentes deja fuera: los escaneos de entrada requieren el registro de escaneos, los fichajes los registros de horas, los invitados la lista de invitados, y su puerta y acompañantes el registro de invitados. Alguien cuyo escaneo más reciente no puede ver puede aparecer en la última zona que sí puede ver.",
           },
         ],
       },
@@ -4282,6 +8379,40 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Revisiones" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Active " },
+          { t: "strong", v: "Requiere revisión" },
+          {
+            t: "text",
+            v: " en un registro, o en un elemento de registro de una plantilla, cuando el trabajo deba revisarse antes de terminarse. Un registro que requiere revisión queda Completo solo después de aprobarse su última revisión. Mientras el registro está Activo, elija ",
+          },
+          { t: "strong", v: "Pedir revisión" },
+          {
+            t: "text",
+            v: ", escoja a quien revisa y agregue una nota: el registro pasa a En revisión y se avisa a quien revisa. Quien revisa, o cualquier otro aprobador que pueda cambiar los registros del proyecto, elige ",
+          },
+          { t: "strong", v: "Aprobar" },
+          { t: "text", v: " o " },
+          { t: "strong", v: "Pedir cambios" },
+          {
+            t: "text",
+            v: " con una nota; pedir cambios regresa el registro a Activo con la nota en su historial. Quien pidió la revisión nunca la decide. Solo quien puede cambiar la configuración del proyecto desactiva Requiere revisión.",
+          },
+        ],
+      },
+      { t: "h2", v: "Revisión de archivos" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "En una presentación o un registro, cada versión de un archivo puede aprobarse o devolverse con lo que hay que cambiar, por alguien distinto de quien la subió. Cada versión conserva su propio historial y una versión nueva empieza sin revisar. Una presentación no puede aprobarse mientras la versión actual de uno de sus archivos tenga cambios solicitados.",
+          },
+        ],
+      },
     ],
     "workforce-communication": [
       {
@@ -4313,7 +8444,7 @@ export const HELP_BODIES: HelpBodies = {
             { t: "strong", v: "Contenido denunciado" },
             {
               t: "text",
-              v: ": publicaciones, comentarios y mensajes que se denunciaron, para los propietarios, los administradores y cualquier otra persona que gestione la comunicación. Decida cada uno en 24 horas: elimínelo o no tome medidas, e indique la norma, los hechos y su declaración de motivos. Quienes lo denunciaron y, si lo elimina, quien lo escribió reciben la declaración; no se dice a nadie quién decidió. Las denuncias sobre sus propias publicaciones, comentarios y mensajes nunca le llegan: las decide otro moderador.",
+              v: ": publicaciones, comentarios y mensajes que se denunciaron, para los propietarios, los administradores y cualquier otra persona que gestione la comunicación. Decida cada uno en 24 horas: elimínelo o no tome medidas, e indique la norma, los hechos y su declaración de motivos. Quienes lo denunciaron y, si lo elimina, quien lo escribió reciben la declaración; no se dice a nadie quién decidió. Las denuncias sobre sus propias publicaciones, comentarios y mensajes nunca le llegan: las decide otro moderador. Una denuncia sin decidir después de 24 horas pasa también al equipo de Confianza y Seguridad de GHXSTSHIP, que puede decidirla; su decisión aparece como de GHXSTSHIP, y el elemento sale de su lista en cuanto usted lo decide. Las publicaciones, los comentarios y los mensajes con un insulto discriminatorio se rechazan antes de que nadie los vea.",
             },
           ],
         ],
@@ -4370,6 +8501,19 @@ export const HELP_BODIES: HelpBodies = {
             t: "text",
             v: " puede repetir cualquier recorrido guiado y volver a mostrar los consejos.",
           },
+        ],
+      },
+      { t: "h2", v: "Calendarios suscritos" },
+      {
+        t: "p",
+        c: [
+          { t: "strong", v: "Yo, Calendarios suscritos" },
+          {
+            t: "text",
+            v: " suscribe su aplicación de calendario a su horario en esta organización, o al de un proyecto. Dé a cada calendario un nombre, que su aplicación muestra, y elija qué muestra: turnos, reuniones, hitos, fechas límite y, en un calendario de proyecto, cues. Un calendario de proyecto también puede seguir solo a algunas personas, un equipo o un departamento, y solo los cues con un llamado de un departamento del show. Un calendario nunca muestra más de lo que usted puede ver. ",
+          },
+          { t: "strong", v: "Editar" },
+          { t: "text", v: " lo cambia sin cambiar su enlace." },
         ],
       },
       { t: "h2", v: "Notificaciones" },

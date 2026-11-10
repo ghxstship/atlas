@@ -12,44 +12,30 @@ import {
   type SystemBanner,
 } from "@xos/data/system-banners";
 import { useLocale } from "next-intl";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 /**
- * Platform system banners (A90, Section 4.10): maintenance, incidents, plan notices. Fetched from this app's own
- * cached route once the page is idle, so a banner never blocks or slows the page; a failed fetch shows nothing. A
- * dismissible banner a person hides stays hidden on this device.
+ * Platform system banners (A90, Section 4.10): maintenance, incidents, plan notices, as the cached route answered them
+ * (deferred-system-banners.tsx). A dismissible banner a person hides stays hidden on this device.
  */
-export function SystemBanners({ linkLabel }: { linkLabel: string }) {
+export function SystemBanners({
+  banners: live,
+  linkLabel,
+}: {
+  banners: readonly unknown[];
+  linkLabel: string;
+}) {
   const locale = useLocale();
-  const [banners, setBanners] = useState<SystemBanner[]>([]);
-  const [dismissed, setDismissed] = useState<string[]>([]);
-  useEffect(() => {
-    let alive = true;
-    const load = async () => {
-      let stored: string | null = null;
-      try {
-        stored = window.localStorage.getItem(DISMISSED_BANNERS_KEY);
-      } catch (error) {
-        // Storage can be off (private browsing); every banner then shows.
-        if (!(error instanceof DOMException)) throw error;
-      }
-      try {
-        const response = await fetch("/api/system-banners");
-        const body = response.ok ? ((await response.json()) as { banners?: unknown }) : {};
-        if (!alive) return;
-        setDismissed(parseDismissed(stored));
-        setBanners(parseBannerJson(body.banners));
-      } catch (error) {
-        // A banner outage never breaks a page; the next page load asks again.
-        if (!(error instanceof TypeError || error instanceof SyntaxError)) throw error;
-      }
-    };
-    const idle = window.requestIdleCallback ?? ((run: () => void) => window.setTimeout(run, 1));
-    idle(() => void load());
-    return () => {
-      alive = false;
-    };
-  }, []);
+  const [banners] = useState<SystemBanner[]>(() => parseBannerJson(live));
+  const [dismissed, setDismissed] = useState<string[]>(() => {
+    try {
+      return parseDismissed(window.localStorage.getItem(DISMISSED_BANNERS_KEY));
+    } catch (error) {
+      // Storage can be off (private browsing); every banner then shows.
+      if (!(error instanceof DOMException)) throw error;
+      return [];
+    }
+  });
 
   const shown = visibleBanners(banners, dismissed);
   if (shown.length === 0) return null;

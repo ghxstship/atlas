@@ -3,7 +3,12 @@ import type {
   GalleryProps as ReferenceGalleryProps,
   OrgChartProps as ReferenceOrgChartProps,
   ResourceScheduleProps as ReferenceResourceScheduleProps,
+  TimelineCategory as ReferenceTimelineCategory,
+  TimelineChange as ReferenceTimelineChange,
+  TimelineLink as ReferenceTimelineLink,
+  TimelinePreview as ReferenceTimelinePreview,
   TimelineProps as ReferenceTimelineProps,
+  TimelineSegment as ReferenceTimelineSegment,
 } from "../types/reference";
 import type { ItemSelection } from "../lib/selection.ts";
 import type { ItemContextMenu } from "../Views/Views.types.ts";
@@ -24,6 +29,11 @@ export type CalendarProps = Omit<ReferenceCalendarProps, "events"> & {
 };
 
 export type TimelineProps = ReferenceTimelineProps;
+export type TimelineChange = ReferenceTimelineChange;
+export type TimelineLink = ReferenceTimelineLink;
+export type TimelinePreview = ReferenceTimelinePreview;
+export type TimelineCategory = ReferenceTimelineCategory;
+export type TimelineSegment = ReferenceTimelineSegment;
 
 export type ResourceScheduleProps = ReferenceResourceScheduleProps;
 

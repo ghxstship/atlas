@@ -84,6 +84,288 @@ describe("platform emails", () => {
     ]);
   });
 
+  it("sends an account or roster invitation that links to Gateway sign-in, never with the address", async () => {
+    const transport = new RecordingTransport();
+    const { s, finished } = store([
+      {
+        id: "e4",
+        template: "party_invitation",
+        to: "nell@touring.test",
+        locale: "en-US",
+        args: {
+          kind: "roster",
+          inviter_name: "Victor Osei",
+          org_name: "Northwind Live",
+          project_name: "Northwind Summer Series",
+          party_name: "Bayside Audio",
+          expires_at: "2027-06-01T12:00:00Z",
+        },
+      },
+    ]);
+    const summary = await dispatchPlatformEmails(s, transport, {
+      ...OPTIONS,
+      gatewayUrl: "https://gateway.xos.test",
+    });
+    expect(finished[0]?.[3] ?? null).toBeNull();
+    expect(summary).toEqual({ attempted: 1, sent: 1, failed: 0 });
+    const [invitation] = transport.sent;
+    expect(invitation?.subject).toBe(
+      "Victor Osei invites you onto the Bayside Audio crew for Northwind Summer Series",
+    );
+    expect(invitation?.html).toContain("https://gateway.xos.test/auth/sign-in");
+    expect(invitation?.html).not.toContain("nell%40touring.test");
+    expect(invitation?.headers?.["List-Unsubscribe"]).toBeUndefined();
+    expect(finished).toEqual([["e4", true, "recorded-1", null]]);
+  });
+
+  it("sends an invitation under the inviting org's brand while white label is in force, and as XOS otherwise", async () => {
+    const claim: ClaimedPlatformEmail = {
+      id: "e6",
+      template: "party_invitation",
+      to: "nell@touring.test",
+      locale: "en-US",
+      args: {
+        kind: "pool",
+        org_id: "org-1",
+        inviter_name: "Victor Osei",
+        org_name: "Northwind Live",
+        job_title: "Rigger",
+        expires_at: "2027-06-01T12:00:00Z",
+      },
+    };
+    const brandReads: string[] = [];
+    const branded = new RecordingTransport();
+    const withBrand = store([claim]);
+    await dispatchPlatformEmails(
+      {
+        ...withBrand.s,
+        brandFor: async (orgId) => {
+          brandReads.push(orgId);
+          return {
+            brandName: "Northwind Presents",
+            senderName: "Northwind Crew Desk",
+            replyTo: "crew@northwind.test",
+            logoPath: "org-1/logo.png",
+            accentHex: "#0B5FFF",
+            suppressPoweredBy: false,
+          };
+        },
+      },
+      branded,
+      {
+        ...OPTIONS,
+        gatewayUrl: "https://gateway.xos.test",
+        brandAssetUrl: "https://project.supabase.test/storage/v1/object/public/org-brand",
+      },
+    );
+    expect(brandReads).toEqual(["org-1"]);
+    const [mail] = branded.sent;
+    expect(mail?.from).toBe("Northwind Crew Desk <notices@mail.xos.test>");
+    expect(mail?.replyTo).toBe("crew@northwind.test");
+    expect(mail?.subject).toBe("Victor Osei invites you to join the Northwind Presents crew list");
+    expect(mail?.html).toContain("org-brand/org-1/logo.png");
+    expect(mail?.text).not.toContain("Northwind Live");
+
+    const plain = new RecordingTransport();
+    const withoutBrand = store([claim]);
+    await dispatchPlatformEmails({ ...withoutBrand.s, brandFor: async () => null }, plain, {
+      ...OPTIONS,
+      gatewayUrl: "https://gateway.xos.test",
+    });
+    expect(plain.sent[0]?.from).toBe("XOS <notices@mail.xos.test>");
+    expect(plain.sent[0]?.replyTo).toBeUndefined();
+    expect(plain.sent[0]?.subject).toBe(
+      "Victor Osei invites you to join the Northwind Live crew list",
+    );
+  });
+
+  it("never asks for a brand for XOS's own notices", async () => {
+    const reads: string[] = [];
+    const { s } = store([
+      {
+        id: "e7",
+        template: "subprocessor_confirm",
+        to: "dana@example.test",
+        locale: "en-US",
+        args: { confirm_token: "xspn_t", org_id: "org-1" },
+      },
+    ]);
+    const transport = new RecordingTransport();
+    await dispatchPlatformEmails(
+      { ...s, brandFor: async (id) => (reads.push(id), null) },
+      transport,
+      OPTIONS,
+    );
+    expect(reads).toEqual([]);
+    expect(transport.sent[0]?.from).toBe("XOS <notices@mail.xos.test>");
+  });
+
+  it("sends a pool invitation that names the org and the role, never the pool, in both languages (B10)", async () => {
+    for (const [locale, subject, role] of [
+      ["en-US", "Victor Osei invites you to join the Northwind Live crew list", "Role: Rigger"],
+      [
+        "es-US",
+        "Victor Osei te invita a unirte a la lista de equipo de Northwind Live",
+        "Rol: Rigger",
+      ],
+    ] as const) {
+      const transport = new RecordingTransport();
+      const { s } = store([
+        {
+          id: "e5",
+          template: "party_invitation",
+          to: "nell@touring.test",
+          locale,
+          args: {
+            kind: "pool",
+            inviter_name: "Victor Osei",
+            org_name: "Northwind Live",
+            job_title: "Rigger",
+            expires_at: "2027-06-01T12:00:00Z",
+          },
+        },
+      ]);
+      const summary = await dispatchPlatformEmails(s, transport, {
+        ...OPTIONS,
+        gatewayUrl: "https://gateway.xos.test",
+      });
+      expect(summary.sent).toBe(1);
+      const [invitation] = transport.sent;
+      expect(invitation?.subject).toBe(subject);
+      expect(invitation?.html).toContain(role);
+      expect(invitation?.text ?? "").not.toMatch(/\bpool\b/i);
+      expect(invitation?.html).not.toMatch(/\bpool\b/i);
+    }
+  });
+
+  it("sends the legal queue's digest in the clock's own time zone, with a link for an operator", async () => {
+    const transport = new RecordingTransport();
+    const items = [
+      {
+        reference: "LQ-2026-00001",
+        matter: "Security Report",
+        clock: "First Response",
+        // The last second of 12 November in New York is already 13 November in UTC.
+        clock_at: "2026-11-13T04:59:59Z",
+        overdue: false,
+      },
+    ];
+    const { s, finished } = store([
+      {
+        id: "e5",
+        template: "legal_clock_alert",
+        to: "owner@example.test",
+        locale: "en-US",
+        args: {
+          items,
+          overdue: 0,
+          due_soon: 1,
+          audience: "operator",
+          time_zone: "America/New_York",
+        },
+      },
+      {
+        id: "e6",
+        template: "legal_clock_alert",
+        to: "backup@example.test",
+        locale: "es-US",
+        args: {
+          items: [
+            {
+              reference: "LQ-2026-00001",
+              clock: "Due",
+              clock_at: "2026-11-13T04:59:59Z",
+              overdue: true,
+            },
+          ],
+          overdue: 1,
+          due_soon: 0,
+          audience: "backup",
+          time_zone: "America/New_York",
+        },
+      },
+    ]);
+    const summary = await dispatchPlatformEmails(s, transport, {
+      ...OPTIONS,
+      consoleUrl: "https://console.xos.test",
+    });
+    expect(summary).toEqual({ attempted: 2, sent: 2, failed: 0 });
+    expect(finished.every((f) => f[1])).toBe(true);
+    const [operator, backup] = transport.sent;
+    expect(operator?.subject).toBe("XOS legal queue: 1 clock is coming due");
+    expect(operator?.text).toContain(
+      "LQ-2026-00001, security report: first response due November 12, 2026",
+    );
+    expect(operator?.html).toContain("https://console.xos.test/legal-queue");
+    expect(backup?.subject).toBe("Cola legal de XOS: 1 plazo está vencido");
+    expect(backup?.text).toContain("LQ-2026-00001: vence el 12 de noviembre de 2026");
+    expect(backup?.text).toContain("Vencido.");
+    expect(backup?.html).not.toContain("console.xos.test");
+  });
+
+  it("sends a statement of reasons by email when the notification queue reached nobody", async () => {
+    const transport = new RecordingTransport();
+    const { s } = store([
+      {
+        id: "e8",
+        template: "moderation_notice",
+        to: "carol@org.test",
+        locale: "es-US",
+        args: {
+          kind: "listing.moderated",
+          values: {
+            title: "Summer Series Riggers",
+            action: "Removed",
+            ground: "Terms Violation",
+            ruleReference: "Acceptable Use Policy 3.2",
+            statement: "Pide una tarifa.",
+            actorName: "XOS",
+          },
+        },
+      },
+    ]);
+    expect(await dispatchPlatformEmails(s, transport, OPTIONS)).toEqual({
+      attempted: 1,
+      sent: 1,
+      failed: 0,
+    });
+    expect(transport.sent[0]?.subject).toBe("Retiramos tu anuncio Summer Series Riggers");
+    expect(transport.sent[0]?.text).toContain("Pide una tarifa.");
+  });
+
+  it("sends a moderation outcome in the notice's own words to someone the queue cannot reach", async () => {
+    const transport = new RecordingTransport();
+    const { s } = store([
+      {
+        id: "e7",
+        template: "moderation_notice",
+        to: "rae@reporter.test",
+        locale: "en-US",
+        args: {
+          kind: "moderation_appeal.decided",
+          values: {
+            title: "Summer Series Riggers",
+            outcome: "Reversed",
+            statement: "The fee is charged.",
+            reviewer: "same",
+            reviewerName: "",
+            actorName: "XOS",
+          },
+        },
+      },
+    ]);
+    expect(await dispatchPlatformEmails(s, transport, OPTIONS)).toEqual({
+      attempted: 1,
+      sent: 1,
+      failed: 0,
+    });
+    expect(transport.sent[0]?.subject).toBe("We reversed our decision on Summer Series Riggers");
+    expect(transport.sent[0]?.text).toContain(
+      "The person who made the first decision did this review",
+    );
+    expect(transport.sent[0]?.headers?.["List-Unsubscribe"]).toBeUndefined();
+  });
+
   it("records a failure instead of dropping it", async () => {
     const { s, finished } = store([
       {

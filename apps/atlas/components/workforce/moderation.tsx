@@ -25,6 +25,7 @@ import { orgToday } from "@/lib/shell/time-zone";
 import { decideContentReportAction } from "@/lib/workforce/moderation-actions";
 import { QuerySwitch } from "./client";
 import { REFUSALS, workforceCopy } from "./shared";
+import { CollectionPage } from "@/components/platform/collection-page";
 
 const VIEWS: readonly ViewKind[] = ["table", "list"];
 
@@ -109,11 +110,10 @@ export async function ModerationSection({
   );
   if (!queue.ok) {
     return (
-      <>
-        <PageHeader title={title} />
+      <CollectionPage header={<PageHeader title={title} />}>
         {tabs}
         <ErrorPanel what={t("moderation.what")} />
-      </>
+      </CollectionPage>
     );
   }
   const when = (d: string) =>

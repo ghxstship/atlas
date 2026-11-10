@@ -12,7 +12,15 @@ import {
   searchPages,
   whatsNew,
 } from "../lib/content.ts";
-import { LOCALES, negotiate, translator } from "../lib/i18n.ts";
+import {
+  LOCALES,
+  PUBLISHED_LOCALES,
+  contentLocale,
+  localeDirection,
+  negotiate,
+  translator,
+  uiMessages,
+} from "../lib/i18n.ts";
 import {
   linksIn,
   parseBody,
@@ -109,6 +117,23 @@ describe("markdown", () => {
     expect(() => parseBody("```\nopen")).toThrow(/not closed/);
   });
 
+  it("skips a help article's generated-list markers", () => {
+    expect(
+      parseBody("Intro\n<!-- shortcuts atlas go -->\n- **G H**: Go to Home\n<!-- /shortcuts -->"),
+    ).toEqual([
+      { t: "p", c: [{ t: "text", v: "Intro" }] },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "G H" },
+            { t: "text", v: ": Go to Home" },
+          ],
+        ],
+      },
+    ]);
+  });
+
   it("reads frontmatter and slugifies accented headings", () => {
     expect(parseDocument("---\ntitle: T\norder: 2\n---\nBody").meta).toEqual({
       title: "T",
@@ -139,10 +164,10 @@ describe("markdown", () => {
 
 describe("guides", () => {
   it("exist in every locale with the same slugs, sections and order", () => {
-    const shape = (locale: (typeof LOCALES)[number]) =>
+    const shape = (locale: (typeof PUBLISHED_LOCALES)[number]) =>
       guides(locale).map((g) => [g.slug, g.section, g.order]);
     expect(guides("en-US").length).toBeGreaterThanOrEqual(11);
-    for (const locale of LOCALES) expect(shape(locale)).toEqual(shape("en-US"));
+    for (const locale of PUBLISHED_LOCALES) expect(shape(locale)).toEqual(shape("en-US"));
   });
 
   it("include the self-hosting guide with the Supabase CLI and Docker Compose", () => {
@@ -151,9 +176,21 @@ describe("guides", () => {
     expect(textOf(guide?.body ?? [])).toMatch(/Docker Compose/);
   });
 
+  it("install the npm packages from the owner's @ghxstship scope, never @xos", () => {
+    for (const locale of LOCALES) {
+      const text = (slug: string) =>
+        textOf(guides(locale).find((g) => g.slug === slug)?.body ?? []);
+      expect(text("typescript-sdk")).toContain("npm install @ghxstship/xos-sdk");
+      expect(text("cli")).toContain("npm install --global @ghxstship/xos-cli");
+      expect(text("python-sdk")).toContain("pip install xos-sdk");
+      for (const guide of guides(locale))
+        expect(textOf(guide.body), `${locale}/${guide.slug}`).not.toMatch(/@xos\/(sdk|cli)\b/);
+    }
+  });
+
   it("only link to pages that exist", () => {
     const reference = loadReference();
-    for (const locale of LOCALES) {
+    for (const locale of PUBLISHED_LOCALES) {
       const guideSlugs = new Set(guides(locale).map((g) => g.slug));
       const helpSlugs = new Set(helpArticles(locale).map((a) => a.slug));
       for (const page of [...guides(locale), ...helpArticles(locale)]) {
@@ -187,7 +224,7 @@ describe("help center", () => {
   it("reads A31's articles in every locale", () => {
     const en = helpArticles("en-US");
     expect(en.length).toBeGreaterThan(20);
-    for (const locale of LOCALES)
+    for (const locale of PUBLISHED_LOCALES)
       expect(helpArticles(locale).map((a) => a.slug)).toEqual(en.map((a) => a.slug));
     expect(en.every((a) => ["guide", "page", "workflow", "glossary"].includes(a.kind))).toBe(true);
   });
@@ -196,7 +233,7 @@ describe("help center", () => {
     for (const shell of ["gateway", "compass"] as const) {
       const en = helpArticles("en-US", shell);
       expect(en.length, shell).toBeGreaterThan(30);
-      for (const locale of LOCALES) {
+      for (const locale of PUBLISHED_LOCALES) {
         const articles = helpArticles(locale, shell);
         expect(articles.map((a) => a.slug)).toEqual(en.map((a) => a.slug));
         const slugs = new Set(articles.map((a) => a.slug));
@@ -224,7 +261,7 @@ describe("help center", () => {
   });
 
   it("has copy for every What's New entry and article kind", () => {
-    for (const locale of LOCALES) {
+    for (const locale of PUBLISHED_LOCALES) {
       const th = translator(locale, "help");
       for (const entry of whatsNew()) {
         expect(th(`whatsNew.${entry.key}.title`)).not.toBe("");
@@ -248,7 +285,7 @@ describe("help center", () => {
     expect(existsSync(join(APP, "../atlas/help/whats-new.yaml"))).toBe(true);
     for (const shell of HELP_SHELLS) {
       expect(patterns, shell).toContain(`../${shell}/help/articles/**/*.md`);
-      for (const locale of LOCALES) {
+      for (const locale of PUBLISHED_LOCALES) {
         const articles = helpArticles(locale, shell);
         expect(articles.length, `${shell} ${locale}`).toBeGreaterThan(0);
         for (const article of articles) {
@@ -274,6 +311,25 @@ describe("copy", () => {
     expect(negotiate("fr-FR, de;q=0")).toBe("en-US");
     expect(negotiate(null)).toBe("en-US");
     expect(negotiate("es-US;q=0.2, en-US;q=0.8")).toBe("en-US");
+    // A pseudo-locale is never guessed from the browser.
+    expect(negotiate("en-XA, ar-XB")).toBe("en-US");
+  });
+
+  it("serves the pseudo-locales outside production from the en-US source", () => {
+    // Vitest runs with NODE_ENV=test, so the pseudo-locales are served; a production build serves the
+    // published locales only.
+    expect(LOCALES).toEqual([...PUBLISHED_LOCALES, "en-XA", "ar-XB"]);
+    expect(contentLocale("en-XA")).toBe("en-US");
+    expect(contentLocale("es-US")).toBe("es-US");
+    expect(localeDirection("ar-XB")).toBe("rtl");
+    expect(localeDirection("en-XA")).toBe("ltr");
+    expect(translator("en-XA")("reference.operations", { count: 3 })).toMatch(
+      /^\[3 öþéŕàţîöñš ·+\]$/,
+    );
+    expect(translator("ar-XB")("nav.home")).toMatch(/^\u202e.+\u202c$/);
+    expect(uiMessages("en-XA")?.["action.cancel"]).toMatch(/^\[Çàñçéļ ·+\]$/);
+    expect(guides("en-XA").map((g) => g.slug)).toEqual(guides("en-US").map((g) => g.slug));
+    expect(helpArticles("ar-XB", "gateway").length).toBe(helpArticles("en-US", "gateway").length);
   });
 });
 
@@ -290,6 +346,26 @@ describe("API reference", () => {
     expect(reference.version).toBe(doc.info.version);
     expect(new Set(reference.resources.map((r) => r.slug)).size).toBe(reference.resources.length);
     expect(loadReference()).toBe(reference);
+  });
+
+  it("keeps constraints as data for each locale to word, and writes arrays as code", () => {
+    const rows = reference.resources.flatMap((r) =>
+      r.operations.flatMap((o) => [
+        ...o.pathParams,
+        ...o.queryParams,
+        ...(o.body?.fields ?? []),
+        ...(o.response?.fields ?? []),
+      ]),
+    );
+    const kinds = new Set(rows.flatMap((f) => f.constraints.map((c) => c.kind)));
+    expect([...kinds].sort()).toEqual(expect.arrayContaining(["length", "range"]));
+    const limit = rows.find((f) => f.name === "limit")?.constraints.find((c) => c.kind === "range");
+    expect(limit).toMatchObject({ kind: "range", min: expect.any(Number) });
+    // No English words in a type: arrays read as `Item[]`.
+    expect(rows.some((f) => f.type.endsWith("[]"))).toBe(true);
+    expect(rows.every((f) => !/\barray of\b/.test(f.type))).toBe(true);
+    const t = translator("es-US");
+    expect(t("reference.constraintLength", { min: 1, max: 300 })).toBe("longitud de 1 a 300");
   });
 
   it("describes a list, a create and an update with fields, examples and samples", () => {
@@ -340,7 +416,7 @@ describe("API reference", () => {
 
   // After `next build`, every operation page exists as prerendered HTML in both locales.
   it.runIf(FRESH_BUILD)("prerenders every operation page in every locale", () => {
-    const missing = LOCALES.flatMap((locale) =>
+    const missing = PUBLISHED_LOCALES.flatMap((locale) =>
       operationPages()
         .map((p) => `${locale}/reference/${p.resource}/${p.operation}.html`)
         .filter((file) => !existsSync(join(BUILT_PAGES, "..", "..", file))),

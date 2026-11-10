@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { OrgBanners } from "@/components/platform/org-banners";
-import { SystemBanners } from "@/components/shell/system-banners";
+import { DeferredSystemBanners } from "@/components/shell/deferred-system-banners";
 import { AppShell } from "@/components/shell/app-shell";
 import { getOrgContext } from "@/lib/shell/context";
 
@@ -20,7 +20,7 @@ export default async function PartnerLayout({
   const t = await getTranslations("shell.systemBanner");
   return (
     <AppShell ctx={ctx}>
-      <SystemBanners linkLabel={t("details")} />
+      <DeferredSystemBanners linkLabel={t("details")} />
       <OrgBanners ctx={ctx} />
       {children}
     </AppShell>

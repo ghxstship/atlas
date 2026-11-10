@@ -5,10 +5,11 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { ActionForm } from "@/components/action-form";
 import { saveBannerAction } from "@/lib/actions/operations";
+import * as enums from "@xos/data/enums";
 
-const KINDS = ["Maintenance", "Incident", "Plan Notice", "Notice"] as const;
-const SEVERITIES = ["Info", "Warning", "Critical"] as const;
-const AUDIENCES = ["Everyone", "Atlas", "Gateway", "Compass"] as const;
+const KINDS = enums.systemBannerKind;
+const SEVERITIES = enums.systemBannerSeverity;
+const AUDIENCES = enums.systemBannerAudience;
 
 /**
  * Publishes a system banner. Its window is entered in the operator's local time and sent with the browser's offset,

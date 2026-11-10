@@ -5,10 +5,10 @@
 // offboarding run in SQL (app.scim_provision); the handler lives in @xos/integrations (identity/scim.ts).
 import { createClient } from "@supabase/supabase-js";
 import { serveScim, supabaseAuthAdmin, supabaseScimStore } from "../_vendor/scim.js";
-import { env, serve } from "../_shared/runtime.ts";
+import { env, secretKey, serve } from "../_shared/runtime.ts";
 
 serve(async (request) => {
-  const service = createClient(env("SUPABASE_URL"), env("SUPABASE_SERVICE_ROLE_KEY"), {
+  const service = createClient(env("SUPABASE_URL"), secretKey(), {
     db: { schema: "app" },
     auth: { persistSession: false, autoRefreshToken: false },
   });

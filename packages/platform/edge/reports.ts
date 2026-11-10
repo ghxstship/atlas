@@ -1,13 +1,17 @@
 /**
  * The report.run and report.deliver workers for the Edge bundle (A35, RRR-79; A43, RRR-87). The
  * workers live with the report builder in @xos/data (report-runs.ts, report-deliveries.ts), so a run
- * aggregates exactly as the preview does; this file re-exports them and adds the file headers and
- * the scheduled email copy from @xos/i18n. Only the two namespaces the copy uses (workflow and
- * reporting) are read, and each locale's pair loads the first time a run asks for that locale (A85).
+ * aggregates exactly as the preview does; this file re-exports them and adds the file headers from
+ * @xos/i18n. Only the two namespaces the headers use (workflow and reporting) are read, and each
+ * locale's pair loads the first time a run asks for that locale (A85). The scheduled report and
+ * stakeholder pack emails are the org's branded packages/email emails (report-email.ts), loaded the
+ * first time a delivery needs one.
  */
 import { defaultLocale, isLaunchLocale, type LaunchLocale } from "@xos/i18n/locales";
-import type { DeliveryCopy } from "../../data/src/report-deliveries.ts";
+import type { ComposeReportEmail } from "../../data/src/report-deliveries.ts";
 import type { RunLabels } from "../../data/src/report-runs.ts";
+import type { ComposePackEmail } from "../../data/src/stakeholder-packs.ts";
+import type { PackEmailOptions, ReportEmailOptions } from "./report-email.ts";
 
 export {
   REPORT_DELIVER_JOB,
@@ -30,6 +34,30 @@ export {
 } from "../../data/src/report-runs.ts";
 
 export { READ_REPLICA_ENV, readReplicaUrl } from "../../data/src/read-replica.ts";
+
+/** The pack.deliver worker, loaded when a run reaches it, so report-run's boot stays inside its budget. */
+export const loadPackDeliveries = () => import("../../data/src/stakeholder-packs.ts");
+
+/** The branded report and pack emails, with React Email, loaded the first time a delivery needs one. */
+export const loadReportEmail = () => import("./report-email.ts");
+
+/** The org's branded scheduled report email, its module loaded on the first delivery. */
+export function lazyReportEmailComposer(options: ReportEmailOptions): ComposeReportEmail {
+  let built: ComposeReportEmail | null = null;
+  return async (delivery, attachment) => {
+    built ??= (await loadReportEmail()).reportEmailComposer(options);
+    return built(delivery, attachment);
+  };
+}
+
+/** The org's branded stakeholder pack email, its module loaded on the first delivery. */
+export function lazyPackEmailComposer(options: PackEmailOptions): ComposePackEmail {
+  let built: ComposePackEmail | null = null;
+  return async (link, links, env) => {
+    built ??= (await loadReportEmail()).packEmailComposer(options);
+    return built(link, links, env);
+  };
+}
 
 type Tree = { readonly [key: string]: Tree | string };
 
@@ -112,15 +140,5 @@ export async function reportRunLabels(locale: string): Promise<RunLabels> {
         ? `${name} ${field(source, key)}`
         : template.replace("{aggregate}", name).replace("{field}", field(source, key));
     },
-  };
-}
-
-/** The scheduled report email in a locale (en-US when unknown). */
-export async function reportDeliveryCopy(locale: string): Promise<DeliveryCopy> {
-  const messages = await messagesFor(locale);
-  const email = (key: string) => lookup(messages, ["reporting", "email", key]) ?? key;
-  return {
-    subject: (values) => fill(email("subject"), values),
-    body: (values) => fill(email("body"), values),
   };
 }

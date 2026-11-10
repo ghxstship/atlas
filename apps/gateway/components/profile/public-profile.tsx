@@ -1,4 +1,4 @@
-import type { PublicPersonProfileFull, Rating } from "@xos/data/gateway";
+import type { PublicPersonProfileFull } from "@xos/data/gateway";
 import type { Route } from "next";
 import Link from "next/link";
 import { Section } from "@/components/page/page";
@@ -6,20 +6,34 @@ import { Avatar, Icon, Tag } from "@/components/ui";
 import { formatDate, formatMoney } from "@/lib/format";
 import { enumLabelKey, type Translate } from "@/lib/shell/translate";
 
+/** A rating as the profile shows it. The page decides whether the viewer may have any (ADR 0158). */
+export interface ProfileRating {
+  readonly id: string;
+  readonly score: number;
+  readonly comment: string | null;
+  readonly submittedAt: string;
+  readonly reply: string | null;
+  readonly disputed: boolean;
+}
+
 /**
  * A person's profile as the viewer may see it (Section 4.8.2, Section 11.12 Reputation): the
  * portfolio-style header, verified certifications, skills with their canon codes, portfolio and
- * EPK, languages, references, links, released ratings and the organizations they worked with.
- * Sections the viewer may not see arrive empty from api_public and do not render.
+ * EPK, languages, references, links, ratings the viewer may read and the organizations they worked
+ * with. Sections the viewer may not see arrive empty from api_public and do not render. Ratings of
+ * a person come only for the owner or, while the person's opt-in stands, a viewer who decides no
+ * hiring (ADR 0158), and there is never an average.
  */
 export function PublicPersonProfile({
   data,
   ratings,
+  ratingsNote,
   locale,
   t,
 }: {
   data: PublicPersonProfileFull;
-  ratings: readonly Rating[];
+  ratings: readonly ProfileRating[];
+  ratingsNote: string;
   locale: string;
   t: Translate;
 }) {
@@ -165,6 +179,7 @@ export function PublicPersonProfile({
 
       {ratings.length > 0 ? (
         <Section title={t("gateway.profile.public.ratings")}>
+          <p className="m-0 text-text-13 text-text-secondary">{ratingsNote}</p>
           <ul className="m-0 flex list-none flex-col gap-12 p-0">
             {ratings.map((r) => (
               <li
@@ -181,6 +196,11 @@ export function PublicPersonProfile({
                 <span className="text-text-12 text-text-secondary">
                   {formatDate(locale, r.submittedAt)}
                 </span>
+                {r.disputed ? (
+                  <span>
+                    <Tag>{t("gateway.profile.public.disputed")}</Tag>
+                  </span>
+                ) : null}
                 {r.reply ? (
                   <span className="border-s-(length:--stroke-width-accent) border-border-subtle ps-8 text-text-13 text-text-secondary">
                     {t("gateway.profile.public.reply", { reply: r.reply })}

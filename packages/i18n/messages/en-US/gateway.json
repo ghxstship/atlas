@@ -37,7 +37,170 @@
       "notification_channel_outside": "A company sets Email and Push only.",
       "supplier_diversity_no_program": "That organization does not run a supplier diversity program, so it takes no diversity certifications.",
       "time_zone_unknown": "That time zone is not recognized. Choose one from the list, for example America/New_York.",
-      "advance_answer_pending": "This section is answered and waiting for review. Answer again only if it is returned."
+      "notification_action_used": "This was already handled. Nothing else to do.",
+      "notification_action_expired": "This link has expired. Open the item from Home to act on it.",
+      "notification_action_not_yours": "This link was sent to someone else. Sign out, then sign in as the person it was sent to.",
+      "notification_action_invalid": "This link does not work. Open the item from Home.",
+      "notification_action_elsewhere": "This link opens in Atlas. Use the button in the email to open it there.",
+      "shift_no_show_self": "You cannot mark yourself as a no-show. Tell the production.",
+      "shift_no_show_state": "Mark a no-show once the shift has started and someone is on it.",
+      "shift_no_show_clocked_in": "This person clocked in on the shift, so they are not a no-show.",
+      "shift_no_show_reason": "Say what happened, so the production knows.",
+      "shift_no_show_frozen": "This shift has a no-show. The production withdraws it before anyone else takes the shift.",
+      "no_show_id_conflict": "This no-show was already recorded for another shift. Reload the page and try again.",
+      "shift_held_for_position": "This shift is held for a position another team fills. Choose a shift on your own slots.",
+      "shift_reconfirm_answered": "This shift has already started or your answer is already in, so there is nothing more to answer.",
+      "notification_action_reason": "Say why you are rejecting it.",
+      "advance_answer_pending": "This section is answered and waiting for review. Answer again only if it is returned.",
+      "submittal_response": "This submittal is not waiting for you. Reload the page to see where it stands.",
+      "submittal_note_length": "Write a note of 1 to 500 characters.",
+      "availability_poll_closed": "This poll has closed. Tell the org your availability directly.",
+      "availability_poll_answer": "Answer each day of the poll once, as Available, Tentative or Unavailable.",
+      "roster_copy_source": "Reuse a roster of the same company or artist with the same organization.",
+      "approval_link_code_too_soon": "A code was sent a moment ago. Wait a minute, then ask again; at most five are sent an hour.",
+      "approval_link_locked": "Too many wrong codes. This link is locked; sign in to decide.",
+      "approval_link_email_off": "Your approval emails are turned off, so no code can be sent. Sign in to decide instead.",
+      "approval_not_in_review": "This approval was already decided or withdrawn.",
+      "approval_not_step_approver": "You are not an approver of the step this approval is waiting on.",
+      "approval_one_step_per_approver": "You already decided a step of this approval. The next step needs someone else.",
+      "approval_subject_beneficiary": "This approval is for you, so someone else decides it.",
+      "approval_rejection_reason": "Say why you are rejecting it.",
+      "sod_approval_requester": "You requested this approval, so someone else decides it.",
+      "credential_photo_path": "That photo did not reach your own folder. Upload it again.",
+      "credential_photo_no_credential": "You hold no live credential with this organization, so it takes no badge photo from you.",
+      "credential_photo_notice": "Reload the page to see the current notice, then save your photo again.",
+      "roster_closed": "This engagement is complete or canceled, so its roster is closed.",
+      "roster_role_type": "This engagement carries no crew roster. Only artist engagements and company engagements of a vendor, contractor, staffing company or sponsor do.",
+      "roster_person_not_in_team": "Add people who confirmed their membership in your company, or artists you represent. Invite anyone else by email.",
+      "roster_person_is_engaged": "The person this engagement names is on the roster through their own entry.",
+      "roster_person_duplicate": "This person is already on the roster.",
+      "roster_arrival_window": "Give the arrival a start, a later end and a time zone, or leave all three empty.",
+      "roster_role_unknown": "Choose a role from the list.",
+      "roster_entry_not_editable": "This entry is under review or accepted, so it can no longer change. Withdraw it and add a replacement.",
+      "roster_empty_submit": "Add or change someone on the roster before submitting it.",
+      "roster_self_entry_fixed": "The person this engagement names stays on the roster.",
+      "roster_entry_withdrawn": "This roster entry was withdrawn.",
+      "roster_replacement_invalid": "A replacement names a withdrawn entry of this engagement.",
+      "roster_response_not_yours": "Only the person on a roster entry answers it.",
+      "roster_entry_not_accepted": "Accept the roster entry on Home before sharing your work details with it.",
+      "invite_expiry_range": "An invitation stays open between 1 hour and 30 days.",
+      "invitation_email": "Enter one email address.",
+      "invitation_not_yours": "This invitation was sent to another address. Sign in with the address it was sent to.",
+      "invitation_closed": "This invitation was already answered, revoked or has expired. Ask for a new one.",
+      "account_membership_not_yours": "Only the person a membership names can confirm it.",
+      "account_membership_unconfirmed": "This member has not confirmed their membership yet, so they cannot be assigned.",
+      "assignment_account_mismatch": "Assign members of the company that supplies this engagement.",
+      "roster_locked": "Names are locked on this engagement. Ask the producing organization to change the roster.",
+      "roster_lock_engagement_closed": "This engagement is closed, so its names lock no longer changes.",
+      "allocation_not_your_engagement": "Only the people who answer for this engagement ask for and share out what it needs. Ask your account's Owner, Admin or Advancing Lead.",
+      "allocation_entry_not_on_engagement": "That person is not on this engagement's roster. Choose someone on it.",
+      "allocation_not_requestable": "That item is not one this project lets you ask for. Choose another.",
+      "allocation_item_kind": "Choose a credential, equipment, catering, a room, travel or per diem.",
+      "offering_not_offered": "The organization does not offer this on this engagement. Message them if you need it.",
+      "offering_not_provided": "The organization does not provide this one; it is reimbursed or paid as a buyout.",
+      "allocation_cap_engagement": "This goes beyond what your company may have of this. Ask for less.",
+      "allocation_cap_person": "This goes beyond what one person may have of this. Ask for less.",
+      "allocation_engagement_closed": "This engagement is complete or canceled, so nothing more is requested on it.",
+      "allocation_entry_not_live": "That person was withdrawn from the roster or declined it.",
+      "allocation_entry_not_accepted": "That person is not accepted on the roster yet, by the organization and by themselves.",
+      "allocation_issued": "Part of this was already handed over. Return it at the desk first.",
+      "allocation_state_conflict": "This changed a moment ago. Reload to see where it stands.",
+      "allocation_not_pool": "Only an approved pool is shared out. Wait for the organization to approve it.",
+      "allocation_not_split": "Only an approved share of a pool goes back to it.",
+      "allocation_split_exceeds": "The pool does not have that many left. Give a smaller share.",
+      "allocation_split_parts": "Give each person a whole quantity of at least one.",
+      "allocation_window": "The end of the need must come after its start.",
+      "allocation_quantity_positive": "Enter a quantity above zero.",
+      "allocation_quantity_whole": "This item is given in whole numbers.",
+      "advance_section_derived": "The crew roster section is read from your Crew tab, so it takes no answer. Update the roster there.",
+      "advance_section_role": "Guest lists are not part of a contractor's or sponsor's advance.",
+      "advance_section_open": "This section is no longer open. Reload the page to see the packet as it is now.",
+      "advance_recipient_engagement": "This section is answered under your engagement, and the packet is not linked to it yet. Ask the organization to link it.",
+      "advance_line_limit": "This section takes fewer lines. Remove some and send again.",
+      "advance_line_kind": "One of the lines does not fit this section. Choose one of the listed items and a quantity.",
+      "advance_line_person": "Check who each line is for: this section asks for a person on every line, or for none.",
+      "advance_line_window": "A window ends after it starts. Check the times and send again.",
+      "advance_line_roster_entry": "One of the people is not on this engagement's crew roster any more. Choose someone on the roster.",
+      "advance_file_document": "Attach the files again: each file goes to one answer, up to the number the section allows.",
+      "advance_answer_length": "Write an answer of up to 20,000 characters.",
+      "advance_typed_answer_rpc": "Send this section's answer with its own form.",
+      "party_upload_missing": "The file did not finish uploading. Choose it again and send.",
+      "party_upload_checksum": "The file could not be verified. Choose it again and send.",
+      "guest_list_cap": "Your guest list is full, plus-ones included. Remove a guest or ask the organization for more places.",
+      "sponsor_asset_files_required": "Attach between 1 and 10 files.",
+      "sponsor_asset_files_invalid": "Attach the files again: each file goes to one asset.",
+      "sponsor_asset_source": "The organization approves the assets you supply. To change one it returned, resubmit it with new files.",
+      "credential_names_closed": "The deadline to name passes has passed. Contact the organization to change who holds them.",
+      "delivery_window_full": "This window is full. Choose another window.",
+      "delivery_window_closed": "This window is no longer open for booking.",
+      "delivery_booking_locked": "This booking has started or checked in, so it can no longer change.",
+      "delivery_booking_shipment": "Choose a shipment your company carries.",
+      "booking_event_reused": "This booking was already used for another window or company. Reload and try again.",
+      "advance_token_invalid": "This advance link is not valid. Use the latest link the organization sent.",
+      "advance_token_locked": "Too many wrong codes. The link is locked; ask the organization for a new one.",
+      "advance_link_ended": "This link has ended.",
+      "document_link_ended": "This link has ended.",
+      "advance_token_expired": "This advance link expired. Ask the organization to send a new one.",
+      "advance_access_code": "That access code does not match. Open the link again and enter the six digits from your message.",
+      "token_invalid": "This link is not valid. Use the latest link the organization sent.",
+      "advance_upload_type": "That file type is not accepted. Upload a PDF, JPEG, PNG, HEIC, WebP, CSV, XLSX or DOCX file.",
+      "advance_upload_size": "That file is larger than 25 MB. Upload a smaller file.",
+      "advance_upload_limit": "This section already has as many files on the way as it takes. Send fewer files, or try again in 15 minutes.",
+      "advance_upload_rate": "Too many uploads through this link in the last hour. Wait a while and try again.",
+      "advance_upload_ticket": "That upload is no longer open. Choose the file again and send it.",
+      "advance_guest_rate": "Too many guest requests through this link today. Try again tomorrow or message the organization.",
+      "advance_roster_rate": "Too many invitations through this link today. Try again tomorrow or message the organization.",
+      "guest_list_closed": "The guest list opens once the organization confirms your engagement. Check back later.",
+      "guest_name_length": "Write the guest's name, up to 200 characters.",
+      "guest_plus_ones": "Plus-ones run from 0 to 20.",
+      "guest_note_length": "Keep the note to 500 characters.",
+      "payout_reference_bank_number": "A plain number of 6 or more digits looks like a bank account. Use the reference with its letters or prefix.",
+      "payout_reference_length": "Enter a reference of up to 200 characters.",
+      "vendor_intake_account": "Choose a company account where you are the Account Owner or an Account Admin.",
+      "vendor_intake_tax_form": "Give your own tax form for this organization: a W-9 or W-8BEN for yourself, a W-9 or W-8BEN-E for a company.",
+      "vendor_intake_payout": "Give your own payout reference for this organization.",
+      "vendor_intake_signature": "Type your name to sign the agreement.",
+      "vendor_intake_invoice_draft": "Check the first invoice: a number, dates, a currency and 1 to 50 lines.",
+      "vendor_intake_invoice_not_collected": "This intake link does not take a first invoice.",
+      "vendor_intake_rate_limited": "You sent 3 requests through this link today. Try again tomorrow.",
+      "vendor_intake_pending": "You already have a request waiting on this link.",
+      "vendor_intake_not_pending": "This request has already been decided or withdrawn.",
+      "intake_link_full": "This link has taken all the requests it can. Ask the organization for a new one.",
+      "intake_link_invalid": "This link is no longer available. Ask the organization for a new one.",
+      "intake_link_expired": "This link expired. Ask the organization to send a new one.",
+      "intake_link_ended": "This link has ended.",
+      "intake_link_rate_limited": "Too many tries from this address. Wait a few minutes and try again.",
+      "intake_grant": "Open the link again and enter its access code.",
+      "intake_invoice_used": "The first invoice of this request was already submitted.",
+      "intake_invoice_none": "This request has no first invoice waiting.",
+      "guest_email_format": "Enter one email address for the guest, or leave it empty.",
+      "roster_shift_not_agency_slot": "Only an agency slot, or a shift your roster already holds, takes agency staff. Choose another shift.",
+      "roster_entry_other_engagement": "This shift belongs to another engagement's roster. Place someone from that roster.",
+      "roster_training_incomplete": "This person has training to acknowledge, or the production still has to verify it. Place them once their training is done.",
+      "roster_shift_overlap": "This person already holds a shift that overlaps this one. Choose someone else or take them off the other shift.",
+      "roster_shift_closed": "This shift is canceled or already over.",
+      "roster_shift_not_assigned": "No one from your roster holds this shift.",
+      "roster_entry_not_working": "This roster entry is withdrawn or its engagement is not active, so it takes no new time.",
+      "roster_training_not_due": "This training is not due on your roster entry.",
+      "sod_roster_training": "A person cannot verify their own training. Someone else at the production verifies it.",
+      "content_objectionable": "This contains language that is not allowed here. Change the wording and try again.",
+      "guest_note_sensitive": "Leave dietary and access needs out of the note. Use the guest's needs step, which records consent.",
+      "sensitive_consent_required": "Agree to the wording before saving this. Nothing else on the form needs it.",
+      "sensitive_attestation_required": "Confirm both statements to continue.",
+      "sensitive_person_only": "Only this person can enter this.",
+      "travel_note_sensitive": "Leave dietary and access needs out of the travel notes. Add a meal preference, or use Work Details, which record consent.",
+      "sensitive_notice_version": "This wording changed. Reload the page and read the current version.",
+      "rating_dispute_ground": "Choose why you dispute this rating.",
+      "rating_dispute_details": "Say what is wrong with this rating, in up to 4,000 characters.",
+      "rating_dispute_exists": "You have already disputed this rating. You can see where it stands under the rating.",
+      "rating_sharing_notice": "Reload the page and choose again, so we can record the notice you saw.",
+      "quote_expired": "This quote expired, so it can no longer be accepted. Ask for a new version.",
+      "quote_not_sent": "This quote version is no longer waiting for a signature.",
+      "quote_client_engagement": "This quote's client engagement is closed, so it can no longer be accepted.",
+      "document_text_sign_with_hash": "Read this document in Gateway and sign it there with your typed name.",
+      "registration_not_withdrawable": "This registration was already declined or withdrawn.",
+      "intake_account_country": "Choose the country where the company is established.",
+      "territory_not_offered": "XOS is not offered in your company's country, so we did not create this company account. If the organization that sent this link works with you, you do not need one: ask it to set you up."
     }
   },
   "common": {
@@ -76,7 +239,8 @@
     },
     "mapAlternative": "Map locations are not available yet, so places are listed below in date order.",
     "orgFilter": "Showing {org} only",
-    "clearFilter": "Show every organization"
+    "clearFilter": "Show every organization",
+    "tbc": "TBC"
   },
   "engagement": {
     "tabs": "Engagement sections",
@@ -111,6 +275,8 @@
         "closeOut": "Close-out"
       },
       "blocked": "This engagement is blocked until every required onboarding step passes. Open Onboarding to see what is left.",
+      "blockedCompliance": "This engagement is blocked until every required step passes. Open Compliance to see what is left.",
+      "blockedHere": "This engagement is blocked until every required step passes. What is left is listed on this page.",
       "rate": "Your rate",
       "rateHidden": "Shown while money is open on this engagement",
       "payBasis": "Pay basis",
@@ -118,12 +284,20 @@
       "approvalsCount": "{n, plural, =0 {None} other {#}}",
       "entitlements": "Entitlements",
       "entitlementsCount": "{done} of {total} delivered",
-      "rated": "Thanks. Both ratings appear once the organization rates too, or after 14 days."
+      "rated": "Thanks. Both ratings appear once the organization rates too, or after 14 days.",
+      "uploads": "Documents to upload"
     },
     "documents": {
       "empty": "No documents yet. Contracts and forms the organization shares appear here.",
       "emptyKind": "Nothing of this kind has been shared yet. Ask the organization if you expected it.",
-      "expires": "Expires {date}"
+      "expires": "Expires {date}",
+      "quote": {
+        "confirmTitle": "Accept this quote",
+        "consent": "By choosing Accept quote, you consent to using electronic records and signatures for this quote and agree to its lines, total and terms.",
+        "accept": "Accept quote",
+        "total": "Total",
+        "validUntil": "Valid until"
+      }
     },
     "onboarding": {
       "empty": "No onboarding steps. The organization adds any it needs before you start.",
@@ -158,7 +332,9 @@
       "accept": "Accept shift"
     },
     "positions": {
-      "empty": "No positions assigned yet. They follow once training is done."
+      "empty": "No positions assigned yet. They follow once training is done.",
+      "records": "Records of {position}",
+      "due": "Due {date}"
     },
     "timesheets": {
       "empty": "No timesheets yet. Your clocked shifts collect into timesheets here.",
@@ -215,19 +391,103 @@
     "deliveries": {
       "empty": "No deliveries or dock slots yet. Your dock times appear here once booked.",
       "docks": "Dock slots",
-      "shipments": "Shipments"
+      "shipments": "Shipments",
+      "approval": {
+        "waiting": "Awaiting approval",
+        "approved": "Approved",
+        "rejected": "Rejected"
+      },
+      "reference": "Reference {code}",
+      "book": {
+        "title": "Book a delivery",
+        "window": "Delivery window",
+        "windowLine": "{gate}, {when}, {places} left",
+        "plate": "Plate or trailer",
+        "plateHelp": "Leave blank if you do not know it yet. You can add it later.",
+        "shipment": "Shipment",
+        "noShipment": "No shipment",
+        "submit": "Book delivery",
+        "done": "Delivery booked. Quote its reference code at the gate.",
+        "savePlate": "Save plate",
+        "changePlate": "Change plate",
+        "cancel": "Cancel booking"
+      }
     },
     "submittals": {
-      "empty": "No submittals requested yet. Requests for drawings and specs appear here."
+      "empty": "No submittals have been requested yet.",
+      "revision": "Revision {n}",
+      "returned": "Returned: {reason}",
+      "awaiting": "Submitted. The organization is reviewing it.",
+      "note": "Note",
+      "noteHelp": "Say what you are submitting and where the files are, in up to 500 characters.",
+      "submit": "Submit",
+      "resubmit": "Resubmit",
+      "done": "Sent for review.",
+      "files": {
+        "title": "Files",
+        "version": "Version {n}",
+        "approved": "Approved",
+        "changesRequested": "Changes requested",
+        "unreviewed": "Not reviewed yet",
+        "current": "Current version",
+        "reviewedOn": "Reviewed {date}:"
+      }
     },
     "advance": {
       "empty": "No advance packet yet. When the organization sends one, answer each section here.",
-      "awaitingReview": "Awaiting review"
+      "awaitingReview": "Awaiting review",
+      "kinds": {
+        "text": "Text answer",
+        "file": "Files",
+        "scheduleWindow": "Schedule window",
+        "itemRequest": "Item request",
+        "crewRoster": "Crew roster",
+        "guestList": "Guest list",
+        "credentialRequest": "Credential request"
+      },
+      "namesDue": {
+        "open": "Name your passes by {date}.",
+        "closed": "Names closed on {date}. Contact {org} to change them."
+      },
+      "guestsConfirmed": "You confirmed the guest list.",
+      "filesLabel": "Files you sent",
+      "linesLabel": "What you asked for",
+      "window": "{from} to {to}",
+      "lineTitle": "{n} × {item}",
+      "scan": {
+        "scanning": "Checking for viruses",
+        "clean": "Ready",
+        "infected": "Blocked: virus found",
+        "scanFailed": "Could not be checked"
+      },
+      "rosterEmpty": "Nobody is on the crew roster yet.",
+      "rosterCount": "{n} {state}",
+      "rosterLink": "Open the Crew tab",
+      "noGuestList": "Guest lists are not part of a contractor's or sponsor's advance.",
+      "guestsUsed": "{n} places on the guest list, plus-ones included.",
+      "guestsCap": "{n} of {cap} places used, plus-ones included.",
+      "recordedBy": "Recorded by {org} from your message. Ask them to return it if it needs changing.",
+      "tracks": {
+        "label": "{track} track",
+        "states": {
+          "notStarted": "Not started",
+          "inProgress": "In progress",
+          "readyForSignOff": "Ready for sign-off",
+          "signedOff": "Signed off",
+          "reopened": "Reopened"
+        },
+        "signedOffOn": "Signed off {date}",
+        "progress": "{done} of {total} sections done",
+        "summary": "Tracks"
+      }
     },
     "compliance": {
       "empty": "No compliance items yet. Insurance and prequalification appear here.",
       "insurance": "Insurance certificates",
-      "noInsurance": "No insurance certificate on file. Upload one under Onboarding.",
+      "noInsurance": "No insurance certificate on file. When the organization asks for one, upload it under Compliance steps on this page.",
+      "noInsuranceYet": "No insurance certificate recorded yet.",
+      "uploadWaiting": "{names}: received and waiting for review. If this is your insurance certificate, the organization records it here after checking it.",
+      "uploadPassed": "{names}: reviewed and passed. If this is your insurance certificate, the organization still has to record it here.",
       "current": "Current",
       "expired": "Expired",
       "prequalification": "Prequalification",
@@ -264,7 +524,11 @@
     "runOfShow": {
       "empty": "No run of show shared yet. It appears here once the organization shares it.",
       "called": "Called {time}",
-      "mySet": "Your set"
+      "mySet": "Your set",
+      "fields": "Cue details",
+      "yes": "Yes",
+      "no": "No",
+      "fieldValue": "{label}: {value}"
     },
     "scope": {
       "statement": "Statement of work",
@@ -307,7 +571,26 @@
     "roster": {
       "empty": "You do not represent any artists yet. Propose a representation from Company settings.",
       "action": "Representation settings",
-      "noEngagements": "No engagements for this artist yet."
+      "noEngagements": "No engagements for this artist yet.",
+      "copy": {
+        "title": "Reuse a roster from a past event",
+        "lead": "Add the people from a past event of this organization. They arrive as drafts each person accepts again; you still submit the roster.",
+        "source": "Past event",
+        "sourceLine": "{project}, {date}",
+        "preview": "Preview",
+        "addedPeople": "{n, plural, one {# person added} other {# people added}}",
+        "invitedAddresses": "{n, plural, one {# address invited again} other {# addresses invited again}}",
+        "skippedPeople": "{n, plural, one {# skipped} other {# skipped}}",
+        "commit": "Add to roster",
+        "added": "Added as drafts. Review them and submit the roster.",
+        "reasons": {
+          "roster_person_is_engaged": "on this engagement through their own entry",
+          "already_on_roster": "already on the roster",
+          "not_in_team": "no longer in your team; invite them by email",
+          "already_invited": "already invited",
+          "window_dropped": "arrival left out: a project has no show dates"
+        }
+      }
     },
     "forms": {
       "errors": {
@@ -327,7 +610,25 @@
         "plusOnes": "Plus-ones run from 0 to 20.",
         "settlementReason": "Write a short note or reason before answering.",
         "asset": "Choose approve, return or resubmit.",
-        "assetReason": "Say what to change, so the organization can revise the asset."
+        "assetReason": "Say what to change, so the organization can revise the asset.",
+        "submittalNote": "Write a note of up to 500 characters before submitting.",
+        "rosterPerson": "Choose who to add.",
+        "rosterArrival": "Give the arrival a start, a later end and a time zone, or leave all three empty.",
+        "rosterEmail": "Enter one email address.",
+        "assignMember": "Choose a member and a duty.",
+        "inviteEmail": "Enter one email address and choose a role.",
+        "allocationItem": "Choose who it is for and what you need.",
+        "allocationQuantity": "Enter a quantity above zero.",
+        "allocationWindow": "Give the need a start, a later end and a time zone.",
+        "advanceLine": "Check each line: choose an item and a whole quantity of 1 or more.",
+        "sponsorAsset": "Choose the entitlement and the kind, and attach the files.",
+        "title": "Say what the asset is, in up to 200 characters.",
+        "deliveryWindow": "Choose a delivery window.",
+        "deliveryPlate": "Enter a plate or trailer of up to 40 characters.",
+        "guestEmail": "Enter one email address, or leave it empty.",
+        "rosterAssignee": "Choose who to place on the shift.",
+        "noShowReason": "Say what happened, in up to 500 characters.",
+        "stillComing": "Open the shift from your notifications and try again."
       },
       "advance": {
         "answer": "Your answer",
@@ -399,7 +700,7 @@
         "done": "Rating sent. It appears when the organization rates too, or after 14 days."
       },
       "reply": {
-        "label": "Public reply",
+        "label": "Your reply",
         "submit": "Reply",
         "done": "Reply posted."
       },
@@ -407,9 +708,11 @@
         "title": "Add a guest",
         "name": "Guest name",
         "plusOnes": "Plus-ones",
-        "note": "Note for the production (optional)",
+        "note": "Note for the production (optional). Keep dietary and access needs out of it.",
         "submit": "Add guest",
-        "done": "Guest added. The production confirms them before the show."
+        "done": "Guest added. The production confirms them before the show.",
+        "email": "Email (optional)",
+        "emailHelp": "We send their pass here."
       },
       "settlement": {
         "decision": "Your answer",
@@ -427,6 +730,121 @@
         "reason": "What to change",
         "note": "Note to the organization",
         "done": "Answer sent."
+      },
+      "roster": {
+        "role": "Role",
+        "roleHint": "Search roles",
+        "roleNoMatch": "No role matches.",
+        "arrivalStarts": "Arrives from",
+        "arrivalEnds": "Arrives by",
+        "timeZone": "Time zone",
+        "timeZoneHelp": "The project's time zone unless you change it.",
+        "person": "Person",
+        "personHint": "Choose someone from your team",
+        "add": "Add to roster",
+        "added": "Added. They are asked to accept on Gateway Home.",
+        "addTitle": "Add someone from your team",
+        "email": "Email",
+        "emailHelp": "We send one email asking them to sign in to Gateway with this address.",
+        "invite": "Send invitation",
+        "invited": "Invitation sent.",
+        "inviteTitle": "Invite someone by email",
+        "save": "Save",
+        "saved": "Saved.",
+        "editTitle": "Edit role and arrival",
+        "viewProfile": "View profile",
+        "viewProfileOf": "View the profile of {name}",
+        "profile": {
+          "title": "{name}",
+          "sentence": "What this person shares with your company. Each time you open it, the person can see that you did.",
+          "close": "Close",
+          "none": "Not given",
+          "nothing": "Nothing is shared with you yet.",
+          "dietary": "Dietary needs",
+          "allergies": "Allergies",
+          "onFile": "On file",
+          "accessibility": "Accessibility needs",
+          "emergency": "Emergency contacts",
+          "contact": "Contact",
+          "travel": "Loyalty programs",
+          "passport": "Passport",
+          "passportMasked": "Number ending {last4}"
+        }
+      },
+      "accountTeam": {
+        "assign": "Assign",
+        "assigned": "Assigned.",
+        "assignTitle": "Assign a member to this engagement",
+        "member": "Member",
+        "memberHint": "Choose a confirmed member",
+        "duty": "Duty",
+        "dutyMember": "Member",
+        "dutyLead": "Advancing Lead"
+      },
+      "teamInvite": {
+        "title": "Invite someone to your company",
+        "email": "Email",
+        "emailHelp": "We send one email. They sign in to Gateway with this address and accept on Home.",
+        "role": "Role",
+        "roleOwner": "Account Owner",
+        "roleAdmin": "Account Admin",
+        "roleFinance": "Account Finance",
+        "roleMember": "Account Member",
+        "submit": "Send invitation",
+        "done": "Invitation sent. It stays open for 14 days."
+      },
+      "advanceTyped": {
+        "uploadSubmit": "Send files",
+        "done": "Sent. The organization reviews your answer.",
+        "files": "Files",
+        "filesHelp": "PDF, image, CSV, Excel or Word, up to 25 MB each, at most {n}.",
+        "note": "Note",
+        "windowN": "Window {n}",
+        "lineN": "Line {n}",
+        "from": "Starts",
+        "to": "Ends",
+        "item": "Item",
+        "credential": "Pass",
+        "quantity": "Quantity",
+        "person": "Person",
+        "personHint": "Choose a person",
+        "forPool": "For the whole team",
+        "neededFrom": "Needed from",
+        "neededTo": "Needed until",
+        "lineNote": "Note on this line",
+        "addWindow": "Add window",
+        "addLine": "Add line",
+        "timeZone": "Time zone",
+        "timeZoneHelp": "Times are in this zone; the project's is filled in.",
+        "submit": "Send answer",
+        "confirmGuests": "Confirm guest list",
+        "confirmGuestsHelp": "Confirm when everyone you are bringing is on the list."
+      },
+      "sponsorSupply": {
+        "title": "Supply an asset",
+        "submit": "Send for approval",
+        "done": "Sent. The organization reviews it.",
+        "entitlement": "Entitlement",
+        "kind": "Kind",
+        "assetTitle": "What it is",
+        "files": "Files",
+        "filesHelp": "PDF or image, up to 25 MB each, at most 10.",
+        "usageNote": "Where and how it is used",
+        "dueOn": "Needed by",
+        "resubmit": "Resubmit with new files",
+        "resubmitted": "Resubmitted. The organization reviews the new revision.",
+        "reason": "What changed"
+      },
+      "staffing": {
+        "assign": "Assign",
+        "assigned": "Assigned.",
+        "assignTitle": "Assign someone from your roster",
+        "person": "Person",
+        "personHint": "Choose someone from your roster",
+        "noShow": "Mark no-show",
+        "noShowDone": "No-show recorded.",
+        "noShowTitle": "Mark this person as a no-show",
+        "noShowReason": "What happened"
       }
     },
     "settlement": {
@@ -442,7 +860,195 @@
       "empty": "No brand assets to review yet. The organization submits banners, artwork and copy here for your approval.",
       "due": "Needed by {date}",
       "revision": "Revision {n}",
-      "awaiting": "Awaiting your approval"
+      "awaiting": "Awaiting your approval",
+      "suppliedTitle": "Assets you supply",
+      "suppliedEmpty": "You have not supplied any assets yet. Send a logo or artwork below for the organization to approve.",
+      "toApproveTitle": "Assets to approve",
+      "files": "Files: {files}"
+    },
+    "crew": {
+      "sentence": "Who works this engagement for you. Add people from your team or invite them by email, then submit the roster. Each person accepts their own entry before anything about them is shared.",
+      "submit": "{n, plural, one {Submit roster (# entry)} other {Submit roster (# entries)}}",
+      "submitted": "Roster submitted for review.",
+      "empty": "Nobody is on this roster yet. Add someone from your team or invite them by email.",
+      "emptyAction": "Add someone",
+      "listLabel": "Crew roster",
+      "invitedSomeone": "Invited person",
+      "self": "Engaged person",
+      "representedArtist": "{name} (represented artist)",
+      "arrival": "Arrives {start} to {end}",
+      "noArrival": "Arrival not set",
+      "invitation": "Invited, open until {date}",
+      "sharing": "{n, plural, one {Shares # category} other {Shares # categories}}",
+      "notSharing": "Shares no work details yet",
+      "returned": "Returned: {reason}",
+      "reissue": "Send again",
+      "reissued": "Invitation sent again.",
+      "withdraw": "Withdraw",
+      "withdrawTitle": "Withdraw {name}?",
+      "withdrawSentence": "They come off this roster. A pending invitation is revoked and the work details they share on this entry stop being shared. This cannot be undone; add them again if you need them.",
+      "withdrawConfirm": "Withdraw",
+      "edit": "Edit role and arrival",
+      "addTitle": "Add from your team",
+      "noTalent": "Everyone on your team is on this roster, or nobody has confirmed their membership yet. Invite people by email below.",
+      "inviteTitle": "Invite by email",
+      "locksOn": "Names lock on {date}",
+      "lockedOn": "Names locked on {date}. Ask {orgName} to change the roster.",
+      "factsTitle": "Project details",
+      "items": {
+        "title": "Items",
+        "line": "{item} ({n})",
+        "declined": "Declined: {reason}",
+        "withdraw": "Withdraw",
+        "withdrawn": "Withdrawn.",
+        "giveBack": "Give back to the pool",
+        "givenBack": "Given back to the pool.",
+        "kind": {
+          "credential": "Credential",
+          "parkingPass": "Parking pass",
+          "asset": "Equipment",
+          "catering": "Catering",
+          "lodging": "Lodging",
+          "travel": "Travel",
+          "perDiem": "Per diem"
+        },
+        "status": {
+          "requested": "Requested",
+          "approved": "Approved",
+          "reserved": "Reserved",
+          "received": "Received",
+          "confirmed": "Confirmed",
+          "onOrder": "On order",
+          "awaitingOrder": "Awaiting order",
+          "partlyIssued": "Partly issued",
+          "issued": "Issued",
+          "revoked": "Revoked",
+          "returned": "Returned",
+          "declined": "Declined",
+          "withdrawn": "Withdrawn"
+        }
+      },
+      "pool": {
+        "title": "Pool",
+        "sentence": "What the organization approved for your company as a whole. Share it out to the people on your roster; each person then picks up their own.",
+        "empty": "Nothing is in your pool yet. Request an item below for the whole crew.",
+        "left": "{n} left to share",
+        "asked": "{n} requested",
+        "assignFrom": "Assign from",
+        "sharePerPerson": "Share per person",
+        "sharePerPersonHelp": "{n} left in the pool. A lower share gives the difference back.",
+        "selectPeople": "People to assign",
+        "personShare": "{name}, holds {n}",
+        "personNotAccepted": "{name}, not accepted yet"
+      },
+      "request": {
+        "title": "Request an item",
+        "submit": "Send request",
+        "done": "Request sent. The organization reviews it.",
+        "for": "For",
+        "forPool": "Your pool",
+        "item": "Item",
+        "itemHint": "Choose what you need",
+        "itemCapped": "{name}, up to {n} each",
+        "quantity": "Quantity",
+        "from": "Needed from",
+        "to": "Needed until",
+        "note": "Note",
+        "noteHelp": "What it is for, up to 1,000 characters.",
+        "timeZone": "Time zone",
+        "timeZoneHelp": "The project's time zone unless you change it.",
+        "nothing": "The organization offers nothing to request on this engagement yet. Message them if you need something."
+      }
+    },
+    "accountTeam": {
+      "title": "Account team",
+      "sentence": "Account Members reach only the engagements you assign them. An Advancing Lead also manages the crew roster.",
+      "remove": "Remove",
+      "none": "Nobody from your account is assigned yet."
+    },
+    "rosterMember": {
+      "sentence": "You work on this engagement for {org} on {project}. You see your own badge, travel, lodging, per diem and gear here, never a colleague's.",
+      "upNext": "Up next",
+      "when": "Arrive",
+      "window": "{start} to {end}",
+      "noArrival": "Your arrival is not set yet.",
+      "call": "Call time",
+      "where": "Where",
+      "parking": "Parking",
+      "contact": "Contact",
+      "bring": "Bring and pick up",
+      "message": "Message",
+      "assigned": "Assigned to you",
+      "assignedEmpty": "Nothing is assigned to you yet.",
+      "projectDetails": "Update your project details",
+      "party": "Engaged as",
+      "documentsEmpty": "Your documents and certifications appear here once you add them to your profile."
+    },
+    "itinerary": {
+      "changed": "Changed since you last looked: {fields}",
+      "checkIn": "Check-in",
+      "checkOut": "Check-out",
+      "day": "{date}",
+      "fields": {
+        "arrives_at": "Arrival",
+        "arrives_at_place": "Arrival place",
+        "arrives_time_zone": "Arrival time zone",
+        "check_in_on": "Check-in",
+        "check_out_on": "Check-out",
+        "confirmation_identifier": "Confirmation",
+        "departs_at": "Departure",
+        "departs_from": "Departure place",
+        "departs_time_zone": "Departure time zone",
+        "duration": "Length",
+        "hotel": "Hotel",
+        "label": "Name",
+        "operator_name": "Operator",
+        "planned_at": "Time",
+        "service_identifier": "Flight or service number",
+        "travel_mode": "Mode"
+      },
+      "firstVisit": "From your next visit, changes to your stay are marked here.",
+      "markAllSeen": "Mark all as seen",
+      "new": "New since you last looked",
+      "removedKind": {
+        "lodging": "Room removed",
+        "set": "Set time removed",
+        "travel": "Trip removed"
+      },
+      "removedTitle": "Removed since you last looked",
+      "set": "Set",
+      "title": "Your stay"
+    },
+    "ground": {
+      "title": "Ground transport",
+      "pickup": "Pickup {time}",
+      "dropoff": "Drop-off {time}",
+      "driver": "Driver {name}",
+      "vehicle": "{label}, {type}",
+      "meets": "Meets {flight}, lands {time}",
+      "passengers": "Passengers: {names}"
+    },
+    "localContacts": {
+      "title": "Local contacts",
+      "day": "For {day}",
+      "everyDay": "Every day",
+      "line": "{role}: {name}"
+    },
+    "rooms": {
+      "title": "Your rooms",
+      "window": "{in} to {out}",
+      "set": "For {set}"
+    },
+    "staffing": {
+      "openSlot": "Open agency slot",
+      "unassign": "Unassign",
+      "unassignReason": "Taken off the shift by the agency.",
+      "trainingDue": "{n} training due",
+      "overlaps": "overlaps another shift",
+      "trainingEmpty": "No training is due before your first shift.",
+      "awaitingVerification": "Waiting for verification",
+      "acknowledge": "I have read and acknowledge this",
+      "noShowTag": "No-show"
     }
   },
   "enums": {
@@ -475,7 +1081,8 @@
       "lienWaiver": "Lien Waiver",
       "settlement": "Settlement",
       "proofOfPerformance": "Proof of Performance",
-      "contentConsent": "Content Consent"
+      "contentConsent": "Content Consent",
+      "quote": "Quote"
     },
     "engagementDocumentState": {
       "proposed": "Proposed",
@@ -786,6 +1393,115 @@
       "smallDisadvantagedBusiness": "Small disadvantaged business",
       "hubzone": "HUBZone business",
       "other": "Other certification"
+    },
+    "submittalKind": {
+      "shopDrawing": "Shop drawing",
+      "productData": "Product data",
+      "sample": "Sample",
+      "methodStatement": "Method statement",
+      "certificate": "Certificate",
+      "other": "Other"
+    },
+    "rosterEntryState": {
+      "draft": "Draft",
+      "submitted": "Submitted",
+      "accepted": "Accepted",
+      "returned": "Returned",
+      "withdrawn": "Withdrawn"
+    },
+    "rosterPersonResponse": {
+      "pending": "Not answered yet",
+      "accepted": "Accepted by them",
+      "declined": "Declined by them"
+    },
+    "accountEngagementDuty": {
+      "advancingLead": "Advancing Lead",
+      "member": "Member"
+    },
+    "registrationPageState": {
+      "draft": "Draft",
+      "open": "Open",
+      "closed": "Closed"
+    },
+    "crewRegistrationState": {
+      "submitted": "Submitted",
+      "approved": "Approved",
+      "declined": "Declined",
+      "withdrawn": "Withdrawn"
+    },
+    "advanceSectionKind": {
+      "text": "Text",
+      "file": "File",
+      "scheduleWindow": "Schedule Window",
+      "itemRequest": "Item Request",
+      "crewRoster": "Crew Roster",
+      "guestList": "Guest List",
+      "credentialRequest": "Credential Request"
+    },
+    "advanceWindowKind": {
+      "loadIn": "Load In",
+      "loadOut": "Load Out",
+      "arrival": "Arrival",
+      "soundcheck": "Soundcheck",
+      "activationSetup": "Activation Setup",
+      "activationStrike": "Activation Strike"
+    },
+    "sponsorAssetSource": {
+      "orgSupplied": "Supplied by the organization",
+      "sponsorSupplied": "Supplied by you"
+    },
+    "advanceTrack": {
+      "finance": "Finance",
+      "technical": "Technical",
+      "hospitality": "Hospitality",
+      "catering": "Catering",
+      "travel": "Travel",
+      "logistics": "Logistics",
+      "general": "General"
+    },
+    "vehicleType": {
+      "sedan": "Sedan",
+      "suv": "SUV",
+      "van": "Van",
+      "sprinter": "Sprinter",
+      "minibus": "Minibus",
+      "coach": "Coach",
+      "other": "Other"
+    },
+    "transferStatus": {
+      "unassigned": "Unassigned",
+      "assigned": "Assigned",
+      "underway": "Underway",
+      "done": "Done"
+    },
+    "localContactRole": {
+      "promoter": "Promoter",
+      "venue": "Venue",
+      "production": "Production",
+      "security": "Security",
+      "transport": "Transport",
+      "hospitality": "Hospitality",
+      "medical": "Medical",
+      "other": "Other"
+    },
+    "spaceBookingPurpose": {
+      "greenRoom": "Green room",
+      "dressingRoom": "Dressing room",
+      "productionOffice": "Production office",
+      "hospitalitySuite": "Hospitality suite",
+      "other": "Other"
+    },
+    "ratingDisputeGround": {
+      "wrongPerson": "It is not about me",
+      "falseStatement": "It says something false",
+      "abusiveContent": "It is abusive",
+      "personalData": "It shows personal data",
+      "other": "Something else"
+    },
+    "ratingDisputeState": {
+      "open": "Open",
+      "upheld": "Upheld",
+      "notUpheld": "Not upheld"
     }
   },
   "explore": {
@@ -1027,12 +1743,14 @@
       "removed": "Removed {title}.",
       "undo": "Undo",
       "failed": "That did not go through. Reload the page and try again."
+    },
+    "clientHidden": {
+      "tag": "Client confidential",
+      "notice": "The client and event are shared once you're booked."
     }
   },
   "home": {
     "greeting": "Hi, {name}",
-    "searchLabel": "Search opportunities",
-    "searchHint": "Search roles, skills or organizations",
     "upNext": {
       "title": "Up next",
       "empty": "Nothing is scheduled for you yet. Find an opportunity to fill your calendar.",
@@ -1043,7 +1761,18 @@
       "project": "Project",
       "when": "When",
       "kind": "What",
-      "state": "State"
+      "state": "State",
+      "callKind": {
+        "shift": "Shift",
+        "dockSlot": "Dock slot",
+        "set": "Set"
+      },
+      "where": "Where",
+      "contact": "Contact",
+      "message": "Message",
+      "bring": "What to bring",
+      "bringMore": "And {n} more",
+      "parking": "Parking"
     },
     "needsYou": {
       "title": "Needs you",
@@ -1059,7 +1788,42 @@
       "representationAction": "Accept",
       "interview": "Interview for {title}",
       "rate": "Rate your work with {org}",
-      "rateAction": "Rate"
+      "rateAction": "Rate",
+      "readAndSign": "Read and sign",
+      "reviewQuote": "Review quote",
+      "stillComing": "Still coming to {title}?",
+      "stillComingYes": "I'm coming",
+      "stillComingNo": "Can't make it",
+      "stillComingReason": "Reason (optional)",
+      "stillComingDeclined": "Thanks for letting us know.",
+      "stillComingConfirmed": "You're confirmed. Thanks for letting us know."
+    },
+    "fyi": {
+      "title": "For your information",
+      "empty": "Nothing new. Updates from organizations you work with show up here.",
+      "done": "Done",
+      "snooze": "Snooze",
+      "doneLabel": "Mark {text} done",
+      "snoozeLabel": "Snooze {text} for a day",
+      "keys": "Select an item, then press E for Done or H to snooze it for a day. J and K move between items.",
+      "new": "New",
+      "kinds": {
+        "offerSent": "{orgName} sent you an offer for {title}",
+        "shiftAssigned": "New shift: {title}",
+        "shiftChanged": "Shift changed: {title}",
+        "messageReceived": "New message",
+        "crisisAlert": "Crisis alert at {project}: {title}. {message}",
+        "crisisAllClear": "All clear at {project}: {title}",
+        "advanceReminder": "{reminder, select, overdue {Overdue: {title}} other {Reminder: {title}}} for {projectName}",
+        "advanceReturned": "Your answer to {title} was returned",
+        "submittalReturned": "Submittal returned: {title}",
+        "rosterRemoved": "You were taken off the {partyName} crew for {projectName}",
+        "rosterFactsRequested": "{projectName} needs your {kind, select, uniform {uniform sizes} travel {travel request} vehicle {vehicle details} other {project details}}",
+        "credentialRevoked": "Your {title} credential for {projectName} was revoked",
+        "other": "{title}",
+        "untitled": "New update",
+        "shiftNoShow": "Marked as a no-show: {title}"
+      }
     },
     "recommended": {
       "title": "Recommended for you",
@@ -1068,8 +1832,6 @@
       "emptyAction": "Set an alert"
     },
     "updates": {
-      "title": "Updates",
-      "new": "New",
       "kinds": {
         "invoiceSubmitted": "{orgName} received invoice {title}",
         "invoiceApproved": "{orgName} approved invoice {title}",
@@ -1078,8 +1840,52 @@
         "opportunityMatched": "New match for {searchName}: {title}",
         "onboardingExpiring": "{title} for {orgName} expires on {expiresOn}",
         "certificationExpiring": "Your {title} certification expires on {expiresOn}",
-        "documentExpiring": "{kind, select, passport {Your passport} insurance {Your {title} insurance certificate} other {{title}}} expires on {expiresOn}"
+        "documentExpiring": "{kind, select, passport {Your passport} insurance {Your {title} insurance certificate} other {{title}}} expires on {expiresOn}",
+        "availabilityRequested": "{orgName} asks for your availability: {title}",
+        "badgePhotoRequested": "{orgName} asks for your badge photo",
+        "projectFactsEntered": "{actorName} added your {kind, select, travel {travel details} uniform {uniform sizes} vehicle {vehicle details} other {project details}} for {projectName}. Check them and correct anything that is wrong."
       }
+    },
+    "feed": {
+      "invitation": {
+        "account": "{account} invites you to their company account",
+        "roster": "{party} invites you onto their crew for {project}",
+        "consent": "Accepting lets the company see your profile and project facts",
+        "from": "From {name}",
+        "expires": "Open until {date}",
+        "accept": "Accept",
+        "decline": "Decline",
+        "pool": "{org} invites you to join its crew list"
+      },
+      "membership": {
+        "title": "Confirm your membership in {account}",
+        "meta": "Until you confirm, you are not rostered or assigned to engagements",
+        "confirm": "Confirm",
+        "leave": "Leave",
+        "leaveTitle": "Leave {account}?",
+        "leaveSentence": "You lose access to the company's engagements at once. Only an Account Owner or Admin can add you back.",
+        "leaveConfirm": "Leave company"
+      },
+      "roster": {
+        "title": "{party} put you on their crew for {project}",
+        "consent": "Accepting lets the company see your profile and project facts",
+        "accept": "Accept",
+        "decline": "Decline",
+        "share": "Share work details"
+      }
+    },
+    "intake": {
+      "title": "Requests you sent",
+      "sentOn": "Sent {date}",
+      "states": {
+        "Pending": "Waiting",
+        "Approved": "Approved",
+        "Declined": "Declined",
+        "Withdrawn": "Withdrawn"
+      },
+      "withdraw": "Withdraw",
+      "submitInvoice": "Submit the invoice from your intake",
+      "invoiceWaits": "Your first invoice is saved. You can submit it when this engagement opens for invoices."
     }
   },
   "messages": {
@@ -1217,7 +2023,20 @@
     },
     "ratings": {
       "title": "Ratings",
-      "empty": "No ratings yet. Ratings appear after completed engagements, once both sides rate."
+      "empty": "No ratings yet. Ratings appear after completed engagements, once both sides rate.",
+      "who": "Only you and the organization that gave it can read a rating of you, unless you choose to show your ratings on your profile. A rating of a company you are the contact for can be read by anyone signed in.",
+      "whoAction": "Choose whether to show them on your profile.",
+      "dispute": {
+        "open": "Dispute this rating",
+        "help": "Tell us what is wrong. The organization can answer and our team decides. A rating comes down only if it is about the wrong person, false, abusive or shows personal data, never because it is low. It stays in place until then.",
+        "ground": "Why you dispute it",
+        "details": "What is wrong",
+        "submit": "Send dispute",
+        "standing": "Your dispute: {state}. {ground}.",
+        "removed": "A rating from {org} on {project} was removed after your dispute.",
+        "orgResponse": "The organization answered: {response}",
+        "decision": "Decision: {statement}"
+      }
     },
     "representation": {
       "title": "Representation",
@@ -1264,7 +2083,11 @@
       "organizations": "Worked with",
       "links": "Links",
       "ownerNote": "This is your profile as others see it. Visibility: {visibility}.",
-      "ownerAction": "Privacy settings"
+      "ownerAction": "Privacy settings",
+      "ratingsShared": "Shown because this person chose to. Every released rating is here, except any our platform team removed after a dispute. Not for deciding who to hire or book.",
+      "ratingsOwnerShared": "Signed-in people can read these here, unless they have hiring, booking or staffing access in XOS. Someone who hires outside XOS could still read them. Change this in your privacy settings.",
+      "ratingsOwnerPrivate": "Only you and the organization that rated you can read these. Nobody else sees them here.",
+      "disputed": "Disputed by this person"
     },
     "errors": {
       "handle": "Use 1 to 40 lowercase letters, numbers and hyphens for your handle.",
@@ -1278,9 +2101,28 @@
       "availability": "Choose a start date and an end date on or after it.",
       "name": "Enter your name, up to 200 characters.",
       "account": "Enter the company name and a web address of 2 to 48 lowercase letters, numbers and hyphens.",
+      "accountCountry": "Choose the country where the company is established.",
+      "territory_not_offered": "XOS is not offered in your company's country ({country}), so we did not create this company account. XOS is offered to organizations in {territories}. If an organization invited you to work with it, you do not need a company account: open your invitation. If your company has a signed contract, ask the organization or your contact at GHXSTSHIP to set it up.",
       "company": "Check the handle and visibility.",
       "website": "Enter a full web address starting with https://.",
-      "email": "Enter an email address like team@company.com."
+      "email": "Enter an email address like team@company.com.",
+      "availabilityAnswer": "Choose Available, Tentative or Unavailable for at least one day."
+    },
+    "availabilityRequests": {
+      "title": "Availability requests",
+      "shared": "Your answers go on your availability for that org and are shared with its planners.",
+      "closes": "Answer by {when}",
+      "locked": "{day}: {answer}, locked by the notice period",
+      "formLabel": "Answer {title}",
+      "choose": "Choose",
+      "save": "Send answers",
+      "saved": "Answers saved.",
+      "kinds": {
+        "Available": "Available",
+        "Tentative": "Tentative",
+        "Unavailable": "Unavailable",
+        "Unstated": "Not stated"
+      }
     }
   },
   "documents": {
@@ -1293,7 +2135,22 @@
     "expires": "Expires",
     "signedByLink": "Signed by link",
     "signedOn": "Signed {date} by {name}",
-    "tax": "Tax forms"
+    "tax": "Tax forms",
+    "readAndSign": {
+      "textLabel": "Text of {title}",
+      "formLabel": "Sign {title}",
+      "name": "Type your full name to sign",
+      "nameHelp": "Your typed name is your signature on exactly this text.",
+      "sign": "Sign",
+      "masked": "This text holds a rate your representation does not cover."
+    },
+    "decline": {
+      "open": "Decline",
+      "formLabel": "Decline {title}",
+      "reason": "Why you decline",
+      "reasonHelp": "Up to 450 characters. The organization reads this.",
+      "submit": "Decline document"
+    }
   },
   "tokens": {
     "code": "Access code",
@@ -1311,7 +2168,27 @@
       "submit": "Send answer",
       "sent": "Answer sent. The organization reviews it next.",
       "done": "Your advance is complete",
-      "returned": "The organization returned this answer: {reason}"
+      "returned": "The organization returned this answer: {reason}",
+      "kindAndPrompt": "{kind} · {prompt}",
+      "accepted": "Accepted. Nothing more to do here.",
+      "waiting": "Waiting for the organization to review this answer.",
+      "uploadHelp": "Files upload when you send them. Keep this page open until you see that they were sent.",
+      "guestsTitle": "Ask for guests",
+      "rosterTitle": "Your crew",
+      "rosterHelp": "Invite each person by email. They accept their place themselves after signing in to Gateway with that address, and their name shows here once they do.",
+      "rosterUnnamed": "Not named yet",
+      "rosterEntry": "{name} · {state}",
+      "rosterSubmit": "Submit roster",
+      "rosterSubmitted": "Sent to the organization for review.",
+      "rosterSubmitHelp": "Submitting sends everyone who accepted to the organization. People who have not accepted yet stay here until they do.",
+      "invitation": {
+        "pending": "Invitation sent",
+        "accepted": "Accepted",
+        "declined": "Declined",
+        "revoked": "Invitation replaced",
+        "expired": "Invitation expired"
+      },
+      "recordedBy": "Recorded by {org} from your message. Ask them to return it if it needs changing."
     },
     "sign": {
       "eyebrow": "Signing link",
@@ -1322,10 +2199,30 @@
       "nameHelp": "Typing your name is your electronic signature. A signed document cannot be withdrawn.",
       "submit": "Sign",
       "signed": "Signed by {name}. The organization countersigns next.",
-      "done": "You signed the document"
+      "done": "You signed the document",
+      "quote": {
+        "lines": "Quote lines",
+        "description": "Description",
+        "quantity": "Quantity",
+        "unitPrice": "Unit price",
+        "amount": "Amount",
+        "total": "Total",
+        "unpriced": "Unpriced",
+        "validUntil": "Valid until {date}",
+        "tax": "Prices exclude tax, which is added on the invoice where it applies.",
+        "fingerprint": "Content fingerprint (SHA-256)",
+        "downloadPdf": "Download PDF",
+        "downloadPdfA4": "PDF (A4)",
+        "consent": "By typing your name and choosing Accept quote, you consent to using electronic records and signatures for this quote and agree to its lines, total and terms.",
+        "submit": "Accept quote",
+        "signed": "Accepted by {name}.",
+        "done": "You accepted the quote"
+      }
     },
     "refusals": {
       "advance_access_code": "That access code does not match. Check the six digits in your message and try again.",
+      "advance_link_ended": "This link has ended.",
+      "document_link_ended": "This link has ended.",
       "advance_token_expired": "This advance link expired. Ask the organization to send a new one.",
       "advance_token_invalid": "This advance link is not valid. Use the latest link the organization sent.",
       "advance_token_locked": "Too many wrong codes. The link is locked; ask the organization for a new one.",
@@ -1341,7 +2238,115 @@
       "document_not_awaiting_signature": "This document is not waiting for a signature anymore.",
       "document_signer_name": "Type your full name, at least two characters.",
       "token_invalid": "This link is not valid. Use the latest link the organization sent.",
-      "advance_answer_pending": "This section is answered and waiting for review. Answer again only if it is returned."
+      "advance_answer_pending": "This section is answered and waiting for review. Answer again only if it is returned.",
+      "quote_expired": "This quote expired, so it can no longer be accepted. Ask for a new version.",
+      "quote_not_sent": "This quote version is no longer waiting for a signature.",
+      "quote_not_found": "This link does not open a quote.",
+      "quote_client_engagement": "This quote's client engagement is closed, so it can no longer be accepted.",
+      "crew_access_token_invalid": "This link no longer works. Ask your crew lead for a new one.",
+      "crew_access_token_expired": "This link expired. Ask your crew lead for a new one.",
+      "crew_access_link_ended": "This link has ended.",
+      "crew_access_token_locked": "Too many wrong codes. The link is locked; ask your crew lead for a new one.",
+      "crew_access_access_code": "That code does not match. Check the six digits you were given and try again.",
+      "crew_access_not_working": "This link no longer works, because the work it was for ended. Ask your crew lead if that is wrong.",
+      "crew_access_read_only": "This organization is read-only right now, so shifts cannot be accepted here. Tell your crew lead.",
+      "crew_access_shift_not_yours": "That shift is not on this link. Reload the page.",
+      "crew_access_shift_state": "That shift can no longer be accepted. Reload the page to see its state.",
+      "registration_page_closed": "This registration page is not open.",
+      "registration_rate_limited": "Too many registrations in the last hour. Try again later.",
+      "registration_age_unconfirmed": "Confirm the minimum age to register. If you have not confirmed your age, do that in your account first.",
+      "registration_answer_required": "Answer every required question.",
+      "registration_answer_unknown": "This page changed. Reload it and answer again.",
+      "registration_answer_length": "Keep each answer to 4,000 characters.",
+      "registration_duplicate": "You are already registered on this page.",
+      "profile_share_not_yours": "That profile share is not yours. Reload and try again.",
+      "registration_not_withdrawable": "This registration was already declined or withdrawn.",
+      "registration_phone": "That is not a phone number. Include the country code, for example +13105550100.",
+      "document_text_missing": "This document has no text to sign here. Sign it the way it was sent.",
+      "document_text_masked": "This text holds a rate your representation does not cover, so only the engaged person can answer it.",
+      "document_text_hash": "The text changed since you opened it. Read it again, then sign.",
+      "document_decline_reason": "Say why you decline, in up to 450 characters.",
+      "document_text_sign_with_hash": "Read this document in Gateway and sign it there with your typed name.",
+      "document_text_signed": "This text was already signed.",
+      "advance_upload_type": "That file type is not accepted. Upload a PDF, JPEG, PNG, HEIC, WebP, CSV, XLSX or DOCX file.",
+      "advance_upload_size": "That file is larger than 25 MB. Upload a smaller file.",
+      "advance_upload_limit": "This section already has as many files on the way as it takes. Send fewer files, or try again in 15 minutes.",
+      "advance_upload_rate": "Too many uploads through this link in the last hour. Wait a while and try again.",
+      "advance_upload_ticket": "That upload is no longer open. Choose the file again and send it.",
+      "advance_guest_rate": "Too many guest requests through this link today. Try again tomorrow or message the organization.",
+      "advance_roster_rate": "Too many invitations through this link today. Try again tomorrow or message the organization.",
+      "guest_list_closed": "The guest list opens once the organization confirms your engagement. Check back later.",
+      "guest_name_length": "Write the guest's name, up to 200 characters.",
+      "guest_plus_ones": "Plus-ones run from 0 to 20.",
+      "guest_note_length": "Keep the note to 500 characters.",
+      "advance_section_derived": "The crew roster section is read from your Crew tab, so it takes no answer. Update the roster there.",
+      "advance_recipient_engagement": "This section is answered under your engagement, and the packet is not linked to it yet. Ask the organization to link it.",
+      "advance_section_role": "Guest lists are not part of a contractor's or sponsor's advance.",
+      "advance_line_limit": "This section takes fewer lines. Remove some and send again.",
+      "advance_line_kind": "One of the lines does not fit this section. Choose one of the listed items and a quantity.",
+      "advance_line_person": "Check who each line is for: this section asks for a person on every line, or for none.",
+      "advance_line_window": "A window ends after it starts. Check the times and send again.",
+      "advance_line_roster_entry": "One of the people is not on this engagement's crew roster any more. Choose someone on the roster.",
+      "advance_file_document": "Attach the files again: each file goes to one answer, up to the number the section allows.",
+      "party_upload_missing": "The file did not finish uploading. Choose it again and send.",
+      "party_upload_checksum": "The file could not be verified. Choose it again and send.",
+      "guest_list_cap": "Your guest list is full, plus-ones included. Remove a guest or ask the organization for more places.",
+      "offering_not_offered": "The organization does not offer this on this engagement. Message them if you need it.",
+      "credential_names_closed": "The deadline to name passes has passed. Contact the organization to change who holds them.",
+      "roster_closed": "This engagement is complete or canceled, so its roster is closed.",
+      "roster_role_type": "This engagement carries no crew roster. Only artist engagements and company engagements of a vendor, contractor, staffing company or sponsor do.",
+      "roster_locked": "Names are locked on this engagement. Ask the producing organization to change the roster.",
+      "roster_empty_submit": "Add or change someone on the roster before submitting it.",
+      "roster_person_duplicate": "This person is already on the roster.",
+      "invitation_email": "Enter one email address.",
+      "roster_arrival_window": "Give the arrival a start, a later end and a time zone, or leave all three empty.",
+      "time_zone_unknown": "That time zone is not recognized. Choose one from the list, for example America/New_York.",
+      "intake_link_invalid": "This link is no longer available. Ask the organization for a new one.",
+      "intake_link_rate_limited": "Too many tries from this address. Wait a few minutes and try again.",
+      "intake_link_expired": "This link expired. Ask the organization to send a new one.",
+      "intake_link_ended": "This link has ended.",
+      "intake_link_full": "This link has taken all the requests it can. Ask the organization for a new one.",
+      "intake_link_locked": "Too many wrong codes. Ask the organization for a new link.",
+      "intake_access_code_required": "Enter your access code.",
+      "intake_access_code": "That code did not match. Check it and try again.",
+      "intake_grant": "Enter your access code again.",
+      "intake_agreement_unavailable": "The agreement is not available right now. Ask the organization.",
+      "form_link_invalid": "This link is no longer available. Ask the organization for a new one.",
+      "form_link_rate_limited": "Too many responses right now. Try again later.",
+      "form_link_expired": "This link expired. Ask the organization to send a new one.",
+      "form_link_ended": "This link has ended.",
+      "form_link_locked": "Too many wrong codes. Ask the organization for a new link.",
+      "form_link_access_code_required": "Enter your access code.",
+      "form_link_access_code": "That code did not match. Check it and try again.",
+      "form_link_grant": "Enter your access code again.",
+      "form_link_too_fast": "That was very quick. Check your answers and send again.",
+      "form_link_already_answered": "This email has already answered this form.",
+      "form_answers_too_large": "Your answers are too long. Shorten them and send again.",
+      "form_not_published": "This form is no longer taking answers.",
+      "form_respondent_name": "Enter your name.",
+      "form_respondent_email": "Enter a valid email address.",
+      "form_answers": "Your answers could not be read. Reload the page.",
+      "form_answer_hidden": "An answer does not apply any more. Go back and clear it.",
+      "form_answer_required": "Answer every required question.",
+      "form_answer_type": "An answer has the wrong kind of value. Check it and send again.",
+      "form_answer_choice": "Choose one of the listed choices.",
+      "form_answer_date": "Enter dates as a date.",
+      "form_answer_length": "An answer is too long. Shorten it and send again.",
+      "org_read_only": "This organization is not taking new responses right now.",
+      "guest_email_format": "Enter one email address for the guest, or leave it empty.",
+      "form_link_sign_in": "Sign in or create an account to answer this form."
+    },
+    "crewShifts": {
+      "title": "My shifts",
+      "codeLabel": "Open your shifts",
+      "codeHelp": "The six-digit code you were given with this link.",
+      "intro": "{name}, these are your shifts on {project}.",
+      "empty": "No shifts in the next 14 days.",
+      "accept": "Accept shift",
+      "accepted": "Shift accepted. Your crew lead sees it now.",
+      "noRole": "Crew",
+      "forget": "Forget this code",
+      "signIn": "Sign in to see all your work"
     }
   },
   "settings": {
@@ -1426,6 +2431,12 @@
         "references": "References",
         "links": "Links",
         "organizations": "Organizations"
+      },
+      "ratings": {
+        "title": "Ratings about you",
+        "body": "An organization's rating of you can be read only by that organization and by you. If you turn this on, signed-in people can read all your ratings on your profile page, low scores included. You cannot choose which ones. People with hiring, booking or staffing access in XOS still will not see them, and they never appear on an application, in search or on a crew screen. We cannot see who hires outside XOS, so someone like that with a free account could read them. Turn it off at any time and they stop showing at once. Only you can change this, from your own session; a connected app cannot.",
+        "choice": "Show all my ratings on my profile",
+        "save": "Save this choice"
       }
     },
     "account": {
@@ -1443,9 +2454,12 @@
       "leave": "Leave",
       "create": "Create a company account",
       "createBody": "Vendors, agencies, contractor firms and sponsors bid and invoice as a company. You become its Account Owner.",
+      "availability": "XOS is offered to organizations in {territories}. If an organization invited you to work with it, you do not need a company account: open your invitation.",
       "name": "Company name",
       "slug": "Web address",
       "slugHelp": "2 to 48 lowercase letters, numbers and hyphens.",
+      "country": "Country where the company is established",
+      "countryChoose": "Choose a country",
       "createSubmit": "Create account",
       "created": "Company account created. Act as it from the account menu."
     },
@@ -1460,11 +2474,16 @@
       "email": "Contact email",
       "profileUnavailable": "The company profile is managed by the organization's Atlas administrators. Ask an Account Owner to set it up.",
       "remove": "Remove",
-      "inviteNote": "To add a team member, ask them to create a Gateway account; an Account Owner or Admin then adds them by their account.",
-      "noInsurance": "No insurance certificates on file. Organizations request them during onboarding; upload them there.",
+      "inviteNote": "An invited person signs in to Gateway with the address you invited and accepts on Home. Until then they are not rostered or assigned, and nothing about them is shared.",
+      "noInsurance": "No insurance certificates on file. Organizations ask for them on an engagement; open the engagement and upload them under its Compliance tab.",
       "toEngagements": "See engagements",
       "noRepresentation": "Your agency represents no artists yet.",
-      "proposeNote": "To represent an artist, ask the artist to share their Gateway profile with your agency; you then propose the representation and they accept it in Gateway."
+      "proposeNote": "To represent an artist, ask the artist to share their Gateway profile with your agency; you then propose the representation and they accept it in Gateway.",
+      "notConfirmed": "Not confirmed",
+      "invitations": "Pending invitations",
+      "invitationExpires": "Open until {date}",
+      "invited": "Invited",
+      "revokeInvitation": "Revoke"
     },
     "notes": {
       "connectedApps": "No apps are connected to your account. Organizations connect their own tools in Atlas.",
@@ -1536,10 +2555,27 @@
       "copied": "Link copied.",
       "openInCalendar": "Open in my calendar app",
       "subscribe": "Subscribe in a calendar app",
+      "nameLabel": "Name",
+      "nameHelp": "Up to 80 characters. Your calendar app shows the feed under this name.",
+      "contentLabel": "Shows",
+      "sources": {
+        "shifts": "Shifts",
+        "meetings": "Meetings",
+        "milestones": "Milestones",
+        "deadlines": "Deadlines",
+        "cues": "Cues"
+      },
+      "filterSummary": "Shows {sources}",
+      "edit": "Edit",
+      "editLabel": "Edit the feed ending in {hint}",
+      "editTitle": "Edit feed",
+      "save": "Save",
       "errors": {
         "calendar_feed_limit": "You have 20 feeds. Revoke one before you add another.",
         "denied": "That feed is not available to you.",
-        "unexpected": "Something went wrong. Try again."
+        "unexpected": "Something went wrong. Try again.",
+        "calendar_feed_name": "Give the feed a name of 1 to 80 characters that none of your other feeds uses.",
+        "calendar_feed_sources": "Choose at least one thing for the feed to show."
       }
     },
     "surfaces": {
@@ -1570,7 +2606,6 @@
   "shell": {
     "skip": "Skip to content",
     "search": "Search",
-    "searchHint": "Search pages, engagements and opportunities",
     "commandGroup": "Go to",
     "openAccount": "Open the account menu for {name}",
     "account": "Account",
@@ -1603,6 +2638,12 @@
       "body": "Pick the organization to focus on. Every organization you work with stays in Work and Messages.",
       "all": "All organizations",
       "empty": "You do not work with any organization yet. Explore opportunities to start."
+    },
+    "roleLens": {
+      "title": "Role",
+      "hint": "Narrow Home, Work and navigation to one of your roles. Your access does not change.",
+      "all": "All roles",
+      "failed": "That role could not be chosen. Reload the page and try again."
     }
   },
   "system": {
@@ -1635,7 +2676,9 @@
       "email": "Email",
       "password": "Password",
       "passwordHelp": "At least 12 characters, with letters and numbers. Avoid your name, your email and product names.",
-      "age": "I am 16 or older."
+      "age": "I am 18 or older",
+      "ageUnder": "I am under 18",
+      "ageLegend": "Your age"
     },
     "or": "or",
     "usePassword": "Use a password",
@@ -1659,7 +2702,9 @@
     "terms": {
       "title": "Accept the Worker Terms",
       "lead": "Your Gateway account was created when you signed in. Accept the Worker Terms to finish setting it up.",
-      "submit": "Continue"
+      "submit": "Continue",
+      "deleteInstead": "You do not have to accept them to delete your account.",
+      "deleteLink": "Delete my account instead"
     },
     "providers": {
       "continueWith": "Continue with {provider}",
@@ -1685,7 +2730,87 @@
       "submit": "Claim submissions",
       "done": "Done: {advance, plural, one {# advance answer} other {# advance answers}} and {documents, plural, one {# signed document} other {# signed documents}} are now in your account.",
       "nothing": "No submissions were waiting for {email}. Anything you complete from now on is saved to this account.",
-      "home": "Go to Home"
+      "home": "Go to Home",
+      "invitations": "Invitations for this address",
+      "invitationAccount": "{account} invites you to their company account",
+      "invitationRoster": "{party} invites you onto their crew for {project}",
+      "accept": "Accept",
+      "decline": "Decline",
+      "invitationPool": "{org} invites you to join its crew list"
+    },
+    "actionLink": {
+      "title": "Confirm from email",
+      "heading": {
+        "approve": "Approve {title}?",
+        "reject": "Reject {title}?",
+        "accept": "Accept {title}?",
+        "confirmComing": "Are you still coming to {title}?",
+        "rosterAccept": "Accept your place on this crew?"
+      },
+      "untitled": "this item",
+      "org": "From {org}. Nothing happens until you confirm.",
+      "signedInAs": "Signed in as {email}.",
+      "confirm": {
+        "approve": "Approve",
+        "reject": "Reject",
+        "accept": "Accept",
+        "confirmComing": "Confirm you're coming"
+      },
+      "reason": "Why are you rejecting it?",
+      "done": {
+        "approve": "Approved. Nothing else to do.",
+        "reject": "Rejected with your reason.",
+        "accept": "Accepted. The organization takes it from here."
+      },
+      "home": "Go to Home",
+      "state": {
+        "used": "This was already handled. Nothing else to do.",
+        "expired": "This link has expired. Open the item from Home to act on it.",
+        "not_yours": "This link was sent to someone else. Sign out, then sign in as the person it was sent to.",
+        "elsewhere": "This link opens in Atlas, where your organization's security settings apply. Use the button in the email to open it there.",
+        "invalid": "This link does not work. Open the item from Home."
+      },
+      "signedOut": {
+        "heading": {
+          "approve": "Approve this request from your email",
+          "reject": "Reject this request from your email"
+        },
+        "codeGoesTo": "We email a 6-digit code to {email}.",
+        "signInInstead": "Sign in to decide instead",
+        "state": {
+          "ended": "This link has ended.",
+          "used": "This was already handled. Nothing else to do.",
+          "expired": "This link has expired. Sign in to decide, or ask the organization to send it again.",
+          "locked": "Too many wrong codes. This link is locked; sign in to decide."
+        },
+        "codeIntro": "To keep this decision yours, we email you a code first. The request appears once you enter it.",
+        "emailMeACode": "Email me a code",
+        "codeSent": "Code sent. It works for 10 minutes.",
+        "codeLabel": "Code from your email",
+        "codeHelp": "The 6 digits from the email we just sent you.",
+        "showRequest": "Show the request",
+        "sendAgain": "Send a new code",
+        "untitled": "This request",
+        "step": "Step: {step}",
+        "reason": "Why are you rejecting it?",
+        "confirm": {
+          "approve": "Approve",
+          "reject": "Reject"
+        },
+        "done": {
+          "approve": "Approved. Nothing else to do.",
+          "reject": "Rejected with your reason."
+        },
+        "outcome": {
+          "approval_link_ended": "This link has ended.",
+          "approval_link_code_wrong": "That code is wrong or has expired. {attemptsLeft, plural, one {# try left} other {# tries left}} before the link locks.",
+          "approval_link_locked": "Too many wrong codes. This link is locked; sign in to decide.",
+          "notification_action_used": "This was already handled. Nothing else to do.",
+          "notification_action_expired": "This link has expired. Sign in to decide, or ask the organization to send it again.",
+          "notification_action_invalid": "This link does not work. Sign in to decide.",
+          "notification_action_reason": "Say why you are rejecting it."
+        }
+      }
     },
     "errors": {
       "invalid_credentials": "That email and password do not match. Check both, or use a sign-in link instead.",
@@ -1707,7 +2832,27 @@
       "password": "Enter a password of at least 12 characters with letters and numbers.",
       "passwordContext": "Choose a password that does not contain your name, your email or a product name such as Gateway.",
       "terms": "Accept the Worker Terms to create your account: tick the box above the button.",
-      "age": "Confirm that you are 16 or older. XOS accounts are for people 16 and over."
+      "age": "Choose the answer that is true for you."
+    },
+    "ageRefused": {
+      "title": "XOS accounts are for people 18 and older",
+      "sentence": "You told us you are under 18, so we did not create an account. We did not keep what you typed.",
+      "closed": "You told us you are under 18, so your account is closed. We deleted your sign-in, your profile and its files, your badge photos, your settings, what you sent our support team, and the answers and personal agreements you gave XOS. Any organization you worked with keeps the records the law requires, such as hours you worked, and a note with your email address that your account was deleted, and XOS keeps a record of that deletion with your account IDs but no name. XOS also keeps a monthly count of people under 18 it turned away, which does not identify you. Deleted data stays in backups until they expire.",
+      "held": "You told us you are under 18, but your account cannot be deleted yet: a legal hold, an open shift or being an organization's only owner stands in the way. We signed you out everywhere, you cannot use this account, and we will ask again when you sign in. Contact us and we will finish closing it.",
+      "minors": "If you are working or attending an event, the adult or organization responsible for you can keep your details in their own records. You do not need an account for that.",
+      "contact": "Contact us"
+    },
+    "ageQuestion": {
+      "title": "Confirm your age",
+      "lead": "XOS asks everyone who has not answered yet.",
+      "submit": "Continue",
+      "under": {
+        "title": "Confirm your answer",
+        "sentence": "XOS accounts are for people 18 and older. If you are under 18, we close this account.",
+        "consequences": "Closing it ends your memberships, cancels work under way and deletes your sign-in, your profile and its files, your badge photos, your settings, what you sent our support team, and the answers and personal agreements you gave XOS. It cannot be undone. Any organization you worked with keeps the records the law requires, such as hours you worked, and a note with your email address that your account was deleted, and XOS keeps a record of that deletion with your account IDs but no name. XOS also keeps a monthly count of people under 18 it turned away, which does not identify you. Deleted data stays in backups until they expire.",
+        "confirm": "I am under 18. Close my account",
+        "back": "Go back"
+      }
     }
   },
   "work": {
@@ -1776,10 +2921,31 @@
           "dates": "The last day must be on or after the first day."
         }
       }
+    },
+    "quoteRequests": {
+      "empty": "No company has asked you for a quote right now.",
+      "from": "{org}, {project}",
+      "due": "Quote by {when}",
+      "noDue": "No deadline set",
+      "line": "{quantity} {description}",
+      "hireLine": "{quantity} {description}, on hire {from} to {to}",
+      "sendTo": "Send your quote to {name}.",
+      "sendToOrg": "Send your quote to your contact at {org}."
     }
   },
   "legal": {
-    "inReview": "Version {version} is in review and not yet in effect. The published text appears here when it takes effect.",
+    "draftTitle": "Draft, not yet in effect",
+    "draftNotice": "Version {version} of this document is a draft. It is not in effect, and no one may rely on it.",
+    "inEffect": "Version {version}, in effect from {date}",
+    "upcomingTitle": "Not yet in effect",
+    "upcomingNotice": "Version {version} of this document takes effect on {date}. It is shown here ahead of that day and is not in effect before it.",
+    "upcomingEarlier": "Until then, version {version} stays in effect, and the Contact Page lists where to ask for a copy of its text.",
+    "history": "Version history",
+    "versionDraft": "Version {version}: draft, not yet in effect",
+    "versionInEffect": "Version {version}: in effect from {date}",
+    "versionUpcoming": "Version {version}: takes effect on {date}",
+    "contents": "On this page",
+    "englishOnly": "This document is published in English.",
     "back": "Go to Gateway"
   },
   "diversity": {
@@ -1856,6 +3022,19 @@
         "skipped": "{count, plural, one {# selected application is closed or has an offer, so it is left out.} other {# selected applications are closed or have an offer, so they are left out.}}",
         "final": "Withdrawing is final. To be considered again, apply again while the opportunity is open.",
         "done": "{count, plural, one {Withdrew # application.} other {Withdrew # applications.}}"
+      },
+      "assign": {
+        "one": "Assign from pool",
+        "bulk": "{count, plural, =0 {Assign} one {Assign to # person} other {Assign to # people}}",
+        "title": "{count, plural, =0 {Assign from the pool} one {Assign to # person} other {Assign to # people}}",
+        "apply": "{count, plural, one {Assign to # person} other {Assign to # people}}",
+        "willChange": "{count, plural, one {# person's share will change.} other {# people's shares will change.}}",
+        "unchanged": "{count, plural, one {# person already holds that share.} other {# people already hold that share.}}",
+        "nothing": "Every selected person already holds that share.",
+        "none": "None of the selected people is accepted on the roster yet.",
+        "skipped": "{count, plural, one {# selected person is not accepted on the roster yet, so they are left out.} other {# selected people are not accepted on the roster yet, so they are left out.}}",
+        "undoable": "Undo or Cmd or Ctrl+Z gives the shares back to the pool while nobody has picked them up.",
+        "done": "{count, plural, one {Assigned to # person.} other {Assigned to # people.}}"
       }
     },
     "cancel": "Cancel",
@@ -1875,7 +3054,12 @@
       "application_offered": "It has an offer. Accept, decline or counter it on its own.",
       "lifecycle_transition": "That step is not possible from where it is now. Reload to see its current state.",
       "lifecycle_conflict": "Someone changed it a moment ago. Reload to see the latest.",
-      "refused": "The organization's rules do not allow this for it."
+      "refused": "The organization's rules do not allow this for it.",
+      "allocation_not_pool": "Only an approved pool is shared out.",
+      "allocation_split_exceeds": "The pool does not have that many left. Give a smaller share.",
+      "allocation_cap_person": "That share goes beyond what one person may have.",
+      "allocation_entry_not_accepted": "This person is not accepted on the roster yet.",
+      "allocation_issued": "Part of this share was already handed over, so it stays."
     },
     "menu": {
       "label": "Actions for {row}",
@@ -1894,5 +3078,119 @@
       "nothingToRedo": "Nothing to redo.",
       "dismiss": "Dismiss"
     }
+  },
+  "registration": {
+    "metaTitle": "Crew registration",
+    "closed": "This registration page is not open.",
+    "minimumAge": "You must be {age} or older.",
+    "signedOut": "Sign up or sign in to register. Your account stays yours.",
+    "signUp": "Sign up",
+    "signIn": "I have an account",
+    "formLabel": "Register",
+    "stepQuestions": "Questions {n}",
+    "stepConfirm": "Confirm",
+    "phone": "Work phone",
+    "phoneHelp": "With the country code, or a number in your country. It is saved to your settings.",
+    "ageConfirm": "I am {age} or older",
+    "share": "Share from your profile",
+    "shareHelp": "Optional. Only the sections you choose, with this organization only.",
+    "back": "Back",
+    "next": "Next",
+    "submit": "Register",
+    "refused": "Your registration could not be saved. Check it and try again.",
+    "answerRequired": "Answer every required question on this step.",
+    "withdraw": "Withdraw",
+    "state": {
+      "Submitted": "You registered. The organization reviews it next.",
+      "Approved": "You are approved. Watch Explore for work from this organization."
+    },
+    "states": {
+      "Submitted": "Submitted",
+      "Approved": "Approved"
+    },
+    "sections": {
+      "headline": "Headline",
+      "bio": "Bio",
+      "pronouns": "Pronouns",
+      "location": "Location",
+      "skills": "Skills",
+      "certifications": "Certifications",
+      "rates": "Rates",
+      "languages": "Languages",
+      "links": "Links"
+    }
+  },
+  "publicForm": {
+    "title": "Form",
+    "codeIntro": "Enter the access code from the person who sent you this link.",
+    "poweredBy": "Powered by XOS",
+    "website": "Leave this empty",
+    "choose": "Choose",
+    "yes": "Yes",
+    "no": "No",
+    "window": "Page {current} of {total}",
+    "back": "Back",
+    "next": "Next",
+    "submit": "Send",
+    "thanks": "Thank you. Your answers were sent.",
+    "unexpected": "That did not go through. Try again.",
+    "unanswered": "Answer these before you go on: {fields}",
+    "required": "Answer this question.",
+    "answeringAs": "You are answering as {who}. The organization sees your name and email with your answers.",
+    "signIn": "Sign in or create an account to answer this form.",
+    "signUpAction": "Create an account",
+    "signInAction": "Sign in"
+  },
+  "badgePhotos": {
+    "title": "Badge photos",
+    "lead": "The photo each organization prints on your credential badge.",
+    "none": "No organization holds a live credential for you, so none asks for a badge photo.",
+    "notice": "{org}'s credential staff see this photo, and so does anyone who sees your badge: it prints on it. Choose Remove at any time to take it back; the organization then prints your badge without it.",
+    "noticeVersion": "Notice {version}",
+    "stateLabel": "Photo",
+    "states": {
+      "Provided": "On your badge",
+      "Scanning": "Being checked",
+      "Refused": "Not accepted",
+      "Profile": "Your profile photo",
+      "Requested": "Requested",
+      "Missing": "None yet"
+    },
+    "stateHelp": {
+      "Provided": "Your photo prints on this badge.",
+      "Scanning": "Your photo is being checked and prints in a few minutes.",
+      "Refused": "Your photo did not pass the virus check. Upload another.",
+      "Profile": "You gave no badge photo, so your profile photo prints.",
+      "Requested": "The organization asked for your photo.",
+      "Missing": "Your badge prints without a photo."
+    },
+    "providedOn": "Given {date}",
+    "thumbnailAlt": "Your badge photo for {org}",
+    "upload": "Upload or take photo",
+    "choose": "Choose a photo",
+    "cropHelp": "Drag the photo to choose what shows. The badge prints a 3 by 4 portrait.",
+    "cropLabel": "Crop the photo",
+    "save": "Save photo",
+    "cancel": "Cancel",
+    "saved": "Photo saved. It prints once it is checked, in a few minutes.",
+    "useProfile": "Use my profile photo",
+    "remove": "Remove",
+    "removed": "Photo removed and your consent withdrawn.",
+    "lapsed": "You no longer hold a live credential with {org}, so your badges there print no photo. The organization still keeps this photo until you remove it.",
+    "fileType": "Choose a JPEG or PNG photo.",
+    "fileSize": "That photo is too large. Choose one under 25 MB.",
+    "section": "Badge photos",
+    "sectionLead": "Give the organizations you work with a photo for your credential badge.",
+    "open": "Open badge photos"
+  },
+  "unsubscribe": {
+    "title": "Stop emails",
+    "question": "Stop emails from {org} to this address?",
+    "questionUnknown": "Stop emails from this organization to this address?",
+    "body": "You were sent this link in an email from a guest list. Nothing changes until you confirm.",
+    "confirm": "Stop emails",
+    "done": "You will not get emails from {org} at this address again.",
+    "doneUnknown": "If this link was valid, you will not get emails from that organization at this address again.",
+    "failed": "This could not be saved. Try again in a moment."
   }
 }

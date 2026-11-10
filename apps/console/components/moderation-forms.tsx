@@ -4,10 +4,20 @@ import { Input, Select, Textarea } from "@xos/ui";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { ActionForm } from "@/components/action-form";
-import { decideAppealAction, decideListingAction } from "@/lib/actions/operations";
+import {
+  decideAppealAction,
+  decideEscalationAction,
+  decideListingAction,
+  decideRatingDisputeAction,
+} from "@/lib/actions/operations";
+import type { Database } from "@xos/data/database.types";
+import * as enums from "@xos/data/enums";
 
-type Action = "Removed" | "Restricted" | "Restored" | "No Action";
-type Ground = "Illegal Content" | "Terms Violation" | "No Violation";
+/** A listing's decision, or a post's, comment's or message's (6891), whose actions are a subset. */
+type Action =
+  | Database["app"]["Enums"]["moderation_action_kind"]
+  | Database["app"]["Enums"]["content_moderation_action"];
+type Ground = Database["app"]["Enums"]["moderation_ground"];
 
 const VIOLATIONS: readonly Ground[] = ["Terms Violation", "Illegal Content"];
 
@@ -24,10 +34,13 @@ function StatementFields({
   idPrefix,
   actions,
   withStatement,
+  statementHelp = "moderation.statementHelp",
 }: {
   idPrefix: string;
   actions: readonly Action[];
   withStatement: boolean;
+  /** The catalog key of the statement's help: who receives it and what it says. */
+  statementHelp?: "moderation.statementHelp" | "reportedContent.statementHelp";
 }) {
   const t = useTranslations("console");
   const [action, setAction] = useState<Action>(actions[0] ?? "Removed");
@@ -73,7 +86,7 @@ function StatementFields({
           id={`${idPrefix}-statement`}
           name="statement"
           label={t("moderation.statement")}
-          help={t("moderation.statementHelp")}
+          help={t(statementHelp)}
           maxLength={4000}
           rows={4}
           required
@@ -92,9 +105,9 @@ export function DecideListingForm({
   removed: boolean;
 }) {
   const t = useTranslations("console");
-  const actions: readonly Action[] = removed
-    ? ["Restored", "Removed", "Restricted", "No Action"]
-    : ["Removed", "Restricted", "No Action"];
+  // Restored applies only to a removed listing, and leads the list when it does.
+  const others = enums.moderationActionKind.filter((a) => a !== "Restored");
+  const actions: readonly Action[] = removed ? ["Restored", ...others] : others;
   return (
     <ActionForm
       action={decideListingAction}
@@ -109,22 +122,56 @@ export function DecideListingForm({
   );
 }
 
+/** GHXSTSHIP decides a post, comment or message an org left undecided (6891): remove it or take no action. */
+export function DecideEscalationForm({ subjectId }: { subjectId: string }) {
+  const t = useTranslations("console");
+  return (
+    <ActionForm
+      action={decideEscalationAction}
+      hidden={{ subjectId }}
+      submitLabel={t("moderation.decide")}
+      successLabel={t("moderation.decided")}
+      label={t("reportedContent.decideTitle")}
+      testId="decide-escalation"
+    >
+      <StatementFields
+        idPrefix="escalation"
+        actions={enums.contentModerationAction}
+        withStatement
+        statementHelp="reportedContent.statementHelp"
+      />
+    </ActionForm>
+  );
+}
+
 export function DecideAppealForm({
   opportunityId,
   appealId,
   reversesNoAction,
+  outsideReviewerName,
 }: {
   opportunityId: string;
   appealId: string;
   reversesNoAction: boolean;
+  /** The named outside reviewer the appeal goes to; the operator then records their decision. */
+  outsideReviewerName: string | null;
 }) {
   const t = useTranslations("console");
   const [outcome, setOutcome] = useState<"Upheld" | "Reversed">("Upheld");
   return (
     <ActionForm
       action={decideAppealAction}
-      hidden={{ opportunityId, appealId }}
-      submitLabel={t("moderation.decideAppeal")}
+      hidden={{
+        opportunityId,
+        appealId,
+        // While a reviewer is appointed, this form can only record their decision, and its button says so.
+        ...(outsideReviewerName ? { outsideReviewerDecided: "yes" } : {}),
+      }}
+      submitLabel={
+        outsideReviewerName
+          ? t("moderation.recordOutside", { name: outsideReviewerName })
+          : t("moderation.decideAppeal")
+      }
       successLabel={t("moderation.appealDecided")}
       label={t("moderation.decideAppeal")}
       testId="decide-appeal"
@@ -139,6 +186,16 @@ export function DecideAppealForm({
           { value: "Reversed", label: t("moderation.reverse") },
         ]}
         onChange={(e) => setOutcome(e.target.value === "Reversed" ? "Reversed" : "Upheld")}
+      />
+      <Textarea
+        id={`appeal-${appealId}-re-review`}
+        name="reReviewNotes"
+        label={t("moderation.reReview")}
+        help={t("moderation.reReviewHelp")}
+        maxLength={4000}
+        rows={3}
+        required
+        width="100%"
       />
       <Textarea
         id={`appeal-${appealId}-statement`}
@@ -159,6 +216,57 @@ export function DecideAppealForm({
           />
         </fieldset>
       ) : null}
+    </ActionForm>
+  );
+}
+
+/**
+ * The decision on a rating dispute (ADR 0158): upheld needs a named ground; not upheld has none. "Other" stays a filing
+ * ground only, so it is not offered here.
+ */
+export function DecideRatingDisputeForm({ disputeId }: { disputeId: string }) {
+  const t = useTranslations("console");
+  const [outcome, setOutcome] = useState<"Upheld" | "Not Upheld">("Not Upheld");
+  const grounds = enums.ratingDisputeGround.filter((g) => g !== "Other");
+  return (
+    <ActionForm
+      action={decideRatingDisputeAction}
+      hidden={{ disputeId }}
+      submitLabel={t("ratingDisputes.decide")}
+      successLabel={t("ratingDisputes.decided")}
+      label={t("ratingDisputes.decideTitle")}
+      testId="decide-rating-dispute"
+    >
+      <Select
+        id={`dispute-${disputeId}-outcome`}
+        name="outcome"
+        label={t("ratingDisputes.outcome")}
+        value={outcome}
+        options={[
+          { value: "Not Upheld", label: t("ratingDisputes.notUphold") },
+          { value: "Upheld", label: t("ratingDisputes.uphold") },
+        ]}
+        onChange={(e) => setOutcome(e.target.value === "Upheld" ? "Upheld" : "Not Upheld")}
+      />
+      {outcome === "Upheld" ? (
+        <Select
+          id={`dispute-${disputeId}-ground`}
+          name="ground"
+          label={t("ratingDisputes.decisionGround")}
+          value={grounds[0] ?? "Wrong Person"}
+          options={grounds.map((g) => ({ value: g, label: t(`ratingDisputeGrounds.${g}`) }))}
+        />
+      ) : null}
+      <Textarea
+        id={`dispute-${disputeId}-statement`}
+        name="statement"
+        label={t("ratingDisputes.statement")}
+        help={t("ratingDisputes.statementHelp")}
+        maxLength={4000}
+        rows={4}
+        required
+        width="100%"
+      />
     </ActionForm>
   );
 }

@@ -1,13 +1,11 @@
 "use client";
 
-import { findRoute } from "@xos/ia";
 import { IconButton } from "@xos/ui";
 import { useTranslations } from "next-intl";
-import { usePathname, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { HELP_GUIDES } from "@/help/guides.generated";
 import { forNode } from "@/help/model";
-import { clientSitemap } from "@/ia/sitemap.client.generated";
 import { loadHelpStateAction, type HelpPanelState } from "@/lib/help/actions";
 import { onDemand, useOnDemand } from "@/components/shell/on-demand";
 import { installErrorCapture, type CollectedDiagnostics } from "./diagnostics";
@@ -36,11 +34,18 @@ export function openHelpArticle(slug: string) {
  * opens, when the page has a tour or tip the person has not seen, or when a replay link
  * (`?tour=<key>`) asks for a tour.
  */
-export function HelpCenter({ org, shortcut }: { org: string; shortcut?: string | undefined }) {
+export function HelpCenter({
+  org,
+  nodeId,
+  shortcut,
+}: {
+  org: string;
+  /** The sitemap node of the page in view, which the shell resolves (null while it cannot yet). */
+  nodeId: string | null;
+  shortcut?: string | undefined;
+}) {
   const t = useTranslations("help");
-  const pathname = usePathname();
   const search = useSearchParams();
-  const nodeId = useMemo(() => findRoute(clientSitemap, pathname)?.id ?? null, [pathname]);
   const [open, setOpen] = useState(false);
   const [view, setView] = useState<HelpView>({ kind: "home" });
   const [state, setState] = useState<HelpPanelState | null>(null);

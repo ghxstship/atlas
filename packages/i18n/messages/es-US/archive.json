@@ -1,0 +1,19 @@
+{
+  "section": "Archivo",
+  "filter": {
+    "label": "Archivados",
+    "exclude": "Ocultar archivados",
+    "include": "Mostrar también archivados",
+    "only": "Solo archivados"
+  },
+  "action": {
+    "archive": "Archivar",
+    "unarchive": "Desarchivar"
+  },
+  "notice": "Archivado el {date}. No aparece en las listas ni en la búsqueda hasta que se desarchive.",
+  "errors": {
+    "notFound": "Ya no tiene acceso a esto o no puede archivarlo. Vuelva a cargar para verlo como está ahora.",
+    "archive_name_taken": "Un recinto activo ya tiene este nombre. Cambie el nombre de uno de los dos y luego desarchive este.",
+    "unexpected": "No se pudo cambiar. Inténtelo de nuevo en un momento."
+  }
+}

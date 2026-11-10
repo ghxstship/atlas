@@ -121,10 +121,20 @@ export async function loadRecordMeta(ctx: OrgContext): Promise<RecordMeta> {
  * records bulk RPC. Blocked and Deferred need a blocker or a reason per record, so they stay single
  * edits. Every record collection, My Work and the record page's title row offer the same changes.
  */
-export function recordBulkConfig(org: string, meta: RecordMeta, t: Translate): BulkConfig {
+/**
+ * The records bulk config. `shift` adds Shift time (P8) for people who hold schedule.timeline.write;
+ * a single record's page passes nothing, so it shows no Shift.
+ */
+export function recordBulkConfig(
+  org: string,
+  meta: RecordMeta,
+  t: Translate,
+  opts?: { readonly shift?: boolean },
+): BulkConfig {
   return {
     org,
     resource: "records",
+    ...(opts?.shift ? { shift: true as const } : {}),
     fields: [
       {
         key: "record_state",

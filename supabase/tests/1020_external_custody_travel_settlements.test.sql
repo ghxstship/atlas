@@ -59,6 +59,9 @@ with x as (insert into app.report_runs (report_definition_id, run_for_membership
 with x as (insert into app.shared_reports (engagement_id, project_id, report_run_id, title) values (pg_temp.id('eng_ivy_a'), pg_temp.id('prj_a'), pg_temp.id('run'), 'Show Spend to Date') returning id)
   insert into world select 'share', id from x;
 
+-- Per diem is an offering since R3 (2625): prj_a offers it.
+insert into app.setting_values (org_id, setting_key, scope_kind, scope_id, value_text, locked)
+values (pg_temp.id('org_a'), 'offerings.per_diem', 'Project', pg_temp.id('prj_a'), 'provided', false);
 insert into app.per_diems (project_id, engagement_id, day, amount_minor, currency_code)
 values (pg_temp.id('prj_a'), pg_temp.id('eng_ivy_a'), '2027-06-01', 6500, 'USD');
 
@@ -134,8 +137,8 @@ select is(pg_temp.n('xavier', 'select 1 from api_external.per_diems'), 0, 'cross
 select has_column('api_external', 'cues', 'project_id', 'cues carry the project of their running order');
 select is((select array_agg(column_name::text order by ordinal_position) from information_schema.columns
   where table_schema = 'api_external' and table_name = 'cues'),
-  array['id', 'run_of_show_id', 'position', 'label', 'planned_at', 'duration', 'called_at', 'is_my_set', 'project_id'],
-  'project_id is appended; earlier columns keep their order');
+  array['id', 'run_of_show_id', 'position', 'label', 'planned_at', 'duration', 'called_at', 'is_my_set', 'project_id', 'start_tbc'],
+  'project_id is appended, then start_tbc (6110); earlier columns keep their order');
 
 -- Opportunity coordinates ------------------------------------------------------------------------------------------------------------------------
 update app.venues set location = extensions.st_setsrid(extensions.st_makepoint(-80.1918, 25.7617), 4326)::extensions.geography where id = pg_temp.id('venue_a');

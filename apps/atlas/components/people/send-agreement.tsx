@@ -11,6 +11,7 @@ import {
 } from "@/app/[org]/people/actions";
 
 import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
+import { useHoldLiveRefresh } from "@/components/live/live-refresh";
 /**
  * Sends an agreement for signature and shows its signing link and access code once (invariant 8):
  * they are stored only as hashes, so this dialog is the only place they ever appear. The signer gets
@@ -24,6 +25,9 @@ export function SendAgreementButton(props: { org: string; id: string }) {
   // The page refreshes only once the dialog closes: the refreshed record no longer offers Send, and
   // the link and code must stay on screen until the person has copied them.
   const [state, action, pending] = useActionState(sendAgreementAction, {});
+  // The list updates live, and the send itself changes the agreement: a refresh while the dialog is
+  // open would drop the Send button, and this dialog with it, before the link and code are copied.
+  useHoldLiveRefresh(open);
   const close = (next: boolean) => {
     setOpen(next);
     if (!next && state.signing) router.refresh();

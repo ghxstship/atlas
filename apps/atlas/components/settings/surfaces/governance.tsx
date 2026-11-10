@@ -6,17 +6,23 @@ import {
   CUSTOM_DATA_TYPES,
   listCustomFields,
   listCustomFieldTargets,
+  listSeparationOptions,
   listSeparationRules,
   listSpendAuthorities,
   SPEND_DOCUMENT_TYPES,
 } from "@xos/data/governance";
+import { audiencesFor, listCueFieldAudiences } from "@xos/data/cue-field-audiences";
 import { listSettingValues } from "@xos/data/settings";
+import { SEGMENT_COLORS, isSegmentColor } from "@xos/data/show";
+import { Tag } from "@xos/ui";
 import {
   addCustomFieldChoiceAction,
   addSpendLimitAction,
   createCustomFieldAction,
   removeCustomFieldAction,
+  setCueFieldAudiencesAction,
   removeSpendLimitAction,
+  setSeparationOptionAction,
 } from "@/app/[org]/settings/surface-actions";
 import { legalEntityDefaults } from "@/lib/shell/org-settings";
 import type { SettingsPanelProps } from "../contributions/types";
@@ -38,7 +44,8 @@ import {
 /**
  * Org rule panels (A86, RRR-131, finding A65-004):
  *   Spend Authority        limits per role or member, document type and currency (Section 4.5.6 org item 22)
- *   Separation of Duties   the rules every org is held to (item 23); none can be loosened
+ *   Separation of Duties   the rules every org is held to (item 23), always on, and the stricter options an
+ *                          org switches on (A135, ADR 0114); none can be loosened
  *   Custom Fields          fields on built-in tables and their choices (item 16)
  *   Canon Extensions       the org's proposed and approved extensions, made on the Canon page (item 14)
  *   Automations            what runs on its own today: scheduled reports, recurring work, approval policies
@@ -198,24 +205,90 @@ export async function SpendAuthorityPanel({ ctx }: SettingsPanelProps) {
 
 // Separation of duties -----------------------------------------------------------------------------------
 
+/** The options of 2280 with a sentence in the catalogs (settingsSurfaces.sod.options.names). */
+const NAMED_SOD_OPTIONS: ReadonlySet<string> = new Set([
+  "sod_change_order_requester_steps",
+  "sod_document_creator",
+  "sod_receiver_po_approver",
+]);
+
 export async function SeparationOfDutiesPanel({ ctx }: SettingsPanelProps) {
-  const [f, rules] = await Promise.all([formatters(ctx), listSeparationRules(ctx.viewer.db)]);
-  if (!rules.ok) return <LoadFailed t={f.t} />;
+  const [f, rules, options] = await Promise.all([
+    formatters(ctx),
+    listSeparationRules(ctx.viewer.db),
+    listSeparationOptions(ctx.viewer.db, ctx.org.id),
+  ]);
+  if (!rules.ok || !options.ok) return <LoadFailed t={f.t} />;
+  const canEdit = ctx.capabilities.has("org.separation_of_duties.write");
+  // Options read in the viewer's language; an option added after this catalog reads its registry sentence.
+  const optionName = (code: string, fallback: string) =>
+    NAMED_SOD_OPTIONS.has(code) ? f.t(`${P}.sod.options.names.${code}`) : fallback;
   return (
-    <Section id="sod-rules" title={f.t(`${P}.sod.title`)} description={f.t(`${P}.sod.description`)}>
-      <Rows
-        label={f.t(`${P}.sod.title`)}
-        rows={rules.data.map((r) => ({
-          id: r.code,
-          title: r.description,
-          meta: [
-            <Code key="c">{r.code}</Code>,
-            f.t(`${P}.sod.enforcedOn`, { where: r.enforcedOn }),
-          ],
-        }))}
-      />
-      <Quiet>{f.t(`${P}.sod.tighten`)}</Quiet>
-    </Section>
+    <>
+      <Section
+        id="sod-rules"
+        title={f.t(`${P}.sod.title`)}
+        description={f.t(`${P}.sod.description`)}
+      >
+        <Rows
+          label={f.t(`${P}.sod.title`)}
+          rows={rules.data.map((r) => ({
+            id: r.code,
+            title: (
+              <>
+                {r.description}
+                <Chip tone="success">{f.t(`${P}.sod.alwaysOn`)}</Chip>
+              </>
+            ),
+            meta: [
+              <Code key="c">{r.code}</Code>,
+              f.t(`${P}.sod.enforcedOn`, { where: r.enforcedOn }),
+            ],
+          }))}
+        />
+        <Quiet>{f.t(`${P}.sod.tighten`)}</Quiet>
+      </Section>
+      <Section
+        id="sod-options"
+        title={f.t(`${P}.sod.options.title`)}
+        description={f.t(`${P}.sod.options.description`)}
+      >
+        <Rows
+          label={f.t(`${P}.sod.options.title`)}
+          rows={options.data.map((o) => {
+            const name = optionName(o.code, o.description);
+            return {
+              id: o.code,
+              title: (
+                <>
+                  {name}
+                  <Chip tone={o.on ? "success" : "neutral"}>
+                    {f.t(o.on ? `${P}.sod.options.on` : `${P}.sod.options.off`)}
+                  </Chip>
+                </>
+              ),
+              meta: [
+                <Code key="c">{o.code}</Code>,
+                f.t(`${P}.sod.options.tightens`, { rule: o.tightens }),
+                f.t(`${P}.sod.enforcedOn`, { where: o.enforcedOn }),
+              ],
+              actions: canEdit ? (
+                <SurfaceButton
+                  action={setSeparationOptionAction}
+                  hidden={{ org: ctx.org.slug, code: o.code, on: o.on ? "off" : "on" }}
+                  label={f.t(o.on ? `${P}.sod.options.turnOff` : `${P}.sod.options.turnOn`)}
+                  variant={o.on ? "ghost" : "secondary"}
+                  {...(o.on
+                    ? { confirm: removeConfirm(f, "sod.options.offConfirm", { option: name }) }
+                    : {})}
+                />
+              ) : undefined,
+            };
+          })}
+        />
+        {canEdit ? null : <Quiet>{f.t(`${P}.sod.options.readOnly`)}</Quiet>}
+      </Section>
+    </>
   );
 }
 
@@ -226,13 +299,22 @@ function targetLabel(f: Formatters, table: string): string {
   return f.t(key);
 }
 
+/** The palette a choice may take: none, then the seven themed categorical colors, each by name. */
+function colorOptions(f: Formatters) {
+  return [
+    { value: "", label: f.t(`${P}.customFields.colors.none`) },
+    ...SEGMENT_COLORS.map((c) => ({ value: c, label: f.t(`${P}.customFields.colors.${c}`) })),
+  ];
+}
+
 export async function CustomFieldsPanel({ ctx }: SettingsPanelProps) {
-  const [f, fields, targets] = await Promise.all([
+  const [f, fields, targets, audiences] = await Promise.all([
     formatters(ctx),
     listCustomFields(ctx.viewer.db, ctx.org.id),
     listCustomFieldTargets(ctx.viewer.db),
+    listCueFieldAudiences(ctx.viewer.db, ctx.org.id),
   ]);
-  if (!fields.ok || !targets.ok) return <LoadFailed t={f.t} />;
+  if (!fields.ok || !targets.ok || !audiences.ok) return <LoadFailed t={f.t} />;
   const canEdit = ctx.capabilities.has("org.custom_fields.write");
   return (
     <Section
@@ -260,12 +342,38 @@ export async function CustomFieldsPanel({ ctx }: SettingsPanelProps) {
               targetLabel(f, field.targetTable),
               <Code key="k">{field.key}</Code>,
               field.filterable ? f.t(`${P}.customFields.filterable`) : null,
-              field.dataType === "Choice"
-                ? field.choices.length === 0
-                  ? f.t(`${P}.customFields.noChoices`)
-                  : f.t(`${P}.customFields.choices`, {
-                      choices: field.choices.map((c) => c.label).join(", "),
-                    })
+              field.dataType === "Choice" ? (
+                field.choices.length === 0 ? (
+                  f.t(`${P}.customFields.noChoices`)
+                ) : field.choices.some((c) => isSegmentColor(c.colorKey)) ? (
+                  <span key="choices" className="inline-flex flex-wrap gap-4">
+                    {field.choices.map((c) => (
+                      <Tag
+                        key={c.id}
+                        {...(isSegmentColor(c.colorKey) ? { swatch: c.colorKey } : {})}
+                      >
+                        {isSegmentColor(c.colorKey)
+                          ? f.t(`${P}.customFields.choiceWithColor`, {
+                              label: c.label,
+                              color: f.t(`${P}.customFields.colors.${c.colorKey}`),
+                            })
+                          : c.label}
+                      </Tag>
+                    ))}
+                  </span>
+                ) : (
+                  f.t(`${P}.customFields.choices`, {
+                    choices: field.choices.map((c) => c.label).join(", "),
+                  })
+                )
+              ) : null,
+              field.targetTable === "app.cues"
+                ? f.t(`${P}.customFields.audienceList`, {
+                    audiences:
+                      (audiences.data.get(field.id) ?? [])
+                        .map((a) => f.t(`${P}.customFields.audiences.${a}`))
+                        .join(", ") || f.t(`${P}.customFields.audiences.none`),
+                  })
                 : null,
             ],
             actions: canEdit ? (
@@ -276,28 +384,64 @@ export async function CustomFieldsPanel({ ctx }: SettingsPanelProps) {
                 confirm={removeConfirm(f, "customFields.removeConfirm", { label: field.label })}
               />
             ) : undefined,
-            children:
-              canEdit && field.dataType === "Choice" ? (
-                <SurfaceForm
-                  id={`choice-${field.id}`}
-                  action={addCustomFieldChoiceAction}
-                  label={f.t(`${P}.customFields.addChoiceFor`, { label: field.label })}
-                  hidden={{
-                    org: ctx.org.slug,
-                    fieldId: field.id,
-                    sortOrder: String((field.choices.length + 1) * 10),
-                  }}
-                  submitLabel={f.t(`${P}.customFields.addChoice`)}
-                  fields={[
-                    {
-                      kind: "text",
-                      name: "label",
-                      label: f.t(`${P}.customFields.choiceLabel`),
-                      maxLength: 100,
-                    },
-                  ]}
-                />
-              ) : undefined,
+            children: canEdit ? (
+              <>
+                {field.dataType === "Choice" ? (
+                  <SurfaceForm
+                    id={`choice-${field.id}`}
+                    action={addCustomFieldChoiceAction}
+                    label={f.t(`${P}.customFields.addChoiceFor`, { label: field.label })}
+                    hidden={{
+                      org: ctx.org.slug,
+                      fieldId: field.id,
+                      sortOrder: String((field.choices.length + 1) * 10),
+                    }}
+                    submitLabel={f.t(`${P}.customFields.addChoice`)}
+                    fields={[
+                      {
+                        kind: "text",
+                        name: "label",
+                        label: f.t(`${P}.customFields.choiceLabel`),
+                        maxLength: 100,
+                      },
+                      {
+                        kind: "select",
+                        name: "color",
+                        label: f.t(`${P}.customFields.choiceColor`),
+                        help: f.t(`${P}.customFields.choiceColorHelp`),
+                        options: colorOptions(f),
+                        defaultValue: "",
+                      },
+                    ]}
+                  />
+                ) : null}
+                {field.targetTable === "app.cues" ? (
+                  <SurfaceForm
+                    id={`audiences-${field.id}`}
+                    action={setCueFieldAudiencesAction}
+                    label={f.t(`${P}.customFields.audiencesFor`, { label: field.label })}
+                    hidden={{ org: ctx.org.slug, fieldId: field.id, dataType: field.dataType }}
+                    submitLabel={f.t(`${P}.customFields.audiencesSave`)}
+                    fields={[
+                      {
+                        kind: "checkboxes",
+                        name: "audiences",
+                        label: f.t(`${P}.customFields.audiencesLabel`),
+                        help:
+                          audiencesFor(field.dataType).length === 1
+                            ? f.t(`${P}.customFields.audiencesCrewOnly`)
+                            : f.t(`${P}.customFields.audiencesHelp`),
+                        options: audiencesFor(field.dataType).map((a) => ({
+                          value: a,
+                          label: f.t(`${P}.customFields.audiences.${a}`),
+                        })),
+                        defaultValues: audiences.data.get(field.id) ?? [],
+                      },
+                    ]}
+                  />
+                ) : null}
+              </>
+            ) : undefined,
           }))}
         />
       )}

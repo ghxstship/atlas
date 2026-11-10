@@ -37,7 +37,7 @@ const OWN_NOT_FOUND: Readonly<Record<string, string>> = {
     "assets.units.notFound in the peek and on the full page",
   // Credentials and incidents show RecordMissing (credentials.common.recordMissing) with Back to list.
   "components/credentials/sections.tsx#CategoriesSection": "CategoryRecord shows RecordMissing",
-  "components/credentials/sections.tsx#IssuedSection": "CredentialRecord shows RecordMissing",
+  "components/credentials/issued-section.tsx#IssuedSection": "CredentialRecord shows RecordMissing",
   "components/incidents/sections.tsx#DispatchBoardSection": "IncidentRecord shows RecordMissing",
   "components/incidents/sections.tsx#EmergencyCodesSection": "CodeRecord shows RecordMissing",
   "components/incidents/sections.tsx#IncidentsSection": "IncidentRecord shows RecordMissing",
@@ -52,10 +52,16 @@ const OWN_NOT_FOUND: Readonly<Record<string, string>> = {
   "components/logistics-hospitality/shipments.tsx#ShipmentsSection":
     "ShipmentsSection shows common.peekMissing",
   "components/logistics-hospitality/yard.tsx#YardSection": "YardSection shows common.peekMissing",
+  "components/logistics-hospitality/transfers.tsx#TransfersSection":
+    "TransfersSection shows common.peekMissing",
+  "components/logistics-hospitality/space-bookings.tsx#SpaceBookingsSection":
+    "SpaceBookingsSection shows common.peekMissing",
   // Places and safety open their drawer with places.kit.peekMissing in it.
   "components/places/documents/documents-page.tsx#DocumentsPage":
     "the drawer shows places.kit.peekMissing",
   "components/places/plans/plans-page.tsx#PlansPage": "the drawer shows places.kit.peekMissing",
+  "components/places/signage/signage-page.tsx#SignagePage":
+    "the drawer shows places.kit.peekMissing",
   "components/places/venues/venues-page.tsx#VenuesPage": "VenueDetail shows places.kit.peekMissing",
   "components/safety/inspections/inspections-page.tsx#InspectionsView":
     "the drawer shows places.kit.peekMissing",
@@ -120,7 +126,11 @@ const KIND_NOT_FOUND: Readonly<Record<string, string>> = {
     "finds the id by key (findIdByKey)",
   "components/logistics-hospitality/shipments.tsx#ShipmentsSection":
     "finds the id by key (findIdByKey)",
+  "components/logistics-hospitality/transfers.tsx#TransfersSection":
+    "finds the id by key (findIdByKey)",
   "components/schedule/schedule-pages.tsx#BaselinesPage": "reads a baseline only for a UUID key",
+  "components/show/segment-library-page.tsx#SegmentLibraryPage":
+    "reads a library segment only for a UUID key",
   "components/show/show-pages.tsx#RunsPage": "reads a running order only for a UUID key",
   // Its comparison is about the door list's read, not the `?peek` row, which it finds in the list.
   "components/workforce/guest-check-in.tsx#GuestCheckInSection": "finds the guest in its list",
@@ -165,8 +175,11 @@ interface Declaration extends PeekUse {
   readonly name: string;
   readonly text: string;
   readonly names: ReadonlySet<string>;
-  /** Modules it imports with `import()`, followed whole. */
-  readonly loads: readonly string[];
+  /**
+   * Modules it imports with `import()`: the one export a lazy component takes
+   * (`import("x").then((m) => m.Name)`), else the module whole.
+   */
+  readonly loads: readonly { readonly file: string; readonly name: string }[];
   /**
    * A shared row component that takes `activatable` (the finance kit's table, list and board, the
    * crew PeekTable): its rows open `?peek` unless the page passes `activatable={false}`.
@@ -510,7 +523,24 @@ function parseInto(mod: Module, file: string, text: string): Module {
   const sf = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true, kind);
   const declare = (declared: readonly string[], node: ts.Node, opener = false) => {
     const names = new Set<string>();
-    const loads: string[] = [];
+    const loads: { file: string; name: string }[] = [];
+    /** The export `import(...).then((m) => m.Name)` takes, or "*" for any other use of the module. */
+    const taken = (call: ts.CallExpression): string => {
+      const then = call.parent;
+      if (!ts.isPropertyAccessExpression(then) || then.name.text !== "then") return "*";
+      const invoke = then.parent;
+      const [fn] = ts.isCallExpression(invoke) ? invoke.arguments : [];
+      if (!fn || !ts.isArrowFunction(fn) || fn.parameters.length !== 1) return "*";
+      const param = fn.parameters[0]?.name;
+      const body = fn.body;
+      return param &&
+        ts.isIdentifier(param) &&
+        ts.isPropertyAccessExpression(body) &&
+        ts.isIdentifier(body.expression) &&
+        body.expression.text === param.text
+        ? body.name.text
+        : "*";
+    };
     const walk = (n: ts.Node) => {
       if (ts.isIdentifier(n)) names.add(n.text);
       const [arg] = ts.isCallExpression(n) ? n.arguments : [];
@@ -521,7 +551,7 @@ function parseInto(mod: Module, file: string, text: string): Module {
         ts.isStringLiteral(arg)
       ) {
         const target = resolveImport(file, arg.text);
-        if (target) loads.push(target);
+        if (target) loads.push({ file: target, name: taken(n) });
       }
       ts.forEachChild(n, walk);
     };
@@ -632,7 +662,7 @@ function reach(start: Declaration, intoOpeners = true): ReadonlySet<Declaration>
     seen.add(next);
     if (!intoOpeners && next.opener && next !== start) continue;
     for (const name of next.names) lookup(next.file, name, queue);
-    for (const file of next.loads) exported(file, "*", queue, 0);
+    for (const load of next.loads) exported(load.file, load.name, queue, 0);
   }
   cache.set(start, seen);
   return seen;
@@ -645,8 +675,8 @@ function rendersOpener(from: Declaration, tag: string): boolean {
   return found.some(
     (d) =>
       d.opener ||
-      d.loads.some((file) =>
-        [...parse(file).declarations.values()].some((l) => l.opener && d.names.has(l.name)),
+      d.loads.some((load) =>
+        [...parse(load.file).declarations.values()].some((l) => l.opener && d.names.has(l.name)),
       ),
   );
 }

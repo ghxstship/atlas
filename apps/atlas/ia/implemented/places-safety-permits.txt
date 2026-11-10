@@ -4,6 +4,7 @@ places.venues
 places.spaces-and-zones
 places.capability-documents
 places.site-plans
+places.signage
 safety
 safety.permits
 safety.inspections

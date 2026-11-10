@@ -7,25 +7,32 @@ import {
   type ResultStorage,
   type RunLabels,
 } from "./report-runs.ts";
+import type { Database } from "./database.types.ts";
+import type { ReportEmail, ReportMailer } from "./report-mailers.ts";
 
 /**
  * The report.deliver worker (A43, finding A38-004; Section 4.6.4, journey 29; migration 1127). The
  * scheduler queues a report run per recipient for each due schedule; when a run succeeds the database
  * queues a report.deliver job for its delivery, and this worker emails the run's file to the
  * recipient as an attachment, then records the outcome. Recipients are members of the org only.
+ * The caller composes the email (report-run: the org's branded email, 904090003).
  *
  * Mail goes through a ReportMailer: mailpitMailer sends to the local stack's Inbucket (Mailpit) and
  * refuses any host that is not this machine, so a development or test run never emails anyone; the
  * production transport is plugged in by the Edge Function from the email environment, with its
  * recipient allow-list.
  */
+export * from "./report-mailers.ts";
+
 export const REPORT_DELIVER_JOB = "report.deliver";
 
 export interface ReportDelivery {
   readonly deliveryId: string;
+  readonly orgId: string;
+  readonly orgSlug: string;
   readonly orgName: string;
   readonly reportName: string;
-  readonly exportFormat: "CSV" | "XLSX" | "PDF";
+  readonly exportFormat: Database["app"]["Enums"]["export_format"];
   readonly storagePath: string | null;
   readonly rowCount: number | null;
   readonly unpricedCount: number | null;
@@ -33,6 +40,11 @@ export interface ReportDelivery {
   readonly recipientName: string | null;
   readonly status: string;
   readonly scheduledFor: string;
+  readonly recipientPersonId: string | null;
+  /** The report, only for a recipient who may open it in Atlas (app.report_delivery, 904090003). */
+  readonly reportDefinitionId: string | null;
+  /** True when the org's suppression list stops this recipient's report email. */
+  readonly suppressed: boolean;
 }
 
 export interface ReportDeliveryStore {
@@ -52,34 +64,17 @@ export interface ResultFiles {
   download(bucket: string, name: string): Promise<Uint8Array>;
 }
 
-export interface ReportEmail {
-  readonly to: string;
-  readonly toName: string | null;
-  readonly subject: string;
-  readonly text: string;
-  readonly html: string;
-  readonly attachment: {
-    readonly filename: string;
-    readonly contentType: string;
-    readonly content: Uint8Array;
-  };
-}
+/** The file a delivery's email carries. */
+export type ReportAttachment = NonNullable<ReportEmail["attachment"]>;
 
-export interface ReportMailer {
-  readonly name: string;
-  send(email: ReportEmail): Promise<{ readonly messageId: string }>;
-}
-
-/** The email copy, in the recipient's language where the caller knows it. */
-export interface DeliveryCopy {
-  subject(input: { readonly report: string; readonly org: string }): string;
-  body(input: {
-    readonly report: string;
-    readonly org: string;
-    readonly rows: number;
-    readonly unpriced: number;
-  }): string;
-}
+/**
+ * Builds one delivery's email around its file: the recipient, subject, text and HTML parts, headers, From name and
+ * reply-to. report-run passes the org's branded report_delivery email (packages/platform edge/report-email.ts).
+ */
+export type ComposeReportEmail = (
+  delivery: ReportDelivery,
+  attachment: ReportAttachment,
+) => Promise<ReportEmail>;
 
 export interface ReportDeliveryResult {
   readonly jobId: string;
@@ -94,9 +89,6 @@ const CONTENT_TYPES = {
   PDF: "application/pdf",
 } as const;
 
-const escapeHtml = (s: string) =>
-  s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-
 /** The attachment's file name: the report name in safe characters, then the format's extension. */
 export function attachmentName(report: string, format: ReportDelivery["exportFormat"]): string {
   const base = report
@@ -107,16 +99,19 @@ export function attachmentName(report: string, format: ReportDelivery["exportFor
   return `${base || "report"}.${format.toLowerCase()}`;
 }
 
+const SUPPRESSED =
+  "The recipient stopped scheduled report emails, or the address is on the organization's suppression list.";
+
 /** One pass of the delivery worker: sends each claimed delivery once. */
 export async function runReportDeliveries(options: {
   readonly store: ReportDeliveryStore;
   readonly files: ResultFiles;
   readonly mailer: ReportMailer;
-  readonly copy: DeliveryCopy;
+  readonly compose: ComposeReportEmail;
   readonly worker: string;
   readonly limit?: number;
 }): Promise<readonly ReportDeliveryResult[]> {
-  const { store, files, mailer, copy, worker } = options;
+  const { store, files, mailer, compose, worker } = options;
   const claimed = await store.claim(worker, options.limit ?? 10);
   const results: ReportDeliveryResult[] = [];
   for (const job of claimed) {
@@ -127,23 +122,28 @@ export async function runReportDeliveries(options: {
       continue;
     }
     try {
+      if (d.suppressed) {
+        // An unsubscribe from reports or all email, a bounce, a complaint or a manual entry: never mailed, never retried.
+        await store.finish(d.deliveryId, { sent: false, error: SUPPRESSED });
+        await store.finishJob(job.jobId, true, null);
+        results.push({
+          jobId: job.jobId,
+          deliveryId: d.deliveryId,
+          status: "Skipped",
+          error: SUPPRESSED,
+        });
+        continue;
+      }
       if (!d.recipientEmail) throw new Error("The recipient has no email address on file.");
       if (!d.storagePath) throw new Error("The report run has no file to attach.");
       const content = await files.download(REPORT_RESULTS_BUCKET, d.storagePath);
-      const words = { report: d.reportName, org: d.orgName };
-      const body = copy.body({ ...words, rows: d.rowCount ?? 0, unpriced: d.unpricedCount ?? 0 });
-      const sent = await mailer.send({
-        to: d.recipientEmail,
-        toName: d.recipientName,
-        subject: copy.subject(words),
-        text: body,
-        html: `<p>${escapeHtml(body)}</p>`,
-        attachment: {
+      const sent = await mailer.send(
+        await compose(d, {
           filename: attachmentName(d.reportName, d.exportFormat),
           contentType: CONTENT_TYPES[d.exportFormat],
           content,
-        },
-      });
+        }),
+      );
       await store.finish(d.deliveryId, { sent: true, messageId: sent.messageId });
       await store.finishJob(job.jobId, true, null);
       results.push({ jobId: job.jobId, deliveryId: d.deliveryId, status: "Sent" });
@@ -173,7 +173,7 @@ export async function runScheduledReports(options: {
   readonly deliveries: ReportDeliveryStore;
   readonly files: ResultFiles;
   readonly mailer: ReportMailer;
-  readonly copy: DeliveryCopy;
+  readonly compose: ComposeReportEmail;
   readonly worker: string;
 }): Promise<{
   readonly queued: number;
@@ -192,7 +192,7 @@ export async function runScheduledReports(options: {
     store: options.deliveries,
     files: options.files,
     mailer: options.mailer,
-    copy: options.copy,
+    compose: options.compose,
     worker: options.worker,
     limit: 25,
   });
@@ -200,110 +200,6 @@ export async function runScheduledReports(options: {
 }
 
 // Mailers ---------------------------------------------------------------------------------------------
-
-/** Base64 of bytes without Node's Buffer, so the Edge runtime can use it too. */
-export function toBase64(bytes: Uint8Array): string {
-  let binary = "";
-  for (let i = 0; i < bytes.length; i += 0x8000) {
-    binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
-  }
-  return btoa(binary);
-}
-
-const LOCAL_HOSTS = new Set(["127.0.0.1", "localhost", "[::1]", "::1", "host.docker.internal"]);
-
-/**
- * Sends through Mailpit's HTTP API (`POST /api/v1/send`), the Inbucket of a local Supabase stack.
- * Only a local host is accepted (or a Docker service name of a supabase_inbucket container), so this
- * mailer can never reach a real recipient (Section 19.8).
- */
-export function mailpitMailer(
-  baseUrl: string,
-  from: { readonly email: string; readonly name: string },
-  fetchImpl: typeof fetch = fetch,
-): ReportMailer {
-  const url = new URL(baseUrl);
-  if (!LOCAL_HOSTS.has(url.hostname) && !url.hostname.startsWith("supabase_inbucket_")) {
-    throw new Error(`The Mailpit mailer only sends to a local inbox, not ${url.hostname}.`);
-  }
-  return {
-    name: "mailpit",
-    async send(email) {
-      const response = await fetchImpl(new URL("/api/v1/send", url), {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          From: { Email: from.email, Name: from.name },
-          To: [{ Email: email.to, Name: email.toName ?? "" }],
-          Subject: email.subject,
-          Text: email.text,
-          HTML: email.html,
-          Attachments: [
-            {
-              Content: toBase64(email.attachment.content),
-              Filename: email.attachment.filename,
-              ContentType: email.attachment.contentType,
-            },
-          ],
-        }),
-      });
-      if (!response.ok) {
-        throw new Error(`Mailpit refused the message: ${response.status} ${await response.text()}`);
-      }
-      const json = (await response.json()) as { ID?: string };
-      return { messageId: json.ID ?? "" };
-    },
-  };
-}
-
-/** The part of the Resend client a production mailer needs. */
-export interface ResendLike {
-  readonly emails: {
-    send(payload: {
-      from: string;
-      to: string[];
-      subject: string;
-      text: string;
-      html: string;
-      attachments: { filename: string; content: string; contentType?: string }[];
-    }): Promise<{ data: { id: string } | null; error: { message: string } | null }>;
-  };
-}
-
-/**
- * Sends through the owner's Resend account, only to recipients `allowed` accepts (the email
- * environment's allow-list outside production, Section 19.8).
- */
-export function resendMailer(
-  client: ResendLike,
-  from: string,
-  allowed: (address: string) => boolean,
-): ReportMailer {
-  return {
-    name: "resend",
-    async send(email) {
-      if (!allowed(email.to)) throw new Error(`${email.to} is outside the email allow-list.`);
-      const { data, error } = await client.emails.send({
-        from,
-        to: [email.to],
-        subject: email.subject,
-        text: email.text,
-        html: email.html,
-        attachments: [
-          {
-            filename: email.attachment.filename,
-            content: toBase64(email.attachment.content),
-            contentType: email.attachment.contentType,
-          },
-        ],
-      });
-      if (error || !data) throw new Error(`Resend refused the message: ${error?.message ?? ""}`);
-      return { messageId: data.id };
-    },
-  };
-}
-
-// Stores --------------------------------------------------------------------------------------------
 
 const text = (row: Record<string, unknown>, key: string): string => {
   const value = row[key];
@@ -347,6 +243,8 @@ export function supabaseReportDeliveryStore(client: SupabaseClient): ReportDeliv
       if (!r) return null;
       return {
         deliveryId: text(r, "delivery_id"),
+        orgId: text(r, "org_id"),
+        orgSlug: text(r, "org_slug"),
         orgName: text(r, "org_name"),
         reportName: text(r, "report_name"),
         exportFormat: text(r, "export_format") as ReportDelivery["exportFormat"],
@@ -357,6 +255,9 @@ export function supabaseReportDeliveryStore(client: SupabaseClient): ReportDeliv
         recipientName: textOrNull(r, "recipient_name"),
         status: text(r, "delivery_status"),
         scheduledFor: text(r, "scheduled_for"),
+        recipientPersonId: textOrNull(r, "recipient_person_id"),
+        reportDefinitionId: textOrNull(r, "report_definition_id"),
+        suppressed: r["suppressed"] === true,
       };
     },
     async finish(id, outcome) {

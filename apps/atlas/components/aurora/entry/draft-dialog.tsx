@@ -1,7 +1,7 @@
 "use client";
 
 import type { AuroraDraft, AuroraPreviewRecord } from "@xos/ai/client";
-import { Button, InlineAlert, Input, Textarea } from "@xos/ui";
+import { Button, InlineAlert, Input, Select, Textarea } from "@xos/ui";
 import { useEffect, useId, useMemo, useState } from "react";
 import {
   AiGenerated,
@@ -19,6 +19,11 @@ import {
 } from "./shared";
 import type { DraftEntryProps } from "./draft-entry";
 
+const isGovernance = (
+  kind: string,
+): kind is "event_plan" | "event_brief" | "approval_pack" | "waste_plan" =>
+  ["event_plan", "event_brief", "approval_pack", "waste_plan"].includes(kind);
+
 type Phase =
   | { readonly kind: "compose" }
   | { readonly kind: "sending" }
@@ -32,7 +37,9 @@ type Phase =
  * is saved until the person saves the form.
  */
 export function DraftDialog({
-  kind,
+  kind: initialKind,
+  kinds,
+  target,
   form,
   fields,
   context,
@@ -47,6 +54,8 @@ export function DraftDialog({
 }) {
   const t = useEntryT();
   const id = useId();
+  const [kind, setKind] = useState(initialKind);
+  const governance = target !== undefined;
   const { client, availability, check } = useAurora("drafting", open);
   // Each opening mounts a fresh panel (useEntryPanel keys it): the instructions start from the
   // editor's field, and the records are previewed once.
@@ -76,22 +85,34 @@ export function DraftDialog({
   useEffect(() => {
     if (!open) return;
     let live = true;
-    void client.preview({ feature: "drafting", items }).then((r) => {
-      if (!live) return;
-      setRecords(r.ok ? r.data.records : "error");
-      setVocabulary(r.ok ? r.data.vocabulary_terms : 0);
-    });
+    void client
+      .preview({
+        feature: "drafting",
+        items,
+        // A governance draft previews exactly what it reads: the record, its project and its facts.
+        ...(target && isGovernance(kind) ? { draft_kind: kind, target } : {}),
+      })
+      .then((r) => {
+        if (!live) return;
+        setRecords(r.ok ? r.data.records : "error");
+        setVocabulary(r.ok ? r.data.vocabulary_terms : 0);
+      });
     return () => {
       live = false;
     };
-  }, [open, client, items]);
+  }, [open, client, items, kind, target]);
 
   const ready = availability.kind === "ready";
   const send = async () => {
     setPhase({ kind: "sending" });
     setAnnouncement(t("sending"));
     const outcome = outcomeOf(
-      await client.draft({ kind, instructions: instructions.trim(), context: items }),
+      await client.draft({
+        kind,
+        instructions: instructions.trim(),
+        context: items,
+        ...(target ? { target } : {}),
+      }),
     );
     if (outcome.kind === "answer") {
       setTitle(outcome.answer.title);
@@ -146,7 +167,7 @@ export function DraftDialog({
                   !ready ||
                   instructions.trim() === "" ||
                   phase.kind === "sending" ||
-                  (context.length > 0 && records === "error")
+                  ((context.length > 0 || governance) && records === "error")
                 }
                 onClick={() => void send()}
               >
@@ -196,6 +217,15 @@ export function DraftDialog({
           </div>
         ) : (
           <div className="flex flex-col gap-12">
+            {kinds && kinds.length > 1 ? (
+              <Select
+                id={`${id}-kind`}
+                label={t("draft.sentKind")}
+                value={kind}
+                options={kinds.map((k) => ({ value: k, label: t(`draft.kind.${k}`) }))}
+                onChange={(e) => setKind(e.target.value as typeof kind)}
+              />
+            ) : null}
             <Textarea
               id={`${id}-instructions`}
               label={t("draft.instructions")}
@@ -215,7 +245,7 @@ export function DraftDialog({
                     instructions.trim() === "" ? t("draft.noInstructions") : instructions.trim(),
                 },
               ]}
-              {...(context.length > 0 ? { records } : {})}
+              {...(context.length > 0 || governance ? { records } : {})}
               recordLabel={recordLabel}
               vocabularyTerms={vocabulary}
             />

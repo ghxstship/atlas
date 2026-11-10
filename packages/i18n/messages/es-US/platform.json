@@ -20,6 +20,7 @@
     "partner_is_client": "Una organización cliente no puede tener clientes propios, así que no define una marca predeterminada para clientes.",
     "partner_client_unknown": "Esa organización no es uno de sus clientes.",
     "partner_price_client_immutable": "Un precio se queda con su cliente. Defina un precio para el otro cliente.",
+    "partner_price_currency_not_offered": "Fije este precio en una moneda en la que se ofrece XOS.",
     "partner_depth": "Un socio no puede tener un socio superior, y una organización con clientes no puede volverse cliente.",
     "partner_agreement_missing": "La facturación mayorista empieza cuando la plataforma registra su acuerdo de socio. Contacte a su gerente de cuenta.",
     "partner_no_clients": "Cree una organización cliente antes de ejecutar la facturación mayorista.",
@@ -35,8 +36,11 @@
     "brand_contrast": "Este color de acento no cumple el contraste WCAG 2.2 AA en al menos un tema. Elija un acento más oscuro o más claro.",
     "slug_taken": "Esa dirección web ya está en uso. Elija otra.",
     "slug_reserved": "Esa dirección web está reservada por la plataforma. Elija otra.",
+    "territory_not_offered": "XOS no se ofrece a organizaciones en ese país, así que esta organización cliente no se creó.",
+    "organization_country_invalid": "Elija el país donde está establecido el cliente.",
     "plan_unknown": "Ese plan no existe.",
     "plan_limit_exceeded": "Se alcanzó el límite de su plan. Mejore el plan o quite algo primero.",
+    "plan_limit_read_only": "Esto es de solo lectura porque la organización supera los límites de su plan. El aviso en la parte superior de la página indica qué límite y cómo levantarlo.",
     "seat_limit_reached": "Todos los asientos de tu plan están en uso. Compra asientos adicionales en Facturación y plan, o mejora el plan. Los roles Observador y Campo nunca ocupan asiento.",
     "seat_limit_upgrade": "Todos los asientos de tu plan están en uso y el plan no vende asientos adicionales. Mejora el plan en Facturación y plan. Los roles Observador y Campo nunca ocupan asiento.",
     "plan_feature_required": "Su plan no incluye esto. Mejore el plan para usarlo.",
@@ -84,6 +88,9 @@
     "approval_approver_capability": "Aprobar este documento requiere su permiso de aprobación.",
     "approval_one_step_per_approver": "Usted ya decidió un paso de esta aprobación. El siguiente paso necesita otra persona.",
     "approval_rejection_reason": "Diga por qué cuando rechace una aprobación.",
+    "approval_not_eligible": "Solo quien puede editar los registros de este proyecto puede decidir sus aprobaciones.",
+    "record_review_note_required": "Diga qué cambiar cuando solicite cambios.",
+    "sod_record_review_owner": "Usted es responsable de este registro, así que otra persona lo revisa.",
     "sod_approval_requester": "Usted solicitó esta aprobación, así que otra persona la decide.",
     "calendar_feed_limit": "Tiene 20 calendarios suscritos. Revoque uno antes de agregar otro.",
     "calendar_feed_revoked": "Un calendario revocado sigue revocado. Agregue uno nuevo.",
@@ -122,7 +129,65 @@
     "integration_disconnected": "Esa conexión está desconectada y no puede cambiar.",
     "moderation_appeal_window": "Las apelaciones se aceptan durante seis meses después de una decisión; esta es más antigua.",
     "moderation_appeal_grounds": "Explica por qué la decisión es incorrecta, en hasta 4,000 caracteres.",
-    "moderation_appeal_exists": "Esta decisión ya se apeló."
+    "moderation_appeal_exists": "Esta decisión ya se apeló.",
+    "approval_subject_beneficiary": "Esta aprobación es para usted, así que otra persona la decide.",
+    "approval_step_no_approver": "Nadie de los que nombra este paso tiene una cuenta de XOS para recibir correos de aprobación.",
+    "approval_rule_pending": "Esta solicitud espera su regla de aprobación. Apruébela cuando todos los pasos estén aprobados.",
+    "approval_rule_class_no_offering": "Las solicitudes solo llegan para radios y carritos, así que una regla sobre esta clase nunca se aplicaría. Elija una de esas clases.",
+    "approval_link_email_off": "Los correos de aprobación están desactivados, así que no se puede enviar un código. Inicie sesión para decidir.",
+    "approval_reminder_too_soon": "Se notificó a los aprobadores hace menos de 4 horas. Intente más tarde.",
+    "approval_reminder_limit": "Ya se enviaron todos los recordatorios que permite este paso.",
+    "import_destination_required": "Elija la escaleta o el proyecto al que van las filas.",
+    "import_destination_unexpected": "Este tipo de importación va a toda la organización; no nombra una escaleta ni un proyecto.",
+    "import_destination_unknown": "Esa escaleta o ese proyecto ya no existe.",
+    "import_target_outside_destination": "Una fila habría quedado fuera de la escaleta o del proyecto que nombra esta importación, así que no se escribió.",
+    "import_paste_empty": "Pegue una fila de encabezados y al menos una fila debajo.",
+    "import_po_not_proposed": "Las líneas solo se importan a un pedido que sigue en borrador.",
+    "import_pool_unexpected": "Solo una importación de invitaciones a una lista nombra una lista.",
+    "import_pool_unknown": "Esa lista ya no existe. Elige una lista de talento activa de la organización.",
+    "earning_code_taken": "Otro código de ingreso ya usa este código. Elija un código diferente.",
+    "time_off_policy_taken": "Otra política de tiempo libre ya tiene este nombre. Elija un nombre diferente.",
+    "holiday_calendar_taken": "Otro calendario de feriados ya tiene este nombre. Elija un nombre diferente.",
+    "holiday_calendar_applies_taken": "Otro calendario ya se aplica en toda la organización para este estado, o sin estado. Cambie ese, o deje sin marcar Se aplica en toda la organización.",
+    "holiday_day_taken": "Este calendario ya tiene un feriado ese día. Quítelo primero o elija otro día.",
+    "holiday_venue_taken": "Ese recinto ya tiene un calendario de feriados. Desasígnelo allí primero.",
+    "import_sensitive_column": "Esta columna parece contener datos de dieta, accesibilidad o diversidad. Una importación no puede registrar el consentimiento, así que déjala sin asignar.",
+    "custom_field_sensitive": "Un campo personalizado no puede guardar datos de dieta, accesibilidad o diversidad. Usa Datos de trabajo o el paso de necesidades del invitado.",
+    "question_sensitive": "Una pregunta no puede pedir datos de dieta, accesibilidad o de grupos protegidos, porque responderla no registra ningún consentimiento. Usa Datos de trabajo o el paso de necesidades del invitado.",
+    "shift_reconfirm_answered": "Este turno ya se confirmó, o ya nadie lo está preguntando.",
+    "shift_no_show_self": "No puedes marcarte como ausente. Avísale a tu supervisor.",
+    "shift_no_show_state": "Marca la ausencia cuando el turno haya empezado y haya alguien asignado.",
+    "shift_no_show_clocked_in": "Esta persona registró su entrada en el turno, así que no está ausente.",
+    "shift_no_show_reason": "Indica qué pasó.",
+    "shift_no_show_too_late": "Quedan menos de 15 minutos de este turno, muy poco para un reemplazo. Marca la ausencia sin reemplazo.",
+    "shift_no_show_frozen": "Este turno tiene una ausencia. Retírala antes de cambiar su persona, horario o estado, o cancela el turno.",
+    "no_show_id_conflict": "Esta ausencia ya se registró para otro turno. Abre el turno de nuevo y vuelve a intentarlo.",
+    "swap_reason_required": "Indica por qué pides cambiar este turno.",
+    "shift_policy_batch": "Consulta entre 1 y 200 personas a la vez.",
+    "shift_held_for_position": "Este turno está reservado para un puesto. Cubre el puesto o quita el turno de él primero.",
+    "position_holder_one": "Cubre un puesto con un miembro o con una persona de la lista de una agencia.",
+    "position_holder_kind": "Un puesto de miembro lo cubre un miembro, y un puesto de agencia, una persona de la lista de su propia agencia.",
+    "position_filled": "Alguien ocupa este puesto. Déjalo vacante primero.",
+    "position_vacant": "Nadie ocupa este puesto.",
+    "position_in_use": "Deja vacante el puesto y quita sus turnos y registros primero.",
+    "position_engagement_not_agency": "Un puesto de agencia indica la contratación de personal de una agencia de personal.",
+    "position_holder_rpc": "Cubre un puesto desde su registro y déjalo vacante también ahí.",
+    "break_type_unknown": "Ese tipo de descanso está retirado o pertenece a otra organización. Elige uno de los tipos de esta organización.",
+    "crew_shortages_range": "Elige un rango de 1 a 62 días.",
+    "break_type_taken": "Esta organización ya tiene un tipo de descanso con ese nombre.",
+    "holiday_preset_unknown": "Elija los feriados federales de EE. UU.",
+    "holiday_preset_year": "Elija un año de 2021 a 2100.",
+    "holiday_preset_names": "El nombre de un feriado tiene de 1 a 100 caracteres.",
+    "event_type_taken": "Ya existe un tipo de evento con este nombre.",
+    "document_type_taken": "Ya existe un tipo de documento con este nombre.",
+    "event_type_in_use": "Archiva el tipo de evento; todavía hay proyectos que lo usan.",
+    "document_type_in_use": "Quita primero los requisitos de los tipos de evento para este tipo de documento.",
+    "event_type_template_kind": "Elige una plantilla de proyecto vigente.",
+    "event_type_template_type_immutable": "Una regla de plantilla se queda con su tipo de evento.",
+    "event_type_field_target": "Elige un campo personalizado vigente de proyectos.",
+    "event_type_field_immutable": "Un campo de un tipo conserva su tipo y su campo; quítalo y agrega otro.",
+    "event_type_requirement_document_type": "Elige un tipo de documento vigente.",
+    "event_type_requirement_immutable": "Un requisito conserva su tipo y su tipo de documento; quítalo y agrega otro."
   },
   "partner": {
     "sections": "Secciones de la consola de socio",
@@ -142,7 +207,8 @@
       "sessionsCaption": "Clientes que puede leer ahora",
       "seats": "Puestos de clientes",
       "discount": "Descuento mayorista del {percent} por ciento",
-      "noDiscount": "Condiciones mayoristas aún no registradas"
+      "noDiscount": "Condiciones mayoristas aún no registradas",
+      "tiles": "Mosaicos de la consola de socios"
     },
     "plans": {
       "access": "Access",
@@ -154,6 +220,7 @@
     "clients": {
       "intro": "Cada organización cliente tiene sus propios datos, miembros y marca. Usted ve solo datos de facturación; leer los registros de un cliente requiere una sesión de soporte que otorga su Propietario.",
       "create": "Crear una organización cliente",
+      "createOff": "La creación de organizaciones cliente está desactivada para este socio. El equipo de la plataforma la activa con un acuerdo de socio firmado; escriba al buzón de soporte para solicitarla.",
       "createTitle": "Nueva organización cliente",
       "createSubmit": "Crear e invitar al Propietario",
       "caption": "Organizaciones cliente",
@@ -172,7 +239,9 @@
         "slugHelp": "Letras minúsculas, dígitos y guiones. La dirección de Atlas del cliente.",
         "owner": "Correo del Propietario",
         "ownerHelp": "Esta persona recibe la invitación como Propietario.",
-        "plan": "Plan"
+        "plan": "Plan",
+        "country": "País del cliente",
+        "countryChoose": "Elija un país"
       },
       "inviteReady": "La organización cliente está lista. Envíe a su Propietario este enlace de invitación.",
       "inviteLink": "Enlace de invitación del Propietario",
@@ -262,13 +331,14 @@
     "notFound": "Esta importación ya no existe o no puede verla. Inicie una nueva importación.",
     "back": "Todas las importaciones",
     "fileLine": "{file} en {target}",
+    "destinationLine": "En {destination}",
     "cancel": "Cancelar esta importación",
     "canceled": "Esta importación se canceló. No se escribió nada.",
     "newAnother": "Iniciar otra importación",
     "new": {
       "title": "Nueva importación",
       "intro": "Suba una hoja de cálculo, confirme cómo corresponden sus columnas, revise problemas y posibles duplicados y luego confirme. Puede deshacer todo el lote durante 7 días.",
-      "noTargets": "Todavía no puede importar nada. Pida a un Administrador acceso de escritura a recintos, proveedores o activos.",
+      "noTargets": "Todavía no puede importar nada. Pida a un Administrador acceso de escritura a recintos, proveedores o activos, o pida al responsable de un proyecto acceso a una escaleta o a una lista de invitados.",
       "target": "Importar en",
       "targetHelp": "Cada fila se convierte en un registro de este tipo.",
       "file": "Hoja de cálculo",
@@ -280,7 +350,25 @@
       "link": "Enlace de Google Sheets",
       "linkHelp": "Pegue el enlace de una hoja de cálculo compartida con la cuenta de Google que conectó Google Drive en Configuración, Integraciones.",
       "linkSubmit": "Leer la hoja",
-      "linkInvalid": "Pegue un enlace que empiece con https://docs.google.com/spreadsheets/d/."
+      "linkInvalid": "Pegue un enlace que empiece con https://docs.google.com/spreadsheets/d/.",
+      "destinationRun": "Escaleta",
+      "destinationProject": "Proyecto",
+      "destinationHelp": "Las filas se agregan a esta escaleta o proyecto.",
+      "sourcePaste": "Filas pegadas",
+      "destinationBudget": "Presupuesto",
+      "destinationOrder": "Orden de compra",
+      "sourceDocument": "Documento",
+      "destinationPool": "Grupo",
+      "destinationPoolHelp": "Para las filas que no nombran un grupo.",
+      "destinationPoolNone": "Usar el grupo nombrado en cada fila"
+    },
+    "paste": {
+      "label": "Filas",
+      "help": "Copie celdas de Excel, Google Sheets o Shoflo, con la fila de encabezados primero.",
+      "preview": "Primeras {count} filas",
+      "previewEmpty": "Pegue una fila de encabezados y al menos una fila para verlas aquí.",
+      "submit": "Leer las filas",
+      "filename": "Filas pegadas {date}"
     },
     "past": {
       "title": "Importaciones recientes",
@@ -295,7 +383,13 @@
       "venues": "Recintos",
       "counterparties": "Clientes y otras empresas",
       "vendor_products": "Productos de proveedores",
-      "asset_units": "Unidades de activos"
+      "asset_units": "Unidades de activos",
+      "cues": "Cues de la escaleta",
+      "guest_list_entries": "Lista de invitados",
+      "budget_lines": "Líneas de presupuesto",
+      "procurement_needs": "Necesidades de compra",
+      "po_lines": "Líneas de orden de compra",
+      "pool_invitations": "Personal independiente y equipo a invitar"
     },
     "steps": {
       "upload": "Subir",
@@ -354,7 +448,11 @@
         "Playbook": "Según el mapa de columnas del Playbook",
         "Header": "Según el nombre de la columna",
         "Assistant": "Sugerido por Aurora"
-      }
+      },
+      "samples": "Valores de ejemplo",
+      "preview": "Vista previa",
+      "previewIntro": "Las primeras filas tal como se leerán con las opciones actuales.",
+      "previewRow": "Fila {row}"
     },
     "fields": {
       "name": "Nombre",
@@ -372,7 +470,43 @@
       "lead_time_days": "Plazo de entrega en días",
       "asset_tag": "Etiqueta del activo",
       "asset_class_id": "Clase de activo",
-      "home_venue_id": "Recinto base"
+      "home_venue_id": "Recinto base",
+      "position": "Número de cue",
+      "label": "Cue",
+      "segment": "Segmento",
+      "description": "Descripción",
+      "planned_at": "Hora prevista",
+      "duration": "Duración",
+      "space_id": "Espacio",
+      "guest_name": "Nombre del invitado",
+      "plus_ones": "Acompañantes",
+      "note": "Nota para la puerta",
+      "scope_node_id": "Show",
+      "counterparty_id": "En la lista de",
+      "line_number": "Número de línea",
+      "urid": "URID",
+      "quantity": "Cantidad",
+      "unit_price": "Precio unitario",
+      "line_type": "Tipo",
+      "cost_center": "Centro de costo",
+      "unit_basis": "Unidad",
+      "grade_code": "Grado",
+      "phase_code": "Fase",
+      "tier_code": "Nivel",
+      "xyz": "XYZ",
+      "markup_percent": "Recargo %",
+      "client_unit_price": "Precio unitario al cliente",
+      "excluded_from_quote": "Fuera de la cotización",
+      "email": "Correo",
+      "pool_name": "Nombre del grupo",
+      "invitee_name": "Nombre",
+      "work_phone": "Teléfono de trabajo",
+      "role": "Rol",
+      "rate": "Tarifa habitual",
+      "rate_currency": "Moneda de la tarifa",
+      "rate_type": "Tipo de tarifa",
+      "guest_email": "Correo del invitado",
+      "table_label": "Mesa"
     },
     "dryRun": {
       "title": "Simulación",
@@ -391,7 +525,9 @@
       "mergeLabel": "Fusionar la fila {row}",
       "keepLabel": "Mantener aparte la fila {row}",
       "merged": "Fusionado con el registro existente.",
-      "kept": "Se mantiene como registro nuevo."
+      "kept": "Se mantiene como registro nuevo.",
+      "mergedPool": "Omitida: ya está invitada o en un grupo.",
+      "poolHelp": "Combinar significa que esta fila se omite, porque la persona ya está invitada o en un grupo. Mantener separada envía una invitación nueva."
     },
     "issues": {
       "title": "Filas con problemas",
@@ -399,7 +535,17 @@
       "row": "Fila",
       "state": "Estado",
       "cells": "Problemas",
-      "cell": "{column}: {issue}"
+      "cell": "{column}: {issue}",
+      "unknown_urid": "no es una disciplina o categoría canónica",
+      "invalid_line_number": "no es un número de línea entero",
+      "invalid_quantity": "no es una cantidad de cero o más",
+      "invalid_price": "no es un importe ni la palabra Unpriced",
+      "invalid_line_type": "no es Cost, Labor, Fee ni Contingency",
+      "unknown_cost_center": "ningún centro de costo de esta organización tiene este código",
+      "invalid_xyz": "no es X, Y ni Z",
+      "xyz_required": "una disciplina necesita una etiqueta XYZ en esta fila",
+      "invalid_markup": "no está entre 0 y 1000 por ciento",
+      "invalid_boolean": "no es sí o no"
     },
     "rowStates": {
       "Valid": "Válida",
@@ -414,6 +560,10 @@
       "unknown_jurisdiction": "no es una jurisdicción conocida",
       "unknown_time_zone": "no es una zona horaria",
       "unknown_vendor": "ningún proveedor de esta organización tiene este nombre",
+      "unknown_unit": "no es una unidad del catálogo",
+      "unknown_grade": "no es un grado de precio",
+      "unknown_phase": "no es una fase",
+      "unknown_tier": "no es un nivel",
       "unknown_element": "no es un elemento del catálogo",
       "invalid_amount": "no es un número entero de centavos",
       "invalid_currency": "no es un código de moneda",
@@ -422,7 +572,36 @@
       "unknown_asset_class": "ninguna clase de activo tiene este nombre",
       "unknown_venue": "ningún recinto tiene este nombre",
       "target_not_importable": "este tipo de registro no se puede importar",
-      "other": "no se acepta"
+      "invalid_position": "no es un número de cue entero",
+      "invalid_time": "no es una hora",
+      "invalid_duration": "no es una duración",
+      "unknown_space": "ningún espacio de este recinto tiene este nombre",
+      "invalid_plus_ones": "no está entre 0 y 20",
+      "sensitive_note": "menciona una necesidad de dieta o acceso: no la incluyas en la nota",
+      "unknown_show": "ningún show de este proyecto tiene este nombre",
+      "unknown_party": "ninguna empresa de esta organización tiene este nombre",
+      "too_long": "demasiado largo",
+      "duplicate_in_file": "repite una fila anterior",
+      "other": "no se acepta",
+      "invalid_email": "no es una sola dirección de correo",
+      "pool_required": "nombra un grupo en esta columna, o elige uno para la importación",
+      "unknown_pool": "ningún grupo de talento de la organización tiene este nombre",
+      "invalid_phone": "no es un número de teléfono",
+      "unknown_role": "ningún rol tiene este código o puesto",
+      "invalid_rate": "no es un monto en el formato numérico elegido",
+      "rate_currency_required": "agrega la moneda: un código o un símbolo que use tu moneda base",
+      "rate_type_required": "di cómo se paga: por hora, por día o fijo",
+      "rate_type_conflict": "la tarifa y su tipo no coinciden",
+      "rate_not_permitted": "fijar una tarifa requiere la capacidad de nómina",
+      "pool_merged_in_review": "omitida: ya tiene invitación o está en una lista; se combinó en la revisión",
+      "pool_invitation_pool": "rechazada: el grupo ya no es un grupo de talento activo de la organización",
+      "pool_invitation_phone": "rechazada: escribe el teléfono de trabajo en formato internacional, por ejemplo +13105550100",
+      "pool_invitation_duplicate": "rechazada: esta dirección ya tiene una invitación pendiente al grupo, así que reenvíala en su lugar",
+      "pool_invitation_answered": "rechazada: una invitación nueva empieza pendiente",
+      "pool_invitation_fixed": "rechazada: una invitación conserva su grupo, dirección y remitente, así que revócala e invita de nuevo",
+      "pool_invitation_declined": "omitida: esta dirección rechazó una invitación a esta lista en los últimos 12 meses",
+      "pool_invitation_daily_limit": "rechazada: la organización alcanzó sus 2,000 correos de invitación del día; importa esta fila mañana",
+      "pool_rate_kept": "actualizada, con la tarifa sin cambios: no se aplicó la tarifa de este archivo"
     },
     "commit": {
       "title": "Confirmar",
@@ -453,7 +632,8 @@
       "importIt": "Importar esta hoja",
       "importLabel": "Importar la hoja {sheet}",
       "target": "Importar {sheet} en",
-      "summary": "{rows, plural, =0 {Sin filas} one {# fila} other {# filas}}. Destino propuesto: {target}."
+      "summary": "{rows, plural, =0 {Sin filas} one {# fila} other {# filas}}. Destino propuesto: {target}.",
+      "destination": "Adónde van las filas de {sheet}"
     },
     "aurora": {
       "button": "Sugerir con Aurora",
@@ -463,6 +643,40 @@
       "failed": "Aurora no pudo sugerir asignaciones. Asigne las columnas usted.",
       "applied": "{count, plural, one {Aurora sugirió # columna. Revísela antes de confirmar.} other {Aurora sugirió # columnas. Revíselas antes de confirmar.}}",
       "none": "Aurora no encontró nada que agregar a las sugerencias actuales."
+    },
+    "material": {
+      "title": "Coincidencias del catálogo",
+      "help": "Revisa lo que indicó el catálogo antes de confirmar. Una fila sin coincidencia se escribe como texto libre.",
+      "match": "Coincidencia",
+      "note": "Nota",
+      "matched": "Coincide",
+      "unmatched": "Sin coincidencia",
+      "notes": {
+        "price_currency_differs": "El precio del proveedor está en otra moneda, así que el precio queda en blanco."
+      }
+    },
+    "document": {
+      "intro": "Aurora lee la lista en filas que puedes corregir. No se escribe nada hasta que continúes y confirmes.",
+      "file": "PDF de la lista",
+      "read": "Leer el documento",
+      "tooLarge": "Este archivo pesa más de 10 MB. Elige uno más pequeño.",
+      "failed": "Aurora no pudo leer este documento. Pega las filas en su lugar.",
+      "review": "{count, plural, one {Se leyó # fila. Corrígela antes de continuar.} other {Se leyeron # filas. Corrígelas antes de continuar.}}",
+      "row": "Fila {n}",
+      "description": "Artículo",
+      "quantity": "Cantidad",
+      "unit": "Unidad",
+      "sku": "SKU del proveedor",
+      "noQuantity": "El documento no lo indica. Escríbelo para continuar.",
+      "continue": "Continuar a la revisión"
+    },
+    "numberFormat": {
+      "label": "Formato numérico",
+      "help": "Cómo se escriben los montos en este archivo. Solo define los separadores.",
+      "comma-dot": "1,234.56",
+      "dot-comma": "1.234,56",
+      "space-comma": "1 234,56",
+      "apostrophe-dot": "1'234.56"
     }
   },
   "objects": {
@@ -528,6 +742,34 @@
       "done": "Campo agregado."
     }
   },
+  "customFields": {
+    "title": "Campos personalizados",
+    "companyTitle": "Campos de la empresa",
+    "edit": "Editar campos",
+    "save": "Guardar campos",
+    "cancel": "Cancelar",
+    "saved": "Se guardaron los campos personalizados.",
+    "notSet": "Sin valor",
+    "yes": "Sí",
+    "no": "No",
+    "someone": "Un exmiembro",
+    "requiredHelp": "Obligatorio.",
+    "currency": "Moneda de {label}",
+    "timeZone": "En {zone}.",
+    "urlHelp": "Empieza con http:// o https://.",
+    "problems": {
+      "required": "{label} es obligatorio. Escriba un valor.",
+      "invalid": "{label} no parece correcto. Revise el valor e inténtelo de nuevo.",
+      "currency": "Elija una moneda para {label}."
+    },
+    "errors": {
+      "custom_value_required": "Un campo obligatorio no puede quedar vacío. Escriba un valor y guarde de nuevo.",
+      "denied": "No puede cambiar estos campos. Los colaboradores y los roles superiores sí pueden; pídaselo a un Administrador.",
+      "invalid": "Estos valores no se pueden guardar así. Revíselos e inténtelo de nuevo.",
+      "unexpected": "No se pudieron guardar los campos. Inténtelo de nuevo en un momento.",
+      "refused": "No se pudieron guardar los campos porque un valor incumple una regla de esta organización. Revise los valores e inténtelo de nuevo."
+    }
+  },
   "inbox": {
     "title": "Bandeja",
     "loadError": "No se pudo cargar su Bandeja.",
@@ -548,14 +790,19 @@
       "account": {
         "security_changed": "Cambió la seguridad de la cuenta",
         "recovery_code_used": "Código de recuperación usado",
-        "session_signed_out": "Sesión cerrada"
+        "session_signed_out": "Sesión cerrada",
+        "work_details_moved": "Datos de trabajo pasados a cada proyecto",
+        "sensitive_data_attested": "Datos introducidos por ti",
+        "sensitive_consent_needed": "Datos sensibles a la espera de tu consentimiento"
       },
       "announcement": {
         "posted": "Anuncio publicado"
       },
       "approval": {
         "requested": "Aprobación solicitada",
-        "decided": "Aprobación resuelta"
+        "decided": "Aprobación resuelta",
+        "reminder": "Recordatorio de aprobación",
+        "link_code": "Código de acceso de aprobación"
       },
       "assignment": {
         "created": "Nueva asignación"
@@ -569,7 +816,14 @@
         "payment_failed": "Pago fallido",
         "read_only": "La organización está en modo de solo lectura",
         "trial_ending": "La prueba termina pronto",
-        "trial_ended": "La prueba terminó"
+        "trial_ended": "La prueba terminó",
+        "paused": "Organización en pausa",
+        "resumed": "Organización reanudada",
+        "purchase_confirmed": "Plan confirmado",
+        "renewal_reminder": "Plan próximo a renovarse",
+        "cancellation_confirmed": "Suscripción cancelada",
+        "plan_ending": "Plan por terminar",
+        "cancellation_delayed": "Cancelación aún sin confirmar"
       },
       "comment": {
         "created": "Nuevo comentario"
@@ -588,6 +842,10 @@
       },
       "incident": {
         "reported": "Incidente reportado"
+      },
+      "crisis_alert": {
+        "issued": "Alerta de crisis",
+        "ended": "Fin de la alerta de crisis"
       },
       "invoice": {
         "approved": "Factura aprobada",
@@ -609,6 +867,10 @@
       },
       "moderation_appeal": {
         "decided": "Apelación decidida"
+      },
+      "rating_dispute": {
+        "filed": "Calificación impugnada",
+        "decided": "Impugnación de calificación decidida"
       },
       "occupancy": {
         "threshold": "Se alcanzó el umbral de ocupación"
@@ -633,7 +895,13 @@
       },
       "shift": {
         "assigned": "Turno asignado",
-        "changed": "Turno modificado"
+        "changed": "Turno modificado",
+        "reconfirm": "¿Sigues yendo?",
+        "reconfirm_declined": "No puede ir a un turno",
+        "no_show": "Marcado como ausente"
+      },
+      "availability": {
+        "requested": "Disponibilidad solicitada"
       },
       "survey": {
         "opened": "Encuesta abierta"
@@ -642,10 +910,16 @@
         "assigned": "Capacitación asignada"
       },
       "weather": {
-        "alert": "Alerta meteorológica"
+        "alert": "Alerta meteorológica",
+        "warning": "Aviso oficial de clima",
+        "hold": "Suspensión por clima",
+        "all_clear": "Fin de la suspensión por clima"
       },
       "opportunity": {
         "matched": "Nueva oportunidad coincidente"
+      },
+      "offer": {
+        "sent": "Oferta nueva"
       },
       "onboarding": {
         "item_expiring": "Elemento de incorporación por vencer"
@@ -663,6 +937,71 @@
       },
       "content": {
         "removed": "Se eliminó tu contenido"
+      },
+      "agent": {
+        "change_proposed": "Una aplicación conectada propuso un cambio"
+      },
+      "credential_photo": {
+        "requested": "Foto de credencial solicitada"
+      },
+      "roster_entry": {
+        "invited": "Incluido en una lista de equipo",
+        "returned": "Entrada de la lista devuelta",
+        "declined": "Entrada de la lista rechazada",
+        "project_facts_entered": "Datos del proyecto ingresados para ti",
+        "removed": "Retirado de una lista de equipo",
+        "facts_requested": "Faltan datos del proyecto",
+        "share_revoked": "Datos de trabajo ya no compartidos"
+      },
+      "engagement": {
+        "roster_lock_changed": "Cambió el cierre de nombres"
+      },
+      "allocation": {
+        "decided": "Asignación decidida",
+        "assigned": "Asignación recibida",
+        "issued": "Asignación entregada",
+        "withdrawn": "Asignación retirada"
+      },
+      "quote": {
+        "accepted": "Cotización aceptada"
+      },
+      "rfq": {
+        "quote_reminder": "Cotización solicitada",
+        "not_awarded": "Proveedor no elegido"
+      },
+      "crew_registration": {
+        "decided": "Registro de equipo decidido",
+        "invited": "Invitación a registrarte"
+      },
+      "engagement_document": {
+        "sent": "Acuerdo enviado para firmar"
+      },
+      "vendor_intake": {
+        "submitted": "Nueva solicitud de alta"
+      },
+      "advance_answer": {
+        "recorded": "Respuesta registrada para ti"
+      },
+      "guest": {
+        "arrived": "Llegó tu invitado"
+      },
+      "advance_packet": {
+        "reminder": "Recordatorio de avance"
+      },
+      "advance_submission": {
+        "returned": "Respuesta de avance devuelta"
+      },
+      "submittal": {
+        "returned": "Entregable devuelto"
+      },
+      "credential": {
+        "revoked": "Credencial revocada"
+      },
+      "accommodation_block": {
+        "release_due": "Se acerca la liberación del bloque"
+      },
+      "transfer": {
+        "assigned": "Traslado para conducir"
       }
     },
     "approvalSummary": "Aprobar {document} {reference} por {amount}",
@@ -763,7 +1102,7 @@
   },
   "lifecycle": {
     "title": "Cancelar la organización",
-    "description": "Cancelar termina la suscripción. La organización queda en solo lectura durante 30 días con la exportación completa disponible, y sus datos se eliminan el día 90.",
+    "description": "Al cancelar, cualquier suscripción de pago termina de inmediato en Stripe, sin más cargos. El tiempo ya pagado no se reembolsa, salvo que la ley lo exija. La organización queda en solo lectura de inmediato, el Propietario puede reactivarla durante 30 días, la exportación completa sigue disponible hasta la eliminación y sus datos se eliminan el día 90.",
     "loadError": "No se pudo cargar el estado de la organización.",
     "ownerOnly": "Solo el Propietario cancela la organización o descarga la exportación completa.",
     "banner": "Esta organización está cancelada y en solo lectura {days, plural, one {# día más} other {# días más}}, hasta el {until}. El Propietario puede descargar la exportación completa en Configuración, Zona de peligro.",
@@ -773,7 +1112,7 @@
     },
     "cancel": {
       "title": "Cancelar la organización",
-      "explain": "Descargue primero la exportación completa si necesita una copia ahora; sigue disponible durante 30 días después de cancelar.",
+      "explain": "Descargue primero la exportación completa si necesita una copia ahora; sigue disponible hasta la eliminación.",
       "confirm": "Escriba {name} para confirmar",
       "reason": "¿Por qué cancela?",
       "reasonHelp": "Se guarda con el registro de cancelación.",
@@ -834,12 +1173,54 @@
     "copied": "Enlace copiado.",
     "openInCalendar": "Abrir en mi aplicación de calendario",
     "revoked": "Calendario revocado.",
+    "nameLabel": "Nombre",
+    "nameHelp": "Hasta 80 caracteres. Su aplicación de calendario lo muestra con este nombre.",
+    "contentLabel": "Muestra",
+    "sources": {
+      "shifts": "Turnos",
+      "meetings": "Reuniones",
+      "milestones": "Hitos",
+      "deadlines": "Fechas límite",
+      "cues": "Cues"
+    },
+    "audienceLabel": "Audiencia",
+    "audienceHelp": "Un calendario nunca muestra más de lo que usted puede ver.",
+    "audience": {
+      "everyone": "Todo lo que puedo ver",
+      "people": "Personas",
+      "team": "Equipo",
+      "department": "Departamento"
+    },
+    "peopleLabel": "Personas",
+    "peopleHelp": "Hasta 50 miembros de esta organización.",
+    "teamLabel": "Equipo",
+    "departmentLabel": "Departamento",
+    "showDepartmentLabel": "Departamento del show",
+    "showDepartmentHelp": "Solo los cues con un llamado para este departamento, con su instrucción.",
+    "showDepartmentAny": "Cualquier departamento",
+    "showDepartments": {
+      "audio": "Llamados de audio",
+      "lighting": "Llamados de iluminación",
+      "video": "Llamados de video",
+      "sfx": "Llamados de efectos especiales",
+      "stage": "Llamados de escenario"
+    },
+    "edit": "Editar",
+    "editLabel": "Editar {feed}",
+    "editTitle": "Editar calendario",
+    "save": "Guardar",
+    "filterSummary": "Muestra {sources}",
     "errors": {
       "calendar_feed_limit": "Tiene 20 calendarios. Revoque uno antes de agregar otro.",
       "calendar_feed_revoked": "Este calendario fue revocado. Agregue uno nuevo.",
       "denied": "Ese calendario o proyecto no está disponible para usted.",
       "invalid": "Elija un proyecto para un calendario de proyecto.",
-      "unexpected": "Algo salió mal. Inténtelo de nuevo."
+      "unexpected": "Algo salió mal. Inténtelo de nuevo.",
+      "calendar_feed_name": "Dé al calendario un nombre de 1 a 80 caracteres que no use ninguno de sus otros calendarios.",
+      "calendar_feed_filter_scope": "Los cues, la audiencia y el departamento del show son solo para calendarios de proyecto.",
+      "calendar_feed_audience": "Elija una audiencia: personas, un equipo o un departamento de esta organización.",
+      "calendar_feed_people_limit": "Un calendario puede seguir a 50 personas como máximo.",
+      "calendar_feed_sources": "Elija al menos una cosa para que el calendario la muestre."
     }
   },
   "projectInbox": {
@@ -1004,7 +1385,7 @@
   },
   "moderation": {
     "title": "Decisiones de moderación",
-    "description": "Cuando el equipo de la plataforma XOS retira, restringe o restablece uno de tus anuncios tras una denuncia, la decisión y su exposición de motivos aparecen aquí. Puedes apelar un retiro o una restricción en un plazo de seis meses; otra persona decide la apelación.",
+    "description": "Cuando el equipo de la plataforma XOS retira, restringe o restablece uno de tus anuncios tras una denuncia, la decisión y su exposición de motivos aparecen aquí. Puedes apelar un retiro o una restricción en un plazo de seis meses. Revisamos cada apelación desde cero, dejamos constancia de los motivos y te avisamos del resultado.",
     "loadError": "No se pudieron cargar las decisiones de moderación.",
     "none": "No hay decisiones de moderación sobre tus anuncios.",
     "decision": "{title}: {action} el {when}",
@@ -1018,7 +1399,7 @@
       "No Action": "sin medidas"
     },
     "appeal": "Apelar esta decisión",
-    "appealed": "Apelación enviada. Otra persona la decidirá.",
+    "appealed": "Apelación enviada. La revisaremos desde cero y te avisaremos del resultado.",
     "grounds": "¿Por qué es incorrecta la decisión?",
     "groundsHelp": "Explica qué pasó por alto la revisión. Puedes apelar una vez.",
     "appealUntil": "Puedes apelar hasta el {until}.",

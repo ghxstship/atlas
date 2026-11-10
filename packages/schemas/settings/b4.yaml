@@ -1,0 +1,46 @@
+# Settings registry: B4 (scheduling depth: workload and clashes, RRR-228). ADR 0143 decision 5.
+# Field reference: see a30.yaml. The org's thresholds for the workload view and the clash register. Both are computed at
+# read time (ADR 0103): the database returns hours and candidate clashes, and packages/data applies these values, so
+# changing one changes what the next read shows and nothing stored.
+contributor: b4
+settings:
+  # Scheduling --------------------------------------------------------------------------------------------------
+  - key: scheduling.workload_day_hours
+    type: integer
+    min: 4
+    max: 24
+    default: 10
+    scopes: [organization]
+    capability: org.scheduling.write
+    label: settings.fields.workloadDayHours.label
+    help: settings.fields.workloadDayHours.help
+    pages: { org: settings.scheduling }
+    enforced_by:
+      - consumer: packages/data/src/workload.ts#isOver
+        test: packages/data/test/workload.test.ts
+  - key: scheduling.changeover_minutes
+    type: integer
+    min: 0
+    max: 240
+    default: 15
+    scopes: [organization]
+    capability: org.scheduling.write
+    label: settings.fields.changeoverMinutes.label
+    help: settings.fields.changeoverMinutes.help
+    pages: { org: settings.scheduling }
+    enforced_by:
+      - consumer: packages/data/src/schedule-clashes.ts#classifyClash
+        test: packages/data/test/schedule-clashes.test.ts
+  - key: scheduling.travel_buffer_minutes
+    type: integer
+    min: 0
+    max: 720
+    default: 120
+    scopes: [organization]
+    capability: org.scheduling.write
+    label: settings.fields.travelBufferMinutes.label
+    help: settings.fields.travelBufferMinutes.help
+    pages: { org: settings.scheduling }
+    enforced_by:
+      - consumer: packages/data/src/schedule-clashes.ts#classifyClash
+        test: packages/data/test/schedule-clashes.test.ts

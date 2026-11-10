@@ -48,15 +48,22 @@ jobs:
             [ "$ACTUAL" = "$VERSION" ] || { echo "::error::${manifest} is ${ACTUAL}, tag is ${TAG}"; exit 1; }
           done
           grep -qx "version = \"${VERSION}\"" packages/sdk-python/pyproject.toml || { echo "::error::pyproject.toml does not say ${VERSION}"; exit 1; }
-      - run: pnpm turbo run test --filter=@xos/sdk --filter=@xos/cli --filter=@xos/sdk-python
+      - run: pnpm turbo run test --filter=@ghxstship/xos-sdk --filter=@ghxstship/xos-cli --filter=@xos/sdk-python
       - name: Build and pack npm packages
         run: |
-          pnpm --filter @xos/sdk build
-          pnpm --filter @xos/cli build
+          VERSION="${TAG#v}"
+          pnpm --filter @ghxstship/xos-sdk build
+          pnpm --filter @ghxstship/xos-cli build
           mkdir -p "$RUNNER_TEMP/npm"
           (cd packages/sdk-ts && pnpm pack --pack-destination "$RUNNER_TEMP/npm")
           (cd packages/cli && pnpm pack --pack-destination "$RUNNER_TEMP/npm")
-          tar -tzf "$RUNNER_TEMP/npm/xos-cli-${TAG#v}.tgz" | grep -q package/dist/main.js
+          # pnpm names a scoped package's archive <scope>-<name>-<version>.tgz.
+          tar -tzf "$RUNNER_TEMP/npm/ghxstship-xos-sdk-${VERSION}.tgz" | grep -q package/dist/index.js
+          tar -tzf "$RUNNER_TEMP/npm/ghxstship-xos-cli-${VERSION}.tgz" | grep -q package/dist/main.js
+          # The packed CLI must depend on this exact SDK version, never workspace:*.
+          SDK_RANGE="$(tar -xzOf "$RUNNER_TEMP/npm/ghxstship-xos-cli-${VERSION}.tgz" package/package.json \
+            | node -e 'let s="";process.stdin.on("data",(c)=>(s+=c)).on("end",()=>console.log(JSON.parse(s).dependencies["@ghxstship/xos-sdk"]))')"
+          [ "$SDK_RANGE" = "$VERSION" ] || { echo "::error::the packed CLI depends on @ghxstship/xos-sdk ${SDK_RANGE}, not ${VERSION}"; exit 1; }
       - name: Build Python distributions
         run: |
           python -m pip install build==1.3.0 twine==6.2.0
@@ -82,7 +89,7 @@ jobs:
     timeout-minutes: 10
     environment:
       name: npm
-      url: https://www.npmjs.com/package/@xos/sdk
+      url: https://www.npmjs.com/package/@ghxstship/xos-sdk
     permissions:
       contents: read
       id-token: write
@@ -97,8 +104,11 @@ jobs:
           name: npm-packages
           path: npm
       # The SDK first: the CLI depends on the exact SDK version.
-      - name: Publish @xos/sdk and @xos/cli
+      - name: Publish @ghxstship/xos-sdk and @ghxstship/xos-cli
         env:
+          # Only the first publish uses NPM_TOKEN: npm adds a trusted publisher to a package that exists, and
+          # the owner then deletes the secret, after which npm exchanges this job's OIDC token instead
+          # (infra/ci/README.md, section 5).
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           VERSION="${TAG#v}"
@@ -107,13 +117,14 @@ jobs:
               echo "$1@${VERSION} is already published; skipping."
             else
               # No --provenance: npm signs provenance only for packages built in a public repository, and
-              # this one is private (owner decision, 2026-10-24).
+              # this one is private (owner decision, 2026-10-24). Both manifests also set publishConfig.provenance
+              # to false, since npm reads publishConfig from the archive.
               npm publish "$2" --access public
             fi
           }
           # "./" keeps npm from reading "npm/<file>.tgz" as a GitHub owner/repo shorthand.
-          publish @xos/sdk "./npm/xos-sdk-${VERSION}.tgz"
-          publish @xos/cli "./npm/xos-cli-${VERSION}.tgz"
+          publish @ghxstship/xos-sdk "./npm/ghxstship-xos-sdk-${VERSION}.tgz"
+          publish @ghxstship/xos-cli "./npm/ghxstship-xos-cli-${VERSION}.tgz"
 
   pypi:
     name: Publish to PyPI

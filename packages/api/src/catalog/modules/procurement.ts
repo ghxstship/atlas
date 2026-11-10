@@ -3,14 +3,23 @@
  * corrections of frozen Procurement resources to the A03 and A16 schema (ADR 0023): migrations 0331
  * (RFQs, purchase orders, receipts, matches, catalog), 0491 (match results) and 0492 (submittals).
  */
+import { procurementFollowOnResources, rfqCreateSubHireAction } from "./parts/supply-follow-ons.ts";
 import { z } from "@hono/zod-openapi";
 import { fields } from "@xos/schemas";
 import { defineAdditions } from "../additions.ts";
 import { all, editShape, orNull, putActions, removeActions } from "../correct.ts";
 import { itemAction, transition } from "../define.ts";
+import { fieldHistoryAction } from "./parts/bulk-edit-and-history.ts";
 import { rfqSealedResponseCorrections } from "./parts/rfq-sealed-responses.ts";
 import { procurementFieldHomes } from "./parts/playbook-field-homes.ts";
 import { procurementFieldExposure } from "./parts/playbook-field-exposure.ts";
+import { Constants } from "@xos/data/database.types";
+import {
+  acquisitionKind,
+  poLineHireWindowQuery,
+  procurementSupplyResources,
+  purchaseOrderSupplyActions,
+} from "./parts/supply-bridge.ts";
 
 const SINCE = "1.0.0-draft.2";
 
@@ -29,7 +38,54 @@ const reasonBody = (id: string, what: string) =>
     .meta({ id, description: `Request to ${what}.` });
 
 export const additions = defineAdditions("Procurement", {
+  resources: [...procurementSupplyResources, ...procurementFollowOnResources],
+  actions: {
+    purchaseOrders: [fieldHistoryAction("purchase order"), ...purchaseOrderSupplyActions],
+    poLines: [poLineHireWindowQuery],
+    rfqs: [rfqCreateSubHireAction],
+  },
+  capabilities: {
+    procurementNeeds: {
+      read: "procurement.po.read",
+      write: "procurement.po.write",
+      actions: { consolidate: "procurement.po.write" },
+    },
+    procurementNeedStatus: { read: "procurement.po.read" },
+    rfqLines: { read: "procurement.rfq.read", write: "procurement.rfq.write" },
+    rfqs: { actions: { createSubHire: "procurement.rfq.write" } },
+    purchaseOrders: {
+      actions: { receive: "procurement.receipt.write", returnGoods: "procurement.receipt.write" },
+    },
+    poLines: { actions: { hireWindowWarnings: "procurement.po.read" } },
+    goodsReturns: { read: "procurement.po.read" },
+    returnLines: { read: "procurement.po.read" },
+    poLineHireWarnings: { read: "procurement.po.read" },
+  },
   corrections: [
+    {
+      id: "po-line-procurement-need",
+      since: "1.0.0-draft.2",
+      resources: ["poLines"],
+      change: "Adds the optional `procurement_need_id`.",
+      reason:
+        "app.po_lines.procurement_need_id (6531, B11) names the need a line serves; a need's status reads it. Additive and read-side.",
+      apply: editShape({
+        add: { procurement_need_id: { schema: orNull(fields.ref("need this line serves")) } },
+      }),
+    },
+    {
+      id: "rfq-response-line-request-line",
+      since: "1.0.0-draft.2",
+      resources: ["rfqResponseLines"],
+      change: "Adds the optional `rfq_line_id`.",
+      reason:
+        "app.rfq_response_lines.rfq_line_id (6533, B11) names the request line a quoted line answers. Additive and read-side.",
+      apply: editShape({
+        add: {
+          rfq_line_id: { schema: orNull(fields.ref("request line this quoted line answers")) },
+        },
+      }),
+    },
     {
       id: "rfq-number-and-deadline",
       since: SINCE,
@@ -52,7 +108,7 @@ export const additions = defineAdditions("Procurement", {
               create: "optional",
             },
             rfq_state: {
-              schema: label(["Proposed", "Issued", "Closed", "Awarded", "Canceled"], "RFQ state."),
+              schema: label(Constants.app.Enums.rfq_state, "RFQ state."),
             },
           },
         }),
@@ -144,10 +200,7 @@ export const additions = defineAdditions("Procurement", {
               create: "optional",
             },
             po_state: {
-              schema: label(
-                ["Proposed", "Approved", "Sent", "Closed", "Canceled"],
-                "Purchase order state.",
-              ),
+              schema: label(Constants.app.Enums.po_state, "Purchase order state."),
             },
           },
         }),
@@ -196,10 +249,7 @@ export const additions = defineAdditions("Procurement", {
           remove: ["currency"],
           add: {
             po_change_order_state: {
-              schema: label(
-                ["Proposed", "Approved", "Rejected", "Canceled"],
-                "PO change order state.",
-              ),
+              schema: label(Constants.app.Enums.po_change_order_state, "PO change order state."),
             },
           },
         }),
@@ -351,6 +401,34 @@ export const additions = defineAdditions("Procurement", {
           lead_time_days: {
             schema: orNull(fields.int("Days from order to delivery.", 14)),
             create: "optional",
+          },
+        },
+      }),
+    },
+    {
+      id: "po-line-rental",
+      since: SINCE,
+      resources: ["poLines"],
+      change:
+        "Adds `acquisition_kind` (Purchase or Rental, Purchase when omitted) and, for a Rental line, `hire_starts_at` and `hire_ends_at`, both required together and null on a Purchase line.",
+      reason:
+        "app.po_lines (4681, R7a) records whether a line buys or hires its item and the hire as one tstzrange, hire_period, set exactly when the line is a Rental (po_lines_hire_period_kind) with both bounds (po_lines_hire_period_bounded); the API splits the range into its two instants.",
+      apply: editShape({
+        add: {
+          acquisition_kind: {
+            schema: acquisitionKind("Whether the line buys or hires its item."),
+            create: "optional",
+            update: true,
+          },
+          hire_starts_at: {
+            schema: orNull(fields.instant("Rental lines: when the hire starts.")),
+            create: "optional",
+            update: true,
+          },
+          hire_ends_at: {
+            schema: orNull(fields.instant("Rental lines: when the hire ends and off-hire is due.")),
+            create: "optional",
+            update: true,
           },
         },
       }),

@@ -1,4 +1,4 @@
-import { formatMessage, type MessageArgs } from "@xos/email/messages";
+import type { MessageArgs, formatMessage } from "@xos/email/messages";
 import { isLocale, type Locale } from "@xos/i18n/locales";
 import { copyKeys } from "@xos/schemas/notifications";
 
@@ -25,6 +25,26 @@ export function localeOf(value: string | null | undefined): Locale {
   return value !== null && value !== undefined && isLocale(value) ? value : "en-US";
 }
 
+type Format = typeof formatMessage;
+let loaded: Format | null = null;
+
+/**
+ * Loads the email catalog's copy, which push and SMS text read too. Edge Functions load it on first use, not at boot:
+ * the catalog holds every kind's copy in both locales, and notification-dispatch, sms-webhook and import-run stay
+ * inside their boot budgets only without it (merge train 11). Every async path that formats copy awaits this first.
+ */
+export async function loadNotificationCopy(): Promise<Format> {
+  loaded ??= (await import("@xos/email/messages")).formatMessage;
+  return loaded;
+}
+
+/** The formatter loadNotificationCopy loaded. Throws before that, so a path that forgets to load it fails in tests. */
+export function notificationCopy(): Format {
+  if (loaded === null)
+    throw new Error("Notification copy is not loaded: await loadNotificationCopy() first");
+  return loaded;
+}
+
 export interface NotificationText {
   /** The kind's subject: the email subject, the push title. */
   readonly title: string;
@@ -46,8 +66,8 @@ export function notificationText(
   const keys = copyKeys(kind);
   const args = notificationArgs(raw);
   return {
-    title: formatMessage(locale, keys.subject, args, timeZone),
-    body: formatMessage(locale, keys.body, args, timeZone),
+    title: notificationCopy()(locale, keys.subject, args, timeZone),
+    body: notificationCopy()(locale, keys.body, args, timeZone),
   };
 }
 

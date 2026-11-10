@@ -321,6 +321,9 @@ describe("offline queue summaries (SIM-002)", () => {
     expect(rpc("app.record_gate_arrival", { p_vehicle_identifier: "FL ABC123" })).toBe(
       "Gate arrival for FL ABC123",
     );
+    expect(rpc("app.record_booking_arrival", { p_dock_slot_id: "s1" })).toBe(
+      "Record a booked vehicle's arrival at the gate",
+    );
     expect(rpc("app.release_vehicle", {})).toBe("Release the vehicle from the gate");
     expect(rpc("app.check_in_dock_slot", {}, "dock_slots")).toBe("Check in at the dock slot");
     expect(rpc("app.add_marshalling_entry", { p_entry: "Truck 4 staged" }, "marshalling_log")).toBe(
@@ -352,6 +355,32 @@ describe("refusal reasons in words (simulator defect: raw RLS text in the queue)
       key: "refusedReason",
       values: { reason: "Time entries of one person cannot overlap." },
     });
+  });
+  it("words B8's gate override and weather hold refusals in the device's language", () => {
+    expect(
+      refusalReason({
+        code: "XR001",
+        message: "scan_not_denied: Only a Denied In scan is overridden.",
+      }),
+    ).toEqual({ key: "refusedScanNotDenied", values: {} });
+    expect(
+      refusalReason({
+        code: "XR001",
+        message: "weather_hold_stale: This hold was made more than 10 minutes ago.",
+      }),
+    ).toEqual({ key: "refusedWeatherHoldStale", values: {} });
+    for (const locale of ["en-US", "es-US"] as const) {
+      const queue = (
+        getMessages(locale) as unknown as { compass: { queue: Record<string, string> } }
+      ).compass.queue;
+      for (const key of [
+        "refusedScanNotDenied",
+        "refusedScanOverrideStale",
+        "refusedWeatherHoldStale",
+        "refusedWeatherHoldIdTaken",
+      ])
+        expect(typeof queue[key], `${locale} ${key}`).toBe("string");
+    }
   });
   it("turns a permission refusal into a plain sentence", () => {
     const r = refusalReason({

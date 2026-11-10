@@ -9,8 +9,10 @@
  * 0850 checks each value again and refuses a locked one (setting_locked).
  */
 import { isTimeZone } from "@xos/data/calendar";
+import { holdsObjectionableLanguage } from "@xos/data/content-filter";
 import { SETTINGS, type SettingDefinition } from "@xos/schemas/settings";
 import type { MutationInput, Row } from "@xos/sync";
+import { Constants, type Database } from "@xos/data/database.types";
 
 /** The device-local copy of the person's registered settings, one row per setting key. */
 export const PERSONAL_MIRROR = "_me_personal_settings";
@@ -28,14 +30,18 @@ export type RegistrySection = keyof typeof SECTION_PAGES;
 /** Settings Compass draws elsewhere: the theme stays on Settings itself, beside Sunlight, the device's own theme. */
 export const SHOWN_ELSEWHERE: ReadonlySet<string> = new Set(["me.theme"]);
 
-/** The registered settings a section shows, in registry order; a hidden setting is never offered. */
+/**
+ * The registered settings a section shows, in registry order; a hidden setting is never offered, nor a
+ * layout, which a person arranges on its Atlas dashboard (A129).
+ */
 export function sectionSettings(
   section: RegistrySection,
   settings: readonly SettingDefinition[] = SETTINGS,
 ): SettingDefinition[] {
   const page = SECTION_PAGES[section];
   return settings.filter(
-    (s) => s.pages.personal === page && !s.hidden && !SHOWN_ELSEWHERE.has(s.key),
+    (s) =>
+      s.pages.personal === page && !s.hidden && s.input !== "layout" && !SHOWN_ELSEWHERE.has(s.key),
   );
 }
 
@@ -54,8 +60,7 @@ export function choiceLabelKey(settingKey: string, choice: string): string {
 export type SettingValue = string | boolean | number | null;
 
 /** Where a value comes from (app.setting_source). */
-export type SettingSource =
-  "Personal" | "Project" | "Team" | "Workspace" | "Organization" | "Default";
+export type SettingSource = Database["app"]["Enums"]["setting_source"];
 
 /** A row of app.resolve_settings. */
 export interface ResolvedRow {
@@ -87,14 +92,7 @@ export interface PersonalSetting {
   readonly locked: boolean;
 }
 
-const SOURCES: readonly SettingSource[] = [
-  "Personal",
-  "Project",
-  "Team",
-  "Workspace",
-  "Organization",
-  "Default",
-];
+const SOURCES: readonly SettingSource[] = Constants.app.Enums.setting_source;
 
 /** A setting as the screen shows it: its device row, or the registry default before the first read. */
 export function settingOf(def: SettingDefinition, row: Row | undefined): PersonalSetting {
@@ -111,6 +109,16 @@ export function settingOf(def: SettingDefinition, row: Row | undefined): Persona
     source,
     locked: row?.["locked"] === true && source !== "Personal",
   };
+}
+
+/** The setting as this phone offers it: the registry keeps every language, and only offered ones are choices (ADR 0160). */
+export function withOfferedChoices(
+  def: SettingDefinition,
+  offered: readonly string[],
+): SettingDefinition {
+  return def.type === "choice" && def.key === "locale.language"
+    ? { ...def, choices: def.choices.filter((c) => offered.includes(c)) }
+    : def;
 }
 
 /** How a setting is edited on a phone. */
@@ -148,15 +156,32 @@ export function deviceNoteKey(setting: PersonalSetting): string | null {
   return null;
 }
 
-/** What is wrong with a typed value: a refusal rule of the 0850 guard, or a date or zone the phone cannot read. */
+/**
+ * What is wrong with a typed value: a refusal rule of the 0850 guard, a slur in text other people read (6892), or a
+ * date or zone the phone cannot read.
+ */
 export type SettingProblem =
-  "setting_choice" | "setting_too_long" | "setting_value_type" | "date" | "zone";
+  | "setting_choice"
+  | "setting_too_long"
+  | "setting_value_type"
+  | "content_objectionable"
+  | "date"
+  | "zone"
+  | "phone";
+
+/**
+ * Personal settings other people read: the automatic reply goes to whoever messages the person while they are away.
+ * Migration 6892 refuses a slur in it where the person types it (content_objectionable), so Compass checks the same
+ * list before it queues, and the person reads why at once.
+ */
+export const READ_BY_OTHERS: ReadonlySet<string> = new Set(["me.out_of_office.auto_reply"]);
 
 export type ValueCheck =
   | { readonly ok: true; readonly value: Exclude<SettingValue, null> | null }
   | { readonly ok: false; readonly problem: SettingProblem };
 
 const DATE = /^(\d{4})-(\d{2})-(\d{2})$/;
+const E164 = /^\+[1-9]\d{7,14}$/;
 
 /** True for a real calendar date written `YYYY-MM-DD`. */
 export function isIsoDate(value: string): boolean {
@@ -171,9 +196,14 @@ export function isIsoDate(value: string): boolean {
 
 /**
  * Checks a value before it queues, as the 0850 guard will: a registered choice, a boolean for a switch, text no
- * longer than the registry allows, a real date, a known zone. Blank text is null, which clears the person's value.
+ * longer than the registry allows and, in a reply other people read, without a slur (6892), a real date, a known zone. Blank text is null, which clears the person's value.
+ * A phone is read into E.164 with `toPhone` (toE164 in the person's region, A139), as the 3321 check requires.
  */
-export function checkSettingValue(def: SettingDefinition, raw: string | boolean): ValueCheck {
+export function checkSettingValue(
+  def: SettingDefinition,
+  raw: string | boolean,
+  toPhone: (input: string) => string | null = (input) => (E164.test(input) ? input : null),
+): ValueCheck {
   if (def.type === "boolean") {
     return typeof raw === "boolean"
       ? { ok: true, value: raw }
@@ -197,8 +227,14 @@ export function checkSettingValue(def: SettingDefinition, raw: string | boolean)
   if (value === "") return { ok: true, value: null };
   if (def.maxLength !== null && value.length > def.maxLength)
     return { ok: false, problem: "setting_too_long" };
+  if (READ_BY_OTHERS.has(def.key) && holdsObjectionableLanguage(value))
+    return { ok: false, problem: "content_objectionable" };
   if (def.input === "time_zone" && !isTimeZone(value)) return { ok: false, problem: "zone" };
   if (def.input === "date" && !isIsoDate(value)) return { ok: false, problem: "date" };
+  if (def.input === "phone") {
+    const phone = toPhone(value);
+    return phone === null ? { ok: false, problem: "phone" } : { ok: true, value: phone };
+  }
   return { ok: true, value };
 }
 

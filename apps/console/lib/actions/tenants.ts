@@ -3,8 +3,10 @@
 import {
   clearFlagOverride,
   endPlanOverride,
+  resolveBillingAlert,
   setFlagOverride,
   setKillSwitch,
+  setPartnerClients,
   setPlanOverride,
   type PlanOverrideChange,
 } from "@xos/data/console";
@@ -72,6 +74,21 @@ export async function endPlanOverrideAction(_: ActionState, form: FormData): Pro
   return fromResult(result);
 }
 
+/** Closes a billing alert once it is dealt with, such as a charge refunded by hand (ADR 0161). */
+export async function resolveBillingAlertAction(
+  _: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  const ctx = await actionContext("plans.write");
+  if (!ctx.ok) return failed(ctx.key);
+  const alertId = field(form, "alertId");
+  const reason = field(form, "reason");
+  if (!Uuid.safeParse(alertId).success || reason === "") return failed("errors.invalid");
+  const result = await resolveBillingAlert(ctx.db, alertId, reason);
+  if (result.ok) revalidatePath("/tenants");
+  return fromResult(result);
+}
+
 export async function setFlagOverrideAction(_: ActionState, form: FormData): Promise<ActionState> {
   const ctx = await actionContext("flags.write");
   if (!ctx.ok) return failed(ctx.key);
@@ -111,6 +128,24 @@ export async function clearFlagOverrideAction(
   const reason = field(form, "reason");
   if (!Uuid.safeParse(overrideId).success || reason === "") return failed("errors.invalid");
   const result = await clearFlagOverride(ctx.db, overrideId, reason);
+  if (result.ok) revalidatePath(`/tenants/${orgId}`);
+  return fromResult(result);
+}
+
+/** Client org creation for a partner (migration 6870): off by default, turned on under a signed partner agreement. */
+export async function setPartnerClientsAction(
+  _: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  const ctx = await actionContext("plans.write");
+  if (!ctx.ok) return failed(ctx.key);
+  const orgId = field(form, "orgId");
+  const enabled = field(form, "enabled");
+  const reason = field(form, "reason");
+  if (!Uuid.safeParse(orgId).success || (enabled !== "on" && enabled !== "off") || reason === "") {
+    return failed("errors.invalid");
+  }
+  const result = await setPartnerClients(ctx.db, { orgId, allowed: enabled === "on", reason });
   if (result.ok) revalidatePath(`/tenants/${orgId}`);
   return fromResult(result);
 }

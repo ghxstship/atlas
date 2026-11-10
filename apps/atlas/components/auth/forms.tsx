@@ -1,71 +1,104 @@
 "use client";
 
-import { slugFromName } from "@xos/data/slug";
+import { AGE_OLD_ENOUGH, AGE_UNDER } from "@xos/data/consent";
+import type { Route } from "next";
+import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { useActionState, useState, type KeyboardEvent, type ReactNode } from "react";
+import { useActionState, type KeyboardEvent, type ReactNode } from "react";
 import {
   acceptInvitation,
-  createOrganizationAction,
+  answerAgeQuestion,
+  closeUnderAgeAccount,
   signInWithEmail,
   signUpWithEmail,
   type FormState,
 } from "@/app/auth/actions";
-import { Button, Checkbox, InlineAlert, Input } from "@xos/ui";
+import { Button, InlineAlert, Input } from "@xos/ui";
 
 import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
 /** Auth forms (Auth template). Each keeps typed input after a failed submit (Section 11.7). */
 
 type Translate = (key: string, values?: Record<string, string>) => string;
 
-function useAuthCopy(): Translate {
+export function useAuthCopy(): Translate {
   const t = useTranslations("shell.auth");
   return (key, values) => (t as unknown as Translate)(key, values);
 }
 
 /** The message for a form state error key: refusals from invites, everything else from errors. */
-export function errorMessage(t: Translate, key: string): string {
+export function errorMessage(
+  t: Translate,
+  key: string,
+  values?: Readonly<Record<string, string>>,
+): string {
   return key.startsWith("invite.")
     ? t(`invite.refused.${key.slice("invite.".length)}`)
-    : t(`errors.${key}`);
+    : t(`errors.${key}`, values ? { ...values } : undefined);
 }
 
 /** The field's error message, or an empty string (no error shown). */
-function fieldError(t: Translate, state: FormState, field: string): string {
+export function fieldError(t: Translate, state: FormState, field: string): string {
   const key = state.fieldErrors?.[field];
   return key === undefined ? "" : t(`errors.${key}`);
 }
 
-const INITIAL: FormState = {};
+export const INITIAL: FormState = {};
 
 /**
- * "I am 16 or older" (Section 14.3, 14.9; Terms of Service 3.2). Every way of creating or first
- * using an account asks it; the action records it (migration 1381).
+ * The age question (Section 14.3, 14.9; Terms of Service 3.2): both answers with equal weight, and no rule stated until
+ * it is answered (ADR 0156). Every way of creating or first using an account asks it; the action records it
+ * (migrations 1381 and 6840), and an answer of under 18 ends there.
  */
-function AgeConfirmation({ id, state }: { id: string; state: FormState }) {
+export function AgeConfirmation({ id, state }: { id: string; state: FormState }) {
   const t = useAuthCopy();
   const error = state.fieldErrors?.["ageConfirmed"];
+  const answer = state.values?.["ageConfirmed"];
+  const describedBy = error ? `${id}-error` : undefined;
   return (
-    <div className="flex flex-col gap-4">
-      <Checkbox
-        id={id}
-        name="ageConfirmed"
-        value="16"
-        required
-        defaultChecked={state.values?.["ageConfirmed"] === "16"}
-        aria-invalid={error ? true : undefined}
-        aria-describedby={error ? `${id}-error` : undefined}
-        label={<span className="text-text-13">{t("fields.age")}</span>}
-      />
+    <fieldset className="m-0 flex flex-col gap-8 border-0 p-0">
+      <legend className="mb-8 text-text-13 font-medium">{t("fields.ageLegend")}</legend>
+      <label
+        htmlFor={id}
+        className="xos-check inline-flex cursor-pointer items-center gap-8 text-text-13"
+      >
+        <input
+          id={id}
+          type="radio"
+          name="ageConfirmed"
+          value={AGE_OLD_ENOUGH}
+          required
+          defaultChecked={answer === AGE_OLD_ENOUGH}
+          aria-describedby={describedBy}
+          className="xos-check-input"
+        />
+        <span>{t("fields.age")}</span>
+      </label>
+      <label
+        htmlFor={`${id}-under`}
+        className="xos-check inline-flex cursor-pointer items-center gap-8 text-text-13"
+      >
+        <input
+          id={`${id}-under`}
+          type="radio"
+          name="ageConfirmed"
+          value={AGE_UNDER}
+          required
+          defaultChecked={answer === AGE_UNDER}
+          aria-describedby={describedBy}
+          className="xos-check-input"
+        />
+        <span>{t("fields.ageUnder")}</span>
+      </label>
       {error ? (
         <p id={`${id}-error`} className="m-0 text-text-12 text-danger-text">
           {t("errors.age")}
         </p>
       ) : null}
-    </div>
+    </fieldset>
   );
 }
 
-function Submit({
+export function Submit({
   pending,
   children,
   method,
@@ -227,23 +260,10 @@ export function SignUpForm({ next }: { next: string }) {
   );
 }
 
-export function OrganizationForm({
-  terms,
-  dpa,
-  askAge = false,
-}: {
-  terms: { href: string; title: string };
-  dpa: { href: string; title: string };
-  /** The person has not confirmed they are 16 or older yet (a first Google sign-in). */
-  askAge?: boolean;
-}) {
+/** The age question on its own, for anyone who has not answered at 18 (/auth/age). */
+export function AgeQuestionForm({ next }: { next: string }) {
   const t = useAuthCopy();
-  const tr = useTranslations("shell.auth.organization");
-  const [state, action, pending] = useActionState(createOrganizationAction, INITIAL);
-  const [name, setName] = useState(state.values?.["orgName"] ?? "");
-  const [slug, setSlug] = useState(state.values?.["orgSlug"] ?? "");
-  const [slugEdited, setSlugEdited] = useState(Boolean(state.values?.["orgSlug"]));
-  const shownSlug = slugEdited ? slug : slugFromName(name);
+  const [state, action, pending] = useActionState(answerAgeQuestion, INITIAL);
   return (
     <form
       action={action}
@@ -252,65 +272,32 @@ export function OrganizationForm({
       noValidate
     >
       {state.error ? <InlineAlert tone="danger">{errorMessage(t, state.error)}</InlineAlert> : null}
-      <Input
-        width="100%"
-        id="org-name"
-        name="orgName"
-        autoComplete="organization"
-        required
-        label={t("fields.orgName")}
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        error={fieldError(t, state, "orgName")}
-      />
-      <Input
-        width="100%"
-        id="org-slug"
-        name="orgSlug"
-        required
-        spellCheck={false}
-        autoCapitalize="none"
-        label={t("fields.orgSlug")}
-        help={t("fields.orgSlugHelp", { slug: shownSlug })}
-        value={shownSlug}
-        onChange={(e) => {
-          setSlugEdited(true);
-          setSlug(e.target.value.toLowerCase());
-        }}
-        error={fieldError(t, state, "orgSlug")}
-      />
-      <Checkbox
-        id="org-accept"
-        name="accept"
-        required
-        aria-invalid={state.fieldErrors?.["accept"] ? true : undefined}
-        aria-describedby={state.fieldErrors?.["accept"] ? "org-accept-error" : undefined}
-        label={
-          <span className="text-text-13 text-text-secondary">
-            {tr.rich("accept", {
-              terms: terms.title,
-              dpa: dpa.title,
-              termsLink: (chunks) => (
-                <a className="text-accent-text underline" href={terms.href} target="_blank">
-                  {chunks}
-                </a>
-              ),
-              dpaLink: (chunks) => (
-                <a className="text-accent-text underline" href={dpa.href} target="_blank">
-                  {chunks}
-                </a>
-              ),
-            })}
-          </span>
-        }
-      />
-      {state.fieldErrors?.["accept"] ? (
-        <p id="org-accept-error" className="text-text-12 text-danger-text">
-          {t("errors.accept")}
-        </p>
-      ) : null}
-      {askAge ? <AgeConfirmation id="org-age" state={state} /> : null}
-      <Submit pending={pending}>{t("organization.submit")}</Submit>
+      <input type="hidden" name="next" value={next} />
+      <AgeConfirmation id="age-question" state={state} />
+      <Submit pending={pending}>{t("ageQuestion.submit")}</Submit>
+    </form>
+  );
+}
+
+/**
+ * What an answer of under 18 does to an existing account, before it does it: closing cannot be undone, so an adult who
+ * chose the wrong answer gets to go back (ADR 0156). No field: the page's whole question is this one button.
+ */
+export function AgeUnderConfirmForm({ back }: { back: string }) {
+  const t = useAuthCopy();
+  const [state, action, pending] = useActionState(closeUnderAgeAccount, INITIAL);
+  return (
+    <form action={action} className="flex flex-col gap-12" noValidate>
+      {state.error ? <InlineAlert tone="danger">{errorMessage(t, state.error)}</InlineAlert> : null}
+      <Button type="submit" variant="danger" loading={pending} className="w-full">
+        {t("ageQuestion.under.confirm")}
+      </Button>
+      <Link
+        href={`/auth/age?next=${encodeURIComponent(back)}` as Route}
+        className="text-center text-text-13 text-accent-text underline"
+      >
+        {t("ageQuestion.under.back")}
+      </Link>
     </form>
   );
 }

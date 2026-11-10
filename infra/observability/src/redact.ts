@@ -151,16 +151,21 @@ const VALUE_PATTERNS: readonly ValuePattern[] = [
     replace: (_m, scheme) => `${scheme} ${REDACTED}`,
   },
   { pattern: /\bxos_(?:live|test)_[A-Za-z0-9_]+/g, replace: "[api-key]" },
-  // A69-008: bearer links carry their token in the path (/advance/xadv_..., /sign/xdoc_...,
+  // A69-008: bearer links carry their token in the path (/advance/xadv_..., /sign/xdoc_..., /shifts/xcrw_...,
   // /auth/invite/xinv_...), and request logs keep the path. Calendar feeds, join links, agreements
   // and SCIM tokens share the shape. A69-012: so do share links (/share/xshr_...), their download
   // tickets (xdlt_), kiosk device keys (xkio_), subprocessor notice links (xspn_, xspu_) and
-  // personal access tokens (xos_pat_).
+  // personal access tokens (xos_pat_). P1 (ADR 0130): so do live links to a saved view
+  // (/share/view/xshv_...) and display screens (/share/screen/xscr_...), their device grants
+  // (xlgr_) and their Realtime channel keys (xlch_). B3 (ADR 0142): so do showcaller links
+  // (/share/showcaller/xscl_...), their device grants (xcgr_) and their channel keys (xcch_).
+  // A127 (ADR 0106): so do one-tap action links (/auth/act/xact_...), whose token is a nonce, a dot and a signature,
+  // and B8's guest email links (xgue_, 6255), which have the same shape.
   // No leading word boundary: a token right after a percent escape (%22, %2F) is still a token,
   // as in Next's encoded router state header and a sign-in redirect's next= parameter.
   {
     pattern:
-      /(?:xadv|xagr|xcal|xdlt|xdoc|xinv|xkio|xlnk|xshr|xspn|xspu|xos_pat|xos_scim)_[0-9a-f]{16,}\b/gi,
+      /(?:xact|xadv|xagr|xcal|xcch|xcgr|xcrw|xdlt|xdoc|xfrg|xfrm|xgue|xinv|xkio|xlch|xlgr|xlnk|xpkg|xpkl|xpku|xscl|xscr|xshr|xshv|xspn|xspu|xvig|xvin|xos_pat|xos_scim)_[0-9a-f]{16,}(?:\.[0-9a-f]{16,})?\b/gi,
     replace: "[token]",
   },
   // A84: whatever follows /ical/ is a feed token or a guess at one, whatever its shape (a mistyped,
@@ -169,9 +174,19 @@ const VALUE_PATTERNS: readonly ValuePattern[] = [
   { pattern: /(\/ical\/)[^/?#\s"'<>]+/gi, replace: (_m, prefix) => `${prefix}[token]` },
   // A69-012: likewise whatever follows a leading /share/ (a mistyped or truncated share link), but
   // not /usr/share/ or file:///usr/share/ in a stack trace. The lookahead first keeps the
-  // lookbehind to the places /share/ occurs, so a long string stays linear.
+  // lookbehind to the places /share/ occurs, so a long string stays linear. A live link's
+  // /share/view/ or /share/screen/, a showcaller link's /share/showcaller/ (B3), and a stakeholder pack's /share/pack/
+  // and /share/pack/unsubscribe/ (B2, ADR 0141) stay, and what follows them is the token.
   {
-    pattern: /(?=\/share\/)(?<=^|[\s"'(<=,]|(?<!\/)\/\/[^/?#\s"'<>]+)(\/share\/)[^/?#\s"'<>]+/gi,
+    pattern:
+      /(?=\/share\/)(?<=^|[\s"'(<=,]|(?<!\/)\/\/[^/?#\s"'<>]+)(\/share\/(?:view\/|screen\/|showcaller\/|pack\/(?:unsubscribe\/)?)?)[^/?#\s"'<>]+/gi,
+    replace: (_m, prefix) => `${prefix}[token]`,
+  },
+  // Gateway's intake and public form links (B2, ADR 0141), with the same lookbehind: it matches only at the start of a
+  // string, after a host or after a delimiter, so Atlas's /{org}/knowledge/forms stays and needs no host logic.
+  {
+    pattern:
+      /(?=\/(?:onboard|forms)\/)(?<=^|[\s"'(<=,]|(?<!\/)\/\/[^/?#\s"'<>]+)(\/(?:onboard|forms)\/)[^/?#\s"'<>]+/gi,
     replace: (_m, prefix) => `${prefix}[token]`,
   },
   { pattern: /\br-[0-9a-f]{32}-[0-9a-f]{32}-[0-9a-f]{32}\b/gi, replace: "[token]" },

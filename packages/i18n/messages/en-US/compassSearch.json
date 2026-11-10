@@ -1,0 +1,33 @@
+{
+  "label": "Search Compass",
+  "hint": "Search shifts, tasks, people and reference",
+  "clear": "Clear search",
+  "empty": "Nothing on this device matches “{query}”.",
+  "countOne": "{count} match",
+  "countOther": "{count} matches",
+  "offline": "Offline: searching what is on this device.",
+  "when": "{day} · {time}",
+  "channel": "Channel {number}",
+  "purchaseOrder": "Purchase order {number}",
+  "groups": {
+    "shift": "Shifts",
+    "task": "Tasks",
+    "record": "Records",
+    "person": "People",
+    "reference": "Reference",
+    "action": "Actions"
+  },
+  "actions": {
+    "reportIncident": "Report an incident",
+    "startInspection": "Start an inspection",
+    "scan": "Scan a code",
+    "addExpense": "Add an expense",
+    "runOfShow": "Open the run of show",
+    "openSchedule": "Open my schedule",
+    "openInbox": "Open the inbox",
+    "offlineQueue": "See changes waiting to upload",
+    "reference": "Open reference",
+    "help": "Get help",
+    "settings": "Open settings"
+  }
+}

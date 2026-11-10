@@ -24,6 +24,8 @@ export interface MyWorkRecord {
   readonly state: string;
   readonly dueAt: string | null;
   readonly startsAt: string | null;
+  /** True while the start is an estimate to be confirmed (TBC). */
+  readonly startTbc: boolean;
   readonly endsAt: string | null;
   readonly projectKey: string;
   readonly projectName: string;
@@ -37,7 +39,7 @@ export interface MyWorkRecord {
 const CLOSED_STATES = "(Complete,Canceled,Deferred)";
 
 const COLUMNS =
-  "id, record_number, record_kind, record_state, title, due_at, starts_at, ends_at, updated_at, owner_party_id, accountable_party_id, project:projects!records_project_id_fkey!inner(project_key, name)";
+  "id, record_number, record_kind, record_state, title, due_at, starts_at, start_tbc, ends_at, updated_at, owner_party_id, accountable_party_id, project:projects!records_project_id_fkey!inner(project_key, name)";
 
 interface Row {
   id: string;
@@ -47,6 +49,7 @@ interface Row {
   title: string;
   due_at: string | null;
   starts_at: string | null;
+  start_tbc: boolean;
   ends_at: string | null;
   updated_at: string;
   owner_party_id: string | null;
@@ -55,8 +58,8 @@ interface Row {
 }
 
 /**
- * The person's open records: owned, accountable or assigned through their membership. At most
- * `limit` records (500 by default), soonest due first.
+ * The person's open records: owned, accountable or assigned through their membership, archived
+ * ones left out (A124). At most `limit` records (500 by default), soonest due first.
  */
 export async function listMyWork(
   db: XosClient,
@@ -89,6 +92,7 @@ export async function listMyWork(
     .select(COLUMNS)
     .eq("org_id", input.orgId)
     .is("deleted_at", null)
+    .is("archived_at", null)
     .not("record_state", "in", CLOSED_STATES)
     .or(parties.join(","))
     .order("due_at", { ascending: true, nullsFirst: false })
@@ -111,6 +115,7 @@ export async function listMyWork(
         state: r.record_state,
         dueAt: r.due_at,
         startsAt: r.starts_at,
+        startTbc: r.start_tbc === true,
         endsAt: r.ends_at,
         projectKey,
         projectName: r.project?.name ?? "",

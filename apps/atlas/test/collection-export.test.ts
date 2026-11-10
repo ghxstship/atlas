@@ -114,6 +114,13 @@ describe("export sources (Section 4.6.4)", () => {
     }
   });
 
+  it("exports what tells a credit from a charge", () => {
+    const entry = EXPORT_SOURCES["finance/expenses"];
+    expect(entry && "columns" in entry ? entry.columns : []).toEqual(
+      expect.arrayContaining(["credit_of_expense_id", "is_reimbursable", "engagement_id"]),
+    );
+  });
+
   it("reads one relation per source and never the medical encounter tables", () => {
     for (const source of allExportSources()) {
       expect(source.relation).toMatch(/^(app|xpms)\.[a-z][a-z0-9_]*$/);
@@ -121,6 +128,21 @@ describe("export sources (Section 4.6.4)", () => {
       expect(source.columns.length).toBeGreaterThan(0);
       expect(new Set(source.columns).size, source.relation).toBe(source.columns.length);
     }
+  });
+
+  it("exports the muster list with the names on screen, by the page's project and zone", () => {
+    const muster = exportSourceFor(
+      "site_ops/muster",
+      new URLSearchParams("project=01920000-0000-7000-8000-000000000201&zone=z"),
+    );
+    expect(muster?.relation).toBe("app.muster_list");
+    expect(muster?.columns).toEqual(
+      expect.arrayContaining(["full_name", "guest_name", "zone_name", "party_name", "entered_at"]),
+    );
+    expect(muster?.filters).toMatchObject({
+      project: { column: "project_id", resolve: "project" },
+      zone: { column: "zone_id" },
+    });
   });
 
   it("exports the masked rate of a rate card, which classifies Restricted in the database", () => {
@@ -160,6 +182,7 @@ describe("the plan of an export", () => {
       projectKey: null,
       objectKey: null,
       filters: [
+        { operator: "is_null", column: "archived_at" },
         { operator: "eq", column: "project_id", value: "NWL", resolve: "project" },
         { operator: "in", column: "record_kind", value: "Task,Milestone" },
         { operator: "eq", column: "record_state", value: "Active" },
@@ -173,7 +196,10 @@ describe("the plan of an export", () => {
     if (!milestones) throw new Error("no milestones source");
     expect(
       planExport(milestones, "/acme/schedule/milestones", new URLSearchParams())?.filters,
-    ).toEqual([{ operator: "eq", column: "record_kind", value: "Milestone" }]);
+    ).toEqual([
+      { operator: "eq", column: "record_kind", value: "Milestone" },
+      { operator: "is_null", column: "archived_at" },
+    ]);
     const work = exportSourceFor("project/work", new URLSearchParams());
     if (!work) throw new Error("no project work source");
     expect(planExport(work, "/acme/p/NWL/work", new URLSearchParams())?.projectKey).toBe("NWL");
@@ -188,7 +214,7 @@ describe("the plan of an export", () => {
     );
   });
 
-  it("scopes a project's Activity, Overview and receipts to the project, as the page shows them", () => {
+  it("scopes a project's Activity and receipts to the project, as the page shows them", () => {
     const plan = (key: string, path: string, query: Record<string, string> = {}) => {
       const search = new URLSearchParams(query);
       const source = exportSourceFor(key, search);
@@ -197,7 +223,6 @@ describe("the plan of an export", () => {
     };
     for (const [key, path, query] of [
       ["project/activity", "/x/p/NWL/activity", {}],
-      ["project/overview", "/x/p/NWL/overview", {}],
       ["project/procurement", "/x/p/NWL/procurement", { section: "receipts" }],
     ] as const) {
       const { source, plan: scoped } = plan(key, path, query);
@@ -240,6 +265,30 @@ describe("the plan of an export", () => {
       ]);
       expect(filters({ archived: "1", q: "gala" })).toEqual([
         { operator: "search", value: "gala" },
+      ]);
+    }
+  });
+
+  it("hides archived rows of the A124 collections unless ?archived=include or only asks", () => {
+    for (const [key, path] of [
+      ["work/all_records", "/acme/work/all-records"],
+      ["work/work_orders", "/acme/work/work-orders"],
+      ["knowledge/documents", "/acme/knowledge/documents"],
+      ["places/venues", "/acme/places/venues"],
+      ["vendors/directory", "/acme/vendors/directory"],
+      ["objects/*", "/acme/objects/sponsors"],
+    ] as const) {
+      const source = exportSourceFor(key, new URLSearchParams());
+      if (!source) throw new Error(`no ${key} source`);
+      const filters = (query: Record<string, string>) =>
+        planExport(source, path, new URLSearchParams(query))?.filters;
+      expect(filters({}), key).toEqual([{ operator: "is_null", column: "archived_at" }]);
+      expect(filters({ archived: "include" }), key).toEqual([]);
+      expect(filters({ archived: "only" }), key).toEqual([
+        { operator: "not_null", column: "archived_at" },
+      ]);
+      expect(filters({ archived: "1" }), key).toEqual([
+        { operator: "is_null", column: "archived_at" },
       ]);
     }
   });

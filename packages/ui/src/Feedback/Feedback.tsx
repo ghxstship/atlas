@@ -15,3 +15,4 @@ export { Banner } from "./Banner.tsx";
 export { Toast } from "./Toast.tsx";
 export { UndoToast } from "./UndoToast.tsx";
 export { ToastRegion } from "./ToastRegion.tsx";
+export { RegionBoundary, RegionError, type RegionBoundaryProps } from "./RegionBoundary.tsx";

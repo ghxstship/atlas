@@ -82,6 +82,24 @@ describe("Drawer and SidePeek", () => {
     expect(screen.queryByRole("dialog")).toBeNull();
   });
 
+  it("opens wide for a two-column body, within the viewport", () => {
+    render(
+      <>
+        <Drawer title="Narrow">Content</Drawer>
+        <Drawer title="Wide" wide>
+          Content
+        </Drawer>
+      </>,
+    );
+    expect(screen.getByText("Narrow").closest("[role=dialog]")?.className).toContain(
+      "w-(--ui-drawer)",
+    );
+    const wide = screen.getByText("Wide").closest("[role=dialog]");
+    expect(wide?.className).toContain("w-(--layout-peek-max)");
+    expect(wide?.className).toContain("max-w-full");
+    expect(wide?.className).not.toContain("w-(--ui-drawer)");
+  });
+
   it("shows the record anatomy, resizes from the keyboard and keeps the page usable", async () => {
     const onOpenFull = vi.fn();
     const onStateClick = vi.fn();
@@ -903,6 +921,47 @@ describe("navigation", () => {
     expect(screen.getByRole("button", { name: "Budget" })).toBeTruthy();
     await userEvent.click(screen.getByRole("button", { name: /Inbox/ }));
     expect(onSelect).toHaveBeenCalled();
+    await expectAccessible(container);
+  });
+
+  it("lists items under an item, indented and named for screen readers", async () => {
+    const { container } = render(
+      <Sidebar
+        active="Northwind Summer Series"
+        groups={[
+          {
+            items: [
+              {
+                label: "Projects",
+                icon: "FolderKanban",
+                href: "/projects",
+                itemsLabel: "Recent projects",
+                items: [
+                  { label: "Northwind Summer Series", icon: "Folder", href: "/p/NWL" },
+                  { label: "All Projects", icon: "List", href: "/projects/all" },
+                ],
+              },
+            ],
+          },
+        ]}
+      />,
+    );
+    const recent = screen.getByRole("list", { name: "Recent projects" });
+    expect(
+      within(recent)
+        .getAllByRole("link")
+        .map((l) => l.textContent),
+    ).toEqual(["Northwind Summer Series", "All Projects"]);
+    expect(
+      screen.getByRole("link", { name: "Northwind Summer Series" }).getAttribute("aria-current"),
+    ).toBe("page");
+    expect(screen.getByRole("link", { name: "Projects" }).getAttribute("aria-current")).toBeNull();
+    // A name longer than the sidebar is cut with an ellipsis; its title keeps all of it.
+    expect(
+      within(recent)
+        .getAllByRole("link")
+        .map((l) => l.querySelector(".truncate")?.getAttribute("title")),
+    ).toEqual(["Northwind Summer Series", "All Projects"]);
     await expectAccessible(container);
   });
 

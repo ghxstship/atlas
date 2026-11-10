@@ -373,12 +373,15 @@ export function DaySheetPeek({
   sheet,
   canWrite,
   canPublish,
+  dayTypes,
   children,
 }: {
   org: string;
   sheet: DaySheet;
   canWrite: boolean;
   canPublish: boolean;
+  /** The day's types (B4, G-38), as text-labelled tags under the title. */
+  dayTypes?: ReactNode;
   children?: ReactNode;
 }) {
   const t = useCopy("show");
@@ -394,7 +397,13 @@ export function DaySheetPeek({
     router.replace(withQuery(pathname, params, { peek: null }) as Route, { scroll: false });
   const title = `${sheet.projectKey} · ${formatDay(sheet.day, locale, { dateStyle: "full" })}`;
   return (
-    <Drawer title={title} open onOpenChange={(v) => (v ? undefined : close())}>
+    <Drawer
+      title={title}
+      open
+      shortcutScope="record"
+      onOpenChange={(v) => (v ? undefined : close())}
+    >
+      {dayTypes}
       <ActionErrorAlert error={error} />
       <Tag tone={sheet.publishedAt ? "success" : "neutral"}>
         {sheet.publishedAt
@@ -460,6 +469,7 @@ export function DaySheetPeek({
           <Button
             variant="ghost"
             icon="Trash2"
+            data-shortcut="record.trash"
             onClick={() =>
               run(
                 () => deleteSheetAction(org, "day_sheets", sheet.id),
@@ -511,6 +521,7 @@ export function CallSheetPeek({
     <Drawer
       title={`${sheet.projectKey} · ${formatDay(sheet.day, locale, { dateStyle: "full" })}`}
       open
+      shortcutScope="record"
       onOpenChange={(v) => (v ? undefined : close())}
     >
       <ActionErrorAlert error={error} />
@@ -559,6 +570,7 @@ export function CallSheetPeek({
           <Button
             variant="ghost"
             icon="Trash2"
+            data-shortcut="record.trash"
             onClick={() =>
               run(
                 () => deleteSheetAction(org, "call_sheets", sheet.id),

@@ -229,3 +229,57 @@ export function uncoveredNodes(
 ): string[] {
   return [...nodeIds].filter((id) => !articles.some((a) => isSpecificTo(a, id)));
 }
+
+/**
+ * Renders a generated list in an article: its lines from their source (such as the shortcut
+ * registry) for a partial name and its arguments in a locale, or null for a name it does not know.
+ */
+export type PartialRenderer = (
+  name: string,
+  args: readonly string[],
+  locale: HelpLocale,
+) => readonly string[] | null;
+
+const PARTIAL = /^<!-- ([a-z][a-z-]*)((?: [^\s]+)*) -->\n([\s\S]*?)^<!-- \/\1 -->$/gm;
+
+/**
+ * Rewrites the generated lists in an article's text. A list sits between a line
+ * `<!-- name arg arg -->` and a line `<!-- /name -->`; everything between them is replaced with what
+ * `render` returns, set off by blank lines. The help parsers skip the marker lines, so readers see only the list. Throws on a
+ * partial `render` does not know.
+ */
+export function fillPartials(text: string, locale: HelpLocale, render: PartialRenderer): string {
+  return text.replace(PARTIAL, (_match, name: string, rest: string) => {
+    const args = rest.split(" ").filter(Boolean);
+    const lines = render(name, args, locale);
+    if (lines === null) throw new Error(`Unknown help partial: ${name} ${args.join(" ")}`);
+    // Blank lines around the list, as Prettier writes Markdown.
+    const body = lines.length === 0 ? [""] : ["", ...lines, ""];
+    return [`<!-- ${name}${rest} -->`, ...body, `<!-- /${name} -->`].join("\n");
+  });
+}
+
+export interface StalePartial {
+  readonly file: string;
+  /** The file with its generated lists filled from their source. */
+  readonly expected: string;
+}
+
+/**
+ * The article files of a shell whose generated lists differ from their source (fillPartials). A
+ * shell's help generator writes `expected` to each file; every other run fails while any is listed.
+ */
+export function stalePartials(dir: string, render: PartialRenderer): StalePartial[] {
+  return HELP_LOCALES.flatMap((locale) => {
+    const folder = join(dir, "articles", locale);
+    return readdirSync(folder)
+      .filter((f) => f.endsWith(".md"))
+      .sort()
+      .flatMap((f) => {
+        const file = join(folder, f);
+        const current = readFileSync(file, "utf8");
+        const expected = fillPartials(current, locale, render);
+        return expected === current ? [] : [{ file, expected }];
+      });
+  });
+}

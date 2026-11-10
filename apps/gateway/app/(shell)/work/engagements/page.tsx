@@ -1,3 +1,4 @@
+import { listMyRosterEngagements } from "@xos/data/gateway-allocations";
 import {
   APP_ENUMS,
   isCurrentEngagement,
@@ -16,6 +17,7 @@ import { BrandMark, EmptyStateLink, InlineAlert, Tag } from "@/components/ui";
 import { inBrandScope } from "@/lib/brand/brand";
 import { formatDateRange } from "@/lib/format";
 import { personalChannel } from "@/lib/live/topics";
+import { lensEngagements } from "@/lib/shell/role-lens";
 import { requireNode, sitemap } from "@/lib/shell/sitemap";
 import { enumLabelKey, getTranslate, type Translate } from "@/lib/shell/translate";
 import { engagementTitle } from "@/lib/engagement-state";
@@ -63,7 +65,8 @@ function Row({ e, locale, t }: { e: Engagement; locale: string; t: Translate }) 
  * Work, Engagements (Section 4.5.8): current engagements, then complete or canceled ones, grouped
  * by org and project, as a list, a table or a board by state. Groups follow the state, not the
  * dates, so a future-dated engagement that closed early is never called past (finding A59-021). An
- * Account Member sees only the engagements assigned to them; the api_external view decides that.
+ * Account Member sees only the engagements assigned to them; the api_external view decides that. A
+ * person on a party's roster also sees the engagements they work through it (R8).
  * The list updates live: the person's private channel says when an engagement of theirs changed.
  */
 export default async function EngagementsPage({ searchParams }: PageProps<"/work/engagements">) {
@@ -71,13 +74,20 @@ export default async function EngagementsPage({ searchParams }: PageProps<"/work
   const query = await searchParams;
   const views = getNode(sitemap, "work.engagements").node.list?.views ?? ["list"];
   const view = pickView(query["view"], views, "list");
-  const [t, locale, result] = await Promise.all([
+  const [t, locale, result, rostered] = await Promise.all([
     getTranslate(),
     getLocale(),
     listMyEngagements(ctx.db),
+    listMyRosterEngagements(ctx.db),
   ]);
   const orgFilter = typeof query["org"] === "string" ? query["org"] : null;
-  const all = result.ok ? result.data.filter((e) => inBrandScope(ctx.brand, e.orgId)) : [];
+  // Engagements the person works only on a party's roster list beside their own (R8); under a role lens (A128) only
+  // that role type's engagements are listed.
+  const all = result.ok
+    ? lensEngagements(ctx.lens, [...result.data, ...(rostered.ok ? rostered.data : [])]).filter(
+        (e) => inBrandScope(ctx.brand, e.orgId),
+      )
+    : [];
   const shown = orgFilter ? all.filter((e) => e.orgId === orgFilter) : all;
   const current = shown.filter(isCurrentEngagement);
   const closed = shown.filter((e) => !isCurrentEngagement(e));

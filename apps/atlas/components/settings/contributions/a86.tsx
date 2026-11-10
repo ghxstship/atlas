@@ -15,6 +15,7 @@ import {
 import {
   AuditLogPanel,
   DataRequestsPanel,
+  SensitiveConsentPanel,
   DepartmentsPanel,
   ExportsAndRetentionPanel,
   LegalHoldsPanel,
@@ -47,6 +48,7 @@ export const contributions: readonly SettingsContribution[] = [
   // A61's usage against the plan comes first; the metered usage by billing month follows it.
   { node: "settings.usage", order: 20, Panel: MeteredUsagePanel },
   { node: "settings.data-and-privacy", order: 10, Panel: DataRequestsPanel },
+  { node: "settings.data-and-privacy", order: 15, Panel: SensitiveConsentPanel },
   { node: "settings.data-and-privacy", order: 20, Panel: LegalHoldsPanel },
   { node: "settings.data-and-privacy", order: 30, Panel: ExportsAndRetentionPanel },
   { node: "settings.audit-log", order: 10, Panel: AuditLogPanel },

@@ -11,10 +11,13 @@ import {
   type VendorState,
 } from "@xos/data/vendors";
 import { defineHandlers, ok } from "../runtime/handler.ts";
+import { fieldHistory } from "./parts/bulk-edit-and-history.ts";
 import { mergeBy } from "./support/enrich.ts";
 import { from, groupBy, handlersFor, keysOf, run, tableResource, unwrap } from "./support/table.ts";
+import type { Database } from "@xos/data/database.types";
 
 const vendors = tableResource("vendors", {
+  archivable: true,
   derived: ["counterparty_type", "bank_account_last4"],
   // The last four digits of the vendor's most recent bank account, through the masked view (A54-002).
   enrich: async (rows, { db }) =>
@@ -73,7 +76,10 @@ export const handlers = defineHandlers("Vendors", {
 
   "prequalifications.decide": async ({ params, body }, context) => {
     await prequalifications.read(context, params.id, ["id"]);
-    const b = body as { decision: "Approved" | "Rejected"; valid_to?: string };
+    const b = body as {
+      decision: Database["app"]["Enums"]["approval_decision"];
+      valid_to?: string;
+    };
     unwrap(
       await decidePrequalification(context.db, {
         id: params.id,
@@ -95,4 +101,8 @@ export const handlers = defineHandlers("Vendors", {
     unwrap(await setEntitlementFulfilled(context.db, params.id, false));
     return ok((await entitlements.read(context, params.id)) as never);
   },
+
+  // Field history (A106, migration 1452).
+  "vendors.fieldHistory": async ({ params, query }, context) =>
+    ok((await fieldHistory(context, "app.vendors", params.id, query.limit)) as never),
 });

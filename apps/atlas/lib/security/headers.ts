@@ -13,11 +13,15 @@ export interface CspInput {
 }
 
 /**
- * Where Google's consent screen lives (Sign in with Google, ADR 0036). Without JavaScript the
- * sign-in form posts natively, and browsers check form-action on every redirect of that navigation:
- * Supabase Auth, then Google. Other providers add their origin here when they are turned on.
+ * Where the consent screens live: Google's (Sign in with Google, ADR 0036, and Connect with Google for Drive, B16)
+ * and Microsoft's (Connect with Microsoft for OneDrive, B16). Without JavaScript those forms post natively, and
+ * browsers check form-action on every redirect of that navigation. Other providers add their origin here when
+ * they are turned on.
  */
-export const OAUTH_AUTHORIZE_ORIGINS = ["https://accounts.google.com"] as const;
+export const OAUTH_AUTHORIZE_ORIGINS = [
+  "https://accounts.google.com",
+  "https://login.microsoftonline.com",
+] as const;
 
 /**
  * The Supabase Realtime socket's origin (live updates, ADR 0044): the API origin with ws or wss in
@@ -45,6 +49,8 @@ export function buildCsp({ nonce, development, supabaseOrigin, secureSite }: Csp
     "style-src": ["'self'", development ? "'unsafe-inline'" : `'nonce-${nonce}'`],
     "style-src-attr": ["'unsafe-inline'"],
     "img-src": ["'self'", "blob:", "data:"],
+    // The file previewer (A142) plays a video from the bytes the delivery route answered, as a blob URL.
+    "media-src": ["'self'", "blob:"],
     "font-src": ["'self'", "data:"],
     "connect-src": [
       "'self'",

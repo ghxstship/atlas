@@ -22,6 +22,7 @@ import {
 } from "@/components/collection-kit/kit";
 import type { KitRow, KitState, ViewKind } from "@/components/collection-kit/types";
 import { PageHeader } from "@/components/collection-kit/ui";
+import { RecordHistory } from "@/components/history/record-history";
 import { EmptyStateLink } from "@/components/ui";
 import {
   addLessonAction,
@@ -39,6 +40,8 @@ import { collectionState, withQuery, type SearchParams } from "@/lib/collection-
 import type { OrgContext } from "@/lib/shell/context";
 import { orgToday } from "@/lib/shell/time-zone";
 import { REFUSALS, memberOptions, orgPickers, workforceCopy } from "./shared";
+import * as enums from "@xos/data/enums";
+import { CollectionPage } from "@/components/platform/collection-page";
 
 const VIEWS: readonly ViewKind[] = ["list", "table", "gallery"];
 
@@ -78,10 +81,9 @@ export async function TrainingSection({
   const title = t("training.title");
   if (!courses.ok || !progress.ok || !completions.ok || !assignments.ok) {
     return (
-      <>
-        <PageHeader title={title} />
+      <CollectionPage header={<PageHeader title={title} />}>
         <ErrorPanel what={t("training.what")} />
-      </>
+      </CollectionPage>
     );
   }
   const canEdit = ctx.capabilities.has("knowledge.sop.publish");
@@ -256,7 +258,7 @@ export async function TrainingSection({
                   label: t("training.lessonKind"),
                   required: true,
                   defaultValue: "Reading",
-                  options: ["Reading", "Video", "Quiz"].map((k) => ({
+                  options: enums.trainingLessonKind.map((k) => ({
                     value: k,
                     label: t(`training.kinds.${k}`),
                   })),
@@ -343,6 +345,7 @@ export async function TrainingSection({
             )}
           </KitSection>
         ) : null}
+        <RecordHistory db={db} table="app.training_courses" id={selected.id} />
       </RecordPage>
     );
   }
@@ -412,6 +415,7 @@ export async function TrainingSection({
         }
       >
         {selected.summary ? <p className="m-0 text-text-14">{selected.summary}</p> : null}
+        <RecordHistory db={db} table="app.training_courses" id={selected.id} />
       </PeekDrawer>
     );
   }

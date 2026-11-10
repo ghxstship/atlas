@@ -40,6 +40,7 @@ import {
 } from "@/lib/collection-kit/page";
 import type { OrgContext } from "@/lib/shell/context";
 import { orgToday } from "@/lib/shell/time-zone";
+import { CollectionPage } from "@/components/platform/collection-page";
 
 const VIEWS: readonly ViewKind[] = ["table", "list", "gallery"];
 const REFUSALS = "procurement.refusals";
@@ -70,10 +71,9 @@ export async function CatalogSection({
   const title = t("catalog.title");
   if (!bindings.ok || !currencies.ok || !vendors.ok) {
     return (
-      <>
-        <PageHeader title={title} />
+      <CollectionPage header={<PageHeader title={title} />}>
         <ErrorPanel what={t("catalog.what")} />
-      </>
+      </CollectionPage>
     );
   }
   const canWrite = ctx.capabilities.has("procurement.catalog.write");

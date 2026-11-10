@@ -7,6 +7,7 @@
 import type { SettingDefinition } from "@xos/schemas/settings";
 import type { Row } from "@xos/sync";
 import { useCallback, useState, type ReactElement, type ReactNode } from "react";
+import { formatPhone, regionFromLocale, toE164 } from "@xos/i18n/formats";
 import { useTranslation } from "react-i18next";
 import { View } from "react-native";
 import { useCompass } from "../../runtime/CompassProvider";
@@ -23,6 +24,7 @@ import {
   sectionSettings,
   settingOf,
   sourceKey,
+  withOfferedChoices,
   type RegistrySection,
   type ResolvedRow,
   type SettingProblem,
@@ -46,13 +48,14 @@ import { LabeledChoice, OfflineNotice, WriteNotice } from "./parts";
 /** app.resolve_settings needs an org; the nil uuid answers with the person's own values and the defaults. */
 const NO_ORG = "00000000-0000-0000-0000-000000000000";
 
-/** Refusals of the 0850 guard with their own sentence under `settings.errors`. */
+/** Refusals of the 0850 guard and the content filter (6892) with their own sentence under `settings.errors`. */
 const SETTING_RULES: ReadonlySet<string> = new Set([
   "setting_locked",
   "setting_choice",
   "setting_too_long",
   "setting_value_type",
   "setting_unknown",
+  "content_objectionable",
 ]);
 
 const ruleKey = (rule: string) => (SETTING_RULES.has(rule) ? `settings.errors.${rule}` : undefined);
@@ -95,9 +98,10 @@ export function RegistrySetting({
   readonly orgName: string;
   readonly check?: CrossCheck | undefined;
 }): ReactElement {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const theme = useTheme();
   const { personZone } = useCompass();
+  const region = regionFromLocale(i18n.language);
   const write = useQueuedWrite();
   const [sheet, setSheet] = useState(false);
   const [draft, setDraft] = useState<string | null>(null);
@@ -106,11 +110,17 @@ export function RegistrySetting({
   const testID = `setting-${def.key}`;
   const label = t(def.label);
   const help = def.help ? t(def.help) : undefined;
-  const shown = setting.value === null ? "" : String(setting.value);
+  // A phone reads in the person's national format and saves back as E.164 (A139).
+  const shown =
+    setting.value === null
+      ? ""
+      : def.input === "phone" && typeof setting.value === "string"
+        ? formatPhone(setting.value, region)
+        : String(setting.value);
   const control = controlOf(def);
 
   const save = (raw: string | boolean) => {
-    const checked = checkSettingValue(def, raw);
+    const checked = checkSettingValue(def, raw, (input) => toE164(input, region));
     if (!checked.ok) {
       setProblem(t(problemKey(checked.problem)));
       return;
@@ -220,7 +230,9 @@ export function RegistrySetting({
             onChangeText={setDraft}
             multiline={control === "multiline"}
             disabled={setting.locked}
-            autoComplete="off"
+            {...(def.input === "phone"
+              ? { keyboard: "phone" as const, autoComplete: "tel" as const }
+              : { autoComplete: "off" as const })}
           />
           {setting.locked ? null : (
             <Button
@@ -290,7 +302,7 @@ export function RegistrySettingsScreen({
   readonly children?: ReactNode;
 }): ReactElement {
   const { t } = useTranslation();
-  const { network } = useCompass();
+  const { network, offeredLocales } = useCompass();
   const mirror = useRegistrySettings();
   const orgName = useOrgName();
   const defs = sectionSettings(section);
@@ -310,7 +322,7 @@ export function RegistrySettingsScreen({
         : defs.map((def) => (
             <Card key={def.key}>
               <RegistrySetting
-                def={def}
+                def={withOfferedChoices(def, offeredLocales)}
                 row={mirror.rows.find((r) => r.id === def.key)}
                 orgName={orgName}
                 check={byKey[def.key]}

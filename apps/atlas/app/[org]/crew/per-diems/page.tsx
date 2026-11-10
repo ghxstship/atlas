@@ -1,9 +1,14 @@
 import { canAddPerDiems, getProjectCurrency, listPerDiems, type PerDiem } from "@xos/data/crew";
+import { canRecordPayments } from "@xos/data/finance";
 import { listCurrencies } from "@xos/data/hospitality";
 import Link from "next/link";
 import type { Route } from "next";
 import { getFormatter } from "next-intl/server";
-import { addPerDiemsAction, removePerDiemAction } from "@/app/[org]/crew/actions";
+import {
+  addPerDiemsAction,
+  clearPerDiemPaymentAction,
+  removePerDiemAction,
+} from "@/app/[org]/crew/actions";
 import { ConfirmButton } from "@/components/crew/forms-confirm-button";
 import { DrawerForm } from "@/components/crew/forms-drawer-form";
 import { CrewFrame, resolveView } from "@/components/crew/frame";
@@ -23,7 +28,9 @@ import { getTranslate } from "@/lib/shell/translate";
  * Crew > Per Diems (Section 4.5.8 Crew Per Diem, R1): one allowance a day for a member or for the
  * person of an engagement, in table and list views, filtered by project and person. Adding a run of
  * days needs a project and crew.time_entry.write; app.add_per_diems refuses days already taken and
- * engagements that are not working. Server components only: the page adds no client bundle.
+ * engagements that are not working. A paid date is recorded from Finance > Payments > Due and moves no money (decision
+ * 20): a paid per diem cannot be removed, and a payment recorder clears a wrong one with a reason. Server components
+ * only: the page adds no client bundle.
  */
 export default async function Page({ params, searchParams }: PageProps<"/[org]/crew/per-diems">) {
   const routeParams = await params;
@@ -37,9 +44,10 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
   const base = nodeHref(node, routeParams) ?? "/";
   const projects = await getProjects(crew.ctx);
   const project = crew.project ?? projects.find((p) => p.key === search["project"]) ?? null;
-  const [perDiemsResult, currenciesResult] = await Promise.all([
+  const [perDiemsResult, currenciesResult, canRecord] = await Promise.all([
     listPerDiems(db, { orgId: crew.orgId, ...(project ? { projectId: project.id } : {}) }),
     listCurrencies(db),
+    canRecordPayments(db, crew.orgId),
   ]);
   if (!perDiemsResult.ok) throw new Error(`Cannot list per diems: ${perDiemsResult.error.kind}`);
   if (!currenciesResult.ok) {
@@ -68,6 +76,15 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
     });
   const amount = (d: PerDiem) =>
     formatMinor(format, d.amountMinor, d.currencyCode, exponents.get(d.currencyCode) ?? 2, "");
+  const paidDay = (d: PerDiem) =>
+    d.paidOn
+      ? format.dateTime(new Date(`${d.paidOn}T12:00:00Z`), {
+          timeZone: "UTC",
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        })
+      : "";
   const people = new Map(all.flatMap((d) => (d.personId ? [[d.personId, name(d)] as const] : [])));
 
   let peek = null;
@@ -84,11 +101,24 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
         kindLabel={t("crew.perDiems.kind")}
         recordKey={peeked.projectKey}
         title={t("crew.perDiems.recordTitle", { name: name(peeked), day: day(peeked) })}
+        historySubject={{ table: "app.per_diems", id: peeked.id }}
         state="active"
         stateLabel={t("crew.perDiems.kind")}
         backHref={withParams(base, search, { peek: null, full: null })}
         actions={
-          canRemove ? (
+          peeked.paidOn ? (
+            canRecord ? (
+              <ConfirmButton
+                label={t("crew.perDiems.clearPayment")}
+                title={t("crew.perDiems.clearPayment")}
+                description={t("crew.perDiems.clearPaymentHelp")}
+                defaultReason=""
+                action={clearPerDiemPaymentAction}
+                hidden={{ org: crew.slug, id: peeked.id }}
+                variant="ghost"
+              />
+            ) : null
+          ) : canRemove ? (
             <ConfirmButton
               label={t("crew.perDiems.remove")}
               title={t("crew.perDiems.confirmRemove")}
@@ -106,6 +136,19 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
           { label: t("crew.perDiems.fields.person"), value: name(peeked) },
           { label: t("crew.fields.project"), value: peeked.projectKey },
           { label: t("crew.perDiems.fields.amount"), value: amount(peeked) },
+          ...(peeked.paidOn
+            ? [
+                { label: t("crew.perDiems.fields.paidOn"), value: paidDay(peeked) },
+                ...(peeked.paidReference
+                  ? [
+                      {
+                        label: t("crew.perDiems.fields.paidReference"),
+                        value: peeked.paidReference,
+                      },
+                    ]
+                  : []),
+              ]
+            : []),
         ]}
       />
     );
@@ -203,6 +246,7 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
           { key: "person", label: t("crew.perDiems.fields.person") },
           { key: "project", label: t("crew.fields.project"), type: "code" },
           { key: "amount", label: t("crew.perDiems.fields.amount") },
+          { key: "paid", label: t("crew.perDiems.fields.paidOn") },
         ]}
         rows={perDiems.map((d) => ({
           id: d.id,
@@ -211,6 +255,7 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
           person: name(d),
           project: d.projectKey,
           amount: amount(d),
+          paid: paidDay(d),
         }))}
       />
     );
@@ -230,6 +275,7 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
                 <span className="text-text-13 font-medium">{name(d)}</span>
                 <span className="text-text-12 text-text-secondary">
                   {day(d)} · {d.projectKey}
+                  {d.paidOn ? ` · ${t("crew.perDiems.paidOnLine", { day: paidDay(d) })}` : ""}
                 </span>
               </span>
               <span className="text-text-13 tabular-nums">{amount(d)}</span>

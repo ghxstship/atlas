@@ -9,6 +9,10 @@ set search_path = extensions, public;
 
 select * from no_plan();
 
+-- Per diem is an offering since R3 (2625): prj_a offers it, so the engagement branch reaches its own rules.
+select pg_temp.as_user('carol');
+select app.set_setting(pg_temp.id('org_a'), 'offerings.per_diem', 'Project', pg_temp.id('prj_a'), 'provided');
+select pg_temp.as_platform();
 select pg_temp.move_engagement('eng_ivy_a', 'Onboarding', 'Active');
 select pg_temp.as_user('alice');
 with x as (insert into app.engagements (project_id, counterparty_id, role_type, role_code, worker_classification, pay_basis, arrangement, start_date)

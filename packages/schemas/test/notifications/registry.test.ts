@@ -57,21 +57,38 @@ describe("notification kind registry (Section 3.15, A65-021)", () => {
       "account",
     ]);
     // 43 kinds (A79, A91, A99 among them), plus the three marketplace moderation kinds of A90 (1473) and the four
-    // reported content kinds of ADR 0033 decision 57 (1630).
-    expect(registry.kinds).toHaveLength(54);
+    // reported content kinds of ADR 0033 decision 57 (1630), the three crew roster kinds of R4 (2642), and R5's
+    // project facts and names lock kinds (4655, 4656), R6a's account.work_details_moved (4664), R7's four
+    // allocation kinds (4698), A127's offer.sent (5200), P5's badge photo request (5822), P9's approval.reminder
+    // and approval.link_code (5862, 5861), and B16's billing.paused, billing.resumed and agent.change_proposed
+    // (6051, 6052), B5's accommodation_block.release_due and transfer.assigned (5947), and P8's
+    // availability.requested (6123), R11's seven advancing reminders and notices (6221, 6222), and B8's guest.arrived (6254) and
+    // three weather kinds (6256, 6257), B15's advance_answer.recorded (6273), B2's vendor_intake.submitted (6505), B9's
+    // shift.reconfirm, shift.reconfirm_declined and shift.no_show (6511, 6512), and B10's crew registration and agreement kinds (2999).
+    // And the crisis alert and its all-clear (6800), and the five renewal and Stripe cancel notices of ADR 0161 (6810, 6811),
+    // and the two rating dispute kinds of ADR 0158 (6821),
+    // and the two sensitive data notices of ADR 0164 (6852, 6853).
+    expect(registry.kinds).toHaveLength(107);
     expect(notificationKind("approval.requested")).toMatchObject({
       category: "approvals",
       emailTemplate: "notification",
       pushCategory: "approval_request",
-      copy: {
-        subject: "kinds.approval.requested.subject",
-        body: "kinds.approval.requested.body",
-      },
     });
     expect(notificationKind("export.ready")?.emailTemplate).toBe("export_ready");
+    // P9: a reminder offers Approve and Reject on the lock screen as the request does; the access code goes by email.
+    expect(notificationKind("approval.reminder")).toMatchObject({
+      category: "approvals",
+      emailTemplate: "notification",
+      pushCategory: "approval_request",
+    });
+    expect(notificationKind("approval.link_code")).toMatchObject({
+      category: "approvals",
+      emailTemplate: "approval_link_code",
+      pushCategory: null,
+    });
     // ADR 0033 decision 35: a short, reviewable bypass list; mandatory or urgent categories alone never bypass.
     // ADR 0033 decision 62 adds a new shift within 12 hours, security changes (with a recovery code used) and
-    // emergency access.
+    // emergency access. B8 (ADR 0147) adds the official weather warning, the weather hold and its all-clear.
     expect(
       registry.kinds
         .filter((k) => k.quietHoursBypass !== null)
@@ -79,17 +96,26 @@ describe("notification kind registry (Section 3.15, A65-021)", () => {
     ).toEqual([
       ["shift.assigned", 12],
       ["shift.changed", 12],
+      // B9 (ADR 0148): "Still coming?" about a shift starting within 12 hours, like a shift assigned or changed.
+      ["shift.reconfirm", 12],
       ["incident.reported", null],
       ["occupancy.threshold", null],
       ["weather.alert", null],
+      ["weather.warning", null],
+      ["weather.hold", null],
+      ["weather.all_clear", null],
+      ["crisis_alert.issued", null],
+      ["crisis_alert.ended", null],
       ["account.security_changed", null],
       ["account.recovery_code_used", null],
       ["access.break_glass_started", null],
     ]);
-    // Billing notices wait until morning, although the account category is urgent.
+    // Billing notices wait until morning, although the account category is urgent; the pause notices (B16), renewal and cancel notices (ADR 0161) too.
     expect(
       registry.kinds.filter((k) => k.kind.startsWith("billing.")).map((k) => k.quietHoursBypass),
-    ).toEqual([null, null, null, null]);
+    ).toEqual(Array.from({ length: 11 }, () => null));
+    // B16 (ADR 0155 D2): a connected app's proposal reaches the Inbox and a push, never email.
+    expect(notificationKind("agent.change_proposed")?.channels).toEqual(["In App", "Push"]);
     // ADR 0033 decision 77: a delivered report reaches the Inbox and a push, never a second email.
     expect(notificationKind("report.delivered")?.channels).toEqual(["In App", "Push"]);
     expect(notificationKind("no.such_kind")).toBeUndefined();
@@ -126,7 +152,7 @@ describe("notification kind registry (Section 3.15, A65-021)", () => {
     // kind that names fewer channels. Kinds are never deleted.
     expect(sql.match(/\bdelete\b/g)).toHaveLength(2);
     expect(sql).toContain(
-      "delete from private.notification_templates\nwhere (kind = 'report.delivered' and channel not in ('In App', 'Push'))\n   or (kind = 'opportunity.matched' and channel not in ('In App', 'Email', 'Push'));",
+      "delete from private.notification_templates\nwhere (kind = 'agent.change_proposed' and channel not in ('In App', 'Push'))\n   or (kind = 'rfq.quote_reminder' and channel not in ('In App', 'Email'))\n   or (kind = 'rfq.not_awarded' and channel not in ('In App', 'Email'))\n   or (kind = 'approval.link_code' and channel not in ('In App', 'Email'))\n   or (kind = 'report.delivered' and channel not in ('In App', 'Push'))\n   or (kind = 'opportunity.matched' and channel not in ('In App', 'Email', 'Push'))\n   or (kind = 'offer.sent' and channel not in ('In App', 'Email', 'Push'))\n   or (kind = 'vendor_intake.submitted' and channel not in ('In App', 'Email'))\n   or (kind = 'crew_registration.invited' and channel not in ('In App', 'Email', 'Push'));",
     );
     const drift = renderNotificationDriftTest(registry);
     expect(drift).toContain("select plan(5);");
@@ -144,6 +170,7 @@ describe("notification kind registry (Section 3.15, A65-021)", () => {
       "invoice.submitted",
       "invoice.scheduled",
       "invoice.paid",
+      "quote.accepted",
     ]);
     expect(matrix.map((r) => r.order)).toEqual(
       [...matrix.map((r) => r.order)].sort((a, b) => a - b),

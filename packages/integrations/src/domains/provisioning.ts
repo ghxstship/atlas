@@ -5,6 +5,7 @@ import type {
   ProviderState,
   SendingDomainProvider,
 } from "./types.ts";
+import type { Database } from "@xos/data/database.types";
 
 /**
  * The domain provisioning worker (A79, migration 1355; Section 12): claims domain.provision, domain.check and
@@ -28,7 +29,7 @@ export interface DomainJob {
 export interface DomainRow {
   readonly id: string;
   readonly hostname: string;
-  readonly purpose: "Atlas" | "Gateway" | "Email Sending" | "Verified Domain";
+  readonly purpose: Database["app"]["Enums"]["org_domain_purpose"];
   readonly providerRef: string | null;
   readonly deleted: boolean;
 }

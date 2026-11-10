@@ -25,6 +25,8 @@ export interface WebPushDevice {
   /** The browser's 16-byte authentication secret, base64url. */
   readonly auth: string;
   /** App whose service worker shows the push and opens its link. */
+  // The web_app check of migration 1533, which equals app.shortcut_shell by coincidence.
+  // eslint-disable-next-line xos/no-restated-enums
   readonly app: "Atlas" | "Gateway";
 }
 

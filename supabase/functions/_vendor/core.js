@@ -151,7 +151,7 @@ var VALUE_PATTERNS = [
   },
   {
     pattern:
-      /(?:xadv|xagr|xcal|xdlt|xdoc|xinv|xkio|xlnk|xshr|xspn|xspu|xos_pat|xos_scim)_[0-9a-f]{16,}\b/gi,
+      /(?:xact|xadv|xagr|xcal|xcch|xcgr|xcrw|xdlt|xdoc|xfrg|xfrm|xgue|xinv|xkio|xlch|xlgr|xlnk|xpkg|xpkl|xpku|xscl|xscr|xshr|xshv|xspn|xspu|xvig|xvin|xos_pat|xos_scim)_[0-9a-f]{16,}(?:\.[0-9a-f]{16,})?\b/gi,
     replace: "[token]",
   },
   {
@@ -159,7 +159,13 @@ var VALUE_PATTERNS = [
     replace: (_m, prefix) => `${prefix}[token]`,
   },
   {
-    pattern: /(?=\/share\/)(?<=^|[\s"'(<=,]|(?<!\/)\/\/[^/?#\s"'<>]+)(\/share\/)[^/?#\s"'<>]+/gi,
+    pattern:
+      /(?=\/share\/)(?<=^|[\s"'(<=,]|(?<!\/)\/\/[^/?#\s"'<>]+)(\/share\/(?:view\/|screen\/|showcaller\/|pack\/(?:unsubscribe\/)?)?)[^/?#\s"'<>]+/gi,
+    replace: (_m, prefix) => `${prefix}[token]`,
+  },
+  {
+    pattern:
+      /(?=\/(?:onboard|forms)\/)(?<=^|[\s"'(<=,]|(?<!\/)\/\/[^/?#\s"'<>]+)(\/(?:onboard|forms)\/)[^/?#\s"'<>]+/gi,
     replace: (_m, prefix) => `${prefix}[token]`,
   },
   {
@@ -1058,6 +1064,12 @@ function internalErrorResponse(error, options) {
   );
 }
 //#endregion
+//#region edge/entries/core.ts
+/** The project token signer (ADR 0168), loaded on demand: only api-token and the workers that mint tokens need it. */
+function loadProjectTokens() {
+  return import("./chunks/platform-jwt-project-token.js");
+}
+//#endregion
 export {
   PlatformDbError,
   createLogger,
@@ -1065,6 +1077,7 @@ export {
   edgeFunctionName,
   identityFromEnv,
   internalErrorResponse,
+  loadProjectTokens,
   observe,
   observeEdgeFunction,
   requestIdFor,

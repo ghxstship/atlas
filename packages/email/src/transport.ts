@@ -1,5 +1,35 @@
 import type { CreateEmailOptions, CreateEmailRequestOptions, CreateEmailResponse } from "resend";
 
+/** A file sent with an email, such as a guest's pass (B8). */
+export interface EmailAttachment {
+  readonly filename: string;
+  readonly content: Uint8Array;
+  readonly contentType: string;
+}
+
+/** The most an email's attachments may weigh together, below every provider's message limit. */
+export const MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024;
+
+/** Refuses attachments that weigh more than MAX_ATTACHMENT_BYTES together, before any transport runs. */
+export function assertAttachmentSize(attachments: readonly EmailAttachment[] | undefined): void {
+  const total = (attachments ?? []).reduce((sum, file) => sum + file.content.byteLength, 0);
+  if (total > MAX_ATTACHMENT_BYTES) {
+    throw new EmailSendError(
+      `The attachments weigh ${total} bytes, more than the ${MAX_ATTACHMENT_BYTES} an email may carry.`,
+      "attachment_size",
+    );
+  }
+}
+
+/** Base64 of bytes, without Node's Buffer, so the Edge Functions can encode too. */
+export function toBase64(bytes: Uint8Array): string {
+  let binary = "";
+  for (let i = 0; i < bytes.length; i += 0x8000) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  }
+  return btoa(binary);
+}
+
 /** A rendered email ready for a provider. */
 export interface OutgoingEmail {
   readonly from: string;
@@ -12,6 +42,8 @@ export interface OutgoingEmail {
   readonly tags?: readonly { readonly name: string; readonly value: string }[];
   /** Provider idempotency key, so a retried send never delivers twice. */
   readonly idempotencyKey?: string;
+  /** Files sent with the email, at most MAX_ATTACHMENT_BYTES together. */
+  readonly attachments?: readonly EmailAttachment[];
 }
 
 export interface SendResult {
@@ -88,6 +120,15 @@ export class ResendTransport implements EmailTransport {
       ...(message.replyTo === undefined ? {} : { replyTo: message.replyTo }),
       ...(message.headers === undefined ? {} : { headers: { ...message.headers } }),
       ...(message.tags === undefined ? {} : { tags: message.tags.map((tag) => ({ ...tag })) }),
+      ...(message.attachments === undefined || message.attachments.length === 0
+        ? {}
+        : {
+            attachments: message.attachments.map((file) => ({
+              filename: file.filename,
+              content: toBase64(file.content),
+              contentType: file.contentType,
+            })),
+          }),
     };
     const response = await this.#client.emails.send(
       payload,
@@ -177,6 +218,15 @@ export class MailpitTransport implements EmailTransport {
         Text: message.text,
         ...(message.headers === undefined ? {} : { Headers: { ...message.headers } }),
         ...(message.tags === undefined ? {} : { Tags: message.tags.map((t) => t.value) }),
+        ...(message.attachments === undefined || message.attachments.length === 0
+          ? {}
+          : {
+              Attachments: message.attachments.map((file) => ({
+                Content: toBase64(file.content),
+                Filename: file.filename,
+                ContentType: file.contentType,
+              })),
+            }),
       }),
     });
     if (!response.ok) {

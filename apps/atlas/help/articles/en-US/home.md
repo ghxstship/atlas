@@ -10,7 +10,9 @@ Home answers one question: what needs you now.
 
 ## Today
 
-Today lists the records assigned to you or waiting on your decision, ordered by when they are due. Use **J** and **K** to move and **Enter** to open a record in the peek.
+Today is a dashboard of tiles you can widen or narrow; it keeps your layout. **Doors** counts down to the next doors of an event in the next 14 days, in its project's time zone. **Waiting for your approval** counts the approvals your Inbox asks you to decide and lists the first five. **Since your last visit** names what others changed on the records you are assigned to or watch and on your shifts, and who changed it; a visit lasts 30 minutes, so refreshing keeps the list, and **Mark all as seen** clears it. It starts from your second visit.
+
+Below the tiles, the day's work lists the records assigned to you or waiting on your decision, ordered by when they are due. Use **J** and **K** to move and **Enter** to open a record in the peek.
 
 ## Gate readiness
 

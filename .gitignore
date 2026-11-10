@@ -22,3 +22,5 @@ legal/qa/visual-review/shots/
 # Claude Code agent worktrees and local state
 .claude/
 storybook-static/
+# The incident commander's working copy of refs/status/incidents (infra/ci/status-incidents.sh).
+/status-incidents/

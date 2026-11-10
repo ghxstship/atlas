@@ -3,6 +3,9 @@
 // down to the next cue. Compass writes what they show as JSON into the App Group (CompassWidgetStore in
 // _shared/, src/domain/glance.ts on the JS side), already in the person's language and each time on its
 // project's calendar; the widgets only lay it out. They read nothing from the network.
+// The gallery's names and descriptions show before Compass has run, so they are the one text here the App Group
+// cannot carry: each is written in en-US, the key en.lproj and es.lproj/Localizable.strings translate (generated from
+// the catalogs by test/widget-gallery.test.ts, A140).
 import SwiftUI
 import WidgetKit
 

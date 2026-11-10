@@ -1,3 +1,4 @@
+import { applyArchived, type ArchivedFilter } from "./archive.ts";
 import type { Database, XosClient } from "./client.ts";
 import {
   blankToNull,
@@ -9,7 +10,8 @@ import {
   touched,
   type Transition,
 } from "./commercial-common.ts";
-import { fail, ok, type Result } from "./result.ts";
+import { fail, ok, toDataError, type Result } from "./result.ts";
+import * as enums from "./enums.generated.ts";
 
 /**
  * Vendors repository (Section 4.2 Vendors, Section 7.4): the vendor facet of a counterparty with
@@ -22,13 +24,7 @@ type Tables = Database["app"]["Tables"];
 export type VendorState = Database["app"]["Enums"]["vendor_state"];
 export type ApprovalDecision = Database["app"]["Enums"]["approval_decision"];
 
-export const VENDOR_STATES: readonly VendorState[] = [
-  "Prospect",
-  "Onboarded",
-  "Active",
-  "Blocked",
-  "Canceled",
-];
+export const VENDOR_STATES: readonly VendorState[] = enums.vendorState;
 
 /** A lifecycle rule as the database states it. */
 export interface TransitionRule<S extends string = string> {
@@ -49,6 +45,18 @@ export async function listTransitionRules<S extends string>(
 
 // Vendors ------------------------------------------------------------------------------------------
 
+/**
+ * A vendor's mailing address (migration 3320). Every field is null when none is recorded; the
+ * country is set whenever any other field is, and the postal code fits it.
+ */
+export interface VendorAddress {
+  readonly countryCode: string | null;
+  readonly streetAddress: string | null;
+  readonly locality: string | null;
+  readonly administrativeArea: string | null;
+  readonly postalCode: string | null;
+}
+
 export interface Vendor {
   readonly id: string;
   readonly counterpartyId: string;
@@ -58,13 +66,16 @@ export interface Vendor {
   readonly state: VendorState;
   readonly paymentTermsDays: number | null;
   readonly defaultCurrencyCode: string | null;
+  readonly address: VendorAddress;
   readonly classIds: readonly string[];
   readonly createdAt: string;
   readonly createdBy: string | null;
+  /** When the vendor was archived (A124); archived vendors leave the directory unless asked for. */
+  readonly archivedAt: string | null;
 }
 
 const VENDOR_COLUMNS =
-  "id, counterparty_id, vendor_state, payment_terms_days, default_currency_code, created_at, created_by, counterparty:counterparties!inner(counterparty_name, counterparty_type), vendor_class_assignments(vendor_class_id, deleted_at)" as const;
+  "id, counterparty_id, vendor_state, payment_terms_days, default_currency_code, country_code, street_address, locality, administrative_area, postal_code, created_at, created_by, archived_at, counterparty:counterparties!inner(counterparty_name, counterparty_type), vendor_class_assignments(vendor_class_id, deleted_at)" as const;
 
 interface VendorRow {
   id: string;
@@ -72,8 +83,14 @@ interface VendorRow {
   vendor_state: VendorState;
   payment_terms_days: number | null;
   default_currency_code: string | null;
+  country_code: string | null;
+  street_address: string | null;
+  locality: string | null;
+  administrative_area: string | null;
+  postal_code: string | null;
   created_at: string;
   created_by: string | null;
+  archived_at: string | null;
   counterparty: { counterparty_name: string | null; counterparty_type: string | null } | null;
   vendor_class_assignments: { vendor_class_id: string; deleted_at: string | null }[] | null;
 }
@@ -87,11 +104,19 @@ function toVendor(row: VendorRow): Vendor {
     state: row.vendor_state,
     paymentTermsDays: row.payment_terms_days,
     defaultCurrencyCode: row.default_currency_code,
+    address: {
+      countryCode: row.country_code,
+      streetAddress: row.street_address,
+      locality: row.locality,
+      administrativeArea: row.administrative_area,
+      postalCode: row.postal_code,
+    },
     classIds: (row.vendor_class_assignments ?? [])
       .filter((a) => a.deleted_at === null)
       .map((a) => a.vendor_class_id),
     createdAt: row.created_at,
     createdBy: row.created_by,
+    archivedAt: row.archived_at,
   };
 }
 
@@ -99,10 +124,17 @@ function byName<T extends { name: string | null }>(items: T[]): T[] {
   return items.sort((a, b) => (a.name ?? "").localeCompare(b.name ?? ""));
 }
 
-/** Vendors of the org, by name. */
-export async function listVendors(db: XosClient, orgId: string): Promise<Result<Vendor[]>> {
+/** Vendors of the org, by name; archived ones only when asked for (A124). */
+export async function listVendors(
+  db: XosClient,
+  orgId: string,
+  archived: ArchivedFilter = "exclude",
+): Promise<Result<Vendor[]>> {
   const result = await readRows(
-    db.from("vendors").select(VENDOR_COLUMNS).eq("org_id", orgId).is("deleted_at", null),
+    applyArchived(
+      db.from("vendors").select(VENDOR_COLUMNS).eq("org_id", orgId).is("deleted_at", null),
+      archived,
+    ),
     (row) => toVendor(row),
   );
   return result.ok ? ok(byName(result.data)) : result;
@@ -194,6 +226,30 @@ export async function updateVendor(
       .update({
         payment_terms_days: input.paymentTermsDays,
         default_currency_code: blankToNull(input.defaultCurrencyCode),
+      })
+      .eq("id", id)
+      .select("id"),
+  );
+}
+
+/**
+ * Records or clears a vendor's mailing address. The database refuses a postal code that does not fit
+ * the country (postal_code_invalid) and address fields without a country.
+ */
+export async function updateVendorAddress(
+  db: XosClient,
+  id: string,
+  address: VendorAddress,
+): Promise<Result<null>> {
+  return touched(
+    db
+      .from("vendors")
+      .update({
+        country_code: blankToNull(address.countryCode),
+        street_address: blankToNull(address.streetAddress),
+        locality: blankToNull(address.locality),
+        administrative_area: blankToNull(address.administrativeArea),
+        postal_code: blankToNull(address.postalCode),
       })
       .eq("id", id)
       .select("id"),
@@ -499,6 +555,67 @@ export async function listInsuranceCertificates(
     validTo: row.valid_to,
     documentUri: row.document_uri,
   }));
+}
+
+/** A file a vendor uploaded for an onboarding item, waiting for review with no certificate pointing at it (6801). */
+export interface VendorCertificateUpload {
+  readonly itemId: string;
+  readonly engagementId: string;
+  readonly vendorId: string;
+  readonly vendorName: string | null;
+  readonly itemName: string;
+  readonly submittedAt: string;
+  /** Where the file is; a certificate recorded from it keeps this as its document_uri. */
+  readonly storageUri: string;
+  /** A reviewer passed the onboarding item, which records no certificate. */
+  readonly reviewPassed: boolean;
+  /** The scanner has cleared the file, so a reader can open it. */
+  readonly scanned: boolean;
+  /** How many such files there are, of which the list holds at most 50. */
+  readonly total: number;
+}
+
+/** Uploads waiting for review, for holders of vendors.coi.write (app.vendor_certificate_uploads); others get none. */
+export async function listVendorCertificateUploads(
+  db: XosClient,
+  orgId: string,
+): Promise<Result<VendorCertificateUpload[]>> {
+  const { data, error } = await db.rpc("vendor_certificate_uploads", { p_org_id: orgId });
+  if (error) return fail(toDataError(error));
+  return ok(
+    data.map((row) => ({
+      itemId: row.onboarding_item_id,
+      engagementId: row.engagement_id,
+      vendorId: row.vendor_id,
+      vendorName: row.vendor_name,
+      itemName: row.item_name,
+      submittedAt: row.submitted_at,
+      storageUri: row.storage_uri,
+      reviewPassed: row.review_passed,
+      scanned: row.scan_status === "Clean",
+      total: row.total_count,
+    })),
+  );
+}
+
+const ONBOARDING_UPLOAD_PREFIX = "storage://onboarding-uploads/";
+
+/** True for a document_uri that names a vendor's onboarding upload rather than a typed link. */
+export function isOnboardingUploadUri(uri: string | null): uri is string {
+  return uri?.startsWith(ONBOARDING_UPLOAD_PREFIX) ?? false;
+}
+
+/** A short-lived link to a vendor's onboarding upload, under the reader's own access; null when they have none. */
+export async function onboardingUploadLink(
+  db: XosClient,
+  storageUri: string,
+  expiresInSeconds = 3600,
+): Promise<string | null> {
+  if (!isOnboardingUploadUri(storageUri)) return null;
+  const { data, error } = await db.storage
+    .from("onboarding-uploads")
+    .createSignedUrl(storageUri.slice(ONBOARDING_UPLOAD_PREFIX.length), expiresInSeconds);
+  return error ? null : data.signedUrl;
 }
 
 export interface InsuranceCertificateInput {
@@ -845,13 +962,7 @@ export async function addVendorBankAccount(
 export type SponsorAssetKind = Database["app"]["Enums"]["sponsor_asset_kind"];
 export type ReviewState = Database["app"]["Enums"]["review_state"];
 
-export const SPONSOR_ASSET_KINDS: readonly SponsorAssetKind[] = [
-  "Logo",
-  "Artwork",
-  "Copy",
-  "Video",
-  "Other",
-];
+export const SPONSOR_ASSET_KINDS: readonly SponsorAssetKind[] = enums.sponsorAssetKind;
 
 export interface SponsorAsset {
   readonly id: string;
@@ -865,6 +976,15 @@ export interface SponsorAsset {
   readonly decidedBy: string | null;
   readonly decidedAt: string | null;
   readonly createdBy: string | null;
+  /** Org Supplied, or Sponsor Supplied from Gateway (R9, migration 4713). */
+  readonly source: Database["app"]["Enums"]["sponsor_asset_source"];
+  /** Files of the current revision, with the version Atlas serves at /files/party/<version>. */
+  readonly files: readonly { readonly title: string; readonly versionId: string | null }[];
+}
+
+/** The org's moves on a sponsor-supplied asset: approve, return or cancel a submitted one (4713). */
+export function sponsorSuppliedMoves(state: ReviewState): readonly ReviewState[] {
+  return state === "Submitted" ? ["Approved", "Returned", "Canceled"] : [];
 }
 
 export async function listSponsorAssets(
@@ -875,7 +995,7 @@ export async function listSponsorAssets(
     db
       .from("sponsor_assets")
       .select(
-        "id, sponsor_entitlement_id, asset_kind, title, usage_note, due_on, revision, asset_state, decided_by, decided_at, created_by",
+        "id, sponsor_entitlement_id, asset_kind, title, usage_note, due_on, revision, asset_state, decided_by, decided_at, created_by, asset_source, files:sponsor_asset_files(revision, position, document:documents(title, versions:document_versions(id, version_number)))",
       )
       .eq("org_id", orgId)
       .is("deleted_at", null)
@@ -892,6 +1012,16 @@ export async function listSponsorAssets(
       decidedBy: row.decided_by,
       decidedAt: row.decided_at,
       createdBy: row.created_by,
+      source: row.asset_source,
+      files: [...(row.files ?? [])]
+        .filter((f) => f.revision === row.revision)
+        .sort((a, b) => a.position - b.position)
+        .map((f) => ({
+          title: f.document?.title ?? "",
+          versionId:
+            [...(f.document?.versions ?? [])].sort((a, b) => b.version_number - a.version_number)[0]
+              ?.id ?? null,
+        })),
     }),
   );
 }

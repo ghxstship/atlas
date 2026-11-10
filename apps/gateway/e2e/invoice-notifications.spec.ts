@@ -15,7 +15,7 @@ import { expectAccessible, signIn, sql } from "./support";
 
 /**
  * Journey 56's notifications (Section 20.2; migration 1131, finding A38-002): the vendor follows
- * an invoice from Submitted to Paid and is notified at each step, in Gateway (Home, Updates), by
+ * an invoice from Submitted to Paid and is notified at each step, in Gateway (Home, For your information), by
  * email into the local stack's inbox, and with a Push delivery record. Reaching a phone is the
  * device step. The vendor's own choices in Settings, Notifications decide the channels.
  */
@@ -111,9 +111,9 @@ test("journey 56: the vendor is notified at each invoice step, honoring their ch
     { kind: "invoice.submitted", channels: "Email,Push" },
   ]);
 
-  // In Gateway: Home lists the updates, newest first, each linking to Money, Invoices.
+  // In Gateway: Home lists the updates under For your information, newest first, each linking to Money, Invoices.
   await page.goto("/home");
-  const updates = page.getByRole("list", { name: "Updates" });
+  const updates = page.getByRole("list", { name: "For your information" });
   await expect(
     updates.getByRole("link", { name: `Demo Productions paid invoice ${number}` }),
   ).toBeVisible();

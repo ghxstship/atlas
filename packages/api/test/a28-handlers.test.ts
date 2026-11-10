@@ -307,21 +307,12 @@ describe("Opportunities contract: ratings", () => {
   };
   it("lists, reads and creates ratings with their release time", async () => {
     const { api } = app({
-      "from:ratings": [
-        ok([ratingRow]),
-        ok([
-          { engagement_id: id(1), submitted_at: "2026-09-20T00:00:00.000Z" },
-          { engagement_id: id(1), submitted_at: "2026-09-22T00:00:00.000Z" },
-        ]),
-        ok(ratingRow),
-        ok([{ engagement_id: id(1), submitted_at: "2026-09-20T00:00:00.000Z" }]),
-        ok(ratingRow),
-        ok([{ engagement_id: id(1), submitted_at: "2026-09-20T00:00:00.000Z" }]),
-      ],
-      "from:engagement_state_transitions": [
-        ok([{ engagement_id: id(1), created_at: "2026-09-19T00:00:00.000Z" }]),
-        ok([{ engagement_id: id(1), created_at: "2026-09-19T00:00:00.000Z" }]),
-        ok([]),
+      "from:ratings": [ok([ratingRow]), ok(ratingRow), ok(ratingRow)],
+      // The release time comes from the release record, not from both ratings, which a reader may not both see.
+      "from:rating_release_times": [
+        ok([{ engagement_id: id(1), released_at: "2026-09-22T00:00:00.000Z" }]),
+        ok([{ engagement_id: id(1), released_at: "2026-10-03T00:00:00.000Z" }]),
+        ok([{ engagement_id: id(1), released_at: null }]),
       ],
     });
     const list = (await expectContract(await api.request("/ratings"), "ratings.list")) as {

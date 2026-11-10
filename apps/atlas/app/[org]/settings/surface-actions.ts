@@ -5,13 +5,17 @@ import {
   addSpendAuthority,
   createCustomField,
   CUSTOM_DATA_TYPES,
+  type CustomDataType,
   fieldKeyFrom,
   removeCustomField,
   removeSpendAuthority,
+  setCustomFieldChoiceColor,
+  setSeparationOption,
   SPEND_DOCUMENT_TYPES,
-  type CustomDataType,
   type SpendDocumentType,
 } from "@xos/data/governance";
+import { CUE_FIELD_AUDIENCES, audiencesFor } from "@xos/data/cue-field-audiences";
+import { setCueFieldAudiences, type CueFieldAudience } from "@xos/data/custom-fields";
 import { requireSecondFactor } from "@xos/data/auth-assurance";
 import {
   DATA_REQUEST_MOVES,
@@ -287,6 +291,25 @@ export async function removeSpendLimitAction(
   return finish(org(ctx, "spend-authority"), await removeSpendAuthority(ctx.viewer.db, id));
 }
 
+// Separation of duties ------------------------------------------------------------------------------------
+
+/** Switches a stricter option on or off (2280, ADR 0114); the database refuses a built-in rule's code. */
+export async function setSeparationOptionAction(
+  _: SurfaceState,
+  form: FormData,
+): Promise<SurfaceState> {
+  const ctx = await contextFor(form);
+  const code = text(form, "code");
+  const on = text(form, "on");
+  if (code === null || !/^sod_[a-z_]+$/.test(code) || (on !== "on" && on !== "off")) {
+    return invalid([]);
+  }
+  return finish(
+    org(ctx, "separation-of-duties"),
+    await setSeparationOption(ctx.viewer.db, ctx.org.id, code, on === "on"),
+  );
+}
+
 // Custom fields --------------------------------------------------------------------------------------------
 
 export async function createCustomFieldAction(
@@ -351,7 +374,53 @@ export async function addCustomFieldChoiceAction(
       key,
       label,
       sortOrder: Number(text(form, "sortOrder") ?? "100") || 100,
+      colorKey: color(text(form, "color")),
     }),
+  );
+}
+
+const COLOR = /^cat-[1-7]$/;
+
+/** A choice color from a form: cat-1 to cat-7, or none. */
+function color(value: string | null): string | null {
+  return value !== null && COLOR.test(value) ? value : null;
+}
+
+/** Recolors a choice (6240): one of the seven categorical colors, or none. */
+export async function setCustomFieldChoiceColorAction(
+  _: SurfaceState,
+  form: FormData,
+): Promise<SurfaceState> {
+  const ctx = await contextFor(form);
+  const choiceId = text(form, "choiceId");
+  if (choiceId === null || !UUID.test(choiceId)) return invalid(["choiceId"]);
+  return finish(
+    org(ctx, "custom-fields"),
+    await setCustomFieldChoiceColor(ctx.viewer.db, choiceId, color(text(form, "color"))),
+  );
+}
+
+/**
+ * Who a cue field is for (6240, ADR 0142): Crew, Showcaller and Client. A Person, Money or Email field only ever
+ * takes Crew; the database refuses the rest (cue_field_audience_type).
+ */
+export async function setCueFieldAudiencesAction(
+  _: SurfaceState,
+  form: FormData,
+): Promise<SurfaceState> {
+  const ctx = await contextFor(form);
+  const fieldId = text(form, "fieldId");
+  const dataType = text(form, "dataType");
+  if (fieldId === null || !UUID.test(fieldId)) return invalid(["fieldId"]);
+  const allowed = audiencesFor((dataType ?? "Text") as Parameters<typeof audiencesFor>[0]);
+  const chosen = list(form, "audiences").filter(
+    (a): a is CueFieldAudience =>
+      (CUE_FIELD_AUDIENCES as readonly string[]).includes(a) &&
+      allowed.includes(a as CueFieldAudience),
+  );
+  return finish(
+    org(ctx, "custom-fields"),
+    await setCueFieldAudiences(ctx.viewer.db, fieldId, chosen),
   );
 }
 

@@ -6,7 +6,7 @@ import {
   XosError,
   XosNotFoundError,
   XosRefusalError,
-} from "@xos/sdk";
+} from "@ghxstship/xos-sdk";
 import { orgCurrent, orgList, orgUse, login, logout, status } from "./commands/auth.ts";
 import { canonCommand } from "./commands/canon.ts";
 import { call, listOperations, listResources, resourceCommand } from "./commands/resources.ts";
@@ -18,7 +18,7 @@ import type { Io } from "./io.ts";
 import { EXIT, UsageError } from "./io.ts";
 import { outputFormat } from "./output.ts";
 
-export const CLI_VERSION = "4.0.0";
+export const CLI_VERSION = "4.7.0";
 
 export const HELP = `xos: command line for the XOS public API (v${API_VERSION})
 

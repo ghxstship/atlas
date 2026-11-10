@@ -1,20 +1,28 @@
+import { randomUUID } from "node:crypto";
 import {
   APP_ENUMS,
   bidTotal,
   listMyApplications,
   listOnboardingItems,
-  listSharedRecords,
+  listSubmittalFiles,
+  onboardingStanding,
   readView,
+  type SubmittalFileVersion,
+  uploadsAwaitingCertificate,
 } from "@xos/data/gateway";
+import { ActionOutcomeScope } from "@xos/ui/pwa/action-outcome";
+import { approvalBySubject, listSubjectApprovals } from "@xos/data/workflow";
 import { ActionButton } from "@/components/actions/action-button";
 import { RegionError, Section } from "@/components/page/page";
-import { Tag } from "@/components/ui";
+import { InlineAlert, Tag } from "@/components/ui";
 import { acknowledgePurchaseOrderAction } from "@/lib/actions/operations";
 import { hasArea, isLiveEngagement, tabHref } from "@/lib/engagement";
 import { formatDate, formatDateRange, formatDateTime, formatMoney } from "@/lib/format";
 import { enumLabelKey } from "@/lib/shell/translate";
 import { toneFor } from "@/lib/states";
-import { AdvanceAnswerForm, TaxFormForm } from "./forms";
+import { DeliveryBookingActions, DeliveryBookingForm } from "./delivery-forms";
+import { OnboardingUploadForm, SubmittalResponseForm, TaxFormForm } from "./forms";
+import { canUpload, isUpload } from "./tabs-common";
 import { AreaClosed, RowList, TabEmpty } from "./rows";
 import type { TabProps } from "./tab-context";
 import { DocumentActions } from "@/components/documents/document-actions";
@@ -169,7 +177,24 @@ export async function DeliveriesTab({ view, t, locale, engagementKey }: TabProps
     }),
   ]);
   if (!docks.ok || !deliveries.ok) return <RegionError />;
-  if (docks.data.length === 0 && deliveries.data.length === 0) {
+  // P9: a booking on a gated dock waits on the project's approval rule; the vendor sees only its state (5860).
+  const approvals = await listSubjectApprovals(view.ctx.db, {
+    dockSlotIds: docks.data.map((d) => d.id ?? "").filter((id) => id !== ""),
+  });
+  const approvalOf = approvalBySubject(approvals.ok ? approvals.data : []);
+  // B11 (G-115): open windows of this project, and the shipments this vendor carries that a booking can name.
+  const windows = await readView(view.ctx.db, "delivery_windows", {
+    eq: { project_id: view.engagement.projectId },
+    order: ["starts_at", "asc"],
+  });
+  if (!windows.ok) return <RegionError />;
+  const shipments = deliveries.data.filter((d) => d.id);
+  const canBook =
+    isLiveEngagement(view.engagement.state) && windows.data.some((w) => (w.places_left ?? 0) > 0);
+  // A new id with each render: a second click on one form replays its booking, and the next booking is a new one.
+  const eventId = randomUUID();
+  // Windows that are all full leave nothing to book, so the tab still needs its sentence.
+  if (docks.data.length === 0 && deliveries.data.length === 0 && !canBook) {
     return (
       <TabEmpty
         icon="Truck"
@@ -181,6 +206,29 @@ export async function DeliveriesTab({ view, t, locale, engagementKey }: TabProps
   }
   return (
     <div className="flex flex-col gap-16">
+      {canBook ? (
+        <Section title={t("gateway.engagement.deliveries.book.title")}>
+          <DeliveryBookingForm
+            key={eventId}
+            eventId={eventId}
+            engagementId={view.engagement.id}
+            windows={windows.data
+              .filter((w) => (w.places_left ?? 0) > 0)
+              .map((w) => ({
+                value: w.id ?? "",
+                label: t("gateway.engagement.deliveries.book.windowLine", {
+                  gate: w.zone_name ?? w.zone_code ?? "",
+                  when: w.starts_at ? formatDateTime(locale, w.starts_at, w.time_zone) : "",
+                  places: w.places_left ?? 0,
+                }),
+              }))}
+            shipments={shipments.map((d) => ({
+              value: d.id ?? "",
+              label: d.tracking_identifier ?? d.project_name ?? "",
+            }))}
+          />
+        </Section>
+      ) : null}
       {docks.data.length > 0 ? (
         <Section title={t("gateway.engagement.deliveries.docks")}>
           <RowList
@@ -189,9 +237,21 @@ export async function DeliveriesTab({ view, t, locale, engagementKey }: TabProps
               id: d.id ?? "",
               title: d.zone_name ?? d.zone_code ?? "",
               meta: [
-                d.starts_at ? formatDateTime(locale, d.starts_at) : null,
-                d.ends_at ? formatDateTime(locale, d.ends_at) : null,
+                d.starts_at ? formatDateTime(locale, d.starts_at, d.time_zone) : null,
+                d.ends_at ? formatDateTime(locale, d.ends_at, d.time_zone) : null,
                 d.tracking_identifier,
+                d.reference_code
+                  ? t("gateway.engagement.deliveries.reference", { code: d.reference_code })
+                  : null,
+                d.vehicle_identifier,
+                (() => {
+                  const state = approvalOf.get(d.id ?? "")?.state;
+                  return state && state !== "Canceled"
+                    ? t(
+                        `gateway.engagement.deliveries.approval.${state === "In Review" ? "waiting" : state.toLowerCase()}`,
+                      )
+                    : null;
+                })(),
               ],
               ...(d.direction
                 ? {
@@ -199,6 +259,13 @@ export async function DeliveriesTab({ view, t, locale, engagementKey }: TabProps
                       label: t(enumLabelKey("shipmentDirection", d.direction)),
                       tone: "neutral" as const,
                     },
+                  }
+                : {}),
+              ...(d.delivery_window_id && d.id
+                ? {
+                    action: (
+                      <DeliveryBookingActions slotId={d.id} plate={d.vehicle_identifier ?? null} />
+                    ),
                   }
                 : {}),
             }))}
@@ -233,18 +300,29 @@ export async function DeliveriesTab({ view, t, locale, engagementKey }: TabProps
 }
 
 /**
- * Submittals: no submittal table exists yet (A16 adds it in 0490 to 0499), so the tab shows the
- * project records the org shared for review, which is where submittal requests arrive today.
+ * Submittals (Section 4.4.4 Vendor): what the org asked the vendor's account to submit on the
+ * project. The vendor submits a Proposed one or resubmits a Returned one with a note; a Returned one
+ * shows what to change.
  */
 export async function SubmittalsTab({ view, t, locale, engagementKey }: TabProps) {
-  const records = hasArea(view, "operational")
-    ? await listSharedRecords(view.ctx.db, {
-        projectIds: [view.engagement.projectId],
-        kinds: ["Approval", "Document", "Compliance"],
+  if (!hasArea(view, "operational")) {
+    return <AreaClosed view={view} t={t} engagementKey={engagementKey} />;
+  }
+  const submittals = view.engagement.accountId
+    ? await readView(view.ctx.db, "submittals", {
+        eq: { project_id: view.engagement.projectId, account_id: view.engagement.accountId },
+        order: ["due_on", "asc"],
       })
     : null;
-  if (records && !records.ok) return <RegionError />;
-  const rows = records?.ok ? records.data : [];
+  if (submittals && !submittals.ok) return <RegionError />;
+  const rows = submittals?.ok ? submittals.data : [];
+  // B14 (6265): each submittal's files, version by version, with the org's decision and comment, never who decided.
+  const files = await listSubmittalFiles(
+    view.ctx.db,
+    rows.flatMap((s) => (s.id ? [s.id] : [])),
+  );
+  const filesOf = (id: string | null) =>
+    files.ok ? files.data.filter((f) => f.submittalId === id) : [];
   if (rows.length === 0) {
     return (
       <TabEmpty
@@ -258,122 +336,152 @@ export async function SubmittalsTab({ view, t, locale, engagementKey }: TabProps
   return (
     <RowList
       label={t("nav.gateway.engagementTabs.submittals")}
-      items={rows.map((r) => ({
-        id: r.id,
-        title: r.title,
+      items={rows.map((s) => ({
+        id: s.id ?? "",
+        title: s.title ?? "",
         meta: [
-          t(enumLabelKey("recordKind", r.kind)),
-          r.dueAt
-            ? t("gateway.engagement.due", { date: formatDateTime(locale, r.dueAt, r.timeZone) })
-            : null,
+          s.submittal_kind ? t(enumLabelKey("submittalKind", s.submittal_kind)) : null,
+          t("gateway.engagement.submittals.revision", { n: s.revision ?? 0 }),
+          s.due_on ? t("gateway.engagement.due", { date: formatDate(locale, s.due_on) }) : null,
         ],
-        tag: { label: t(enumLabelKey("recordState", r.state)), tone: toneFor(r.state) },
+        ...(s.submittal_state
+          ? {
+              tag: {
+                label: t(enumLabelKey("reviewState", s.submittal_state)),
+                tone: toneFor(s.submittal_state),
+              },
+            }
+          : {}),
+        detail: (
+          <>
+            <SubmittalDetail row={s} t={t} />
+            <SubmittalFiles files={filesOf(s.id)} t={t} locale={locale} />
+          </>
+        ),
       }))}
     />
   );
 }
 
-/** The advance packet (Section 4.4.4 Artist and Vendor): each section, its answer and its review. */
-export async function AdvanceTab({ view, t, locale, engagementKey }: TabProps) {
-  const [packets, recipients] = await Promise.all([
-    readView(view.ctx.db, "advance_packets", {
-      eq: { project_id: view.engagement.projectId },
-      order: ["due_at", "asc"],
-    }),
-    readView(view.ctx.db, "my_advance_recipients", {}),
-  ]);
-  if (!packets.ok || !recipients.ok) return <RegionError />;
-  const packetIds = packets.data.flatMap((p) => (p.id ? [p.id] : []));
-  const [sections, submissions] = await Promise.all([
-    readView(view.ctx.db, "advance_sections", {
-      in: ["advance_packet_id", packetIds],
-      order: ["position", "asc"],
-    }),
-    readView(view.ctx.db, "advance_submissions", { order: ["submitted_at", "desc"] }),
-  ]);
-  if (!sections.ok || !submissions.ok) return <RegionError />;
-  if (packets.data.length === 0) {
+/** A submittal's files: each version, newest first, with Approved or Changes requested and the org's comment. */
+function SubmittalFiles({
+  files,
+  t,
+  locale,
+}: {
+  files: readonly SubmittalFileVersion[];
+  t: TabProps["t"];
+  locale: string;
+}) {
+  if (files.length === 0) return null;
+  const titles = [...new Set(files.map((f) => f.attachmentId))];
+  return (
+    <section
+      aria-label={t("gateway.engagement.submittals.files.title")}
+      className="flex flex-col gap-8"
+    >
+      <h3 className="m-0 text-text-13 font-semibold">
+        {t("gateway.engagement.submittals.files.title")}
+      </h3>
+      <ul className="m-0 flex list-none flex-col gap-8 p-0">
+        {titles.map((id) => {
+          const versions = files.filter((f) => f.attachmentId === id);
+          return (
+            <li key={id} className="flex flex-col gap-4 text-text-13">
+              <span className="font-medium">{versions[0]?.title ?? ""}</span>
+              <ol className="m-0 flex list-none flex-col gap-4 p-0">
+                {versions.map((v) => (
+                  <li key={v.versionId} className="flex flex-col gap-2">
+                    <span className="flex flex-wrap items-center gap-6">
+                      <span>
+                        {t("gateway.engagement.submittals.files.version", {
+                          n: v.versionNumber,
+                        })}
+                      </span>
+                      <span className="text-text-secondary">{v.filename}</span>
+                      {v.isCurrent ? (
+                        <span className="text-text-12 text-text-secondary">
+                          {t("gateway.engagement.submittals.files.current")}
+                        </span>
+                      ) : null}
+                      <Tag
+                        tone={
+                          v.reviewDecision === "Approved"
+                            ? "success"
+                            : v.reviewDecision === "Changes Requested"
+                              ? "warning"
+                              : "neutral"
+                        }
+                      >
+                        {v.reviewDecision === "Approved"
+                          ? t("gateway.engagement.submittals.files.approved")
+                          : v.reviewDecision === "Changes Requested"
+                            ? t("gateway.engagement.submittals.files.changesRequested")
+                            : t("gateway.engagement.submittals.files.unreviewed")}
+                      </Tag>
+                      {v.uploadedAt ? (
+                        <span className="text-text-12 text-text-secondary">
+                          {formatDateTime(locale, v.uploadedAt)}
+                        </span>
+                      ) : null}
+                    </span>
+                    {v.reviewComment ? (
+                      <span className="text-text-secondary">
+                        {v.reviewedAt
+                          ? t("gateway.engagement.submittals.files.reviewedOn", {
+                              date: formatDateTime(locale, v.reviewedAt),
+                            })
+                          : null}{" "}
+                        {v.reviewComment}
+                      </span>
+                    ) : null}
+                  </li>
+                ))}
+              </ol>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
+  );
+}
+
+function SubmittalDetail({
+  row,
+  t,
+}: {
+  row: {
+    id: string | null;
+    title: string | null;
+    submittal_state: string | null;
+    return_reason: string | null;
+  };
+  t: TabProps["t"];
+}) {
+  if (!row.id) return null;
+  if (row.submittal_state === "Returned") {
     return (
-      <TabEmpty
-        icon="ClipboardList"
-        sentence={t("gateway.engagement.advance.empty")}
-        actionLabel={t("gateway.engagement.messagesAction")}
-        href={tabHref(engagementKey, "engagement.messages")}
-      />
+      <div className="flex flex-col gap-8">
+        <InlineAlert tone="warning">
+          {t("gateway.engagement.submittals.returned", { reason: row.return_reason ?? "" })}
+        </InlineAlert>
+        <SubmittalResponseForm submittalId={row.id} title={row.title ?? ""} expected="Returned" />
+      </div>
     );
   }
-  return (
-    <div className="flex flex-col gap-24">
-      {packets.data.map((packet) => {
-        const recipient = recipients.data.find((r) => r.advance_packet_id === packet.id);
-        return (
-          <Section key={packet.id ?? ""} id={`packet-${packet.id}`} title={packet.title ?? ""}>
-            {packet.due_at ? (
-              <p className="m-0 text-text-13 text-text-secondary">
-                {t("gateway.engagement.due", { date: formatDateTime(locale, packet.due_at) })}
-              </p>
-            ) : null}
-            <RowList
-              label={packet.title ?? ""}
-              items={sections.data
-                .filter((s) => s.advance_packet_id === packet.id)
-                .map((s) => {
-                  const latest = submissions.data.find(
-                    (sub) =>
-                      sub.advance_section_id === s.id &&
-                      (!recipient || sub.advance_recipient_id === recipient.id),
-                  );
-                  const returned = latest?.review_outcome === "Returned";
-                  return {
-                    id: s.id ?? "",
-                    title: `${s.position}. ${s.title ?? ""}`,
-                    meta: [s.prompt],
-                    ...(latest
-                      ? {
-                          tag: latest.review_outcome
-                            ? {
-                                label: t(
-                                  enumLabelKey("advanceReviewOutcome", latest.review_outcome),
-                                ),
-                                tone: toneFor(
-                                  latest.review_outcome === "Accepted" ? "Accepted" : "Returned",
-                                ),
-                              }
-                            : {
-                                label: t("gateway.engagement.advance.awaitingReview"),
-                                tone: "accent" as const,
-                              },
-                        }
-                      : {}),
-                    detail: (
-                      <div className="flex flex-col gap-8">
-                        {latest ? (
-                          <p className="m-0 whitespace-pre-line rounded-control bg-bg-surface p-8 text-text-13">
-                            {latest.body}
-                          </p>
-                        ) : null}
-                        {returned && latest?.return_reason ? (
-                          <p className="m-0 text-text-13 text-danger-text">
-                            {latest.return_reason}
-                          </p>
-                        ) : null}
-                        {recipient?.id && s.id && (!latest || returned) ? (
-                          <AdvanceAnswerForm
-                            recipientId={recipient.id}
-                            sectionId={s.id}
-                            prompt={s.title ?? ""}
-                          />
-                        ) : null}
-                      </div>
-                    ),
-                  };
-                })}
-            />
-          </Section>
-        );
-      })}
-    </div>
-  );
+  if (row.submittal_state === "Proposed") {
+    return (
+      <SubmittalResponseForm submittalId={row.id} title={row.title ?? ""} expected="Proposed" />
+    );
+  }
+  if (row.submittal_state === "Submitted") {
+    return (
+      <p className="m-0 text-text-13 text-text-secondary">
+        {t("gateway.engagement.submittals.awaiting")}
+      </p>
+    );
+  }
+  return null;
 }
 
 /** Vendor compliance (Section 4.4.4): insurance certificates, prequalification and compliance items. */
@@ -392,8 +500,33 @@ export async function ComplianceTab({ view, t, locale, engagementKey }: TabProps
     order: ["insured_name", "asc"],
   });
   if (!insureds.ok) return <RegionError />;
-  const compliance = items.data.filter(
-    (i) => i.kind === "Document Upload" || i.kind === "Certification",
+  const compliance = items.data.filter(isUpload);
+  // Vendors have no Onboarding tab, so an open document or certificate is uploaded here (R2).
+  const toUpload = hasArea(view, "onboarding")
+    ? compliance.filter((i) => canUpload(i, view.today))
+    : [];
+  const onFile = compliance.filter((i) => !toUpload.includes(i));
+  // A file uploaded here stays an onboarding item until the org records a certificate, and nothing says it is insurance:
+  // say what happened to each file, without promising a certificate.
+  const { waiting, passed } = uploadsAwaitingCertificate(compliance, view.today);
+  const hasCurrent = insurance.data.some((c) => c.is_current);
+  const uploadLines = (
+    <>
+      {waiting.length > 0 ? (
+        <p className="m-0 text-text-13 text-text-secondary">
+          {t("gateway.engagement.compliance.uploadWaiting", {
+            names: waiting.map((i) => i.name).join(", "),
+          })}
+        </p>
+      ) : null}
+      {passed.length > 0 && !hasCurrent ? (
+        <p className="m-0 text-text-13 text-text-secondary">
+          {t("gateway.engagement.compliance.uploadPassed", {
+            names: passed.map((i) => i.name).join(", "),
+          })}
+        </p>
+      ) : null}
+    </>
   );
   // Vendors have no Onboarding tab, so an open tax form step (journey 43's W-9) is filed here.
   const taxStep = items.data.find((i) => i.kind === "Tax Form" && !i.satisfied);
@@ -429,7 +562,11 @@ export async function ComplianceTab({ view, t, locale, engagementKey }: TabProps
       <Section title={t("gateway.engagement.compliance.insurance")}>
         {insurance.data.length === 0 ? (
           <p className="m-0 text-text-13 text-text-secondary">
-            {t("gateway.engagement.compliance.noInsurance")}
+            {t(
+              waiting.length > 0 || passed.length > 0
+                ? "gateway.engagement.compliance.noInsuranceYet"
+                : "gateway.engagement.compliance.noInsurance",
+            )}
           </p>
         ) : (
           <RowList
@@ -461,6 +598,7 @@ export async function ComplianceTab({ view, t, locale, engagementKey }: TabProps
             }))}
           />
         )}
+        {uploadLines}
       </Section>
       {prequal.data.length > 0 ? (
         <Section title={t("gateway.engagement.compliance.prequalification")}>
@@ -488,17 +626,50 @@ export async function ComplianceTab({ view, t, locale, engagementKey }: TabProps
           />
         </Section>
       ) : null}
-      {compliance.length > 0 ? (
-        <Section title={t("gateway.engagement.compliance.items")}>
-          <ul className="m-0 flex list-none flex-wrap gap-8 p-0">
-            {compliance.map((i) => (
-              <li key={i.id}>
-                <Tag tone={i.satisfied ? "success" : "warning"}>{i.name}</Tag>
-              </li>
-            ))}
-          </ul>
-        </Section>
-      ) : null}
+      {/* An uploaded item leaves the list, and its form with it, in the commit that brings the result; the scope stays
+          to hear of it (funnel signals, A146). */}
+      <ActionOutcomeScope token={toUpload.map((i) => i.id).join(",")}>
+        {compliance.length > 0 ? (
+          <Section title={t("gateway.engagement.compliance.items")}>
+            {toUpload.length > 0 ? (
+              <RowList
+                label={t("gateway.engagement.compliance.items")}
+                items={toUpload.map((i) => ({
+                  id: i.id,
+                  title: i.name,
+                  meta: [
+                    t(enumLabelKey("onboardingItemKind", i.kind)),
+                    i.blocking ? t("gateway.engagement.onboarding.blocking") : null,
+                  ],
+                  tag: {
+                    label: t(
+                      `gateway.engagement.onboarding.standing.${onboardingStanding(i, view.today)}`,
+                    ),
+                    tone: onboardingStanding(i, view.today) === "expired" ? "danger" : "warning",
+                  },
+                  detail: (
+                    <OnboardingUploadForm
+                      orgId={view.engagement.orgId}
+                      engagementId={view.engagement.id}
+                      itemId={i.id}
+                      name={i.name}
+                    />
+                  ),
+                }))}
+              />
+            ) : null}
+            {onFile.length > 0 ? (
+              <ul className="m-0 flex list-none flex-wrap gap-8 p-0">
+                {onFile.map((i) => (
+                  <li key={i.id}>
+                    <Tag tone={i.satisfied ? "success" : "warning"}>{i.name}</Tag>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+          </Section>
+        ) : null}
+      </ActionOutcomeScope>
     </div>
   );
 }

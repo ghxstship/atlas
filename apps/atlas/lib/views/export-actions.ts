@@ -19,7 +19,7 @@ import { getOrgContext, type OrgContext } from "@/lib/shell/context";
 import { sitemap } from "@/lib/shell/sitemap";
 import type { Translate } from "@/lib/shell/translate";
 import { exportSourceFor, planExport, type ExportPlan } from "./export-sources";
-import { collectionKeyFor } from "./query";
+import { collectionKeyFor, isConditionParam } from "./query";
 
 /**
  * Server actions behind the export menu of every collection (A102, Section 4.6.4). The page's path
@@ -30,7 +30,14 @@ import { collectionKeyFor } from "./query";
  */
 
 export type ExportError =
-  "unavailable" | "denied" | "stepUp" | "medical" | "expired" | "invalid" | "unexpected";
+  | "unavailable"
+  | "conditions"
+  | "denied"
+  | "stepUp"
+  | "medical"
+  | "expired"
+  | "invalid"
+  | "unexpected";
 
 export type ExportResult<T> =
   { readonly ok: true; readonly data: T } | { readonly ok: false; readonly error: ExportError };
@@ -57,6 +64,11 @@ function errorOf(error: DataError): ExportError {
   if (error.kind === "not-found") return "denied";
   if (error.kind === "invalid" || error.kind === "conflict") return "invalid";
   return "unexpected";
+}
+
+/** Whether a query carries an Add filter condition (`cf.<key>` or `f.<key>`) with a value. */
+function hasConditions(search: URLSearchParams): boolean {
+  return [...search.entries()].some(([name, value]) => value !== "" && isConditionParam(name));
 }
 
 /** A column name as words, for a column the catalog has no header for. */
@@ -118,9 +130,12 @@ export async function requestCollectionExportAction(
   if (!parsed.success || !parsed.data.pathname.startsWith(`/${orgSlug}/`)) {
     return { ok: false, error: "invalid" };
   }
+  const search = new URLSearchParams(parsed.data.search);
+  // The export worker cannot apply Add filter conditions (A117), and an export without them would hold rows the
+  // list hides, so a list narrowed by one is not exported.
+  if (hasConditions(search)) return { ok: false, error: "conditions" };
   const ctx = await getOrgContext(orgSlug);
   if (!ctx) return { ok: false, error: "denied" };
-  const search = new URLSearchParams(parsed.data.search);
   const source = exportSourceFor(collectionKeyFor(parsed.data.pathname), search);
   if (!source) return { ok: false, error: "unavailable" };
   const plan = planExport(source, parsed.data.pathname, search);

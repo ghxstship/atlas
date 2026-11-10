@@ -14,6 +14,7 @@ export const DEMO = {
   org: "01920000-0000-7000-8000-000000000001",
   orgSlug: "demo-productions",
   owner: "01920000-0000-7000-8000-000000000101",
+  admin: "01920000-0000-7000-8000-000000000102",
   crew: "01920000-0000-7000-8000-000000000201",
   project: "01920000-0000-7000-8000-000000001001",
   requisition: "01920000-0000-7000-8000-000000228001",
@@ -208,4 +209,72 @@ export async function reportedListing(): Promise<{ id: string; title: string }> 
     DEMO.crew,
   );
   return { id, title };
+}
+
+/**
+ * A demo org post the demo org's Admin reports, left undecided past its due time and sent on to GHXSTSHIP by the
+ * hourly job (6891), so it opens under Reported content.
+ */
+export async function escalatedReport(): Promise<{ id: string; body: string }> {
+  const body = `Anyone late to the load in is useless ${uniqueId().slice(-4).toUpperCase()}.`;
+  const [post] = await sql<{ id: string }>(
+    `select app.create_feed_post($1, 'Update', $2) as id`,
+    [DEMO.org, body],
+    DEMO.owner,
+  );
+  const id = post?.id as string;
+  const [report] = await sql<{ id: string }>(
+    `select app.report_content('Feed Post', $1, 'Harassment', 'Directed at the crew.') as id`,
+    [id],
+    DEMO.admin,
+  );
+  await sql(`update app.content_reports set due_at = now() - interval '1 minute' where id = $1`, [
+    report?.id,
+  ]);
+  await sql(`select private.escalate_content_reports_to_platform()`);
+  return { id, body };
+}
+
+/** A released rating of the demo crew person, by the demo org, that the person disputes (ADR 0158). */
+export async function disputedRating(): Promise<{ id: string; comment: string; details: string }> {
+  const tag = uniqueId().slice(-4).toUpperCase();
+  const comment = `Late to the rigging call ${tag}.`;
+  const details = `The call sheet shows I was on time ${tag}.`;
+  const [engagement] = await sql<{ id: string }>(
+    `insert into app.engagements (project_id, person_id, role_type, role_code, worker_classification, pay_basis, arrangement,
+       start_date, end_date)
+     values ($1, $2, 'Staff', '5000.51.02', 'INDEPENDENT_CONTRACTOR', 'Day Rate', 'Per Engagement', '2027-02-10', '2027-02-12')
+     returning id`,
+    [DEMO.project, DEMO.crew],
+    DEMO.owner,
+  );
+  const engagementId = engagement?.id as string;
+  for (const [from, to] of [
+    ["Onboarding", "Active"],
+    ["Active", "Closing"],
+    ["Closing", "Complete"],
+  ] as const) {
+    await sql(
+      `select private.transition_lifecycle('engagement', 'app.engagements', 'engagement_state', 'app.engagement_state_transitions',
+         'engagement_id', $1::uuid, $2, $3, 'Console journey.')`,
+      [engagementId, from, to],
+      DEMO.owner,
+    );
+  }
+  const [rating] = await sql<{ id: string }>(
+    `insert into app.ratings (engagement_id, rater_side, score, comment) values ($1, 'Organization', 2, $2) returning id`,
+    [engagementId, comment],
+    DEMO.owner,
+  );
+  await sql(
+    `insert into app.ratings (engagement_id, rater_side, score) values ($1, 'Party', 4)`,
+    [engagementId],
+    DEMO.crew,
+  );
+  const [dispute] = await sql<{ id: string }>(
+    `select app.file_rating_dispute($1, 'False Statement', $2) as id`,
+    [rating?.id, details],
+    DEMO.crew,
+  );
+  return { id: dispute?.id as string, comment, details };
 }

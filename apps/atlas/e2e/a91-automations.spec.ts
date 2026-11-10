@@ -4,8 +4,9 @@ import {
   supabaseAutomationRunStore,
   type AutomationRunResult,
 } from "@xos/data/automation-runner";
+import { projectTokenSigner } from "@xos/platform/jwt";
 import type { Page } from "@playwright/test";
-import { expect, test } from "./engine-test";
+import { expect as baseExpect, test } from "./engine-test";
 import { expectAccessibleInBothThemes, ORG, signIn } from "./a16-support";
 import { expectAccessible } from "./support";
 
@@ -21,7 +22,8 @@ import { expectAccessible } from "./support";
  */
 test.use({ reducedMotion: "reduce" });
 test.setTimeout(600_000);
-expect.configure({ timeout: 30_000 });
+// configure returns a new expect; the file-level timeout applies only through it.
+const expect = baseExpect.configure({ timeout: 30_000 });
 
 function localStack(): { client: SupabaseClient; url: string; jwtSecret: string } {
   const url = process.env["E2E_SUPABASE_URL"];
@@ -54,7 +56,8 @@ async function runWorker(
         store: supabaseAutomationRunStore(stack.client),
         fetch: (input, init) => fetch(input, init),
         apiBaseUrl: `${origin}/api/v1`,
-        signingKey: stack.jwtSecret,
+        // The local stack signs with its development JWT secret; production refuses a shared secret (ADR 0168).
+        sign: projectTokenSigner(stack.jwtSecret, { production: false }),
         issuer: `${stack.url}/auth/v1`,
         worker: "e2e-a91",
       })),

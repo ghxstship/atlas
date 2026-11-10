@@ -12,7 +12,13 @@
     "chooseVendor": "Elija un proveedor",
     "project": "Proyecto",
     "chooseProject": "Elija un proyecto",
-    "description": "Descripción"
+    "description": "Descripción",
+    "address": "Dirección postal",
+    "country": "País",
+    "streetAddress": "Dirección",
+    "locality": "Ciudad",
+    "administrativeArea": "Estado o provincia",
+    "postalCode": "Código postal"
   },
   "states": {
     "Prospect": "Prospecto",
@@ -69,7 +75,11 @@
     "prequalLine": "Precalificación para {scope}: {decision}",
     "scoreLine": "Período que termina el {period}: promedio {average}",
     "products": "Productos",
-    "noProducts": "No hay productos registrados para este proveedor. Agréguelos desde el catálogo de compras."
+    "noProducts": "No hay productos registrados para este proveedor. Agréguelos desde el catálogo de compras.",
+    "address": "Dirección postal",
+    "noAddress": "Sin dirección",
+    "saveAddress": "Guardar dirección",
+    "countryHelp": "Código de país de dos letras, por ejemplo US o CA. Al guardar, los campos siguen el formato de dirección de ese país."
   },
   "bank": {
     "title": "Cuentas bancarias",
@@ -158,7 +168,22 @@
     "delete": "Quitar certificado",
     "deleteTitle": "¿Quitar este certificado?",
     "deleteBody": "Sale de la lista y del cumplimiento del proveedor; el registro de auditoría lo conserva.",
-    "back": "Volver a los certificados de seguro"
+    "back": "Volver a los certificados de seguro",
+    "uploads": {
+      "heading": "Archivos de proveedores sin certificado",
+      "help": "Archivos que los proveedores subieron para elementos de incorporación, sean o no de seguro. Abre uno y, si es un certificado de seguro, regístralo. Registrarlo no verifica el elemento de incorporación: revísalo en la contratación. Aprobar la revisión no registra un certificado. Un archivo que no es de seguro no requiere nada aquí y sale de la lista cuando se cierra la contratación.",
+      "meta": "{item}, subido {date}",
+      "waiting": "En espera de revisión",
+      "passed": "Revisión aprobada, sin certificado registrado",
+      "notReady": "Aún no se puede abrir: todavía se está analizando o no tienes acceso al archivo.",
+      "loadError": "No se pudieron cargar los archivos de proveedores. Actualiza para intentarlo de nuevo.",
+      "more": "Se muestran {shown} de {total}, primero los que aún no se han revisado.",
+      "open": "Abrir archivo",
+      "record": "Registrar certificado",
+      "review": "Revisar en la contratación",
+      "fromUpload": "De {vendor}: {item}.",
+      "uploadedFile": "Subido por el proveedor"
+    }
   },
   "scorecards": {
     "title": "Evaluaciones",
@@ -233,7 +258,8 @@
     "usage": "Dónde se usa",
     "dueOn": "Se necesita para",
     "revision": "Revisión {revision}",
-    "add": "Agregar recurso"
+    "add": "Agregar recurso",
+    "sponsorSupplied": "Enviado por el patrocinador"
   },
   "deliveries": {
     "title": "Entregas y pruebas",
@@ -267,7 +293,8 @@
     "review_decide_rpc": "Apruebe o devuelva recursos con los botones de revisión.",
     "cross_org_reference": "Ese elemento pertenece a otra organización.",
     "insureds_none_required": "La organización no exige asegurados adicionales para este proyecto. Agréguelos primero en Asegurados exigidos.",
-    "insureds_vendor_only": "Los asegurados adicionales se verifican para proveedores. Esta parte no es proveedor de la organización."
+    "insureds_vendor_only": "Los asegurados adicionales se verifican para proveedores. Esta parte no es proveedor de la organización.",
+    "postal_code_invalid": "Ese código postal no corresponde al país. Compárelo con la dirección o corrija el país."
   },
   "insureds": {
     "what": "asegurados adicionales",
@@ -328,6 +355,7 @@
       "smallDisadvantagedBusiness": "Pequeña empresa en desventaja",
       "hubzone": "Empresa HUBZone",
       "other": "Otra certificación"
-    }
+    },
+    "restricted": "Restringido: las certificaciones compartidas solo las leen personas con acceso a datos restringidos."
   }
 }

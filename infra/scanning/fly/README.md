@@ -4,8 +4,8 @@ Production upload scanning (owner decision 10, ADR 0034), hosted the way the own
 always-on Fly.io machine running the pinned `clamav/clamav:1.5.4` image, with stunnel in front of clamd. clamd has no
 authentication and hosted Supabase Edge Functions cannot join a private network, so the only open port is
 stunnel's 3311. It accepts only a client certificate signed by the XOS scanning CA, and the `upload-scan` Edge
-Function presents it. clamd listens on loopback. Files never leave XOS infrastructure, so this adds no subprocessor;
-Fly.io is the host.
+Function presents it. clamd listens on loopback. File bytes reach this machine to be scanned and are not kept, and its
+volume holds signatures only. Fly.io is the host, and it is on the Subprocessor List.
 
 Until this runs and the function's secrets are set, uploads stay quarantined (fail closed).
 
@@ -48,7 +48,7 @@ Until this runs and the function's secrets are set, uploads stay quarantined (fa
 4. **The Edge Function's secrets**, on staging first, then production:
 
    ```sh
-   supabase secrets set --project-ref <project-ref> \
+   supabase secrets set --remote=<project-ref> --yes \
      XOS_CLAMAV_HOST=xos-clamav.fly.dev XOS_CLAMAV_PORT=3311 \
      XOS_CLAMAV_TLS_CA="$(cat ~/xos-scanning-tls/ca.pem)" \
      XOS_CLAMAV_TLS_CERT="$(cat ~/xos-scanning-tls/client.pem)" \

@@ -5,6 +5,7 @@
  */
 
 /** Channels a notification can reach a person on (app.notification_channel), in matrix order. */
+// eslint-disable-next-line xos/no-restated-enums -- below @xos/data; test/database-enums.test.ts holds it equal
 export const NOTIFICATION_CHANNELS = ["In App", "Email", "SMS", "Push"] as const;
 export type NotificationChannel = (typeof NOTIFICATION_CHANNELS)[number];
 
@@ -53,8 +54,6 @@ export interface KindDefinition {
   readonly quietHoursBypass: { readonly startsWithinHours: number | null } | null;
   /** Channels the kind can be delivered on. */
   readonly channels: readonly NotificationChannel[];
-  /** Catalog keys of the kind's copy in the `email` namespace, used on every channel. */
-  readonly copy: { readonly subject: string; readonly body: string };
 }
 
 /**

@@ -9,6 +9,7 @@ import type {
   ReconciliationTableProps as ReferenceReconciliationTableProps,
   RunOfShowLiveProps as ReferenceRunOfShowLiveProps,
   StalenessIndicatorProps as ReferenceStalenessIndicatorProps,
+  RecordState,
 } from "../types/reference";
 
 export type GateReadinessPanelProps = ReferenceGateReadinessPanelProps & {
@@ -28,7 +29,12 @@ export type EmergencyCodeCardProps = ReferenceEmergencyCodeCardProps;
 
 export type RadioChannelTableProps = ReferenceRadioChannelTableProps;
 
-export type RunOfShowLiveProps = ReferenceRunOfShowLiveProps & {
+export type RunOfShowLiveProps = Omit<ReferenceRunOfShowLiveProps, "cues"> & {
+  /**
+   * The reference cues, each with an optional status the index alone cannot show (ADR 0131): a cue the caller
+   * jumped past is `skipped`, the cue they put on standby is `standby`.
+   */
+  cues: (ReferenceRunOfShowLiveProps["cues"][number] & { status?: "skipped" | "standby" })[];
   /** Called with the new live cue index when Go advances. */
   onGo?: (index: number) => void;
 };
@@ -42,3 +48,52 @@ export type AccessGridMatrixProps = ReferenceAccessGridMatrixProps & {
 };
 
 export type Result = "met" | "gap" | "unknown";
+
+/** One row of a StatusHeatmap: a recipient, a person or a party. */
+export interface StatusHeatmapRow {
+  readonly id: string;
+  readonly label: string;
+  readonly sublabel?: string;
+}
+
+/** One column of a StatusHeatmap: a section, a category or an offering. */
+export interface StatusHeatmapCol {
+  readonly id: string;
+  readonly label: string;
+}
+
+/** A state the heatmap can show: the key cells name, the icon that carries it and its label. */
+export interface StatusHeatmapLegendItem {
+  readonly state: string;
+  readonly icon: RecordState;
+  readonly label: string;
+}
+
+/** One cell, keyed `<row id>:<col id>` in `cells`. A row and column with no cell is not asked. */
+export interface StatusHeatmapCell {
+  /** A `state` of the legend. */
+  readonly state: string;
+  /** Where Enter or a click goes. */
+  readonly href?: string;
+  /** More about the cell, shown under its state and read after it (a count, a date, who signed). */
+  readonly detail?: string;
+  /** The cell only says where something stands: Enter, Space and a click do nothing, and it looks that way. */
+  readonly readOnly?: boolean;
+}
+
+export interface StatusHeatmapProps {
+  readonly label: string;
+  /** The header of the row column. */
+  readonly corner: string;
+  readonly rows: readonly StatusHeatmapRow[];
+  readonly cols: readonly StatusHeatmapCol[];
+  readonly cells: Readonly<Record<string, StatusHeatmapCell>>;
+  readonly legend: readonly StatusHeatmapLegendItem[];
+  /** Rows that can be selected, for a bulk action: the ids selected and a change handler. */
+  readonly selection?: {
+    readonly selected: readonly string[];
+    readonly onChange: (selected: string[]) => void;
+  };
+  /** Called on Enter, Space or a click on a cell; without it, a cell with an href follows its link. */
+  readonly onCellSelect?: (rowId: string, colId: string, cell: StatusHeatmapCell) => void;
+}

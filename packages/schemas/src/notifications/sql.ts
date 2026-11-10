@@ -13,10 +13,34 @@ import type { NotificationKindRegistry } from "./model.ts";
  * expiry reminders and A90's marketplace moderation kinds (1473); A89's and A90's own seeds never merged, so 1569
  * carries their kinds. 1620 applies the owner decisions of 2026-10-23: shift.assigned, account.security_changed and
  * access.break_glass_started join the bypass list (ADR 0033 decision 62), and report.delivered reaches only the Inbox and a
- * push (ADR 0033 decision 77). 1639 adds the reported content kinds (ADR 0033 decision 57, 1630) and carries 1620's.
+ * push (ADR 0033 decision 77). 1639 adds the reported content kinds (ADR 0033 decision 57, 1630) and carries 1620's. 2649 adds the crew roster
+ * kinds (R4, ADR 0100 section 6) and the party_invitation platform email; it is the first advancing seed (ADR 0022).
+ * 4650 adds R5's roster_entry.project_facts_entered and the names lock's engagement.roster_lock_changed. 4660 adds R6a's
+ * account.work_details_moved. 4698 adds R7's allocation.decided, allocation.assigned, allocation.issued and
+ * allocation.withdrawn. 5201 adds offer.sent (A127, ADR 0106), the offer that waits on the applicant, and carries 4698's.
+ * 5829 adds P5's badge photo request (credential_photo.requested, G-144) and carries 5201's. 5869 adds P9's
+ * approval.reminder and approval.link_code with its approval_link_code email (ADR 0138) and carries 5829's. 6059 adds
+ * B16's subscription pause notices billing.paused and billing.resumed (6051) and agent.change_proposed (6052), which
+ * reaches only the Inbox and a push (ADR 0155), and carries 5869's; train 7 adds B5's accommodation_block.release_due
+ * and transfer.assigned (5947) to it. 6129 adds P8's availability.requested (6123) and carries 6059's. 6499 (merge
+ * train 9, ADR 0022 amendment) adds R11's advance_packet.reminder, advance_submission.returned, submittal.returned,
+ * roster_entry.removed, roster_entry.facts_requested, roster_entry.share_revoked and credential.revoked (6221, 6222),
+ * B8's guest.arrived (6254) and three weather kinds (6256, 6257) and guest_message email, and B15's
+ * advance_answer.recorded (6273), and carries 6129's. 6799 (merge train 10) adds B2's vendor_intake.submitted (6505),
+ * B9's shift.reconfirm, shift.reconfirm_declined and shift.no_show (6511, 6512), B10's crew_registration.decided,
+ * crew_registration.invited and engagement_document.sent (6522, 6524), B11's rfq.quote_reminder and rfq.not_awarded
+ * (6538) and B13's quote.accepted (6554), and carries 6499's. 6999 (merge train 11, the legal and safety
+ * work) adds the crisis alert and its all-clear, crisis_alert.issued and crisis_alert.ended (6800), and the auto-renewal notices and the truth about a
+ * Stripe cancel: (billing.purchase_confirmed, billing.renewal_reminder, billing.cancellation_confirmed, billing.plan_ending and
+ * billing.cancellation_delayed; 6810, 6811, ADR 0161), with the transactional billing_notice email no setting or
+ * unsubscribe stops, the rating dispute notices rating_dispute.filed and
+ * rating_dispute.decided (6821, ADR 0158), the sensitive data notices account.sensitive_data_attested and account.sensitive_consent_needed
+ * (ADR 0164, 6852 and 6853), the legal queue's legal_clock_alert and moderation_notice emails (ADR 0167), and carries 6799's.
+ * 904090099 (4.9, block 00) adds the stakeholder_pack email (904090003: a pack email wears the org's brand) and carries
+ * 6999's. Each sits at the top of its train's or release block so the highest seed carries every kind.
  */
 export const NOTIFICATION_KIND_SEED_MIGRATION =
-  "supabase/migrations/1639_notification_kind_seed.sql";
+  "supabase/migrations/904090099_notification_kind_seed.sql";
 
 /** The pgTAP drift test of the seed, named for its migration. */
 export const NOTIFICATION_KIND_DRIFT_TEST = NOTIFICATION_KIND_SEED_MIGRATION.replace(

@@ -35,6 +35,7 @@ const CORE_ONLY: readonly string[] = [
   "email-unsubscribe",
   "file-download",
   "fx-rates-ecb",
+  "weather-feed",
 ];
 
 /**
@@ -53,31 +54,58 @@ const PACKAGES: Record<string, { boot: string[]; lazy: string[] }> = {
   "export-render": { boot: ["@supabase/supabase-js"], lazy: ["exceljs", "pdfkit"] },
   "file-download": { boot: ["@supabase/supabase-js"], lazy: [] },
   "fx-rates-ecb": { boot: [], lazy: [] },
-  "import-run": { boot: ["@supabase/supabase-js"], lazy: ["exceljs"] },
+  "guest-email": {
+    boot: [],
+    lazy: [
+      "@react-email/components",
+      "intl-messageformat",
+      "pdfkit",
+      "react/jsx-runtime",
+      "resend",
+      "zod",
+    ],
+  },
+  "import-run": { boot: ["@supabase/supabase-js"], lazy: ["exceljs", "libphonenumber-js"] },
   "inbound-email": { boot: ["zod"], lazy: [] },
   "integration-inbound": { boot: ["@supabase/supabase-js"], lazy: [] },
   "integration-worker": { boot: ["@supabase/supabase-js"], lazy: [] },
   "kiosk-punch": { boot: [], lazy: [] },
+  // Merge train 11: the email copy and its formatter load on the first email, push or text (loadNotificationCopy).
   "notification-dispatch": {
-    boot: ["intl-messageformat", "zod"],
-    lazy: ["@react-email/components", "react/jsx-runtime", "resend"],
+    boot: ["zod"],
+    lazy: ["@react-email/components", "intl-messageformat", "react/jsx-runtime", "resend"],
   },
   "org-lifecycle": {
     boot: ["@supabase/supabase-js", "zod"],
-    lazy: ["exceljs", "pdfkit", "resend"],
+    lazy: ["pdfkit", "resend", "stripe"],
   },
-  "report-run": { boot: ["@supabase/supabase-js", "zod"], lazy: ["exceljs", "pdfkit", "resend"] },
+  // 4.9: the branded report and pack emails render with React Email on the first delivery (edge/report-email.ts).
+  "report-run": {
+    boot: ["@supabase/supabase-js", "zod"],
+    lazy: [
+      "@react-email/components",
+      "exceljs",
+      "intl-messageformat",
+      "pdfkit",
+      "react/jsx-runtime",
+      "resend",
+    ],
+  },
   scim: { boot: ["@supabase/supabase-js"], lazy: [] },
   // A87: plain fetch to PostgREST and Supabase's built-in gte-small model, no package.
   "search-embed": { boot: [], lazy: [] },
-  "sms-webhook": { boot: ["intl-messageformat", "zod"], lazy: [] },
+  "sms-webhook": { boot: ["zod"], lazy: ["intl-messageformat"] },
+  // B16: the storage providers and their OAuth renewal, plain fetch to Google and Microsoft.
+  "storage-browse": { boot: ["@supabase/supabase-js"], lazy: [] },
   "stripe-webhook": { boot: [], lazy: ["stripe"] },
   "subprocessor-notices": {
-    boot: ["intl-messageformat", "zod"],
-    lazy: ["@react-email/components", "react/jsx-runtime", "resend"],
+    boot: [],
+    lazy: ["@react-email/components", "intl-messageformat", "react/jsx-runtime", "resend", "zod"],
   },
   "upload-scan": { boot: ["@supabase/supabase-js"], lazy: [] },
   "wallet-pass": { boot: [], lazy: [] },
+  // B8 (ADR 0147): the NWS weather feed is plain fetch to api.weather.gov and PostgREST, no package.
+  "weather-feed": { boot: [], lazy: [] },
   "webhook-dispatch": { boot: [], lazy: [] },
 };
 
@@ -98,26 +126,64 @@ const BOOT_BUDGET_KB: Record<string, number> = {
   "export-render": 100,
   "file-download": 64,
   "fx-rates-ecb": 64,
-  "import-run": 120,
+  // B8 (ADR 0147): the shared email and notification store chunks it reaches at boot came to 120.0 KB on 2026-10-31;
+  // merge train 10 loads its email worker on demand (guest-email-worker.ts), so 132 holds without a raise.
+  "guest-email": 132,
+  // P3: pasted rows and import destinations (cues and guest lists into a running order or project) add about 17.5 KB
+  // of its own code, and A127's action links about 2 KB of shared stores; 122.1 KB in merge train 6, about 10 percent
+  // above that. ADR 0168: the shared API key check (about 3.4 KB, every function) brought it to 134.6 KB; about 10
+  // percent above that.
+  "import-run": 148,
   // RRR-139: Resend's inbound mail (signature check, Receiving API, HTML to text, the raw copy) is about 16 KB of
   // the 64 it reached on 2026-10-24, once the shared stores chunk gained Checkout's RPC.
   "inbound-email": 80,
   "integration-inbound": 130,
   "integration-worker": 290,
   "kiosk-punch": 64,
-  "notification-dispatch": 180,
+  // A138: the email sender reads the org's branding, and its accent check brings the token contrast ratio to
+  // boot; 182.3 KB on 2026-10-31 (merge train 2). About 10 percent above that, as for A89 and A90. R5 (4650) and
+  // R7 (4698) add their notification kinds in both locales (181.6 KB and 186.9 KB on their own branches), and A127
+  // its one-tap email action links, push categories and action copy in both locales (about 3.5 KB; train 6).
+  // Merge trains 6 and 7: A127's action links, and the notice copy of P5, P9, B16 and B5 in both locales; 201.9 KB
+  // in merge train 7, about 10 percent above that.
+  "notification-dispatch": 222,
   // A102: the shared report files chunk gained the export renderers' watermark and column helpers (about 11 KB),
-  // which the org export reaches at boot; 211.5 KB on 2026-10-25.
-  "org-lifecycle": 215,
-  "report-run": 128,
+  // which the org export reaches at boot; 211.5 KB on 2026-10-25. A138's email branding in the shared stores
+  // brought it to 215.9 KB on 2026-10-31 (merge train 2); about 10 percent above that. R7: the radio hand-out's
+  // document copy in both locales and the four allocation kinds in the shared stores chunk (218.6 KB on its branch).
+  // P9: the shared stores mint an approval link's access code, and the email copy chunks carry the access-code email
+  // and the approval reminder in both locales (about 1.5 KB at boot; train 6).
+  // B16: subscription pauses join the hourly job (about 6.6 KB of its own code) beside the merged notice copy; 238.2 KB
+  // in merge train 7, about 10 percent above that.
+  "org-lifecycle": 262,
+  // 4.9 email branding (904090003): the delivery worker skips a suppressed recipient, sends the org's From name and
+  // reply-to, and composes both emails through the branded packages/email templates, which load on the first delivery;
+  // 129.5 KB at boot.
+  "report-run": 133,
   scim: 92,
   "search-embed": 24,
-  "sms-webhook": 145,
-  "stripe-webhook": 84,
-  "subprocessor-notices": 115,
+  // A138's email branding in the shared platform stores brought it to 145.1 KB on 2026-10-31 (merge train 2). R6a
+  // (4660, account.work_details_moved) and R7 (4698, the four allocation kinds) add their notices in both locales
+  // (150.1 KB on their branch). P9: every kind's copy grew by approval.reminder and approval.link_code in both locales
+  // (about 1.4 KB; train 6). B16 adds billing.paused, billing.resumed and agent.change_proposed (train 7).
+  // Merge trains 6 and 7: every kind's copy grew with the notices of A127, P5, P9, B16 and B5 (162.9 KB in merge
+  // train 7); about 10 percent above that.
+  "sms-webhook": 179,
+  // B16, a new function (not a raise): the shared core, the three storage providers with their file metadata and
+  // folder walks, and the OAuth renewal; 98.5 KB on 2026-10-30, about 25 percent above that like the others.
+  "storage-browse": 125,
+  // ADR 0168: the shared API key check (about 3.4 KB, every function) brought it to 86.8 KB; about 10 percent above.
+  "stripe-webhook": 95,
+  // The Spanish email copy grew with the advancing notices of R5 to R7 (about 4.7 KB; 115.6 KB in merge train 5);
+  // about 10 percent above that.
+  // 123.6 KB in merge train 7 with the same notice copy; about 10 percent above that.
+  "subprocessor-notices": 136,
   "upload-scan": 100,
-  // A93: the pass builders and Web Crypto signers (about 30 KB) and the design tokens chunk (about 33 KB).
-  "wallet-pass": 120,
+  // A93: the pass builders and Web Crypto signers (about 30 KB) and the design tokens chunk (about 33 KB). A127's
+  // action links in the shared stores (about 2 KB) bring it to 121.1 KB in merge train 6; about 10 percent above that.
+  "wallet-pass": 133,
+  // B8 (ADR 0147): the shared core; its NWS reader loads on demand.
+  "weather-feed": 64,
   "webhook-dispatch": 70,
 };
 
@@ -166,6 +232,28 @@ describe("Edge Function bundles", () => {
       );
       expect(bytes / 1024, fn).toBeLessThanOrEqual(BOOT_BUDGET_KB[fn] ?? 0);
     }
+  });
+
+  it("send a reporter the appeal sentence the email catalog has now, in both locales (1473)", () => {
+    // notification-dispatch formats listing_report.decided from the vendored copy, not the catalog, so a
+    // copy change without bundle:edge would still send the old sentence.
+    const fn = graph("notification-dispatch");
+    const sent = [...fn.boot, ...fn.lazy].map((file) => readEdgeFile(file) ?? "").join("\n");
+    for (const locale of ["en-US", "es-US"]) {
+      const email = JSON.parse(
+        readFileSync(new URL(`../../i18n/messages/${locale}/email.json`, import.meta.url), "utf8"),
+      ) as { kinds: { listing_report: { decided: { body: string } } } };
+      const body = JSON.stringify(email.kinds.listing_report.decided.body);
+      expect(
+        sent.includes(body),
+        `${locale} listing_report.decided.body is stale; run bundle:edge`,
+      ).toBe(true);
+    }
+    // The old copy promised every reporter an appeal and ended there, without abuse@.
+    expect(
+      /within six months\."|en un plazo de seis meses\."/.test(sent),
+      "the old appeal sentence",
+    ).toBe(false);
   });
 
   it("never bundle a whole message catalog, only the namespaces the functions use", () => {
