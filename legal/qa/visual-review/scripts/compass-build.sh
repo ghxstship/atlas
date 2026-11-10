@@ -11,7 +11,7 @@ block="${A59_PORT_BLOCK:-583}"
 mkdir -p "$logs"
 anon="$(sed -n 's/^SUPABASE_ANON_KEY=//p' "$root/apps/atlas/.env.local")"
 export EXPO_PUBLIC_SUPABASE_URL="http://127.0.0.1:${block}21"
-export EXPO_PUBLIC_SUPABASE_ANON_KEY="$anon"
+export EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY="$anon"
 export EXPO_PUBLIC_ATLAS_URL="http://127.0.0.1:3059"
 export EXPO_PUBLIC_GATEWAY_URL="http://127.0.0.1:3159"
 export RCT_NO_LAUNCH_PACKAGER=1

@@ -57,7 +57,7 @@ supabase link --project-ref <project-ref>
 supabase db push
 ```
 
-Para una pila Compose autoalojada, pasa su cadena de conexión: `supabase db push --db-url "postgresql://postgres:<password>@<host>:5432/postgres"`.
+Para una pila Compose autoalojada, pasa su cadena de conexión: `supabase db push --yes --remote="postgresql://postgres:<password>@<host>:5432/postgres"`.
 
 Las migraciones contienen todo lo que necesita una instalación nueva: el canon, los planes y las capacidades, las tareas programadas de la base de datos (pg_cron) y las claves de cifrado en Vault. Ellas mismas crean las claves.
 
@@ -197,16 +197,16 @@ El proxy debe añadir la dirección del cliente a `X-Forwarded-For` (en nginx, `
 
 Compass lee su configuración al compilar:
 
-| Variable                           | Valor                                                                                                                                                                                              |
-| ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `EXPO_PUBLIC_SUPABASE_URL`         | La URL de la API de Supabase                                                                                                                                                                       |
-| `EXPO_PUBLIC_SUPABASE_ANON_KEY`    | La clave anónima                                                                                                                                                                                   |
-| `EXPO_PUBLIC_ATLAS_URL`            | El origen de Atlas                                                                                                                                                                                 |
-| `EXPO_PUBLIC_GATEWAY_URL`          | El origen de Gateway                                                                                                                                                                               |
-| `EXPO_PUBLIC_DOCS_URL`             | Opcional: el origen del sitio de documentación, para la fila del centro de ayuda en Ajustes                                                                                                        |
-| `XOS_UNIVERSAL_LINK_HOSTS`         | `atlas:<host>,gateway:<host>`, para que los enlaces de traspaso abran Compass. Sin definir, la compilación reclama los hosts de GHXSTSHIP; define tus propios hosts, o un valor vacío para ninguno |
-| `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` | Opcional: el ID de tu cliente web de Google, para Continuar con Google                                                                                                                             |
-| `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID` | Opcional: el ID de tu cliente de iOS de Google, para Continuar con Google en iOS                                                                                                                   |
+| Variable                               | Valor                                                                                                                                                                                              |
+| -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `EXPO_PUBLIC_SUPABASE_URL`             | La URL de la API de Supabase                                                                                                                                                                       |
+| `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | La clave publicable (`sb_publishable_...`)                                                                                                                                                         |
+| `EXPO_PUBLIC_ATLAS_URL`                | El origen de Atlas                                                                                                                                                                                 |
+| `EXPO_PUBLIC_GATEWAY_URL`              | El origen de Gateway                                                                                                                                                                               |
+| `EXPO_PUBLIC_DOCS_URL`                 | Opcional: el origen del sitio de documentación, para la fila del centro de ayuda en Ajustes                                                                                                        |
+| `XOS_UNIVERSAL_LINK_HOSTS`             | `atlas:<host>,gateway:<host>`, para que los enlaces de traspaso abran Compass. Sin definir, la compilación reclama los hosts de GHXSTSHIP; define tus propios hosts, o un valor vacío para ninguno |
+| `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID`     | Opcional: el ID de tu cliente web de Google, para Continuar con Google                                                                                                                             |
+| `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID`     | Opcional: el ID de tu cliente de iOS de Google, para Continuar con Google en iOS                                                                                                                   |
 
 Cambia el identificador del paquete y el paquete de Android en `apps/compass/app.json` por los tuyos y compila con EAS Build (agrega un `eas.json` con un perfil `production` y ejecuta `eas build --platform all --profile production`) o localmente con `expo prebuild` seguido de un archivo de Xcode y una compilación de versión de Gradle. Distribuye primero mediante TestFlight y las pruebas internas de Google Play.
 

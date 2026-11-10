@@ -21,7 +21,7 @@ Section 5 fixes the stack and requires every dependency pinned to the latest sta
 | ESLint       | 10.12.0, with `@eslint/js` 10.0.1 and `typescript-eslint` 8.71.1 |                                                                               |
 | Prettier     | 3.9.9                                                            |                                                                               |
 | Vitest       | 5.0.3, with Vite 8.3.3 and `@vitest/coverage-v8` 5.0.3           |                                                                               |
-| Supabase CLI | 2.120.0 in CI                                                    | Local hosts may run older 2.x                                                 |
+| Supabase CLI | 3.1.0 in CI and locally (ADR 0168, D7)                           | `[local_smtp]`, `--remote`, `--yes`                                           |
 | Postgres     | 17 (Supabase)                                                    | No native `uuidv7()`; see ADR 0002                                            |
 
 ### Runtime libraries (pinned now, installed by the owning wave)

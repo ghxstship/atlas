@@ -57,7 +57,7 @@ supabase link --project-ref <project-ref>
 supabase db push
 ```
 
-For a self-hosted Compose stack, pass its connection string instead: `supabase db push --db-url "postgresql://postgres:<password>@<host>:5432/postgres"`.
+For a self-hosted Compose stack, pass its connection string instead: `supabase db push --yes --remote="postgresql://postgres:<password>@<host>:5432/postgres"`.
 
 The migrations hold everything a new deployment needs: the canon, the plans and capabilities, the scheduled database jobs (pg_cron) and the encryption keys in Vault. They create the keys themselves.
 
@@ -197,16 +197,16 @@ The proxy must append the client address to `X-Forwarded-For` (in nginx, `proxy_
 
 Compass reads its configuration at build time:
 
-| Variable                           | Value                                                                                                                                                      |
-| ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `EXPO_PUBLIC_SUPABASE_URL`         | The Supabase API URL                                                                                                                                       |
-| `EXPO_PUBLIC_SUPABASE_ANON_KEY`    | The anon key                                                                                                                                               |
-| `EXPO_PUBLIC_ATLAS_URL`            | The Atlas origin                                                                                                                                           |
-| `EXPO_PUBLIC_GATEWAY_URL`          | The Gateway origin                                                                                                                                         |
-| `EXPO_PUBLIC_DOCS_URL`             | Optional: the docs site origin, for the help center row in Settings                                                                                        |
-| `XOS_UNIVERSAL_LINK_HOSTS`         | `atlas:<host>,gateway:<host>`, so handoff links open in Compass. Unset, a build claims the GHXSTSHIP hosts; set your own hosts, or an empty value for none |
-| `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` | Optional: your Google Web client ID, for Continue with Google                                                                                              |
-| `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID` | Optional: your Google iOS client ID, for Continue with Google on iOS                                                                                       |
+| Variable                               | Value                                                                                                                                                      |
+| -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `EXPO_PUBLIC_SUPABASE_URL`             | The Supabase API URL                                                                                                                                       |
+| `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | The publishable key (`sb_publishable_...`)                                                                                                                 |
+| `EXPO_PUBLIC_ATLAS_URL`                | The Atlas origin                                                                                                                                           |
+| `EXPO_PUBLIC_GATEWAY_URL`              | The Gateway origin                                                                                                                                         |
+| `EXPO_PUBLIC_DOCS_URL`                 | Optional: the docs site origin, for the help center row in Settings                                                                                        |
+| `XOS_UNIVERSAL_LINK_HOSTS`             | `atlas:<host>,gateway:<host>`, so handoff links open in Compass. Unset, a build claims the GHXSTSHIP hosts; set your own hosts, or an empty value for none |
+| `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID`     | Optional: your Google Web client ID, for Continue with Google                                                                                              |
+| `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID`     | Optional: your Google iOS client ID, for Continue with Google on iOS                                                                                       |
 
 Change the bundle identifier and Android package in `apps/compass/app.json` to your own, then build with EAS Build (add an `eas.json` with a `production` profile and run `eas build --platform all --profile production`) or locally with `expo prebuild` followed by an Xcode archive and a Gradle release build. Distribute through TestFlight and Google Play internal testing first.
 

@@ -6,13 +6,13 @@
 #
 # Why: the CLI pulls from public.ecr.aws first. Anonymous ECR Public pulls from GitHub's shared runner
 # addresses hit "toomanyrequests: Rate exceeded" and "Data limit exceeded" when a dozen jobs start at
-# once. The CLI (2.120.0) then retries each image twice and falls back to ghcr.io/supabase and Docker
+# once. The CLI (3.1.0) then retries each image twice and falls back to ghcr.io/supabase and Docker
 # Hub, so the stack usually starts, but every job loses its retries and a bad hour can exhaust all
 # three registries. GHCR is GitHub's own registry, close to the runners and not data-capped for public
 # images, so this script pulls from it directly, in parallel, with retries, and falls back to ECR.
 #
 # The CLI checks every registry candidate for a local copy before it pulls anything
-# (apps/cli/src/command-internal/docker-image-resolve.ts at v2.120.0), so an image already present as
+# (apps/cli/src/command-internal/docker-image-resolve.ts at v3.1.0), so an image already present as
 # ghcr.io/supabase/<name>:<tag> starts without a pull. SUPABASE_INTERNAL_IMAGE_REGISTRY stays unset
 # on purpose: setting it would also switch off the CLI's own fallback for any image missed here.
 #
@@ -25,7 +25,7 @@
 set -euo pipefail
 
 PROFILE="${1:-start}"
-PINNED_CLI="2.120.0"
+PINNED_CLI="3.1.0"
 KONG_TAG="2.8.1"
 MAILPIT_TAG="v1.31.3"
 PG_PROVE_TAG="3.36"

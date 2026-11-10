@@ -11,12 +11,12 @@ export type Database = {
     Views: {
       account_engagement_assignments: {
         Row: {
-          account_membership_id: string | null;
-          duty: Database["app"]["Enums"]["account_engagement_duty"] | null;
-          engagement_id: string | null;
+          account_membership_id: string;
+          duty: Database["app"]["Enums"]["account_engagement_duty"];
+          engagement_id: string;
           full_name: string | null;
-          id: string | null;
-          person_id: string | null;
+          id: string;
+          person_id: string;
         };
         ComputedFields: never;
         Relationships: [
@@ -59,11 +59,11 @@ export type Database = {
       };
       account_invitations: {
         Row: {
-          account_id: string | null;
-          account_role: Database["app"]["Enums"]["account_role"] | null;
-          email: string | null;
-          expires_at: string | null;
-          id: string | null;
+          account_id: string;
+          account_role: Database["app"]["Enums"]["account_role"];
+          email: string;
+          expires_at: string;
+          id: string;
           invited_by_name: string | null;
         };
         ComputedFields: never;
@@ -80,12 +80,12 @@ export type Database = {
       account_members: {
         Row: {
           accepted_at: string | null;
-          account_id: string | null;
-          account_membership_id: string | null;
+          account_id: string;
+          account_membership_id: string;
           full_name: string | null;
-          person_id: string | null;
+          person_id: string;
           roles: Database["app"]["Enums"]["account_role"][] | null;
-          valid_from: string | null;
+          valid_from: string;
           valid_to: string | null;
         };
         ComputedFields: never;
@@ -101,8 +101,8 @@ export type Database = {
       };
       advance_allocations: {
         Row: {
-          allocation_id: string | null;
-          allocation_state: Database["app"]["Enums"]["allocation_state"] | null;
+          allocation_id: string;
+          allocation_state: Database["app"]["Enums"]["allocation_state"];
           decline_reason: string | null;
           display_status: string | null;
           engagement_id: string | null;
@@ -111,11 +111,11 @@ export type Database = {
           kind: string | null;
           names_due_at: string | null;
           needed_from: string | null;
-          needed_time_zone: string | null;
+          needed_time_zone: string;
           needed_to: string | null;
           parent_allocation_id: string | null;
           person_name: string | null;
-          quantity: number | null;
+          quantity: number;
           requested_by_me: boolean | null;
           reserved_quantity: number | null;
           returned_quantity: number | null;
@@ -127,12 +127,12 @@ export type Database = {
       advance_packets: {
         Row: {
           due_at: string | null;
-          id: string | null;
-          org_name: string | null;
-          project_id: string | null;
-          project_name: string | null;
+          id: string;
+          org_name: string;
+          project_id: string;
+          project_name: string;
           sent_at: string | null;
-          title: string | null;
+          title: string;
         };
         ComputedFields: never;
         Relationships: [
@@ -154,13 +154,13 @@ export type Database = {
       };
       advance_section_choices: {
         Row: {
-          advance_section_id: string | null;
+          advance_section_id: string;
           asset_class_id: string | null;
           category_kind: Database["app"]["Enums"]["credential_category_kind"] | null;
           category_name: string | null;
           class_name: string | null;
           credential_category_id: string | null;
-          id: string | null;
+          id: string;
           offering: Database["app"]["Enums"]["offering_kind"] | null;
         };
         ComputedFields: never;
@@ -176,15 +176,15 @@ export type Database = {
       };
       advance_sections: {
         Row: {
-          advance_packet_id: string | null;
-          id: string | null;
+          advance_packet_id: string;
+          id: string;
           max_lines: number | null;
-          per_person: boolean | null;
-          position: number | null;
+          per_person: boolean;
+          position: number;
           prompt: string | null;
-          section_kind: Database["app"]["Enums"]["advance_section_kind"] | null;
-          title: string | null;
-          track: Database["app"]["Enums"]["advance_track"] | null;
+          section_kind: Database["app"]["Enums"]["advance_section_kind"];
+          title: string;
+          track: Database["app"]["Enums"]["advance_track"];
           window_kind: Database["app"]["Enums"]["advance_window_kind"] | null;
         };
         ComputedFields: never;
@@ -224,12 +224,12 @@ export type Database = {
       };
       advance_submission_files: {
         Row: {
-          advance_submission_id: string | null;
-          document_id: string | null;
-          id: string | null;
-          position: number | null;
+          advance_submission_id: string;
+          document_id: string;
+          id: string;
+          position: number;
           scan_status: string | null;
-          title: string | null;
+          title: string;
         };
         ComputedFields: never;
         Relationships: [
@@ -244,15 +244,15 @@ export type Database = {
       };
       advance_submission_lines: {
         Row: {
-          advance_submission_id: string | null;
+          advance_submission_id: string;
           allocation_id: string | null;
           asset_class_id: string | null;
           category_name: string | null;
           class_name: string | null;
           credential_category_id: string | null;
-          id: string | null;
+          id: string;
           line_note: string | null;
-          line_number: number | null;
+          line_number: number;
           needed_from: string | null;
           needed_to: string | null;
           person_name: string | null;
@@ -301,16 +301,16 @@ export type Database = {
       };
       advance_submissions: {
         Row: {
-          advance_recipient_id: string | null;
-          advance_section_id: string | null;
+          advance_recipient_id: string;
+          advance_section_id: string;
           answer_note: string | null;
-          body: string | null;
-          id: string | null;
+          body: string;
+          id: string;
           recorded_by_producer: boolean | null;
           return_reason: string | null;
           review_outcome: Database["app"]["Enums"]["advance_review_outcome"] | null;
           reviewed_at: string | null;
-          submitted_at: string | null;
+          submitted_at: string;
         };
         ComputedFields: never;
         Insert: {
@@ -371,14 +371,14 @@ export type Database = {
         Row: {
           applicant_organization_id: string | null;
           applicant_person_id: string | null;
-          application_state: Database["app"]["Enums"]["application_state"] | null;
-          availability_confirmed: boolean | null;
+          application_state: Database["app"]["Enums"]["application_state"];
+          availability_confirmed: boolean;
           cover_note: string | null;
           currency_code: string | null;
-          id: string | null;
-          opportunity_id: string | null;
+          id: string;
+          opportunity_id: string;
           proposed_fee_minor: number | null;
-          submitted_at: string | null;
+          submitted_at: string;
           submitted_by: string | null;
         };
         ComputedFields: never;
@@ -427,13 +427,13 @@ export type Database = {
       };
       asset_custody: {
         Row: {
-          asset_state: Database["app"]["Enums"]["asset_state"] | null;
-          asset_tag: string | null;
-          asset_unit_id: string | null;
-          class_name: string | null;
+          asset_state: Database["app"]["Enums"]["asset_state"];
+          asset_tag: string;
+          asset_unit_id: string;
+          class_name: string;
           engagement_id: string | null;
-          held_since: string | null;
-          id: string | null;
+          held_since: string;
+          id: string;
           project_id: string | null;
           project_name: string | null;
           roster_entry_id: string | null;
@@ -514,23 +514,23 @@ export type Database = {
       };
       availability: {
         Row: {
-          availability_calendar_id: string | null;
-          availability_kind: Database["app"]["Enums"]["availability_kind"] | null;
-          ends_at: string | null;
-          id: string | null;
-          person_id: string | null;
-          starts_at: string | null;
+          availability_calendar_id: string;
+          availability_kind: Database["app"]["Enums"]["availability_kind"];
+          ends_at: string;
+          id: string;
+          person_id: string;
+          starts_at: string;
         };
         ComputedFields: never;
         Relationships: [];
       };
       bid_lines: {
         Row: {
-          bid_id: string | null;
-          description: string | null;
+          bid_id: string;
+          description: string;
           element_id: string | null;
-          id: string | null;
-          quantity: number | null;
+          id: string;
+          quantity: number;
           unit_price_minor: number | null;
         };
         ComputedFields: never;
@@ -546,10 +546,10 @@ export type Database = {
       };
       bids: {
         Row: {
-          application_id: string | null;
-          currency_code: string | null;
-          id: string | null;
-          submitted_at: string | null;
+          application_id: string;
+          currency_code: string;
+          id: string;
+          submitted_at: string;
           valid_until: string | null;
         };
         ComputedFields: never;
@@ -579,11 +579,11 @@ export type Database = {
       };
       break_types: {
         Row: {
-          id: string | null;
-          is_default: boolean | null;
-          name: string | null;
-          org_id: string | null;
-          paid: boolean | null;
+          id: string;
+          is_default: boolean;
+          name: string;
+          org_id: string;
+          paid: boolean;
           planned_minutes: number | null;
         };
         ComputedFields: never;
@@ -616,13 +616,13 @@ export type Database = {
       change_order_lines: {
         Row: {
           amount_minor: number | null;
-          change_order_id: string | null;
-          description: string | null;
-          id: string | null;
-          is_no_cost: boolean | null;
-          quantity: number | null;
+          change_order_id: string;
+          description: string;
+          id: string;
+          is_no_cost: boolean;
+          quantity: number;
           unit_price_minor: number | null;
-          urid: string | null;
+          urid: string;
         };
         ComputedFields: never;
         Insert: {
@@ -658,12 +658,12 @@ export type Database = {
       change_orders: {
         Row: {
           change_order_key: string | null;
-          change_order_state: Database["app"]["Enums"]["change_order_state"] | null;
+          change_order_state: Database["app"]["Enums"]["change_order_state"];
           change_purpose: string | null;
           currency_code: string | null;
-          id: string | null;
-          project_id: string | null;
-          title: string | null;
+          id: string;
+          project_id: string;
+          title: string;
           total_minor: number | null;
         };
         ComputedFields: never;
@@ -689,15 +689,15 @@ export type Database = {
           change_order_id: string | null;
           decided_at: string | null;
           decision: Database["app"]["Enums"]["approval_decision"] | null;
-          engagement_id: string | null;
-          id: string | null;
+          engagement_id: string;
+          id: string;
           message: string | null;
-          project_id: string | null;
-          project_name: string | null;
+          project_id: string;
+          project_name: string;
           record_id: string | null;
-          requested_at: string | null;
+          requested_at: string;
           response: string | null;
-          subject_kind: Database["app"]["Enums"]["client_approval_subject"] | null;
+          subject_kind: Database["app"]["Enums"]["client_approval_subject"];
         };
         ComputedFields: never;
         Relationships: [
@@ -768,17 +768,17 @@ export type Database = {
       };
       clock_punches: {
         Row: {
-          device_time: string | null;
-          effective_at: string | null;
+          device_time: string;
+          effective_at: string;
           engagement_id: string | null;
           geofence_verified: boolean | null;
-          id: string | null;
-          project_id: string | null;
-          punch_kind: Database["app"]["Enums"]["punch_kind"] | null;
+          id: string;
+          project_id: string;
+          punch_kind: Database["app"]["Enums"]["punch_kind"];
           roster_entry_id: string | null;
           shift_id: string | null;
-          skew_flagged: boolean | null;
-          source: Database["app"]["Enums"]["punch_source"] | null;
+          skew_flagged: boolean;
+          source: Database["app"]["Enums"]["punch_source"];
           time_entry_id: string | null;
         };
         ComputedFields: never;
@@ -892,18 +892,18 @@ export type Database = {
       };
       credentials: {
         Row: {
-          category_code: string | null;
-          category_kind: Database["app"]["Enums"]["credential_category_kind"] | null;
-          category_name: string | null;
-          credential_number: string | null;
+          category_code: string;
+          category_kind: Database["app"]["Enums"]["credential_category_kind"];
+          category_name: string;
+          credential_number: string;
           engagement_id: string | null;
           holder_name: string | null;
-          holder_person_id: string | null;
-          id: string | null;
-          project_id: string | null;
-          project_name: string | null;
+          holder_person_id: string;
+          id: string;
+          project_id: string;
+          project_name: string;
           revoked_at: string | null;
-          valid_from: string | null;
+          valid_from: string;
           valid_to: string | null;
         };
         ComputedFields: never;
@@ -956,11 +956,11 @@ export type Database = {
         Row: {
           choice_color_key: string | null;
           choice_label: string | null;
-          cue_id: string | null;
-          data_type: Database["app"]["Enums"]["custom_data_type"] | null;
-          field_key: string | null;
-          label: string | null;
-          sort_order: number | null;
+          cue_id: string;
+          data_type: Database["app"]["Enums"]["custom_data_type"];
+          field_key: string;
+          label: string;
+          sort_order: number;
           value_boolean: boolean | null;
           value_date: string | null;
           value_number: number | null;
@@ -974,14 +974,14 @@ export type Database = {
         Row: {
           called_at: string | null;
           duration: string | null;
-          id: string | null;
+          id: string;
           is_my_set: boolean | null;
-          label: string | null;
+          label: string;
           planned_at: string | null;
-          position: number | null;
-          project_id: string | null;
-          run_of_show_id: string | null;
-          start_tbc: boolean | null;
+          position: number;
+          project_id: string;
+          run_of_show_id: string;
+          start_tbc: boolean;
         };
         ComputedFields: never;
         Relationships: [
@@ -1010,11 +1010,11 @@ export type Database = {
       };
       day_sheets: {
         Row: {
-          body: string | null;
-          day: string | null;
-          id: string | null;
-          project_id: string | null;
-          project_name: string | null;
+          body: string;
+          day: string;
+          id: string;
+          project_id: string;
+          project_name: string;
         };
         ComputedFields: never;
         Relationships: [
@@ -1038,18 +1038,18 @@ export type Database = {
         Row: {
           currency_code: string | null;
           decided_at: string | null;
-          deliverable_state: Database["app"]["Enums"]["deliverable_state"] | null;
+          deliverable_state: Database["app"]["Enums"]["deliverable_state"];
           document_id: string | null;
           due_at: string | null;
-          engagement_id: string | null;
+          engagement_id: string;
           fee_minor: number | null;
-          id: string | null;
-          record_id: string | null;
-          record_kind: string | null;
+          id: string;
+          record_id: string;
+          record_kind: string;
           return_reason: string | null;
           submission_message: string | null;
           submitted_at: string | null;
-          title: string | null;
+          title: string;
         };
         ComputedFields: never;
         Relationships: [
@@ -1100,10 +1100,10 @@ export type Database = {
       deliveries: {
         Row: {
           arrives_at: string | null;
-          direction: Database["app"]["Enums"]["shipment_direction"] | null;
-          id: string | null;
-          project_id: string | null;
-          project_name: string | null;
+          direction: Database["app"]["Enums"]["shipment_direction"];
+          id: string;
+          project_id: string;
+          project_name: string;
           ships_at: string | null;
           tracking_identifier: string | null;
         };
@@ -1127,16 +1127,16 @@ export type Database = {
       };
       delivery_windows: {
         Row: {
-          ends_at: string | null;
-          id: string | null;
+          ends_at: string;
+          id: string;
           places_left: number | null;
-          project_id: string | null;
-          project_name: string | null;
-          starts_at: string | null;
-          time_zone: string | null;
-          zone_code: string | null;
-          zone_id: string | null;
-          zone_name: string | null;
+          project_id: string;
+          project_name: string;
+          starts_at: string;
+          time_zone: string;
+          zone_code: string;
+          zone_id: string;
+          zone_name: string;
         };
         ComputedFields: never;
         Relationships: [
@@ -1160,20 +1160,20 @@ export type Database = {
         Row: {
           delivery_window_id: string | null;
           direction: Database["app"]["Enums"]["shipment_direction"] | null;
-          ends_at: string | null;
+          ends_at: string;
           engagement_id: string | null;
-          id: string | null;
-          project_id: string | null;
-          project_name: string | null;
+          id: string;
+          project_id: string;
+          project_name: string;
           reference_code: string | null;
           shipment_id: string | null;
-          starts_at: string | null;
-          time_zone: string | null;
+          starts_at: string;
+          time_zone: string;
           tracking_identifier: string | null;
           vehicle_identifier: string | null;
-          zone_code: string | null;
-          zone_id: string | null;
-          zone_name: string | null;
+          zone_code: string;
+          zone_id: string;
+          zone_name: string;
         };
         ComputedFields: never;
         Relationships: [
@@ -1240,12 +1240,12 @@ export type Database = {
           body: string | null;
           body_masked: boolean | null;
           body_sha256: string | null;
-          created_at: string | null;
-          engagement_id: string | null;
-          id: string | null;
+          created_at: string;
+          engagement_id: string;
+          id: string;
           signed_at: string | null;
           signed_name: string | null;
-          title: string | null;
+          title: string;
         };
         ComputedFields: never;
         Relationships: [
@@ -1282,12 +1282,12 @@ export type Database = {
       engagement_documents: {
         Row: {
           document_id: string | null;
-          document_kind: Database["app"]["Enums"]["engagement_document_kind"] | null;
-          engagement_document_state: Database["app"]["Enums"]["engagement_document_state"] | null;
-          engagement_id: string | null;
+          document_kind: Database["app"]["Enums"]["engagement_document_kind"];
+          engagement_document_state: Database["app"]["Enums"]["engagement_document_state"];
+          engagement_id: string;
           expires_on: string | null;
-          id: string | null;
-          title: string | null;
+          id: string;
+          title: string;
         };
         ComputedFields: never;
         Insert: {
@@ -1343,10 +1343,10 @@ export type Database = {
         Row: {
           author_name: string | null;
           author_person_id: string | null;
-          body: string | null;
-          engagement_thread_id: string | null;
-          id: string | null;
-          sent_at: string | null;
+          body: string;
+          engagement_thread_id: string;
+          id: string;
+          sent_at: string;
         };
         ComputedFields: never;
         Relationships: [
@@ -1363,7 +1363,7 @@ export type Database = {
         Row: {
           cap_per_engagement: number | null;
           cap_per_person: number | null;
-          engagement_id: string | null;
+          engagement_id: string;
           offering: Database["app"]["Enums"]["offering_kind"] | null;
           offering_mode: Database["app"]["Enums"]["offering_mode"] | null;
         };
@@ -1375,23 +1375,23 @@ export type Database = {
           arrival_ends_at: string | null;
           arrival_starts_at: string | null;
           arrival_time_zone: string | null;
-          engagement_id: string | null;
-          entry_state: Database["app"]["Enums"]["roster_entry_state"] | null;
+          engagement_id: string;
+          entry_state: Database["app"]["Enums"]["roster_entry_state"];
           full_name: string | null;
-          id: string | null;
+          id: string;
           invitation_expires_at: string | null;
           invited_email: string | null;
-          is_self: boolean | null;
+          is_self: boolean;
           job_title: string | null;
           party_name: string | null;
           person_id: string | null;
-          person_response: Database["app"]["Enums"]["roster_person_response"] | null;
-          project_id: string | null;
+          person_response: Database["app"]["Enums"]["roster_person_response"];
+          project_id: string;
           replaces_entry_id: string | null;
           responded_at: string | null;
           return_reason: string | null;
           role_code: string | null;
-          role_type: Database["app"]["Enums"]["external_role_type"] | null;
+          role_type: Database["app"]["Enums"]["external_role_type"];
           share_categories: Database["app"]["Enums"]["work_detail_category"][] | null;
         };
         ComputedFields: never;
@@ -1470,10 +1470,10 @@ export type Database = {
       };
       engagement_threads: {
         Row: {
-          created_at: string | null;
-          engagement_id: string | null;
-          id: string | null;
-          subject: string | null;
+          created_at: string;
+          engagement_id: string;
+          id: string;
+          subject: string;
         };
         ComputedFields: never;
         Insert: {
@@ -1522,12 +1522,12 @@ export type Database = {
       engagement_up_next: {
         Row: {
           contact_name: string | null;
-          engagement_id: string | null;
+          engagement_id: string;
           next_call_at: string | null;
           next_call_kind: string | null;
           next_call_tbc: boolean | null;
           next_call_time_zone: string | null;
-          project_id: string | null;
+          project_id: string;
           venue_locality: string | null;
           venue_name: string | null;
           venue_postal_code: string | null;
@@ -1557,22 +1557,22 @@ export type Database = {
           areas: string[] | null;
           arrangement: string | null;
           end_date: string | null;
-          engagement_state: Database["app"]["Enums"]["engagement_state"] | null;
-          id: string | null;
+          engagement_state: Database["app"]["Enums"]["engagement_state"];
+          id: string;
           job_title: string | null;
-          org_id: string | null;
-          org_name: string | null;
+          org_id: string;
+          org_name: string;
           pay_basis: string | null;
           person_id: string | null;
-          project_id: string | null;
-          project_name: string | null;
-          project_time_zone: string | null;
+          project_id: string;
+          project_name: string;
+          project_time_zone: string;
           rate_currency_code: string | null;
           rate_minor: number | null;
           role_code: string | null;
-          role_type: Database["app"]["Enums"]["external_role_type"] | null;
+          role_type: Database["app"]["Enums"]["external_role_type"];
           roster_locks_at: string | null;
-          start_date: string | null;
+          start_date: string;
         };
         ComputedFields: never;
         Relationships: [
@@ -1608,9 +1608,9 @@ export type Database = {
       };
       goods_receipts: {
         Row: {
-          id: string | null;
-          purchase_order_id: string | null;
-          received_at: string | null;
+          id: string;
+          purchase_order_id: string;
+          received_at: string;
         };
         ComputedFields: never;
         Insert: {
@@ -1635,18 +1635,18 @@ export type Database = {
       };
       hospitality: {
         Row: {
-          description: string | null;
+          description: string;
           ends_at: string | null;
-          fulfillment_id: string | null;
-          fulfillment_kind: Database["app"]["Enums"]["fulfillment_kind"] | null;
-          id: string | null;
+          fulfillment_id: string;
+          fulfillment_kind: Database["app"]["Enums"]["fulfillment_kind"];
+          id: string;
           person_id: string | null;
-          project_id: string | null;
-          project_name: string | null;
-          quantity: number | null;
+          project_id: string;
+          project_name: string;
+          quantity: number;
           starts_at: string | null;
           supplier_name: string | null;
-          title: string | null;
+          title: string;
         };
         ComputedFields: never;
         Relationships: [
@@ -1668,12 +1668,12 @@ export type Database = {
       };
       interviews: {
         Row: {
-          application_id: string | null;
-          duration_minutes: number | null;
-          id: string | null;
-          interview_kind: Database["app"]["Enums"]["interview_kind"] | null;
+          application_id: string;
+          duration_minutes: number;
+          id: string;
+          interview_kind: Database["app"]["Enums"]["interview_kind"];
           location_text: string | null;
-          scheduled_at: string | null;
+          scheduled_at: string;
         };
         ComputedFields: never;
         Insert: {
@@ -1705,11 +1705,11 @@ export type Database = {
       invoice_lines: {
         Row: {
           amount_minor: number | null;
-          description: string | null;
-          id: string | null;
-          invoice_id: string | null;
-          line_number: number | null;
-          quantity: number | null;
+          description: string;
+          id: string;
+          invoice_id: string;
+          line_number: number;
+          quantity: number;
           tax_rate_percent: number | null;
           unit_price_minor: number | null;
         };
@@ -1731,25 +1731,25 @@ export type Database = {
           approved_at: string | null;
           balance_minor: number | null;
           canceled_at: string | null;
-          currency_code: string | null;
-          direction: Database["app"]["Enums"]["money_direction"] | null;
+          currency_code: string;
+          direction: Database["app"]["Enums"]["money_direction"];
           disputed_at: string | null;
           due_on: string | null;
           engagement_id: string | null;
-          id: string | null;
+          id: string;
           invoice_number: string | null;
-          invoice_state: Database["app"]["Enums"]["invoice_state"] | null;
+          invoice_state: Database["app"]["Enums"]["invoice_state"];
           issued_at: string | null;
           issued_on: string | null;
           last_paid_on: string | null;
-          org_id: string | null;
-          org_name: string | null;
+          org_id: string;
+          org_name: string;
           payee_person_id: string | null;
-          project_id: string | null;
-          project_name: string | null;
+          project_id: string;
+          project_name: string;
           scheduled_minor: number | null;
           scheduled_on: string | null;
-          submitted_at: string | null;
+          submitted_at: string;
           total_minor: number | null;
         };
         ComputedFields: never;
@@ -1845,15 +1845,15 @@ export type Database = {
       };
       lodging: {
         Row: {
-          block_title: string | null;
-          check_in_on: string | null;
-          check_out_on: string | null;
+          block_title: string;
+          check_in_on: string;
+          check_out_on: string;
           guest_name: string | null;
           hotel_name: string | null;
-          id: string | null;
-          person_id: string | null;
-          project_id: string | null;
-          project_name: string | null;
+          id: string;
+          person_id: string;
+          project_id: string;
+          project_name: string;
         };
         ComputedFields: never;
         Relationships: [
@@ -1885,11 +1885,11 @@ export type Database = {
       };
       my_accounts: {
         Row: {
-          account_id: string | null;
+          account_id: string;
           my_roles: Database["app"]["Enums"]["account_role"][] | null;
-          name: string | null;
-          organization_type: string | null;
-          slug: string | null;
+          name: string;
+          organization_type: string;
+          slug: string;
           verified: boolean | null;
         };
         ComputedFields: never;
@@ -1914,9 +1914,9 @@ export type Database = {
       my_advance_recipients: {
         Row: {
           account_id: string | null;
-          advance_packet_id: string | null;
+          advance_packet_id: string;
           engagement_id: string | null;
-          id: string | null;
+          id: string;
           names_due_at: string | null;
           person_id: string | null;
         };
@@ -1968,10 +1968,10 @@ export type Database = {
       };
       my_agency_slates: {
         Row: {
-          application_id: string | null;
-          id: string | null;
+          application_id: string;
+          id: string;
           opportunity_position_id: string | null;
-          person_id: string | null;
+          person_id: string;
           person_name: string | null;
         };
         ComputedFields: never;
@@ -1994,10 +1994,10 @@ export type Database = {
       };
       my_application_answers: {
         Row: {
-          answer_text: string | null;
-          application_id: string | null;
-          id: string | null;
-          opportunity_question_id: string | null;
+          answer_text: string;
+          application_id: string;
+          id: string;
+          opportunity_question_id: string;
         };
         ComputedFields: never;
         Insert: {
@@ -2031,11 +2031,11 @@ export type Database = {
       };
       my_availability_calendars: {
         Row: {
-          id: string | null;
+          id: string;
           org_id: string | null;
           org_name: string | null;
-          time_zone: string | null;
-          visibility: Database["app"]["Enums"]["availability_visibility"] | null;
+          time_zone: string;
+          visibility: Database["app"]["Enums"]["availability_visibility"];
         };
         ComputedFields: never;
         Relationships: [
@@ -2050,16 +2050,16 @@ export type Database = {
       };
       my_certifications: {
         Row: {
-          certification_id: string | null;
-          certification_name: string | null;
+          certification_id: string;
+          certification_name: string;
           expires_on: string | null;
-          id: string | null;
+          id: string;
           is_current: boolean | null;
-          issued_on: string | null;
-          issuing_body: string | null;
-          org_id: string | null;
-          org_name: string | null;
-          public_verification_consented: boolean | null;
+          issued_on: string;
+          issuing_body: string;
+          org_id: string;
+          org_name: string;
+          public_verification_consented: boolean;
         };
         ComputedFields: never;
         Relationships: [
@@ -2075,13 +2075,13 @@ export type Database = {
       my_crew_registrations: {
         Row: {
           decided_at: string | null;
-          id: string | null;
-          org_name: string | null;
-          org_slug: string | null;
-          page_slug: string | null;
-          page_title: string | null;
-          registration_state: Database["app"]["Enums"]["crew_registration_state"] | null;
-          submitted_at: string | null;
+          id: string;
+          org_name: string;
+          org_slug: string;
+          page_slug: string;
+          page_title: string;
+          registration_state: Database["app"]["Enums"]["crew_registration_state"];
+          submitted_at: string;
         };
         ComputedFields: never;
         Relationships: [];
@@ -2089,13 +2089,13 @@ export type Database = {
       my_given_ratings: {
         Row: {
           comment: string | null;
-          engagement_id: string | null;
-          id: string | null;
+          engagement_id: string;
+          id: string;
           is_released: boolean | null;
-          org_id: string | null;
-          org_name: string | null;
-          score: number | null;
-          submitted_at: string | null;
+          org_id: string;
+          org_name: string;
+          score: number;
+          submitted_at: string;
         };
         ComputedFields: never;
         Relationships: [
@@ -2139,11 +2139,11 @@ export type Database = {
       my_opportunity_alerts: {
         Row: {
           delivered_at: string | null;
-          id: string | null;
+          id: string;
           is_open: boolean | null;
-          matched_at: string | null;
-          opportunity_id: string | null;
-          saved_search_id: string | null;
+          matched_at: string;
+          opportunity_id: string;
+          saved_search_id: string;
         };
         ComputedFields: never;
         Relationships: [
@@ -2165,13 +2165,13 @@ export type Database = {
       };
       my_parking_passes: {
         Row: {
-          category_name: string | null;
-          credential_id: string | null;
-          credential_number: string | null;
-          holder_person_id: string | null;
-          project_id: string | null;
+          category_name: string;
+          credential_id: string;
+          credential_number: string;
+          holder_person_id: string;
+          project_id: string;
           revoked_at: string | null;
-          valid_from: string | null;
+          valid_from: string;
           valid_to: string | null;
           vehicle_color: string | null;
           vehicle_make: string | null;
@@ -2241,10 +2241,10 @@ export type Database = {
       };
       my_profile_share_fields: {
         Row: {
-          field_key: string | null;
+          field_key: string;
           field_value: string | null;
-          id: string | null;
-          profile_share_id: string | null;
+          id: string;
+          profile_share_id: string;
         };
         ComputedFields: never;
         Insert: {
@@ -2273,12 +2273,12 @@ export type Database = {
         Row: {
           account_id: string | null;
           engagement_id: string | null;
-          id: string | null;
-          org_id: string | null;
-          org_name: string | null;
+          id: string;
+          org_id: string;
+          org_name: string;
           person_id: string | null;
           revoked_at: string | null;
-          shared_at: string | null;
+          shared_at: string;
         };
         ComputedFields: never;
         Relationships: [
@@ -2335,25 +2335,25 @@ export type Database = {
           arrival_window_end: string | null;
           arrival_window_start: string | null;
           end_date: string | null;
-          engagement_state: Database["app"]["Enums"]["engagement_state"] | null;
+          engagement_state: Database["app"]["Enums"]["engagement_state"];
           entry_role_code: string | null;
-          id: string | null;
+          id: string;
           job_title: string | null;
           lead_name: string | null;
-          org_id: string | null;
-          org_name: string | null;
+          org_id: string;
+          org_name: string;
           pay_basis: string | null;
           person_id: string | null;
-          project_id: string | null;
-          project_name: string | null;
-          project_time_zone: string | null;
+          project_id: string;
+          project_name: string;
+          project_time_zone: string;
           rate_currency_code: string | null;
           rate_minor: number | null;
           role_code: string | null;
-          role_type: Database["app"]["Enums"]["external_role_type"] | null;
-          roster_entry_id: string | null;
+          role_type: Database["app"]["Enums"]["external_role_type"];
+          roster_entry_id: string;
           roster_locks_at: string | null;
-          start_date: string | null;
+          start_date: string;
         };
         ComputedFields: never;
         Relationships: [
@@ -2392,18 +2392,18 @@ export type Database = {
           arrival_ends_at: string | null;
           arrival_starts_at: string | null;
           arrival_time_zone: string | null;
-          engagement_id: string | null;
-          entry_state: Database["app"]["Enums"]["roster_entry_state"] | null;
-          id: string | null;
-          is_self: boolean | null;
+          engagement_id: string;
+          entry_state: Database["app"]["Enums"]["roster_entry_state"];
+          id: string;
+          is_self: boolean;
           job_title: string | null;
-          org_name: string | null;
+          org_name: string;
           party_name: string | null;
-          person_response: Database["app"]["Enums"]["roster_person_response"] | null;
-          project_id: string | null;
-          project_name: string | null;
+          person_response: Database["app"]["Enums"]["roster_person_response"];
+          project_id: string;
+          project_name: string;
           role_code: string | null;
-          role_type: Database["app"]["Enums"]["external_role_type"] | null;
+          role_type: Database["app"]["Enums"]["external_role_type"];
           share_categories: Database["app"]["Enums"]["work_detail_category"][] | null;
         };
         ComputedFields: never;
@@ -2456,10 +2456,10 @@ export type Database = {
         Row: {
           acknowledged_at: string | null;
           is_satisfied: boolean | null;
-          item_kind: Database["app"]["Enums"]["onboarding_item_kind"] | null;
-          name: string | null;
-          onboarding_requirement_id: string | null;
-          roster_entry_id: string | null;
+          item_kind: Database["app"]["Enums"]["onboarding_item_kind"];
+          name: string;
+          onboarding_requirement_id: string;
+          roster_entry_id: string;
           verification_outcome: Database["app"]["Enums"]["verification_outcome"] | null;
         };
         ComputedFields: never;
@@ -2467,10 +2467,10 @@ export type Database = {
       };
       my_saved_opportunities: {
         Row: {
-          id: string | null;
+          id: string;
           is_open: boolean | null;
-          opportunity_id: string | null;
-          saved_at: string | null;
+          opportunity_id: string;
+          saved_at: string;
         };
         ComputedFields: never;
         Insert: {
@@ -2497,17 +2497,17 @@ export type Database = {
       };
       my_saved_searches: {
         Row: {
-          alerts_enabled: boolean | null;
+          alerts_enabled: boolean;
           cat_urid: string | null;
           certification_name: string | null;
-          created_at: string | null;
+          created_at: string;
           currency_code: string | null;
           disc_code: string | null;
           ends_before: string | null;
-          id: string | null;
+          id: string;
           jurisdiction_id: string | null;
           min_rate_minor: number | null;
-          name: string | null;
+          name: string;
           near_label: string | null;
           near_latitude: number | null;
           near_longitude: number | null;
@@ -2576,13 +2576,13 @@ export type Database = {
       my_token_documents: {
         Row: {
           claimed_at: string | null;
-          document_kind: Database["app"]["Enums"]["engagement_document_kind"] | null;
-          engagement_document_id: string | null;
-          engagement_document_state: Database["app"]["Enums"]["engagement_document_state"] | null;
-          org_name: string | null;
+          document_kind: Database["app"]["Enums"]["engagement_document_kind"];
+          engagement_document_id: string;
+          engagement_document_state: Database["app"]["Enums"]["engagement_document_state"];
+          org_name: string;
           signed_at: string | null;
           signer_name: string | null;
-          title: string | null;
+          title: string;
         };
         ComputedFields: never;
         Relationships: [];
@@ -2590,21 +2590,21 @@ export type Database = {
       my_transfers: {
         Row: {
           driver_name: string | null;
-          dropoff_at: string | null;
-          dropoff_place: string | null;
-          dropoff_time_zone: string | null;
-          id: string | null;
+          dropoff_at: string;
+          dropoff_place: string;
+          dropoff_time_zone: string;
+          id: string;
           meets_arrives_at: string | null;
           meets_service_identifier: string | null;
           my_role: string | null;
           passenger_count: number | null;
           passenger_names: string[] | null;
-          pickup_at: string | null;
-          pickup_place: string | null;
-          pickup_time_zone: string | null;
+          pickup_at: string;
+          pickup_place: string;
+          pickup_time_zone: string;
           primary_passenger_name: string | null;
-          project_id: string | null;
-          project_name: string | null;
+          project_id: string;
+          project_name: string;
           seats: number | null;
           status: string | null;
           transfer_key: string | null;
@@ -2631,16 +2631,16 @@ export type Database = {
       };
       my_vendor_intake_requests: {
         Row: {
-          created_at: string | null;
+          created_at: string;
           decision_reason: string | null;
           engagement_id: string | null;
-          id: string | null;
+          id: string;
           invoice_ready: boolean | null;
           invoice_used: boolean | null;
-          org_name: string | null;
-          project_name: string | null;
-          request_state: Database["app"]["Enums"]["join_request_state"] | null;
-          title: string | null;
+          org_name: string;
+          project_name: string;
+          request_state: Database["app"]["Enums"]["join_request_state"];
+          title: string;
           viewer_can_submit_invoice: boolean | null;
           viewer_can_withdraw: boolean | null;
         };
@@ -2682,14 +2682,14 @@ export type Database = {
           currency_code: string | null;
           ends_on: string | null;
           expires_at: string | null;
-          id: string | null;
+          id: string;
           message: string | null;
-          offer_id: string | null;
-          proposed_at: string | null;
-          proposed_side: Database["app"]["Enums"]["offer_side"] | null;
+          offer_id: string;
+          proposed_at: string;
+          proposed_side: Database["app"]["Enums"]["offer_side"];
           rate_type: Database["app"]["Enums"]["rate_type"] | null;
           starts_on: string | null;
-          version_number: number | null;
+          version_number: number;
         };
         ComputedFields: never;
         Relationships: [
@@ -2704,11 +2704,11 @@ export type Database = {
       };
       offers: {
         Row: {
-          application_id: string | null;
-          id: string | null;
-          offer_state: Database["app"]["Enums"]["offer_state"] | null;
-          opportunity_id: string | null;
-          sent_at: string | null;
+          application_id: string;
+          id: string;
+          offer_state: Database["app"]["Enums"]["offer_state"];
+          opportunity_id: string;
+          sent_at: string;
         };
         ComputedFields: never;
         Relationships: [
@@ -2731,17 +2731,17 @@ export type Database = {
       onboarding_items: {
         Row: {
           awaiting_review: boolean | null;
-          engagement_id: string | null;
+          engagement_id: string;
           expires_on: string | null;
-          id: string | null;
-          is_blocking: boolean | null;
-          item_kind: Database["app"]["Enums"]["onboarding_item_kind"] | null;
+          id: string;
+          is_blocking: boolean;
+          item_kind: Database["app"]["Enums"]["onboarding_item_kind"];
           latest_outcome: Database["app"]["Enums"]["verification_outcome"] | null;
-          name: string | null;
+          name: string;
           passes: boolean | null;
           satisfied: boolean | null;
           submitted_at: string | null;
-          verification_method: Database["app"]["Enums"]["verification_method"] | null;
+          verification_method: Database["app"]["Enums"]["verification_method"];
         };
         ComputedFields: never;
         Relationships: [
@@ -2783,12 +2783,12 @@ export type Database = {
           deadline_at: string | null;
           description: string | null;
           ends_on: string | null;
-          id: string | null;
+          id: string;
           jurisdiction_id: string | null;
           minimum_age: number | null;
-          opportunity_state: Database["app"]["Enums"]["opportunity_state"] | null;
-          org_id: string | null;
-          org_name: string | null;
+          opportunity_state: Database["app"]["Enums"]["opportunity_state"];
+          org_id: string;
+          org_name: string;
           org_verified: boolean | null;
           pay_max_minor: number | null;
           pay_min_minor: number | null;
@@ -2796,14 +2796,14 @@ export type Database = {
           rate_on_request: boolean | null;
           rate_type: Database["app"]["Enums"]["rate_type"] | null;
           role_code: string | null;
-          role_type: Database["app"]["Enums"]["external_role_type"] | null;
+          role_type: Database["app"]["Enums"]["external_role_type"];
           starts_on: string | null;
-          title: string | null;
+          title: string;
           venue_latitude: number | null;
           venue_locality: string | null;
           venue_longitude: number | null;
           venue_name: string | null;
-          visibility: Database["app"]["Enums"]["opportunity_visibility"] | null;
+          visibility: Database["app"]["Enums"]["opportunity_visibility"];
         };
         ComputedFields: never;
         Relationships: [
@@ -2820,9 +2820,9 @@ export type Database = {
         Row: {
           call_at: string | null;
           ends_at: string | null;
-          id: string | null;
-          label: string | null;
-          opportunity_id: string | null;
+          id: string;
+          label: string;
+          opportunity_id: string;
         };
         ComputedFields: never;
         Insert: {
@@ -2851,11 +2851,11 @@ export type Database = {
       };
       opportunity_questions: {
         Row: {
-          id: string | null;
-          is_required: boolean | null;
-          opportunity_id: string | null;
-          prompt: string | null;
-          sort_order: number | null;
+          id: string;
+          is_required: boolean;
+          opportunity_id: string;
+          prompt: string;
+          sort_order: number;
         };
         ComputedFields: never;
         Insert: {
@@ -2888,11 +2888,11 @@ export type Database = {
           certification_id: string | null;
           certification_name: string | null;
           currency_code: string | null;
-          description: string | null;
-          id: string | null;
+          description: string;
+          id: string;
           insurance_minimum_minor: number | null;
-          opportunity_id: string | null;
-          requirement_kind: Database["app"]["Enums"]["opportunity_requirement_kind"] | null;
+          opportunity_id: string;
+          requirement_kind: Database["app"]["Enums"]["opportunity_requirement_kind"];
         };
         ComputedFields: never;
         Relationships: [
@@ -2909,10 +2909,10 @@ export type Database = {
         Row: {
           author_name: string | null;
           author_person_id: string | null;
-          body: string | null;
-          id: string | null;
-          party_thread_id: string | null;
-          sent_at: string | null;
+          body: string;
+          id: string;
+          party_thread_id: string;
+          sent_at: string;
         };
         ComputedFields: never;
         Relationships: [
@@ -2928,13 +2928,13 @@ export type Database = {
       party_threads: {
         Row: {
           account_id: string | null;
-          created_at: string | null;
-          id: string | null;
+          created_at: string;
+          id: string;
           last_message_at: string | null;
-          org_id: string | null;
-          org_name: string | null;
+          org_id: string;
+          org_name: string;
           party_person_id: string | null;
-          subject: string | null;
+          subject: string;
           unread_count: number | null;
         };
         ComputedFields: never;
@@ -2958,14 +2958,14 @@ export type Database = {
       payments: {
         Row: {
           account_id: string | null;
-          amount_minor: number | null;
-          currency_code: string | null;
-          id: string | null;
-          org_id: string | null;
-          org_name: string | null;
-          paid_on: string | null;
+          amount_minor: number;
+          currency_code: string;
+          id: string;
+          org_id: string;
+          org_name: string;
+          paid_on: string;
           payee_person_id: string | null;
-          payment_state: Database["app"]["Enums"]["payment_state"] | null;
+          payment_state: Database["app"]["Enums"]["payment_state"];
           reference_identifier: string | null;
         };
         ComputedFields: never;
@@ -2990,10 +2990,10 @@ export type Database = {
         Row: {
           account_id: string | null;
           account_last4: string | null;
-          id: string | null;
-          org_id: string | null;
+          id: string;
+          org_id: string;
           person_id: string | null;
-          provider: Database["app"]["Enums"]["payout_provider"] | null;
+          provider: Database["app"]["Enums"]["payout_provider"];
         };
         ComputedFields: never;
         Insert: {
@@ -3031,13 +3031,13 @@ export type Database = {
       };
       per_diems: {
         Row: {
-          amount_minor: number | null;
-          currency_code: string | null;
-          day: string | null;
+          amount_minor: number;
+          currency_code: string;
+          day: string;
           engagement_id: string | null;
-          id: string | null;
-          project_id: string | null;
-          project_name: string | null;
+          id: string;
+          project_id: string;
+          project_name: string;
           roster_entry_id: string | null;
         };
         ComputedFields: never;
@@ -3117,12 +3117,12 @@ export type Database = {
       po_lines: {
         Row: {
           amount_minor: number | null;
-          description: string | null;
+          description: string;
           element_id: string | null;
-          id: string | null;
-          line_number: number | null;
-          purchase_order_id: string | null;
-          quantity: number | null;
+          id: string;
+          line_number: number;
+          purchase_order_id: string;
+          quantity: number;
           unit_basis: string | null;
           unit_price_minor: number | null;
         };
@@ -3162,14 +3162,14 @@ export type Database = {
       position_records: {
         Row: {
           due_at: string | null;
-          id: string | null;
-          position_title: string | null;
-          project_id: string | null;
-          project_position_id: string | null;
-          record_kind: string | null;
-          record_state: string | null;
+          id: string;
+          position_title: string;
+          project_id: string;
+          project_position_id: string;
+          record_kind: string;
+          record_state: string;
           starts_at: string | null;
-          title: string | null;
+          title: string;
         };
         ComputedFields: never;
         Relationships: [
@@ -3191,10 +3191,10 @@ export type Database = {
       };
       projects: {
         Row: {
-          id: string | null;
-          name: string | null;
-          org_id: string | null;
-          time_zone: string | null;
+          id: string;
+          name: string;
+          org_id: string;
+          time_zone: string;
           venue_id: string | null;
         };
         ComputedFields: never;
@@ -3225,12 +3225,12 @@ export type Database = {
       proof_of_performance_photos: {
         Row: {
           captured_at: string | null;
-          created_at: string | null;
-          engagement_id: string | null;
-          id: string | null;
-          media_uri: string | null;
-          project_id: string | null;
-          sponsor_entitlement_id: string | null;
+          created_at: string;
+          engagement_id: string;
+          id: string;
+          media_uri: string;
+          project_id: string;
+          sponsor_entitlement_id: string;
         };
         ComputedFields: never;
         Relationships: [
@@ -3287,16 +3287,16 @@ export type Database = {
       };
       purchase_orders: {
         Row: {
-          account_id: string | null;
+          account_id: string;
           acknowledged_at: string | null;
-          currency_code: string | null;
-          id: string | null;
-          org_id: string | null;
-          org_name: string | null;
-          po_number: number | null;
-          po_state: Database["app"]["Enums"]["po_state"] | null;
-          project_id: string | null;
-          project_name: string | null;
+          currency_code: string;
+          id: string;
+          org_id: string;
+          org_name: string;
+          po_number: number;
+          po_state: Database["app"]["Enums"]["po_state"];
+          project_id: string;
+          project_name: string;
           sent_at: string | null;
           total_minor: number | null;
         };
@@ -3335,11 +3335,11 @@ export type Database = {
       quote_version_lines: {
         Row: {
           amount_minor: number | null;
-          description: string | null;
-          id: string | null;
-          line_number: number | null;
-          quantity: number | null;
-          quote_version_id: string | null;
+          description: string;
+          id: string;
+          line_number: number;
+          quantity: number;
+          quote_version_id: string;
           unit_basis: string | null;
           unit_price_minor: number | null;
         };
@@ -3355,24 +3355,24 @@ export type Database = {
           brand_logo_path: string | null;
           client_name: string | null;
           content_sha256: string | null;
-          currency_code: string | null;
+          currency_code: string;
           engagement_document_id: string | null;
-          id: string | null;
+          id: string;
           legal_entity_name: string | null;
-          org_id: string | null;
-          org_name: string | null;
-          project_id: string | null;
-          project_name: string | null;
-          project_time_zone: string | null;
-          quote_id: string | null;
+          org_id: string;
+          org_name: string;
+          project_id: string;
+          project_name: string;
+          project_time_zone: string;
+          quote_id: string;
           quote_key: string | null;
-          quote_version_state: Database["app"]["Enums"]["quote_version_state"] | null;
+          quote_version_state: Database["app"]["Enums"]["quote_version_state"];
           sent_at: string | null;
           terms: string | null;
           title: string | null;
           total_minor: number | null;
-          valid_until: string | null;
-          version_number: number | null;
+          valid_until: string;
+          version_number: number;
         };
         ComputedFields: never;
         Relationships: [
@@ -3408,10 +3408,10 @@ export type Database = {
       };
       radio_channels: {
         Row: {
-          channel_number: number | null;
-          id: string | null;
-          name: string | null;
-          project_id: string | null;
+          channel_number: number;
+          id: string;
+          name: string;
+          project_id: string;
           zone_id: string | null;
         };
         ComputedFields: never;
@@ -3449,27 +3449,27 @@ export type Database = {
       ratings: {
         Row: {
           comment: string | null;
-          id: string | null;
+          id: string;
           is_of_individual: boolean | null;
           rated_organization_id: string | null;
           rated_person_id: string | null;
           rater_organization_id: string | null;
           rater_organization_name: string | null;
-          rater_side: Database["app"]["Enums"]["rating_side"] | null;
+          rater_side: Database["app"]["Enums"]["rating_side"];
           replied_at: string | null;
           reply: string | null;
-          score: number | null;
-          submitted_at: string | null;
+          score: number;
+          submitted_at: string;
         };
         ComputedFields: never;
         Relationships: [];
       };
       receipt_lines: {
         Row: {
-          goods_receipt_id: string | null;
-          id: string | null;
-          po_line_id: string | null;
-          quantity_received: number | null;
+          goods_receipt_id: string;
+          id: string;
+          po_line_id: string;
+          quantity_received: number;
         };
         ComputedFields: never;
         Relationships: [
@@ -3493,15 +3493,15 @@ export type Database = {
         Row: {
           due_at: string | null;
           ends_at: string | null;
-          id: string | null;
-          project_id: string | null;
-          record_kind: string | null;
-          record_state: string | null;
+          id: string;
+          project_id: string;
+          record_kind: string;
+          record_state: string;
           record_subtype: string | null;
-          start_tbc: boolean | null;
+          start_tbc: boolean;
           starts_at: string | null;
           time_zone: string | null;
-          title: string | null;
+          title: string;
         };
         ComputedFields: never;
         Insert: {
@@ -3550,12 +3550,12 @@ export type Database = {
       representations: {
         Row: {
           accepted_at: string | null;
-          account_id: string | null;
-          account_name: string | null;
+          account_id: string;
+          account_name: string;
           artist_name: string | null;
-          artist_person_id: string | null;
-          expires_on: string | null;
-          id: string | null;
+          artist_person_id: string;
+          expires_on: string;
+          id: string;
           representative_person_id: string | null;
           revoked_at: string | null;
           scopes: Database["app"]["Enums"]["representation_scope"][] | null;
@@ -3587,14 +3587,14 @@ export type Database = {
       };
       rfq_request_lines: {
         Row: {
-          acquisition_kind: Database["app"]["Enums"]["acquisition_kind"] | null;
-          description: string | null;
+          acquisition_kind: Database["app"]["Enums"]["acquisition_kind"];
+          description: string;
           hire_from: string | null;
           hire_to: string | null;
-          id: string | null;
-          line_number: number | null;
-          quantity: number | null;
-          rfq_id: string | null;
+          id: string;
+          line_number: number;
+          quantity: number;
+          rfq_id: string;
           unit_basis: string | null;
         };
         ComputedFields: never;
@@ -3611,13 +3611,13 @@ export type Database = {
       rfq_requests: {
         Row: {
           contact_name: string | null;
-          id: string | null;
-          org_name: string | null;
-          project_id: string | null;
-          project_name: string | null;
+          id: string;
+          org_name: string;
+          project_id: string;
+          project_name: string;
           responses_due_at: string | null;
-          time_zone: string | null;
-          title: string | null;
+          time_zone: string;
+          title: string;
         };
         ComputedFields: never;
         Relationships: [
@@ -3639,12 +3639,12 @@ export type Database = {
       };
       rider_lines: {
         Row: {
-          description: string | null;
+          description: string;
           element_id: string | null;
           fulfilled_at: string | null;
-          id: string | null;
+          id: string;
           quantity: number | null;
-          rider_id: string | null;
+          rider_id: string;
         };
         ComputedFields: never;
         Insert: {
@@ -3677,10 +3677,10 @@ export type Database = {
         Row: {
           account_id: string | null;
           engagement_id: string | null;
-          id: string | null;
-          project_id: string | null;
-          project_name: string | null;
-          title: string | null;
+          id: string;
+          project_id: string;
+          project_name: string;
+          title: string;
         };
         ComputedFields: never;
         Relationships: [
@@ -3737,11 +3737,11 @@ export type Database = {
       };
       run_of_show: {
         Row: {
-          id: string | null;
-          name: string | null;
-          project_id: string | null;
-          project_name: string | null;
-          show_date: string | null;
+          id: string;
+          name: string;
+          project_id: string;
+          project_name: string;
+          show_date: string;
         };
         ComputedFields: never;
         Relationships: [
@@ -3763,9 +3763,9 @@ export type Database = {
       };
       self_billing_agreements: {
         Row: {
-          agreed_at: string | null;
-          engagement_id: string | null;
-          id: string | null;
+          agreed_at: string;
+          engagement_id: string;
+          id: string;
           is_active: boolean | null;
           revoked_at: string | null;
         };
@@ -3818,11 +3818,11 @@ export type Database = {
       settlement_lines: {
         Row: {
           amount_minor: number | null;
-          description: string | null;
-          id: string | null;
-          line_kind: Database["app"]["Enums"]["settlement_line_kind"] | null;
-          line_number: number | null;
-          settlement_id: string | null;
+          description: string;
+          id: string;
+          line_kind: Database["app"]["Enums"]["settlement_line_kind"];
+          line_number: number;
+          settlement_id: string;
         };
         ComputedFields: never;
         Relationships: [
@@ -3837,18 +3837,18 @@ export type Database = {
       };
       settlements: {
         Row: {
-          currency_code: string | null;
-          engagement_id: string | null;
-          id: string | null;
+          currency_code: string;
+          engagement_id: string;
+          id: string;
           net_minor: number | null;
-          project_id: string | null;
-          project_name: string | null;
+          project_id: string;
+          project_name: string;
           responded_at: string | null;
           settled_on: string | null;
-          settlement_number: number | null;
-          settlement_state: Database["app"]["Enums"]["settlement_state"] | null;
+          settlement_number: number;
+          settlement_state: Database["app"]["Enums"]["settlement_state"];
           submitted_at: string | null;
-          title: string | null;
+          title: string;
         };
         ComputedFields: never;
         Relationships: [
@@ -3898,16 +3898,16 @@ export type Database = {
       };
       shared_reports: {
         Row: {
-          engagement_id: string | null;
+          engagement_id: string;
           expires_at: string | null;
-          export_format: Database["app"]["Enums"]["export_format"] | null;
+          export_format: Database["app"]["Enums"]["export_format"];
           finished_at: string | null;
-          id: string | null;
-          project_id: string | null;
-          project_name: string | null;
+          id: string;
+          project_id: string;
+          project_name: string;
           row_count: number | null;
-          shared_at: string | null;
-          title: string | null;
+          shared_at: string;
+          title: string;
           unpriced_count: number | null;
         };
         ComputedFields: never;
@@ -3958,24 +3958,24 @@ export type Database = {
       };
       shifts: {
         Row: {
-          ends_at: string | null;
+          ends_at: string;
           engagement_id: string | null;
           has_no_show: boolean | null;
           holder_name: string | null;
-          id: string | null;
+          id: string;
           is_agency_slot: boolean | null;
           job_title: string | null;
           position_title: string | null;
-          project_id: string | null;
-          project_name: string | null;
+          project_id: string;
+          project_name: string;
           project_position_id: string | null;
           role_code: string | null;
           roster_entry_id: string | null;
           scope_node_id: string | null;
           scope_node_name: string | null;
-          shift_state: Database["app"]["Enums"]["shift_state"] | null;
-          starts_at: string | null;
-          time_zone: string | null;
+          shift_state: Database["app"]["Enums"]["shift_state"];
+          starts_at: string;
+          time_zone: string;
         };
         ComputedFields: never;
         Relationships: [
@@ -4060,14 +4060,14 @@ export type Database = {
       };
       space_bookings: {
         Row: {
-          ends_at: string | null;
+          ends_at: string;
           engagement_id: string | null;
-          id: string | null;
-          project_id: string | null;
-          purpose: Database["app"]["Enums"]["space_booking_purpose"] | null;
+          id: string;
+          project_id: string;
+          purpose: Database["app"]["Enums"]["space_booking_purpose"];
           set_label: string | null;
-          space_name: string | null;
-          starts_at: string | null;
+          space_name: string;
+          starts_at: string;
         };
         ComputedFields: never;
         Relationships: [
@@ -4117,13 +4117,13 @@ export type Database = {
       };
       sponsor_asset_files: {
         Row: {
-          document_id: string | null;
-          id: string | null;
-          position: number | null;
-          revision: number | null;
+          document_id: string;
+          id: string;
+          position: number;
+          revision: number;
           scan_status: string | null;
-          sponsor_asset_id: string | null;
-          title: string | null;
+          sponsor_asset_id: string;
+          title: string;
         };
         ComputedFields: never;
         Relationships: [
@@ -4138,20 +4138,20 @@ export type Database = {
       };
       sponsor_assets: {
         Row: {
-          account_id: string | null;
-          asset_kind: Database["app"]["Enums"]["sponsor_asset_kind"] | null;
-          asset_source: Database["app"]["Enums"]["sponsor_asset_source"] | null;
-          asset_state: Database["app"]["Enums"]["review_state"] | null;
+          account_id: string;
+          asset_kind: Database["app"]["Enums"]["sponsor_asset_kind"];
+          asset_source: Database["app"]["Enums"]["sponsor_asset_source"];
+          asset_state: Database["app"]["Enums"]["review_state"];
           awaiting_sponsor: boolean | null;
           decided_at: string | null;
           due_on: string | null;
-          entitlement_description: string | null;
-          id: string | null;
-          project_id: string | null;
-          project_name: string | null;
-          revision: number | null;
-          sponsor_entitlement_id: string | null;
-          title: string | null;
+          entitlement_description: string;
+          id: string;
+          project_id: string;
+          project_name: string;
+          revision: number;
+          sponsor_entitlement_id: string;
+          title: string;
           usage_note: string | null;
         };
         ComputedFields: never;
@@ -4188,15 +4188,15 @@ export type Database = {
       };
       sponsor_entitlements: {
         Row: {
-          account_id: string | null;
-          description: string | null;
+          account_id: string;
+          description: string;
           due_on: string | null;
           fulfilled_at: string | null;
-          id: string | null;
+          id: string;
           is_overdue: boolean | null;
           keep_photo_location: boolean | null;
-          project_id: string | null;
-          project_name: string | null;
+          project_id: string;
+          project_name: string;
           quantity: number | null;
         };
         ComputedFields: never;
@@ -4226,40 +4226,40 @@ export type Database = {
       };
       submittal_files: {
         Row: {
-          attachment_id: string | null;
-          content_type: string | null;
-          filename: string | null;
+          attachment_id: string;
+          content_type: string;
+          filename: string;
           is_current: boolean | null;
           review_comment: string | null;
           review_decision: Database["app"]["Enums"]["file_review_decision"] | null;
           reviewed_at: string | null;
-          size_bytes: number | null;
-          submittal_id: string | null;
-          title: string | null;
+          size_bytes: number;
+          submittal_id: string;
+          title: string;
           uploaded_at: string | null;
-          version_id: string | null;
-          version_number: number | null;
+          version_id: string;
+          version_number: number;
         };
         ComputedFields: never;
         Relationships: [];
       };
       submittals: {
         Row: {
-          account_id: string | null;
+          account_id: string;
           decided_at: string | null;
           due_on: string | null;
-          id: string | null;
-          project_id: string | null;
-          project_name: string | null;
+          id: string;
+          project_id: string;
+          project_name: string;
           purchase_order_id: string | null;
           return_reason: string | null;
-          revision: number | null;
+          revision: number;
           spec_reference: string | null;
-          submittal_kind: Database["app"]["Enums"]["submittal_kind"] | null;
-          submittal_number: number | null;
-          submittal_state: Database["app"]["Enums"]["review_state"] | null;
+          submittal_kind: Database["app"]["Enums"]["submittal_kind"];
+          submittal_number: number;
+          submittal_state: Database["app"]["Enums"]["review_state"];
           submitted_at: string | null;
-          title: string | null;
+          title: string;
         };
         ComputedFields: never;
         Relationships: [
@@ -4296,19 +4296,19 @@ export type Database = {
       tax_forms: {
         Row: {
           account_id: string | null;
-          foreign_performer_withholding: boolean | null;
-          form_kind: Database["app"]["Enums"]["tax_form_kind"] | null;
-          id: string | null;
+          foreign_performer_withholding: boolean;
+          form_kind: Database["app"]["Enums"]["tax_form_kind"];
+          id: string;
           legal_name: string | null;
           locality: string | null;
-          org_id: string | null;
-          org_name: string | null;
+          org_id: string;
+          org_name: string;
           person_id: string | null;
           postal_code: string | null;
           region_code: string | null;
-          signed_at: string | null;
+          signed_at: string;
           street_address: string | null;
-          tin_last4: string | null;
+          tin_last4: string;
         };
         ComputedFields: never;
         Relationships: [
@@ -4331,10 +4331,10 @@ export type Database = {
       thread_read_receipts: {
         Row: {
           engagement_thread_id: string | null;
-          id: string | null;
-          last_read_at: string | null;
+          id: string;
+          last_read_at: string;
           party_thread_id: string | null;
-          person_id: string | null;
+          person_id: string;
           person_name: string | null;
         };
         ComputedFields: never;
@@ -4357,15 +4357,15 @@ export type Database = {
       };
       time_entries: {
         Row: {
-          break_minutes: number | null;
-          clock_in: string | null;
+          break_minutes: number;
+          clock_in: string;
           clock_out: string | null;
           engagement_id: string | null;
-          id: string | null;
-          project_id: string | null;
+          id: string;
+          project_id: string;
           roster_entry_id: string | null;
           shift_id: string | null;
-          source: Database["app"]["Enums"]["time_entry_source"] | null;
+          source: Database["app"]["Enums"]["time_entry_source"];
         };
         ComputedFields: never;
         Insert: {
@@ -4474,14 +4474,14 @@ export type Database = {
         Row: {
           decided_at: string | null;
           engagement_id: string | null;
-          id: string | null;
-          period_end: string | null;
-          period_start: string | null;
-          project_id: string | null;
-          project_name: string | null;
+          id: string;
+          period_end: string;
+          period_start: string;
+          project_id: string;
+          project_name: string;
           roster_entry_id: string | null;
           submitted_at: string | null;
-          timesheet_state: Database["app"]["Enums"]["timesheet_state"] | null;
+          timesheet_state: Database["app"]["Enums"]["timesheet_state"];
           worked_minutes: number | null;
         };
         ComputedFields: never;
@@ -4561,19 +4561,19 @@ export type Database = {
       travel: {
         Row: {
           arrives_at: string | null;
-          arrives_at_place: string | null;
-          arrives_time_zone: string | null;
+          arrives_at_place: string;
+          arrives_time_zone: string;
           confirmation_identifier: string | null;
-          departs_at: string | null;
-          departs_from: string | null;
-          departs_time_zone: string | null;
+          departs_at: string;
+          departs_from: string;
+          departs_time_zone: string;
           engagement_id: string | null;
-          id: string | null;
+          id: string;
           operator_name: string | null;
-          project_id: string | null;
-          project_name: string | null;
+          project_id: string;
+          project_name: string;
           service_identifier: string | null;
-          travel_mode: Database["app"]["Enums"]["travel_mode"] | null;
+          travel_mode: Database["app"]["Enums"]["travel_mode"];
         };
         ComputedFields: never;
         Relationships: [
@@ -4623,12 +4623,12 @@ export type Database = {
       };
       vendor_certificate_insureds: {
         Row: {
-          account_id: string | null;
-          certificate_id: string | null;
-          endorsement_kind: Database["app"]["Enums"]["endorsement_kind"] | null;
-          id: string | null;
-          insured_name: string | null;
-          org_id: string | null;
+          account_id: string;
+          certificate_id: string;
+          endorsement_kind: Database["app"]["Enums"]["endorsement_kind"];
+          id: string;
+          insured_name: string;
+          org_id: string;
         };
         ComputedFields: never;
         Relationships: [
@@ -4657,18 +4657,18 @@ export type Database = {
       };
       vendor_insurance_certificates: {
         Row: {
-          account_id: string | null;
+          account_id: string;
           coverage_limit_minor: number | null;
-          coverage_type: string | null;
+          coverage_type: string;
           currency_code: string | null;
-          id: string | null;
-          insurer: string | null;
+          id: string;
+          insurer: string;
           is_current: boolean | null;
-          org_id: string | null;
-          org_name: string | null;
-          policy_identifier: string | null;
-          valid_from: string | null;
-          valid_to: string | null;
+          org_id: string;
+          org_name: string;
+          policy_identifier: string;
+          valid_from: string;
+          valid_to: string;
         };
         ComputedFields: never;
         Relationships: [
@@ -4690,14 +4690,14 @@ export type Database = {
       };
       vendor_prequalifications: {
         Row: {
-          account_id: string | null;
+          account_id: string;
           decided_at: string | null;
           decision: Database["app"]["Enums"]["approval_decision"] | null;
-          id: string | null;
+          id: string;
           is_current: boolean | null;
-          org_id: string | null;
-          org_name: string | null;
-          scope: string | null;
+          org_id: string;
+          org_name: string;
+          scope: string;
           valid_to: string | null;
         };
         ComputedFields: never;
@@ -77245,17 +77245,17 @@ export type Database = {
       accommodation_block_nights: {
         Row: {
           assigned: number | null;
-          block_id: string | null;
-          block_number: number | null;
+          block_id: string;
+          block_number: number;
           currency_code: string | null;
           free: number | null;
           night: string | null;
           nightly_rate_minor: number | null;
-          org_id: string | null;
-          project_id: string | null;
+          org_id: string;
+          project_id: string;
           release_on: string | null;
-          rooms_held: number | null;
-          title: string | null;
+          rooms_held: number;
+          title: string;
         };
         ComputedFields: never;
         Relationships: [
@@ -77320,10 +77320,10 @@ export type Database = {
       activity_export: {
         Row: {
           actor_person_id: string | null;
-          created_at: string | null;
-          domain_event_id: string | null;
-          id: string | null;
-          org_id: string | null;
+          created_at: string;
+          domain_event_id: string;
+          id: string;
+          org_id: string;
           project_id: string | null;
         };
         ComputedFields: never;
@@ -77384,9 +77384,9 @@ export type Database = {
           lost_quantity: number | null;
           offering: Database["app"]["Enums"]["offering_kind"] | null;
           on_order_quantity: number | null;
-          org_id: string | null;
+          org_id: string;
           party_label: string | null;
-          project_id: string | null;
+          project_id: string;
           received_quantity: number | null;
           requested_quantity: number | null;
           reserved_quantity: number | null;
@@ -77397,8 +77397,8 @@ export type Database = {
       };
       advance_allocation_status: {
         Row: {
-          allocation_id: string | null;
-          allocation_state: Database["app"]["Enums"]["allocation_state"] | null;
+          allocation_id: string;
+          allocation_state: Database["app"]["Enums"]["allocation_state"];
           awaiting_order: boolean | null;
           confirmed: boolean | null;
           decided_at: string | null;
@@ -77411,14 +77411,14 @@ export type Database = {
           kind: string | null;
           lost_quantity: number | null;
           needed_during: unknown;
-          needed_time_zone: string | null;
+          needed_time_zone: string;
           offering: Database["app"]["Enums"]["offering_kind"] | null;
           on_order_quantity: number | null;
-          org_id: string | null;
-          origin: Database["app"]["Enums"]["allocation_origin"] | null;
+          org_id: string;
+          origin: Database["app"]["Enums"]["allocation_origin"];
           parent_allocation_id: string | null;
-          project_id: string | null;
-          quantity: number | null;
+          project_id: string;
+          quantity: number;
           received_quantity: number | null;
           requested_by: string | null;
           reserved_quantity: number | null;
@@ -77431,22 +77431,22 @@ export type Database = {
       };
       advance_progress: {
         Row: {
-          advance_packet_id: string | null;
-          advance_recipient_id: string | null;
-          advance_section_id: string | null;
+          advance_packet_id: string;
+          advance_recipient_id: string;
+          advance_section_id: string;
           cell_state: string | null;
           due_at: string | null;
           latest_submission_id: string | null;
-          org_id: string | null;
+          org_id: string;
           overdue: boolean | null;
-          packet_title: string | null;
-          position: number | null;
-          project_id: string | null;
+          packet_title: string;
+          position: number;
+          project_id: string;
           recipient_engagement_id: string | null;
           recipient_label: string | null;
           recipient_open: boolean | null;
-          section_kind: Database["app"]["Enums"]["advance_section_kind"] | null;
-          section_title: string | null;
+          section_kind: Database["app"]["Enums"]["advance_section_kind"];
+          section_title: string;
           submitted_at: string | null;
         };
         ComputedFields: never;
@@ -77532,11 +77532,11 @@ export type Database = {
       };
       advance_track_progress: {
         Row: {
-          advance_packet_id: string | null;
-          advance_recipient_id: string | null;
-          org_id: string | null;
+          advance_packet_id: string;
+          advance_recipient_id: string;
+          org_id: string;
           overdue: boolean | null;
-          project_id: string | null;
+          project_id: string;
           recipient_label: string | null;
           sections_done: number | null;
           sections_outstanding: number | null;
@@ -77544,7 +77544,7 @@ export type Database = {
           signed_off_at: string | null;
           signed_off_by_name: string | null;
           signoff_id: string | null;
-          track: Database["app"]["Enums"]["advance_track"] | null;
+          track: Database["app"]["Enums"]["advance_track"];
           track_state: string | null;
         };
         ComputedFields: never;
@@ -77629,17 +77629,17 @@ export type Database = {
       };
       allocations_ready_to_consolidate: {
         Row: {
-          allocation_id: string | null;
-          allocation_state: Database["app"]["Enums"]["allocation_state"] | null;
+          allocation_id: string;
+          allocation_state: Database["app"]["Enums"]["allocation_state"];
           asset_class_id: string | null;
-          class_name: string | null;
+          class_name: string;
           engagement_id: string | null;
           holder_name: string | null;
           needed_during: unknown;
-          org_id: string | null;
+          org_id: string;
           party_name: string | null;
-          project_id: string | null;
-          quantity: number | null;
+          project_id: string;
+          quantity: number;
           roster_entry_id: string | null;
         };
         ComputedFields: never;
@@ -77750,9 +77750,9 @@ export type Database = {
           applicant_name: string | null;
           applicant_organization_id: string | null;
           applicant_person_id: string | null;
-          application_id: string | null;
-          application_state: Database["app"]["Enums"]["application_state"] | null;
-          availability_confirmed: boolean | null;
+          application_id: string;
+          application_state: Database["app"]["Enums"]["application_state"];
+          availability_confirmed: boolean;
           bid_currency_code: string | null;
           bid_sealed: boolean | null;
           bid_total_minor: number | null;
@@ -77768,15 +77768,15 @@ export type Database = {
           offer_rate_type: Database["app"]["Enums"]["rate_type"] | null;
           offer_state: Database["app"]["Enums"]["offer_state"] | null;
           offer_turn_side: Database["app"]["Enums"]["offer_side"] | null;
-          opportunity_id: string | null;
-          opportunity_title: string | null;
-          org_id: string | null;
-          project_id: string | null;
-          project_key: string | null;
+          opportunity_id: string;
+          opportunity_title: string;
+          org_id: string;
+          project_id: string;
+          project_key: string;
           proposed_fee_minor: number | null;
-          role_type: Database["app"]["Enums"]["external_role_type"] | null;
+          role_type: Database["app"]["Enums"]["external_role_type"];
           shortlist_rank: number | null;
-          submitted_at: string | null;
+          submitted_at: string;
         };
         ComputedFields: never;
         Relationships: [
@@ -77900,10 +77900,10 @@ export type Database = {
       };
       asset_lot_balances: {
         Row: {
-          asset_lot_id: string | null;
+          asset_lot_id: string;
           on_hand: number | null;
-          opening_quantity: number | null;
-          org_id: string | null;
+          opening_quantity: number;
+          org_id: string;
         };
         ComputedFields: never;
         Insert: {
@@ -77930,20 +77930,20 @@ export type Database = {
       };
       asset_maintenance_due: {
         Row: {
-          asset_class_id: string | null;
-          asset_tag: string | null;
-          asset_unit_id: string | null;
-          class_name: string | null;
+          asset_class_id: string;
+          asset_tag: string;
+          asset_unit_id: string;
+          class_name: string;
           due_on: string | null;
           due_status: string | null;
           every_count: number | null;
           every_unit: Database["app"]["Enums"]["maintenance_interval_unit"] | null;
-          first_due_on: string | null;
+          first_due_on: string;
           instructions: string | null;
           last_performed_on: string | null;
-          org_id: string | null;
-          plan_id: string | null;
-          title: string | null;
+          org_id: string;
+          plan_id: string;
+          title: string;
         };
         ComputedFields: never;
         Relationships: [
@@ -77983,10 +77983,10 @@ export type Database = {
       asset_unit_hire: {
         Row: {
           acquisition_kind: Database["app"]["Enums"]["acquisition_kind"] | null;
-          asset_unit_id: string | null;
+          asset_unit_id: string;
           hire_ends_at: string | null;
           off_hire_due: boolean | null;
-          org_id: string | null;
+          org_id: string;
         };
         ComputedFields: never;
         Relationships: [
@@ -78001,20 +78001,20 @@ export type Database = {
       };
       asset_unit_provenance: {
         Row: {
-          acquisition_kind: Database["app"]["Enums"]["acquisition_kind"] | null;
-          asset_unit_id: string | null;
-          currency_code: string | null;
-          goods_receipt_id: string | null;
+          acquisition_kind: Database["app"]["Enums"]["acquisition_kind"];
+          asset_unit_id: string;
+          currency_code: string;
+          goods_receipt_id: string;
           hire_period: unknown;
-          org_id: string | null;
-          po_line_id: string | null;
-          po_number: number | null;
-          project_id: string | null;
-          purchase_order_id: string | null;
+          org_id: string;
+          po_line_id: string;
+          po_number: number;
+          project_id: string;
+          purchase_order_id: string;
           receipt_line_id: string | null;
-          received_at: string | null;
+          received_at: string;
           unit_price_minor: number | null;
-          vendor_id: string | null;
+          vendor_id: string;
         };
         ComputedFields: never;
         Relationships: [
@@ -78099,18 +78099,18 @@ export type Database = {
       };
       attachment_review_status: {
         Row: {
-          attachment_id: string | null;
-          attachment_version_id: string | null;
+          attachment_id: string;
+          attachment_version_id: string;
           decision: Database["app"]["Enums"]["file_review_decision"] | null;
           is_current: boolean | null;
           note: string | null;
-          org_id: string | null;
+          org_id: string;
           reviewed_at: string | null;
           reviewer_person_id: string | null;
-          scan_status: Database["app"]["Enums"]["scan_status"] | null;
-          subject_id: string | null;
-          subject_table: string | null;
-          version_number: number | null;
+          scan_status: Database["app"]["Enums"]["scan_status"];
+          subject_id: string;
+          subject_table: string;
+          version_number: number;
         };
         ComputedFields: never;
         Relationships: [
@@ -78153,9 +78153,9 @@ export type Database = {
       };
       bid_totals: {
         Row: {
-          application_id: string | null;
-          bid_id: string | null;
-          currency_code: string | null;
+          application_id: string;
+          bid_id: string;
+          currency_code: string;
           total_minor: number | null;
           unpriced_line_count: number | null;
         };
@@ -78186,8 +78186,8 @@ export type Database = {
       };
       brand_fonts: {
         Row: {
-          font_family: string | null;
-          sort_order: number | null;
+          font_family: string;
+          sort_order: number;
         };
         ComputedFields: never;
         Insert: {
@@ -78203,15 +78203,15 @@ export type Database = {
       budget_forecast_totals: {
         Row: {
           actual_minor: number | null;
-          budget_id: string | null;
+          budget_id: string;
           committed_minor: number | null;
-          currency_code: string | null;
+          currency_code: string;
           current_budget_minor: number | null;
           efc_minor: number | null;
           etc_minor: number | null;
           forward_exposure_minor: number | null;
           is_withheld: boolean | null;
-          project_id: string | null;
+          project_id: string;
           remaining_commitment_minor: number | null;
           unallocated_change_minor: number | null;
           variance_at_completion_minor: number | null;
@@ -78273,8 +78273,8 @@ export type Database = {
         Row: {
           account_code: string | null;
           actual_minor: number | null;
-          budget_id: string | null;
-          budget_line_id: string | null;
+          budget_id: string;
+          budget_line_id: string;
           drawn_in_minor: number | null;
           drawn_out_minor: number | null;
           expense_actual_minor: number | null;
@@ -78283,8 +78283,8 @@ export type Database = {
           labor_actual_minor: number | null;
           labor_other_currency_count: number | null;
           labor_unpriced_minutes: number | null;
-          line_type: Database["app"]["Enums"]["budget_line_type"] | null;
-          urid: string | null;
+          line_type: Database["app"]["Enums"]["budget_line_type"];
+          urid: string;
         };
         ComputedFields: never;
         Relationships: [
@@ -78376,14 +78376,14 @@ export type Database = {
       };
       budget_line_commitments: {
         Row: {
-          budget_id: string | null;
-          budget_line_id: string | null;
+          budget_id: string;
+          budget_line_id: string;
           committed_minor: number | null;
-          currency_code: string | null;
+          currency_code: string;
           is_committed_withheld: boolean | null;
           other_currency_po_line_count: number | null;
           po_line_count: number | null;
-          project_id: string | null;
+          project_id: string;
         };
         ComputedFields: never;
         Relationships: [
@@ -78442,27 +78442,27 @@ export type Database = {
         Row: {
           account_code: string | null;
           actual_minor: number | null;
-          budget_id: string | null;
-          budget_line_id: string | null;
+          budget_id: string;
+          budget_line_id: string;
           committed_minor: number | null;
           cost_center_code: string | null;
           cost_center_id: string | null;
-          currency_code: string | null;
+          currency_code: string;
           dept_code: string | null;
-          description: string | null;
+          description: string;
           drawn_in_minor: number | null;
           drawn_out_minor: number | null;
           element_id: string | null;
           extended_minor: number | null;
           grade_code: string | null;
-          is_baseline: boolean | null;
+          is_baseline: boolean;
           is_committed_withheld: boolean | null;
           is_unpriced: boolean | null;
-          line_number: number | null;
-          line_type: Database["app"]["Enums"]["budget_line_type"] | null;
+          line_number: number;
+          line_type: Database["app"]["Enums"]["budget_line_type"];
           other_currency_po_line_count: number | null;
-          project_id: string | null;
-          urid: string | null;
+          project_id: string;
+          urid: string;
         };
         ComputedFields: never;
         Relationships: [
@@ -78527,17 +78527,17 @@ export type Database = {
       budget_line_forecasts: {
         Row: {
           actual_minor: number | null;
-          budget_id: string | null;
-          budget_line_id: string | null;
+          budget_id: string;
+          budget_line_id: string;
           committed_minor: number | null;
-          currency_code: string | null;
+          currency_code: string;
           current_budget_minor: number | null;
           efc_minor: number | null;
           etc_minor: number | null;
           etc_source: string | null;
           forward_exposure_minor: number | null;
           is_withheld: boolean | null;
-          project_id: string | null;
+          project_id: string;
           remaining_commitment_minor: number | null;
           variance_at_completion_minor: number | null;
         };
@@ -78596,8 +78596,8 @@ export type Database = {
       };
       budget_line_labor_totals: {
         Row: {
-          budget_id: string | null;
-          budget_line_id: string | null;
+          budget_id: string;
+          budget_line_id: string;
           labor_actual_minor: number | null;
           labor_other_currency_count: number | null;
           labor_unpriced_minutes: number | null;
@@ -78610,14 +78610,14 @@ export type Database = {
           assigned_minor: number | null;
           assigned_room_nights: number | null;
           block_count: number | null;
-          budget_id: string | null;
-          budget_line_id: string | null;
-          currency_code: string | null;
+          budget_id: string;
+          budget_line_id: string;
+          currency_code: string;
           held_minor: number | null;
           held_room_nights: number | null;
           is_lodging_withheld: boolean | null;
           other_currency_block_count: number | null;
-          project_id: string | null;
+          project_id: string;
         };
         ComputedFields: never;
         Relationships: [
@@ -78674,18 +78674,18 @@ export type Database = {
       };
       budget_line_prices: {
         Row: {
-          budget_id: string | null;
-          budget_line_id: string | null;
+          budget_id: string;
+          budget_line_id: string;
           client_extended_minor: number | null;
           client_price_source: string | null;
           client_unit_price_minor: number | null;
           cost_extended_minor: number | null;
-          currency_code: string | null;
+          currency_code: string;
           effective_markup_bp: number | null;
-          excluded_from_quote: boolean | null;
+          excluded_from_quote: boolean;
           margin_minor: number | null;
           markup_source: string | null;
-          project_id: string | null;
+          project_id: string;
         };
         ComputedFields: never;
         Relationships: [
@@ -78826,14 +78826,14 @@ export type Database = {
       };
       budget_price_totals: {
         Row: {
-          budget_id: string | null;
+          budget_id: string;
           client_priced_total_minor: number | null;
           client_total_minor: number | null;
           client_unpriced_count: number | null;
-          currency_code: string | null;
+          currency_code: string;
           included_line_count: number | null;
           margin_minor: number | null;
-          project_id: string | null;
+          project_id: string;
         };
         ComputedFields: never;
         Relationships: [
@@ -78893,11 +78893,11 @@ export type Database = {
           actual_minor: number | null;
           approved_change_count: number | null;
           approved_change_minor: number | null;
-          budget_id: string | null;
-          currency_code: string | null;
+          budget_id: string;
+          currency_code: string;
           line_count: number | null;
           priced_total_minor: number | null;
-          project_id: string | null;
+          project_id: string;
           revised_total_minor: number | null;
           total_minor: number | null;
           unpriced_count: number | null;
@@ -78958,11 +78958,11 @@ export type Database = {
       budget_totals: {
         Row: {
           actual_minor: number | null;
-          budget_id: string | null;
-          currency_code: string | null;
+          budget_id: string;
+          currency_code: string;
           line_count: number | null;
           priced_total_minor: number | null;
-          project_id: string | null;
+          project_id: string;
           total_minor: number | null;
           unpriced_count: number | null;
         };
@@ -79021,11 +79021,11 @@ export type Database = {
       };
       budget_version_totals: {
         Row: {
-          budget_id: string | null;
-          budget_version_id: string | null;
+          budget_id: string;
+          budget_version_id: string;
           client_total_minor: number | null;
           client_unpriced_count: number | null;
-          currency_code: string | null;
+          currency_code: string;
           line_count: number | null;
           margin_minor: number | null;
           priced_total_minor: number | null;
@@ -79130,17 +79130,17 @@ export type Database = {
       change_order_line_facts: {
         Row: {
           account_code: string | null;
-          budget_id: string | null;
+          budget_id: string;
           budget_line_id: string | null;
-          change_order_id: string | null;
-          change_order_line_id: string | null;
-          change_order_state: Database["app"]["Enums"]["change_order_state"] | null;
+          change_order_id: string;
+          change_order_line_id: string;
+          change_order_state: Database["app"]["Enums"]["change_order_state"];
           cost_center_id: string | null;
           dept_code: string | null;
           extended_minor: number | null;
           is_unpriced: boolean | null;
-          project_id: string | null;
-          urid: string | null;
+          project_id: string;
+          urid: string;
         };
         ComputedFields: never;
         Relationships: [
@@ -79351,9 +79351,9 @@ export type Database = {
       };
       change_order_totals: {
         Row: {
-          change_order_id: string | null;
+          change_order_id: string;
           line_count: number | null;
-          project_id: string | null;
+          project_id: string;
           total_minor: number | null;
           unpriced_count: number | null;
         };
@@ -79405,10 +79405,10 @@ export type Database = {
       };
       column_classifications: {
         Row: {
-          classification: Database["app"]["Enums"]["data_classification"] | null;
-          column_name: string | null;
+          classification: Database["app"]["Enums"]["data_classification"];
+          column_name: string;
           read_capability: string | null;
-          table_name: string | null;
+          table_name: string;
         };
         ComputedFields: never;
         Insert: {
@@ -79423,11 +79423,19 @@ export type Database = {
           read_capability?: string | null;
           table_name?: string | null;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "column_classifications_read_capability_fkey";
+            columns: ["read_capability"];
+            isOneToOne: false;
+            referencedRelation: "capabilities";
+            referencedColumns: ["code"];
+          },
+        ];
       };
       comment_subjects: {
         Row: {
-          table_name: string | null;
+          table_name: string;
         };
         ComputedFields: never;
         Insert: {
@@ -79440,9 +79448,9 @@ export type Database = {
       };
       consent_purposes: {
         Row: {
-          code: string | null;
-          lawful_basis: string | null;
-          sort_order: number | null;
+          code: string;
+          lawful_basis: string;
+          sort_order: number;
         };
         ComputedFields: never;
         Insert: {
@@ -79459,9 +79467,9 @@ export type Database = {
       };
       credential_photo_states: {
         Row: {
-          credential_id: string | null;
-          holder_person_id: string | null;
-          org_id: string | null;
+          credential_id: string;
+          holder_person_id: string;
+          org_id: string;
           photo_state: Database["app"]["Enums"]["credential_photo_state"] | null;
           provided_at: string | null;
           requested_at: string | null;
@@ -79488,17 +79496,17 @@ export type Database = {
       crew_access_link_list: {
         Row: {
           engagement_id: string | null;
-          expires_at: string | null;
-          failed_attempts: number | null;
-          id: string | null;
+          expires_at: string;
+          failed_attempts: number;
+          id: string;
           last_opened_at: string | null;
           link_status: string | null;
           membership_id: string | null;
-          open_count: number | null;
-          org_id: string | null;
+          open_count: number;
+          org_id: string;
           person_name: string | null;
-          project_id: string | null;
-          project_name: string | null;
+          project_id: string;
+          project_name: string;
           revoked_at: string | null;
           roster_entry_id: string | null;
         };
@@ -79606,13 +79614,13 @@ export type Database = {
       };
       crew_ratings: {
         Row: {
-          id: string | null;
-          org_id: string | null;
+          id: string;
+          org_id: string;
           party_name: string | null;
-          project_id: string | null;
+          project_id: string;
           role_type: string | null;
-          score: number | null;
-          submitted_at: string | null;
+          score: number;
+          submitted_at: string;
         };
         ComputedFields: never;
         Relationships: [
@@ -79669,17 +79677,17 @@ export type Database = {
       };
       crew_registration_list: {
         Row: {
-          confirmed_minimum_age: number | null;
+          confirmed_minimum_age: number;
           decided_at: string | null;
           full_name: string | null;
-          id: string | null;
-          org_id: string | null;
-          page_title: string | null;
-          person_id: string | null;
+          id: string;
+          org_id: string;
+          page_title: string;
+          person_id: string;
           profile_share_id: string | null;
-          registration_page_id: string | null;
-          registration_state: Database["app"]["Enums"]["crew_registration_state"] | null;
-          submitted_at: string | null;
+          registration_page_id: string;
+          registration_state: Database["app"]["Enums"]["crew_registration_state"];
+          submitted_at: string;
         };
         ComputedFields: never;
         Relationships: [
@@ -79717,12 +79725,12 @@ export type Database = {
         Row: {
           engagement_party: string | null;
           from_state: string | null;
-          id: string | null;
-          org_id: string | null;
+          id: string;
+          org_id: string;
           person_name: string | null;
-          project_id: string | null;
-          reason: string | null;
-          removed_at: string | null;
+          project_id: string;
+          reason: string;
+          removed_at: string;
           removed_by_name: string | null;
           role_code: string | null;
         };
@@ -79798,12 +79806,12 @@ export type Database = {
         Row: {
           actual_hours: number | null;
           no_show: boolean | null;
-          org_id: string | null;
-          project_id: string | null;
+          org_id: string;
+          project_id: string;
           role_code: string | null;
           scheduled_hours: number | null;
-          shift_id: string | null;
-          starts_at: string | null;
+          shift_id: string;
+          starts_at: string;
           variance_hours: number | null;
           worker_kind: string | null;
           worker_name: string | null;
@@ -79863,8 +79871,8 @@ export type Database = {
       };
       currencies: {
         Row: {
-          currency_code: string | null;
-          minor_unit_exponent: number | null;
+          currency_code: string;
+          minor_unit_exponent: number;
         };
         ComputedFields: never;
         Insert: {
@@ -79879,11 +79887,11 @@ export type Database = {
       };
       current_legal_acceptances: {
         Row: {
-          accepted_at: string | null;
-          document_slug: string | null;
-          document_version: string | null;
+          accepted_at: string;
+          document_slug: string;
+          document_version: string;
           org_id: string | null;
-          person_id: string | null;
+          person_id: string;
         };
         ComputedFields: never;
         Relationships: [
@@ -79905,7 +79913,7 @@ export type Database = {
       };
       custom_field_targets: {
         Row: {
-          table_name: string | null;
+          table_name: string;
         };
         ComputedFields: never;
         Insert: {
@@ -79918,9 +79926,9 @@ export type Database = {
       };
       domain_event_catalog: {
         Row: {
-          code: string | null;
-          description: string | null;
-          subject: string | null;
+          code: string;
+          description: string;
+          subject: string;
         };
         ComputedFields: never;
         Insert: {
@@ -79937,12 +79945,12 @@ export type Database = {
       };
       dsar_request_clock: {
         Row: {
-          dsar_request_id: string | null;
-          dsar_state: Database["app"]["Enums"]["dsar_state"] | null;
+          dsar_request_id: string;
+          dsar_state: Database["app"]["Enums"]["dsar_state"];
           due_at: string | null;
           is_overdue: boolean | null;
-          org_id: string | null;
-          received_at: string | null;
+          org_id: string;
+          received_at: string;
         };
         ComputedFields: never;
         Insert: {
@@ -79973,9 +79981,9 @@ export type Database = {
       };
       email_templates: {
         Row: {
-          code: string | null;
-          description: string | null;
-          transactional: boolean | null;
+          code: string;
+          description: string;
+          transactional: boolean;
         };
         ComputedFields: never;
         Insert: {
@@ -79992,8 +80000,8 @@ export type Database = {
       };
       employment_statuses: {
         Row: {
-          label: string | null;
-          sort_order: number | null;
+          label: string;
+          sort_order: number;
         };
         ComputedFields: never;
         Insert: {
@@ -80014,23 +80022,23 @@ export type Database = {
           deliverables_to_review: number | null;
           documents_in_flight: number | null;
           end_date: string | null;
-          engagement_id: string | null;
-          engagement_state: Database["app"]["Enums"]["engagement_state"] | null;
+          engagement_id: string;
+          engagement_state: Database["app"]["Enums"]["engagement_state"];
           job_title: string | null;
           onboarding_item_count: number | null;
           open_blocking_count: number | null;
-          org_id: string | null;
+          org_id: string;
           org_rated: boolean | null;
           party_name: string | null;
           party_rated: boolean | null;
           person_id: string | null;
-          project_id: string | null;
-          project_key: string | null;
-          project_name: string | null;
+          project_id: string;
+          project_key: string;
+          project_name: string;
           ratings_released: boolean | null;
           role_code: string | null;
-          role_type: Database["app"]["Enums"]["external_role_type"] | null;
-          start_date: string | null;
+          role_type: Database["app"]["Enums"]["external_role_type"];
+          start_date: string;
           worker_classification: string | null;
         };
         ComputedFields: never;
@@ -80119,18 +80127,18 @@ export type Database = {
           body: string | null;
           body_masked: boolean | null;
           body_sha256: string | null;
-          created_at: string | null;
-          document_kind: Database["app"]["Enums"]["engagement_document_kind"] | null;
-          engagement_document_batch_id: string | null;
-          engagement_document_id: string | null;
-          engagement_document_state: Database["app"]["Enums"]["engagement_document_state"] | null;
-          engagement_id: string | null;
-          org_id: string | null;
-          project_id: string | null;
+          created_at: string;
+          document_kind: Database["app"]["Enums"]["engagement_document_kind"];
+          engagement_document_batch_id: string;
+          engagement_document_id: string;
+          engagement_document_state: Database["app"]["Enums"]["engagement_document_state"];
+          engagement_id: string;
+          org_id: string;
+          project_id: string;
           signed_at: string | null;
           signed_body_sha256: string | null;
           signed_name: string | null;
-          title: string | null;
+          title: string;
         };
         ComputedFields: never;
         Relationships: [
@@ -80229,15 +80237,15 @@ export type Database = {
       };
       engagement_insured_checks: {
         Row: {
-          endorsement_kind: Database["app"]["Enums"]["endorsement_kind"] | null;
-          engagement_id: string | null;
-          insured_name: string | null;
+          endorsement_kind: Database["app"]["Enums"]["endorsement_kind"];
+          engagement_id: string;
+          insured_name: string;
           named_on_certificate_id: string | null;
-          org_id: string | null;
-          project_id: string | null;
+          org_id: string;
+          project_id: string;
           project_specific: boolean | null;
-          required_insured_id: string | null;
-          vendor_id: string | null;
+          required_insured_id: string;
+          vendor_id: string;
         };
         ComputedFields: never;
         Relationships: [
@@ -80299,24 +80307,24 @@ export type Database = {
           dt_multiplier: number | null;
           employment_status: string | null;
           end_date: string | null;
-          engagement_id: string | null;
-          engagement_state: Database["app"]["Enums"]["engagement_state"] | null;
+          engagement_id: string;
+          engagement_state: Database["app"]["Enums"]["engagement_state"];
           flsa_status: string | null;
           is_masked: boolean | null;
           job_title: string | null;
           labor_agreement_id: string | null;
-          org_id: string | null;
+          org_id: string;
           ot_multiplier: number | null;
           pay_basis: string | null;
           payment_channel: string | null;
           person_id: string | null;
-          project_id: string | null;
+          project_id: string;
           rate_card_id: string | null;
           rate_currency_code: string | null;
           rate_minor: number | null;
           role_code: string | null;
-          role_type: Database["app"]["Enums"]["external_role_type"] | null;
-          start_date: string | null;
+          role_type: Database["app"]["Enums"]["external_role_type"];
+          start_date: string;
           worker_classification: string | null;
         };
         ComputedFields: never;
@@ -80409,10 +80417,10 @@ export type Database = {
       };
       expense_balances: {
         Row: {
-          budget_line_id: string | null;
+          budget_line_id: string;
           creditable_minor: number | null;
           credited_minor: number | null;
-          expense_id: string | null;
+          expense_id: string;
           is_balance_withheld: boolean | null;
           is_credit: boolean | null;
           net_minor: number | null;
@@ -80496,16 +80504,16 @@ export type Database = {
       };
       expense_budget_lines: {
         Row: {
-          budget_id: string | null;
-          budget_name: string | null;
-          currency_code: string | null;
-          description: string | null;
-          id: string | null;
-          is_baseline: boolean | null;
-          line_number: number | null;
-          org_id: string | null;
-          project_id: string | null;
-          urid: string | null;
+          budget_id: string;
+          budget_name: string;
+          currency_code: string;
+          description: string;
+          id: string;
+          is_baseline: boolean;
+          line_number: number;
+          org_id: string;
+          project_id: string;
+          urid: string;
         };
         ComputedFields: never;
         Relationships: [
@@ -80569,10 +80577,10 @@ export type Database = {
       };
       feature_flags: {
         Row: {
-          default_enabled: boolean | null;
-          description: string | null;
-          flag_key: string | null;
-          kill_switch: boolean | null;
+          default_enabled: boolean;
+          description: string;
+          flag_key: string;
+          kill_switch: boolean;
           required_plan_feature: Database["app"]["Enums"]["plan_feature_code"] | null;
         };
         ComputedFields: never;
@@ -80594,8 +80602,8 @@ export type Database = {
       };
       flsa_statuses: {
         Row: {
-          label: string | null;
-          sort_order: number | null;
+          label: string;
+          sort_order: number;
         };
         ComputedFields: never;
         Insert: {
@@ -80611,12 +80619,12 @@ export type Database = {
       gate_criteria_status: {
         Row: {
           best_assertion_rank: number | null;
-          criterion_id: string | null;
+          criterion_id: string;
           evidence_count: number | null;
-          gate: number | null;
+          gate: number;
           gate_passed: boolean | null;
-          is_blocking: boolean | null;
-          project_id: string | null;
+          is_blocking: boolean;
+          project_id: string;
         };
         ComputedFields: never;
         Relationships: [];
@@ -80624,10 +80632,10 @@ export type Database = {
       geofence_shapes: {
         Row: {
           boundary_geojson: Json | null;
-          id: string | null;
-          name: string | null;
-          org_id: string | null;
-          venue_id: string | null;
+          id: string;
+          name: string;
+          org_id: string;
+          venue_id: string;
           zone_id: string | null;
         };
         ComputedFields: never;
@@ -80673,12 +80681,12 @@ export type Database = {
       };
       goods_receipt_export: {
         Row: {
-          id: string | null;
+          id: string;
           note: string | null;
-          org_id: string | null;
-          project_id: string | null;
-          purchase_order_id: string | null;
-          received_at: string | null;
+          org_id: string;
+          project_id: string;
+          purchase_order_id: string;
+          received_at: string;
           received_by: string | null;
         };
         ComputedFields: never;
@@ -80764,10 +80772,10 @@ export type Database = {
       };
       import_target_fields: {
         Row: {
-          field_name: string | null;
-          required: boolean | null;
-          strong_key: boolean | null;
-          target_code: string | null;
+          field_name: string;
+          required: boolean;
+          strong_key: boolean;
+          target_code: string;
         };
         ComputedFields: never;
         Insert: {
@@ -80782,15 +80790,23 @@ export type Database = {
           strong_key?: boolean | null;
           target_code?: string | null;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "import_target_fields_target_code_fkey";
+            columns: ["target_code"];
+            isOneToOne: false;
+            referencedRelation: "import_targets";
+            referencedColumns: ["code"];
+          },
+        ];
       };
       import_targets: {
         Row: {
-          code: string | null;
+          code: string;
           destination: string | null;
-          fuzzy_match: boolean | null;
-          sort_order: number | null;
-          write_capability: string | null;
+          fuzzy_match: boolean;
+          sort_order: number;
+          write_capability: string;
         };
         ComputedFields: never;
         Insert: {
@@ -80807,7 +80823,15 @@ export type Database = {
           sort_order?: number | null;
           write_capability?: string | null;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "import_targets_write_capability_fkey";
+            columns: ["write_capability"];
+            isOneToOne: false;
+            referencedRelation: "capabilities";
+            referencedColumns: ["code"];
+          },
+        ];
       };
       inbox_items: {
         Row: {
@@ -80817,14 +80841,14 @@ export type Database = {
           approval_state: Database["app"]["Enums"]["approval_state"] | null;
           approver_membership_id: string | null;
           approver_role_id: string | null;
-          created_at: string | null;
+          created_at: string;
           currency_code: string | null;
           current_step: number | null;
           document_type: Database["app"]["Enums"]["spend_document_type"] | null;
-          id: string | null;
-          kind: string | null;
-          message_args: Json | null;
-          org_id: string | null;
+          id: string;
+          kind: string;
+          message_args: NonNullable<Json>;
+          org_id: string;
           project_id: string | null;
           read_at: string | null;
           section: string | null;
@@ -80925,14 +80949,14 @@ export type Database = {
       };
       insurance_certificate_checks: {
         Row: {
-          certificate_id: string | null;
+          certificate_id: string;
           insured_count: number | null;
           insureds_verified: boolean | null;
           is_current: boolean | null;
           missing_count: number | null;
-          org_id: string | null;
+          org_id: string;
           required_count: number | null;
-          vendor_id: string | null;
+          vendor_id: string;
         };
         ComputedFields: never;
         Relationships: [
@@ -80982,23 +81006,23 @@ export type Database = {
       };
       integration_ledger_queue: {
         Row: {
-          account_code: string | null;
+          account_code: string;
           amount_minor: number | null;
           cost_center_code: string | null;
           counterparty_id: string | null;
-          currency_code: string | null;
-          date: string | null;
-          description: string | null;
-          integration_connection_id: string | null;
-          journal_entry_id: string | null;
-          line_number: number | null;
-          memo: string | null;
-          minor_unit_exponent: number | null;
-          org_id: string | null;
-          posting_line_id: string | null;
+          currency_code: string;
+          date: string;
+          description: string;
+          integration_connection_id: string;
+          journal_entry_id: string;
+          line_number: number;
+          memo: string;
+          minor_unit_exponent: number;
+          org_id: string;
+          posting_line_id: string;
           project_id: string | null;
           quantity: number | null;
-          tax_type: string | null;
+          tax_type: string;
           unit_basis: string | null;
           urid: string | null;
         };
@@ -81078,16 +81102,16 @@ export type Database = {
       };
       integration_payment_queue: {
         Row: {
-          amount_minor: number | null;
+          amount_minor: number;
           counterparty_external_id: string | null;
           counterparty_id: string | null;
-          currency_code: string | null;
-          direction: Database["app"]["Enums"]["money_direction"] | null;
-          integration_connection_id: string | null;
-          minor_unit_exponent: number | null;
-          org_id: string | null;
-          paid_on: string | null;
-          payment_id: string | null;
+          currency_code: string;
+          direction: Database["app"]["Enums"]["money_direction"];
+          integration_connection_id: string;
+          minor_unit_exponent: number;
+          org_id: string;
+          paid_on: string;
+          payment_id: string;
           reference_identifier: string | null;
         };
         ComputedFields: never;
@@ -81117,11 +81141,11 @@ export type Database = {
       };
       integration_providers: {
         Row: {
-          category: Database["app"]["Enums"]["integration_category"] | null;
-          needs_credential: boolean | null;
-          provider_code: string | null;
+          category: Database["app"]["Enums"]["integration_category"];
+          needs_credential: boolean;
+          provider_code: string;
           required_feature: Database["app"]["Enums"]["plan_feature_code"] | null;
-          sort_order: number | null;
+          sort_order: number;
         };
         ComputedFields: never;
         Insert: {
@@ -81142,18 +81166,18 @@ export type Database = {
       };
       integration_route_events: {
         Row: {
-          data: Json | null;
-          domain_event_id: string | null;
-          event_type: string | null;
-          external_channel_id: string | null;
-          integration_channel_route_id: string | null;
-          integration_connection_id: string | null;
-          occurred_at: string | null;
-          org_id: string | null;
+          data: NonNullable<Json>;
+          domain_event_id: string;
+          event_type: string;
+          external_channel_id: string;
+          integration_channel_route_id: string;
+          integration_connection_id: string;
+          occurred_at: string;
+          org_id: string;
           project_id: string | null;
           project_name: string | null;
-          subject_id: string | null;
-          subject_table: string | null;
+          subject_id: string;
+          subject_table: string;
         };
         ComputedFields: never;
         Relationships: [
@@ -81238,12 +81262,12 @@ export type Database = {
       };
       invoice_match_results: {
         Row: {
-          goods_receipt_id: string | null;
-          invoice_id: string | null;
-          invoice_match_id: string | null;
+          goods_receipt_id: string;
+          invoice_id: string;
+          invoice_match_id: string;
           is_matched: boolean | null;
           is_resolved: boolean | null;
-          purchase_order_id: string | null;
+          purchase_order_id: string;
           variance_minor: number | null;
         };
         ComputedFields: never;
@@ -81316,7 +81340,7 @@ export type Database = {
       invoice_tie_out: {
         Row: {
           computed_total_minor: number | null;
-          invoice_id: string | null;
+          invoice_id: string;
           printed_total_minor: number | null;
           residual_minor: number | null;
         };
@@ -81326,10 +81350,10 @@ export type Database = {
       invoice_totals: {
         Row: {
           applied_minor: number | null;
-          currency_code: string | null;
-          direction: Database["app"]["Enums"]["money_direction"] | null;
-          invoice_id: string | null;
-          project_id: string | null;
+          currency_code: string;
+          direction: Database["app"]["Enums"]["money_direction"];
+          invoice_id: string;
+          project_id: string;
           subtotal_minor: number | null;
           tax_minor: number | null;
           unpriced_count: number | null;
@@ -81389,12 +81413,12 @@ export type Database = {
       };
       labor_budget_lines: {
         Row: {
-          budget_id: string | null;
-          budget_name: string | null;
-          description: string | null;
-          id: string | null;
-          line_number: number | null;
-          project_id: string | null;
+          budget_id: string;
+          budget_name: string;
+          description: string;
+          id: string;
+          line_number: number;
+          project_id: string;
         };
         ComputedFields: never;
         Relationships: [
@@ -81449,23 +81473,23 @@ export type Database = {
           currency_code: string | null;
           is_masked: boolean | null;
           is_unpriced: boolean | null;
-          minutes: number | null;
-          multiplier: number | null;
-          org_id: string | null;
+          minutes: number;
+          multiplier: number;
+          org_id: string;
           person_id: string | null;
           person_name: string | null;
-          posting_id: string | null;
-          project_id: string | null;
+          posting_id: string;
+          project_id: string;
           rate_minor: number | null;
           rate_source: Database["app"]["Enums"]["labor_rate_source"] | null;
           role_code: string | null;
-          segment: Database["app"]["Enums"]["labor_segment"] | null;
+          segment: Database["app"]["Enums"]["labor_segment"];
           shift_id: string | null;
           team_counterparty_id: string | null;
           team_kind: Database["app"]["Enums"]["labor_team_kind"] | null;
           team_name: string | null;
-          timesheet_id: string | null;
-          work_date: string | null;
+          timesheet_id: string;
+          work_date: string;
         };
         ComputedFields: never;
         Relationships: [];
@@ -81476,8 +81500,8 @@ export type Database = {
           currency_code: string | null;
           is_masked: boolean | null;
           minutes: number | null;
-          org_id: string | null;
-          project_id: string | null;
+          org_id: string;
+          project_id: string;
           team_counterparty_id: string | null;
           team_kind: Database["app"]["Enums"]["labor_team_kind"] | null;
           team_name: string | null;
@@ -81488,9 +81512,9 @@ export type Database = {
       };
       lifecycle_transition_rules: {
         Row: {
-          from_state: string | null;
-          lifecycle: string | null;
-          to_state: string | null;
+          from_state: string;
+          lifecycle: string;
+          to_state: string;
         };
         ComputedFields: never;
         Insert: {
@@ -81507,7 +81531,7 @@ export type Database = {
       };
       live_link_states: {
         Row: {
-          id: string | null;
+          id: string;
           link_state: string | null;
         };
         ComputedFields: never;
@@ -81523,41 +81547,57 @@ export type Database = {
       };
       measurement_metric_tags: {
         Row: {
-          metric_code: string | null;
-          tag: string | null;
-          tag_id: string | null;
+          metric_code: string;
+          tag: string;
+          tag_id: string;
         };
         ComputedFields: never;
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "measurement_metric_tags_metric_code_fkey";
+            columns: ["metric_code"];
+            isOneToOne: false;
+            referencedRelation: "measurement_metrics";
+            referencedColumns: ["metric_code"];
+          },
+        ];
       };
       measurement_metrics: {
         Row: {
-          aggregation: string | null;
-          base_unit_code: string | null;
+          aggregation: string;
+          base_unit_code: string;
           canon_domain: string | null;
           canon_item: string | null;
           canon_qualifier: string | null;
           canon_value_numeric: number | null;
           canon_value_text: string | null;
-          dimension: string | null;
-          family: string | null;
-          is_derived: boolean | null;
+          dimension: string;
+          family: string;
+          is_derived: boolean;
           lower_bound: number | null;
-          metric_code: string | null;
-          ordinal: number | null;
+          metric_code: string;
+          ordinal: number;
           upper_bound: number | null;
         };
         ComputedFields: never;
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "measurement_metrics_base_unit_fkey";
+            columns: ["base_unit_code", "dimension"];
+            isOneToOne: false;
+            referencedRelation: "measurement_units";
+            referencedColumns: ["unit_code", "dimension"];
+          },
+        ];
       };
       measurement_units: {
         Row: {
-          dimension: string | null;
-          factor_to_base: number | null;
-          is_display: boolean | null;
-          ordinal: number | null;
-          unit_code: string | null;
-          unit_system: string | null;
+          dimension: string;
+          factor_to_base: number;
+          is_display: boolean;
+          ordinal: number;
+          unit_code: string;
+          unit_system: string;
         };
         ComputedFields: never;
         Insert: {
@@ -81581,11 +81621,11 @@ export type Database = {
       medical_encounters_masked: {
         Row: {
           disposition: string | null;
-          id: string | null;
-          incident_id: string | null;
+          id: string;
+          incident_id: string;
           is_masked: boolean | null;
-          org_id: string | null;
-          patient_description: string | null;
+          org_id: string;
+          patient_description: string;
           treatment_notes: string | null;
         };
         ComputedFields: never;
@@ -81653,15 +81693,15 @@ export type Database = {
         Row: {
           due_at: string | null;
           ends_at: string | null;
-          id: string | null;
-          org_id: string | null;
-          project_id: string | null;
-          record_kind: string | null;
-          record_number: number | null;
-          record_state: string | null;
+          id: string;
+          org_id: string;
+          project_id: string;
+          record_kind: string;
+          record_number: number;
+          record_state: string;
           starts_at: string | null;
-          title: string | null;
-          updated_at: string | null;
+          title: string;
+          updated_at: string;
         };
         ComputedFields: never;
         Insert: {
@@ -81751,9 +81791,9 @@ export type Database = {
       };
       notification_categories: {
         Row: {
-          code: string | null;
-          sort_order: number | null;
-          urgent: boolean | null;
+          code: string;
+          sort_order: number;
+          urgent: boolean;
         };
         ComputedFields: never;
         Insert: {
@@ -81770,10 +81810,10 @@ export type Database = {
       };
       notification_templates: {
         Row: {
-          category_code: string | null;
-          channel: Database["app"]["Enums"]["notification_channel"] | null;
+          category_code: string;
+          channel: Database["app"]["Enums"]["notification_channel"];
           email_template_code: string | null;
-          kind: string | null;
+          kind: string;
         };
         ComputedFields: never;
         Insert: {
@@ -81788,18 +81828,33 @@ export type Database = {
           email_template_code?: string | null;
           kind?: string | null;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "notification_templates_category_code_fkey";
+            columns: ["category_code"];
+            isOneToOne: false;
+            referencedRelation: "notification_categories";
+            referencedColumns: ["code"];
+          },
+          {
+            foreignKeyName: "notification_templates_email_template_code_fkey";
+            columns: ["email_template_code"];
+            isOneToOne: false;
+            referencedRelation: "email_templates";
+            referencedColumns: ["code"];
+          },
+        ];
       };
       offboarding_open_records: {
         Row: {
-          offboarding_id: string | null;
-          org_id: string | null;
-          project_id: string | null;
-          record_id: string | null;
-          record_kind: string | null;
-          record_state: string | null;
+          offboarding_id: string;
+          org_id: string;
+          project_id: string;
+          record_id: string;
+          record_kind: string;
+          record_state: string;
           responsibility: string | null;
-          title: string | null;
+          title: string;
         };
         ComputedFields: never;
         Relationships: [
@@ -81864,19 +81919,19 @@ export type Database = {
       onboarding_item_status: {
         Row: {
           carried_over: boolean | null;
-          engagement_id: string | null;
+          engagement_id: string;
           expires_on: string | null;
-          is_blocking: boolean | null;
-          item_kind: Database["app"]["Enums"]["onboarding_item_kind"] | null;
+          is_blocking: boolean;
+          item_kind: Database["app"]["Enums"]["onboarding_item_kind"];
           latest_outcome: Database["app"]["Enums"]["verification_outcome"] | null;
-          name: string | null;
-          onboarding_item_id: string | null;
-          onboarding_requirement_id: string | null;
-          org_id: string | null;
+          name: string;
+          onboarding_item_id: string;
+          onboarding_requirement_id: string;
+          org_id: string;
           passes: boolean | null;
           reminder_due: boolean | null;
           submitted_at: string | null;
-          verification_method: Database["app"]["Enums"]["verification_method"] | null;
+          verification_method: Database["app"]["Enums"]["verification_method"];
         };
         ComputedFields: never;
         Relationships: [
@@ -81926,7 +81981,7 @@ export type Database = {
       };
       opportunity_position_counts: {
         Row: {
-          opportunity_id: string | null;
+          opportunity_id: string;
           position_count: number | null;
         };
         ComputedFields: never;
@@ -81935,22 +81990,22 @@ export type Database = {
       org_legal_entities_masked: {
         Row: {
           administrative_area: string | null;
-          base_currency: string | null;
-          country_code: string | null;
-          created_at: string | null;
+          base_currency: string;
+          country_code: string;
+          created_at: string;
           created_by: string | null;
-          fiscal_year_start_month: number | null;
-          id: string | null;
+          fiscal_year_start_month: number;
+          id: string;
           is_masked: boolean | null;
-          is_primary: boolean | null;
-          legal_name: string | null;
+          is_primary: boolean;
+          legal_name: string;
           locality: string | null;
-          org_id: string | null;
+          org_id: string;
           postal_code: string | null;
           street_address: string | null;
           tax_identifier: string | null;
           tax_identifier_last4: string | null;
-          updated_at: string | null;
+          updated_at: string;
           updated_by: string | null;
         };
         ComputedFields: never;
@@ -82027,14 +82082,14 @@ export type Database = {
       };
       pay_rates_masked: {
         Row: {
-          currency_code: string | null;
-          effective_from: string | null;
-          id: string | null;
+          currency_code: string;
+          effective_from: string;
+          id: string;
           is_masked: boolean | null;
-          membership_id: string | null;
-          org_id: string | null;
+          membership_id: string;
+          org_id: string;
           rate_minor: number | null;
-          role_code: string | null;
+          role_code: string;
         };
         ComputedFields: never;
         Insert: {
@@ -82083,12 +82138,12 @@ export type Database = {
       };
       pay_transparency_rules: {
         Row: {
-          applies_to_remote: boolean | null;
-          citation: string | null;
-          effective_from: string | null;
-          jurisdiction_id: string | null;
-          needs_counsel_review: boolean | null;
-          requires_pay_range: boolean | null;
+          applies_to_remote: boolean;
+          citation: string;
+          effective_from: string;
+          jurisdiction_id: string;
+          needs_counsel_review: boolean;
+          requires_pay_range: boolean;
         };
         ComputedFields: never;
         Insert: {
@@ -82113,13 +82168,13 @@ export type Database = {
         Row: {
           amount_minor: number | null;
           cost_center_id: string | null;
-          earning_code_id: string | null;
-          hours: number | null;
-          id: string | null;
+          earning_code_id: string;
+          hours: number;
+          id: string;
           is_masked: boolean | null;
-          membership_id: string | null;
-          org_id: string | null;
-          payroll_run_id: string | null;
+          membership_id: string;
+          org_id: string;
+          payroll_run_id: string;
           rate_minor: number | null;
           role_code: string | null;
         };
@@ -82190,8 +82245,8 @@ export type Database = {
       };
       permit_rule_place_facts: {
         Row: {
-          fact_group: string | null;
-          permit_rule: string | null;
+          fact_group: string;
+          permit_rule: string;
         };
         ComputedFields: never;
         Insert: {
@@ -82207,10 +82262,10 @@ export type Database = {
       po_line_hire_warnings: {
         Row: {
           hire_period: unknown;
-          org_id: string | null;
-          po_line_id: string | null;
-          project_id: string | null;
-          purchase_order_id: string | null;
+          org_id: string;
+          po_line_id: string;
+          project_id: string;
+          purchase_order_id: string;
           site_window: unknown;
           warning: string | null;
         };
@@ -82291,17 +82346,17 @@ export type Database = {
       po_line_supply: {
         Row: {
           acknowledged: boolean | null;
-          acquisition_kind: Database["app"]["Enums"]["acquisition_kind"] | null;
+          acquisition_kind: Database["app"]["Enums"]["acquisition_kind"];
           element_id: string | null;
           hire_period: unknown;
           off_hire_due: boolean | null;
-          org_id: string | null;
-          po_line_id: string | null;
-          po_number: number | null;
-          po_state: Database["app"]["Enums"]["po_state"] | null;
-          project_id: string | null;
-          purchase_order_id: string | null;
-          quantity_ordered: number | null;
+          org_id: string;
+          po_line_id: string;
+          po_number: number;
+          po_state: Database["app"]["Enums"]["po_state"];
+          project_id: string;
+          purchase_order_id: string;
+          quantity_ordered: number;
           quantity_received: number | null;
           quantity_returned: number | null;
           units_received: number | null;
@@ -82383,9 +82438,9 @@ export type Database = {
       pool_member_names: {
         Row: {
           full_name: string | null;
-          org_id: string | null;
-          pool_member_id: string | null;
-          talent_pool_id: string | null;
+          org_id: string;
+          pool_member_id: string;
+          talent_pool_id: string;
         };
         ComputedFields: never;
         Relationships: [
@@ -82407,13 +82462,13 @@ export type Database = {
       };
       pool_member_rate_list: {
         Row: {
-          currency_code: string | null;
+          currency_code: string;
           is_masked: boolean | null;
-          org_id: string | null;
-          pool_member_id: string | null;
+          org_id: string;
+          pool_member_id: string;
           rate_minor: number | null;
-          rate_type: Database["app"]["Enums"]["rate_type"] | null;
-          talent_pool_id: string | null;
+          rate_type: Database["app"]["Enums"]["rate_type"];
+          talent_pool_id: string;
         };
         ComputedFields: never;
         Relationships: [
@@ -82456,20 +82511,20 @@ export type Database = {
       };
       posting_lines: {
         Row: {
-          account_code: string | null;
+          account_code: string;
           amount_minor: number | null;
           cost_center_id: string | null;
-          currency: string | null;
-          date: string | null;
-          description: string | null;
+          currency: string;
+          date: string;
+          description: string;
           external_ref: string | null;
           item_id: string | null;
           line_state: string | null;
-          org_id: string | null;
-          posting_line_id: string | null;
+          org_id: string;
+          posting_line_id: string;
           project_id: string | null;
           quantity: number | null;
-          tax_type: string | null;
+          tax_type: string;
           unit_basis: string | null;
           urid: string | null;
           vendor_id: string | null;
@@ -82544,21 +82599,21 @@ export type Database = {
       procurement_need_status: {
         Row: {
           asset_class_id: string | null;
-          created_at: string | null;
-          description: string | null;
+          created_at: string;
+          description: string;
           drafted_quantity: number | null;
           effective_during: unknown;
           element_id: string | null;
-          need_id: string | null;
-          need_number: number | null;
+          need_id: string;
+          need_number: number;
           need_status: string | null;
           needed_during: unknown;
           note: string | null;
           ordered_quantity: number | null;
-          org_id: string | null;
-          project_id: string | null;
+          org_id: string;
+          project_id: string;
           project_key: string | null;
-          quantity: number | null;
+          quantity: number;
           received_quantity: number | null;
           requested_quantity: number | null;
           time_zone: string | null;
@@ -82626,8 +82681,8 @@ export type Database = {
       };
       product_funnel_hourly: {
         Row: {
-          app_code: string | null;
-          event_name: string | null;
+          app_code: string;
+          event_name: string;
           events: number | null;
           hour_start: string | null;
           route_template: string | null;
@@ -82645,8 +82700,8 @@ export type Database = {
           first_day: string | null;
           gross_minor: number | null;
           last_day: string | null;
-          org_id: string | null;
-          project_id: string | null;
+          org_id: string;
+          project_id: string;
           scans_unreported_count: number | null;
           scope_node_id: string | null;
           tickets_scanned: number | null;
@@ -82715,10 +82770,10 @@ export type Database = {
       };
       project_authority: {
         Row: {
-          agency: string | null;
+          agency: string;
           contact: string | null;
-          project_id: string | null;
-          service: string | null;
+          project_id: string;
+          service: string;
         };
         ComputedFields: never;
         Relationships: [];
@@ -82726,9 +82781,9 @@ export type Database = {
       project_billing: {
         Row: {
           billed_to_date_minor: number | null;
-          currency_code: string | null;
+          currency_code: string;
           paid_to_date_minor: number | null;
-          project_id: string | null;
+          project_id: string;
           unpriced_invoice_count: number | null;
         };
         ComputedFields: never;
@@ -82744,25 +82799,25 @@ export type Database = {
       };
       project_capabilities: {
         Row: {
-          assertion_domain: string | null;
-          assertion_word: string | null;
+          assertion_domain: string;
+          assertion_word: string;
           counterparty_id: string | null;
-          created_at: string | null;
+          created_at: string;
           created_by: string | null;
           deleted_at: string | null;
-          description: string | null;
-          direction: Database["app"]["Enums"]["capability_direction"] | null;
-          id: string | null;
-          is_critical: boolean | null;
-          org_id: string | null;
+          description: string;
+          direction: Database["app"]["Enums"]["capability_direction"];
+          id: string;
+          is_critical: boolean;
+          org_id: string;
           place_spec_field: string | null;
           place_spec_id: string | null;
-          project_id: string | null;
+          project_id: string;
           quantity: number | null;
           unit_basis: string | null;
-          updated_at: string | null;
+          updated_at: string;
           updated_by: string | null;
-          urid: string | null;
+          urid: string;
           venue_id: string | null;
         };
         ComputedFields: never;
@@ -82921,11 +82976,11 @@ export type Database = {
       };
       project_measurement_summary: {
         Row: {
-          aggregation: string | null;
-          base_unit_code: string | null;
-          dimension: string | null;
+          aggregation: string;
+          base_unit_code: string;
+          dimension: string;
           direction: Database["app"]["Enums"]["objective_direction"] | null;
-          family: string | null;
+          family: string;
           last_measured_on: string | null;
           measured_base: number | null;
           measured_count: number | null;
@@ -82941,6 +82996,13 @@ export type Database = {
         };
         ComputedFields: never;
         Relationships: [
+          {
+            foreignKeyName: "measurement_metrics_base_unit_fkey";
+            columns: ["base_unit_code", "dimension"];
+            isOneToOne: false;
+            referencedRelation: "measurement_units";
+            referencedColumns: ["unit_code", "dimension"];
+          },
           {
             foreignKeyName: "project_objectives_unit_code_fkey";
             columns: ["target_unit_code"];
@@ -82977,7 +83039,7 @@ export type Database = {
           house_power_phase: number | null;
           house_power_voltage: number | null;
           occupant_load: number | null;
-          project_id: string | null;
+          project_id: string;
           rigging_point_count: number | null;
           rigging_point_load_lb: number | null;
           rigging_total_load_lb: number | null;
@@ -82999,25 +83061,25 @@ export type Database = {
       };
       project_requirements: {
         Row: {
-          assertion_domain: string | null;
-          assertion_word: string | null;
+          assertion_domain: string;
+          assertion_word: string;
           counterparty_id: string | null;
-          created_at: string | null;
+          created_at: string;
           created_by: string | null;
           deleted_at: string | null;
-          description: string | null;
-          direction: Database["app"]["Enums"]["capability_direction"] | null;
-          id: string | null;
-          is_critical: boolean | null;
-          org_id: string | null;
+          description: string;
+          direction: Database["app"]["Enums"]["capability_direction"];
+          id: string;
+          is_critical: boolean;
+          org_id: string;
           place_spec_field: string | null;
           place_spec_id: string | null;
-          project_id: string | null;
+          project_id: string;
           quantity: number | null;
           unit_basis: string | null;
-          updated_at: string | null;
+          updated_at: string;
           updated_by: string | null;
-          urid: string | null;
+          urid: string;
           venue_id: string | null;
         };
         ComputedFields: never;
@@ -83173,11 +83235,11 @@ export type Database = {
       project_signage_summary: {
         Row: {
           ordered: number | null;
-          org_id: string | null;
+          org_id: string;
           overdue: number | null;
           placed: number | null;
           printed: number | null;
-          project_id: string | null;
+          project_id: string;
           to_order: number | null;
           unlocated: number | null;
           unplaced: number | null;
@@ -83249,8 +83311,8 @@ export type Database = {
         Row: {
           bump_in: unknown;
           bump_out: unknown;
-          org_id: string | null;
-          project_id: string | null;
+          org_id: string;
+          project_id: string;
           site_window: unknown;
         };
         ComputedFields: never;
@@ -83267,10 +83329,10 @@ export type Database = {
       purchase_order_totals: {
         Row: {
           approved_changes_minor: number | null;
-          currency_code: string | null;
+          currency_code: string;
           lines_total_minor: number | null;
-          project_id: string | null;
-          purchase_order_id: string | null;
+          project_id: string;
+          purchase_order_id: string;
           unpriced_count: number | null;
         };
         ComputedFields: never;
@@ -83329,23 +83391,23 @@ export type Database = {
       quote_statuses: {
         Row: {
           accepted_at: string | null;
-          budget_id: string | null;
+          budget_id: string;
           client_name: string | null;
           client_total_minor: number | null;
           currency_code: string | null;
-          current_version_id: string | null;
-          current_version_number: number | null;
+          current_version_id: string;
+          current_version_number: number;
           display_state: string | null;
           engagement_id: string | null;
           has_draft: boolean | null;
           margin_minor: number | null;
-          org_id: string | null;
-          project_id: string | null;
-          quote_id: string | null;
+          org_id: string;
+          project_id: string;
+          quote_id: string;
           quote_key: string | null;
           sent_at: string | null;
           title: string | null;
-          valid_until: string | null;
+          valid_until: string;
         };
         ComputedFields: never;
         Relationships: [
@@ -83514,17 +83576,17 @@ export type Database = {
       };
       rate_card_lines_masked: {
         Row: {
-          arrangement: string | null;
+          arrangement: string;
           canon_rate_card_id: string | null;
-          id: string | null;
+          id: string;
           is_masked: boolean | null;
-          org_id: string | null;
-          overtime_rule_id: string | null;
-          pay_basis: string | null;
-          rate_card_id: string | null;
+          org_id: string;
+          overtime_rule_id: string;
+          pay_basis: string;
+          rate_card_id: string;
           rate_minor: number | null;
-          role_code: string | null;
-          worker_classification: string | null;
+          role_code: string;
+          worker_classification: string;
         };
         ComputedFields: never;
         Insert: {
@@ -83579,7 +83641,7 @@ export type Database = {
       };
       rating_release_times: {
         Row: {
-          engagement_id: string | null;
+          engagement_id: string;
           released_at: string | null;
         };
         ComputedFields: never;
@@ -83616,11 +83678,11 @@ export type Database = {
       };
       reconciliation_gaps: {
         Row: {
-          is_critical: boolean | null;
-          project_id: string | null;
-          reconciliation_id: string | null;
-          requirement_id: string | null;
-          result: Database["app"]["Enums"]["reconciliation_result"] | null;
+          is_critical: boolean;
+          project_id: string;
+          reconciliation_id: string;
+          requirement_id: string;
+          result: Database["app"]["Enums"]["reconciliation_result"];
         };
         ComputedFields: never;
         Relationships: [
@@ -83699,9 +83761,9 @@ export type Database = {
       record_state_display: {
         Row: {
           label: string | null;
-          ordinal: number | null;
-          org_id: string | null;
-          record_state: string | null;
+          ordinal: number;
+          org_id: string;
+          record_state: string;
           relabeled: boolean | null;
         };
         ComputedFields: never;
@@ -83717,9 +83779,9 @@ export type Database = {
       };
       report_sources: {
         Row: {
-          code: string | null;
-          read_capability: string | null;
-          sort_order: number | null;
+          code: string;
+          read_capability: string;
+          sort_order: number;
         };
         ComputedFields: never;
         Insert: {
@@ -83732,16 +83794,24 @@ export type Database = {
           read_capability?: string | null;
           sort_order?: number | null;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "report_sources_read_capability_fkey";
+            columns: ["read_capability"];
+            isOneToOne: false;
+            referencedRelation: "capabilities";
+            referencedColumns: ["code"];
+          },
+        ];
       };
       requisition_amounts: {
         Row: {
-          currency_code: string | null;
+          currency_code: string;
           estimated_minor: number | null;
-          headcount: number | null;
-          org_id: string | null;
-          project_id: string | null;
-          requisition_id: string | null;
+          headcount: number;
+          org_id: string;
+          project_id: string;
+          requisition_id: string;
         };
         ComputedFields: never;
         Insert: {
@@ -83821,13 +83891,13 @@ export type Database = {
       };
       retention_policies: {
         Row: {
-          basis: Database["app"]["Enums"]["retention_basis"] | null;
-          purge_method: Database["app"]["Enums"]["purge_method"] | null;
-          rationale: string | null;
+          basis: Database["app"]["Enums"]["retention_basis"];
+          purge_method: Database["app"]["Enums"]["purge_method"];
+          rationale: string;
           redact_personal_data_after: string | null;
-          retention: string | null;
-          table_name: string | null;
-          time_column: string | null;
+          retention: string;
+          table_name: string;
+          time_column: string;
         };
         ComputedFields: never;
         Insert: {
@@ -83855,13 +83925,13 @@ export type Database = {
           chase_enabled: boolean | null;
           interval_hours: number | null;
           last_reminded_at: string | null;
-          org_id: string | null;
-          project_id: string | null;
+          org_id: string;
+          project_id: string;
           reminder_limit: number | null;
           reminders_sent: number | null;
           responses_due_at: string | null;
-          rfq_id: string | null;
-          rfq_state: Database["app"]["Enums"]["rfq_state"] | null;
+          rfq_id: string;
+          rfq_state: Database["app"]["Enums"]["rfq_state"];
         };
         ComputedFields: never;
         Relationships: [
@@ -83921,24 +83991,24 @@ export type Database = {
           arrival_ends_at: string | null;
           arrival_starts_at: string | null;
           arrival_time_zone: string | null;
-          engagement_id: string | null;
-          entry_state: Database["app"]["Enums"]["roster_entry_state"] | null;
+          engagement_id: string;
+          entry_state: Database["app"]["Enums"]["roster_entry_state"];
           full_name: string | null;
-          id: string | null;
+          id: string;
           invitation_expires_at: string | null;
           invited_email: string | null;
-          is_self: boolean | null;
+          is_self: boolean;
           job_title: string | null;
-          org_id: string | null;
+          org_id: string;
           party_name: string | null;
           person_id: string | null;
-          person_response: Database["app"]["Enums"]["roster_person_response"] | null;
-          project_id: string | null;
+          person_response: Database["app"]["Enums"]["roster_person_response"];
+          project_id: string;
           replaces_entry_id: string | null;
           responded_at: string | null;
           return_reason: string | null;
           role_code: string | null;
-          role_type: Database["app"]["Enums"]["external_role_type"] | null;
+          role_type: Database["app"]["Enums"]["external_role_type"];
           share_categories: Database["app"]["Enums"]["work_detail_category"][] | null;
         };
         ComputedFields: never;
@@ -84038,9 +84108,9 @@ export type Database = {
       };
       separation_of_duties_options: {
         Row: {
-          code: string | null;
-          description: string | null;
-          enforced_on: string | null;
+          code: string;
+          description: string;
+          enforced_on: string;
           tightens: string | null;
         };
         ComputedFields: never;
@@ -84056,13 +84126,28 @@ export type Database = {
           enforced_on?: string | null;
           tightens?: string | null;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "separation_of_duties_rules_tightens_fkey";
+            columns: ["tightens"];
+            isOneToOne: false;
+            referencedRelation: "separation_of_duties_options";
+            referencedColumns: ["code"];
+          },
+          {
+            foreignKeyName: "separation_of_duties_rules_tightens_fkey";
+            columns: ["tightens"];
+            isOneToOne: false;
+            referencedRelation: "separation_of_duties_rules";
+            referencedColumns: ["code"];
+          },
+        ];
       };
       separation_of_duties_rules: {
         Row: {
-          code: string | null;
-          description: string | null;
-          enforced_on: string | null;
+          code: string;
+          description: string;
+          enforced_on: string;
         };
         ComputedFields: never;
         Insert: {
@@ -84079,9 +84164,9 @@ export type Database = {
       };
       setting_choices: {
         Row: {
-          choice: string | null;
-          setting_key: string | null;
-          sort_order: number | null;
+          choice: string;
+          setting_key: string;
+          sort_order: number;
         };
         ComputedFields: never;
         Insert: {
@@ -84094,25 +84179,33 @@ export type Database = {
           setting_key?: string | null;
           sort_order?: number | null;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "setting_choices_setting_key_fkey";
+            columns: ["setting_key"];
+            isOneToOne: false;
+            referencedRelation: "setting_definitions";
+            referencedColumns: ["setting_key"];
+          },
+        ];
       };
       setting_definitions: {
         Row: {
-          allows_organization: boolean | null;
-          allows_personal: boolean | null;
-          allows_project: boolean | null;
-          allows_team: boolean | null;
-          allows_workspace: boolean | null;
-          capability_code: string | null;
+          allows_organization: boolean;
+          allows_personal: boolean;
+          allows_project: boolean;
+          allows_team: boolean;
+          allows_workspace: boolean;
+          capability_code: string;
           default_boolean: boolean | null;
           default_integer: number | null;
           default_text: string | null;
-          lockable: boolean | null;
+          lockable: boolean;
           max_integer: number | null;
           max_length: number | null;
           min_integer: number | null;
-          setting_key: string | null;
-          value_type: Database["app"]["Enums"]["setting_value_type"] | null;
+          setting_key: string;
+          value_type: Database["app"]["Enums"]["setting_value_type"];
         };
         ComputedFields: never;
         Insert: {
@@ -84149,16 +84242,24 @@ export type Database = {
           setting_key?: string | null;
           value_type?: Database["app"]["Enums"]["setting_value_type"] | null;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "setting_definitions_capability_code_fkey";
+            columns: ["capability_code"];
+            isOneToOne: false;
+            referencedRelation: "capabilities";
+            referencedColumns: ["code"];
+          },
+        ];
       };
       settlement_totals: {
         Row: {
-          currency_code: string | null;
-          engagement_id: string | null;
+          currency_code: string;
+          engagement_id: string;
           line_count: number | null;
           net_minor: number | null;
-          project_id: string | null;
-          settlement_id: string | null;
+          project_id: string;
+          settlement_id: string;
           unpriced_count: number | null;
         };
         ComputedFields: never;
@@ -84245,15 +84346,15 @@ export type Database = {
       shared_certifications: {
         Row: {
           accepted_holder_id: string | null;
-          certification_share_id: string | null;
+          certification_share_id: string;
           credential_number: string | null;
           expires_on: string | null;
-          issued_on: string | null;
-          issuing_body: string | null;
-          name: string | null;
-          org_id: string | null;
-          person_id: string | null;
-          shared_at: string | null;
+          issued_on: string;
+          issuing_body: string;
+          name: string;
+          org_id: string;
+          person_id: string;
+          shared_at: string;
           verified_at: string | null;
           verified_by_org_id: string | null;
         };
@@ -84291,7 +84392,7 @@ export type Database = {
       };
       showcaller_link_states: {
         Row: {
-          id: string | null;
+          id: string;
           link_state: string | null;
         };
         ComputedFields: never;
@@ -84309,12 +84410,12 @@ export type Database = {
         Row: {
           located: boolean | null;
           ordered_via_po: boolean | null;
-          org_id: string | null;
+          org_id: string;
           overdue: boolean | null;
           production_state: Database["app"]["Enums"]["sign_production_state"] | null;
-          project_id: string | null;
+          project_id: string;
           received: boolean | null;
-          sign_id: string | null;
+          sign_id: string;
         };
         ComputedFields: never;
         Relationships: [
@@ -84372,13 +84473,13 @@ export type Database = {
       site_plan_shape_geometry: {
         Row: {
           area_sq_ft: number | null;
-          id: string | null;
-          kind: Database["app"]["Enums"]["site_plan_shape_kind"] | null;
-          label: string | null;
+          id: string;
+          kind: Database["app"]["Enums"]["site_plan_shape_kind"];
+          label: string;
           length_ft: number | null;
           points_geojson: Json | null;
-          site_plan_id: string | null;
-          tone: Database["app"]["Enums"]["site_plan_shape_tone"] | null;
+          site_plan_id: string;
+          tone: Database["app"]["Enums"]["site_plan_shape_tone"];
         };
         ComputedFields: never;
         Relationships: [
@@ -84393,11 +84494,11 @@ export type Database = {
       };
       sms_consent_status: {
         Row: {
-          decided_at: string | null;
+          decided_at: string;
           may_text: boolean | null;
-          org_id: string | null;
+          org_id: string;
           person_id: string | null;
-          phone_e164: string | null;
+          phone_e164: string;
         };
         ComputedFields: never;
         Relationships: [
@@ -84420,29 +84521,29 @@ export type Database = {
       space_booking_board: {
         Row: {
           act_name: string | null;
-          booking_mode: Database["app"]["Enums"]["space_booking_mode"] | null;
+          booking_mode: Database["app"]["Enums"]["space_booking_mode"];
           conflict_group: string | null;
-          ends_at: string | null;
+          ends_at: string;
           engagement_cue_id: string | null;
           engagement_id: string | null;
           group_party_total: number | null;
           group_peak_party: number | null;
           group_size: number | null;
-          id: string | null;
+          id: string;
           notes: string | null;
-          org_id: string | null;
+          org_id: string;
           over_capacity: boolean | null;
           party_size: number | null;
-          project_id: string | null;
-          purpose: Database["app"]["Enums"]["space_booking_purpose"] | null;
+          project_id: string;
+          purpose: Database["app"]["Enums"]["space_booking_purpose"];
           set_ends_at: string | null;
           set_label: string | null;
           set_moved: boolean | null;
           set_planned_at: string | null;
           space_capacity: number | null;
-          space_id: string | null;
+          space_id: string;
           space_name: string | null;
-          starts_at: string | null;
+          starts_at: string;
           venue_id: string | null;
           venue_name: string | null;
         };
@@ -84543,17 +84644,17 @@ export type Database = {
       };
       sponsor_proof_of_performance: {
         Row: {
-          counterparty_id: string | null;
+          counterparty_id: string;
           delivery_count: number | null;
-          description: string | null;
+          description: string;
           due_on: string | null;
           fulfilled_at: string | null;
           is_met: boolean | null;
           last_delivered_on: string | null;
-          project_id: string | null;
+          project_id: string;
           quantity_delivered: number | null;
           quantity_owed: number | null;
-          sponsor_entitlement_id: string | null;
+          sponsor_entitlement_id: string;
         };
         ComputedFields: never;
         Relationships: [
@@ -84610,10 +84711,10 @@ export type Database = {
       };
       stakeholder_pack_file_choices: {
         Row: {
-          attachment_id: string | null;
-          org_id: string | null;
+          attachment_id: string;
+          org_id: string;
           project_id: string | null;
-          title: string | null;
+          title: string;
         };
         ComputedFields: never;
         Insert: {
@@ -84646,9 +84747,9 @@ export type Database = {
           last_opened_at: string | null;
           last_sent_at: string | null;
           opens: number | null;
-          recipient_id: string | null;
+          recipient_id: string;
           signatures: number | null;
-          stakeholder_pack_id: string | null;
+          stakeholder_pack_id: string;
         };
         ComputedFields: never;
         Relationships: [
@@ -84664,20 +84765,20 @@ export type Database = {
       subject_approval_status: {
         Row: {
           advance_allocation_id: string | null;
-          approval_rule_id: string | null;
+          approval_rule_id: string;
           approval_state: Database["app"]["Enums"]["approval_state"] | null;
           cancel_reason: string | null;
           canceled_at: string | null;
-          created_at: string | null;
+          created_at: string;
           credential_id: string | null;
           current_step: number | null;
           current_step_approver_names: string[] | null;
           current_step_has_approver: boolean | null;
           current_step_name: string | null;
           dock_slot_id: string | null;
-          id: string | null;
-          org_id: string | null;
-          project_id: string | null;
+          id: string;
+          org_id: string;
+          project_id: string;
           requested_by: string | null;
           rule_name: string | null;
           step_count: number | null;
@@ -84789,8 +84890,8 @@ export type Database = {
       };
       sync_rpcs: {
         Row: {
-          description: string | null;
-          rpc: string | null;
+          description: string;
+          rpc: string;
         };
         ComputedFields: never;
         Insert: {
@@ -84807,26 +84908,26 @@ export type Database = {
         Row: {
           claimed_at: string | null;
           claimed_person_id: string | null;
-          created_at: string | null;
+          created_at: string;
           currency_code: string | null;
           declined_at: string | null;
-          email: string | null;
-          expires_at: string | null;
-          id: string | null;
+          email: string;
+          expires_at: string;
+          id: string;
           invitation_status: string | null;
-          invited_by: string | null;
+          invited_by: string;
           invitee_name: string | null;
           inviter_name: string | null;
           is_masked: boolean | null;
           job_title: string | null;
           note: string | null;
-          org_id: string | null;
-          pool_name: string | null;
+          org_id: string;
+          pool_name: string;
           rate_minor: number | null;
           rate_type: Database["app"]["Enums"]["rate_type"] | null;
           revoked_at: string | null;
           role_code: string | null;
-          talent_pool_id: string | null;
+          talent_pool_id: string;
           work_phone: string | null;
         };
         ComputedFields: never;
@@ -84875,9 +84976,9 @@ export type Database = {
           membership_id: string | null;
           period_ends_at: string | null;
           period_starts_at: string | null;
-          project_id: string | null;
+          project_id: string;
           roster_entry_id: string | null;
-          timesheet_id: string | null;
+          timesheet_id: string;
           worked_minutes: number | null;
         };
         ComputedFields: never;
@@ -85001,29 +85102,29 @@ export type Database = {
         Row: {
           driver_name: string | null;
           driver_person_id: string | null;
-          dropoff_at: string | null;
-          dropoff_place: string | null;
-          dropoff_time_zone: string | null;
+          dropoff_at: string;
+          dropoff_place: string;
+          dropoff_time_zone: string;
           fulfillment_id: string | null;
-          id: string | null;
+          id: string;
           meets_flight_after_pickup: boolean | null;
           meets_flight_arrives_at: string | null;
           meets_service_identifier: string | null;
           meets_travel_segment_id: string | null;
           notes: string | null;
-          org_id: string | null;
+          org_id: string;
           passenger_count: number | null;
-          pickup_at: string | null;
-          pickup_place: string | null;
-          pickup_time_zone: string | null;
+          pickup_at: string;
+          pickup_place: string;
+          pickup_time_zone: string;
           primary_passenger_id: string | null;
           primary_passenger_name: string | null;
-          project_id: string | null;
+          project_id: string;
           seats: number | null;
           status: string | null;
           tight_turnaround: boolean | null;
           transfer_key: string | null;
-          transfer_number: number | null;
+          transfer_number: number;
           vehicle_id: string | null;
           vehicle_label: string | null;
           vehicle_type: Database["app"]["Enums"]["vehicle_type"] | null;
@@ -85156,15 +85257,15 @@ export type Database = {
       };
       vendor_bank_accounts_masked: {
         Row: {
-          account_holder: string | null;
-          account_last4: string | null;
+          account_holder: string;
+          account_last4: string;
           account_number: string | null;
-          bank_name: string | null;
-          id: string | null;
+          bank_name: string;
+          id: string;
           is_masked: boolean | null;
-          org_id: string | null;
+          org_id: string;
           routing_number: string | null;
-          vendor_id: string | null;
+          vendor_id: string;
         };
         ComputedFields: never;
         Insert: {
@@ -85215,9 +85316,9 @@ export type Database = {
       };
       warehouse_providers: {
         Row: {
-          available: boolean | null;
-          provider: Database["app"]["Enums"]["warehouse_provider"] | null;
-          sort_order: number | null;
+          available: boolean;
+          provider: Database["app"]["Enums"]["warehouse_provider"];
+          sort_order: number;
         };
         ComputedFields: never;
         Insert: {
@@ -97539,8 +97640,8 @@ export type Database = {
     Views: {
       department: {
         Row: {
-          class_code: string | null;
-          name: string | null;
+          class_code: string;
+          name: string;
         };
         ComputedFields: never;
         Insert: {
@@ -97556,9 +97657,9 @@ export type Database = {
       gl_account: {
         Row: {
           class_code: string | null;
-          code: string | null;
-          name: string | null;
-          type: string | null;
+          code: string;
+          name: string;
+          type: string;
         };
         ComputedFields: never;
         Insert: {
@@ -97613,14 +97714,14 @@ export type Database = {
       };
       jurisdiction_resolved: {
         Row: {
-          country: string | null;
+          country: string;
           currency: string | null;
-          jurisdiction_id: string | null;
-          level: string | null;
+          jurisdiction_id: string;
+          level: string;
           note: string | null;
           parent: string | null;
           primary_code_sets: string | null;
-          status: string | null;
+          status: string;
           unit_system: string | null;
         };
         ComputedFields: never;
@@ -97643,24 +97744,24 @@ export type Database = {
       };
       rate_card_resolved: {
         Row: {
-          arrangement: string | null;
-          class_code: string | null;
-          currency_code: string | null;
-          department: string | null;
-          dt_multiplier: number | null;
+          arrangement: string;
+          class_code: string;
+          currency_code: string;
+          department: string;
+          dt_multiplier: number;
           gl_account: string | null;
           gl_account_name: string | null;
-          job_title: string | null;
+          job_title: string;
           max_grade_rate_minor: number | null;
           min_grade_rate_minor: number | null;
-          ot_multiplier: number | null;
-          overtime_rule_id: string | null;
-          pay_basis: string | null;
+          ot_multiplier: number;
+          overtime_rule_id: string;
+          pay_basis: string;
           per_diem_rate_minor: number | null;
-          rate_card_id: string | null;
-          role_code: string | null;
+          rate_card_id: string;
+          role_code: string;
           standard_rate_minor: number | null;
-          worker_classification: string | null;
+          worker_classification: string;
         };
         ComputedFields: never;
         Relationships: [
@@ -97675,9 +97776,9 @@ export type Database = {
       };
       v_category_gl: {
         Row: {
-          account_code: string | null;
-          account_name: string | null;
-          cat_urid: string | null;
+          account_code: string;
+          account_name: string;
+          cat_urid: string;
           default_cost_center: string | null;
         };
         ComputedFields: never;
@@ -97694,20 +97795,20 @@ export type Database = {
       v_coordinate_matrix: {
         Row: {
           coordinate: string | null;
-          department: string | null;
-          dept_code: string | null;
+          department: string;
+          dept_code: string;
           element_count: number | null;
-          gate: number | null;
-          phase: string | null;
-          phase_code: string | null;
+          gate: number;
+          phase: string;
+          phase_code: string;
         };
         ComputedFields: never;
         Relationships: [];
       };
       v_crosswalk_coverage: {
         Row: {
-          cat_urid: string | null;
-          category: string | null;
+          cat_urid: string;
+          category: string;
           element_count: number | null;
           gtin_count: number | null;
           gtin_element_count: number | null;
@@ -97722,13 +97823,13 @@ export type Database = {
           assertion_word: string | null;
           currency_code: string | null;
           effective_confidence: string | null;
-          element_id: string | null;
-          grade: string | null;
-          grade_code: string | null;
+          element_id: string;
+          grade: string;
+          grade_code: string;
           is_unpriced: boolean | null;
-          item: string | null;
-          unit_basis: string | null;
-          urid: string | null;
+          item: string;
+          unit_basis: string;
+          urid: string;
           valid_from: string | null;
           valid_to: string | null;
         };
@@ -97771,10 +97872,10 @@ export type Database = {
           declared_gap: boolean | null;
           declared_gap_reason: string | null;
           element_count: number | null;
-          gate: number | null;
+          gate: number;
           has_active_element: boolean | null;
-          phase: string | null;
-          phase_code: string | null;
+          phase: string;
+          phase_code: string;
         };
         ComputedFields: never;
         Relationships: [];
@@ -97782,7 +97883,7 @@ export type Database = {
       v_playbook_access_grid: {
         Row: {
           cells: string[] | null;
-          source_row: number | null;
+          source_row: number;
         };
         ComputedFields: never;
         Relationships: [];
@@ -97790,7 +97891,7 @@ export type Database = {
       v_playbook_activity_log: {
         Row: {
           cells: string[] | null;
-          source_row: number | null;
+          source_row: number;
         };
         ComputedFields: never;
         Relationships: [];
@@ -97798,7 +97899,7 @@ export type Database = {
       v_playbook_advance_requests: {
         Row: {
           cells: string[] | null;
-          source_row: number | null;
+          source_row: number;
         };
         ComputedFields: never;
         Relationships: [];
@@ -97806,7 +97907,7 @@ export type Database = {
       v_playbook_asset_assignments: {
         Row: {
           cells: string[] | null;
-          source_row: number | null;
+          source_row: number;
         };
         ComputedFields: never;
         Relationships: [];
@@ -97814,7 +97915,7 @@ export type Database = {
       v_playbook_asset_inventory: {
         Row: {
           cells: string[] | null;
-          source_row: number | null;
+          source_row: number;
         };
         ComputedFields: never;
         Relationships: [];
@@ -97822,7 +97923,7 @@ export type Database = {
       v_playbook_budget_expenses: {
         Row: {
           cells: string[] | null;
-          source_row: number | null;
+          source_row: number;
         };
         ComputedFields: never;
         Relationships: [];
@@ -97838,7 +97939,7 @@ export type Database = {
       v_playbook_change_orders: {
         Row: {
           cells: string[] | null;
-          source_row: number | null;
+          source_row: number;
         };
         ComputedFields: never;
         Relationships: [];
@@ -97870,7 +97971,7 @@ export type Database = {
       v_playbook_cover_page: {
         Row: {
           cells: string[] | null;
-          source_row: number | null;
+          source_row: number;
         };
         ComputedFields: never;
         Relationships: [];
@@ -97878,7 +97979,7 @@ export type Database = {
       v_playbook_credential_issuance: {
         Row: {
           cells: string[] | null;
-          source_row: number | null;
+          source_row: number;
         };
         ComputedFields: never;
         Relationships: [];
@@ -97886,7 +97987,7 @@ export type Database = {
       v_playbook_crew_shifts: {
         Row: {
           cells: string[] | null;
-          source_row: number | null;
+          source_row: number;
         };
         ComputedFields: never;
         Relationships: [];
@@ -97894,7 +97995,7 @@ export type Database = {
       v_playbook_crew_timesheets: {
         Row: {
           cells: string[] | null;
-          source_row: number | null;
+          source_row: number;
         };
         ComputedFields: never;
         Relationships: [];
@@ -97934,7 +98035,7 @@ export type Database = {
       v_playbook_document_asset_library: {
         Row: {
           cells: string[] | null;
-          source_row: number | null;
+          source_row: number;
         };
         ComputedFields: never;
         Relationships: [];
@@ -97950,7 +98051,7 @@ export type Database = {
       v_playbook_enumerations: {
         Row: {
           cells: string[] | null;
-          source_row: number | null;
+          source_row: number;
         };
         ComputedFields: never;
         Relationships: [];
@@ -97966,7 +98067,7 @@ export type Database = {
       v_playbook_hospitality_fulfillment: {
         Row: {
           cells: string[] | null;
-          source_row: number | null;
+          source_row: number;
         };
         ComputedFields: never;
         Relationships: [];
@@ -97974,7 +98075,7 @@ export type Database = {
       v_playbook_incident_cad_log: {
         Row: {
           cells: string[] | null;
-          source_row: number | null;
+          source_row: number;
         };
         ComputedFields: never;
         Relationships: [];
@@ -97982,7 +98083,7 @@ export type Database = {
       v_playbook_inspection_compliance: {
         Row: {
           cells: string[] | null;
-          source_row: number | null;
+          source_row: number;
         };
         ComputedFields: never;
         Relationships: [];
@@ -97998,7 +98099,7 @@ export type Database = {
       v_playbook_locations: {
         Row: {
           cells: string[] | null;
-          source_row: number | null;
+          source_row: number;
         };
         ComputedFields: never;
         Relationships: [];
@@ -98006,7 +98107,7 @@ export type Database = {
       v_playbook_marshalling_yard_log: {
         Row: {
           cells: string[] | null;
-          source_row: number | null;
+          source_row: number;
         };
         ComputedFields: never;
         Relationships: [];
@@ -98014,7 +98115,7 @@ export type Database = {
       v_playbook_personnel_roster: {
         Row: {
           cells: string[] | null;
-          source_row: number | null;
+          source_row: number;
         };
         ComputedFields: never;
         Relationships: [];
@@ -98022,7 +98123,7 @@ export type Database = {
       v_playbook_po_line_items: {
         Row: {
           cells: string[] | null;
-          source_row: number | null;
+          source_row: number;
         };
         ComputedFields: never;
         Relationships: [];
@@ -98038,7 +98139,7 @@ export type Database = {
       v_playbook_production_schedule: {
         Row: {
           cells: string[] | null;
-          source_row: number | null;
+          source_row: number;
         };
         ComputedFields: never;
         Relationships: [];
@@ -98046,7 +98147,7 @@ export type Database = {
       v_playbook_production_tasks: {
         Row: {
           cells: string[] | null;
-          source_row: number | null;
+          source_row: number;
         };
         ComputedFields: never;
         Relationships: [];
@@ -98054,7 +98155,7 @@ export type Database = {
       v_playbook_projects: {
         Row: {
           cells: string[] | null;
-          source_row: number | null;
+          source_row: number;
         };
         ComputedFields: never;
         Relationships: [];
@@ -98062,7 +98163,7 @@ export type Database = {
       v_playbook_purchase_orders: {
         Row: {
           cells: string[] | null;
-          source_row: number | null;
+          source_row: number;
         };
         ComputedFields: never;
         Relationships: [];
@@ -98070,7 +98171,7 @@ export type Database = {
       v_playbook_radio_channels: {
         Row: {
           cells: string[] | null;
-          source_row: number | null;
+          source_row: number;
         };
         ComputedFields: never;
         Relationships: [];
@@ -98086,7 +98187,7 @@ export type Database = {
       v_playbook_run_of_show: {
         Row: {
           cells: string[] | null;
-          source_row: number | null;
+          source_row: number;
         };
         ComputedFields: never;
         Relationships: [];
@@ -98094,7 +98195,7 @@ export type Database = {
       v_playbook_shipping_manifest: {
         Row: {
           cells: string[] | null;
-          source_row: number | null;
+          source_row: number;
         };
         ComputedFields: never;
         Relationships: [];
@@ -98102,7 +98203,7 @@ export type Database = {
       v_playbook_sop_library: {
         Row: {
           cells: string[] | null;
-          source_row: number | null;
+          source_row: number;
         };
         ComputedFields: never;
         Relationships: [];
@@ -98110,7 +98211,7 @@ export type Database = {
       v_playbook_staffing_requisition: {
         Row: {
           cells: string[] | null;
-          source_row: number | null;
+          source_row: number;
         };
         ComputedFields: never;
         Relationships: [];
@@ -98134,7 +98235,7 @@ export type Database = {
       v_playbook_universal_posting_line: {
         Row: {
           cells: string[] | null;
-          source_row: number | null;
+          source_row: number;
         };
         ComputedFields: never;
         Relationships: [];
@@ -98142,7 +98243,7 @@ export type Database = {
       v_playbook_vendor_classes: {
         Row: {
           cells: string[] | null;
-          source_row: number | null;
+          source_row: number;
         };
         ComputedFields: never;
         Relationships: [];
@@ -98150,7 +98251,7 @@ export type Database = {
       v_playbook_vendor_directory: {
         Row: {
           cells: string[] | null;
-          source_row: number | null;
+          source_row: number;
         };
         ComputedFields: never;
         Relationships: [];
@@ -98158,7 +98259,7 @@ export type Database = {
       v_playbook_vendor_entitlements: {
         Row: {
           cells: string[] | null;
-          source_row: number | null;
+          source_row: number;
         };
         ComputedFields: never;
         Relationships: [];
@@ -98166,7 +98267,7 @@ export type Database = {
       v_playbook_verbiage_library: {
         Row: {
           cells: string[] | null;
-          source_row: number | null;
+          source_row: number;
         };
         ComputedFields: never;
         Relationships: [];
@@ -98174,7 +98275,7 @@ export type Database = {
       v_playbook_work_orders: {
         Row: {
           cells: string[] | null;
-          source_row: number | null;
+          source_row: number;
         };
         ComputedFields: never;
         Relationships: [];
@@ -98194,7 +98295,7 @@ export type Database = {
           organization: string | null;
           project_id: string | null;
           record_id: string | null;
-          source_row: number | null;
+          source_row: number;
           status: string | null;
           sub_category: string | null;
           updated_at: string | null;
@@ -98220,7 +98321,7 @@ export type Database = {
           qty_value: string | null;
           record_id: string | null;
           reference_id: string | null;
-          source_row: number | null;
+          source_row: number;
           status: string | null;
           sub_category: string | null;
           subject_item: string | null;
@@ -98251,7 +98352,7 @@ export type Database = {
           quantity: string | null;
           record_id: string | null;
           requested_by: string | null;
-          source_row: number | null;
+          source_row: number;
           status: string | null;
           sub_category: string | null;
           total_estimate: string | null;
@@ -98277,7 +98378,7 @@ export type Database = {
           personnel_id: string | null;
           project_id: string | null;
           record_id: string | null;
-          source_row: number | null;
+          source_row: number;
           status: string | null;
           sub_category: string | null;
           updated_at: string | null;
@@ -98303,7 +98404,7 @@ export type Database = {
           quantity: string | null;
           record_id: string | null;
           serial_number: string | null;
-          source_row: number | null;
+          source_row: number;
           specifications: string | null;
           status: string | null;
           unit_cost: number | null;
@@ -98343,7 +98444,7 @@ export type Database = {
           quantity: string | null;
           rate: number | null;
           record_id: string | null;
-          source_row: number | null;
+          source_row: number;
           space: string | null;
           status: string | null;
           sub_category: string | null;
@@ -98404,7 +98505,7 @@ export type Database = {
           record_id: string | null;
           requested_by: string | null;
           schedule_impact_days: string | null;
-          source_row: number | null;
+          source_row: number;
           status: string | null;
           total_amount: number | null;
           unit_rate: string | null;
@@ -98488,7 +98589,7 @@ export type Database = {
           project_id: string | null;
           record_id: string | null;
           return_status: string | null;
-          source_row: number | null;
+          source_row: number;
           status: string | null;
           sub_category: string | null;
           updated_at: string | null;
@@ -98521,7 +98622,7 @@ export type Database = {
           scheduled_wrap_time: string | null;
           shift_date: string | null;
           shift_id: string | null;
-          source_row: number | null;
+          source_row: number;
           standard_rate: number | null;
           status: string | null;
           updated_at: string | null;
@@ -98560,7 +98661,7 @@ export type Database = {
           regular_pay: number | null;
           role_code: string | null;
           shift_id: string | null;
-          source_row: number | null;
+          source_row: number;
           status: string | null;
           timesheet_id: string | null;
           total_elapsed_hours: number | null;
@@ -98663,9 +98764,9 @@ export type Database = {
           notes: string | null;
           organization: string | null;
           project: string | null;
-          record_id: string | null;
+          record_id: string;
           reference_id: string | null;
-          source_row: number | null;
+          source_row: number;
           status: string | null;
           storage_url: string | null;
           sub_category: string | null;
@@ -98719,10 +98820,10 @@ export type Database = {
           notes: string | null;
           organization: string | null;
           project: string | null;
-          record_id: string | null;
+          record_id: string;
           shift_and_timesheet_status: string | null;
           sort_order: number | null;
-          source_row: number | null;
+          source_row: number;
           status: string | null;
           sub_category: string | null;
           target_entity: string | null;
@@ -98770,7 +98871,7 @@ export type Database = {
           record_id: string | null;
           rider_contract_ref: string | null;
           service_style: string | null;
-          source_row: number | null;
+          source_row: number;
           status: string | null;
           sub_category: string | null;
           updated_at: string | null;
@@ -98803,7 +98904,7 @@ export type Database = {
           reported_by: string | null;
           resolution_protocol: string | null;
           severity_level: string | null;
-          source_row: number | null;
+          source_row: number;
           status: string | null;
           sub_category: string | null;
           updated_at: string | null;
@@ -98835,7 +98936,7 @@ export type Database = {
           scheduled_date: string | null;
           sign_off_date: string | null;
           sign_off_url: string | null;
-          source_row: number | null;
+          source_row: number;
           status: string | null;
           sub_category: string | null;
           updated_at: string | null;
@@ -98882,7 +98983,7 @@ export type Database = {
           notes: string | null;
           project_id: string | null;
           record_id: string | null;
-          source_row: number | null;
+          source_row: number;
           status: string | null;
           sub_category: string | null;
           updated_at: string | null;
@@ -98909,7 +99010,7 @@ export type Database = {
           record_id: string | null;
           seal_number: string | null;
           shipment_id: string | null;
-          source_row: number | null;
+          source_row: number;
           staging_bay: string | null;
           status: string | null;
           sub_category: string | null;
@@ -98951,7 +99052,7 @@ export type Database = {
           project_id: string | null;
           role_code: string | null;
           shirt_size: string | null;
-          source_row: number | null;
+          source_row: number;
           special_accommodations: string | null;
           status: string | null;
           sub_category: string | null;
@@ -98971,7 +99072,7 @@ export type Database = {
           po_line_id: string | null;
           po_number: string | null;
           quantity: string | null;
-          source_row: number | null;
+          source_row: number;
           total_amount: number | null;
           unit_rate: string | null;
           user_line_description: string | null;
@@ -99026,7 +99127,7 @@ export type Database = {
           progress_pct: number | null;
           project_id: string | null;
           sop_id: string | null;
-          source_row: number | null;
+          source_row: number;
           start_date: string | null;
           status: string | null;
           total_tasks: number | null;
@@ -99055,7 +99156,7 @@ export type Database = {
           record_kind: string | null;
           record_subtype: string | null;
           sop_id: string | null;
-          source_row: number | null;
+          source_row: number;
           start_date: string | null;
           status: string | null;
           task_id: string | null;
@@ -99084,7 +99185,7 @@ export type Database = {
           production_tasks: number | null;
           project_id: string | null;
           project_name: string | null;
-          source_row: number | null;
+          source_row: number;
           start_date: string | null;
           tier: string | null;
           venue: string | null;
@@ -99108,7 +99209,7 @@ export type Database = {
           po_number: string | null;
           project_id: string | null;
           shipping_amount: string | null;
-          source_row: number | null;
+          source_row: number;
           status: string | null;
           subtotal_amount: number | null;
           tax_amount: string | null;
@@ -99132,8 +99233,8 @@ export type Database = {
           notes: string | null;
           organization: string | null;
           project_id: string | null;
-          record_id: string | null;
-          source_row: number | null;
+          record_id: string;
+          source_row: number;
           status: string | null;
           sub_category: string | null;
           updated_at: string | null;
@@ -99188,7 +99289,7 @@ export type Database = {
           scene: string | null;
           schedule_record_id: string | null;
           sfx_cue: string | null;
-          source_row: number | null;
+          source_row: number;
           stage_cue: string | null;
           start_time: string | null;
           status: string | null;
@@ -99226,7 +99327,7 @@ export type Database = {
           seal_number: string | null;
           sender: string | null;
           shipment_date: string | null;
-          source_row: number | null;
+          source_row: number;
           status: string | null;
           sub_category: string | null;
           tracking_number: string | null;
@@ -99262,8 +99363,8 @@ export type Database = {
           reference_document_name: string | null;
           required_ppe_compliance_tag: string | null;
           revision: string | null;
-          sop_id: string | null;
-          source_row: number | null;
+          sop_id: string;
+          source_row: number;
           status: string | null;
           sub_category: string | null;
           title: string | null;
@@ -99285,7 +99386,7 @@ export type Database = {
           rate_card_id: string | null;
           req_id: string | null;
           role_code: string | null;
-          source_row: number | null;
+          source_row: number;
           standard_rate: number | null;
           status: string | null;
           total_estimated_cost: number | null;
@@ -99349,7 +99450,7 @@ export type Database = {
           item_id: string | null;
           line_state: string | null;
           quantity: string | null;
-          source_row: number | null;
+          source_row: number;
           tax_type: string | null;
           unit_basis: string | null;
           urid: string | null;
@@ -99371,8 +99472,8 @@ export type Database = {
           notes: string | null;
           organization: string | null;
           project: string | null;
-          record_id: string | null;
-          source_row: number | null;
+          record_id: string;
+          source_row: number;
           status: string | null;
           sub_category: string | null;
           updated_at: string | null;
@@ -99403,7 +99504,7 @@ export type Database = {
           primary_email: string | null;
           primary_phone: string | null;
           project_id: string | null;
-          source_row: number | null;
+          source_row: number;
           status: string | null;
           sub_category: string | null;
           tax_id: string | null;
@@ -99425,8 +99526,8 @@ export type Database = {
           organization: string | null;
           permitted: boolean | null;
           project: string | null;
-          record_id: string | null;
-          source_row: number | null;
+          record_id: string;
+          source_row: number;
           status: string | null;
           updated_at: string | null;
           vendor_class: string | null;
@@ -99446,8 +99547,8 @@ export type Database = {
           notes: string | null;
           organization: string | null;
           project: string | null;
-          record_id: string | null;
-          source_row: number | null;
+          record_id: string;
+          source_row: number;
           status: string | null;
           sub_category: string | null;
           title: string | null;
@@ -99485,7 +99586,7 @@ export type Database = {
           scheduled_end_date: string | null;
           scheduled_start_date: string | null;
           scope_of_work: string | null;
-          source_row: number | null;
+          source_row: number;
           status: string | null;
           sub_category: string | null;
           task_title: string | null;
@@ -99589,7 +99690,7 @@ export type Database = {
 
 type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">;
 
-type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">];
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "api_external">];
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends

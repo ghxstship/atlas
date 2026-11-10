@@ -63,6 +63,25 @@ Each minting function is handed a signer and never sees the key. The signer's co
 
 Supabase warns that `verify_jwt` can break once sessions are signed with JWT signing keys. Every function now runs with it off. `apple-revoke`, `wallet-pass` and `storage-browse` ask Supabase Auth (`/auth/v1/user`) to verify the person's session before they do anything; `_shared/sessions.ts` holds that check. The workers check a secret key (D2), and the public functions check their own signatures or tickets. `packages/platform/test/api-keys.test.ts` fails if any function turns `verify_jwt` back on, or if a minting function reads the key itself.
 
+### D7. Supabase CLI 3, on the new keys locally too
+
+With the legacy keys retired everywhere, CI and local stacks move to Supabase CLI 3.1.0 (setup-cli v3.2.0 in the workflows). The local stack's keys follow the hosted ones:
+
+- `supabase status` gives `PUBLISHABLE_KEY` and `SECRET_KEY`, which the apps, the journeys and Compass now read; the legacy `ANON_KEY` and `SERVICE_ROLE_KEY` are no longer used.
+- The local gateway accepts the new keys and hands the functions the stack's development keys, so the workers take a secret key there as in production.
+- The stack's development JWT secret remains only for the automation journey's locally minted tokens (production refuses a shared secret, D5).
+
+Compass reads `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, and a release build refuses anything but an `sb_publishable_` key.
+
+What CLI 3 changed here:
+
+- `[inbucket]` is `[local_smtp]`, and status names Mailpit `MAILPIT_URL`.
+- `[auth.email]` and `[auth.sms]` turn sign-in on with `enabled`.
+- `--remote` replaces `--linked`, `--project-ref` and `--db-url`, and every hosted change takes `--yes` when it runs unattended, in the scripts and the runbooks.
+- `SUPABASE_*` variables override `config.toml`, so the Compass scripts' stack name is `XOS_SUPABASE_STACK`, not `SUPABASE_PROJECT_ID`.
+- Local advisors lint every exposed schema, not only `public`, so `infra/security/supabase-advisors.sh` judges them against the same accepted list as staging (`advisors-local`).
+- `gen types` infers view nullability: 1,361 view columns are no longer optional. Every one was checked against the seeded demo data, which holds no NULL in any of them; the whole repository typechecks and lints with the new types.
+
 ## Consequences
 
 - Production needs one owner step: a secret key in Vault (`xos_worker_key`), made under Settings, API Keys, ideally named `workers`. The hand-made schedules then call `private.worker_request`.

@@ -12,9 +12,9 @@
 # - XOS_API_HOST: e2e/api-host.spec.ts reaches the API host by sending Host: api.localhost (RRR-119).
 # - XOS_INBOUND_DOMAIN: the project inbox journey (a84) reads the full address Project Settings shows.
 # - STRIPE_*: e2e/billing-checkout.spec.ts pays on its local fake of Stripe (e2e/fake-stripe.ts), never Stripe.
-# - The local stack's well-known development keys: the import and report journeys run their workers with the service
-#   key, A79's step-up signs in with the anon key (a79-support.ts), and the automation journey signs the worker's API
-#   calls with the JWT secret (a91-automations).
+# - The local stack's keys (Supabase CLI 3, ADR 0168): the publishable key for the apps and A79's step-up
+#   (a79-support.ts), the secret key for the import and report journeys' workers, and the stack's development JWT
+#   secret, which the automation journey signs the worker's API calls with (a91-automations; production refuses it).
 
 set -euo pipefail
 
@@ -23,11 +23,11 @@ set -euo pipefail
 
 STATUS="$(supabase status -o env)"
 stack() { printf '%s\n' "$STATUS" | sed -n "s/^$1=\"\(.*\)\"$/\1/p"; }
-ANON="$(stack ANON_KEY)"
-SERVICE="$(stack SERVICE_ROLE_KEY)"
+ANON="$(stack PUBLISHABLE_KEY)"
+SERVICE="$(stack SECRET_KEY)"
 JWT="$(stack JWT_SECRET)"
 if [[ -z "$ANON" || -z "$SERVICE" || -z "$JWT" ]]; then
-  echo "supabase status gave no anon key, service key or JWT secret; is the stack running?" >&2
+  echo "supabase status gave no publishable key, secret key or JWT secret; is the stack running?" >&2
   exit 1
 fi
 

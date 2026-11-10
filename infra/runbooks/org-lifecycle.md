@@ -22,7 +22,7 @@ does what SQL cannot: Storage API deletes, the PDF, email and the provider APIs.
 
 ## Owner secrets
 
-Set on the hosted project as Edge Function secrets (`supabase secrets set --project-ref <ref> NAME=...`). Each is
+Set on the hosted project as Edge Function secrets (`supabase secrets set --remote=<ref> --yes NAME=...`). Each is
 optional: without it, that part waits and says why.
 
 | Secret                      | Used for                                                     | Format (example shape only)                  |
@@ -46,7 +46,7 @@ provider.
 
 ## Schedule the worker (OWNER CONFIRMS)
 
-1. Deploy the function: `supabase functions deploy org-lifecycle --project-ref <ref>`.
+1. Deploy the function: `supabase functions deploy org-lifecycle --remote=<ref> --yes`.
 2. Schedule it every 5 minutes with a secret key on the `apikey` header, as for `report-run` and `upload-scan`
    (`hosted-security-settings.md`).
 3. Check: call it once with a secret key on the `apikey` header. A 200 with `{"stripe": {...}, "certificates": [], "domains": []}`

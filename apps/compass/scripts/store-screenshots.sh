@@ -40,7 +40,7 @@ supabase db reset > "$work/db-reset.log" 2>&1 || { echo "supabase db reset faile
 stage() { docker exec -i "supabase_db_$project" psql -U postgres -v ON_ERROR_STOP=1 -q < "$here/store-screenshots.sql"; }
 
 password="$(sed -n "s/.*extensions\.crypt('\([^']*\)'.*/\1/p" supabase/seeds/0010_demo_identity.sql | head -1)"
-anon="$(supabase status -o env 2>/dev/null | sed -n 's/^ANON_KEY="\(.*\)"$/\1/p')"
+anon="$(supabase status -o env 2>/dev/null | sed -n 's/^PUBLISHABLE_KEY="\(.*\)"$/\1/p')"
 export PATH="${JAVA_HOME:+$JAVA_HOME/bin:}$HOME/.maestro/bin:$PATH"
 export MAESTRO_CLI_NO_ANALYTICS=1
 
