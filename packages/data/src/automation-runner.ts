@@ -15,8 +15,8 @@ import type { Database } from "./database.types.ts";
  * retries the run from the failed step (retry); anything else fails the run for good (failed). Each POST carries an
  * Idempotency-Key per run and action, so a retry never repeats a write the API already made.
  *
- * The token is an HS256 JWT signed with the project's JWT secret (XOS_API_JWT_SIGNING_KEY, the same secret api-token
- * and A83's chat sessions use), valid for two minutes, minted per action and never stored or logged. Its claims carry
+ * The token is a JWT signed by the signer the worker is handed (the project signing key XOS_API_JWT_SIGNING_KEY that
+ * api-token and A83's chat sessions also use, ADR 0168), valid for two minutes, minted per action and never stored or logged. Its claims carry
  * the org it is bound to and the run (xos_automation_run_id), which the fan-out trigger reads to keep automation-caused
  * chains within private.automation_max_depth().
  */
@@ -162,28 +162,22 @@ export function supabaseAutomationRunStore(client: SupabaseClient): AutomationRu
 
 // The owner's token ---------------------------------------------------------------------------------------------
 
-function base64url(bytes: Uint8Array): string {
-  let binary = "";
-  for (const byte of bytes) binary += String.fromCharCode(byte);
-  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-}
-
-const encode = (value: unknown) => base64url(new TextEncoder().encode(JSON.stringify(value)));
-
 export interface OwnerTokenInput {
   readonly userId: string;
   readonly orgId: string;
   readonly automationId: string;
   readonly runId: string;
-  readonly signingKey: string;
+  /** Signs the claims with the project signing key (@xos/platform's project-token). */
+  readonly sign: TokenSigner;
   readonly issuer: string;
   readonly nowSeconds: number;
 }
 
+/** Signs a token's claims; the worker never sees the key. */
+export type TokenSigner = (claims: Record<string, unknown>) => Promise<string>;
+
 /** The claims of an owner token: an ordinary session of the owner, bound to the org and marked with the run. */
-export function ownerTokenClaims(
-  input: Omit<OwnerTokenInput, "signingKey">,
-): Record<string, unknown> {
+export function ownerTokenClaims(input: Omit<OwnerTokenInput, "sign">): Record<string, unknown> {
   return {
     iss: input.issuer,
     sub: input.userId,
@@ -199,19 +193,9 @@ export function ownerTokenClaims(
   };
 }
 
-/** An HS256 JWT acting as the automation's owner for OWNER_TOKEN_SECONDS. */
-export async function mintOwnerToken(input: OwnerTokenInput): Promise<string> {
-  if (input.signingKey.length < 32) throw new Error("The JWT signing key is too short.");
-  const head = `${encode({ alg: "HS256", typ: "JWT" })}.${encode(ownerTokenClaims(input))}`;
-  const key = await crypto.subtle.importKey(
-    "raw",
-    new TextEncoder().encode(input.signingKey),
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["sign"],
-  );
-  const signature = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(head));
-  return `${head}.${base64url(new Uint8Array(signature))}`;
+/** A JWT acting as the automation's owner for OWNER_TOKEN_SECONDS. */
+export function mintOwnerToken(input: OwnerTokenInput): Promise<string> {
+  return input.sign(ownerTokenClaims(input));
 }
 
 // Calling the API ------------------------------------------------------------------------------------------------
@@ -553,7 +537,7 @@ export interface AutomationWorkerDeps {
   readonly fetch: FetchLike;
   /** The public API, such as https://atlas.example/api/v1 (XOS_APP_URL with /api/v1). */
   readonly apiBaseUrl: string;
-  readonly signingKey: string;
+  readonly sign: TokenSigner;
   /** The JWT issuer, `${SUPABASE_URL}/auth/v1` as api-token signs. */
   readonly issuer: string;
   readonly worker: string;
@@ -589,7 +573,7 @@ async function runOne(
       orgId: begun.org_id,
       automationId: begun.automation_id,
       runId: begun.run_id,
-      signingKey: deps.signingKey,
+      sign: deps.sign,
       issuer: deps.issuer,
       nowSeconds: Math.floor(now() / 1000),
     }),

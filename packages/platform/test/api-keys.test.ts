@@ -144,6 +144,28 @@ describe("the functions", () => {
     expect(workers.filter((name) => !gatewayOff.has(name))).toEqual([]);
   });
 
+  it("all run with verify_jwt off: the platform's check does not cover asymmetric session keys or secret keys", () => {
+    expect(names.filter((name) => !gatewayOff.has(name))).toEqual([]);
+  });
+
+  it("verify a person's session with Supabase Auth where they serve one", () => {
+    for (const name of ["apple-revoke", "wallet-pass", "storage-browse"]) {
+      expect(source(name)).toMatch(/await sessionUserId\(authorization\)\) === null/);
+    }
+  });
+
+  it("never sign with the legacy JWT secret's kind: every minted token goes through tokenSigner()", () => {
+    for (const name of [
+      "api-token",
+      "automation-run",
+      "integration-worker",
+      "integration-inbound",
+    ]) {
+      expect(source(name)).toContain("tokenSigner()");
+      expect(source(name)).not.toMatch(/env\("XOS_API_JWT_SIGNING_KEY"\)/);
+    }
+  });
+
   it("read the keys only through api-keys.ts, never the legacy-named variables", () => {
     expect(names.filter((name) => /SUPABASE_(SERVICE_ROLE|ANON)_KEY/.test(source(name)))).toEqual(
       [],

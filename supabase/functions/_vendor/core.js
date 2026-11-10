@@ -1064,6 +1064,12 @@ function internalErrorResponse(error, options) {
   );
 }
 //#endregion
+//#region edge/entries/core.ts
+/** The project token signer (ADR 0168), loaded on demand: only api-token and the workers that mint tokens need it. */
+function loadProjectTokens() {
+  return import("./chunks/platform-jwt-project-token.js");
+}
+//#endregion
 export {
   PlatformDbError,
   createLogger,
@@ -1071,6 +1077,7 @@ export {
   edgeFunctionName,
   identityFromEnv,
   internalErrorResponse,
+  loadProjectTokens,
   observe,
   observeEdgeFunction,
   requestIdFor,

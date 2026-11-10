@@ -296,7 +296,7 @@ loads the org switcher). Rollback: restore the recorded values.
 Names only; values come from the owner's secret store. `supabase secrets list --project-ref fquuqnzlpobaawucczgq`
 prints names and digests, never values.
 
-`XOS_API_JWT_SIGNING_KEY` (the project's JWT secret, so it changes again in step 12), `XOS_APP_URL`,
+`XOS_API_JWT_SIGNING_KEY` (XOS's own signing key, a private JWK, ADR 0168), `XOS_APP_URL`,
 `XOS_GATEWAY_URL`, `XOS_CONSOLE_URL`, `XOS_POSTAL_ADDRESS`, `XOS_EMAIL_TRANSPORT`, `XOS_EMAIL_FROM`, `RESEND_API_KEY`,
 `XOS_EMAIL_ALLOWLIST`, `XOS_EMAIL_DELIVER_TO_ANY` (true only at cutover, once `mail.ghxstship.tech` passes its
 SPF, DKIM and DMARC checks and `XOS_POSTAL_ADDRESS` holds the postal address; ADR 0033, decision 41),
@@ -343,10 +343,9 @@ Since ADR 0168 (2026-11-09) nothing reads the legacy `anon` and `service_role` k
 functions `SUPABASE_SECRET_KEYS` and `SUPABASE_PUBLISHABLE_KEYS`, and the worker schedules a secret key in Vault. The
 legacy keys are deactivated (Settings, API Keys), not rotated, and rotating a key is now: create a new secret or
 publishable key, put it where the old one was (Vault `xos_worker_key`; Vercel `SUPABASE_ANON_KEY`; EAS
-`EXPO_PUBLIC_SUPABASE_ANON_KEY`), then delete the old one, with no sign-out. What still rests on the shared JWT secret is
-the signing of sessions and of the tokens `api-token`, `integration-worker` and `automation-run` mint
-(`XOS_API_JWT_SIGNING_KEY`); moving those to JWT signing keys is this step's remaining part, and the owner holds every
-rotation until 5.0. The text below is the step as approved for cutover.
+`EXPO_PUBLIC_SUPABASE_ANON_KEY`), then delete the old one, with no sign-out. On 2026-11-09 the owner disabled the legacy keys on production, whose sessions are signed with an asymmetric JWT
+signing key; the tokens XOS mints use its own imported key (`infra/production/signing-key-setup.sh`, ADR 0168, D5).
+The text below is the step as approved for cutover.
 
 Approved for cutover (ADR 0033, decision 44). The owner still confirms the moment in writing, because of what it
 does:

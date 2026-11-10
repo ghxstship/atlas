@@ -4,6 +4,7 @@ import {
   supabaseAutomationRunStore,
   type AutomationRunResult,
 } from "@xos/data/automation-runner";
+import { projectTokenSigner } from "@xos/platform/jwt";
 import type { Page } from "@playwright/test";
 import { expect as baseExpect, test } from "./engine-test";
 import { expectAccessibleInBothThemes, ORG, signIn } from "./a16-support";
@@ -55,7 +56,8 @@ async function runWorker(
         store: supabaseAutomationRunStore(stack.client),
         fetch: (input, init) => fetch(input, init),
         apiBaseUrl: `${origin}/api/v1`,
-        signingKey: stack.jwtSecret,
+        // The local stack signs with its development JWT secret; production refuses a shared secret (ADR 0168).
+        sign: projectTokenSigner(stack.jwtSecret, { production: false }),
         issuer: `${stack.url}/auth/v1`,
         worker: "e2e-a91",
       })),

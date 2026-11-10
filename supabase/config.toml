@@ -471,13 +471,21 @@ verify_jwt = false
 [functions.storage-browse]
 # B16 (ADR 0155 D5, migration 6053): a signed-in person browses a storage connection's linking folder and links a file
 # in place; the person's session is the bearer, and the function checks them before it reads any credential.
-verify_jwt = true
+verify_jwt = false
 
 [functions.integration-inbound]
 # Providers authenticate by webhook signature (A83, migration 1400; packages/integrations/src/inbound).
 verify_jwt = false
 
 [functions.file-download]
+verify_jwt = false
+
+# Signed-in people's functions: since the project signs sessions with asymmetric JWT signing keys, the platform's
+# verify_jwt check is not relied on; each asks Supabase Auth to verify the session before anything else (ADR 0168).
+[functions.apple-revoke]
+verify_jwt = false
+
+[functions.wallet-pass]
 verify_jwt = false
 
 # The workers: pg_cron calls them with a secret key from Vault (xos_worker_key) on the apikey header. Secret keys

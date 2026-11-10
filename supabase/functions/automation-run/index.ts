@@ -5,12 +5,13 @@
 // role only claims jobs and writes the runs ledger. Called every minute with the service key, like webhook-dispatch:
 // select cron.schedule('xos_worker_automation_run', '* * * * *', ...) as the self-hosting guide shows.
 //
-// Secrets: SUPABASE_URL and SUPABASE_SECRET_KEYS (provided by Supabase), XOS_API_JWT_SIGNING_KEY (the project's
-// JWT secret, which api-token and integration-worker also use) and XOS_APP_URL (Atlas, whose /api/v1 the actions call).
+// Secrets: SUPABASE_URL and SUPABASE_SECRET_KEYS (provided by Supabase), XOS_API_JWT_SIGNING_KEY (the project
+// signing key, a private JWK the project imported, which api-token and integration-worker also use; ADR 0168) and XOS_APP_URL (Atlas, whose /api/v1 the actions call).
 // None of them appears in code or tests.
 import { createClient } from "@supabase/supabase-js";
 import { runAutomationJobs, supabaseAutomationRunStore } from "../_vendor/automation-run.js";
 import { isServiceRequest, json, env, secretKey, serve } from "../_shared/runtime.ts";
+import { tokenSigner } from "../_shared/sessions.ts";
 
 serve(async (request) => {
   const serviceKey = secretKey();
@@ -25,7 +26,8 @@ serve(async (request) => {
     store: supabaseAutomationRunStore(client),
     fetch: (input, init) => fetch(input, init),
     apiBaseUrl: `${env("XOS_APP_URL").replace(/\/$/, "")}/api/v1`,
-    signingKey: env("XOS_API_JWT_SIGNING_KEY"),
+    // Read when a run mints its first token, so an unset key fails that run with its reason, not every pass.
+    sign: (claims: Record<string, unknown>) => tokenSigner()(claims),
     issuer: `${url}/auth/v1`,
     worker: `automation-run:${crypto.randomUUID()}`,
   });

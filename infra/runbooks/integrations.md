@@ -36,13 +36,13 @@ group by 1, 2;` shows no growing Queued count.
 
 ## 2. Edge Function secrets
 
-| Secret                          | Format                                       | Used by                                                                 |
-| ------------------------------- | -------------------------------------------- | ----------------------------------------------------------------------- |
-| `XOS_API_JWT_SIGNING_KEY`       | The project's JWT secret (already set)       | One-minute chat sessions for slash commands, Teams messages and unfurls |
-| `XOS_APP_URL`                   | `https://atlas.ghxstship.tech` (already set) | Which record links Slack unfurls                                        |
-| `XOS_SLACK_SIGNING_SECRET`      | `<32 hex characters>` from the Slack app     | `/integration-inbound/slack/*`                                          |
-| `XOS_XERO_WEBHOOK_KEY`          | `<webhook key>` from the Xero app            | `/integration-inbound/xero`                                             |
-| `XOS_QUICKBOOKS_VERIFIER_TOKEN` | `<verifier token>` from the Intuit app       | `/integration-inbound/quickbooks_online`                                |
+| Secret                          | Format                                                                                   | Used by                                                                 |
+| ------------------------------- | ---------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| `XOS_API_JWT_SIGNING_KEY`       | XOS's own signing key, a private JWK (ADR 0168, `infra/production/signing-key-setup.sh`) | One-minute chat sessions for slash commands, Teams messages and unfurls |
+| `XOS_APP_URL`                   | `https://atlas.ghxstship.tech` (already set)                                             | Which record links Slack unfurls                                        |
+| `XOS_SLACK_SIGNING_SECRET`      | `<32 hex characters>` from the Slack app                                                 | `/integration-inbound/slack/*`                                          |
+| `XOS_XERO_WEBHOOK_KEY`          | `<webhook key>` from the Xero app                                                        | `/integration-inbound/xero`                                             |
+| `XOS_QUICKBOOKS_VERIFIER_TOKEN` | `<verifier token>` from the Intuit app                                                   | `/integration-inbound/quickbooks_online`                                |
 
 An endpoint whose secret is unset answers 503 and records nothing, so a provider keeps retrying until it is set.
 

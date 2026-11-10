@@ -120,8 +120,9 @@ const BOOT_BUDGET_KB: Record<string, number> = {
   "guest-email": 132,
   // P3: pasted rows and import destinations (cues and guest lists into a running order or project) add about 17.5 KB
   // of its own code, and A127's action links about 2 KB of shared stores; 122.1 KB in merge train 6, about 10 percent
-  // above that.
-  "import-run": 134,
+  // above that. ADR 0168: the shared API key check (about 3.4 KB, every function) brought it to 134.6 KB; about 10
+  // percent above that.
+  "import-run": 148,
   // RRR-139: Resend's inbound mail (signature check, Receiving API, HTML to text, the raw copy) is about 16 KB of
   // the 64 it reached on 2026-10-24, once the shared stores chunk gained Checkout's RPC.
   "inbound-email": 80,
@@ -157,7 +158,8 @@ const BOOT_BUDGET_KB: Record<string, number> = {
   // B16, a new function (not a raise): the shared core, the three storage providers with their file metadata and
   // folder walks, and the OAuth renewal; 98.5 KB on 2026-10-30, about 25 percent above that like the others.
   "storage-browse": 125,
-  "stripe-webhook": 84,
+  // ADR 0168: the shared API key check (about 3.4 KB, every function) brought it to 86.8 KB; about 10 percent above.
+  "stripe-webhook": 95,
   // The Spanish email copy grew with the advancing notices of R5 to R7 (about 4.7 KB; 115.6 KB in merge train 5);
   // about 10 percent above that.
   // 123.6 KB in merge train 7 with the same notice copy; about 10 percent above that.

@@ -397,3 +397,12 @@ export {
   type ScannerEnv,
   type SelectedScanner,
 } from "./scanning/select.ts";
+export {
+  importProjectSigningKey,
+  projectTokenSigner,
+  ProjectSigningKeyError,
+  signProjectToken,
+  type ProjectSigningKey,
+  type ProjectTokenClaims,
+  type ProjectTokenSigner,
+} from "./jwt/project-token.ts";

@@ -4,7 +4,7 @@
 // account is the one their XOS account signs in with (read from Supabase Auth with their own token). Nothing is stored.
 // The key is an owner secret (APPLE_TEAM_ID, APPLE_SIGN_IN_KEY_ID, APPLE_SIGN_IN_KEY_PEM, APPLE_SIGN_IN_CLIENT_IDS);
 // until it is set the function answers 503 apple_revoke_not_configured. The platform verifies the caller's JWT before
-// this runs (verify_jwt stays on). It loads no npm package (A85): signing is Web Crypto, Apple and Supabase Auth are
+// this runs, by asking Supabase Auth (verify_jwt is off, ADR 0168). It loads no npm package (A85): signing is Web Crypto, Apple and Supabase Auth are
 // reached with fetch.
 import {
   appleRevokeResponse,
@@ -12,6 +12,7 @@ import {
   readAppleRevokeEnv,
 } from "../_vendor/apple-revoke.js";
 import { json, env, serve, publishableKey } from "../_shared/runtime.ts";
+import { sessionUserId } from "../_shared/sessions.ts";
 
 serve(async (request) => {
   if (request.method !== "POST")
@@ -21,7 +22,8 @@ serve(async (request) => {
       status: 405,
     });
   const authorization = request.headers.get("Authorization") ?? "";
-  if (!authorization.startsWith("Bearer "))
+  // verify_jwt is off (ADR 0168): Supabase Auth verifies the session, whatever key signed it, before anything else.
+  if ((await sessionUserId(authorization)) === null)
     return json(401, { type: "/problems/unauthorized", title: "Sign in first.", status: 401 });
   const result = await appleRevokeResponse(await request.json().catch(() => null), {
     apple: readAppleRevokeEnv(Deno.env.toObject()),

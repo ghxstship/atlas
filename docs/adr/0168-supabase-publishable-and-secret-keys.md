@@ -5,6 +5,7 @@
 - Decider: the owner ("make sure we are not using any legacy key types for supabase", 2026-11-09)
 - Addresses: the production worker schedules answering 401 since 4.8; RRR-243
 - Migrations: 904090001 (release 4.9, block 00: a fix made ahead of the train; ADR 0022)
+- Amended: 2026-11-09, when the owner disabled the legacy JWT keys (D5 and D6)
 - Amends: ADR 0033, decision 44 (the key rotation at cutover)
 
 ## Context
@@ -42,12 +43,30 @@ Two shortcuts were rejected. Keeping `verify_jwt` on and trusting the role claim
 
 Once `xos_worker_key` holds a secret key, nothing reads the legacy keys. The owner deactivates them under Settings, API Keys. That can be undone and signs no one out. From then on, rotating an API key means making a new one, putting it where the old one was, and deleting the old one.
 
-### D5. What still rests on the JWT secret
+### D5. XOS signs its own tokens with a key it imported, never the JWT secret
 
-Sessions are still signed with the project's shared JWT secret. So are the short-lived tokens that `api-token`, `integration-worker` and `automation-run` mint (`XOS_API_JWT_SIGNING_KEY`). Moving those to Supabase's JWT signing keys is a separate migration and a rotation, which the owner holds until 5.0. Until then, `XOS_API_JWT_SIGNING_KEY` stays unset in production, so the public API's token exchange is not live. Setting it to the shared secret would add a new dependency on the legacy secret.
+On 2026-11-09 the owner disabled the legacy JWT-based keys on production, "effective immediately". Production's sessions are already signed with an asymmetric key (ES256; the project's key set at `/auth/v1/.well-known/jwks.json`).
+
+Three kinds of token are minted by XOS itself:
+
+- `api-token` exchanges an API key for a five-minute token acting as the key's service account;
+- `automation-run` acts as an automation's owner;
+- the chat integrations (`integration-inbound`, `integration-worker`) act as the person linked to a chat user.
+
+Supabase never hands out its own private keys. So the key XOS signs with is one XOS holds: `XOS_API_JWT_SIGNING_KEY` is a private JWK, P-256 for ES256 (RSA for RS256 is accepted too), made with `supabase gen signing-key --algorithm ES256`. It is imported under Settings, JWT Keys, and rotated to, so the key set names it and PostgREST trusts what it signs. Supabase's own ES256 key becomes "previously used", still trusted, so no one is signed out.
+
+`packages/platform/src/jwt/project-token.ts` reads the key and signs with its `kid`. In production it refuses a shared secret, the legacy JWT secret's kind. Outside production it still takes the local CLI stack's development secret.
+
+Each minting function is handed a signer and never sees the key. The signer's code loads only with the first token. `integration-worker` and `automation-run` read the key only when they mint, so syncs and an idle automation pass run without it. `infra/production/signing-key-setup.sh` makes the key, sets the function secret and copies the key for the dashboard import, without printing it.
+
+### D6. No function relies on the platform's verify_jwt
+
+Supabase warns that `verify_jwt` can break once sessions are signed with JWT signing keys. Every function now runs with it off. `apple-revoke`, `wallet-pass` and `storage-browse` ask Supabase Auth (`/auth/v1/user`) to verify the person's session before they do anything; `_shared/sessions.ts` holds that check. The workers check a secret key (D2), and the public functions check their own signatures or tickets. `packages/platform/test/api-keys.test.ts` fails if any function turns `verify_jwt` back on, or if a minting function reads the key itself.
 
 ## Consequences
 
 - Production needs one owner step: a secret key in Vault (`xos_worker_key`), made under Settings, API Keys, ideally named `workers`. The hand-made schedules then call `private.worker_request`.
 - `report-run` also stops failing at load. It imported two names its bundle does not export, so it never booted. `packages/platform/test/edge-imports.test.ts` now checks every function's imports against its bundle, because CI has no Deno step.
+- The owner makes the signing key once per project (`infra/production/signing-key-setup.sh <project-ref>`, then the dashboard import and rotation). Until then `api-token` answers 500, automation runs fail with the reason, and chat replies cannot read records.
+- Every function's boot code grew by about 3.4 KB for the shared API key check; the budgets of `import-run` and `stripe-webhook`, which had under 3 KB of headroom, are about 10 percent above their new sizes.
 - CI and local scripts still read the local stack's legacy development keys from `supabase status`. They move to its publishable and secret keys with the Supabase CLI 3 migration.

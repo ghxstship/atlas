@@ -6,7 +6,7 @@
 // (storage_outside_link_folder otherwise). The link is inserted as the caller, so the document's write rule and the
 // file link guard (0625) apply.
 //
-// POST, verify_jwt = true, the person's session as the bearer. Body: { action: "list", connection_id, document_id,
+// POST, verify_jwt = false and the session checked with Supabase Auth first (ADR 0168), the person's session as the bearer. Body: { action: "list", connection_id, document_id,
 // folder_id } | { action: "link", connection_id, document_id, external_file_id } | { action: "admin_list",
 // connection_id, folder_id }.
 //
@@ -22,6 +22,7 @@ import {
   storageProviderFor,
 } from "../_vendor/storage-browse.js";
 import { json, env, secretKey, serve, publishableKey } from "../_shared/runtime.ts";
+import { sessionUserId } from "../_shared/sessions.ts";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -47,7 +48,10 @@ function databaseProblem(error: { code?: string; message: string }): Response {
 serve(async (request) => {
   if (request.method !== "POST") return problem(405, "method_not_allowed", "Use POST.");
   const authorization = request.headers.get("Authorization") ?? "";
-  if (!authorization.startsWith("Bearer ")) return problem(401, "unauthorized", "Sign in first.");
+  // verify_jwt is off (ADR 0168): Supabase Auth verifies the session, whatever key signed it, before anything else.
+  if ((await sessionUserId(authorization)) === null) {
+    return problem(401, "unauthorized", "Sign in first.");
+  }
   let body: Record<string, unknown>;
   try {
     body = (await request.json()) as Record<string, unknown>;
