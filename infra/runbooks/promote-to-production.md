@@ -246,8 +246,12 @@ an error. Rollback: put back the values recorded before the change.
 2. Authentication, Emails, SMTP Settings: enable custom SMTP, host `smtp.resend.com`, port 465, user `resend`,
    password the Resend API key (secret), sender `no-reply@mail.ghxstship.tech`, sender name `XOS`.
 3. Templates (confirm signup, invite, magic link, change email, reset password, reauthentication): the product's
-   own email goes through the Edge Functions; the auth templates keep Supabase's defaults with the product name
-   and links to `https://atlas.ghxstship.tech`. Check that no template still names staging or the demo tenant.
+   own email goes through the Edge Functions; the auth emails wear the XOS platform brand from the repository's
+   `supabase/templates` (4.9 email branding audit). For each, paste the subject from `supabase/config.toml`
+   (`[auth.email.template.<name>]`) and the file's HTML into Authentication, Emails, Templates. Never push them with
+   `supabase config push`, which would push the repository's local values too (`hosted-security-settings.md`).
+   Check that the Site URL is `https://atlas.ghxstship.tech` and that no template names staging or the demo tenant
+   (`packages/email/test/auth-templates.test.ts` checks the repository's copies).
 4. Set the email rate limit (Authentication, Rate Limits) to about 100 emails an hour, sent through Resend (ADR 0033,
    decision 43). Watch the Auth logs for sign-up confirmations, magic links and password resets after launch, and
    raise it before real volume reaches it. The repository's local value (`email_sent = 2` an hour in
