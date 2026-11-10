@@ -1,16 +1,16 @@
 import type { XosClient } from "./client.ts";
 import type { CueFieldAudience, CustomDataType } from "./custom-fields.ts";
-import { Constants } from "./database.types.ts";
+import { cueFieldAudience } from "./enums.generated.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 
 /**
- * Cue field audiences (app.cue_field_audiences, 6240) as server modules read them (ADR 0142). The list comes from the
- * generated Constants, which weigh 6.3 KB gzip (ADR 0123): custom-fields.ts reaches client components, so this stays
- * apart from it, imported only by governance.tsx, surface-actions.ts and show-pages.tsx.
+ * Cue field audiences (app.cue_field_audiences, 6240) as server modules read them (ADR 0142). The list comes from
+ * enums.generated.ts, never the generated Constants, which weigh 6.3 KB gzip (ADR 0123); this stays apart from
+ * custom-fields.ts, imported only by governance.tsx, surface-actions.ts and show-pages.tsx.
  */
 
 /** Who a cue field is for: Crew in Atlas, Showcaller on showcaller links, Client in Gateway. */
-export const CUE_FIELD_AUDIENCES = Constants.app.Enums.cue_field_audience;
+export const CUE_FIELD_AUDIENCES = cueFieldAudience;
 
 /** Data types that never go to a showcaller link or a Client: neither has an account or holds money. */
 export const CREW_ONLY_TYPES: readonly CustomDataType[] = ["Person", "Money", "Email"];

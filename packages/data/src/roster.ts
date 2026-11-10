@@ -1,6 +1,11 @@
 import { bulkUpdate, sameValueRows, type BulkOutcome } from "./bulk.ts";
 import type { Database, XosClient } from "./client.ts";
-import { Constants, type Json } from "./database.types.ts";
+import type { Json } from "./database.types.ts";
+import {
+  accountEngagementDuty,
+  rosterEntryState,
+  rosterPersonResponse,
+} from "./enums.generated.ts";
 import { parseTstzRange } from "./ranges.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 import {
@@ -29,12 +34,9 @@ export type AccountEngagementDuty = Enums["account_engagement_duty"];
 export type AccountRole = Enums["account_role"];
 export type ExternalRoleType = Enums["external_role_type"];
 
-export const ROSTER_ENTRY_STATES: readonly RosterEntryState[] =
-  Constants.app.Enums.roster_entry_state;
-export const ROSTER_PERSON_RESPONSES: readonly RosterPersonResponse[] =
-  Constants.app.Enums.roster_person_response;
-export const ACCOUNT_ENGAGEMENT_DUTIES: readonly AccountEngagementDuty[] =
-  Constants.app.Enums.account_engagement_duty;
+export const ROSTER_ENTRY_STATES: readonly RosterEntryState[] = rosterEntryState;
+export const ROSTER_PERSON_RESPONSES: readonly RosterPersonResponse[] = rosterPersonResponse;
+export const ACCOUNT_ENGAGEMENT_DUTIES: readonly AccountEngagementDuty[] = accountEngagementDuty;
 
 /** One roster entry with its person, as a roster manager, the person or the producing org reads it. */
 export interface RosterEntry {
