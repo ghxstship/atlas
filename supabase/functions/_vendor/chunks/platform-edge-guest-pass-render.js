@@ -5,6 +5,7 @@ import {
   documentTranslator,
   formatter,
   isCardPaper,
+  isEmbeddableImage,
   renderDocumentPdf,
 } from "./data-documents-render.js";
 import { defaultLocale, isLaunchLocale } from "./i18n-locales.js";
@@ -3473,13 +3474,17 @@ function buildDocumentModel(kind, data, options) {
 /**
  * The guest pass PDF for the guest-email Edge Function (B8, ADR 0147 decision 6): the guest-pass document of the
  * shared pipeline (ADR 0031), built from the claim's own facts and rendered on A6. Loaded only when a Pass email is
- * sent, so pdfkit, its fonts and the documents copy never load at boot. The brand is the sending org's name: the
- * worker holds no org's logo, and the pass carries only the row's org. The document is dated when the guest was
+ * sent, so pdfkit, its fonts and the documents copy never load at boot. The brand is the sending org's document brand
+ * (app.document_brand_for_org), the one Atlas prints on a pass it downloads: its name, legal entity, accent and a PNG
+ * or JPEG logo, and the pass carries only the row's org. The document is dated when the guest was
  * approved, so its CreationDate, and with it pdfkit's file ID, are the same on every attempt: a retried send carries
  * a byte-identical attachment under the same idempotency key.
  */
 async function renderGuestPassPdf(claim, pass, options) {
   const locale = isLaunchLocale(claim.locale) ? claim.locale : defaultLocale;
+  const messages = locale === "es-US" ? documents_default : documents_default$1;
+  const name = options.brand?.name ?? claim.orgName;
+  const logoAlt = messages.facts.logoAlt.replace("{name}", name);
   const model = buildDocumentModel(
     "guest-pass",
     {
@@ -3506,12 +3511,18 @@ async function renderGuestPassPdf(claim, pass, options) {
     },
     {
       locale,
-      messages: locale === "es-US" ? documents_default : documents_default$1,
+      messages,
       brand: {
-        name: claim.orgName,
-        legalEntity: null,
-        accentHex: null,
-        logo: null,
+        name,
+        legalEntity: options.brand?.legalEntity ?? null,
+        accentHex: options.brand?.accentHex ?? null,
+        logo:
+          options.logo && isEmbeddableImage(options.logo)
+            ? {
+                bytes: options.logo,
+                alt: logoAlt,
+              }
+            : null,
       },
       recordUrl: options.gatewayUrl,
       paper: "a6",

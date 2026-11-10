@@ -79,7 +79,18 @@ const PACKAGES: Record<string, { boot: string[]; lazy: string[] }> = {
     boot: ["@supabase/supabase-js", "zod"],
     lazy: ["pdfkit", "resend", "stripe"],
   },
-  "report-run": { boot: ["@supabase/supabase-js", "zod"], lazy: ["exceljs", "pdfkit", "resend"] },
+  // 4.9: the branded report and pack emails render with React Email on the first delivery (edge/report-email.ts).
+  "report-run": {
+    boot: ["@supabase/supabase-js", "zod"],
+    lazy: [
+      "@react-email/components",
+      "exceljs",
+      "intl-messageformat",
+      "pdfkit",
+      "react/jsx-runtime",
+      "resend",
+    ],
+  },
   scim: { boot: ["@supabase/supabase-js"], lazy: [] },
   // A87: plain fetch to PostgREST and Supabase's built-in gte-small model, no package.
   "search-embed": { boot: [], lazy: [] },
@@ -145,7 +156,10 @@ const BOOT_BUDGET_KB: Record<string, number> = {
   // B16: subscription pauses join the hourly job (about 6.6 KB of its own code) beside the merged notice copy; 238.2 KB
   // in merge train 7, about 10 percent above that.
   "org-lifecycle": 262,
-  "report-run": 128,
+  // 4.9 email branding (904090003): the delivery worker skips a suppressed recipient, sends the org's From name and
+  // reply-to, and composes both emails through the branded packages/email templates, which load on the first delivery;
+  // 129.5 KB at boot.
+  "report-run": 133,
   scim: 92,
   "search-embed": 24,
   // A138's email branding in the shared platform stores brought it to 145.1 KB on 2026-10-31 (merge train 2). R6a

@@ -12,18 +12,19 @@ import {
   MAX_PACK_GRANTS,
   openStakeholderPack,
   packAsksForCode,
-  packEmail,
+  packEmailLinks,
   packExpiryText,
   packFileTicket,
   parsePackGrants,
   parsePackRefusal,
   readStakeholderPack,
   runPackDeliveries,
+  supabasePackDeliveryStore,
   signPackItem,
   unsubscribeStakeholderPack,
   type MintedPackLink,
   type PackDeliveryStore,
-  type PackEmailCopy,
+  type ComposePackEmail,
 } from "../src/stakeholder-packs.ts";
 import { errorResponse, fakeClient, okResponse, type Response } from "./fake-client.ts";
 
@@ -280,17 +281,15 @@ describe("the anonymous side", () => {
   });
 });
 
-const copy: PackEmailCopy = {
-  subject: ({ sender, pack }) => `${sender} shared ${pack}`,
-  intro: ({ sender }) => `${sender} shared this`,
-  message: ({ message }) => `Message: ${message}`,
-  items: ({ items }) => `Items: ${items}`,
-  open: ({ url }) => `Open: ${url}`,
-  expires: ({ date }) => `Until ${date}`,
-  code: () => "The code never comes by email.",
-  sentBy: ({ org, address }) => `Sent by ${org}, ${address}`,
-  stop: ({ url }) => `Stop: ${url}`,
-};
+/** A stand-in for report-run's branded composer (packages/platform edge/report-email.ts, tested there). */
+const compose: ComposePackEmail = async (link, links, mailEnv) => ({
+  to: link.email.recipientEmail,
+  toName: link.email.recipientName,
+  subject: `${link.email.senderName} shared ${link.email.packName}`,
+  text: `${links.url}\n${links.stopUrl}\n${mailEnv.postalAddress}`,
+  html: "<p>pack</p>",
+  headers: { "List-Unsubscribe": `<${links.oneClickUrl}>` },
+});
 
 const minted: MintedPackLink = {
   token: TOKEN,
@@ -300,8 +299,15 @@ const minted: MintedPackLink = {
     recipientName: "Cleo",
     recipientEmail: "cleo@client.test",
     locale: "en-US",
+    orgId: "org-1",
     orgName: "Northwind",
     brandName: "Northwind Live",
+    whiteLabel: false,
+    brandSenderName: null,
+    replyTo: null,
+    logoPath: null,
+    accentHex: null,
+    suppressPoweredBy: false,
     packName: "Client pack",
     message: "Welcome <b>",
     itemTitles: ["Plan", "Show clock"],
@@ -317,29 +323,13 @@ const env = {
   apiUrl: "https://api.test",
 };
 
-describe("the pack email", () => {
-  const email = packEmail(minted, copy, env);
-
-  it("carries the link, one-click headers and the CAN-SPAM footer", () => {
-    expect(email.text).toContain(`https://atlas.test/share/pack/${TOKEN}`);
-    expect(email.headers?.["List-Unsubscribe"]).toBe(
-      `<https://api.test/functions/v1/email-unsubscribe?token=${UNSUB}>`,
-    );
-    expect(email.headers?.["List-Unsubscribe-Post"]).toBe("List-Unsubscribe=One-Click");
-    expect(email.text).toContain("Sent by Northwind, 1 Main St, Miami FL");
-    expect(email.text).toContain(`https://atlas.test/share/pack/unsubscribe/${UNSUB}`);
-  });
-
-  it("attaches no file and carries no code", () => {
-    expect(email.attachment).toBeUndefined();
-    expect(JSON.stringify(email)).not.toMatch(/\b\d{6}\b/);
-  });
-
-  it("escapes what the team typed in the HTML", () => {
-    expect(email.html).toContain("Welcome &lt;b&gt;");
-    // The HTML part links the pack and the stop page itself, rather than leaving it to the mail client.
-    expect(email.html).toMatch(/<a href="https?:[^"]+\/share\/pack\/xpkl_/);
-    expect(email.html).toMatch(/<a href="https?:[^"]+\/share\/pack\/unsubscribe\/xpku_/);
+describe("the pack email's links", () => {
+  it("puts the pack and the page that asks before it stops on Atlas, and the one-click stop on the API", () => {
+    expect(packEmailLinks(minted, env)).toEqual({
+      url: `https://atlas.test/share/pack/${TOKEN}`,
+      stopUrl: `https://atlas.test/share/pack/unsubscribe/${UNSUB}`,
+      oneClickUrl: `https://api.test/functions/v1/email-unsubscribe?token=${UNSUB}`,
+    });
   });
 
   it("shows the expiry in the project's zone", () => {
@@ -375,11 +365,16 @@ describe("the pack.deliver worker", () => {
     },
   };
   const run = (store: PackDeliveryStore, m: ReportMailer = mailer, e = env) =>
-    runPackDeliveries({ store, mailer: m, copy: async () => copy, env: e, worker: "w" });
+    runPackDeliveries({ store, mailer: m, compose, env: e, worker: "w" });
 
   it("claims, mints, sends and finishes", async () => {
     const { store, finished, jobs } = fakeStore();
+    sent.length = 0;
     expect(await run(store)).toEqual([{ jobId: "j", deliveryId: "d", status: "Sent" }]);
+    expect(sent[0]?.text).toContain(`https://atlas.test/share/pack/${TOKEN}`);
+    expect(sent[0]?.headers?.["List-Unsubscribe"]).toBe(
+      `<https://api.test/functions/v1/email-unsubscribe?token=${UNSUB}>`,
+    );
     expect(finished).toEqual([{ id: "d", outcome: { sent: true, messageId: "m-1" } }]);
     expect(jobs).toEqual([{ id: "j", ok: true, error: null }]);
   });
@@ -464,5 +459,52 @@ describe("the mailers with a pack email", () => {
     await resendMailer(client as never, "x@y.test", () => true).send(email);
     expect(payload["headers"]).toEqual(email.headers);
     expect(payload).not.toHaveProperty("attachments");
+  });
+});
+
+describe("the pack delivery store", () => {
+  it("reads the org's email brand the mint answers while white label is in force", async () => {
+    const email = {
+      recipient_name: "Cleo",
+      recipient_email: "cleo@client.test",
+      locale: "en-US",
+      org_id: "org-1",
+      org_name: "Northwind",
+      brand_name: "Northwind Presents",
+      white_label: true,
+      brand_sender_name: "Northwind Client Desk",
+      reply_to: "clients@northwind.test",
+      logo_path: "org-1/logo.png",
+      accent_hex: "#0B5FFF",
+      suppress_powered_by: true,
+      pack_name: "Client pack",
+      message: null,
+      item_titles: ["Plan"],
+      sender_name: null,
+      expires_at: "2026-07-08T03:59:00Z",
+      time_zone: "America/New_York",
+    };
+    const client = {
+      schema: () => ({
+        rpc: async () => ({
+          data: [
+            { token: TOKEN, unsubscribe_token: UNSUB, expires_at: "2026-07-08T03:59:00Z", email },
+          ],
+          error: null,
+        }),
+      }),
+    } as unknown as Parameters<typeof supabasePackDeliveryStore>[0];
+    const link = await supabasePackDeliveryStore(client).mint("d");
+    expect(link?.email).toMatchObject({
+      orgId: "org-1",
+      brandName: "Northwind Presents",
+      whiteLabel: true,
+      brandSenderName: "Northwind Client Desk",
+      replyTo: "clients@northwind.test",
+      logoPath: "org-1/logo.png",
+      accentHex: "#0B5FFF",
+      suppressPoweredBy: true,
+      senderName: null,
+    });
   });
 });

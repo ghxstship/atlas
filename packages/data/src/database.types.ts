@@ -87948,6 +87948,15 @@ export type Database = {
         Returns: string;
       };
       dispose_lost_item: { Args: { p_item_id: string; p_reason: string }; Returns: string };
+      document_brand_for_org: {
+        Args: { p_org_id: string };
+        Returns: {
+          accent_hex: string;
+          legal_entity: string;
+          logo_path: string;
+          name: string;
+        }[];
+      };
       document_file_links: {
         Args: { p_document_id: string };
         Returns: {
@@ -88037,6 +88046,7 @@ export type Database = {
           logo_path: string;
           reply_to: string;
           sender_name: string;
+          suppress_powered_by: boolean;
         }[];
       };
       end_account_membership: { Args: { p_account_membership_id: string }; Returns: undefined };
@@ -90795,12 +90805,16 @@ export type Database = {
           export_format: Database["app"]["Enums"]["export_format"];
           org_id: string;
           org_name: string;
+          org_slug: string;
           recipient_email: string;
           recipient_name: string;
+          recipient_person_id: string;
+          report_definition_id: string;
           report_name: string;
           row_count: number;
           scheduled_for: string;
           storage_object_path: string;
+          suppressed: boolean;
           unpriced_count: number;
         }[];
       };

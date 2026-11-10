@@ -46,11 +46,18 @@ export interface TemplateProps {
     readonly acceptUrl: string;
     readonly expiresAt: Date;
   };
+  /**
+   * A scheduled report (A35): the file goes as an attachment. The link to the report is there only for a recipient
+   * who may open it in Atlas (app.report_delivery, 904090003).
+   */
   readonly report_delivery: {
     readonly reportName: string;
     readonly periodLabel: string;
     readonly format: string;
-    readonly url: string;
+    readonly url?: string;
+    /** The run's rows and how many carry an unpriced amount, when the sender knows them. */
+    readonly rows?: number;
+    readonly unpriced?: number;
   };
   readonly export_ready: {
     readonly exportName: string;
@@ -117,6 +124,20 @@ export interface TemplateProps {
    * pass (the guest-pass PDF goes as an attachment) or a message with its own subject and text. Never transactional:
    * it carries the unsubscribe link and the postal address of decision 41.
    */
+  /**
+   * A stakeholder pack shared with an outside recipient (B2, ADR 0141): a sign-in link, never a file and never the
+   * access code. Never transactional: it carries the pack's own stop link and the postal address of decision 41.
+   */
+  readonly stakeholder_pack: {
+    /** Who shared it: the pack's creator, else the org's brand name. */
+    readonly senderName: string;
+    readonly packName: string;
+    readonly message?: string;
+    readonly itemTitles: readonly string[];
+    readonly url: string;
+    /** The link's expiry as the recipient reads it, in the project's zone with the zone's name. */
+    readonly expiresText: string;
+  };
   readonly guest_message: {
     /** app.guest_email_kind: Invitation, Pass or Message. */
     readonly kind: string;
@@ -349,7 +370,7 @@ export const templates: { readonly [C in TemplateCode]: Template<TemplateProps[C
   },
   report_delivery: {
     transactional: false,
-    compose: ({ reportName, periodLabel, format, url }, ctx) => {
+    compose: ({ reportName, periodLabel, format, url, rows, unpriced }, ctx) => {
       const subject = ctx.t("report_delivery.subject", { reportName, periodLabel });
       return {
         subject,
@@ -361,10 +382,16 @@ export const templates: { readonly [C in TemplateCode]: Template<TemplateProps[C
             preview={subject}
             heading={ctx.t("report_delivery.heading", { reportName })}
             transactional={false}
-            action={{ label: ctx.t("common.open"), url }}
+            {...(url === undefined ? {} : { action: { label: ctx.t("common.open"), url } })}
           >
             <Greeting ctx={ctx} />
             <Paragraph>{ctx.t("report_delivery.body", { periodLabel, format })}</Paragraph>
+            {rows !== undefined && (
+              <Paragraph>
+                {ctx.t("report_delivery.contents", { rows, unpriced: unpriced ?? 0 })}
+              </Paragraph>
+            )}
+            <Paragraph>{ctx.t("report_delivery.access")}</Paragraph>
             <Paragraph>
               {ctx.t("report_delivery.membersOnly", { orgName: ctx.sender.orgName })}
             </Paragraph>
@@ -622,6 +649,45 @@ export const templates: { readonly [C in TemplateCode]: Template<TemplateProps[C
               {ctx.t("approval_link_code.expiry", { minutes: expiresInMinutes })}
             </Paragraph>
             <Paragraph>{ctx.t("approval_link_code.ignore")}</Paragraph>
+          </Layout>
+        ),
+      };
+    },
+  },
+  stakeholder_pack: {
+    transactional: false,
+    compose: (p, ctx) => {
+      const words = { sender: p.senderName, pack: p.packName };
+      const subject = ctx.t("stakeholder_pack.subject", words);
+      return {
+        subject,
+        element: (
+          <Layout
+            locale={ctx.locale}
+            t={ctx.t}
+            sender={ctx.sender}
+            preview={subject}
+            heading={p.packName}
+            transactional={false}
+            action={{ label: ctx.t("stakeholder_pack.open"), url: p.url }}
+            why={ctx.t("stakeholder_pack.why", {
+              sender: p.senderName,
+              orgName: ctx.sender.orgName,
+            })}
+            preferencesLabel={ctx.t("stakeholder_pack.preferences")}
+          >
+            <Greeting ctx={ctx} />
+            <Paragraph>{ctx.t("stakeholder_pack.intro", words)}</Paragraph>
+            {p.message !== undefined && (
+              <Paragraph>{ctx.t("stakeholder_pack.message", { message: p.message })}</Paragraph>
+            )}
+            {p.itemTitles.length > 0 && (
+              <Paragraph>
+                {ctx.t("stakeholder_pack.items", { items: p.itemTitles.join(", ") })}
+              </Paragraph>
+            )}
+            <Paragraph>{ctx.t("stakeholder_pack.expires", { date: p.expiresText })}</Paragraph>
+            <Paragraph>{ctx.t("stakeholder_pack.code")}</Paragraph>
           </Layout>
         ),
       };

@@ -8,13 +8,14 @@ import {
   type RunLabels,
 } from "./report-runs.ts";
 import type { Database } from "./database.types.ts";
-import type { ReportMailer } from "./report-mailers.ts";
+import type { ReportEmail, ReportMailer } from "./report-mailers.ts";
 
 /**
  * The report.deliver worker (A43, finding A38-004; Section 4.6.4, journey 29; migration 1127). The
  * scheduler queues a report run per recipient for each due schedule; when a run succeeds the database
  * queues a report.deliver job for its delivery, and this worker emails the run's file to the
  * recipient as an attachment, then records the outcome. Recipients are members of the org only.
+ * The caller composes the email (report-run: the org's branded email, 904090003).
  *
  * Mail goes through a ReportMailer: mailpitMailer sends to the local stack's Inbucket (Mailpit) and
  * refuses any host that is not this machine, so a development or test run never emails anyone; the
@@ -27,6 +28,8 @@ export const REPORT_DELIVER_JOB = "report.deliver";
 
 export interface ReportDelivery {
   readonly deliveryId: string;
+  readonly orgId: string;
+  readonly orgSlug: string;
   readonly orgName: string;
   readonly reportName: string;
   readonly exportFormat: Database["app"]["Enums"]["export_format"];
@@ -37,6 +40,11 @@ export interface ReportDelivery {
   readonly recipientName: string | null;
   readonly status: string;
   readonly scheduledFor: string;
+  readonly recipientPersonId: string | null;
+  /** The report, only for a recipient who may open it in Atlas (app.report_delivery, 904090003). */
+  readonly reportDefinitionId: string | null;
+  /** True when the org's suppression list stops this recipient's report email. */
+  readonly suppressed: boolean;
 }
 
 export interface ReportDeliveryStore {
@@ -56,16 +64,17 @@ export interface ResultFiles {
   download(bucket: string, name: string): Promise<Uint8Array>;
 }
 
-/** The email copy, in the recipient's language where the caller knows it. */
-export interface DeliveryCopy {
-  subject(input: { readonly report: string; readonly org: string }): string;
-  body(input: {
-    readonly report: string;
-    readonly org: string;
-    readonly rows: number;
-    readonly unpriced: number;
-  }): string;
-}
+/** The file a delivery's email carries. */
+export type ReportAttachment = NonNullable<ReportEmail["attachment"]>;
+
+/**
+ * Builds one delivery's email around its file: the recipient, subject, text and HTML parts, headers, From name and
+ * reply-to. report-run passes the org's branded report_delivery email (packages/platform edge/report-email.ts).
+ */
+export type ComposeReportEmail = (
+  delivery: ReportDelivery,
+  attachment: ReportAttachment,
+) => Promise<ReportEmail>;
 
 export interface ReportDeliveryResult {
   readonly jobId: string;
@@ -80,9 +89,6 @@ const CONTENT_TYPES = {
   PDF: "application/pdf",
 } as const;
 
-const escapeHtml = (s: string) =>
-  s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-
 /** The attachment's file name: the report name in safe characters, then the format's extension. */
 export function attachmentName(report: string, format: ReportDelivery["exportFormat"]): string {
   const base = report
@@ -93,16 +99,19 @@ export function attachmentName(report: string, format: ReportDelivery["exportFor
   return `${base || "report"}.${format.toLowerCase()}`;
 }
 
+const SUPPRESSED =
+  "The recipient stopped scheduled report emails, or the address is on the organization's suppression list.";
+
 /** One pass of the delivery worker: sends each claimed delivery once. */
 export async function runReportDeliveries(options: {
   readonly store: ReportDeliveryStore;
   readonly files: ResultFiles;
   readonly mailer: ReportMailer;
-  readonly copy: DeliveryCopy;
+  readonly compose: ComposeReportEmail;
   readonly worker: string;
   readonly limit?: number;
 }): Promise<readonly ReportDeliveryResult[]> {
-  const { store, files, mailer, copy, worker } = options;
+  const { store, files, mailer, compose, worker } = options;
   const claimed = await store.claim(worker, options.limit ?? 10);
   const results: ReportDeliveryResult[] = [];
   for (const job of claimed) {
@@ -113,23 +122,28 @@ export async function runReportDeliveries(options: {
       continue;
     }
     try {
+      if (d.suppressed) {
+        // An unsubscribe from reports or all email, a bounce, a complaint or a manual entry: never mailed, never retried.
+        await store.finish(d.deliveryId, { sent: false, error: SUPPRESSED });
+        await store.finishJob(job.jobId, true, null);
+        results.push({
+          jobId: job.jobId,
+          deliveryId: d.deliveryId,
+          status: "Skipped",
+          error: SUPPRESSED,
+        });
+        continue;
+      }
       if (!d.recipientEmail) throw new Error("The recipient has no email address on file.");
       if (!d.storagePath) throw new Error("The report run has no file to attach.");
       const content = await files.download(REPORT_RESULTS_BUCKET, d.storagePath);
-      const words = { report: d.reportName, org: d.orgName };
-      const body = copy.body({ ...words, rows: d.rowCount ?? 0, unpriced: d.unpricedCount ?? 0 });
-      const sent = await mailer.send({
-        to: d.recipientEmail,
-        toName: d.recipientName,
-        subject: copy.subject(words),
-        text: body,
-        html: `<p>${escapeHtml(body)}</p>`,
-        attachment: {
+      const sent = await mailer.send(
+        await compose(d, {
           filename: attachmentName(d.reportName, d.exportFormat),
           contentType: CONTENT_TYPES[d.exportFormat],
           content,
-        },
-      });
+        }),
+      );
       await store.finish(d.deliveryId, { sent: true, messageId: sent.messageId });
       await store.finishJob(job.jobId, true, null);
       results.push({ jobId: job.jobId, deliveryId: d.deliveryId, status: "Sent" });
@@ -159,7 +173,7 @@ export async function runScheduledReports(options: {
   readonly deliveries: ReportDeliveryStore;
   readonly files: ResultFiles;
   readonly mailer: ReportMailer;
-  readonly copy: DeliveryCopy;
+  readonly compose: ComposeReportEmail;
   readonly worker: string;
 }): Promise<{
   readonly queued: number;
@@ -178,7 +192,7 @@ export async function runScheduledReports(options: {
     store: options.deliveries,
     files: options.files,
     mailer: options.mailer,
-    copy: options.copy,
+    compose: options.compose,
     worker: options.worker,
     limit: 25,
   });
@@ -229,6 +243,8 @@ export function supabaseReportDeliveryStore(client: SupabaseClient): ReportDeliv
       if (!r) return null;
       return {
         deliveryId: text(r, "delivery_id"),
+        orgId: text(r, "org_id"),
+        orgSlug: text(r, "org_slug"),
         orgName: text(r, "org_name"),
         reportName: text(r, "report_name"),
         exportFormat: text(r, "export_format") as ReportDelivery["exportFormat"],
@@ -239,6 +255,9 @@ export function supabaseReportDeliveryStore(client: SupabaseClient): ReportDeliv
         recipientName: textOrNull(r, "recipient_name"),
         status: text(r, "delivery_status"),
         scheduledFor: text(r, "scheduled_for"),
+        recipientPersonId: textOrNull(r, "recipient_person_id"),
+        reportDefinitionId: textOrNull(r, "report_definition_id"),
+        suppressed: r["suppressed"] === true,
       };
     },
     async finish(id, outcome) {

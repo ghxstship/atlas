@@ -14,22 +14,6 @@ var exportFile = {
     "This file holds the first {limit} rows. Narrow the filters of the collection to export every row.",
   watermark: "Exported by {email} on {time}",
 };
-var email = {
-  subject: "{report} from {org}",
-  body: "Your scheduled report {report} from {org} is attached. It has {rows} rows; {unpriced} carry an unpriced amount, left out of their totals. It ran with your own access, so it shows only what you may see.",
-};
-var packEmail = {
-  subject: "{sender} shared {pack} with you",
-  intro:
-    "{sender} shared {pack} with you. Open it with the link below and the access code they gave you.",
-  message: "Their message: {message}",
-  items: "In this pack: {items}",
-  open: "Open the pack: {url}",
-  expires: "This link works until {date}.",
-  code: "The access code never comes by email. If you do not have it, ask the person who shared this pack.",
-  sentBy: "Sent by {org}, {address}.",
-  stop: "Stop these emails: {url}",
-};
 var dashboards = {
   count: "{count, plural, =0 {No dashboards} one {# dashboard} other {# dashboards}}",
   empty: "No dashboards yet. Create one, then add saved reports to it from Saved reports.",
@@ -130,22 +114,10 @@ var errors = {
 var reporting_default = {
   file,
   exportFile,
-  email,
-  packEmail,
   dashboards,
   tile,
   schedule,
   errors,
 };
 //#endregion
-export {
-  dashboards,
-  reporting_default as default,
-  email,
-  errors,
-  exportFile,
-  file,
-  packEmail,
-  schedule,
-  tile,
-};
+export { dashboards, reporting_default as default, errors, exportFile, file, schedule, tile };

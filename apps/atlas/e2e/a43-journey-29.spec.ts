@@ -6,6 +6,8 @@ import {
   supabaseResultFiles,
 } from "@xos/data/report-deliveries";
 import { supabaseReportRunStore, supabaseResultStorage } from "@xos/data/report-runs";
+import { supabaseDb } from "@xos/platform";
+import { reportEmailComposer } from "@xos/platform/report-email";
 import { expect as baseExpect, test } from "./engine-test";
 import { expectAccessibleInBothThemes, ORG, settled, signIn } from "./operations-support";
 import { expectAccessible } from "./support";
@@ -25,7 +27,7 @@ test.setTimeout(300_000);
 // configure returns a new expect; the file-level timeout applies only through it.
 const expect = baseExpect.configure({ timeout: 20_000 });
 
-function localStack(): { client: SupabaseClient; inbox: string } {
+function localStack(): { client: SupabaseClient; inbox: string; url: string } {
   const url = process.env["E2E_SUPABASE_URL"];
   const key = process.env["E2E_SUPABASE_SERVICE_KEY"];
   const inbox = process.env["E2E_INBUCKET_URL"];
@@ -39,13 +41,14 @@ function localStack(): { client: SupabaseClient; inbox: string } {
   return {
     client: createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } }),
     inbox,
+    url,
   };
 }
 
 test("journey 29: NULL-aware report on a dashboard, emailed as PDF on schedule", async ({
   page,
 }) => {
-  const { client, inbox } = localStack();
+  const { client, inbox, url: supabaseUrl } = localStack();
   const tag = Date.now().toString(36);
   const reportName = `Budget by Line Type ${tag}`;
   const dashboardName = `Show Week ${tag}`;
@@ -118,11 +121,16 @@ test("journey 29: NULL-aware report on a dashboard, emailed as PDF on schedule",
     },
     deliveries: supabaseReportDeliveryStore(client),
     files: supabaseResultFiles(client),
-    mailer: mailpitMailer(inbox, { email: "reports@xos.localhost", name: "XOS Reports" }),
-    copy: {
-      subject: ({ report, org }) => `${report} from ${org}`,
-      body: ({ report, rows }) => `${report}: ${rows} rows.`,
-    },
+    mailer: mailpitMailer(inbox, { email: "reports@xos.localhost", name: "XOS" }),
+    // The branded report_delivery email report-run sends (904090003), over the local stack.
+    compose: reportEmailComposer({
+      db: supabaseDb(client),
+      appUrl: "http://localhost:3000",
+      postalAddress: "100 Harbor Way, Miami, FL 33132",
+      fromAddress: "reports@xos.localhost",
+      functionsUrl: `${supabaseUrl}/functions/v1`,
+      brandAssetUrl: `${supabaseUrl}/storage/v1/object/public/org-brand`,
+    }),
     worker: "atlas-e2e-journey-29",
   });
   expect(outcome.queued).toBeGreaterThanOrEqual(1);

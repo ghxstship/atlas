@@ -860,8 +860,18 @@ export interface PackEmailFacts {
   readonly recipientName: string;
   readonly recipientEmail: string;
   readonly locale: string;
+  readonly orgId: string;
   readonly orgName: string;
+  /** The email brand name while white label is in force (app.email_brand_for_org), else the org's name. */
   readonly brandName: string;
+  /** True while white label is in force for the org (904090003): the email then wears the brand below. */
+  readonly whiteLabel: boolean;
+  /** The rest of the email brand while white label is in force, else null and false. */
+  readonly brandSenderName: string | null;
+  readonly replyTo: string | null;
+  readonly logoPath: string | null;
+  readonly accentHex: string | null;
+  readonly suppressPoweredBy: boolean;
   readonly packName: string;
   readonly message: string | null;
   readonly itemTitles: readonly string[];
@@ -882,18 +892,6 @@ export interface PackDeliveryStore {
   finishJob(jobId: string, succeeded: boolean, error: string | null): Promise<string>;
 }
 
-export interface PackEmailCopy {
-  subject(values: { readonly sender: string; readonly pack: string }): string;
-  intro(values: { readonly sender: string; readonly pack: string }): string;
-  message(values: { readonly message: string }): string;
-  items(values: { readonly items: string }): string;
-  open(values: { readonly url: string }): string;
-  expires(values: { readonly date: string }): string;
-  code(): string;
-  sentBy(values: { readonly org: string; readonly address: string }): string;
-  stop(values: { readonly url: string }): string;
-}
-
 export interface PackDeliveryEnv {
   /** The Atlas origin the links are on; a delivery fails with the reason while it is unset. */
   readonly appUrl: string | undefined;
@@ -910,9 +908,6 @@ export interface PackDeliveryResult {
   readonly error?: string;
 }
 
-const escapeHtml = (s: string) =>
-  s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-
 /** The expiry as the recipient reads it: in the project's zone, with the zone's name. */
 export function packExpiryText(expiresAt: string, locale: string, timeZone: string): string {
   return new Intl.DateTimeFormat(locale, {
@@ -926,64 +921,46 @@ export function packExpiryText(expiresAt: string, locale: string, timeZone: stri
   }).format(new Date(expiresAt));
 }
 
-/** The email of one delivery. It carries a sign-in link, never a code and never a file. */
-/** One line of the HTML part: escaped, with the pack's own links clickable rather than left to the mail client. */
-function linked(line: string, ...urls: readonly string[]): string {
-  return urls.reduce((html, url) => {
-    const safe = escapeHtml(url);
-    return html.replaceAll(safe, `<a href="${safe}">${safe}</a>`);
-  }, escapeHtml(line));
+/** The links of one delivery's email: the pack, the page that asks before it stops, and the one-click stop. */
+export interface PackEmailLinks {
+  readonly url: string;
+  readonly stopUrl: string;
+  readonly oneClickUrl: string;
 }
 
-export function packEmail(
+/** The links of a minted delivery on the Atlas origin, with the one-click stop on the API origin (RFC 8058). */
+export function packEmailLinks(
   link: MintedPackLink,
-  copy: PackEmailCopy,
-  env: { readonly appUrl: string; readonly postalAddress: string; readonly apiUrl: string },
-): ReportEmail {
-  const facts = link.email;
-  const url = `${env.appUrl}${packPath(link.token)}`;
-  const stopUrl = `${env.appUrl}${packUnsubscribePath(link.unsubscribeToken)}`;
-  const sender = facts.senderName ?? facts.brandName;
-  const words = { sender, pack: facts.packName };
-  const date = packExpiryText(link.expiresAt, facts.locale, facts.timeZone);
-  const paragraphs = [
-    copy.intro(words),
-    ...(facts.message ? [copy.message({ message: facts.message })] : []),
-    ...(facts.itemTitles.length > 0 ? [copy.items({ items: facts.itemTitles.join(", ") })] : []),
-    copy.open({ url }),
-    copy.expires({ date }),
-    copy.code(),
-  ];
-  const footer = [
-    copy.sentBy({ org: facts.orgName, address: env.postalAddress }),
-    copy.stop({ url: stopUrl }),
-  ];
+  env: { readonly appUrl: string; readonly apiUrl: string },
+): PackEmailLinks {
   return {
-    to: facts.recipientEmail,
-    toName: facts.recipientName,
-    subject: copy.subject(words),
-    text: [...paragraphs, ...footer].join("\n\n"),
-    html: [
-      ...paragraphs.map((p) => `<p>${linked(p, url, stopUrl)}</p>`),
-      ...footer.map((p) => `<p><small>${linked(p, url, stopUrl)}</small></p>`),
-    ].join(""),
-    headers: {
-      "List-Unsubscribe": `<${env.apiUrl}/functions/v1/email-unsubscribe?token=${link.unsubscribeToken}>`,
-      "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
-    },
+    url: `${env.appUrl}${packPath(link.token)}`,
+    stopUrl: `${env.appUrl}${packUnsubscribePath(link.unsubscribeToken)}`,
+    oneClickUrl: `${env.apiUrl}/functions/v1/email-unsubscribe?token=${link.unsubscribeToken}`,
   };
 }
+
+/**
+ * Builds one delivery's email: a sign-in link, never a code and never a file, with the List-Unsubscribe headers of the
+ * one-click stop, the postal address and the org's email brand. report-run passes the branded stakeholder_pack email
+ * of packages/email (packages/platform edge/report-email.ts).
+ */
+export type ComposePackEmail = (
+  link: MintedPackLink,
+  links: PackEmailLinks,
+  env: { readonly postalAddress: string },
+) => Promise<ReportEmail>;
 
 /** One pass of the pack.deliver worker: claim, mint, send, finish. */
 export async function runPackDeliveries(options: {
   readonly store: PackDeliveryStore;
   readonly mailer: ReportMailer;
-  readonly copy: (locale: string) => Promise<PackEmailCopy>;
+  readonly compose: ComposePackEmail;
   readonly env: PackDeliveryEnv;
   readonly worker: string;
   readonly limit?: number;
 }): Promise<readonly PackDeliveryResult[]> {
-  const { store, mailer, copy, env, worker } = options;
+  const { store, mailer, compose, env, worker } = options;
   const claimed = await store.claim(worker, options.limit ?? 25);
   const results: PackDeliveryResult[] = [];
   for (const job of claimed) {
@@ -998,11 +975,11 @@ export async function runPackDeliveries(options: {
         results.push({ jobId: job.jobId, deliveryId: job.deliveryId, status: "Skipped" });
         continue;
       }
-      const email = packEmail(link, await copy(link.email.locale), {
-        appUrl: env.appUrl,
-        postalAddress: env.postalAddress,
-        apiUrl: env.apiUrl,
-      });
+      const email = await compose(
+        link,
+        packEmailLinks(link, { appUrl: env.appUrl, apiUrl: env.apiUrl }),
+        { postalAddress: env.postalAddress },
+      );
       const sent = await mailer.send(email);
       await store.finish(job.deliveryId, { sent: true, messageId: sent.messageId });
       await store.finishJob(job.jobId, true, null);
@@ -1056,8 +1033,15 @@ export function supabasePackDeliveryStore(client: SupabaseClient): PackDeliveryS
           recipientName: str(e["recipient_name"]),
           recipientEmail: str(e["recipient_email"]),
           locale: str(e["locale"]) || "en-US",
+          orgId: str(e["org_id"]),
           orgName: str(e["org_name"]),
           brandName: str(e["brand_name"]),
+          whiteLabel: e["white_label"] === true,
+          brandSenderName: strOrNull(e["brand_sender_name"]),
+          replyTo: strOrNull(e["reply_to"]),
+          logoPath: strOrNull(e["logo_path"]),
+          accentHex: strOrNull(e["accent_hex"]),
+          suppressPoweredBy: e["suppress_powered_by"] === true,
           packName: str(e["pack_name"]),
           message: strOrNull(e["message"]),
           itemTitles: (Array.isArray(e["item_titles"]) ? e["item_titles"] : []).map(str),

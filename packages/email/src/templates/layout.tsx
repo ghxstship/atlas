@@ -40,6 +40,11 @@ export interface EmailBrand {
   readonly logoUrl?: string;
   /** Six-digit hex accent, applied only when it passes the email contrast check (brandAccent). */
   readonly accentHex?: string;
+  /**
+   * True when the org hides "Powered by XOS" (its suppress_powered_by, only while white label is in force), so the
+   * footer drops "Delivered by XOS" too. The sender and postal address lines stay (CAN-SPAM).
+   */
+  readonly suppressPoweredBy?: boolean;
 }
 
 export interface LayoutProps {
@@ -174,7 +179,9 @@ export function Layout({
                 </>
               )}
             </Text>
-            <Text style={styles.footer}>{t("common.poweredBy")}</Text>
+            {sender.brand?.suppressPoweredBy !== true && (
+              <Text style={styles.footer}>{t("common.poweredBy")}</Text>
+            )}
           </footer>
         </Container>
       </Body>

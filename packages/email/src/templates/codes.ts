@@ -18,6 +18,7 @@ export const TEMPLATE_CODES = [
   "subprocessor_notice",
   "party_invitation",
   "approval_link_code",
+  "stakeholder_pack",
   "guest_message",
   "legal_clock_alert",
   "moderation_notice",

@@ -3,9 +3,9 @@ import { describe, expect, it } from "vitest";
 import {
   dispatchGuestEmails,
   guestEmailStore,
-  guestFrom,
   guestUnsubscribeUrl,
   type ClaimedGuestEmail,
+  type GuestEmailBrand,
   type GuestEmailStore,
 } from "../src/notifications/guest-emails.ts";
 import type { PlatformDb } from "../src/stores.ts";
@@ -48,15 +48,42 @@ const PASS = {
   decidedAt: "2027-05-20T18:00:00Z",
 };
 
-function store(claims: ClaimedGuestEmail[]) {
+const NO_WHITE_LABEL: GuestEmailBrand = {
+  email: null,
+  document: { name: "Northwind Live", legalEntity: null, accentHex: null, logoPath: null },
+};
+
+const WHITE_LABEL: GuestEmailBrand = {
+  email: {
+    brandName: "Northwind Presents",
+    senderName: "Northwind Guest Desk",
+    replyTo: "guests@northwind.test",
+    logoPath: "org-a/logo-light.png",
+    accentHex: "#0B5FFF",
+    suppressPoweredBy: true,
+  },
+  document: {
+    name: "Northwind Presents",
+    legalEntity: "Northwind Live LLC",
+    accentHex: "#0B5FFF",
+    logoPath: "org-a/logo-light.png",
+  },
+};
+
+function store(claims: ClaimedGuestEmail[], brand: GuestEmailBrand = NO_WHITE_LABEL) {
   const finished: [string, string | null, string | null][] = [];
+  const brandReads: string[] = [];
   const s: GuestEmailStore = {
     claim: async () => claims,
+    brandFor: async (orgId) => {
+      brandReads.push(orgId);
+      return brand;
+    },
     finish: async (...args) => {
       finished.push(args);
     },
   };
-  return { s, finished };
+  return { s, finished, brandReads };
 }
 
 describe("guest emails", () => {
@@ -75,7 +102,9 @@ describe("guest emails", () => {
     );
     expect(summary).toEqual({ attempted: 1, sent: 1, failed: 0 });
     const sent = transport.sent[0];
-    expect(sent?.from).toBe('"Northwind Live" <guests@mail.xos.test>');
+    expect(sent?.from).toBe("Northwind Live <guests@mail.xos.test>");
+    expect(sent?.replyTo).toBeUndefined();
+    expect(sent?.text).toContain("Delivered by XOS");
     expect(sent?.headers?.["List-Unsubscribe"]).toBe(
       "<https://project.supabase.test/functions/v1/email-unsubscribe?guest=xgue_abc>",
     );
@@ -85,6 +114,42 @@ describe("guest emails", () => {
     expect(sent?.attachments).toBeUndefined();
     expect(rendered).toEqual([]);
     expect(finished).toEqual([["ge-1", "recorded-1", null]]);
+  });
+
+  it("wears the org's white label: brand name, From name, reply-to, logo and accent, read once per org", async () => {
+    const transport = new RecordingTransport();
+    const { s, brandReads } = store(
+      [
+        { ...BASE, kind: "Pass", pass: PASS },
+        { ...BASE, id: "ge-2" },
+      ],
+      WHITE_LABEL,
+    );
+    const brands: unknown[] = [];
+    await dispatchGuestEmails(
+      s,
+      transport,
+      async (_claim, _pass, brand) => {
+        brands.push(brand);
+        return new Uint8Array([1]);
+      },
+      {
+        ...OPTIONS,
+        brandAssetUrl: "https://project.supabase.test/storage/v1/object/public/org-brand/",
+      },
+    );
+    expect(brandReads).toEqual(["org-a"]);
+    const sent = transport.sent[1];
+    expect(sent?.from).toBe("Northwind Guest Desk <guests@mail.xos.test>");
+    expect(sent?.replyTo).toBe("guests@northwind.test");
+    expect(sent?.subject).toContain("Northwind Presents");
+    expect(sent?.html).toContain(
+      'src="https://project.supabase.test/storage/v1/object/public/org-brand/org-a/logo-light.png"',
+    );
+    expect(sent?.html).toContain("Sent by Northwind Presents");
+    expect(sent?.text).not.toContain("Delivered by XOS");
+    expect(sent?.text).not.toContain("Northwind Live");
+    expect(brands).toEqual([WHITE_LABEL.document]);
   });
 
   it("attaches the A6 pass to a Pass email only", async () => {
@@ -147,10 +212,11 @@ describe("guest emails", () => {
     expect(finished[0]).toEqual(["ge-1", null, "The pass could not be rendered."]);
   });
 
-  it("never names the guest in the From header and keeps the token in the link only", () => {
-    expect(guestFrom('Bad "Org"\r\n', "guests@mail.xos.test")).toBe(
-      '"Bad Org" <guests@mail.xos.test>',
-    );
+  it("quotes an org name RFC 5322 reserves and keeps the token in the link only", async () => {
+    const transport = new RecordingTransport();
+    const { s } = store([{ ...BASE, orgName: 'Bad "Org"\r\n' }]);
+    await dispatchGuestEmails(s, transport, async () => new Uint8Array([1]), OPTIONS);
+    expect(transport.sent[0]?.from).toBe('"Bad \\"Org\\"" <guests@mail.xos.test>');
     expect(guestUnsubscribeUrl(OPTIONS.unsubscribeUrl, "xgue_a b")).toBe(
       "https://project.supabase.test/functions/v1/email-unsubscribe?guest=xgue_a+b",
     );
@@ -161,6 +227,17 @@ describe("guest emails", () => {
     const db = {
       rpc: async (name: string, args: unknown) => {
         calls.push([name, args]);
+        if (name === "email_brand_for_org") return [];
+        if (name === "document_brand_for_org") {
+          return [
+            {
+              name: "Northwind Presents",
+              legal_entity: "Northwind Live LLC",
+              accent_hex: "#0B5FFF",
+              logo_path: null,
+            },
+          ];
+        }
         return name === "claim_guest_emails"
           ? [
               {
@@ -207,9 +284,20 @@ describe("guest emails", () => {
       showDay: "2027-06-04",
       decidedAt: "2027-05-20T18:00:00Z",
     });
+    expect(await s.brandFor("org-a", "Northwind Live")).toEqual({
+      email: null,
+      document: {
+        name: "Northwind Presents",
+        legalEntity: "Northwind Live LLC",
+        accentHex: "#0B5FFF",
+        logoPath: null,
+      },
+    });
     await s.finish("ge-1", "msg-1", null);
     expect(calls).toEqual([
       ["claim_guest_emails", { p_limit: 50 }],
+      ["email_brand_for_org", { p_org_id: "org-a" }],
+      ["document_brand_for_org", { p_org_id: "org-a" }],
       ["finish_guest_email", { p_id: "ge-1", p_provider_message_id: "msg-1", p_error: null }],
     ]);
   });
@@ -221,7 +309,7 @@ describe("the attached guest pass", () => {
     const render = guestPassRenderer("https://gateway.xos.test");
     for (const locale of ["en-US", "es-US"] as const) {
       const pdf = Buffer.from(
-        await render({ ...BASE, kind: "Pass", locale, pass: PASS }, PASS),
+        await render({ ...BASE, kind: "Pass", locale, pass: PASS }, PASS, NO_WHITE_LABEL.document),
       ).toString("latin1");
       expect(pdf.startsWith("%PDF-")).toBe(true);
       expect(pdf).toContain("/MediaBox [0 0 297.64 419.53]");
@@ -229,5 +317,51 @@ describe("the attached guest pass", () => {
       expect(pdf).toContain(`/Lang (${locale})`);
       if (locale === "en-US") expect(pdf).toContain("Door code for guest pass GP-ABCDEFGHIJ");
     }
+  }, 60_000);
+});
+
+describe("the guest pass's brand", () => {
+  // A 1x1 PNG.
+  const PNG = Uint8Array.from(
+    Buffer.from(
+      "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
+      "base64",
+    ),
+  );
+
+  it("prints the org's document brand and its logo, read from the org-brand bucket", async () => {
+    const { guestPassRenderer } = await import("../edge/guest-email.ts");
+    const urls: string[] = [];
+    const render = guestPassRenderer("https://gateway.xos.test", {
+      brandAssetUrl: "https://project.supabase.test/storage/v1/object/public/org-brand",
+      fetch: (async (url: string) => {
+        urls.push(url);
+        return new Response(PNG, { status: 200, headers: { "content-type": "image/png" } });
+      }) as unknown as typeof fetch,
+    });
+    const pdf = Buffer.from(
+      await render({ ...BASE, kind: "Pass", pass: PASS }, PASS, WHITE_LABEL.document),
+    ).toString("latin1");
+    expect(urls).toEqual([
+      "https://project.supabase.test/storage/v1/object/public/org-brand/org-a/logo-light.png",
+    ]);
+    expect(pdf).toContain("/Subtype /Image");
+    expect(pdf).toContain("Northwind Presents");
+  }, 60_000);
+
+  it("leaves out a logo that is not there, and tries again later when the read fails", async () => {
+    const { guestPassRenderer } = await import("../edge/guest-email.ts");
+    const answer = (status: number) =>
+      guestPassRenderer("https://gateway.xos.test", {
+        brandAssetUrl: "https://project.supabase.test/storage/v1/object/public/org-brand",
+        fetch: (async () => new Response("", { status })) as unknown as typeof fetch,
+      });
+    const missing = Buffer.from(
+      await answer(404)({ ...BASE, kind: "Pass", pass: PASS }, PASS, WHITE_LABEL.document),
+    ).toString("latin1");
+    expect(missing).not.toContain("/Subtype /Image");
+    await expect(
+      answer(503)({ ...BASE, kind: "Pass", pass: PASS }, PASS, WHITE_LABEL.document),
+    ).rejects.toThrow(/logo could not be read/);
   }, 60_000);
 });

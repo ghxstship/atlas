@@ -26,6 +26,8 @@ serve(async (request) => {
       from: emailEnv.XOS_EMAIL_FROM,
       postalAddress: env("XOS_POSTAL_ADDRESS"),
       senderName: "XOS",
+      // An org's invitation wears its brand while white label is in force (904090003), its logo from this bucket.
+      brandAssetUrl: `${env("SUPABASE_URL").replace(/\/+$/, "")}/storage/v1/object/public/org-brand`,
     },
   );
   return json(200, summary);

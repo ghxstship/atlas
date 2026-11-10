@@ -17,6 +17,27 @@ export interface ReportEmail {
   };
   /** Extra message headers, such as List-Unsubscribe on a stakeholder pack email (RFC 8058). */
   readonly headers?: Readonly<Record<string, string>>;
+  /** The From name (the org's, A138), on the mailer's own address. */
+  readonly fromName?: string;
+  readonly replyTo?: string;
+}
+
+/** A From header, quoted as RFC 5322 needs, as the notification worker's mailbox (platform stores.ts). */
+export function mailboxOf(name: string, address: string): string {
+  const clean = Array.from(name, (c) => {
+    const code = c.charCodeAt(0);
+    return code < 0x20 || code === 0x7f ? " " : c;
+  })
+    .join("")
+    .trim();
+  if (clean === "") return address;
+  const display = /[()<>[\]:;@\\,."]/.test(clean) ? `"${clean.replace(/["\\]/g, "\\$&")}"` : clean;
+  return `${display} <${address}>`;
+}
+
+/** The bare address of a mailbox. */
+export function addressOf(mailbox: string): string {
+  return /<([^>]+)>/.exec(mailbox)?.[1] ?? mailbox.trim();
 }
 
 export interface ReportMailer {
@@ -56,12 +77,13 @@ export function mailpitMailer(
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
-          From: { Email: from.email, Name: from.name },
+          From: { Email: from.email, Name: email.fromName ?? from.name },
           To: [{ Email: email.to, Name: email.toName ?? "" }],
           Subject: email.subject,
           Text: email.text,
           HTML: email.html,
           ...(email.headers ? { Headers: email.headers } : {}),
+          ...(email.replyTo ? { ReplyTo: [{ Email: email.replyTo, Name: "" }] } : {}),
           ...(email.attachment
             ? {
                 Attachments: [
@@ -90,6 +112,7 @@ export interface ResendLike {
     send(payload: {
       from: string;
       to: string[];
+      replyTo?: string;
       subject: string;
       text: string;
       html: string;
@@ -113,8 +136,9 @@ export function resendMailer(
     async send(email) {
       if (!allowed(email.to)) throw new Error(`${email.to} is outside the email allow-list.`);
       const { data, error } = await client.emails.send({
-        from,
+        from: email.fromName ? mailboxOf(email.fromName, addressOf(from)) : from,
         to: [email.to],
+        ...(email.replyTo ? { replyTo: email.replyTo } : {}),
         subject: email.subject,
         text: email.text,
         html: email.html,
