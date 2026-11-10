@@ -469,6 +469,26 @@ describe("surfaces and states", () => {
     expect(region.textContent).toContain("NWS-1 moved to Trash.");
   });
 
+  it("pauses the undo timer while the pointer is over it, and resumes with the time left (WCAG 2.2.1)", () => {
+    vi.useFakeTimers();
+    try {
+      const onExpire = vi.fn();
+      render(<UndoToast message="200 lines pasted." seconds={8} onExpire={onExpire} />);
+      const toast = screen.getByRole("status");
+      act(() => vi.advanceTimersByTime(5_000));
+      fireEvent.pointerEnter(toast);
+      act(() => vi.advanceTimersByTime(60_000));
+      expect(onExpire).not.toHaveBeenCalled();
+      fireEvent.pointerLeave(toast);
+      act(() => vi.advanceTimersByTime(2_900));
+      expect(onExpire).not.toHaveBeenCalled();
+      act(() => vi.advanceTimersByTime(200));
+      expect(onExpire).toHaveBeenCalledTimes(1);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("keeps a status role on a toast outside a region", () => {
     render(<Toast message="Saved." />);
     expect(screen.getByRole("status").textContent).toContain("Saved.");

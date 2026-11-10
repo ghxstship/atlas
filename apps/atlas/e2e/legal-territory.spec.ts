@@ -197,10 +197,13 @@ test("a partner's price already in a closed currency can change its amount, then
   await create.getByRole("button", { name: "Create and invite the Owner" }).click();
   await expect(create.getByLabel("Owner invitation link")).toHaveValue(/\/auth\/invite\//);
   await create.getByRole("button", { name: "Done" }).click();
+  // Done drops ?create=1 from the URL; a reload before that lands reopens the create dialog over the list (CI run
+  // 42751826613), so wait for the dialog to close and load the list's own address rather than reloading.
+  await expect(create).toBeHidden();
 
   const drawer = page.getByRole("dialog", { name: clientName });
   const openClient = async () => {
-    await page.reload();
+    await page.goto(`/partner/${PARTNER_ORG}/client-orgs`);
     await expect(async () => {
       await page.getByRole("row").filter({ hasText: clientName }).dblclick();
       await expect(drawer).toBeVisible({ timeout: 2_000 });
