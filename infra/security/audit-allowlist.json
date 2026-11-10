@@ -5,19 +5,19 @@
       "id": "GHSA-3g3m-2fjr-6pw4",
       "package": "glob",
       "severity": "moderate",
-      "path": "apps/atlas > @sentry/nextjs > @sentry/bundler-plugins > glob",
-      "reason": "Reached only at build time: @sentry/bundler-plugins globs the build output to upload source maps, and @bacons/apple-targets (apps/compass) globs the iOS targets during prebuild. Neither passes an AbortSignal or takes a pattern from a person. The patched 14.0.2 was published 2026-10-27 and becomes eligible under ADR 0001's two-week rule on 2026-11-10; it is a major release over the 10.5.0 and 13.0.6 in the tree, so the override is checked against both consumers before these entries go (RRR-242). Accepted 2026-10-31.",
+      "path": "apps/compass > expo > @expo/config > glob",
+      "reason": "Reached only by Expo's tooling: @expo/config, @expo/prebuild-config and @expo/cli glob the repository's own app config, plugins and native targets (glob 10.5.0 and 13.0.6), never a pattern from a person, and pass no AbortSignal, which is what the advisory bypasses. The fix is glob 14, a major release Expo has not taken; Atlas's one path, @sentry/bundler-plugins' source map upload, takes 14.0.4 by override (pnpm-workspace.yaml), since it calls only glob() with options 14 keeps. Remove this entry when Expo moves to glob 14 (RRR-242). Accepted 2026-10-31; re-reviewed 2026-11-10 after the two-week rule was removed.",
       "recorded": "2026-10-31",
-      "review_by": "2026-11-17"
+      "review_by": "2026-12-10"
     },
     {
       "id": "GHSA-g3hv-75wg-m249",
       "package": "minimatch",
       "severity": "moderate",
-      "path": "packages/data > exceljs > archiver > archiver-utils > glob > minimatch",
-      "reason": "No pattern a person supplies reaches it. exceljs 4.4.0 (packages/data's spreadsheet exports, canon/import's workbook reader) uses archiver only to append workbook parts while streaming (lib/stream/xlsx/workbook-writer.js) and never calls archiver's glob or directory, which is where archiver-utils and readdir-glob call minimatch. The other paths are build time: @sentry/bundler-plugins (source map upload) and @bacons/apple-targets (Compass prebuild). The patched 11.0.1 was published 2026-10-27 and becomes eligible under ADR 0001's two-week rule on 2026-11-10; it is a major release over the 3.1.5, 5.1.9, 9.0.9 and 10.2.6 in the tree, so the override is checked against each consumer before this entry goes (RRR-242). Accepted 2026-10-31.",
+      "path": "apps/compass > expo > @expo/config > glob > minimatch",
+      "reason": "No pattern a person supplies reaches it: minimatch 9.0.9 and 10.2.6 come with the glob of Expo's tooling (GHSA-3g3m-2fjr-6pw4 above) and with ESLint, which match the repository's own patterns at build and lint time. minimatch below 7 is not affected, so exceljs's archiver path (minimatch 3.1.5) is clear, and eas-cli's 5.x takes 5.1.9 by override. The fix is minimatch 11, a major release; it comes with glob 14 where that is overridden. Remove this entry when Expo and ESLint move to minimatch 11 (RRR-242). Accepted 2026-10-31; re-reviewed 2026-11-10 after the two-week rule was removed.",
       "recorded": "2026-10-31",
-      "review_by": "2026-11-17"
+      "review_by": "2026-12-10"
     },
     {
       "id": "GHSA-gcqx-w48m-w2h4",
