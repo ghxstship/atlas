@@ -1,0 +1,16 @@
+appId: pro.ghxstship.compass
+# The component gallery in Dark (A141, S11.4-01): all 49 @xos/ui-native components in their main states, a
+# screenshot per page, from a gallery build (EXPO_PUBLIC_XOS_GALLERY=1). scripts/gallery-snapshots.sh runs it on
+# a pinned simulator and compares each capture with .maestro/gallery/baselines; the main suite leaves it out
+# (excludeTags in config.yaml), since its release build has no gallery. Needs no stack and no sign-in.
+# Named after its file: config.yaml orders flows by name.
+name: gallery-dark
+tags:
+  - gallery
+---
+- launchApp:
+    stopApp: true
+- runFlow:
+    file: ../subflows/gallery-pages.yaml
+    env:
+      THEME: dark

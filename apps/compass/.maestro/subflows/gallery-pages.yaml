@@ -1,0 +1,33 @@
+appId: pro.ghxstship.compass
+---
+# Every page of the component gallery in one theme (THEME: dark or light), one screenshot per page, named
+# gallery-<theme>-NN in the working directory (A141). Pages open by link until the page past the last
+# shows the end marker, so the flow needs no page count; the cap only stops a gallery that never ends.
+# The page number is kept as a string: Maestro's JavaScript prints numbers as 1.0.
+- evalScript: ${output.galleryPage = "1"}
+- repeat:
+    times: 60
+    while:
+      notVisible:
+        id: "gallery-end"
+    commands:
+      - runFlow:
+          file: open-route.yaml
+          env:
+            ROUTE: dev/gallery?theme=${THEME}&page=${output.galleryPage}
+      # A sheet or dialog page shows its overlay's id, since the overlay hides the page's.
+      - extendedWaitUntil:
+          visible:
+            id: "gallery-page-${output.galleryPage}|gallery-page-${output.galleryPage}-overlay|gallery-end"
+          timeout: 30000
+      - runFlow:
+          when:
+            visible:
+              id: "gallery-page-${output.galleryPage}|gallery-page-${output.galleryPage}-overlay"
+          commands:
+            - evalScript: ${output.galleryShot = "gallery-" + THEME + "-" + output.galleryPage.padStart(2, "0")}
+            # A sheet or dialog page settles before it is captured.
+            - waitForAnimationToEnd:
+                timeout: 5000
+            - takeScreenshot: ${output.galleryShot}
+      - evalScript: ${output.galleryPage = String(Number(output.galleryPage) + 1)}

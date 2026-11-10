@@ -84,10 +84,13 @@ export function withUniversalLinks(config: ExpoConfig, hosts: readonly LinkHost[
  *   (src/runtime/voiceRecorder.ts).
  * - EXPO_PUBLIC_XOS_FAKE_NFC (A92) swaps the NFC reader for an on-screen test tag
  *   (src/runtime/nfc.ts), since a simulator has no NFC radio.
+ * - EXPO_PUBLIC_XOS_GALLERY (A141) builds in the component gallery (app/dev/gallery.tsx) that the
+ *   gallery snapshots capture; metro.config.js leaves it out of every other build.
  */
 export const TEST_ONLY_SWITCHES = [
   "EXPO_PUBLIC_XOS_FAKE_RECORDER",
   "EXPO_PUBLIC_XOS_FAKE_NFC",
+  "EXPO_PUBLIC_XOS_GALLERY",
 ] as const;
 
 /**

@@ -34,4 +34,13 @@ config.resolver.resolveRequest = (context, moduleName, platform) => {
     : context.resolveRequest(context, moduleName, platform);
 };
 
+// The component gallery (app/dev, A141) is for gallery builds only. Unless EXPO_PUBLIC_XOS_GALLERY=1, Metro never
+// sees the folder, so no other build, the store builds included, carries the gallery or routes to it.
+const galleryRoutes = new RegExp(
+  `^${path.join(projectRoot, "app", "dev").replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?:/.*)?$`,
+);
+if (process.env.EXPO_PUBLIC_XOS_GALLERY !== "1") {
+  config.resolver.blockList = [config.resolver.blockList ?? []].flat().concat(galleryRoutes);
+}
+
 module.exports = config;
