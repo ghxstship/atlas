@@ -25,6 +25,7 @@ import {
 } from "@xos/data/budget-versions";
 import { getNode } from "@xos/ia";
 import Link from "next/link";
+import { observability } from "@/lib/observability";
 import type { Route } from "next";
 import { getFormatter, getLocale } from "next-intl/server";
 import { PageHeader, TemplateCollection, TemplateGridEditor } from "./ui-collection";
@@ -87,6 +88,7 @@ export async function BudgetsView({ page }: { page: FinancePage }) {
     getExponents(ctx),
   ]);
   if (!budgets.ok) {
+    observability.logger.error("budgets failed to load", { error: budgets.error });
     return (
       <TemplateCollection header={<PageHeader title={title} />}>
         <ErrorPanel sentence={t("finance.budgets.loadError")} />
@@ -320,6 +322,11 @@ export async function BudgetsView({ page }: { page: FinancePage }) {
       ],
     );
     if (!detail.ok || !urids.ok || !accounts.ok || !centers.ok || !grades.ok || !rates.ok) {
+      // Which read failed, so an intermittent failure (journey 34's paste in CI) names its cause in the server log.
+      const failed = Object.entries({ detail, urids, accounts, centers, grades, rates }).flatMap(
+        ([name, result]) => (result.ok ? [] : [{ name, error: result.error }]),
+      );
+      observability.logger.error("budget failed to load", { budgetId: selected.id, failed });
       body = <ErrorPanel sentence={t("finance.budgets.loadError")} />;
     } else {
       const b = detail.data.budget;
