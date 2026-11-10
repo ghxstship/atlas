@@ -6,7 +6,7 @@ import type { ClaimedEmail, NotificationStore, Recipient } from "./notifications
 import type { ClaimedWebhook, WebhookStore } from "./webhooks/dispatch.ts";
 
 /** The URL without trailing slashes: a loop, which stays linear where `/\/+$/` backtracks over a run of slashes. */
-function withoutTrailingSlashes(url: string): string {
+export function withoutTrailingSlashes(url: string): string {
   let end = url.length;
   while (end > 0 && url[end - 1] === "/") end -= 1;
   return url.slice(0, end);
@@ -282,9 +282,19 @@ export function brandAssetUrl(
   base: string | null | undefined,
   path: string | null | undefined,
 ): string | null {
-  const root = base?.replace(/\/+$/, "");
+  const root = base ? withoutTrailingSlashes(base) : "";
   if (!root || !path) return null;
   return `${root}/${path.split("/").map(encodeURIComponent).join("/")}`;
+}
+
+/**
+ * The bare address of a mailbox ("XOS <notifications@example.com>" or "notifications@example.com"), found with
+ * indexOf so it stays linear on any input (a pattern such as /<([^>]+)>/ backtracks on a run of "<").
+ */
+export function mailboxAddress(mailbox: string): string {
+  const open = mailbox.lastIndexOf("<");
+  const close = open === -1 ? -1 : mailbox.indexOf(">", open + 1);
+  return open !== -1 && close > open + 1 ? mailbox.slice(open + 1, close).trim() : mailbox.trim();
 }
 
 /** What an email's Sender takes from the brand: the name it signs with, From, reply-to, and logo and accent. */
@@ -306,7 +316,7 @@ export function brandedSender(
   brand: OrgEmailBrand | null,
   options: { readonly fromAddress: string; readonly brandAssetUrl?: string | null },
 ): BrandedSenderParts {
-  const address = /<([^>]+)>/.exec(options.fromAddress)?.[1] ?? options.fromAddress.trim();
+  const address = mailboxAddress(options.fromAddress);
   const name = brand?.brandName ?? orgName;
   if (brand === null) return { orgName: name, from: mailbox(name, address) };
   const logoUrl = brandAssetUrl(options.brandAssetUrl, brand.logoPath);

@@ -13,6 +13,7 @@ import {
   brandedSender,
   readOrgEmailBrand,
   recipientProfile,
+  withoutTrailingSlashes,
   type OrgEmailBrand,
   type PlatformDb,
 } from "../src/stores.ts";
@@ -56,7 +57,7 @@ function oneClick(url: string): Readonly<Record<string, string>> {
  */
 export function reportEmailComposer(options: ReportEmailOptions): ComposeReportEmail {
   return async (delivery, attachment) => {
-    const appUrl = options.appUrl?.replace(/\/+$/, "");
+    const appUrl = options.appUrl ? withoutTrailingSlashes(options.appUrl) : "";
     if (!appUrl)
       throw new Error("XOS_APP_URL is not set, so a report email has no preferences link.");
     if (!options.postalAddress) {
@@ -76,7 +77,7 @@ export function reportEmailComposer(options: ReportEmailOptions): ComposeReportE
       }),
     ]);
     const locale: Locale = isLocale(recipient.locale) ? recipient.locale : "en-US";
-    const unsubscribeUrl = `${options.functionsUrl.replace(/\/+$/, "")}/email-unsubscribe?token=${encodeURIComponent(String(token))}`;
+    const unsubscribeUrl = `${withoutTrailingSlashes(options.functionsUrl)}/email-unsubscribe?token=${encodeURIComponent(String(token))}`;
     const parts = brandedSender(delivery.orgName, brand, {
       fromAddress: options.fromAddress,
       brandAssetUrl: options.brandAssetUrl ?? null,

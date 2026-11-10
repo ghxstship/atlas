@@ -5,6 +5,7 @@ import {
   dispatchEmail,
   isPlatformEmailKind,
   mailbox,
+  mailboxAddress,
   notificationStore,
   type ClaimedEmail,
   type NotificationStore,
@@ -128,6 +129,16 @@ describe("senderFor", () => {
     expect(isPlatformEmailKind("access.break_glass_started")).toBe(false);
     // A report of a post reaches the org's own moderators: the org's notice, under its brand.
     expect(isPlatformEmailKind("content_report.filed")).toBe(false);
+  });
+
+  it("reads a mailbox's address in linear time, whatever the input", () => {
+    expect(mailboxAddress("XOS <notifications@mail.xos.test>")).toBe("notifications@mail.xos.test");
+    expect(mailboxAddress(" notifications@mail.xos.test ")).toBe("notifications@mail.xos.test");
+    expect(mailboxAddress("<>")).toBe("<>");
+    const hostile = "<".repeat(100_000);
+    const started = performance.now();
+    expect(mailboxAddress(hostile)).toBe(hostile);
+    expect(performance.now() - started).toBeLessThan(200);
   });
 
   it("hides Delivered by XOS only for an org that hides Powered by XOS", async () => {

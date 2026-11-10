@@ -12,6 +12,8 @@ import type {
   GuestPassFacts,
 } from "../src/notifications/guest-emails.ts";
 
+import { withoutTrailingSlashes } from "../src/stores.ts";
+
 export {
   dispatchGuestEmails,
   guestEmailStore,
@@ -45,7 +47,7 @@ async function readLogo(
   path: string | null,
   options: { readonly brandAssetUrl?: string | null; readonly fetch?: typeof fetch },
 ): Promise<Uint8Array | null> {
-  const base = options.brandAssetUrl?.replace(/\/+$/, "");
+  const base = options.brandAssetUrl ? withoutTrailingSlashes(options.brandAssetUrl) : "";
   if (!path || !base) return null;
   const url = `${base}/${path.split("/").map(encodeURIComponent).join("/")}`;
   const response = await (options.fetch ?? fetch)(url);

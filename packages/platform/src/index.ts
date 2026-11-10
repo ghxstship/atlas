@@ -271,6 +271,7 @@ export {
   kioskPunch,
   gatewayLink,
   mailbox,
+  mailboxAddress,
   notificationStore,
   recipientProfile,
   restDb,

@@ -211,9 +211,18 @@ async function readOrgEmailBrand(db, orgId) {
 }
 /** The public URL of a file in the org-brand bucket, each path segment encoded, or null without a base or path. */
 function brandAssetUrl(base, path) {
-  const root = base?.replace(/\/+$/, "");
+  const root = base ? withoutTrailingSlashes(base) : "";
   if (!root || !path) return null;
   return `${root}/${path.split("/").map(encodeURIComponent).join("/")}`;
+}
+/**
+ * The bare address of a mailbox ("XOS <notifications@example.com>" or "notifications@example.com"), found with
+ * indexOf so it stays linear on any input (a pattern such as /<([^>]+)>/ backtracks on a run of "<").
+ */
+function mailboxAddress(mailbox) {
+  const open = mailbox.lastIndexOf("<");
+  const close = open === -1 ? -1 : mailbox.indexOf(">", open + 1);
+  return open !== -1 && close > open + 1 ? mailbox.slice(open + 1, close).trim() : mailbox.trim();
 }
 /**
  * The brand half of an org's email Sender (A138, Section 12), the one rule every org-sent email follows: while white
@@ -222,7 +231,7 @@ function brandAssetUrl(base, path) {
  * is the verified sending address, bare or as a mailbox ("XOS <notifications@example.com>").
  */
 function brandedSender(orgName, brand, options) {
-  const address = /<([^>]+)>/.exec(options.fromAddress)?.[1] ?? options.fromAddress.trim();
+  const address = mailboxAddress(options.fromAddress);
   const name = brand?.brandName ?? orgName;
   if (brand === null)
     return {
@@ -421,4 +430,5 @@ export {
   rows,
   text,
   webhookStore,
+  withoutTrailingSlashes,
 };

@@ -35,9 +35,11 @@ export function mailboxOf(name: string, address: string): string {
   return `${display} <${address}>`;
 }
 
-/** The bare address of a mailbox. */
+/** The bare address of a mailbox, found with indexOf so it stays linear on any input. */
 export function addressOf(mailbox: string): string {
-  return /<([^>]+)>/.exec(mailbox)?.[1] ?? mailbox.trim();
+  const open = mailbox.lastIndexOf("<");
+  const close = open === -1 ? -1 : mailbox.indexOf(">", open + 1);
+  return open !== -1 && close > open + 1 ? mailbox.slice(open + 1, close).trim() : mailbox.trim();
 }
 
 export interface ReportMailer {

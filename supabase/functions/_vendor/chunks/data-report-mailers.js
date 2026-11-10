@@ -12,9 +12,11 @@ function mailboxOf(name, address) {
   if (clean === "") return address;
   return `${/[()<>[\]:;@\\,."]/.test(clean) ? `"${clean.replace(/["\\]/g, "\\$&")}"` : clean} <${address}>`;
 }
-/** The bare address of a mailbox. */
+/** The bare address of a mailbox, found with indexOf so it stays linear on any input. */
 function addressOf(mailbox) {
-  return /<([^>]+)>/.exec(mailbox)?.[1] ?? mailbox.trim();
+  const open = mailbox.lastIndexOf("<");
+  const close = open === -1 ? -1 : mailbox.indexOf(">", open + 1);
+  return open !== -1 && close > open + 1 ? mailbox.slice(open + 1, close).trim() : mailbox.trim();
 }
 /** Base64 of bytes without Node's Buffer, so the Edge runtime can use it too. */
 function toBase64(bytes) {
