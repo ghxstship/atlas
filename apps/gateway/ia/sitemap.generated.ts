@@ -302,6 +302,7 @@ export const sitemap: Sitemap = {
                 "account-finance": "hidden",
                 "account-member": "hidden",
               },
+              conditions: ["company-account"],
               list: { views: ["list"], default: "list" },
             },
             {
