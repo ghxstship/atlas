@@ -815,6 +815,8 @@ export function BudgetEditor(props: Props) {
         {undo ? (
           <UndoToast
             key={undo.entry}
+            // A paste or delete can touch hundreds of lines: 20 seconds to check the result before undoing it.
+            seconds={20}
             message={undo.message}
             onUndo={() => {
               const target = undo;
