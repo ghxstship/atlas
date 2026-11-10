@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { loadPlanRegistry } from "@xos/schemas/plans";
 import {
   CatalogDriftError,
+  assertModeKey,
   assertTestModeKey,
   stripeCatalog,
   syncStripeCatalog,
@@ -393,5 +394,14 @@ describe("test mode key", () => {
     expect(() => assertTestModeKey("")).toThrow(/not set/);
     expect(() => assertTestModeKey("sk_live_abcdefgh123")).toThrow(/not a Stripe test mode key/);
     expect(() => assertTestModeKey("pk_test_abcdefgh123")).toThrow(/not a Stripe test mode key/);
+  });
+
+  it("takes a live key only in live mode, and refuses a test key there", () => {
+    expect(assertModeKey("sk_live_abcdefgh123", "live")).toBe("sk_live_abcdefgh123");
+    expect(() => assertModeKey("sk_test_abcdefgh123", "live")).toThrow(
+      /not a Stripe live mode key/,
+    );
+    expect(() => assertModeKey("sk_live_abcdefgh123", "test")).toThrow(/unless you pass --live/);
+    expect(() => assertModeKey(undefined, "live")).toThrow(/sk_live_/);
   });
 });
