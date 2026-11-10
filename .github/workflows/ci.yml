@@ -449,7 +449,7 @@ jobs:
       # package whose engines the running Node misses, so on 22.14.0 the install missed one that Vercel's
       # 22.x install holds (rollup's @napi-rs/lzma-linux-x64-gnu needs 22.20; infra/runbooks/production.md),
       # and `pnpm licenses list`, which checks only os, cpu and libc, failed looking for it. An exact
-      # release at least two weeks old (ADR 0001), so the report does not change with the day it runs.
+      # release, so the report does not change with the day it runs.
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: "22.23.3"
