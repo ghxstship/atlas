@@ -9,6 +9,13 @@ name: field-run-of-show
       EMAIL: field@example.com
 - tapOn:
     id: "tab-more"
+# The field menu can be longer than the screen (an Android emulator): bring the row into view first.
+- scrollUntilVisible:
+    element:
+      id: "more-show"
+    direction: DOWN
+    centerElement: true
+    optional: true
 - tapOn:
     id: "more-show"
 - assertVisible:

@@ -299,8 +299,9 @@ jobs:
       # dropped its connection typing the password in field-sign-in (run 42768003872).
       MAESTRO_VERSION: 2.12.1
       # The XCTest driver takes longer than Maestro's default to start on a hosted macOS runner: every night from
-      # 2026-10-29 failed with "iOS driver not ready in time" before the first flow (run 42666314984). Milliseconds.
-      MAESTRO_DRIVER_STARTUP_TIMEOUT: "240000"
+      # 2026-10-29 failed with "iOS driver not ready in time" before the first flow (run 42666314984), and 240 s
+      # was still short on a cold simulator (run 42831440876). Milliseconds.
+      MAESTRO_DRIVER_STARTUP_TIMEOUT: "600000"
       HOMEBREW_NO_AUTO_UPDATE: "1"
       HOMEBREW_NO_INSTALL_CLEANUP: "1"
     steps:
@@ -336,10 +337,23 @@ jobs:
       # SUPABASE_URL, SUPABASE_ANON_KEY, a registered kiosk and the Field Tech's kiosk PIN.
       - name: Prepare the Maestro run against the CI stack
         run: apps/compass/scripts/maestro-ci-env.sh >> "$GITHUB_ENV"
+      # The simulator's first boot spends about five minutes migrating data (run 42831440876): it boots now, while
+      # Compass builds, and is settled by the time Maestro starts its driver.
+      - name: Boot the simulator
+        run: |
+          sudo xcode-select -s /Applications/Xcode_26.3.app
+          UDID=$(xcrun simctl list devices available -j | python3 -c "
+          import json, re, sys
+          devices = json.load(sys.stdin)['devices']
+          runtimes = [k for k, v in devices.items() if '.iOS-' in k and any(d['name'].startswith('iPhone') for d in v)]
+          newest = max(runtimes, key=lambda k: [int(n) for n in re.findall(r'\d+', k.split('.iOS-')[1])])
+          print(next(d['udid'] for d in devices[newest] if d['name'].startswith('iPhone')))
+          ")
+          echo "UDID=$UDID" >> "$GITHUB_ENV"
+          xcrun simctl boot "$UDID"
       - name: Build Compass for the simulator against the CI stack
         working-directory: apps/compass
         run: |
-          sudo xcode-select -s /Applications/Xcode_26.3.app
           export EXPO_PUBLIC_SUPABASE_URL=http://127.0.0.1:55421
           export EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY="$SUPABASE_ANON_KEY"
           # The runner has no audio input, so the simulator could never record a voice note: this test
@@ -352,14 +366,6 @@ jobs:
           # The Intel runner's simulator is x86_64; one architecture instead of two halves the build.
           xcodebuild -workspace ios/Compass.xcworkspace -scheme Compass -configuration Release \
             -sdk iphonesimulator -derivedDataPath build ARCHS=x86_64 ONLY_ACTIVE_ARCH=YES
-          UDID=$(xcrun simctl list devices available -j | python3 -c "
-          import json, re, sys
-          devices = json.load(sys.stdin)['devices']
-          runtimes = [k for k, v in devices.items() if '.iOS-' in k and any(d['name'].startswith('iPhone') for d in v)]
-          newest = max(runtimes, key=lambda k: [int(n) for n in re.findall(r'\d+', k.split('.iOS-')[1])])
-          print(next(d['udid'] for d in devices[newest] if d['name'].startswith('iPhone')))
-          ")
-          xcrun simctl boot "$UDID"
           xcrun simctl bootstatus "$UDID" -b
           xcrun simctl install "$UDID" build/Build/Products/Release-iphonesimulator/Compass.app
           for service in location-always camera microphone; do
@@ -372,12 +378,23 @@ jobs:
           XOS_SUPABASE_STACK=xos4 node --experimental-strip-types --no-warnings \
             apps/compass/scripts/maestro-network.ts serve &
           sleep 1
+          # The first start of the XCTest driver installs its runner app; it happens here, tried again, so the
+          # suite starts against a warm driver.
+          curl -fsSL "https://get.maestro.mobile.dev" | bash
+          for attempt in 1 2 3; do
+            "$HOME/.maestro/bin/maestro" --device "$UDID" hierarchy > /dev/null && break
+            [ "$attempt" = 3 ] && exit 1
+          done
           apps/compass/scripts/maestro-ci.sh
+      # The flows' screenshots and logs, and the XCTest driver's own logs, which say why a driver did not start.
       - if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: maestro-ios
-          path: node_modules/.cache/maestro
+          path: |
+            node_modules/.cache/maestro
+            ~/Library/Logs/maestro
+            ~/.maestro/tests
           if-no-files-found: ignore
 
   maestro-android:
