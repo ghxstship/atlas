@@ -9,9 +9,10 @@ import { LOAD_MARKER, objectionableTermsLoad } from "../src/objectionable-terms-
  * migration that already holds the generated statement (6890 on its own branch), it rewrites that statement in place.
  */
 const name = process.argv[2];
-if (!name || !/^\d{4}_[a-z0-9_]+$/.test(name)) {
+// A release number for a new migration (ADR 0022: 9MMmmBBSS), or a four-digit one to rewrite in place.
+if (!name || !/^(\d{4}|9\d{8})_[a-z0-9_]+$/.test(name)) {
   console.error(
-    "Usage: content-filter:migration <number>_<name>, for example 6300_objectionable_terms",
+    "Usage: content-filter:migration <number>_<name>, for example 904090001_objectionable_terms",
   );
   process.exit(1);
 }
