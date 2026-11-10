@@ -57,6 +57,7 @@ import { loadConversation, loadRelations, type Conversation } from "./record-sec
 import type { KindField } from "./record-panels";
 import {
   ActualsForm,
+  ArchiveControls,
   AssignmentsEditor,
   ChecklistEditor,
   DependencyEditor,
@@ -72,7 +73,6 @@ import {
 import { TransitionControls } from "./record-transition";
 import { recordHistoryItems } from "./record-history-items";
 import { RelatedRecords, type RecordRelations } from "./related-records";
-import { ArchiveControls } from "@/components/archive/archive-controls";
 import { AnchorPin } from "@/components/schedule/anchor-pin";
 import { listVersionReviews, type VersionReview } from "@xos/data/attachments";
 import { RecordPositionButton } from "./record-position-button";
@@ -664,15 +664,18 @@ export async function RecordBody({
         )}
       </RegionContent>
       <RegionContent data={detail.conversation}>
-        {(conversation) => (
-          <FileReviewControls
-            org={org}
-            attachments={conversation.attachments}
-            reviews={detail.fileReviews}
-            me={me}
-            canReview={detail.canWrite}
-          />
-        )}
+        {(conversation) =>
+          // Nothing to review without files, so a record without any never loads the controls.
+          conversation.attachments.length === 0 ? null : (
+            <FileReviewControls
+              org={org}
+              attachments={conversation.attachments}
+              reviews={detail.fileReviews}
+              me={me}
+              canReview={detail.canWrite}
+            />
+          )
+        }
       </RegionContent>
       {detail.canWrite ? <DuplicateButton org={org} recordId={record.id} /> : null}
       {record.deletedAt ? null : (
