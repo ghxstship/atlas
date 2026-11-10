@@ -351,6 +351,24 @@ export async function untilDrawn(page: Page): Promise<void> {
 }
 
 /**
+ * Runs a measurement, again from the start when the page navigates under it: a page that rewrites its own address
+ * after it paints (a view's default query, as the crew board does) destroys the context an evaluate runs in (CI run
+ * 42757830179). Three tries; any other error, or a third navigation, fails the check.
+ */
+async function settled<T>(page: Page, measure: () => Promise<T>): Promise<T> {
+  for (let attempt = 1; ; attempt += 1) {
+    try {
+      return await measure();
+    } catch (error) {
+      const navigated =
+        error instanceof Error && /Execution context was destroyed|navigation/i.test(error.message);
+      if (!navigated || attempt >= 3) throw error;
+      await page.waitForLoadState("load");
+    }
+  }
+}
+
+/**
  * Every pseudo-locale problem of the page as loaded, at each width (PSEUDO_VIEWPORTS by default): under en-XA the
  * hard-coded strings (once, at desktop width, since copy does not change with the width), and in
  * both locales the text clipped without a tooltip. Each line names the locale and width. The page
@@ -372,14 +390,19 @@ export async function pseudoProblems(
   const problems: string[] = [];
   for (const viewport of viewports) {
     await page.setViewportSize(viewport);
-    await untilDrawn(page);
     const at = `${locale} ${viewport.width} px`;
-    if (locale === "en-XA" && viewport.width === PSEUDO_VIEWPORTS[0].width) {
-      for (const line of describe(await hardCodedText(page, data))) {
-        problems.push(`${at} hard-coded: ${line}`);
-      }
-    }
-    for (const line of describe(await truncatedText(page))) problems.push(`${at} clipped: ${line}`);
+    const found = await settled(page, async () => {
+      await untilDrawn(page);
+      return {
+        hardCoded:
+          locale === "en-XA" && viewport.width === PSEUDO_VIEWPORTS[0].width
+            ? await hardCodedText(page, data)
+            : [],
+        clipped: await truncatedText(page),
+      };
+    });
+    for (const line of describe(found.hardCoded)) problems.push(`${at} hard-coded: ${line}`);
+    for (const line of describe(found.clipped)) problems.push(`${at} clipped: ${line}`);
   }
   await page.setViewportSize(PSEUDO_VIEWPORTS[0]);
   return problems;
