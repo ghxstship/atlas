@@ -1,13 +1,11 @@
 ---
 title: Responsible Disclosure Policy
-version: 1.0.0-draft
-effective_date: The date GHXSTSHIP states when it makes this version final
-status: Draft before launch
+version: 1.0.0
+effective_date: 2026-11-10
+status: In effect
 ---
 
 # Responsible Disclosure Policy
-
-> **Draft before launch.** This document is a draft. It is not in effect and no one may rely on it. Showing it at /legal does not put it in effect. It takes effect only on the effective date that GHXSTSHIP Industries LLC states at the top of a final version.
 
 GHXSTSHIP Industries LLC ("GHXSTSHIP") welcomes reports from security researchers. This policy adds detail on scope, rules of engagement and safe harbor to `SECURITY.md` in the XOS repository. If they ever differ, the version published at /legal controls.
 

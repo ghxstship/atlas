@@ -310,7 +310,7 @@ describe("Gateway: the Worker Terms for an account Google created (A59-025)", ()
     expect((await signedInWithGoogle("/auth/claim")).pathname).toBe("/auth/claim");
     accepted = [];
     userMetadata = {
-      pending_legal_acceptances: [{ slug: "worker-terms", version: "1.0.0-draft" }],
+      pending_legal_acceptances: [{ slug: "worker-terms", version: "1.0.0" }],
     };
     expect((await signedInWithGoogle("/auth/claim")).pathname).toBe("/auth/claim");
   });
@@ -347,7 +347,7 @@ describe("Gateway: the Worker Terms for an account Google created (A59-025)", ()
       {
         p_org_id: null,
         p_document_slugs: ["worker-terms"],
-        p_document_versions: ["1.0.0-draft"],
+        p_document_versions: ["1.0.0"],
       },
     ]);
   });

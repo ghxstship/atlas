@@ -1,13 +1,11 @@
 ---
 title: Legal Contact
-version: 1.0.0-draft
-effective_date: The date GHXSTSHIP states when it makes this version final
-status: Draft before launch; owner values supplied 2026-10-24 (the street line of the postal address and a telephone number still to come)
+version: 1.0.0
+effective_date: 2026-11-10
+status: In effect
 ---
 
 # Legal Contact
-
-> **Draft before launch.** This document is a draft. It is not in effect and no one may rely on it. Showing it at /legal does not put it in effect. It takes effect only on the effective date that GHXSTSHIP Industries LLC states at the top of a final version.
 
 Every document at /legal refers to this page as the "Contact Page" or "our contact page at /legal/contact". It is the single place where GHXSTSHIP Industries LLC publishes its addresses, email address and appointed representatives, so a change to any of them is made once.
 
@@ -19,8 +17,8 @@ If you have a question about your work, a shift, a payment or a document from an
 | ---------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Legal name                                     | GHXSTSHIP Industries LLC                                                                                                                                    |
 | State of organization                          | Florida                                                                                                                                                     |
-| Postal address                                 | Miami, FL, United States (street line to be added)                                                                                                          |
-| Telephone                                      | To be added                                                                                                                                                 |
+| Postal address                                 | 66 W Flagler St, Suite 900, PMB 12524, Miami, FL 33130, United States                                                                                       |
+| Telephone                                      | +1 (407) 885-6011                                                                                                                                           |
 | Names we operate under                         | XOS, Atlas, Gateway, Compass and Aurora, at atlas.ghxstship.tech, gateway.ghxstship.tech, api.ghxstship.tech, docs.ghxstship.tech and status.ghxstship.tech |
 | Governing Jurisdiction                         | The laws of the State of Florida; the state and federal courts in Miami-Dade County, Florida; no arbitration and no class action waiver                     |
 | SCC governing law and courts (EU Member State) | Ireland (Clauses 17 and 18 require an EU Member State)                                                                                                      |
@@ -28,26 +26,29 @@ If you have a question about your work, a shift, a payment or a document from an
 
 ## Email
 
-GHXSTSHIP has one email address for everything on this page: **support@ghxstship.pro**. Write the purpose of your message in the subject line, so it reaches the right queue at once and its clock starts on the day it arrives. Every document at /legal that names a purpose uses the subject below.
+GHXSTSHIP has two email addresses. **sos@ghxstship.pro** is for your account and billing: plans, invoices, cancellations, refunds and service credits. **support@ghxstship.pro** is for everything else on this page: help with the apps, and legal, privacy, security, accessibility, abuse and copyright matters. Write the purpose of your message in the subject line, so it reaches the right queue at once and its clock starts on the day it arrives. Every document at /legal that names a purpose uses the address and subject below.
 
-| Purpose                                          | Subject line   |
-| ------------------------------------------------ | -------------- |
-| Legal notices, trademark and license requests    | Legal Notice   |
-| Privacy, data subject requests and complaints    | Privacy        |
-| Appeal of a refused privacy request              | Privacy Appeal |
-| Security reports                                 | Security       |
-| Accessibility feedback and review requests       | Accessibility  |
-| Abuse and illegal content reports                | Abuse Report   |
-| Appeal of a moderation decision                  | Appeal         |
-| Copyright notices and counter-notices            | Copyright      |
-| Return of data an organization's export left out | Return of Data |
-| Support, billing, cancellations and refunds      | Support        |
+| Purpose                                          | Address               | Subject line   |
+| ------------------------------------------------ | --------------------- | -------------- |
+| Legal notices, trademark and license requests    | support@ghxstship.pro | Legal Notice   |
+| Privacy, data subject requests and complaints    | support@ghxstship.pro | Privacy        |
+| Appeal of a refused privacy request              | support@ghxstship.pro | Privacy Appeal |
+| Security reports                                 | support@ghxstship.pro | Security       |
+| Accessibility feedback and review requests       | support@ghxstship.pro | Accessibility  |
+| Abuse and illegal content reports                | support@ghxstship.pro | Abuse Report   |
+| Appeal of a moderation decision                  | support@ghxstship.pro | Appeal         |
+| Copyright notices and counter-notices            | support@ghxstship.pro | Copyright      |
+| Return of data an organization's export left out | support@ghxstship.pro | Return of Data |
+| Account, plans, invoices and cancellations       | sos@ghxstship.pro     | Account        |
+| Refunds                                          | sos@ghxstship.pro     | Refund         |
+| Service credits (Service Level Agreement)        | sos@ghxstship.pro     | Service Credit |
+| Help with Atlas, Gateway, Compass or the API     | support@ghxstship.pro | Support        |
 
 ## Appointed People
 
 | Role                                                                                  | Value                                                                                                                                                                                                                                                                                                                                                                           |
 | ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| DMCA designated agent (name, address, telephone and email)                            | Julian Clarkson, GHXSTSHIP Industries LLC, Miami, FL, United States; telephone as listed under Company; support@ghxstship.pro with "Copyright" in the subject line. Registration with the US Copyright Office's DMCA Designated Agent Directory: not yet completed                                                                                                              |
+| DMCA designated agent (name, address, telephone and email)                            | Julian Clarkson, GHXSTSHIP Industries LLC, 66 W Flagler St, Suite 900, PMB 12524, Miami, FL 33130, United States; telephone +1 (407) 885-6011; support@ghxstship.pro with "Copyright" in the subject line. Registration with the US Copyright Office's DMCA Designated Agent Directory: not yet completed                                                                       |
 | Privacy officer (PIPEDA) and person in charge of personal information (Quebec Law 25) | Julian Clarkson, support@ghxstship.pro with "Privacy" in the subject line                                                                                                                                                                                                                                                                                                       |
 | Data Protection Officer (GDPR Article 37)                                             | None designated                                                                                                                                                                                                                                                                                                                                                                 |
 | EU representative (GDPR Article 27)                                                   | Not yet appointed. XOS is not offered in the EU at launch, and a contract exception for one organization does not open it. Correspondence about the EU goes to support@ghxstship.pro, with "Privacy" in the subject line, and is handled from London, United Kingdom; a representative established in an EU Member State is appointed before XOS is offered to people in the EU |

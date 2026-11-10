@@ -1,13 +1,11 @@
 ---
 title: Accessibility Conformance Report: Compass
-version: 1.0.0-draft
-effective_date: The date GHXSTSHIP states when it makes this version final
-status: Draft before launch; evaluated by A23 from source on main 5f4e839 (Wave 6), device and screen reader passes owed
+version: 1.0.0
+effective_date: 2026-11-10
+status: In effect
 ---
 
 # Accessibility Conformance Report: Compass
-
-> **Draft before launch.** This report is a draft. Levels A and AA were evaluated in the Wave 6 independent audit (A23) by source and component review of build 5f4e839; no device, VoiceOver or TalkBack pass has taken place yet (see Notes). Showing it at /legal does not put it in effect. It takes effect only on the effective date that GHXSTSHIP Industries LLC states at the top of a final version with completed evaluation results.
 
 This Accessibility Conformance Report follows the structure of the ITI VPAT 2.5 International edition (VPAT 2.5Rev INT), which reports against WCAG 2.x, the Revised Section 508 Standards and EN 301 549 together. Template instructions from the VPAT form are not reproduced here.
 
@@ -21,7 +19,7 @@ The date this report is published at /legal. Evaluation recorded 2026-10-16 in `
 
 ## Product Description
 
-Compass 4.0 is the field application of XOS 4.0 for iOS and Android phones and tablets. It serves internal members and external parties for on-site operations: shifts and the time clock, tasks and checklists, inspections, incident reports, run of show, scanning, credentials, chat, feed, training and the kiosk. It works offline, and includes Live Activities and home screen widgets.
+Compass is the field application of XOS for iOS and Android phones and tablets. It serves internal members and external parties for on-site operations: shifts and the time clock, tasks and checklists, inspections, incident reports, run of show, scanning, credentials, chat, feed, training and the kiosk. It works offline, and includes Live Activities and home screen widgets.
 
 ## Contact Information
 

@@ -1,15 +1,13 @@
 ---
 title: Service Level Agreement
-version: 1.0.0-draft
-effective_date: The date GHXSTSHIP states when it makes this version final
-status: Draft before launch
+version: 1.0.0
+effective_date: 2026-11-10
+status: In effect
 ---
 
 # Service Level Agreement
 
-> **Draft before launch.** This document is a draft. It is not in effect and no one may rely on it. Showing it at /legal does not put it in effect. It takes effect only on the effective date that GHXSTSHIP Industries LLC states at the top of a final version.
-
-This Service Level Agreement ("SLA") forms part of the Terms of Service between GHXSTSHIP Industries LLC ("GHXSTSHIP") and the Customer. It sets the availability target for XOS 4.0, the service credits available on the Enterprise plan, and the support response targets for every plan.
+This Service Level Agreement ("SLA") forms part of the Terms of Service between GHXSTSHIP Industries LLC ("GHXSTSHIP") and the Customer. It sets the availability target for XOS, the service credits available on the Enterprise plan, and the support response targets for every plan.
 
 ## 1. Availability Target
 
@@ -33,7 +31,7 @@ Service Credits apply to Customers on the Enterprise plan.
 | Below 99.0 percent, at or above 95.0 percent | 25 percent     |
 | Below 95.0 percent                           | 50 percent     |
 
-- To receive a Service Credit, the Owner or an Admin must request it through Contact Support or support@ghxstship.pro with "Support" in the subject line within 30 days after the end of the affected month, with the dates and times it believes were affected, as far as it knows them. We check the request against our records and tell the Customer the result. On request we give the Customer the Monthly Uptime figure and the check results and log extracts we relied on, with other customers' data removed.
+- To receive a Service Credit, the Owner or an Admin must request it through Contact Support or sos@ghxstship.pro with "Service Credit" in the subject line within 30 days after the end of the affected month, with the dates and times it believes were affected, as far as it knows them. We check the request against our records and tell the Customer the result. On request we give the Customer the Monthly Uptime figure and the check results and log extracts we relied on, with other customers' data removed.
 - Service Credits for a month may not exceed 50 percent of that month's fee for the affected organization.
 - Service Credits are the Customer's sole and exclusive financial remedy for failure to meet the availability target, as Section 13.6 of the Terms of Service also states.
 - Monthly Uptime below 99.0 percent in three consecutive months is a material breach that cannot be cured. The Customer may terminate the affected subscription by notice, with no cure period, and receives the refund of prepaid fees for the remaining term that Section 11.6 of the Terms of Service gives. Section 11.10 of those Terms says what happens to the data.
@@ -74,7 +72,7 @@ The 60 minute and 5 business day figures are targets.
 
 We offer a dedicated channel, a named contact and a phone line only where an Order names them. GHXSTSHIP is a small team, and an Order commits us to cover on nights and weekends only if it says who provides it.
 
-These are targets for a first response, not for a fix. The severity 1 target counts every hour of the day and every day of the week only if the Order says so. Otherwise it counts business hours, so a Customer that needs cover on nights and weekends for its shows should have that written into its Order. Questions about a person's own account can go to support@ghxstship.pro with "Support" in the subject line on any plan.
+These are targets for a first response, not for a fix. The severity 1 target counts every hour of the day and every day of the week only if the Order says so. Otherwise it counts business hours, so a Customer that needs cover on nights and weekends for its shows should have that written into its Order. Questions about a person's own account can go to sos@ghxstship.pro on any plan, and technical questions about the apps to support@ghxstship.pro with "Support" in the subject line.
 
 **Severity levels**
 

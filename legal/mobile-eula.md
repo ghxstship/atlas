@@ -1,13 +1,11 @@
 ---
 title: Mobile End User License Agreement
-version: 1.0.0-draft
-effective_date: The date GHXSTSHIP states when it makes this version final
-status: Draft before launch
+version: 1.0.0
+effective_date: 2026-11-10
+status: In effect
 ---
 
 # Mobile End User License Agreement
-
-> **Draft before launch.** This document is a draft. It is not in effect and no one may rely on it. Showing it at /legal does not put it in effect. It takes effect only on the effective date that GHXSTSHIP Industries LLC states at the top of a final version.
 
 This Mobile End User License Agreement (the "EULA") is between you and GHXSTSHIP Industries LLC ("GHXSTSHIP", "we" or "us"), a Florida limited liability company. It covers the Compass mobile application for iOS and Android and any branded build of Compass made for an organization (the "App"). Branded builds are not offered at launch.
 
@@ -17,7 +15,7 @@ The App enforces acceptance of this EULA. On the server, XOS enforces your age a
 
 ## 1. Relationship to Other Terms
 
-The App is a client for the XOS 4.0 service. Your use of the service through the App is also governed by the terms that apply to you:
+The App is a client for the XOS service. Your use of the service through the App is also governed by the terms that apply to you:
 
 - If you are a member of an organization that subscribes to XOS, that organization's agreement with us governs the service, and this EULA governs the App.
 - If you use the App as a crew member, staff member, vendor, contractor, artist or other external party, or you have no active membership of an organization, the Worker Terms govern your account and this EULA governs the App. The App asks you to accept the Worker Terms at your first sign-in, with this EULA, if you have not accepted them in Gateway.
@@ -102,7 +100,7 @@ If you obtained the App from the Apple App Store, these terms also apply and con
 5. **Product claims.** GHXSTSHIP, not Apple, is responsible for addressing any claims by you or a third party relating to the App or your possession and use of it, including product liability claims, claims that the App fails to conform to any applicable legal or regulatory requirement, and claims arising under consumer protection, privacy or similar legislation. This EULA does not limit GHXSTSHIP's liability to you beyond what the law permits.
 6. **Intellectual property.** If a third party claims that the App or your possession and use of it infringes that third party's intellectual property rights, GHXSTSHIP, not Apple, is solely responsible for the investigation, defense, settlement and discharge of that claim.
 7. **Legal compliance.** You represent and warrant that you are not located in a country subject to a United States government embargo or designated by the United States government as a "terrorist supporting" country, and that you are not listed on any United States government list of prohibited or restricted parties.
-8. **Developer name and address.** Questions, complaints and claims about the App go to GHXSTSHIP Industries LLC, Miami, FL, United States, at support@ghxstship.pro. The full postal address and telephone number are listed on our contact page at /legal/contact.
+8. **Developer name and address.** Questions, complaints and claims about the App go to GHXSTSHIP Industries LLC, 66 W Flagler St, Suite 900, PMB 12524, Miami, FL 33130, United States; telephone +1 (407) 885-6011; email support@ghxstship.pro. Any later change to these details is shown on our contact page at /legal/contact.
 9. **Third-party terms.** You must comply with applicable third-party terms when using the App, for example your wireless data service agreement.
 10. **Third-party beneficiary.** Apple and its subsidiaries are third-party beneficiaries of this EULA. Once you accept this EULA, Apple has the right, and is deemed to have accepted the right, to enforce this EULA against you as a third-party beneficiary.
 

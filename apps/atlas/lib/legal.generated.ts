@@ -6,7 +6,7 @@ export const LEGAL_DOCUMENTS: readonly LegalDocument[] = [
   {
     slug: "terms-of-service",
     title: "Terms of Service",
-    version: "1.0.0-draft",
+    version: "1.0.0",
     publish: "public",
     requiresAcceptanceAtSignup: true,
     acceptanceBy: ["org_owner_at_signup"],
@@ -14,7 +14,7 @@ export const LEGAL_DOCUMENTS: readonly LegalDocument[] = [
   {
     slug: "privacy-policy",
     title: "Privacy Policy",
-    version: "1.0.0-draft",
+    version: "1.0.0",
     publish: "public",
     requiresAcceptanceAtSignup: false,
     acceptanceBy: [],
@@ -22,7 +22,7 @@ export const LEGAL_DOCUMENTS: readonly LegalDocument[] = [
   {
     slug: "cookie-policy",
     title: "Cookie Policy",
-    version: "1.0.0-draft",
+    version: "1.0.0",
     publish: "public",
     requiresAcceptanceAtSignup: false,
     acceptanceBy: [],
@@ -30,7 +30,7 @@ export const LEGAL_DOCUMENTS: readonly LegalDocument[] = [
   {
     slug: "data-processing-agreement",
     title: "Data Processing Agreement",
-    version: "1.0.0-draft",
+    version: "1.0.0",
     publish: "public",
     requiresAcceptanceAtSignup: true,
     acceptanceBy: ["org_owner_at_signup"],
@@ -38,7 +38,7 @@ export const LEGAL_DOCUMENTS: readonly LegalDocument[] = [
   {
     slug: "subprocessors",
     title: "Subprocessor List",
-    version: "1.0.0-draft",
+    version: "1.0.0",
     publish: "public",
     requiresAcceptanceAtSignup: false,
     acceptanceBy: [],
@@ -46,7 +46,7 @@ export const LEGAL_DOCUMENTS: readonly LegalDocument[] = [
   {
     slug: "acceptable-use-policy",
     title: "Acceptable Use Policy",
-    version: "1.0.0-draft",
+    version: "1.0.0",
     publish: "public",
     requiresAcceptanceAtSignup: false,
     acceptanceBy: [],
@@ -54,7 +54,7 @@ export const LEGAL_DOCUMENTS: readonly LegalDocument[] = [
   {
     slug: "service-level-agreement",
     title: "Service Level Agreement",
-    version: "1.0.0-draft",
+    version: "1.0.0",
     publish: "public",
     requiresAcceptanceAtSignup: false,
     acceptanceBy: [],
@@ -62,7 +62,7 @@ export const LEGAL_DOCUMENTS: readonly LegalDocument[] = [
   {
     slug: "security-overview",
     title: "Security Overview",
-    version: "1.0.0-draft",
+    version: "1.0.0",
     publish: "public",
     requiresAcceptanceAtSignup: false,
     acceptanceBy: [],
@@ -70,7 +70,7 @@ export const LEGAL_DOCUMENTS: readonly LegalDocument[] = [
   {
     slug: "accessibility-statement",
     title: "Accessibility Statement",
-    version: "1.0.0-draft",
+    version: "1.0.0",
     publish: "public",
     requiresAcceptanceAtSignup: false,
     acceptanceBy: [],
@@ -78,7 +78,7 @@ export const LEGAL_DOCUMENTS: readonly LegalDocument[] = [
   {
     slug: "mobile-eula",
     title: "Mobile End User License Agreement",
-    version: "1.0.0-draft",
+    version: "1.0.0",
     publish: "public",
     requiresAcceptanceAtSignup: true,
     acceptanceBy: ["compass_user_at_first_sign_in"],
@@ -86,7 +86,7 @@ export const LEGAL_DOCUMENTS: readonly LegalDocument[] = [
   {
     slug: "copyright-dmca-policy",
     title: "Copyright and DMCA Policy",
-    version: "1.0.0-draft",
+    version: "1.0.0",
     publish: "public",
     requiresAcceptanceAtSignup: false,
     acceptanceBy: [],
@@ -94,7 +94,7 @@ export const LEGAL_DOCUMENTS: readonly LegalDocument[] = [
   {
     slug: "trademark-policy",
     title: "Trademark Policy",
-    version: "1.0.0-draft",
+    version: "1.0.0",
     publish: "public",
     requiresAcceptanceAtSignup: false,
     acceptanceBy: [],
@@ -102,7 +102,7 @@ export const LEGAL_DOCUMENTS: readonly LegalDocument[] = [
   {
     slug: "open-source-licenses",
     title: "Open Source Licenses",
-    version: "1.0.0-draft",
+    version: "1.0.0",
     publish: "public",
     requiresAcceptanceAtSignup: false,
     acceptanceBy: [],
@@ -110,7 +110,7 @@ export const LEGAL_DOCUMENTS: readonly LegalDocument[] = [
   {
     slug: "responsible-disclosure-policy",
     title: "Responsible Disclosure Policy",
-    version: "1.0.0-draft",
+    version: "1.0.0",
     publish: "public",
     requiresAcceptanceAtSignup: false,
     acceptanceBy: [],
@@ -118,7 +118,7 @@ export const LEGAL_DOCUMENTS: readonly LegalDocument[] = [
   {
     slug: "data-retention-and-deletion-policy",
     title: "Data Retention and Deletion Policy",
-    version: "1.0.0-draft",
+    version: "1.0.0",
     publish: "public",
     requiresAcceptanceAtSignup: false,
     acceptanceBy: [],
@@ -126,7 +126,7 @@ export const LEGAL_DOCUMENTS: readonly LegalDocument[] = [
   {
     slug: "ai-features-notice",
     title: "AI Features Notice",
-    version: "1.0.0-draft",
+    version: "1.0.0",
     publish: "public",
     requiresAcceptanceAtSignup: false,
     acceptanceBy: [],
@@ -134,7 +134,7 @@ export const LEGAL_DOCUMENTS: readonly LegalDocument[] = [
   {
     slug: "worker-terms",
     title: "Worker Terms",
-    version: "1.0.0-draft",
+    version: "1.0.0",
     publish: "public",
     requiresAcceptanceAtSignup: true,
     acceptanceBy: ["external_party_at_account_creation", "compass_user_at_first_sign_in"],
@@ -142,7 +142,7 @@ export const LEGAL_DOCUMENTS: readonly LegalDocument[] = [
   {
     slug: "account-deletion",
     title: "Delete Your Account",
-    version: "1.0.0-draft",
+    version: "1.0.0",
     publish: "public",
     requiresAcceptanceAtSignup: false,
     acceptanceBy: [],
@@ -150,7 +150,7 @@ export const LEGAL_DOCUMENTS: readonly LegalDocument[] = [
   {
     slug: "contact",
     title: "Legal Contact",
-    version: "1.0.0-draft",
+    version: "1.0.0",
     publish: "public",
     requiresAcceptanceAtSignup: false,
     acceptanceBy: [],
@@ -158,7 +158,7 @@ export const LEGAL_DOCUMENTS: readonly LegalDocument[] = [
   {
     slug: "consumer-health-data-privacy-policy",
     title: "Consumer Health Data Privacy Policy",
-    version: "1.0.0-draft",
+    version: "1.0.0",
     publish: "public",
     requiresAcceptanceAtSignup: false,
     acceptanceBy: [],
@@ -166,7 +166,7 @@ export const LEGAL_DOCUMENTS: readonly LegalDocument[] = [
   {
     slug: "text-message-terms",
     title: "Text Message Terms",
-    version: "1.0.0-draft",
+    version: "1.0.0",
     publish: "public",
     requiresAcceptanceAtSignup: false,
     acceptanceBy: [],
@@ -174,7 +174,7 @@ export const LEGAL_DOCUMENTS: readonly LegalDocument[] = [
   {
     slug: "dpia-template",
     title: "Data Protection Impact Assessment Template",
-    version: "1.0.0-draft",
+    version: "1.0.0",
     publish: "public",
     requiresAcceptanceAtSignup: false,
     acceptanceBy: [],
@@ -182,7 +182,7 @@ export const LEGAL_DOCUMENTS: readonly LegalDocument[] = [
   {
     slug: "acr-atlas",
     title: "Accessibility Conformance Report: Atlas",
-    version: "1.0.0-draft",
+    version: "1.0.0",
     publish: "public",
     requiresAcceptanceAtSignup: false,
     acceptanceBy: [],
@@ -190,7 +190,7 @@ export const LEGAL_DOCUMENTS: readonly LegalDocument[] = [
   {
     slug: "acr-compass",
     title: "Accessibility Conformance Report: Compass",
-    version: "1.0.0-draft",
+    version: "1.0.0",
     publish: "public",
     requiresAcceptanceAtSignup: false,
     acceptanceBy: [],
@@ -198,7 +198,7 @@ export const LEGAL_DOCUMENTS: readonly LegalDocument[] = [
   {
     slug: "acr-gateway",
     title: "Accessibility Conformance Report: Gateway",
-    version: "1.0.0-draft",
+    version: "1.0.0",
     publish: "public",
     requiresAcceptanceAtSignup: false,
     acceptanceBy: [],

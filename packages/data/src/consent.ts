@@ -22,7 +22,7 @@ import { fail, ok, toDataError, type Result } from "./result.ts";
 /** The consent cookie: version, random visitor id, preferences, performance and the GPC flag. */
 export const CONSENT_COOKIE = "xos-consent";
 /** Policy and banner version recorded with each decision (legal/index.yaml cookie-policy). */
-export const CONSENT_BANNER_VERSION = "cookie-policy 1.0.0-draft";
+export const CONSENT_BANNER_VERSION = "cookie-policy 1.0.0";
 /** How long the consent choice is remembered before the banner asks again. */
 export const CONSENT_MAX_AGE = 60 * 60 * 24 * 365;
 /** How long a Preferences cookie lasts once Preferences are allowed. */

@@ -1,15 +1,13 @@
 ---
 title: Acceptable Use Policy
-version: 1.0.0-draft
-effective_date: The date GHXSTSHIP states when it makes this version final
-status: Draft before launch
+version: 1.0.0
+effective_date: 2026-11-10
+status: In effect
 ---
 
 # Acceptable Use Policy
 
-> **Draft before launch.** This document is a draft. It is not in effect and no one may rely on it. Showing it at /legal does not put it in effect. It takes effect only on the effective date that GHXSTSHIP Industries LLC states at the top of a final version.
-
-This Acceptable Use Policy applies to everyone who uses XOS 4.0 (the "Service"): Customers, their Members, External Parties using Gateway, anyone using Compass, the public API, the SDKs, the CLI or the MCP servers, and anyone who reaches a page through a link or access code an organization issues. It forms part of the Terms of Service, the Worker Terms and the Mobile End User License Agreement. An organization's internal Members and people who use a link accept nothing from GHXSTSHIP when they are added or follow the link, so the organization that added them or issued the link passes these rules on to them and answers for their use of the Service. GHXSTSHIP Industries LLC ("GHXSTSHIP") may update this policy. No one is asked to accept an update. It applies to everyone from the date it states, after at least 30 days' notice in the Service if it is material, or sooner where the law or a security or abuse risk requires it. Anyone who does not agree to an update should stop using the Service, and a Customer can use the exit in Section 15 of the Terms of Service.
+This Acceptable Use Policy applies to everyone who uses XOS (the "Service"): Customers, their Members, External Parties using Gateway, anyone using Compass, the public API, the SDKs, the CLI or the MCP servers, and anyone who reaches a page through a link or access code an organization issues. It forms part of the Terms of Service, the Worker Terms and the Mobile End User License Agreement. An organization's internal Members and people who use a link accept nothing from GHXSTSHIP when they are added or follow the link, so the organization that added them or issued the link passes these rules on to them and answers for their use of the Service. GHXSTSHIP Industries LLC ("GHXSTSHIP") may update this policy. No one is asked to accept an update. It applies to everyone from the date it states, after at least 30 days' notice in the Service if it is material, or sooner where the law or a security or abuse risk requires it. Anyone who does not agree to an update should stop using the Service, and a Customer can use the exit in Section 15 of the Terms of Service.
 
 ## 1. Prohibited Content
 
