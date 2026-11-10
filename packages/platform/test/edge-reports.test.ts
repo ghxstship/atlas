@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { getMessages } from "@xos/i18n";
-import { reportDeliveryCopy, reportRunLabels } from "../edge/reports.ts";
+import { reportRunLabels } from "../edge/reports.ts";
 
-describe("report file and email copy (report-run)", () => {
+describe("report file copy (report-run)", () => {
   it("reads each locale's workflow and reporting namespaces on demand", async () => {
     const en = await reportRunLabels("en-US");
     const es = await reportRunLabels("es-US");
@@ -20,11 +20,5 @@ describe("report file and email copy (report-run)", () => {
     expect((await reportRunLabels("fr-FR")).unpriced).toBe(
       getMessages("en-US").reporting.file.unpriced,
     );
-    const copy = await reportDeliveryCopy("fr-FR");
-    const english = await reportDeliveryCopy("en-US");
-    expect(copy.subject({ report: "Spend", org: "Acme" })).toBe(
-      english.subject({ report: "Spend", org: "Acme" }),
-    );
-    expect(copy.subject({ report: "Spend", org: "Acme" })).toContain("Spend");
   });
 });

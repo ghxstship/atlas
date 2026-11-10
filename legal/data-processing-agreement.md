@@ -1,13 +1,11 @@
 ---
 title: Data Processing Agreement
-version: 1.0.0-draft
-effective_date: The date GHXSTSHIP states when it makes this version final
-status: Draft before launch
+version: 1.0.0
+effective_date: 2026-11-10
+status: In effect
 ---
 
 # Data Processing Agreement
-
-> **Draft before launch.** This document is a draft. It is not in effect and no one may rely on it. Showing it at /legal does not put it in effect. It takes effect only on the effective date that GHXSTSHIP Industries LLC states at the top of a final version.
 
 This Data Processing Agreement (the "DPA") forms part of the Terms of Service (the "Agreement") between GHXSTSHIP Industries LLC ("GHXSTSHIP" or "Processor") and the Customer named in the Agreement ("Customer" or "Controller"). The Customer's Owner accepts this DPA at signup by ticking the acceptance box. A partner can create client organizations only once GHXSTSHIP has turned that on for it, which is off by default. A partner that creates a client organization accepts this DPA for that client, as the client's agent, when it creates the organization. Under its own acceptance of this DPA, the partner warrants that it has the client's authority to do so, and it must have the client's Owner record the client's own acceptance in Settings, Legal, before any of the client's personal data enters the Service. This DPA applies whenever GHXSTSHIP processes Customer Personal Data in providing the Service, including for a client organization.
 

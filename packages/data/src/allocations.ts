@@ -1,7 +1,8 @@
 import { bulkUpdate, sameValueRows, type BulkOutcome } from "./bulk.ts";
 import type { Database, XosClient } from "./client.ts";
 import { credentialIssueCheck } from "./credentials.ts";
-import { Constants, type Json } from "./database.types.ts";
+import type { Json } from "./database.types.ts";
+import { allocationState } from "./enums.generated.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 import { untyped } from "./untyped.ts";
 
@@ -23,7 +24,7 @@ export type AllocationOrigin = Enums["allocation_origin"];
 export type AllocationServiceKind = Enums["allocation_service_kind"];
 export type OfferingKind = Enums["offering_kind"];
 
-export const ALLOCATION_STATES: readonly AllocationState[] = Constants.app.Enums.allocation_state;
+export const ALLOCATION_STATES: readonly AllocationState[] = allocationState;
 
 /** What an allocation gives, from its target (app.advance_allocation_status.kind). */
 export const ALLOCATION_KINDS = [

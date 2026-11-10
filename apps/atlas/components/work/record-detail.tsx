@@ -32,7 +32,6 @@ import {
 import { InlineAlert, PropertyList } from "./ui";
 import { getFormatter, getLocale } from "next-intl/server";
 import { SummaryEntryRow } from "@/components/aurora/entry/summary-entry";
-import { ActualsForm, DependencyEditor } from "@/components/schedule/schedule-panels";
 import { RecordRetimeOpen } from "@/components/schedule/record-retime-open";
 import type { OrgContext } from "@/lib/shell/context";
 import { rememberView } from "@/lib/shell/recents";
@@ -55,24 +54,26 @@ import { DraftEntry } from "@/components/aurora/entry/draft-entry";
 import { kindFields } from "./kind-fields";
 import { capabilitySet, loadRecordMeta, must, type RecordMeta } from "./load";
 import { loadConversation, loadRelations, type Conversation } from "./record-sections";
+import type { KindField } from "./record-panels";
 import {
+  ActualsForm,
+  ArchiveControls,
   AssignmentsEditor,
   ChecklistEditor,
+  DependencyEditor,
   DuplicateButton,
   EditRecordForm,
   ExtensionForm,
+  FileReviewControls,
+  RecordReview,
   RecurrenceForm,
-  TransitionControls,
   TrashControls,
   WatchButton,
-  type KindField,
-} from "./record-panels";
+} from "./record-peek-panels";
+import { TransitionControls } from "./record-transition";
 import { recordHistoryItems } from "./record-history-items";
 import { RelatedRecords, type RecordRelations } from "./related-records";
-import { ArchiveControls } from "@/components/archive/archive-controls";
 import { AnchorPin } from "@/components/schedule/anchor-pin";
-import { RecordReview } from "./record-review";
-import { FileReviewControls } from "@/components/files/file-review";
 import { listVersionReviews, type VersionReview } from "@xos/data/attachments";
 import { RecordPositionButton } from "./record-position-button";
 
@@ -663,15 +664,18 @@ export async function RecordBody({
         )}
       </RegionContent>
       <RegionContent data={detail.conversation}>
-        {(conversation) => (
-          <FileReviewControls
-            org={org}
-            attachments={conversation.attachments}
-            reviews={detail.fileReviews}
-            me={me}
-            canReview={detail.canWrite}
-          />
-        )}
+        {(conversation) =>
+          // Nothing to review without files, so a record without any never loads the controls.
+          conversation.attachments.length === 0 ? null : (
+            <FileReviewControls
+              org={org}
+              attachments={conversation.attachments}
+              reviews={detail.fileReviews}
+              me={me}
+              canReview={detail.canWrite}
+            />
+          )
+        }
       </RegionContent>
       {detail.canWrite ? <DuplicateButton org={org} recordId={record.id} /> : null}
       {record.deletedAt ? null : (

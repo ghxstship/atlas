@@ -93,7 +93,7 @@ test("a material change to the Worker Terms asks the worker to accept the new ve
         where u.email = $1 and a.document_slug = 'worker-terms' order by a.accepted_at`,
       [email],
     );
-    expect(accepted.map((a) => a.version)).toEqual(["1.0.0-draft", version]);
+    expect(accepted.map((a) => a.version)).toEqual(["1.0.0", version]);
     expect(accepted.every((a) => a.org === null)).toBe(true);
   } finally {
     await sql("select app.withdraw_legal_change('worker-terms', $1)", [version]);

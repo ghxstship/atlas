@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 import { loadPlanRegistry } from "@xos/schemas/plans";
 import {
   CatalogDriftError,
+  assertModeKey,
   assertTestModeKey,
+  describeKey,
   stripeCatalog,
   syncStripeCatalog,
   type StripeCatalogClient,
@@ -393,5 +395,22 @@ describe("test mode key", () => {
     expect(() => assertTestModeKey("")).toThrow(/not set/);
     expect(() => assertTestModeKey("sk_live_abcdefgh123")).toThrow(/not a Stripe test mode key/);
     expect(() => assertTestModeKey("pk_test_abcdefgh123")).toThrow(/not a Stripe test mode key/);
+  });
+
+  it("takes a live key only in live mode, and refuses a test key there", () => {
+    expect(assertModeKey("sk_live_abcdefgh123", "live")).toBe("sk_live_abcdefgh123");
+    expect(() => assertModeKey("sk_test_abcdefgh123", "live")).toThrow(
+      /not a Stripe live mode key/,
+    );
+    expect(() => assertModeKey("sk_live_abcdefgh123", "test")).toThrow(/unless you pass --live/);
+    expect(() => assertModeKey(undefined, "live")).toThrow(/sk_live_/);
+  });
+
+  it("says what a refused key looks like without its secret part", () => {
+    expect(describeKey("pk_live_abcdefgh123")).toBe(
+      "It starts pk_live_ (a publishable key: use the secret key, sk_), is 19 characters long.",
+    );
+    expect(describeKey("sk_live_abc def")).toMatch(/with spaces or line breaks/);
+    expect(() => assertModeKey("sk_test_abcdefgh123", "live")).toThrow(/It starts sk_test_/);
   });
 });

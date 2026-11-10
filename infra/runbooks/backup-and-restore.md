@@ -163,7 +163,7 @@ Once PITR is on, drill it each quarter and before the first production release. 
 1. Note the recovery target time `T`, then restore to a new project: Dashboard, Database, Backups, Point in time.
 2. In the SQL editor of the restored project, run `infra/drills/key-tables.sql`. It is read-only.
 3. Check the recovery point. The latest migration equals production's, and the newest `app.audit_events.created_at` in the restored project is at or just before `T`. For the append-only `app.audit_events`, the restored count plus production's `select count(*) from app.audit_events where created_at > 'T'` equals production's count now. Keep both outputs as the evidence.
-4. Run the pgTAP suites against the restored project: `supabase test db --db-url "<restored project's direct connection string>"`. The suites roll back their own writes.
+4. Run the pgTAP suites against the restored project: `supabase test db --yes --remote="<restored project's direct connection string>"`. The suites roll back their own writes.
 5. Record the target time, the restore duration and the newest audit event in the release checklist, then pause the restored project. Deleting it needs the owner (Section 19.8).
 
 ## Restoring production (incident)

@@ -1,15 +1,13 @@
 ---
 title: Consumer Health Data Privacy Policy
-version: 1.0.0-draft
-effective_date: The date GHXSTSHIP states when it makes this version final
-status: Draft before launch
+version: 1.0.0
+effective_date: 2026-11-10
+status: In effect
 ---
 
 # Consumer Health Data Privacy Policy
 
-> **Draft before launch.** This document is a draft. It is not in effect and no one may rely on it. Showing it at /legal does not put it in effect. It takes effect only on the effective date that GHXSTSHIP Industries LLC states at the top of a final version.
-
-This policy explains how GHXSTSHIP Industries LLC ("GHXSTSHIP", "we" or "us") handles health-related data in XOS 4.0. It has its own page so that the people it covers can find it directly. It adds to our Privacy Policy, which still applies, and it applies wherever you live.
+This policy explains how GHXSTSHIP Industries LLC ("GHXSTSHIP", "we" or "us") handles health-related data in XOS. It has its own page so that the people it covers can find it directly. It adds to our Privacy Policy, which still applies, and it applies wherever you live.
 
 ## 1. What This Policy Covers
 

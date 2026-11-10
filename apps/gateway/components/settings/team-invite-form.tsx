@@ -2,7 +2,7 @@
 
 import { Input, Select } from "@xos/ui";
 import { useActionState } from "react";
-import { FormShell, useCopy } from "@/components/engagement/forms";
+import { FormShell, useCopy } from "@/components/engagement/form-shell";
 import type { FormResult } from "@/lib/actions/operations";
 import { inviteAccountMemberAction } from "@/lib/actions/roster";
 

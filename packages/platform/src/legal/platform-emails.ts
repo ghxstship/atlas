@@ -1,12 +1,19 @@
 import { sendEmail, type EmailTransport, type MessageArgs, type Sender } from "@xos/email";
 import { isLocale, type Locale } from "@xos/i18n/locales";
-import type { PlatformDb } from "../stores.ts";
+import {
+  brandedSender,
+  readOrgEmailBrand,
+  type BrandedSenderParts,
+  type OrgEmailBrand,
+  type PlatformDb,
+} from "../stores.ts";
 
 /**
  * Emails the platform sends in its own name (Section 14.4, migration 1382): the double opt-in
  * confirmation for Subprocessor List change notices and the notices themselves, and invitations to an
  * external account or onto a crew roster (R4, migrations 2630 and 2636), which link to Gateway sign-in, the legal
- * queue's alerts (ADR 0167, migration 6862) and moderation outcomes the notification queue cannot reach (6863). The
+ * queue's alerts (ADR 0167, migration 6862) and moderation outcomes the notification queue cannot reach (6863). An
+ * invitation names its inviting org (904090003) and wears that org's email brand while white label is in force. The
  * subprocessor-notices Edge Function claims them from private.platform_emails, renders them through
  * @xos/email in the recipient's language, sends them through the configured transport (recording by
  * default, Resend in production) and records each outcome; the database then forgets any token.
@@ -29,6 +36,8 @@ export interface ClaimedPlatformEmail {
 
 export interface PlatformEmailStore {
   claim(limit: number): Promise<readonly ClaimedPlatformEmail[]>;
+  /** The inviting org's email brand while white label is in force, or null (app.email_brand_for_org). */
+  brandFor?(orgId: string): Promise<OrgEmailBrand | null>;
   finish(
     id: string,
     sent: boolean,
@@ -50,6 +59,8 @@ export interface PlatformEmailOptions {
   readonly postalAddress: string;
   /** Sender name shown in the footer. */
   readonly senderName: string;
+  /** Public base URL of the org-brand bucket, for a white-label org's logo on its invitation. */
+  readonly brandAssetUrl?: string | null;
 }
 
 export interface PlatformEmailSummary {
@@ -116,8 +127,22 @@ export async function dispatchPlatformEmails(
         typeof claim.args["unsubscribe_token"] === "string"
           ? claim.args["unsubscribe_token"]
           : null;
+      // An invitation from an org with white label in force goes out under its brand; everything else as XOS.
+      const orgId =
+        claim.template === "party_invitation" && typeof claim.args["org_id"] === "string"
+          ? claim.args["org_id"]
+          : null;
+      const brand = orgId !== null && store.brandFor ? await store.brandFor(orgId) : null;
+      const branded: BrandedSenderParts | null =
+        brand === null
+          ? null
+          : brandedSender(text(claim.args["org_name"]) || text(claim.args["account_name"]), brand, {
+              fromAddress: options.from,
+              brandAssetUrl: options.brandAssetUrl ?? null,
+            });
       const sender: Sender = {
-        orgName: options.senderName,
+        orgName: branded?.orgName ?? options.senderName,
+        ...(branded?.brand === undefined ? {} : { brand: branded.brand }),
         postalAddress: options.postalAddress,
         // Members manage the notice in Settings, Notifications; subscribers unsubscribe by link.
         preferencesUrl: options.appUrl,
@@ -129,7 +154,8 @@ export async function dispatchPlatformEmails(
         timeZone: "UTC",
         sender,
         recipientName: claim.to,
-        from: options.from,
+        from: branded?.from ?? options.from,
+        ...(branded?.replyTo === undefined ? {} : { replyTo: branded.replyTo }),
         to: claim.to,
         deliveryId: claim.id,
       };
@@ -177,9 +203,16 @@ export async function dispatchPlatformEmails(
                           ? "pool"
                           : "account",
                     inviterName: text(claim.args["inviter_name"]),
-                    orgName: text(claim.args["org_name"]),
+                    // While white label is in force the invitation names the brand, as its From and footer do.
+                    orgName:
+                      branded !== null && text(claim.args["org_name"])
+                        ? branded.orgName
+                        : text(claim.args["org_name"]),
                     jobTitle: text(claim.args["job_title"]),
-                    accountName: text(claim.args["account_name"]),
+                    accountName:
+                      branded !== null && text(claim.args["account_name"])
+                        ? branded.orgName
+                        : text(claim.args["account_name"]),
                     projectName: text(claim.args["project_name"]),
                     partyName: text(claim.args["party_name"]),
                     expiresAt: new Date(str(claim.args["expires_at"], "expires_at")),
@@ -237,6 +270,7 @@ export function platformEmailStore(db: PlatformDb): PlatformEmailStore {
         args: (r["args"] ?? {}) as Record<string, unknown>,
       }));
     },
+    brandFor: (orgId) => readOrgEmailBrand(db, orgId),
     async finish(id, sent, providerMessageId, error) {
       return String(
         await db.rpc("finish_platform_email", {

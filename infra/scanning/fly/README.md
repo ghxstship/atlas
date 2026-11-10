@@ -48,7 +48,7 @@ Until this runs and the function's secrets are set, uploads stay quarantined (fa
 4. **The Edge Function's secrets**, on staging first, then production:
 
    ```sh
-   supabase secrets set --project-ref <project-ref> \
+   supabase secrets set --remote=<project-ref> --yes \
      XOS_CLAMAV_HOST=xos-clamav.fly.dev XOS_CLAMAV_PORT=3311 \
      XOS_CLAMAV_TLS_CA="$(cat ~/xos-scanning-tls/ca.pem)" \
      XOS_CLAMAV_TLS_CERT="$(cat ~/xos-scanning-tls/client.pem)" \

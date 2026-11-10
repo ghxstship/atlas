@@ -8,7 +8,9 @@
   "exports": {
     ".": "./src/index.ts",
     "./billing": "./src/billing/index.ts",
-    "./webhooks": "./src/webhooks/dispatch.ts"
+    "./webhooks": "./src/webhooks/dispatch.ts",
+    "./jwt": "./src/jwt/project-token.ts",
+    "./report-email": "./edge/report-email.ts"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",

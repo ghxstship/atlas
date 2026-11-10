@@ -4,7 +4,6 @@ import {
   Board,
   Calendar,
   Card,
-  Chart,
   DataTable,
   EmptyState,
   Gallery,
@@ -27,6 +26,8 @@ import { useMemo, useState, type ReactNode } from "react";
 import { useCopy } from "./use-copy";
 import type { KitBoardColumn, KitChart, KitColumn, KitRow, KitTreeNode, ViewKind } from "./types";
 import { CollectionViews } from "@/components/views/collection-views";
+// The chart view loads only when someone picks it: a collection opens on its table (ADR 0027).
+import { Chart } from "@/components/lazy-ui/chart";
 import { useLiveRefresh } from "@/components/live/live-refresh";
 import type { BulkConfig } from "@/components/bulk/types";
 import { useBulk } from "@/components/bulk/use-bulk";

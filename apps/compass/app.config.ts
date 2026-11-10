@@ -199,8 +199,9 @@ export function releaseConfigProblems(env: Env, iconPresent = true): string[] {
   ]) {
     if (!isHttpsUrl(env[name])) problems.push(`${name} must be an https URL that is not local`);
   }
-  if (!env["EXPO_PUBLIC_SUPABASE_ANON_KEY"])
-    problems.push("EXPO_PUBLIC_SUPABASE_ANON_KEY is not set");
+  // The publishable key, never the legacy JWT-based anon key, which Supabase has turned off (ADR 0168).
+  if (!env["EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY"]?.startsWith("sb_publishable_"))
+    problems.push("EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY must be the project's sb_publishable_ key");
   if (!iconPresent)
     problems.push(`the app icon ${APP_ICON} (1024 x 1024 PNG, no transparency) is missing`);
   return problems.map((p) => `${p} (EAS environment "${profile}")`);

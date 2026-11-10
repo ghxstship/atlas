@@ -1,6 +1,11 @@
 import type { Database, XosClient } from "./client.ts";
 import { blankToNull, deletedNow, insertedId, readRows, touched } from "./commercial-common.ts";
-import { Constants } from "./database.types.ts";
+import {
+  coverageMedium,
+  coverageTone,
+  measurementSource,
+  objectiveDirection,
+} from "./enums.generated.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 
 /**
@@ -28,12 +33,10 @@ export type Outcome = "Met" | "Not Met" | "Incomplete" | "Unmeasured";
 /** The person's units (locale.units). */
 export type UnitPreference = "imperial" | "metric";
 
-export const MEASUREMENT_SOURCES: readonly MeasurementSource[] =
-  Constants.app.Enums.measurement_source;
-export const OBJECTIVE_DIRECTIONS: readonly ObjectiveDirection[] =
-  Constants.app.Enums.objective_direction;
-export const COVERAGE_MEDIUMS: readonly CoverageMedium[] = Constants.app.Enums.coverage_medium;
-export const COVERAGE_TONES: readonly CoverageTone[] = Constants.app.Enums.coverage_tone;
+export const MEASUREMENT_SOURCES: readonly MeasurementSource[] = measurementSource;
+export const OBJECTIVE_DIRECTIONS: readonly ObjectiveDirection[] = objectiveDirection;
+export const COVERAGE_MEDIUMS: readonly CoverageMedium[] = coverageMedium;
+export const COVERAGE_TONES: readonly CoverageTone[] = coverageTone;
 export const METRIC_FAMILIES: readonly MetricFamily[] = [
   "Sustainability",
   "Audience",

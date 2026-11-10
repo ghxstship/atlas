@@ -315,8 +315,8 @@ describe("the CI scripts", () => {
 });
 
 describe("the dependency policy", () => {
-  const renovate = JSON.parse(read("renovate.json")) as {
-    minimumReleaseAge: string;
+  const raw = read("renovate.json");
+  const renovate = JSON.parse(raw) as {
     lockFileMaintenance: { enabled: boolean };
     automerge: boolean;
     packageRules: Array<{
@@ -327,8 +327,9 @@ describe("the dependency policy", () => {
     }>;
   };
 
-  it("waits two weeks, and never moves an override or merges by itself", () => {
-    expect(renovate.minimumReleaseAge).toBe("14 days");
+  it("takes releases when they ship, and never moves an override or merges by itself", () => {
+    // The owner removed the two-week minimum on 2026-11-09 (ADR 0001): no package or action waits on its age.
+    expect(raw).not.toContain("minimumReleaseAge");
     expect(renovate.automerge).toBe(false);
     expect(renovate.lockFileMaintenance.enabled).toBe(false);
     const overrides = renovate.packageRules.find((rule) =>

@@ -35,6 +35,13 @@ name: field-clock-in-out
 # Every punch uploaded: nothing waits in the queue.
 - tapOn:
     id: "tab-more"
+# The field menu can be longer than the screen (an Android emulator): bring the row into view first.
+- scrollUntilVisible:
+    element:
+      id: "more-offline-queue"
+    direction: DOWN
+    centerElement: true
+    optional: true
 - tapOn:
     id: "more-offline-queue"
 - extendedWaitUntil:

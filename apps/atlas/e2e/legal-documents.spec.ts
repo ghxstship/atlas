@@ -22,19 +22,14 @@ test.describe("without JavaScript", () => {
       const h1 = page.getByRole("heading", { level: 1, name: title });
       await expect(h1).toBeVisible();
       await expect(page.getByRole("heading", { level: 2, name: section })).toBeVisible();
-      // The document's own draft notice stays in the text.
-      await expect(page.getByText("Draft before launch.")).toBeVisible();
-      const notice = page.getByText("Draft, not yet in effect", { exact: true });
-      await expect(notice).toBeVisible();
-      const [noticeBox, h1Box] = [await notice.boundingBox(), await h1.boundingBox()];
-      expect(noticeBox?.y).toBeLessThan(h1Box?.y ?? 0);
-      await expect(page.getByText("Version 1.0.0-draft of this document is a draft")).toBeVisible();
+      // In effect since 2026-11-10 (ADR 0168 sign-off): no draft notice, and the page states the version and its date.
+      await expect(page.getByText("Draft before launch.")).toHaveCount(0);
+      await expect(page.getByText("Draft, not yet in effect", { exact: true })).toHaveCount(0);
+      await expect(page.getByText(/^Version 1\.0\.0, in effect from /).first()).toBeVisible();
       // Terms of Service 15: every version, its effective date and a summary of changes.
       const history = page.getByRole("region", { name: "Version history" });
       await expect(history.getByRole("listitem")).toHaveCount(1);
-      await expect(
-        history.getByText("Version 1.0.0-draft: draft, not yet in effect"),
-      ).toBeVisible();
+      await expect(history.getByText(/^Version 1\.0\.0: in effect from /)).toBeVisible();
       await expect(history.getByText("First version.")).toHaveAttribute("lang", "en-US");
       await expect(h1.locator("xpath=ancestor::*[@lang='en-US'][1]")).toHaveCount(1);
     });
@@ -107,12 +102,12 @@ test("Spanish labels the page in Spanish and says the text is in English", async
   await context.addCookies([{ name: "xos-locale", value: "es-US", url: baseURL ?? "" }]);
   await page.goto("/legal/privacy-policy");
   await expect(page.locator("html")).toHaveAttribute("lang", "es-US");
-  await expect(page.getByText("Borrador, aún no vigente", { exact: true })).toBeVisible();
+  await expect(page.getByText(/^Versión 1\.0\.0, vigente desde el /).first()).toBeVisible();
   await expect(page.getByText("Este documento se publica solo en inglés.")).toBeVisible();
   await expect(
     page
       .getByRole("region", { name: "Historial de versiones" })
-      .getByText("Versión 1.0.0-draft: borrador, aún no vigente"),
+      .getByText(/^Versión 1\.0\.0: vigente desde el /),
   ).toBeVisible();
   await expect(page.getByRole("heading", { level: 1, name: "Privacy Policy" })).toBeVisible();
 });

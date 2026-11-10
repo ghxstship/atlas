@@ -639,24 +639,9 @@ function supabaseCommunicationSource(db) {
     },
   };
 }
-function base64url(bytes) {
-  let binary = "";
-  for (const byte of bytes) binary += String.fromCharCode(byte);
-  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-}
-var encode = (value) => base64url(new TextEncoder().encode(JSON.stringify(value)));
-/** An HS256 JWT acting as `userId` for CHAT_SESSION_SECONDS, marked as a chat session in `amr`. */
-async function mintChatSession(
-  userId,
-  signingKey,
-  issuer,
-  nowSeconds = Math.floor(Date.now() / 1e3),
-) {
-  if (signingKey.length < 32) throw new Error("The JWT signing key is too short.");
-  const head = `${encode({
-    alg: "HS256",
-    typ: "JWT",
-  })}.${encode({
+/** A JWT acting as `userId` for CHAT_SESSION_SECONDS, marked as a chat session in `amr`. */
+function mintChatSession(userId, sign, issuer, nowSeconds = Math.floor(Date.now() / 1e3)) {
+  return sign({
     iss: issuer,
     sub: userId,
     aud: "authenticated",
@@ -670,19 +655,7 @@ async function mintChatSession(
         timestamp: nowSeconds,
       },
     ],
-  })}`;
-  const key = await crypto.subtle.importKey(
-    "raw",
-    new TextEncoder().encode(signingKey),
-    {
-      name: "HMAC",
-      hash: "SHA-256",
-    },
-    false,
-    ["sign"],
-  );
-  const signature = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(head));
-  return `${head}.${base64url(new Uint8Array(signature))}`;
+  });
 }
 //#endregion
 export {

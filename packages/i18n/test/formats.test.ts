@@ -227,3 +227,22 @@ describe("the region of a locale on an engine without Intl.Locale (Hermes, A93)"
     }
   });
 });
+
+describe("unit labels where Intl cannot format units (Hermes, in Compass)", () => {
+  it("fall back to the international symbol instead of throwing", async () => {
+    const { unitSymbol, formatUnit } = await import("../src/formats/units.ts");
+    const real = Intl.NumberFormat;
+    const noUnits = function (locale?: string | string[], options?: Intl.NumberFormatOptions) {
+      if (options?.style === "unit") throw new RangeError("unit style is not supported");
+      return new real(locale, options);
+    } as unknown as typeof Intl.NumberFormat;
+    Intl.NumberFormat = noUnits;
+    try {
+      expect(unitSymbol("en-US", "kilometer-per-hour")).toBe("km/h");
+      expect(unitSymbol("en-US", "fahrenheit")).toBe("°F");
+      expect(formatUnit("en-GB", 12.34, "mile-per-hour")).toBe("12.3 mph");
+    } finally {
+      Intl.NumberFormat = real;
+    }
+  });
+});

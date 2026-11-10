@@ -5,6 +5,7 @@ import {
   dispatchEmail,
   isPlatformEmailKind,
   mailbox,
+  mailboxAddress,
   notificationStore,
   type ClaimedEmail,
   type NotificationStore,
@@ -109,6 +110,12 @@ describe("senderFor", () => {
       "organization.white_label_reverting",
       "organization.deletion_requested",
       "organization.deletion_recovered",
+      // XOS's moderation and rating dispute decisions name the platform, never the org (1590, ADR 0158).
+      "listing.moderated",
+      "listing_report.decided",
+      "moderation_appeal.decided",
+      "rating_dispute.filed",
+      "rating_dispute.decided",
     ]) {
       const { fake, rpcs } = db([northwind]);
       const sender = await notificationStore(fake, options).senderFor(ORG, "p1", kind);
@@ -120,6 +127,28 @@ describe("senderFor", () => {
     expect(isPlatformEmailKind("approval.requested")).toBe(false);
     expect(isPlatformEmailKind("organization.ownership_offered")).toBe(false);
     expect(isPlatformEmailKind("access.break_glass_started")).toBe(false);
+    // A report of a post reaches the org's own moderators: the org's notice, under its brand.
+    expect(isPlatformEmailKind("content_report.filed")).toBe(false);
+  });
+
+  it("reads a mailbox's address in linear time, whatever the input", () => {
+    expect(mailboxAddress("XOS <notifications@mail.xos.test>")).toBe("notifications@mail.xos.test");
+    expect(mailboxAddress(" notifications@mail.xos.test ")).toBe("notifications@mail.xos.test");
+    expect(mailboxAddress("<>")).toBe("<>");
+    const hostile = "<".repeat(100_000);
+    const started = performance.now();
+    expect(mailboxAddress(hostile)).toBe(hostile);
+    expect(performance.now() - started).toBeLessThan(200);
+  });
+
+  it("hides Delivered by XOS only for an org that hides Powered by XOS", async () => {
+    const hidden = await notificationStore(
+      db([{ ...northwind, suppress_powered_by: true }]).fake,
+      options,
+    ).senderFor(ORG, "p1");
+    expect(hidden.brand?.suppressPoweredBy).toBe(true);
+    const shown = await notificationStore(db([northwind]).fake, options).senderFor(ORG, "p1");
+    expect(shown.brand?.suppressPoweredBy).toBeUndefined();
   });
 
   it("quotes a sender name RFC 5322 reserves characters in, and drops control characters", async () => {

@@ -31,17 +31,17 @@ export interface GatewayLegalDocument {
  * Only the first is accepted here; the Terms of Service are accepted by an org's owner on Atlas.
  */
 export const GATEWAY_LEGAL_DOCUMENTS: readonly GatewayLegalDocument[] = [
-  { slug: "worker-terms", title: "Worker Terms", version: "1.0.0-draft", accept: true },
-  { slug: "privacy-policy", title: "Privacy Policy", version: "1.0.0-draft", accept: false },
-  { slug: "cookie-policy", title: "Cookie Policy", version: "1.0.0-draft", accept: false },
-  { slug: "terms-of-service", title: "Terms of Service", version: "1.0.0-draft", accept: false },
+  { slug: "worker-terms", title: "Worker Terms", version: "1.0.0", accept: true },
+  { slug: "privacy-policy", title: "Privacy Policy", version: "1.0.0", accept: false },
+  { slug: "cookie-policy", title: "Cookie Policy", version: "1.0.0", accept: false },
+  { slug: "terms-of-service", title: "Terms of Service", version: "1.0.0", accept: false },
   {
     slug: "consumer-health-data-privacy-policy",
     title: "Consumer Health Data Privacy Policy",
-    version: "1.0.0-draft",
+    version: "1.0.0",
     accept: false,
   },
-  { slug: "contact", title: "Legal Contact", version: "1.0.0-draft", accept: false },
+  { slug: "contact", title: "Legal Contact", version: "1.0.0", accept: false },
 ];
 
 export { ACCOUNT_DELETION_PATH, skipsTermsStep } from "@/lib/auth/deletion-path";

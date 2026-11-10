@@ -21,7 +21,7 @@ Section 5 fixes the stack and requires every dependency pinned to the latest sta
 | ESLint       | 10.12.0, with `@eslint/js` 10.0.1 and `typescript-eslint` 8.71.1 |                                                                               |
 | Prettier     | 3.9.9                                                            |                                                                               |
 | Vitest       | 5.0.3, with Vite 8.3.3 and `@vitest/coverage-v8` 5.0.3           |                                                                               |
-| Supabase CLI | 2.120.0 in CI                                                    | Local hosts may run older 2.x                                                 |
+| Supabase CLI | 3.1.0 in CI and locally (ADR 0168, D7)                           | `[local_smtp]`, `--remote`, `--yes`                                           |
 | Postgres     | 17 (Supabase)                                                    | No native `uuidv7()`; see ADR 0002                                            |
 
 ### Runtime libraries (pinned now, installed by the owning wave)
@@ -268,3 +268,16 @@ node-forge 1.4.1, glob 14.0.2 and minimatch 11.0.1 become two weeks old on 2026-
 | Build and test tooling                 | `fast-uri` (override)                             | 3.1.9   |
 | Compass build tooling (`@expo/cli`)    | `zod` (override)                                  | 4.6.6   |
 | Compass (expo-router's `query-string`) | `decode-uri-component` (override, with one patch) | 0.5.1   |
+
+## Amendment (2026-11-09): no minimum release age
+
+The owner removed the two-week minimum: "technology moves too fast for that". A release can be taken when it ships, for packages and GitHub Actions alike. Renovate no longer waits (`minimumReleaseAge` is gone from `renovate.json`, and `infra/security/test/repo-controls.test.ts` fails if it returns). A young release no longer needs a security exception. Everything else in the policy stands: exact pins, a weekly batch, overrides changed only by a person with the reason beside them, the audit, license and pin checks, and the holds above.
+
+That unblocks the overrides the 2026-11-09 amendment left waiting.
+
+- node-forge 1.4.3 replaces 1.4.0 under `@expo/cli` 57.0.30 (`^1.3.3`). It is a patch release in the same major and closes the twelve node-forge advisories the audit allowlist accepted. Their entries are removed.
+- glob 14.0.2 and minimatch 11.0.1 stay accepted until 2026-11-17. The paths that need them hold older majors: `@sentry/bundler-plugins` 11.5.0 takes glob 13.0.6, and archiver-utils takes glob 7.2.3, whose minimatch is 3.1.5, so an override is a major-version change under a package that did not ask for it. Each needs its own compatibility check, not a waiting period.
+
+| Area                                | Package                 | Version |
+| ----------------------------------- | ----------------------- | ------- |
+| Compass build tooling (`@expo/cli`) | `node-forge` (override) | 1.4.3   |

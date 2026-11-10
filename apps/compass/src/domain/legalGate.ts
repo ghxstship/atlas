@@ -20,8 +20,8 @@ export interface GateDocument {
  * The documents the gate asks for. legal/index.yaml marks the Mobile EULA compass_user_at_first_sign_in and the Worker
  * Terms external_party_at_account_creation; test/legal-gate.test.ts fails when these versions drift from it.
  */
-export const MOBILE_EULA: GateDocument = { slug: "mobile-eula", version: "1.0.0-draft" };
-export const WORKER_TERMS: GateDocument = { slug: "worker-terms", version: "1.0.0-draft" };
+export const MOBILE_EULA: GateDocument = { slug: "mobile-eula", version: "1.0.0" };
+export const WORKER_TERMS: GateDocument = { slug: "worker-terms", version: "1.0.0" };
 
 /** What this person still owes. */
 export interface LegalNeeds {

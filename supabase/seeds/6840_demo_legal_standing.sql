@@ -11,7 +11,7 @@ begin
     and not exists (select 1 from app.service_accounts s where s.person_id = p.id)
   on conflict (person_id, minimum_age) do nothing;
   insert into app.legal_acceptances (org_id, person_id, user_id, document_slug, document_version)
-  select null, p.id, p.user_id, d.slug, '1.0.0-draft'
+  select null, p.id, p.user_id, d.slug, '1.0.0'
   from app.people p cross join (values ('mobile-eula'), ('worker-terms')) as d (slug)
   where p.user_id is not null and p.deleted_at is null
     and not exists (select 1 from app.service_accounts s where s.person_id = p.id)

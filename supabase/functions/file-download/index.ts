@@ -12,7 +12,7 @@
 // unused. Unset, no such copy is handed over at all. The X-XOS-Watermark header tells the web shell whether the copy
 // must carry the mark, by the file's classification at this moment.
 import { createClient } from "@supabase/supabase-js";
-import { env, hasBearer, json, serve } from "../_shared/runtime.ts";
+import { hasBearer, json, env, secretKey, serve } from "../_shared/runtime.ts";
 
 const TICKET = /^xdlt_[0-9a-f]{64}$/;
 /** A shorter value is treated as unset, so a sample or truncated value never opens the handover. */
@@ -38,7 +38,7 @@ serve(async (request) => {
   const handover = Deno.env.get("XOS_FILE_HANDOVER_SECRET") ?? "";
   const watermarks = handover.length >= HANDOVER_MIN_LENGTH && hasBearer(request, handover);
 
-  const client = createClient(env("SUPABASE_URL"), env("SUPABASE_SERVICE_ROLE_KEY"), {
+  const client = createClient(env("SUPABASE_URL"), secretKey(), {
     auth: { persistSession: false, autoRefreshToken: false },
   });
   const { data, error } = await client

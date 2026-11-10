@@ -1,15 +1,13 @@
 ---
 title: Open Source Licenses
-version: 1.0.0-draft
-effective_date: The date GHXSTSHIP states when it makes this version final
-status: Draft before launch
+version: 1.0.0
+effective_date: 2026-11-10
+status: In effect
 ---
 
 # Open Source Licenses
 
-> **Draft before launch.** This document is a draft. It is not in effect and no one may rely on it. Showing it at /legal does not put it in effect. It takes effect only on the effective date that GHXSTSHIP Industries LLC states at the top of a final version.
-
-XOS 4.0 is open source. This page explains the licenses on our own code and data, how to get the source of the hosted service and of Compass, and where to find the licenses of the third-party components in each release. Using the hosted service is governed by our terms. These licenses govern the code and data, and each has its own warranty disclaimer.
+XOS is open source. This page explains the licenses on our own code and data, how to get the source of the hosted service and of Compass, and where to find the licenses of the third-party components in each release. Using the hosted service is governed by our terms. These licenses govern the code and data, and each has its own warranty disclaimer.
 
 ## 1. Our Licenses
 

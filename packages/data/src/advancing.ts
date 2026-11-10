@@ -1,5 +1,5 @@
 import type { XosClient } from "./client.ts";
-import { Constants } from "./database.types.ts";
+import { advanceTrack } from "./enums.generated.ts";
 import type { Database } from "./database.types.ts";
 import { fail, ok, toDataError, type DataError, type Result } from "./result.ts";
 import * as enums from "./enums.generated.ts";
@@ -316,7 +316,7 @@ export const ADVANCE_WINDOW_KINDS = enums.advanceWindowKind;
 export type AdvanceWindowKind = (typeof ADVANCE_WINDOW_KINDS)[number];
 
 /** The track a section is grouped under (app.advance_track, R11 migration 6223). */
-export const ADVANCE_TRACKS = Constants.app.Enums.advance_track;
+export const ADVANCE_TRACKS = advanceTrack;
 export type AdvanceTrack = (typeof ADVANCE_TRACKS)[number];
 
 function isTrack(value: unknown): value is AdvanceTrack {

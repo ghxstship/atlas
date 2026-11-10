@@ -3,7 +3,7 @@
 // each feed app.due_weather_feeds names, it reads the National Weather Service (nws.ts) and records the poll with
 // app.record_weather_feed, or the failure with app.record_weather_feed_failure, so the Weather page can say the feed is
 // stale. It uses only the shared core (the PostgREST seam) and fetch, so it loads no npm package at boot (A85).
-import { env, hasBearer, json, serve, serviceDb } from "../_shared/runtime.ts";
+import { env, isServiceRequest, json, serve, serviceDb } from "../_shared/runtime.ts";
 import type { DueFeed, WeatherFeedStore } from "./nws.ts";
 
 function store(): WeatherFeedStore {
@@ -20,7 +20,7 @@ function store(): WeatherFeedStore {
 }
 
 serve(async (request) => {
-  if (!hasBearer(request, env("SUPABASE_SERVICE_ROLE_KEY"))) {
+  if (!isServiceRequest(request)) {
     return json(401, { type: "/problems/unauthorized", title: "Unauthorized", status: 401 });
   }
   const { runNwsFeed } = await import("./nws.ts");

@@ -39,16 +39,28 @@ function launch(variable: string) {
   return executablePath ? { launchOptions: { executablePath } } : {};
 }
 
+/**
+ * The app registers its service worker once the page is idle (@xos/ui/pwa). Playwright's WebKit reloads the page when
+ * any service worker registers, even an empty one, and the reloaded page then stops answering: every WebKit journey
+ * timed out or lost its page (nightly run 42831440876; reproduced locally with webkit-2370). Firefox and WebKit run
+ * with service workers blocked; Chromium keeps them, and a96-first-run.spec.ts exercises the worker there.
+ */
+const noServiceWorker = { serviceWorkers: "block" } as const;
+
 /** Safari on iOS and iPadOS, run with the WebKit engine. */
 const webkitMobile: Project[] = [
   {
     name: "ios-safari",
-    use: { ...devices["iPhone 17"], ...launch("PLAYWRIGHT_WEBKIT_EXECUTABLE") },
+    use: { ...devices["iPhone 17"], ...noServiceWorker, ...launch("PLAYWRIGHT_WEBKIT_EXECUTABLE") },
     testMatch: /mobile\.spec\.ts/,
   },
   {
     name: "ipados-safari",
-    use: { ...devices["iPad Pro 11"], ...launch("PLAYWRIGHT_WEBKIT_EXECUTABLE") },
+    use: {
+      ...devices["iPad Pro 11"],
+      ...noServiceWorker,
+      ...launch("PLAYWRIGHT_WEBKIT_EXECUTABLE"),
+    },
     testMatch: /tablet\.spec\.ts/,
   },
 ];
@@ -60,11 +72,19 @@ const desktop: Project[] = [
   },
   {
     name: "firefox",
-    use: { ...devices["Desktop Firefox"], ...launch("PLAYWRIGHT_FIREFOX_EXECUTABLE") },
+    use: {
+      ...devices["Desktop Firefox"],
+      ...noServiceWorker,
+      ...launch("PLAYWRIGHT_FIREFOX_EXECUTABLE"),
+    },
   },
   {
     name: "webkit",
-    use: { ...devices["Desktop Safari"], ...launch("PLAYWRIGHT_WEBKIT_EXECUTABLE") },
+    use: {
+      ...devices["Desktop Safari"],
+      ...noServiceWorker,
+      ...launch("PLAYWRIGHT_WEBKIT_EXECUTABLE"),
+    },
   },
 ];
 

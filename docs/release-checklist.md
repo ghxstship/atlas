@@ -141,7 +141,7 @@ The owner chose on 2026-11-01 to release 4.1 from batch-c at once and to follow 
 | Packages                 | Ready  | `@ghxstship/xos-sdk`, `@ghxstship/xos-cli` and `xos-sdk` say 4.1.0; the tag starts `publish-packages.yml`, which waits for the owner's approval and the first-publish steps (RRR-214)                                                                                                     |
 | Compass                  | OWNER  | Compass ships on its own cadence (TestFlight and the app icon are owner steps)                                                                                                                                                                                                            |
 
-Follow-ups: the fast-uri, node-forge, glob and minimatch overrides once their releases are two weeks old (RRR-242: fast-uri from 2026-11-03, the others from 2026-11-10); the nightly run on main (Lighthouse budgets, Compass Maestro on iOS, and the Firefox and WebKit journeys); the runbook's `synthetics.yml` is not in the repository.
+Follow-ups: the glob and minimatch fixes, each a major-version change under its parent (RRR-242; fast-uri and node-forge are taken, and the two-week minimum is gone, ADR 0001, 2026-11-09); the nightly run on main (Lighthouse budgets, Compass Maestro on iOS, and the Firefox and WebKit journeys); the runbook's `synthetics.yml` is not in the repository.
 
 ## Section 20.3: release criteria
 

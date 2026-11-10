@@ -45,6 +45,9 @@ const rows = [
   { code: "5000.03", name: "Delay Towers", qty: 4, rate: 0, state: "bad", notes: "Ground" },
 ];
 
+/** How long a test waits for a lazily loaded engine (TanStack Virtual, the resize engine) to import the first time. */
+const ENGINE_LOAD = 10_000;
+
 describe("DataTable", () => {
   it("becomes stacked cards with three fields below md, a name as the title (A59-013)", async () => {
     const matchMedia = vi.spyOn(window, "matchMedia").mockImplementation(
@@ -146,7 +149,10 @@ describe("DataTable", () => {
     const handle = screen.getByRole("separator", { name: /Code/ });
     // The press arrives before the engine has loaded; the drag starts from it once it is ready.
     fireEvent.mouseDown(handle, { clientX: 100 });
-    await waitFor(() => expect(handle.className.split(" ")).toContain("bg-accent"));
+    // The engine's first import can take more than waitFor's 1 s default on a busy CI runner (PR #88).
+    await waitFor(() => expect(handle.className.split(" ")).toContain("bg-accent"), {
+      timeout: ENGINE_LOAD,
+    });
     fireEvent.mouseMove(document, { clientX: 140 });
     fireEvent.mouseUp(document, { clientX: 140 });
     await waitFor(() => expect(handle.getAttribute("aria-valuenow")).toBe("168"));
@@ -205,7 +211,7 @@ describe("DataTable", () => {
     region.scrollTop = 3600;
     fireEvent.scroll(region);
     // Row 100 starts at 3,600 px: the engine reads where the region is once it has loaded.
-    await waitFor(() => expect(shown()).toContain(102));
+    await waitFor(() => expect(shown()).toContain(102), { timeout: ENGINE_LOAD });
     expect(shown()).not.toContain(2);
     oh.mockRestore();
     ow.mockRestore();
@@ -225,8 +231,10 @@ describe("DataTable", () => {
     }) as typeof region.scrollTo;
     act(() => screen.getAllByRole("gridcell")[0]?.focus());
     await userEvent.keyboard("{Control>}{End}{/Control}");
-    await waitFor(() =>
-      expect(document.activeElement?.closest("tr")?.getAttribute("aria-rowindex")).toBe("501"),
+    await waitFor(
+      () =>
+        expect(document.activeElement?.closest("tr")?.getAttribute("aria-rowindex")).toBe("501"),
+      { timeout: ENGINE_LOAD },
     );
     oh.mockRestore();
     ow.mockRestore();

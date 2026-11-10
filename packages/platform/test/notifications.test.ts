@@ -491,7 +491,7 @@ function smsFakeStore(claims: ClaimedSms[]) {
       locale: id === "p2" ? "es-US" : "en-US",
       timeZone: "America/New_York",
     }),
-    orgName: async () => "Northwind Live",
+    senderName: async () => "Northwind Live",
     linkFor: async () => "https://atlas.xos.test/northwind-live/inbox",
     record: async (...args) => {
       records.push(args);
@@ -1151,13 +1151,16 @@ describe("stores over the 1361 and 1363 RPCs", () => {
         record_notification_delivery: () => null,
         record_sms_keyword: () => 2,
         record_sms_status: () => true,
+        email_brand_for_org: () => [],
       },
       { organizations: [{ id: "org-1", slug: "northwind-live", name: "Northwind Live" }] },
     );
     const store = smsStore(db, { appUrl: "https://atlas.xos.test/" });
     const [claimed] = await store.claimSms(5);
     if (claimed === undefined) throw new Error("claim expected");
-    await expect(store.orgName("org-1")).resolves.toBe("Northwind Live");
+    await expect(store.senderName("org-1", "shift.changed")).resolves.toBe("Northwind Live");
+    // XOS's own notices name XOS, never the org (A138).
+    await expect(store.senderName("org-1", "account.security_changed")).resolves.toBe("XOS");
     await expect(store.linkFor(claimed)).resolves.toBe(
       "https://atlas.xos.test/northwind-live/inbox",
     );
@@ -1190,6 +1193,27 @@ describe("stores over the 1361 and 1363 RPCs", () => {
     );
     await expect(odd.recordKeyword("+1", "Help", "HELP")).resolves.toBe(0);
     await expect(odd.recordStatus("SM-2", "sent", null)).resolves.toBe(false);
+  });
+
+  it("an SMS names the org's brand while white label is in force", async () => {
+    const { db } = fakeDb(
+      {
+        email_brand_for_org: () => [
+          {
+            brand_name: "Northwind Presents",
+            sender_name: null,
+            reply_to: null,
+            logo_path: null,
+            accent_hex: null,
+            suppress_powered_by: false,
+          },
+        ],
+      },
+      { organizations: [{ id: "org-1", slug: "northwind-live", name: "Northwind Live" }] },
+    );
+    const store = smsStore(db, { appUrl: "https://atlas.xos.test" });
+    await expect(store.senderName("org-1", "shift.changed")).resolves.toBe("Northwind Presents");
+    await expect(store.senderName("org-1", "billing.payment_failed")).resolves.toBe("XOS");
   });
 
   it("translation store reads the message, the setting and the cache, and saves through the RPC", async () => {
@@ -1259,7 +1283,7 @@ describe("texts held by quiet hours go out as one summary", () => {
         locale: id === "p2" ? "es-US" : "en-US",
         timeZone: "UTC",
       }),
-      orgName: async () => "Northwind Live",
+      senderName: async () => "Northwind Live",
       inboxLink: async () => "https://atlas.xos.test/northwind-live/inbox",
       recordSummary: async (...args) => {
         records.push(args);

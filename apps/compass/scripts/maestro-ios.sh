@@ -5,14 +5,14 @@
 # its own kiosk and PIN (.maestro/scripts/kiosk-device.js) unless KIOSK_DEVICE_KEY is set.
 #
 # Needs a freshly reset local stack with the demo seed, a Compass build against it installed on the
-# simulator, and in the environment: SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_PROJECT_ID (the stack's
+# simulator, and in the environment: SUPABASE_URL, SUPABASE_ANON_KEY, XOS_SUPABASE_STACK (the stack's
 # project_id), XOS_DEMO_PASSWORD (from supabase/seeds/0010_demo_identity.sql) and UDID. Extra arguments
 # go to maestro test (for example a single flow file instead of the folder). Maestro drives every iOS
 # simulator through host port 7001; when another run may be going on this Mac, set MAESTRO_DRIVER_PORT
 # to a free port so the two never send each other's taps.
 set -eu
 cd "$(dirname "$0")/.."
-: "${SUPABASE_URL:?}" "${SUPABASE_ANON_KEY:?}" "${SUPABASE_PROJECT_ID:?}" "${XOS_DEMO_PASSWORD:?}" "${UDID:?}"
+: "${SUPABASE_URL:?}" "${SUPABASE_ANON_KEY:?}" "${XOS_SUPABASE_STACK:?}" "${XOS_DEMO_PASSWORD:?}" "${UDID:?}"
 APP=pro.ghxstship.compass
 for service in location-always camera microphone photos; do
   xcrun simctl privacy "$UDID" grant "$service" "$APP"

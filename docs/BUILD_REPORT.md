@@ -39,7 +39,7 @@ From ADR 0001 (pinned; see the ADR for deviations).
 | TypeScript        | 6.0.3                       |
 | Vitest            | 5.0.3                       |
 | Playwright        | 1.64.0                      |
-| Supabase CLI (CI) | 2.120.0                     |
+| Supabase CLI (CI) | 3.1.0                       |
 | Postgres          | 17                          |
 | Next.js           | 16.4.2                      |
 | React             | 19.3.0                      |

@@ -1,5 +1,5 @@
 import type { Database, XosClient } from "./client.ts";
-import { Constants } from "./database.types.ts";
+import { projectRole, projectState, scopeKind } from "./enums.generated.ts";
 import { rangeOrNull, type InstantRange } from "./ranges.ts";
 import type { DocumentRequirement, EventAudience, EventScale, SetupItem } from "./setup.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
@@ -868,13 +868,13 @@ export async function listProjectMembers(
 }
 
 /** Project roles in enum order, from the generated database constants. */
-export const PROJECT_ROLE_ORDER: readonly ProjectRole[] = Constants.app.Enums.project_role;
+export const PROJECT_ROLE_ORDER: readonly ProjectRole[] = projectRole;
 
 /** Scope node kinds in enum order. */
-export const SCOPE_KINDS: readonly ScopeKind[] = Constants.app.Enums.scope_kind;
+export const SCOPE_KINDS: readonly ScopeKind[] = scopeKind;
 
 /** Project states in enum order. */
-export const PROJECT_STATES: readonly ProjectState[] = Constants.app.Enums.project_state;
+export const PROJECT_STATES: readonly ProjectState[] = projectState;
 
 /** Adds an org member to the project (projects.members.manage); nobody can add themselves. */
 export async function addProjectMember(

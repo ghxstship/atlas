@@ -1,5 +1,5 @@
 import type { Database, XosClient } from "./client.ts";
-import { Constants } from "./database.types.ts";
+import { displayMode } from "./enums.generated.ts";
 import type { DatabaseErrorLike } from "./result.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 import { cueProgress } from "./show.ts";
@@ -26,7 +26,7 @@ export const LIVE_GRANT = /^xlgr_[0-9a-f]{64}$/;
 
 export type LiveLinkKind = Database["app"]["Enums"]["live_link_kind"];
 
-export const DISPLAY_MODES = Constants.app.Enums.display_mode;
+export const DISPLAY_MODES = displayMode;
 export type DisplayMode = (typeof DISPLAY_MODES)[number];
 
 export function isDisplayMode(value: unknown): value is DisplayMode {

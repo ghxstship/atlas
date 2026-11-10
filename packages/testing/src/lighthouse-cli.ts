@@ -5,7 +5,9 @@ import { fileURLToPath } from "node:url";
 import {
   lighthouseRc,
   lighthouseTargets,
+  medianScore,
   scorePage,
+  timingOnlyMiss,
   SESSION_COOKIES_ENV,
   sessionCookies,
   type LighthouseApp,
@@ -26,14 +28,18 @@ import { signIn } from "./session.ts";
  * redirects is visited at its landing path (lighthouse-landing.ts). Each batch writes its reports
  * under node_modules/.cache/lighthouse/<app>/<run>[-<n>]/ and each app a summary.json (kept out of
  * formatting and the finish guard). Signed-in runs get the person's session in the browser's cookie
- * jar before each page (src/lighthouse-session.cjs). The run fails when lhci does, and when any page
- * is over a budget or ended on another URL than it asked for. The Realtime client's chunks, found in
+ * jar before each page (src/lighthouse-session.cjs). The run fails when any page is over a budget (the same budgets
+ * lhci asserts) or ended on another URL than it asked for, and when lhci fails without a report for every page. A page
+ * that missed only on the lab timings (LCP, CLS, Total Blocking Time) is measured twice more under the same person and
+ * held to the median of its three runs: one run on a shared CI runner is noisy. The Realtime client's chunks, found in
  * the app's build (realtime-chunk.ts), are not part of a page's script budget: they answer to their
  * own 20 KB on the page's line (ADR 0027, owner decision of 2026-11-06). Environment:
  * - SUPABASE_URL and SUPABASE_ANON_KEY: the local stack, for the signed-in pages;
  * - LH_PASSWORD: the demo password (the seed's shared demo password by default);
  * - CHROME_PATH: the Chromium build to drive;
- * - ATLAS_URL, GATEWAY_URL, DOCS_URL: override the base URLs.
+ * - ATLAS_URL, GATEWAY_URL, DOCS_URL: override the base URLs;
+ * - LH_ONLY: a comma-separated list of paths to keep to (each as the route lists it, `/demo-productions/work`), to
+ *   measure a few pages without the whole run.
  */
 const here = fileURLToPath(new URL("..", import.meta.url));
 const apps = (process.argv.slice(2).filter((a) => !a.startsWith("-")) as LighthouseApp[]).filter(
@@ -41,6 +47,12 @@ const apps = (process.argv.slice(2).filter((a) => !a.startsWith("-")) as Lightho
 );
 const selected: LighthouseApp[] = apps.length > 0 ? apps : ["atlas", "gateway", "docs"];
 const keyPagesOnly = process.argv.includes("--key-pages");
+const only = new Set(
+  (process.env["LH_ONLY"] ?? "")
+    .split(",")
+    .map((p) => p.trim())
+    .filter((p) => p !== ""),
+);
 /** Pages still over 200 KB hold a recorded ceiling (ADR 0027), keyed `<app><path>`. */
 const recorded = (
   JSON.parse(readFileSync(join(here, "bundle-ceilings.json"), "utf8")) as {
@@ -69,65 +81,111 @@ for (const app of selected) {
       key.startsWith(`${app}/`) ? [[key.slice(app.length), bytes]] : [],
     ),
   );
+  const budgetOf = (path: string) =>
+    Math.max(webBudgets.routeJavaScriptGzipBytes, ceilings[path] ?? 0);
+  /** Runs lhci over one batch's paths in a session (null: signed out) and answers each report's score. */
+  const measure = async (
+    cookies: ReturnType<typeof sessionCookies> | null,
+    paths: readonly string[],
+    name: string,
+    runs: number,
+  ): Promise<PageScore[]> => {
+    const outputDir = join(appDir, name);
+    mkdirSync(outputDir, { recursive: true });
+    const rcPath = join(outputDir, "lighthouserc.json");
+    writeFileSync(
+      rcPath,
+      JSON.stringify(
+        lighthouseRc({
+          baseUrl,
+          paths,
+          runs,
+          // lhci resolves the script against its cwd.
+          sessionScript: cookies
+            ? relative(outputDir, join(here, "src/lighthouse-session.cjs"))
+            : null,
+          chromePath: process.env["CHROME_PATH"],
+          outputDir,
+          ceilings,
+          realtimeClient: realtime.length > 0,
+        }),
+      ),
+    );
+    process.stdout.write(`${app} ${name}: ${paths.length} pages, ${runs} run(s) each\n`);
+    // The package's lhci binary, run directly: `pnpm exec` would move to the package root.
+    const lhci = spawnSync(
+      join(here, "node_modules/.bin/lhci"),
+      ["autorun", `--config=${rcPath}`],
+      {
+        // lhci keeps its working files (.lighthouseci) in its cwd and resolves the session script
+        // against it; keep them with the reports.
+        cwd: outputDir,
+        stdio: "inherit",
+        env: cookies
+          ? { ...process.env, [SESSION_COOKIES_ENV]: JSON.stringify(cookies) }
+          : process.env,
+      },
+    );
+    const scores = readdirSync(outputDir)
+      .filter((f) => f.endsWith(".report.json"))
+      .map((f) => {
+        const result = JSON.parse(readFileSync(join(outputDir, f), "utf8")) as {
+          requestedUrl: string;
+        };
+        return scorePage(result, budgetOf(new URL(result.requestedUrl).pathname), realtime);
+      });
+    // lhci's own verdict on the budgets is the summary's; it still fails the run when it left a page unmeasured.
+    if (lhci.status !== 0 && scores.length < paths.length * runs) {
+      process.stdout.write(
+        `${app} ${name}: lhci wrote ${scores.length} of ${paths.length * runs} reports\n`,
+      );
+      failed = true;
+    }
+    return scores;
+  };
+
   // Each landing path once per app; a person signs in afresh for every batch of pages.
   const seen = new Set<string>();
+  const emailOf = new Map<string, string | null>();
   for (const run of lighthouseRuns(app, keyPagesOnly)) {
-    const parts = batches(run.paths);
+    const parts = batches(only.size > 0 ? run.paths.filter((p) => only.has(p)) : run.paths);
     for (const [index, part] of parts.entries()) {
       const cookies = run.email ? sessionCookies("xos-auth", await signIn(run.email)) : null;
       const paths = await landingPaths(baseUrl, part, cookieHeader(cookies), seen);
       if (paths.length === 0) continue;
-      const name = parts.length > 1 ? `${run.name}-${index + 1}` : run.name;
-      const outputDir = join(appDir, name);
-      mkdirSync(outputDir, { recursive: true });
-      const rcPath = join(outputDir, "lighthouserc.json");
-      writeFileSync(
-        rcPath,
-        JSON.stringify(
-          lighthouseRc({
-            baseUrl,
-            paths,
-            // lhci resolves the script against its cwd.
-            sessionScript: cookies
-              ? relative(outputDir, join(here, "src/lighthouse-session.cjs"))
-              : null,
-            chromePath: process.env["CHROME_PATH"],
-            outputDir,
-            ceilings,
-            realtimeClient: realtime.length > 0,
-          }),
-        ),
+      for (const path of paths) emailOf.set(path, run.email ?? null);
+      pages.push(
+        ...(await measure(
+          cookies,
+          paths,
+          parts.length > 1 ? `${run.name}-${index + 1}` : run.name,
+          1,
+        )),
       );
-      process.stdout.write(`${app} ${name}: ${paths.length} pages\n`);
-      // The package's lhci binary, run directly: `pnpm exec` would move to the package root.
-      const lhci = spawnSync(
-        join(here, "node_modules/.bin/lhci"),
-        ["autorun", `--config=${rcPath}`],
-        {
-          // lhci keeps its working files (.lighthouseci) in its cwd and resolves the session script
-          // against it; keep them with the reports.
-          cwd: outputDir,
-          stdio: "inherit",
-          env: cookies
-            ? { ...process.env, [SESSION_COOKIES_ENV]: JSON.stringify(cookies) }
-            : process.env,
-        },
+    }
+  }
+
+  // Pages that missed only on the lab timings: two more runs each, as the same person, and the median of the three.
+  const pathOf = (page: PageScore) => new URL(page.url).pathname;
+  const retimed = pages.filter((p) => timingOnlyMiss(p, budgetOf(pathOf(p))));
+  const byEmail = new Map<string | null, string[]>();
+  for (const page of retimed) {
+    const email = emailOf.get(pathOf(page)) ?? null;
+    byEmail.set(email, [...(byEmail.get(email) ?? []), pathOf(page)]);
+  }
+  for (const [index, [email, paths]] of [...byEmail].entries()) {
+    const cookies = email ? sessionCookies("xos-auth", await signIn(email)) : null;
+    const again = await measure(cookies, paths, `retime-${index + 1}`, 2);
+    for (const path of paths) {
+      const at = pages.findIndex((p) => pathOf(p) === path);
+      const first = pages[at];
+      if (!first) continue;
+      const runs = [first, ...again.filter((p) => pathOf(p) === path)];
+      const settled = medianScore(runs, budgetOf(path));
+      process.stdout.write(
+        `${app} ${first.url} retimed over ${runs.length} runs: TBT ${runs.map((r) => Math.round(r.tbtMs ?? -1)).join(", ")} ms, LCP ${runs.map((r) => Math.round(r.lcpMs ?? -1)).join(", ")} ms\n`,
       );
-      if (lhci.status !== 0) failed = true;
-      const reports = readdirSync(outputDir).filter((f) => f.endsWith(".report.json"));
-      for (const f of reports) {
-        const result = JSON.parse(readFileSync(join(outputDir, f), "utf8")) as {
-          requestedUrl: string;
-        };
-        const path = new URL(result.requestedUrl).pathname;
-        pages.push(
-          scorePage(
-            result,
-            Math.max(webBudgets.routeJavaScriptGzipBytes, ceilings[path] ?? 0),
-            realtime,
-          ),
-        );
-      }
+      pages[at] = settled;
     }
   }
 

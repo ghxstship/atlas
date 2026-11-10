@@ -1,11 +1,10 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "description": "The dependency policy of ADR 0001 and infra/security/README.md: exact pins, at most a weekly batch, nothing younger than two weeks, and overrides changed only by a person, in pnpm-workspace.yaml. Each version change also updates docs/adr/0001-stack.md.",
+  "description": "The dependency policy of ADR 0001 and infra/security/README.md: exact pins, at most a weekly batch, releases taken when they ship (no minimum age, owner 2026-11-09), and overrides changed only by a person, in pnpm-workspace.yaml. Each version change also updates docs/adr/0001-stack.md.",
   "extends": ["config:recommended", "helpers:pinGitHubActionDigests"],
   "rangeStrategy": "pin",
   "timezone": "UTC",
   "schedule": ["before 6am on monday"],
-  "minimumReleaseAge": "14 days",
   "internalChecksFilter": "strict",
   "automerge": false,
   "platformCommit": "enabled",
@@ -13,11 +12,11 @@
   "prHourlyLimit": 1,
   "dependencyDashboard": true,
   "lockFileMaintenance": {
-    "description": "Off: it would bring in transitive releases younger than two weeks. A transitive fix goes through an override in pnpm-workspace.yaml once its release is old enough (RRR-242).",
+    "description": "Off: a transitive change goes through an override in pnpm-workspace.yaml, with its reason beside it (RRR-242), not a lock file refresh nobody reviews.",
     "enabled": false
   },
   "vulnerabilityAlerts": {
-    "description": "Opened at once, whatever the schedule. A release younger than two weeks needs the owner's security exception, recorded in ADR 0001, before it merges.",
+    "description": "Opened at once, whatever the schedule.",
     "labels": ["security"],
     "schedule": ["at any time"]
   },
@@ -26,11 +25,6 @@
       "description": "An override is a decision with its reason written beside it in pnpm-workspace.yaml (infra/security/README.md), so Renovate lists it on the dashboard and opens a pull request only when a person asks.",
       "matchDepTypes": ["pnpm-workspace.overrides"],
       "dependencyDashboardApproval": true
-    },
-    {
-      "description": "Pin GitHub Actions only to releases at least two weeks old (Section 9 supply chain, A94). CI checks each pinned SHA against its tag (infra/security/src/action-pins.ts).",
-      "matchManagers": ["github-actions"],
-      "minimumReleaseAge": "14 days"
     },
     {
       "description": "typescript-eslint caps TypeScript below 6.1 (ADR 0001). Hold TypeScript until it widens.",

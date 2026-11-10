@@ -42,7 +42,7 @@ import {
   webPushStore,
 } from "../_vendor/notification-dispatch.js";
 import { createLogger, identityFromEnv } from "../_vendor/core.js";
-import { env, hasBearer, json, serve, serviceDb } from "../_shared/runtime.ts";
+import { env, isServiceRequest, json, serve, serviceDb } from "../_shared/runtime.ts";
 
 const logger = createLogger(identityFromEnv("edge.notification-dispatch", Deno.env.toObject()));
 
@@ -57,7 +57,7 @@ async function channel<T>(name: string, run: () => Promise<T>): Promise<T | { er
 }
 
 serve(async (request) => {
-  if (!hasBearer(request, env("SUPABASE_SERVICE_ROLE_KEY"))) {
+  if (!isServiceRequest(request)) {
     return json(401, { type: "/problems/unauthorized", title: "Unauthorized", status: 401 });
   }
   const source = Deno.env.toObject();

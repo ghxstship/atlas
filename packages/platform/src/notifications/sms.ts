@@ -311,7 +311,11 @@ export interface SmsStore {
   claimSms(limit: number): Promise<readonly ClaimedSms[]>;
   /** The recipient as an org writes to them: their name, its language for them and their time zone. */
   recipient(personId: string, orgId: string): Promise<Recipient>;
-  orgName(orgId: string): Promise<string>;
+  /**
+   * Who a text names as its sender (A138): XOS for the platform's own notices, else the org's brand name while white
+   * label is in force, else its name.
+   */
+  senderName(orgId: string, kind: string): Promise<string>;
   /** Link that opens the notification, kept short for the text. */
   linkFor(claim: ClaimedSms): Promise<string>;
   /** Records the outcome; a sent text counts its billed segments toward usage (1393). */
@@ -331,7 +335,7 @@ export async function smsBody(claim: ClaimedSms, store: SmsStore): Promise<strin
   const locale = localeOf(recipient.locale);
   const text = notificationText(claim.kind, claim.messageArgs, locale, recipient.timeZone);
   return formatMessage(locale, "sms.message", {
-    orgName: clip(await store.orgName(claim.orgId), 40),
+    orgName: clip(await store.senderName(claim.orgId, claim.kind), 40),
     body: clip(text.body, 300),
     url: await store.linkFor(claim),
   });
@@ -401,7 +405,8 @@ export interface SmsSummaryStore {
   claimSummaries(limit: number): Promise<readonly ClaimedSmsSummary[]>;
   /** The recipient as an org writes to them: their name, its language for them and their time zone. */
   recipient(personId: string, orgId: string): Promise<Recipient>;
-  orgName(orgId: string): Promise<string>;
+  /** Who the summary names as its sender, after its most important text's kind (SmsStore.senderName). */
+  senderName(orgId: string, kind: string): Promise<string>;
   /** The org's Inbox, where every held notification waits. */
   inboxLink(orgId: string): Promise<string>;
   /** Records the outcome for every held delivery; a sent summary counts its billed segments (1393). */
@@ -428,7 +433,7 @@ export async function smsSummaryBody(
   const recipient = await store.recipient(summary.recipientPersonId, summary.orgId);
   const locale = localeOf(recipient.locale);
   const args = {
-    orgName: clip(await store.orgName(summary.orgId), 40),
+    orgName: clip(await store.senderName(summary.orgId, summary.kind), 40),
     url: await store.inboxLink(summary.orgId),
   };
   if (summary.heldCount <= 1) {

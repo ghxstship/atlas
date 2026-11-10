@@ -1,11 +1,12 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import type { EmailBrand } from "@xos/email";
 import type { InboundStore } from "./inbound/parse.ts";
 import { actionLinks } from "./notifications/action-links.ts";
 import type { ClaimedEmail, NotificationStore, Recipient } from "./notifications/dispatch.ts";
 import type { ClaimedWebhook, WebhookStore } from "./webhooks/dispatch.ts";
 
 /** The URL without trailing slashes: a loop, which stays linear where `/\/+$/` backtracks over a run of slashes. */
-function withoutTrailingSlashes(url: string): string {
+export function withoutTrailingSlashes(url: string): string {
   let end = url.length;
   while (end > 0 && url[end - 1] === "/") end -= 1;
   return url.slice(0, end);
@@ -204,7 +205,8 @@ export interface NotificationStoreOptions {
 /**
  * Kinds sent as the platform rather than the org (A138, Section 12): a person's sign-in security
  * notices (account.*, which 2050 sends in whichever org they chose last), the org's XOS billing, trial
- * and white label plan notices, and XOS deleting or recovering the org. Their email keeps the
+ * and white label plan notices, XOS deleting or recovering the org, and XOS's moderation and rating
+ * dispute decisions. Their email keeps the
  * platform brand, sender and no org reply-to while white label is in force.
  */
 const PLATFORM_KIND_PREFIXES = [
@@ -212,6 +214,12 @@ const PLATFORM_KIND_PREFIXES = [
   "billing.",
   "organization.white_label_",
   "organization.deletion_",
+  // XOS's marketplace moderation and rating disputes: the notice names the platform, never the operator who decided
+  // and never the org (1590, ADR 0158), so it is not sent under the affected org's brand either.
+  "listing.moderated",
+  "listing_report.",
+  "moderation_appeal.",
+  "rating_dispute.",
 ] as const;
 
 export function isPlatformEmailKind(kind: string): boolean {
@@ -231,6 +239,97 @@ export function mailbox(name: string, address: string): string {
     .trim();
   const display = /[()<>[\]:;@\\,."]/.test(clean) ? `"${clean.replace(/["\\]/g, "\\$&")}"` : clean;
   return `${display} <${address}>`;
+}
+
+/**
+ * An org's email brand while white label is in force (app.email_brand_for_org, 3310 and 904090003), or null when it
+ * is not: the email then wears the platform brand with the org's own name.
+ */
+export interface OrgEmailBrand {
+  readonly brandName: string | null;
+  readonly senderName: string | null;
+  readonly replyTo: string | null;
+  readonly logoPath: string | null;
+  readonly accentHex: string | null;
+  readonly suppressPoweredBy: boolean;
+}
+
+/** Reads the email brand row of app.email_brand_for_org, or null for no row. */
+export function orgEmailBrandFromRow(
+  row: Readonly<Record<string, unknown>> | undefined,
+): OrgEmailBrand | null {
+  if (row === undefined) return null;
+  return {
+    brandName: optionalText(row, "brand_name"),
+    senderName: optionalText(row, "sender_name"),
+    replyTo: optionalText(row, "reply_to"),
+    logoPath: optionalText(row, "logo_path"),
+    accentHex: optionalText(row, "accent_hex"),
+    suppressPoweredBy: row["suppress_powered_by"] === true,
+  };
+}
+
+/** An org's email brand while white label is in force, or null. */
+export async function readOrgEmailBrand(
+  db: PlatformDb,
+  orgId: string,
+): Promise<OrgEmailBrand | null> {
+  return orgEmailBrandFromRow(rows(await db.rpc("email_brand_for_org", { p_org_id: orgId }))[0]);
+}
+
+/** The public URL of a file in the org-brand bucket, each path segment encoded, or null without a base or path. */
+export function brandAssetUrl(
+  base: string | null | undefined,
+  path: string | null | undefined,
+): string | null {
+  const root = base ? withoutTrailingSlashes(base) : "";
+  if (!root || !path) return null;
+  return `${root}/${path.split("/").map(encodeURIComponent).join("/")}`;
+}
+
+/**
+ * The bare address of a mailbox ("XOS <notifications@example.com>" or "notifications@example.com"), found with
+ * indexOf so it stays linear on any input (a pattern such as /<([^>]+)>/ backtracks on a run of "<").
+ */
+export function mailboxAddress(mailbox: string): string {
+  const open = mailbox.lastIndexOf("<");
+  const close = open === -1 ? -1 : mailbox.indexOf(">", open + 1);
+  return open !== -1 && close > open + 1 ? mailbox.slice(open + 1, close).trim() : mailbox.trim();
+}
+
+/** What an email's Sender takes from the brand: the name it signs with, From, reply-to, and logo and accent. */
+export interface BrandedSenderParts {
+  readonly orgName: string;
+  readonly from: string;
+  readonly replyTo?: string;
+  readonly brand?: EmailBrand;
+}
+
+/**
+ * The brand half of an org's email Sender (A138, Section 12), the one rule every org-sent email follows: while white
+ * label is in force, the brand name, the From name (email_sender_name, else the brand name), the support address
+ * replies go to, the logo and the accent; otherwise the org's own name on the platform's From address. `fromAddress`
+ * is the verified sending address, bare or as a mailbox ("XOS <notifications@example.com>").
+ */
+export function brandedSender(
+  orgName: string,
+  brand: OrgEmailBrand | null,
+  options: { readonly fromAddress: string; readonly brandAssetUrl?: string | null },
+): BrandedSenderParts {
+  const address = mailboxAddress(options.fromAddress);
+  const name = brand?.brandName ?? orgName;
+  if (brand === null) return { orgName: name, from: mailbox(name, address) };
+  const logoUrl = brandAssetUrl(options.brandAssetUrl, brand.logoPath);
+  return {
+    orgName: name,
+    from: mailbox(brand.senderName ?? name, address),
+    ...(brand.replyTo === null ? {} : { replyTo: brand.replyTo }),
+    brand: {
+      ...(logoUrl === null ? {} : { logoUrl }),
+      ...(brand.accentHex === null ? {} : { accentHex: brand.accentHex }),
+      ...(brand.suppressPoweredBy ? { suppressPoweredBy: true } : {}),
+    },
+  };
 }
 
 /** The Gateway link of a notification for an external party, or null. */
@@ -302,36 +401,19 @@ export function notificationStore(
     async senderFor(orgId, personId, kind) {
       const org = (await db.selectOne("organizations", "slug, name", { id: orgId })) ?? undefined;
       const slug = text(org, "slug");
-      const name = text(org, "name");
       // While white label is in force (3310), the org's brand name, sender name, support address,
       // logo and accent; platform notices keep the platform brand.
       const brand =
-        kind !== undefined && isPlatformEmailKind(kind)
-          ? undefined
-          : rows(await db.rpc("email_brand_for_org", { p_org_id: orgId }))[0];
-      const logoPath = optionalText(brand, "logo_path");
-      const accentHex = optionalText(brand, "accent_hex");
-      const replyTo = optionalText(brand, "reply_to");
-      const assets = options.brandAssetUrl?.replace(/\/$/, "");
+        kind !== undefined && isPlatformEmailKind(kind) ? null : await readOrgEmailBrand(db, orgId);
+      const parts = brandedSender(text(org, "name"), brand, {
+        fromAddress: options.fromAddress,
+        brandAssetUrl: options.brandAssetUrl ?? null,
+      });
       return {
-        orgName: optionalText(brand, "brand_name") ?? name,
+        ...parts,
         postalAddress: options.postalAddress,
         preferencesUrl: `${options.appUrl}/${slug}/me/notifications`,
         unsubscribeUrl: await options.unsubscribeUrl(orgId, personId, "notification"),
-        from: mailbox(optionalText(brand, "sender_name") ?? name, options.fromAddress),
-        ...(replyTo === null ? {} : { replyTo }),
-        ...(brand === undefined
-          ? {}
-          : {
-              brand: {
-                ...(logoPath === null || !assets
-                  ? {}
-                  : {
-                      logoUrl: `${assets}/${logoPath.split("/").map(encodeURIComponent).join("/")}`,
-                    }),
-                ...(accentHex === null ? {} : { accentHex }),
-              },
-            }),
       };
     },
     recipient: (personId, orgId) => recipientProfile(db, personId, orgId),

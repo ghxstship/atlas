@@ -1,0 +1,191 @@
+/**
+ * The emails report-run sends, wearing the org's brand like every other email an org sends (A138, Section 12; the 4.9
+ * email branding audit, migration 904090003): a scheduled report (report_delivery) and a stakeholder pack
+ * (stakeholder_pack), both rendered by packages/email with the footer that names the sender and the postal address,
+ * the one-click unsubscribe, and while white label is in force the org's brand name, From name, reply-to, logo and
+ * accent. report-run loads this module the first time a delivery needs it, so its boot stays inside its budget.
+ */
+import { renderEmail, type Sender } from "@xos/email";
+import { isLocale, type Locale } from "@xos/i18n/locales";
+import type { ComposeReportEmail, ReportDelivery } from "../../data/src/report-deliveries.ts";
+import { packExpiryText, type ComposePackEmail } from "../../data/src/stakeholder-packs.ts";
+import {
+  brandedSender,
+  readOrgEmailBrand,
+  recipientProfile,
+  withoutTrailingSlashes,
+  type OrgEmailBrand,
+  type PlatformDb,
+} from "../src/stores.ts";
+
+/** How a report's file is named in its email ("attached as PDF"). */
+const FORMAT_LABEL: Readonly<Record<ReportDelivery["exportFormat"], string>> = {
+  CSV: "CSV",
+  XLSX: ".xlsx",
+  PDF: "PDF",
+};
+
+export interface ReportEmailOptions {
+  /** The service-role database: the org's email brand, the recipient's language and zone, the unsubscribe token. */
+  readonly db: PlatformDb;
+  /** Atlas's origin (XOS_APP_URL): the report and the notification preferences. */
+  readonly appUrl: string | null | undefined;
+  /** The postal address every email carries (XOS_POSTAL_ADDRESS, CAN-SPAM). */
+  readonly postalAddress: string | null | undefined;
+  /** The verified sending address (XOS_EMAIL_FROM), bare or as a mailbox. */
+  readonly fromAddress: string;
+  /** `<SUPABASE_URL>/functions/v1`, where the one-click unsubscribe lives. */
+  readonly functionsUrl: string;
+  /** Public base URL of the org-brand bucket, for a white-label org's logo. */
+  readonly brandAssetUrl?: string | null;
+}
+
+/** The From display name an org's email goes out under: its brand sender while white label is in force. */
+function fromName(orgName: string, brand: OrgEmailBrand | null): string {
+  return brand?.senderName ?? brand?.brandName ?? orgName;
+}
+
+/** The headers of a one-click unsubscribe (RFC 8058). */
+function oneClick(url: string): Readonly<Record<string, string>> {
+  return { "List-Unsubscribe": `<${url}>`, "List-Unsubscribe-Post": "List-Unsubscribe=One-Click" };
+}
+
+/**
+ * A scheduled report's email: the org's report_delivery email with the file attached, in the recipient's language and
+ * zone. It links the report only for a recipient who may open it (app.report_delivery), and its unsubscribe stops
+ * scheduled report email from the org (the reports category), which the next delivery then honours.
+ */
+export function reportEmailComposer(options: ReportEmailOptions): ComposeReportEmail {
+  return async (delivery, attachment) => {
+    const appUrl = options.appUrl ? withoutTrailingSlashes(options.appUrl) : "";
+    if (!appUrl)
+      throw new Error("XOS_APP_URL is not set, so a report email has no preferences link.");
+    if (!options.postalAddress) {
+      throw new Error("XOS_POSTAL_ADDRESS is not set, so a report email has no CAN-SPAM footer.");
+    }
+    if (!delivery.recipientEmail) throw new Error("The recipient has no email address on file.");
+    const personId = delivery.recipientPersonId;
+    if (!personId)
+      throw new Error("The recipient has no person, so no unsubscribe link can be signed.");
+    const [brand, recipient, token] = await Promise.all([
+      readOrgEmailBrand(options.db, delivery.orgId),
+      recipientProfile(options.db, personId, delivery.orgId),
+      options.db.rpc("unsubscribe_token", {
+        p_org_id: delivery.orgId,
+        p_person_id: personId,
+        p_category: "reports",
+      }),
+    ]);
+    const locale: Locale = isLocale(recipient.locale) ? recipient.locale : "en-US";
+    const unsubscribeUrl = `${withoutTrailingSlashes(options.functionsUrl)}/email-unsubscribe?token=${encodeURIComponent(String(token))}`;
+    const parts = brandedSender(delivery.orgName, brand, {
+      fromAddress: options.fromAddress,
+      brandAssetUrl: options.brandAssetUrl ?? null,
+    });
+    const sender: Sender = {
+      orgName: parts.orgName,
+      ...(parts.brand === undefined ? {} : { brand: parts.brand }),
+      postalAddress: options.postalAddress,
+      preferencesUrl: `${appUrl}/${delivery.orgSlug}/me/notifications`,
+      unsubscribeUrl,
+    };
+    const periodLabel = new Intl.DateTimeFormat(locale, {
+      dateStyle: "long",
+      timeZone: recipient.timeZone,
+    }).format(new Date(delivery.scheduledFor));
+    const rendered = await renderEmail(
+      "report_delivery",
+      {
+        reportName: delivery.reportName,
+        periodLabel,
+        format: FORMAT_LABEL[delivery.exportFormat],
+        ...(delivery.reportDefinitionId === null
+          ? {}
+          : {
+              url: `${appUrl}/${delivery.orgSlug}/reports/builder?report=${encodeURIComponent(delivery.reportDefinitionId)}`,
+            }),
+        rows: delivery.rowCount ?? 0,
+        unpriced: delivery.unpricedCount ?? 0,
+      },
+      {
+        locale,
+        timeZone: recipient.timeZone,
+        sender,
+        recipientName: delivery.recipientName ?? recipient.name,
+      },
+    );
+    return {
+      to: delivery.recipientEmail,
+      toName: delivery.recipientName,
+      subject: rendered.subject,
+      text: rendered.text,
+      html: rendered.html,
+      headers: oneClick(unsubscribeUrl),
+      fromName: fromName(delivery.orgName, brand),
+      ...(parts.replyTo === undefined ? {} : { replyTo: parts.replyTo }),
+      attachment,
+    };
+  };
+}
+
+export interface PackEmailOptions {
+  /** The verified sending address (XOS_EMAIL_FROM), bare or as a mailbox. */
+  readonly fromAddress: string;
+  /** Public base URL of the org-brand bucket, for a white-label org's logo. */
+  readonly brandAssetUrl?: string | null;
+}
+
+/**
+ * A stakeholder pack's email (B2, ADR 0141): the org's stakeholder_pack email with the sign-in link, never a code and
+ * never a file. Its footer links the page that asks before it stops these emails, and its one-click stop is the pack's
+ * own unsubscribe (an xpku_ token).
+ */
+export function packEmailComposer(options: PackEmailOptions): ComposePackEmail {
+  return async (link, links, env) => {
+    const facts = link.email;
+    const brand: OrgEmailBrand | null = facts.whiteLabel
+      ? {
+          brandName: facts.brandName,
+          senderName: facts.brandSenderName,
+          replyTo: facts.replyTo,
+          logoPath: facts.logoPath,
+          accentHex: facts.accentHex,
+          suppressPoweredBy: facts.suppressPoweredBy,
+        }
+      : null;
+    const parts = brandedSender(facts.orgName, brand, {
+      fromAddress: options.fromAddress,
+      brandAssetUrl: options.brandAssetUrl ?? null,
+    });
+    const locale: Locale = isLocale(facts.locale) ? facts.locale : "en-US";
+    const sender: Sender = {
+      orgName: parts.orgName,
+      ...(parts.brand === undefined ? {} : { brand: parts.brand }),
+      postalAddress: env.postalAddress,
+      preferencesUrl: links.stopUrl,
+      unsubscribeUrl: links.oneClickUrl,
+    };
+    const rendered = await renderEmail(
+      "stakeholder_pack",
+      {
+        senderName: facts.senderName ?? parts.orgName,
+        packName: facts.packName,
+        ...(facts.message === null ? {} : { message: facts.message }),
+        itemTitles: facts.itemTitles,
+        url: links.url,
+        expiresText: packExpiryText(link.expiresAt, locale, facts.timeZone),
+      },
+      { locale, timeZone: facts.timeZone, sender, recipientName: facts.recipientName },
+    );
+    return {
+      to: facts.recipientEmail,
+      toName: facts.recipientName,
+      subject: rendered.subject,
+      text: rendered.text,
+      html: rendered.html,
+      headers: oneClick(links.oneClickUrl),
+      fromName: fromName(facts.orgName, brand),
+      ...(parts.replyTo === undefined ? {} : { replyTo: parts.replyTo }),
+    };
+  };
+}

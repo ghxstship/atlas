@@ -1,5 +1,5 @@
 import type { Database, XosClient } from "./client.ts";
-import { Constants } from "./database.types.ts";
+import { supplierDiversityKind } from "./enums.generated.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 
 /**
@@ -13,7 +13,7 @@ import { fail, ok, toDataError, type Result } from "./result.ts";
  */
 
 export type SupplierDiversityKind = Database["app"]["Enums"]["supplier_diversity_kind"];
-export const SUPPLIER_DIVERSITY_KINDS = Constants.app.Enums.supplier_diversity_kind;
+export const SUPPLIER_DIVERSITY_KINDS = supplierDiversityKind;
 
 export interface SupplierDiversityShare {
   readonly shareId: string;

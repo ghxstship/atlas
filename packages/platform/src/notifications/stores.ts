@@ -1,5 +1,11 @@
 import { COMPASS_SCHEME, compassSchemeUrl, isRecordKey } from "@xos/ia/handoff";
-import { PlatformDbError, recipientProfile, type PlatformDb } from "../stores.ts";
+import {
+  isPlatformEmailKind,
+  PlatformDbError,
+  readOrgEmailBrand,
+  recipientProfile,
+  type PlatformDb,
+} from "../stores.ts";
 import type { ClaimedPush, PushDevice, PushStore, WebPushStore } from "./push.ts";
 import type {
   ClaimedSms,
@@ -219,8 +225,10 @@ export function smsStore(db: PlatformDb, options: SmsStoreOptions): SmsStore & S
       }));
     },
     recipient: (personId, orgId) => recipientProfile(db, personId, orgId),
-    async orgName(orgId) {
-      return text(await org(orgId), "name");
+    async senderName(orgId, kind) {
+      if (isPlatformEmailKind(kind)) return "XOS";
+      const brand = await readOrgEmailBrand(db, orgId);
+      return brand?.brandName ?? text(await org(orgId), "name");
     },
     linkFor: (claim) => inbox(claim.orgId),
     inboxLink: inbox,

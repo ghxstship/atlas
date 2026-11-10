@@ -1,15 +1,13 @@
 ---
 title: AI Features Notice
-version: 1.0.0-draft
-effective_date: The date GHXSTSHIP states when it makes this version final
-status: Draft before launch
+version: 1.0.0
+effective_date: 2026-11-10
+status: In effect
 ---
 
 # AI Features Notice
 
-> **Draft before launch.** This document is a draft. It is not in effect and no one may rely on it. Showing it at /legal does not put it in effect. It takes effect only on the effective date that GHXSTSHIP Industries LLC states at the top of a final version.
-
-This notice explains the artificial intelligence features in XOS 4.0, called Aurora: what they do, what data they use, how to turn them off, and what GHXSTSHIP Industries LLC ("GHXSTSHIP") does to tell people about them. Sections 11 and 12 cover AI and translation tools outside Aurora.
+This notice explains the artificial intelligence features in XOS, called Aurora: what they do, what data they use, how to turn them off, and what GHXSTSHIP Industries LLC ("GHXSTSHIP") does to tell people about them. Sections 11 and 12 cover AI and translation tools outside Aurora.
 
 **Check what AI tells you.** AI output can be wrong. Do not rely on a factual statement in an output without checking it yourself, particularly a price, date, quantity, name or legal, safety or medical point.
 
@@ -56,7 +54,7 @@ Aurora uses Anthropic's Claude models through the Anthropic API. Anthropic is a 
 
 ## 5. No Training on Customer Data
 
-GHXSTSHIP does not use Customer data, including prompts and outputs, to train any model. Under Anthropic's [Commercial Terms](https://www.anthropic.com/legal/commercial-terms), as published when this draft was revised, Anthropic may not train its models on it unless the account holder opts in, for example through its Development Partner setting. This commitment rules that out for the account behind XOS.
+GHXSTSHIP does not use Customer data, including prompts and outputs, to train any model. Under Anthropic's [Commercial Terms](https://www.anthropic.com/legal/commercial-terms), as published in November 2026, Anthropic may not train its models on it unless the account holder opts in, for example through its Development Partner setting. This commitment rules that out for the account behind XOS.
 
 ## 6. Human Control
 

@@ -48,7 +48,7 @@ import {
   type DomainProviders,
   type ReportMailer,
 } from "../_vendor/org-lifecycle.js";
-import { env, hasBearer, json, serve, serviceDb } from "../_shared/runtime.ts";
+import { isServiceRequest, json, env, secretKey, serve, serviceDb } from "../_shared/runtime.ts";
 
 const optional = (name: string): string | null => {
   const value = Deno.env.get(name);
@@ -146,10 +146,10 @@ async function stripeCancellations(worker: string) {
 }
 
 serve(async (request) => {
-  if (!hasBearer(request, env("SUPABASE_SERVICE_ROLE_KEY"))) {
+  if (!isServiceRequest(request)) {
     return json(401, { type: "/problems/unauthorized", title: "Unauthorized", status: 401 });
   }
-  const client = createClient(env("SUPABASE_URL"), env("SUPABASE_SERVICE_ROLE_KEY"), {
+  const client = createClient(env("SUPABASE_URL"), secretKey(), {
     auth: { persistSession: false, autoRefreshToken: false },
   });
   const atlas = (optional("ATLAS_SITE_URL") ?? "https://atlas.invalid").replace(/\/+$/, "");

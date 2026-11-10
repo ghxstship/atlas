@@ -96,7 +96,7 @@ openai_api_key = "env(OPENAI_API_KEY)"
 
 # Email testing server. Emails sent with the local dev setup are not actually sent - rather, they
 # are monitored, and you can view the emails that would have been sent from the web interface.
-[inbucket]
+[local_smtp]
 enabled = true
 # Port to use for the email testing server web interface.
 port = 55424
@@ -214,8 +214,8 @@ web3 = 30
 # secret = ""
 
 [auth.email]
-# Allow/disallow new user signups via email to your project.
-enable_signup = true
+# Email sign-in on or off (Supabase CLI 3's `enabled`; `[auth] enable_signup` is what stops new sign-ups).
+enabled = true
 # If enabled, a user will be required to confirm any email change on both the old, and new email
 # addresses. If disabled, only the new email is required to confirm.
 double_confirm_changes = true
@@ -240,10 +240,32 @@ otp_expiry = 3600
 # admin_email = "admin@email.com"
 # sender_name = "Admin"
 
-# Uncomment to customize email template
-# [auth.email.template.invite]
-# subject = "You have been invited"
-# content_path = "./supabase/templates/invite.html"
+# The sign-in emails Supabase Auth sends wear the XOS platform brand (4.9 email branding audit): the templates in
+# supabase/templates, in the look of packages/email's layout. Production sets the same subjects and HTML in the hosted
+# project (infra/runbooks/promote-to-production.md, step 6); packages/email/test/auth-templates.test.ts checks both.
+[auth.email.template.confirmation]
+subject = "Confirm your email for XOS"
+content_path = "./supabase/templates/confirmation.html"
+
+[auth.email.template.invite]
+subject = "You are invited to XOS"
+content_path = "./supabase/templates/invite.html"
+
+[auth.email.template.magic_link]
+subject = "Your XOS sign-in link"
+content_path = "./supabase/templates/magic_link.html"
+
+[auth.email.template.email_change]
+subject = "Confirm your new email for XOS"
+content_path = "./supabase/templates/email_change.html"
+
+[auth.email.template.recovery]
+subject = "Reset your XOS password"
+content_path = "./supabase/templates/recovery.html"
+
+[auth.email.template.reauthentication]
+subject = "Your XOS confirmation code"
+content_path = "./supabase/templates/reauthentication.html"
 
 # Uncomment to customize notification email template
 # [auth.email.notification.password_changed]
@@ -252,8 +274,8 @@ otp_expiry = 3600
 # content_path = "./templates/password_changed_notification.html"
 
 [auth.sms]
-# Allow/disallow new user signups via SMS to your project.
-enable_signup = false
+# SMS sign-in on or off (Supabase CLI 3's `enabled`).
+enabled = false
 # If enabled, users need to confirm their phone number before signing in.
 enable_confirmations = false
 # Template for sending OTP to users
@@ -471,11 +493,65 @@ verify_jwt = false
 [functions.storage-browse]
 # B16 (ADR 0155 D5, migration 6053): a signed-in person browses a storage connection's linking folder and links a file
 # in place; the person's session is the bearer, and the function checks them before it reads any credential.
-verify_jwt = true
+verify_jwt = false
 
 [functions.integration-inbound]
 # Providers authenticate by webhook signature (A83, migration 1400; packages/integrations/src/inbound).
 verify_jwt = false
 
 [functions.file-download]
+verify_jwt = false
+
+# Signed-in people's functions: since the project signs sessions with asymmetric JWT signing keys, the platform's
+# verify_jwt check is not relied on; each asks Supabase Auth to verify the session before anything else (ADR 0168).
+[functions.apple-revoke]
+verify_jwt = false
+
+[functions.wallet-pass]
+verify_jwt = false
+
+# The workers: pg_cron calls them with a secret key from Vault (xos_worker_key) on the apikey header. Secret keys
+# are not JWTs, so the platform's verify_jwt cannot pass them; each worker compares the key itself and answers 401 to
+# anything else before it does any work (supabase/functions/_shared/api-keys.ts, ADR 0168). search-embed also
+# serves a person's search, whose session PostgREST verifies.
+[functions.automation-run]
+verify_jwt = false
+
+[functions.export-render]
+verify_jwt = false
+
+[functions.fx-rates-ecb]
+verify_jwt = false
+
+[functions.guest-email]
+verify_jwt = false
+
+[functions.import-run]
+verify_jwt = false
+
+[functions.integration-worker]
+verify_jwt = false
+
+[functions.notification-dispatch]
+verify_jwt = false
+
+[functions.org-lifecycle]
+verify_jwt = false
+
+[functions.report-run]
+verify_jwt = false
+
+[functions.search-embed]
+verify_jwt = false
+
+[functions.subprocessor-notices]
+verify_jwt = false
+
+[functions.upload-scan]
+verify_jwt = false
+
+[functions.weather-feed]
+verify_jwt = false
+
+[functions.webhook-dispatch]
 verify_jwt = false

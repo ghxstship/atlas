@@ -42,10 +42,10 @@ jobs:
           fi
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         if: steps.gate.outputs.run == 'true'
-      - uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
+      - uses: supabase/setup-cli@689adcfb80d947100a1eab127289b97d1fb07b13 # v3.2.0
         if: steps.gate.outputs.run == 'true'
         with:
-          version: 2.120.0
+          version: 3.1.0
       - name: Dump, encrypt and upload to private storage
         if: steps.gate.outputs.run == 'true'
         env:
@@ -72,9 +72,9 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       # The CLI names the Postgres image whose pg_dump and psql the script runs; it does not dump itself, because it
       # always switches to the postgres role, which the backup login (migration 1650) cannot.
-      - uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
+      - uses: supabase/setup-cli@689adcfb80d947100a1eab127289b97d1fb07b13 # v3.2.0
         with:
-          version: 2.120.0
+          version: 3.1.0
       - name: Dump, encrypt and upload to private storage
         env:
           XOS_BACKUP_DB_URL: ${{ secrets.PRODUCTION_BACKUP_DB_URL }}

@@ -1,5 +1,5 @@
 import type { Database, XosClient } from "./client.ts";
-import { Constants } from "./database.types.ts";
+import { offeringKind, offeringMode } from "./enums.generated.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 
 /**
@@ -16,9 +16,9 @@ export type OfferingMode = Database["app"]["Enums"]["offering_mode"];
 export type ExternalRoleType = Database["app"]["Enums"]["external_role_type"];
 
 /** Every offering, in the enum's order. */
-export const OFFERING_KINDS: readonly OfferingKind[] = Constants.app.Enums.offering_kind;
+export const OFFERING_KINDS: readonly OfferingKind[] = offeringKind;
 /** Every mode, Not Offered first. */
-export const OFFERING_MODES: readonly OfferingMode[] = Constants.app.Enums.offering_mode;
+export const OFFERING_MODES: readonly OfferingMode[] = offeringMode;
 
 /** How one offering reaches an engagement, as the engaged party reads it. */
 export interface EngagementOffering {

@@ -7,7 +7,7 @@
  *   pnpm --filter @xos/docs dictionary:check      # fails when the committed file differs from the database
  *
  * Like the database types (packages/data/scripts/generate-types.ts), it reads the local stack through the
- * Supabase CLI (`--local`, the project in supabase/config.toml; SUPABASE_WORKDIR selects another stack), and CI
+ * Supabase CLI (the local stack by default since CLI 3, the project in supabase/config.toml; SUPABASE_WORKDIR selects another stack), and CI
  * runs the check in the database job after applying every migration from empty.
  */
 import { execFileSync } from "node:child_process";
@@ -27,7 +27,7 @@ let raw: string;
 try {
   const file = join(scratch, "dictionary.sql");
   writeFileSync(file, DICTIONARY_SQL);
-  raw = execFileSync("supabase", ["db", "query", "--local", "-o", "json", "-f", file], {
+  raw = execFileSync("supabase", ["db", "query", "-o", "json", "-f", file], {
     cwd: repoRoot,
     encoding: "utf8",
     stdio: ["ignore", "pipe", "inherit"],

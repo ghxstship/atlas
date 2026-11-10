@@ -194,8 +194,8 @@ const called = (name: string) => h.rpc.mock.calls.filter((c) => c[0] === name);
 const firstSignIn: LegalNeeds = {
   age: true,
   documents: [
-    { slug: "mobile-eula", version: "1.0.0-draft" },
-    { slug: "worker-terms", version: "1.0.0-draft" },
+    { slug: "mobile-eula", version: "1.0.0" },
+    { slug: "worker-terms", version: "1.0.0" },
   ],
   changes: [],
 };
@@ -255,7 +255,7 @@ describe("first sign-in: the age", () => {
     expect(called("record_legal_acceptances")[0]?.[1]).toEqual({
       p_org_id: null,
       p_document_slugs: ["mobile-eula", "worker-terms"],
-      p_document_versions: ["1.0.0-draft", "1.0.0-draft"],
+      p_document_versions: ["1.0.0", "1.0.0"],
     });
     expect(h.retryIdentity).toHaveBeenCalledTimes(1);
   });

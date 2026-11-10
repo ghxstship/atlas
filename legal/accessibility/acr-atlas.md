@@ -1,13 +1,11 @@
 ---
 title: Accessibility Conformance Report: Atlas
-version: 1.0.0-draft
-effective_date: The date GHXSTSHIP states when it makes this version final
-status: Draft before launch; evaluated by A23 on main 5f4e839 (Wave 6), human screen reader passes owed
+version: 1.0.0
+effective_date: 2026-11-10
+status: In effect
 ---
 
 # Accessibility Conformance Report: Atlas
-
-> **Draft before launch.** This report is a draft. Levels A and AA were evaluated in the Wave 6 independent audit (A23) on build 5f4e839; human screen reader passes are still owed (see Notes). Showing it at /legal does not put it in effect. It takes effect only on the effective date that GHXSTSHIP Industries LLC states at the top of a final version with completed evaluation results.
 
 This Accessibility Conformance Report follows the structure of the ITI VPAT 2.5 International edition (VPAT 2.5Rev INT), which reports against WCAG 2.x, the Revised Section 508 Standards and EN 301 549 together. Template instructions from the VPAT form are not reproduced here.
 
@@ -21,7 +19,7 @@ The date this report is published at /legal. Evaluation recorded 2026-10-16 in `
 
 ## Product Description
 
-Atlas 4.0 is the internal web application of XOS 4.0, used by organization members to plan, budget, procure, staff, advance and close experiential productions. It is a Next.js web application built on the XOS design system and delivered as an installable progressive web app. Gateway 4.0, the external web application, has its own report (`acr-gateway.md`); Compass has `acr-compass.md`.
+Atlas is the internal web application of XOS, used by organization members to plan, budget, procure, staff, advance and close experiential productions. It is a Next.js web application built on the XOS design system and delivered as an installable progressive web app. Gateway 4.0, the external web application, has its own report (`acr-gateway.md`); Compass has `acr-compass.md`.
 
 ## Contact Information
 

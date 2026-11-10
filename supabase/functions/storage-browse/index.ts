@@ -6,11 +6,11 @@
 // (storage_outside_link_folder otherwise). The link is inserted as the caller, so the document's write rule and the
 // file link guard (0625) apply.
 //
-// POST, verify_jwt = true, the person's session as the bearer. Body: { action: "list", connection_id, document_id,
+// POST, verify_jwt = false and the session checked with Supabase Auth first (ADR 0168), the person's session as the bearer. Body: { action: "list", connection_id, document_id,
 // folder_id } | { action: "link", connection_id, document_id, external_file_id } | { action: "admin_list",
 // connection_id, folder_id }.
 //
-// Secrets: SUPABASE_URL, SUPABASE_ANON_KEY and SUPABASE_SERVICE_ROLE_KEY (provided by Supabase), and the platform
+// Secrets: SUPABASE_URL, SUPABASE_PUBLISHABLE_KEYS and SUPABASE_SECRET_KEYS (provided by Supabase), and the platform
 // OAuth apps XOS_GOOGLE_STORAGE_CLIENT_ID and _SECRET and XOS_MICROSOFT_STORAGE_CLIENT_ID and _SECRET.
 import { createClient } from "@supabase/supabase-js";
 import {
@@ -21,7 +21,8 @@ import {
   oauthClientFromEnv,
   storageProviderFor,
 } from "../_vendor/storage-browse.js";
-import { env, json, serve } from "../_shared/runtime.ts";
+import { json, env, secretKey, serve, publishableKey } from "../_shared/runtime.ts";
+import { sessionUserId } from "../_shared/sessions.ts";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -47,7 +48,10 @@ function databaseProblem(error: { code?: string; message: string }): Response {
 serve(async (request) => {
   if (request.method !== "POST") return problem(405, "method_not_allowed", "Use POST.");
   const authorization = request.headers.get("Authorization") ?? "";
-  if (!authorization.startsWith("Bearer ")) return problem(401, "unauthorized", "Sign in first.");
+  // verify_jwt is off (ADR 0168): Supabase Auth verifies the session, whatever key signed it, before anything else.
+  if ((await sessionUserId(authorization)) === null) {
+    return problem(401, "unauthorized", "Sign in first.");
+  }
   let body: Record<string, unknown>;
   try {
     body = (await request.json()) as Record<string, unknown>;
@@ -64,11 +68,11 @@ serve(async (request) => {
   }
 
   const url = env("SUPABASE_URL");
-  const person = createClient(url, env("SUPABASE_ANON_KEY"), {
+  const person = createClient(url, publishableKey(), {
     auth: { persistSession: false, autoRefreshToken: false },
     global: { headers: { Authorization: authorization } },
   }).schema("app");
-  const service = createClient(url, env("SUPABASE_SERVICE_ROLE_KEY"), {
+  const service = createClient(url, secretKey(), {
     auth: { persistSession: false, autoRefreshToken: false },
   }).schema("app");
 
