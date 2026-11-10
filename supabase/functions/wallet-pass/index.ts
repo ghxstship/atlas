@@ -15,7 +15,7 @@ import {
   readGoogleWalletEnv,
   walletPassResponse,
 } from "../_vendor/wallet-pass.js";
-import { env, json, serve } from "../_shared/runtime.ts";
+import { json, env, serve, publishableKey } from "../_shared/runtime.ts";
 
 serve(async (request) => {
   if (request.method !== "POST")
@@ -33,7 +33,7 @@ serve(async (request) => {
     google: readGoogleWalletEnv(secrets),
     loadPass: callerPassLoader({
       supabaseUrl: env("SUPABASE_URL"),
-      anonKey: env("SUPABASE_ANON_KEY"),
+      anonKey: publishableKey(),
       authorization,
     }),
     logo: publicBrandLogo({ supabaseUrl: env("SUPABASE_URL") }),

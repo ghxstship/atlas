@@ -7,10 +7,10 @@
 // XOS_EMAIL_ALLOWLIST are refused unless XOS_EMAIL_DELIVER_TO_ANY=true (production only, Section 19.8).
 // Called on a schedule with the service key, like notification-dispatch.
 import { loadSubprocessorNotices } from "../_vendor/subprocessor-notices.js";
-import { env, hasBearer, json, serve, serviceDb } from "../_shared/runtime.ts";
+import { env, isServiceRequest, json, serve, serviceDb } from "../_shared/runtime.ts";
 
 serve(async (request) => {
-  if (!hasBearer(request, env("SUPABASE_SERVICE_ROLE_KEY"))) {
+  if (!isServiceRequest(request)) {
     return json(401, { type: "/problems/unauthorized", title: "Unauthorized", status: 401 });
   }
   const { createTransport, dispatchPlatformEmails, platformEmailStore, readEmailEnv } =

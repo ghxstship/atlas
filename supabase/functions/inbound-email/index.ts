@@ -11,7 +11,7 @@ import {
   storageRawMailStore,
   verifyResendSignature,
 } from "../_vendor/inbound-email.js";
-import { env, hasBearer, json, serve, serviceDb } from "../_shared/runtime.ts";
+import { hasBearer, json, env, secretKey, serve, serviceDb } from "../_shared/runtime.ts";
 
 const payload = z.object({
   to: z.array(z.string()).min(1),
@@ -59,7 +59,7 @@ async function fromResend(request: Request): Promise<Response> {
     orgs: inboundOrgs(db),
     rawMail: storageRawMailStore({
       url: env("SUPABASE_URL"),
-      serviceKey: env("SUPABASE_SERVICE_ROLE_KEY"),
+      serviceKey: secretKey(),
     }),
     apiKey,
     inboundDomain: env("XOS_INBOUND_DOMAIN"),

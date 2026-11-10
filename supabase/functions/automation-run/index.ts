@@ -5,16 +5,16 @@
 // role only claims jobs and writes the runs ledger. Called every minute with the service key, like webhook-dispatch:
 // select cron.schedule('xos_worker_automation_run', '* * * * *', ...) as the self-hosting guide shows.
 //
-// Secrets: SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY (provided by Supabase), XOS_API_JWT_SIGNING_KEY (the project's
+// Secrets: SUPABASE_URL and SUPABASE_SECRET_KEYS (provided by Supabase), XOS_API_JWT_SIGNING_KEY (the project's
 // JWT secret, which api-token and integration-worker also use) and XOS_APP_URL (Atlas, whose /api/v1 the actions call).
 // None of them appears in code or tests.
 import { createClient } from "@supabase/supabase-js";
 import { runAutomationJobs, supabaseAutomationRunStore } from "../_vendor/automation-run.js";
-import { env, hasBearer, json, serve } from "../_shared/runtime.ts";
+import { isServiceRequest, json, env, secretKey, serve } from "../_shared/runtime.ts";
 
 serve(async (request) => {
-  const serviceKey = env("SUPABASE_SERVICE_ROLE_KEY");
-  if (!hasBearer(request, serviceKey)) {
+  const serviceKey = secretKey();
+  if (!isServiceRequest(request)) {
     return json(401, { type: "/problems/unauthorized", title: "Unauthorized", status: 401 });
   }
   const url = env("SUPABASE_URL");

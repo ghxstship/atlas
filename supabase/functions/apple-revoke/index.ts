@@ -11,7 +11,7 @@ import {
   callerAppleSubjectLoader,
   readAppleRevokeEnv,
 } from "../_vendor/apple-revoke.js";
-import { env, json, serve } from "../_shared/runtime.ts";
+import { json, env, serve, publishableKey } from "../_shared/runtime.ts";
 
 serve(async (request) => {
   if (request.method !== "POST")
@@ -27,7 +27,7 @@ serve(async (request) => {
     apple: readAppleRevokeEnv(Deno.env.toObject()),
     callerAppleSubject: callerAppleSubjectLoader({
       supabaseUrl: env("SUPABASE_URL"),
-      anonKey: env("SUPABASE_ANON_KEY"),
+      anonKey: publishableKey(),
       authorization,
     }),
   });

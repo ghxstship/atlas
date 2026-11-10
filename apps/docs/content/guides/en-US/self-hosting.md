@@ -116,12 +116,12 @@ supabase functions deploy
 supabase secrets set --env-file ./functions.env
 ```
 
-For a self-hosted stack, mount `supabase/functions` into the Compose stack's functions service instead. `stripe-webhook`, `inbound-email`, `email-unsubscribe`, `kiosk-punch`, `api-token`, `integration-inbound` and `file-download` authenticate their callers themselves and are deployed without JWT verification, as `supabase/config.toml` declares.
+For a self-hosted stack, mount `supabase/functions` into the Compose stack's functions service instead. `stripe-webhook`, `inbound-email`, `email-unsubscribe`, `kiosk-punch`, `api-token`, `integration-inbound`, `file-download` and the worker functions below authenticate their callers themselves and are deployed without JWT verification, as `supabase/config.toml` declares.
 
 | Secret                                                           | Used by                                                                                                                                                                                                                   |
 | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `XOS_API_JWT_SIGNING_KEY`                                        | `api-token`, `integration-worker` and `automation-run`, which sign short-lived tokens; set it to the project's JWT secret                                                                                                 |
-| `SUPABASE_SERVICE_ROLE_KEY`                                      | The worker functions (provided automatically on hosted Supabase)                                                                                                                                                          |
+| `SUPABASE_SECRET_KEYS`                                           | The worker functions' secret API keys (provided automatically on hosted Supabase; the functions never read the legacy `SUPABASE_SERVICE_ROLE_KEY` in production)                                                          |
 | `XOS_APP_URL`, `XOS_GATEWAY_URL`, `XOS_POSTAL_ADDRESS`           | Links and the postal address in email                                                                                                                                                                                     |
 | `XOS_EMAIL_TRANSPORT`, `XOS_EMAIL_FROM`, `RESEND_API_KEY`        | Outgoing email through Resend (`XOS_EMAIL_TRANSPORT=resend`); unset, email is recorded, not sent                                                                                                                          |
 | `XOS_EMAIL_ALLOWLIST`, `XOS_EMAIL_DELIVER_TO_ANY`                | Who may receive email; set `XOS_EMAIL_DELIVER_TO_ANY=true` only in production                                                                                                                                             |
@@ -139,19 +139,13 @@ For a self-hosted stack, mount `supabase/functions` into the Compose stack's fun
 
 ### Schedule the workers
 
-`webhook-dispatch`, `notification-dispatch`, `upload-scan`, `report-run`, `import-run`, `integration-worker`, `subprocessor-notices` and `automation-run` do their work when called with the service role key. Call each one every minute. On hosted Supabase, pg_cron and pg_net can do it from the database, reading the key from Vault:
+`webhook-dispatch`, `notification-dispatch`, `upload-scan`, `report-run`, `import-run`, `integration-worker`, `subprocessor-notices` and `automation-run` do their work when called with a secret API key (`sb_secret_...`) on the `apikey` header; they run without JWT verification and check the key themselves. Call each one every minute. On hosted Supabase, pg_cron and pg_net do it from the database: `private.worker_request` sends the key from Vault on the `apikey` header to the functions URL in Vault:
 
 ```sql
-select vault.create_secret('<service role key>', 'xos_worker_key');
+select vault.create_secret('<secret key, sb_secret_...>', 'xos_worker_key');
+select vault.create_secret('https://<project-ref>.supabase.co/functions/v1', 'xos_functions_url');
 
-select cron.schedule('xos_worker_webhook_dispatch', '* * * * *', $$
-  select net.http_post(
-    url := 'https://<project-ref>.supabase.co/functions/v1/webhook-dispatch',
-    headers := jsonb_build_object(
-      'Authorization', 'Bearer ' || (select decrypted_secret from vault.decrypted_secrets where name = 'xos_worker_key')
-    )
-  );
-$$);
+select cron.schedule('xos_worker_webhook_dispatch', '* * * * *', $$select private.worker_request('webhook-dispatch')$$);
 ```
 
 Repeat for the other seven functions, or call them from any scheduler you already run. Until `upload-scan` runs, attachments cannot be downloaded and field and onboarding uploads reach only the person who uploaded them. Until `import-run` runs, imports are not read, until `integration-worker` runs, integrations do not sync and warehouse deliveries wait, and until `automation-run` runs, automations queue their runs and take no action. Provider apps and their webhook secrets are in `infra/runbooks/integrations.md`.
@@ -163,7 +157,7 @@ Every upload is scanned by ClamAV that you run yourself, the `clamav/clamav:1.5.
 1. Run clamd on a host the Edge Functions can reach privately. The image is published for linux/amd64 only. Give it at least 2 vCPU and 4 GiB of memory and a persistent volume at `/var/lib/clamav`. Use the settings in `infra/scanning/docker-compose.yaml`, which also works as is with Docker Compose.
 2. clamd has no authentication, so never expose port 3310 to the internet. Reach it over a private network or a tunnel. Edge Functions that cannot join a private network can use mutual TLS to a TLS terminator in front of clamd, with `XOS_CLAMAV_TLS_CA`, `XOS_CLAMAV_TLS_CERT` and `XOS_CLAMAV_TLS_KEY`.
 3. Set the function secrets `XOS_CLAMAV_HOST` and `XOS_CLAMAV_PORT`, and `XOS_ENVIRONMENT=production`.
-4. Call `upload-scan` once with the service role key. A response with `"scanner": "clamav"` means it is connected.
+4. Call `upload-scan` once with a secret key on the `apikey` header. A response with `"scanner": "clamav"` means it is connected.
 
 Without `XOS_CLAMAV_HOST`, `upload-scan` answers 503 and scans nothing, so uploads stay quarantined. On a local development stack only, it marks files clean without scanning and logs a warning for each one. The image updates its own signatures, so allow outbound HTTPS to `database.clamav.net`. `infra/runbooks/production.md` has sizing, alerts and upgrades.
 

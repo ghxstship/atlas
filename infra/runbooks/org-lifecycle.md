@@ -47,9 +47,9 @@ provider.
 ## Schedule the worker (OWNER CONFIRMS)
 
 1. Deploy the function: `supabase functions deploy org-lifecycle --project-ref <ref>`.
-2. Schedule it every 5 minutes with the service key, as for `report-run` and `upload-scan`
+2. Schedule it every 5 minutes with a secret key on the `apikey` header, as for `report-run` and `upload-scan`
    (`hosted-security-settings.md`).
-3. Check: call it once with the service key. A 200 with `{"stripe": {...}, "certificates": [], "domains": []}`
+3. Check: call it once with a secret key on the `apikey` header. A 200 with `{"stripe": {...}, "certificates": [], "domains": []}`
    means it is connected; `select jobname, schedule from cron.job where jobname = 'xos_hourly_org_lifecycle';` shows the
    hourly job.
 

@@ -10,7 +10,7 @@
 // folder_id } | { action: "link", connection_id, document_id, external_file_id } | { action: "admin_list",
 // connection_id, folder_id }.
 //
-// Secrets: SUPABASE_URL, SUPABASE_ANON_KEY and SUPABASE_SERVICE_ROLE_KEY (provided by Supabase), and the platform
+// Secrets: SUPABASE_URL, SUPABASE_PUBLISHABLE_KEYS and SUPABASE_SECRET_KEYS (provided by Supabase), and the platform
 // OAuth apps XOS_GOOGLE_STORAGE_CLIENT_ID and _SECRET and XOS_MICROSOFT_STORAGE_CLIENT_ID and _SECRET.
 import { createClient } from "@supabase/supabase-js";
 import {
@@ -21,7 +21,7 @@ import {
   oauthClientFromEnv,
   storageProviderFor,
 } from "../_vendor/storage-browse.js";
-import { env, json, serve } from "../_shared/runtime.ts";
+import { json, env, secretKey, serve, publishableKey } from "../_shared/runtime.ts";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -64,11 +64,11 @@ serve(async (request) => {
   }
 
   const url = env("SUPABASE_URL");
-  const person = createClient(url, env("SUPABASE_ANON_KEY"), {
+  const person = createClient(url, publishableKey(), {
     auth: { persistSession: false, autoRefreshToken: false },
     global: { headers: { Authorization: authorization } },
   }).schema("app");
-  const service = createClient(url, env("SUPABASE_SERVICE_ROLE_KEY"), {
+  const service = createClient(url, secretKey(), {
     auth: { persistSession: false, autoRefreshToken: false },
   }).schema("app");
 

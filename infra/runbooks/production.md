@@ -393,7 +393,7 @@ None. The site is built from the repository and the OpenAPI document. Project se
 | `XOS_WEATHER_USER_AGENT`                                         | `weather-feed`: the contact string the US National Weather Service asks every client to send, such as `XOS weather feed (ops contact address)`. Not a secret. Unset, every due feed records "XOS_WEATHER_USER_AGENT is not set" and fetches nothing (ADR 0147) |
 | `APPLE_TEAM_ID`, `APPLE_SIGN_IN_CLIENT_IDS`                      | The team ID `wallet-pass` also uses; the bundle IDs the key serves, `pro.ghxstship.compass` first                                                                                                                                                              |
 
-`SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are provided to functions by Supabase. The worker schedules read the service role key from Vault (`xos_worker_key`).
+`SUPABASE_URL`, `SUPABASE_SECRET_KEYS` and `SUPABASE_PUBLISHABLE_KEYS` are provided to functions by Supabase; the functions read only these, never the legacy `SUPABASE_SERVICE_ROLE_KEY` or `SUPABASE_ANON_KEY` (ADR 0168). The worker schedules send a secret key from Vault (`xos_worker_key`, an `sb_secret_` key) on the `apikey` header through `private.worker_request`.
 
 ### File handover (OWNER, A103)
 
@@ -481,7 +481,7 @@ Production uses the host, port and three mutual TLS secrets of `infra/scanning/f
 `XOS_CLAMAV_TLS_KEY`. The three are all or none: the function refuses to choose a scanner with only some of them. A
 clamd reached over a private network instead takes only the host and port, 3310 by default.
 
-Then call `upload-scan` once with the service key. A 200 with `"scanner": "clamav"` means it is connected.
+Then call `upload-scan` once with a secret key on the `apikey` header. A 200 with `"scanner": "clamav"` means it is connected.
 A 503 `scanner-not-configured` means the secret is missing. The `retrying` outcome, with "clamd is
 unreachable", means the network path is wrong. Leave `XOS_ENVIRONMENT=production` set: with it, the function
 never falls back to the development pass-through, even if `SUPABASE_URL` looked local.
@@ -731,8 +731,8 @@ exchange rates (ADR 0053, migration 1542). pg_cron job `xos_fx_rates_ecb` runs i
 21:30 UTC (`30 15,21 * * 1-5`), after the 16:00 CET publication. The rates file is public: no key is needed to read
 it.
 
-1. Deploy the function with the others: `supabase functions deploy fx-rates-ecb --project-ref <ref>`. It keeps the
-   default `verify_jwt = true` and checks the service key, as the other workers do.
+1. Deploy the function with the others: `supabase functions deploy fx-rates-ecb --project-ref <ref>`. It runs with
+   `verify_jwt = false` and checks the secret key on the `apikey` header itself, as the other workers do (ADR 0168).
 2. Add the functions URL to Vault once, beside `xos_worker_key` (example value, use your own project ref):
    `select vault.create_secret('https://<project ref>.supabase.co/functions/v1', 'xos_functions_url');`
 3. Check the first run (the next weekday after 15:30 UTC, or call `select private.request_fx_feed();`):
@@ -750,8 +750,8 @@ Every Atlas collection exports its current view to CSV, .xlsx or PDF (ADR 0060, 
 expired files. pg_cron job `xos_export_render` calls it every minute, but only while an export is queued or a file has
 expired.
 
-1. Deploy it with the others: `supabase functions deploy export-render --project-ref <ref>`. It keeps the default
-   `verify_jwt = true` and checks the service key, as the other workers do. It loads exceljs and pdfkit only for
+1. Deploy it with the others: `supabase functions deploy export-render --project-ref <ref>`. It runs with
+   `verify_jwt = false` and checks the secret key on the `apikey` header itself, as the other workers do (ADR 0168). It loads exceljs and pdfkit only for
    .xlsx and PDF exports.
 2. The schedule reads the same Vault secrets as the exchange rates, `xos_functions_url` and `xos_worker_key`
    (section Exchange rates, step 2). Without them it does nothing and exports stay at "Preparing your export".

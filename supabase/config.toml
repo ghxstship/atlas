@@ -479,3 +479,49 @@ verify_jwt = false
 
 [functions.file-download]
 verify_jwt = false
+
+# The workers: pg_cron calls them with a secret key from Vault (xos_worker_key) on the apikey header. Secret keys
+# are not JWTs, so the platform's verify_jwt cannot pass them; each worker compares the key itself and answers 401 to
+# anything else before it does any work (supabase/functions/_shared/api-keys.ts, ADR 0168). search-embed also
+# serves a person's search, whose session PostgREST verifies.
+[functions.automation-run]
+verify_jwt = false
+
+[functions.export-render]
+verify_jwt = false
+
+[functions.fx-rates-ecb]
+verify_jwt = false
+
+[functions.guest-email]
+verify_jwt = false
+
+[functions.import-run]
+verify_jwt = false
+
+[functions.integration-worker]
+verify_jwt = false
+
+[functions.notification-dispatch]
+verify_jwt = false
+
+[functions.org-lifecycle]
+verify_jwt = false
+
+[functions.report-run]
+verify_jwt = false
+
+[functions.search-embed]
+verify_jwt = false
+
+[functions.subprocessor-notices]
+verify_jwt = false
+
+[functions.upload-scan]
+verify_jwt = false
+
+[functions.weather-feed]
+verify_jwt = false
+
+[functions.webhook-dispatch]
+verify_jwt = false

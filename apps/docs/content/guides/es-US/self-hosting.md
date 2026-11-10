@@ -116,12 +116,12 @@ supabase functions deploy
 supabase secrets set --env-file ./functions.env
 ```
 
-En una pila autoalojada, monta `supabase/functions` en el servicio de funciones de Compose. `stripe-webhook`, `inbound-email`, `email-unsubscribe`, `kiosk-punch`, `api-token`, `integration-inbound` y `file-download` autentican a quien las llama por sí mismas y se despliegan sin verificación de JWT, como declara `supabase/config.toml`.
+En una pila autoalojada, monta `supabase/functions` en el servicio de funciones de Compose. `stripe-webhook`, `inbound-email`, `email-unsubscribe`, `kiosk-punch`, `api-token`, `integration-inbound`, `file-download` y las funciones de trabajo de abajo autentican a quien las llama por sí mismas y se despliegan sin verificación de JWT, como declara `supabase/config.toml`.
 
 | Secreto                                                          | Lo usa                                                                                                                                                                                                                                                 |
 | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `XOS_API_JWT_SIGNING_KEY`                                        | `api-token`, `integration-worker` y `automation-run`, que firman tokens de corta duración; usa el secreto JWT del proyecto                                                                                                                             |
-| `SUPABASE_SERVICE_ROLE_KEY`                                      | Las funciones de trabajo (Supabase alojado la proporciona automáticamente)                                                                                                                                                                             |
+| `SUPABASE_SECRET_KEYS`                                           | Las claves API secretas de las funciones de trabajo (Supabase alojado las proporciona automáticamente; en producción las funciones nunca leen la clave heredada `SUPABASE_SERVICE_ROLE_KEY`)                                                           |
 | `XOS_APP_URL`, `XOS_GATEWAY_URL`, `XOS_POSTAL_ADDRESS`           | Los enlaces y la dirección postal de los correos                                                                                                                                                                                                       |
 | `XOS_EMAIL_TRANSPORT`, `XOS_EMAIL_FROM`, `RESEND_API_KEY`        | El correo saliente mediante Resend (`XOS_EMAIL_TRANSPORT=resend`); sin ellos, el correo se registra y no se envía                                                                                                                                      |
 | `XOS_EMAIL_ALLOWLIST`, `XOS_EMAIL_DELIVER_TO_ANY`                | Quién puede recibir correo; usa `XOS_EMAIL_DELIVER_TO_ANY=true` solo en producción                                                                                                                                                                     |
@@ -139,19 +139,13 @@ En una pila autoalojada, monta `supabase/functions` en el servicio de funciones 
 
 ### Programa las funciones de trabajo
 
-`webhook-dispatch`, `notification-dispatch`, `upload-scan`, `report-run`, `import-run`, `integration-worker`, `subprocessor-notices` y `automation-run` hacen su trabajo cuando se llaman con la clave de rol de servicio. Llama a cada una cada minuto. En Supabase alojado, pg_cron y pg_net pueden hacerlo desde la base de datos, leyendo la clave desde Vault:
+`webhook-dispatch`, `notification-dispatch`, `upload-scan`, `report-run`, `import-run`, `integration-worker`, `subprocessor-notices` y `automation-run` hacen su trabajo cuando se llaman con una clave API secreta (`sb_secret_...`) en el encabezado `apikey`; se ejecutan sin verificación de JWT y comprueban la clave por sí mismas. Llama a cada una cada minuto. En Supabase alojado, pg_cron y pg_net lo hacen desde la base de datos: `private.worker_request` envía la clave de Vault en el encabezado `apikey` a la URL de las funciones guardada en Vault:
 
 ```sql
-select vault.create_secret('<service role key>', 'xos_worker_key');
+select vault.create_secret('<secret key, sb_secret_...>', 'xos_worker_key');
+select vault.create_secret('https://<project-ref>.supabase.co/functions/v1', 'xos_functions_url');
 
-select cron.schedule('xos_worker_webhook_dispatch', '* * * * *', $$
-  select net.http_post(
-    url := 'https://<project-ref>.supabase.co/functions/v1/webhook-dispatch',
-    headers := jsonb_build_object(
-      'Authorization', 'Bearer ' || (select decrypted_secret from vault.decrypted_secrets where name = 'xos_worker_key')
-    )
-  );
-$$);
+select cron.schedule('xos_worker_webhook_dispatch', '* * * * *', $$select private.worker_request('webhook-dispatch')$$);
 ```
 
 Repite para las otras siete funciones, o llámalas desde cualquier programador que ya uses. Mientras `upload-scan` no se ejecute, los adjuntos no se pueden descargar y los archivos de campo y de incorporación solo llegan a quien los subió. Mientras `import-run` no se ejecute, las importaciones no se leen, mientras `integration-worker` no se ejecute, las integraciones no se sincronizan y las entregas al almacén de datos esperan, y mientras `automation-run` no se ejecute, las automatizaciones dejan sus ejecuciones en cola sin actuar. Las apps de los proveedores y sus secretos de webhook están en `infra/runbooks/integrations.md`.
@@ -163,7 +157,7 @@ Cada archivo subido se analiza con ClamAV, que ejecutas tú mismo con la imagen 
 1. Ejecuta clamd en un servidor al que las Edge Functions lleguen por una red privada. La imagen solo se publica para linux/amd64. Dale al menos 2 vCPU y 4 GiB de memoria, y un volumen persistente en `/var/lib/clamav`. Usa la configuración de `infra/scanning/docker-compose.yaml`, que también funciona tal cual con Docker Compose.
 2. clamd no tiene autenticación, así que nunca expongas el puerto 3310 a internet. Llega a él por una red privada o un túnel. Si tus Edge Functions no pueden unirse a una red privada, usa TLS mutuo con un terminador TLS delante de clamd, mediante `XOS_CLAMAV_TLS_CA`, `XOS_CLAMAV_TLS_CERT` y `XOS_CLAMAV_TLS_KEY`.
 3. Configura los secretos de las funciones `XOS_CLAMAV_HOST` y `XOS_CLAMAV_PORT`, y `XOS_ENVIRONMENT=production`.
-4. Llama a `upload-scan` una vez con la clave de rol de servicio. Una respuesta con `"scanner": "clamav"` indica que está conectado.
+4. Llama a `upload-scan` una vez con una clave secreta en el encabezado `apikey`. Una respuesta con `"scanner": "clamav"` indica que está conectado.
 
 Sin `XOS_CLAMAV_HOST`, `upload-scan` responde 503 y no analiza nada, así que los archivos siguen en cuarentena. Solo en una pila de desarrollo local marca los archivos como limpios sin analizarlos y registra una advertencia por cada uno. La imagen actualiza sus propias firmas, así que permite HTTPS saliente a `database.clamav.net`. `infra/runbooks/production.md` explica el tamaño, las alertas y las actualizaciones.
 

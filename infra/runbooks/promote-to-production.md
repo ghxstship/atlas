@@ -316,8 +316,8 @@ value again.
 - created by migrations: `xos_medical_notes_key`, `xos_tax_form_key`, `xos_org_tax_identifier_key`,
   `xos_passport_number_key`, `xos_inbound_reply_secret`, and, once 2010 and 2011 are pushed,
   `xos_vendor_bank_account_key` and `xos_supplier_certificate_number_key` (ADR 0057);
-- set by the operator: `xos_worker_key`, the service role key the cron worker schedules use. It must be replaced
-  in step 12.
+- set by the operator: `xos_worker_key`, the secret API key (`sb_secret_...`, never the legacy service_role JWT) the
+  cron worker schedules send on the `apikey` header (ADR 0168). A new secret key replaces it in step 12.
 
 The five keys were generated in this project and never left Vault, so the demo period did not expose them. The two
 A100 keys are generated the same way when their migrations run. After
@@ -338,6 +338,15 @@ backup login.
 Verify: a connection from an unlisted address is refused; the API still works. Rollback: allow all again.
 
 ## 12. Rotate the JWT secret and the anon and service keys (OWNER CONFIRMS)
+
+Since ADR 0168 (2026-11-09) nothing reads the legacy `anon` and `service_role` keys: the apps use the publishable key, the
+functions `SUPABASE_SECRET_KEYS` and `SUPABASE_PUBLISHABLE_KEYS`, and the worker schedules a secret key in Vault. The
+legacy keys are deactivated (Settings, API Keys), not rotated, and rotating a key is now: create a new secret or
+publishable key, put it where the old one was (Vault `xos_worker_key`; Vercel `SUPABASE_ANON_KEY`; EAS
+`EXPO_PUBLIC_SUPABASE_ANON_KEY`), then delete the old one, with no sign-out. What still rests on the shared JWT secret is
+the signing of sessions and of the tokens `api-token`, `integration-worker` and `automation-run` mint
+(`XOS_API_JWT_SIGNING_KEY`); moving those to JWT signing keys is this step's remaining part, and the owner holds every
+rotation until 5.0. The text below is the step as approved for cutover.
 
 Approved for cutover (ADR 0033, decision 44). The owner still confirms the moment in writing, because of what it
 does:

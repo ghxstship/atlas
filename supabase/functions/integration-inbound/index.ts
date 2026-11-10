@@ -19,11 +19,11 @@ import {
   supabaseCommunicationSource,
   supabaseInboundStore,
 } from "../_vendor/integration-inbound.js";
-import { env, serve } from "../_shared/runtime.ts";
+import { env, secretKey, serve, publishableKey } from "../_shared/runtime.ts";
 
 serve(async (request) => {
   const url = env("SUPABASE_URL");
-  const service = createClient(url, env("SUPABASE_SERVICE_ROLE_KEY"), {
+  const service = createClient(url, secretKey(), {
     auth: { persistSession: false, autoRefreshToken: false },
   });
   const db = asDbClient(service.schema("app"));
@@ -44,7 +44,7 @@ serve(async (request) => {
           env("XOS_API_JWT_SIGNING_KEY"),
           `${url}/auth/v1`,
         );
-        const client = createClient(url, env("SUPABASE_ANON_KEY"), {
+        const client = createClient(url, publishableKey(), {
           auth: { persistSession: false, autoRefreshToken: false },
           global: { headers: { Authorization: `Bearer ${token}` } },
         });

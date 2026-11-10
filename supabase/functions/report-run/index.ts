@@ -23,6 +23,7 @@
 import { createClient } from "@supabase/supabase-js";
 import {
   lazyResendClient,
+  loadPackDeliveries,
   mailpitMailer,
   packEmailCopy,
   readEmailEnv,
@@ -31,16 +32,14 @@ import {
   reportDeliveryCopy,
   reportRunLabels,
   resendMailer,
-  runPackDeliveries,
   runScheduledReports,
-  supabasePackDeliveryStore,
   supabaseReportDeliveryStore,
   supabaseReportRunStore,
   supabaseResultFiles,
   supabaseResultStorage,
   type ReportMailer,
 } from "../_vendor/report-run.js";
-import { env, hasBearer, json, serve } from "../_shared/runtime.ts";
+import { isServiceRequest, json, env, secretKey, serve } from "../_shared/runtime.ts";
 
 function reportMailer(): ReportMailer {
   const emailEnv = readEmailEnv(Deno.env.toObject());
@@ -65,16 +64,13 @@ function reportMailer(): ReportMailer {
 }
 
 serve(async (request) => {
-  if (!hasBearer(request, env("SUPABASE_SERVICE_ROLE_KEY"))) {
+  if (!isServiceRequest(request)) {
     return json(401, { type: "/problems/unauthorized", title: "Unauthorized", status: 401 });
   }
   const options = { auth: { persistSession: false, autoRefreshToken: false } };
-  const client = createClient(env("SUPABASE_URL"), env("SUPABASE_SERVICE_ROLE_KEY"), options);
+  const client = createClient(env("SUPABASE_URL"), secretKey(), options);
   const replicaUrl = readReplicaUrl(Deno.env.toObject(), (message) => console.warn(message));
-  const replica =
-    replicaUrl === null
-      ? null
-      : createClient(replicaUrl, env("SUPABASE_SERVICE_ROLE_KEY"), options);
+  const replica = replicaUrl === null ? null : createClient(replicaUrl, secretKey(), options);
   const mailer = reportMailer();
   const worker = `report-run:${crypto.randomUUID()}`;
   const outcome = await runScheduledReports({

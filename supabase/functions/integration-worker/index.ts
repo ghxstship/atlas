@@ -4,7 +4,7 @@
 // deliveries (warehouse.deliver, Enterprise). Called every minute with the service key, like webhook-dispatch:
 // select cron.schedule('xos_worker_integration', '* * * * *', ...) as the self-hosting guide shows.
 //
-// Secrets: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY and SUPABASE_ANON_KEY (provided by Supabase),
+// Secrets: SUPABASE_URL, SUPABASE_SECRET_KEYS and SUPABASE_PUBLISHABLE_KEYS (provided by Supabase),
 // XOS_API_JWT_SIGNING_KEY (the project's JWT secret, for the one-minute sessions Slack unfurls read records with)
 // and XOS_APP_URL (Atlas, whose record links are unfurled). Optional (B16, ADR 0155 D5): XOS_GOOGLE_STORAGE_CLIENT_ID
 // and XOS_GOOGLE_STORAGE_CLIENT_SECRET, XOS_MICROSOFT_STORAGE_CLIENT_ID and XOS_MICROSOFT_STORAGE_CLIENT_SECRET, the
@@ -19,7 +19,14 @@ import {
   runIntegrationRuntime,
   supabaseCommunicationSource,
 } from "../_vendor/integration-worker.js";
-import { env, hasBearer, json, serve } from "../_shared/runtime.ts";
+import {
+  isServiceRequest,
+  json,
+  env,
+  secretKey,
+  serve,
+  publishableKey,
+} from "../_shared/runtime.ts";
 
 /** A platform OAuth app's client pair from the function's secrets, or null when it is not set up. */
 function oauthPair(prefix: string): { clientId: string; clientSecret: string } | null {
@@ -29,8 +36,8 @@ function oauthPair(prefix: string): { clientId: string; clientSecret: string } |
 }
 
 serve(async (request) => {
-  const serviceKey = env("SUPABASE_SERVICE_ROLE_KEY");
-  if (!hasBearer(request, serviceKey)) {
+  const serviceKey = secretKey();
+  if (!isServiceRequest(request)) {
     return json(401, { type: "/problems/unauthorized", title: "Unauthorized", status: 401 });
   }
   const url = env("SUPABASE_URL");
@@ -39,7 +46,7 @@ serve(async (request) => {
   });
   const db = asDbClient(service.schema("app"));
   const signingKey = env("XOS_API_JWT_SIGNING_KEY");
-  const anonKey = env("SUPABASE_ANON_KEY");
+  const anonKey = publishableKey();
   const summary = await runIntegrationRuntime(
     {
       db,

@@ -12,6 +12,7 @@
 //
 // It loads no npm package and not the platform bundle (its own bundle is about 13 KB, packages/platform/edge/
 // entries/search-embed.ts), so a cold start stays inside the worker's CPU limit; the model runs outside it.
+import { apiKey, apiKeys, carriesSecretKey } from "../_shared/api-keys.ts";
 import {
   embedTexts,
   embeddingProviderFromEnv,
@@ -43,6 +44,8 @@ function env(name: string): string {
   return value;
 }
 
+const readEnv = (name: string): string | undefined => Deno.env.get(name);
+
 function json(status: number, body: unknown): Response {
   return new Response(JSON.stringify(body), {
     status,
@@ -59,15 +62,6 @@ function problem(status: number, title: string, detail: string): Response {
   });
 }
 
-/** The same check as _shared/runtime.ts hasBearer, without loading the platform bundle. */
-function isServiceKey(header: string, key: string): boolean {
-  const expected = `Bearer ${key}`;
-  if (header.length !== expected.length) return false;
-  let diff = 0;
-  for (let i = 0; i < header.length; i += 1) diff |= header.charCodeAt(i) ^ expected.charCodeAt(i);
-  return diff === 0;
-}
-
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function provider(): EmbeddingProvider | null {
@@ -77,14 +71,21 @@ function provider(): EmbeddingProvider | null {
 async function handle(request: Request): Promise<Response> {
   if (request.method !== "POST") return problem(405, "Method Not Allowed", "Use POST.");
   const url = env("SUPABASE_URL");
-  const serviceKey = env("SUPABASE_SERVICE_ROLE_KEY");
   const authorization = request.headers.get("Authorization") ?? "";
 
-  // The worker schedule.
-  if (isServiceKey(authorization, serviceKey)) {
+  // The worker schedule, with a secret key on the apikey header (api-keys.ts, ADR 0168).
+  if (
+    carriesSecretKey(
+      { apikey: request.headers.get("apikey"), authorization },
+      apiKeys("secret", readEnv),
+    )
+  ) {
     const model = provider();
+    const serviceKey = apiKey("secret", readEnv);
     const pass = await runSearchEmbeddings({
-      store: searchEmbeddingStore(restAppRpc({ url, apiKey: serviceKey, authorization })),
+      store: searchEmbeddingStore(
+        restAppRpc({ url, apiKey: serviceKey, authorization: `Bearer ${serviceKey}` }),
+      ),
       embedder: model
         ? {
             provider: model.provider,
@@ -111,7 +112,7 @@ async function handle(request: Request): Promise<Response> {
   if (!orgId || text === "") {
     return problem(400, "Bad Request", "Send the org id and the words to search for.");
   }
-  const asPerson = restAppRpc({ url, apiKey: env("SUPABASE_ANON_KEY"), authorization });
+  const asPerson = restAppRpc({ url, apiKey: apiKey("publishable", readEnv), authorization });
   const { data, error } = await asPerson("search_context", { p_org_id: orgId });
   const context = (Array.isArray(data) ? data[0] : data) as
     { semantic_enabled?: boolean } | null | undefined;

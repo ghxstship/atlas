@@ -5,10 +5,10 @@
 // XOS_EMAIL_ALLOWLIST are refused unless XOS_EMAIL_DELIVER_TO_ANY=true (production only, Section 19.8). Called by
 // pg_cron every minute while emails are Queued (private.request_guest_email_send), with the service key.
 import { loadGuestEmail } from "../_vendor/guest-email.js";
-import { env, hasBearer, json, serve, serviceDb } from "../_shared/runtime.ts";
+import { env, isServiceRequest, json, serve, serviceDb } from "../_shared/runtime.ts";
 
 serve(async (request) => {
-  if (!hasBearer(request, env("SUPABASE_SERVICE_ROLE_KEY"))) {
+  if (!isServiceRequest(request)) {
     return json(401, { type: "/problems/unauthorized", title: "Unauthorized", status: 401 });
   }
   const { createTransport, dispatchGuestEmails, guestEmailStore, guestPassRenderer, readEmailEnv } =
