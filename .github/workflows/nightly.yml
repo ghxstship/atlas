@@ -295,7 +295,9 @@ jobs:
     runs-on: macos-15-intel
     timeout-minutes: 150
     env:
-      MAESTRO_VERSION: 2.0.10
+      # 2.12.1 (2026-11-02) carries "Fix inputText crashing on iOS pincode screens": on 2.0.10 the XCTest driver
+      # dropped its connection typing the password in field-sign-in (run 42768003872).
+      MAESTRO_VERSION: 2.12.1
       # The XCTest driver takes longer than Maestro's default to start on a hosted macOS runner: every night from
       # 2026-10-29 failed with "iOS driver not ready in time" before the first flow (run 42666314984). Milliseconds.
       MAESTRO_DRIVER_STARTUP_TIMEOUT: "240000"
@@ -383,7 +385,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 90
     env:
-      MAESTRO_VERSION: 2.0.10
+      MAESTRO_VERSION: 2.12.1
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       # Without /dev/kvm the emulator runs unaccelerated (-accel off): it took 13 minutes to boot, then
@@ -433,7 +435,10 @@ jobs:
           # RMI threads from 18:09, then nothing until the job was cancelled at 90 minutes). The Kotlin daemon gets
           # its own heap and metaspace, and this test build skips the release lint (lintVitalRelease), which EAS
           # store builds still run.
-          echo 'kotlin.daemon.jvmargs=-Xmx3g -XX:MaxMetaspaceSize=1g' >> android/gradle.properties
+          # A line of its own: prebuild's gradle.properties may end without a newline (run 42768003872 failed in
+          # configuration with the last property run together).
+          printf '\nkotlin.daemon.jvmargs=-Xmx3g -XX:MaxMetaspaceSize=1g\n' >> android/gradle.properties
+          grep -q '^kotlin.daemon.jvmargs=-Xmx3g -XX:MaxMetaspaceSize=1g$' android/gradle.properties
           # The emulator is x86_64: one ABI instead of four (the first nightly spent 23 minutes here).
           (cd android && ./gradlew assembleRelease -PreactNativeArchitectures=x86_64 -x lintVitalRelease)
       - name: Run the field flows on an emulator
