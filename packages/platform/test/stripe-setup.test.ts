@@ -4,6 +4,7 @@ import {
   CatalogDriftError,
   assertModeKey,
   assertTestModeKey,
+  describeKey,
   stripeCatalog,
   syncStripeCatalog,
   type StripeCatalogClient,
@@ -403,5 +404,13 @@ describe("test mode key", () => {
     );
     expect(() => assertModeKey("sk_live_abcdefgh123", "test")).toThrow(/unless you pass --live/);
     expect(() => assertModeKey(undefined, "live")).toThrow(/sk_live_/);
+  });
+
+  it("says what a refused key looks like without its secret part", () => {
+    expect(describeKey("pk_live_abcdefgh123")).toBe(
+      "It starts pk_live_ (a publishable key: use the secret key, sk_), is 19 characters long.",
+    );
+    expect(describeKey("sk_live_abc def")).toMatch(/with spaces or line breaks/);
+    expect(() => assertModeKey("sk_test_abcdefgh123", "live")).toThrow(/It starts sk_test_/);
   });
 });
