@@ -411,7 +411,9 @@ begin
 end $f$;
 update app.projects set ends_on = (now() + interval '2 years')::date where id = pg_temp.id('prj_a');
 select pg_temp.guest_on_project('guest_arch');
-update app.projects set archived_at = now() - interval '91 days' where id = pg_temp.id('prj_a');
+-- Local noon 91 calendar days back in the project's zone: a UTC 91 x 24 h can land on day 90 locally when the span
+-- crosses the end of daylight saving time (a CI-only failure between 04:00 and 05:00 UTC, November to January).
+update app.projects set archived_at = (((now() at time zone time_zone)::date - 91) + time '12:00') at time zone time_zone where id = pg_temp.id('prj_a');
 select private.run_sensitive_data_job();
 select is((select count(*)::int from app.guest_care_needs where guest_list_entry_id = pg_temp.id('guest_arch')), 0,
   'a project archived before its end date ends when it was archived');
