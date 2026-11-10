@@ -29,22 +29,12 @@ describe("Identity: work details", () => {
       ? [
           globalRow(DETAILS, {
             person_id: ME,
-            // Retired in R6a (4664): always null.
-            shirt_size: null,
-            jacket_size: null,
-            pants_size: null,
-            shoe_size: null,
-            glove_size: null,
-            hat_size: null,
-            uniform_notes: null,
+            // The uniform size and travel preference columns are gone (R6b, 904100101).
             dietary_needs: ["Vegan"],
             allergies: "Peanuts, severe",
             dietary_notes: null,
             accessibility_needs: [],
             accessibility_notes: null,
-            seat_preference: null,
-            meal_preference: null,
-            home_airport: null,
             passport_number_last4: "TEST",
             passport_issuing_country: "IT",
             passport_expires_on: "2031-04-30",
@@ -157,18 +147,50 @@ describe("Identity: work details", () => {
     );
   });
 
-  it("refuses a retired uniform size or travel preference with work_detail_field_moved (R6a)", async () => {
+  const RETIRED = [
+    "shirt_size",
+    "jacket_size",
+    "pants_size",
+    "shoe_size",
+    "glove_size",
+    "hat_size",
+    "uniform_notes",
+    "seat_preference",
+    "meal_preference",
+    "home_airport",
+  ];
+
+  it("reads the retired uniform size and travel preference fields as null (R6b)", async () => {
+    const { http } = world();
+    const read = (await expectContract(
+      await success(http.get(`/work-details/${DETAILS}`)),
+      "workDetails.get",
+    )) as Record<string, unknown>;
+    for (const field of RETIRED) expect(read[field], field).toBeNull();
+  });
+
+  it("refuses a retired uniform size or travel preference with work_detail_field_moved (R6a, R6b)", async () => {
     const { db, http } = world();
-    db.fail(
-      "person_work_details",
-      refusal(
-        "work_detail_field_moved",
-        "Uniform sizes and travel preferences are no longer kept on your profile.",
-      ),
-    );
     const moved = await http.patch(`/work-details/${DETAILS}`, { shirt_size: "L" });
     expect(moved.status).toBe(422);
     expect(JSON.stringify(await moved.json())).toContain("work_detail_field_moved");
+    const added = await http.post("/work-details", { home_airport: "MIA" });
+    expect(added.status).toBe(422);
+    expect(JSON.stringify(await added.json())).toContain("work_detail_field_moved");
+    // Nothing reached the table.
+    expect(db.writes.filter((w) => w.table === "person_work_details")).toEqual([]);
+  });
+
+  it("accepts a retired field sent as null and ignores it (R6b)", async () => {
+    const { db, http } = world();
+    const saved = await http.patch(`/work-details/${DETAILS}`, {
+      shirt_size: null,
+      dietary_notes: "No dairy.",
+    });
+    expect(saved.status).toBe(200);
+    const updates = db.writes.filter((w) => w.table === "person_work_details" && w.op === "update");
+    expect(JSON.stringify(updates)).toContain("dietary_notes");
+    expect(JSON.stringify(updates)).not.toContain("shirt_size");
   });
 });
 

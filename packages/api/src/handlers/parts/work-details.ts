@@ -5,8 +5,9 @@
  * checks of app.shared_work_details decide. The Restricted passport number is written through its
  * encrypting RPC, always read masked, and shown only by the logged reveal actions. Allergies are
  * Restricted too (R6a, 4663): the column is not selectable, so the owner's come from
- * app.my_allergies. The retired uniform size and travel preference fields (4664) still pass through,
- * so the database refuses a value with 422 work_detail_field_moved. v1's category enum is frozen, so
+ * app.my_allergies. The retired uniform size and travel preference fields left the table with R6b
+ * (904100101): v1 keeps them, always null, and refuses a value with 422 work_detail_field_moved as the
+ * database did; a null is accepted and ignored. v1's category enum is frozen, so
  * R6a's Contact category leaves the category lists and travels as share_contact, contact_shared and
  * includes_contact.
  */
@@ -30,9 +31,35 @@ const ownRow = (_body: Row, context: RequestContext): Row => ({
 
 // Work details ----------------------------------------------------------------------------------------
 
+/** v1's uniform size and travel preference fields, dropped from the table by R6b (904100101): always null. */
+const RETIRED_FIELDS = [
+  "shirt_size",
+  "jacket_size",
+  "pants_size",
+  "shoe_size",
+  "glove_size",
+  "hat_size",
+  "uniform_notes",
+  "seat_preference",
+  "meal_preference",
+  "home_airport",
+] as const;
+
+/** Refuses a retired field with a value, as the database did before R6b dropped the columns; a null is ignored. */
+function refuseRetired(body: Row): void {
+  if (RETIRED_FIELDS.some((field) => body[field] !== undefined && body[field] !== null)) {
+    throw refused(
+      "REFUSE",
+      "Uniform sizes and travel preferences are entered per roster entry now.",
+      "work_detail_field_moved",
+    );
+  }
+}
+
 const workDetails = tableResource("workDetails", {
   verbs: ["list", "get", "delete"],
   derived: [
+    ...RETIRED_FIELDS,
     "passport_number",
     "allergies",
     "dietary_needs",
@@ -57,25 +84,19 @@ const workDetails = tableResource("workDetails", {
       accessibility_notes: own["accessibility_notes"] ?? null,
     }));
   },
-  toContract: (row) => ({ ...row, passport_number: masked(PASSPORT_REASON) }),
+  toContract: (row) => ({
+    ...row,
+    ...Object.fromEntries(RETIRED_FIELDS.map((field) => [field, null])),
+    passport_number: masked(PASSPORT_REASON),
+  }),
 });
 
 const DETAIL_FIELDS = [
-  "shirt_size",
-  "jacket_size",
-  "pants_size",
-  "shoe_size",
-  "glove_size",
-  "hat_size",
-  "uniform_notes",
   "dietary_needs",
   "allergies",
   "dietary_notes",
   "accessibility_needs",
   "accessibility_notes",
-  "seat_preference",
-  "meal_preference",
-  "home_airport",
   "passport_issuing_country",
   "passport_expires_on",
   "passport_name",
@@ -166,6 +187,7 @@ export const workDetailHandlers = {
   ...handlersFor("Identity", workDetails),
   "workDetails.create": async ({ body }, context) => {
     requirePerson(context);
+    refuseRetired(body as Row);
     const id = await run<string>(rpc(context.db, "ensure_my_work_details"));
     const patch = detailColumns(body as Row);
     if (Object.keys(patch).length > 0) {
@@ -179,6 +201,7 @@ export const workDetailHandlers = {
   "workDetails.update": async ({ params, body, ifMatch }, context) => {
     const current = await workDetails.read(context, params.id);
     assertIfMatch(ifMatch ?? "*", current);
+    refuseRetired(body as Row);
     const patch = detailColumns(body as Row);
     if (Object.keys(patch).length > 0) {
       const rows = await run<Row[]>(
