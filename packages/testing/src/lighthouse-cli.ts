@@ -33,7 +33,9 @@ import { signIn } from "./session.ts";
  * - SUPABASE_URL and SUPABASE_ANON_KEY: the local stack, for the signed-in pages;
  * - LH_PASSWORD: the demo password (the seed's shared demo password by default);
  * - CHROME_PATH: the Chromium build to drive;
- * - ATLAS_URL, GATEWAY_URL, DOCS_URL: override the base URLs.
+ * - ATLAS_URL, GATEWAY_URL, DOCS_URL: override the base URLs;
+ * - LH_ONLY: a comma-separated list of paths to keep to (each as the route lists it, `/demo-productions/work`), to
+ *   measure a few pages without the whole run.
  */
 const here = fileURLToPath(new URL("..", import.meta.url));
 const apps = (process.argv.slice(2).filter((a) => !a.startsWith("-")) as LighthouseApp[]).filter(
@@ -41,6 +43,12 @@ const apps = (process.argv.slice(2).filter((a) => !a.startsWith("-")) as Lightho
 );
 const selected: LighthouseApp[] = apps.length > 0 ? apps : ["atlas", "gateway", "docs"];
 const keyPagesOnly = process.argv.includes("--key-pages");
+const only = new Set(
+  (process.env["LH_ONLY"] ?? "")
+    .split(",")
+    .map((p) => p.trim())
+    .filter((p) => p !== ""),
+);
 /** Pages still over 200 KB hold a recorded ceiling (ADR 0027), keyed `<app><path>`. */
 const recorded = (
   JSON.parse(readFileSync(join(here, "bundle-ceilings.json"), "utf8")) as {
@@ -72,7 +80,7 @@ for (const app of selected) {
   // Each landing path once per app; a person signs in afresh for every batch of pages.
   const seen = new Set<string>();
   for (const run of lighthouseRuns(app, keyPagesOnly)) {
-    const parts = batches(run.paths);
+    const parts = batches(only.size > 0 ? run.paths.filter((p) => only.has(p)) : run.paths);
     for (const [index, part] of parts.entries()) {
       const cookies = run.email ? sessionCookies("xos-auth", await signIn(run.email)) : null;
       const paths = await landingPaths(baseUrl, part, cookieHeader(cookies), seen);
