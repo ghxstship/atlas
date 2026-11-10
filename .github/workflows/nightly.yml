@@ -296,6 +296,9 @@ jobs:
     timeout-minutes: 150
     env:
       MAESTRO_VERSION: 2.0.10
+      # The XCTest driver takes longer than Maestro's default to start on a hosted macOS runner: every night from
+      # 2026-10-29 failed with "iOS driver not ready in time" before the first flow (run 42666314984). Milliseconds.
+      MAESTRO_DRIVER_STARTUP_TIMEOUT: "240000"
       HOMEBREW_NO_AUTO_UPDATE: "1"
       HOMEBREW_NO_INSTALL_CLEANUP: "1"
     steps:
@@ -426,8 +429,13 @@ jobs:
           # 42489339979 and the five before it). The runner has 16 GB.
           sed -i 's/^org\.gradle\.jvmargs=.*/org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1536m/' android/gradle.properties
           grep -q '^org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1536m$' android/gradle.properties
+          # 1536 MB was still not enough (run 42666314984: OutOfMemoryError: Metaspace in the Kotlin compile daemon's
+          # RMI threads from 18:09, then nothing until the job was cancelled at 90 minutes). The Kotlin daemon gets
+          # its own heap and metaspace, and this test build skips the release lint (lintVitalRelease), which EAS
+          # store builds still run.
+          echo 'kotlin.daemon.jvmargs=-Xmx3g -XX:MaxMetaspaceSize=1g' >> android/gradle.properties
           # The emulator is x86_64: one ABI instead of four (the first nightly spent 23 minutes here).
-          (cd android && ./gradlew assembleRelease -PreactNativeArchitectures=x86_64)
+          (cd android && ./gradlew assembleRelease -PreactNativeArchitectures=x86_64 -x lintVitalRelease)
       - name: Run the field flows on an emulator
         uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
         with:
