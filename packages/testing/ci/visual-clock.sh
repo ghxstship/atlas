@@ -38,13 +38,13 @@ project=$(sed -n 's/^project_id = "\(.*\)"$/\1/p' "$workdir/supabase/config.toml
 container="supabase_db_$project"
 clock="$root/packages/testing/clock/pg-clock.sh"
 
-supabase db reset --workdir "$workdir" --local --version 0207 --no-seed >&2
+supabase db reset --workdir "$workdir" --version 0207 --no-seed >&2
 "$clock" at "$container" "$VISUAL_NOW" >&2
-supabase migration up --workdir "$workdir" --local > /dev/null
+supabase migration up --workdir "$workdir" > /dev/null
 offset=$("$clock" at "$container" "$VISUAL_NOW" | tee /dev/stderr | sed -n 's/^export E2E_CLOCK_OFFSET_MS=//p')
 if [ -z "$offset" ]; then
   echo "visual-clock.sh: pg-clock.sh printed no offset" >&2
   exit 1
 fi
-supabase db push --workdir "$workdir" --local --include-seed --yes >&2
+supabase db push --workdir "$workdir" --include-seed --yes >&2
 echo "E2E_CLOCK_OFFSET_MS=$offset"
