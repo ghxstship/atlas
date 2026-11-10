@@ -609,7 +609,7 @@ When an alert arrives, read it in the console's Tenants page. `charged_after_can
 
 ### 5. Opening billing in production
 
-Billing opens with the live catalogue and live keys, a separate owner step: create the live catalogue (the script refuses live keys by design), add the live webhook endpoint, set the live `STRIPE_WEBHOOK_SECRET` and `STRIPE_SECRET_KEY` on the production Edge Functions and the live `STRIPE_SECRET_KEY` on the `atlas` Production environment, then redeploy.
+Billing opens with the live catalogue and live keys, a separate owner step: create the live catalogue with `STRIPE_SECRET_KEY=sk_live_... pnpm --filter @xos/platform stripe:setup --live` (it refuses a test key there, and asks you to type LIVE before it writes; run it with `--dry-run` first), add the live webhook endpoint, set the live `STRIPE_WEBHOOK_SECRET` and `STRIPE_SECRET_KEY` on the production Edge Functions and the live `STRIPE_SECRET_KEY` on the `atlas` Production environment, then redeploy.
 
 ## Where XOS is offered (OWNER and platform team)
 

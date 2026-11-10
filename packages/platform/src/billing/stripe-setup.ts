@@ -613,15 +613,45 @@ export async function syncStripeCatalog(
   return { items };
 }
 
-/** Refuses anything but a Stripe test mode secret or restricted key (ADR 0035: the script is test mode only). */
-export function assertTestModeKey(key: string | undefined): string {
+/**
+ * The key for the mode asked for: a test mode secret or restricted key by default (ADR 0035), or, only when the
+ * owner passes --live, a live one. A key of the other mode is refused, so a test run never writes live prices and a
+ * live run never writes test ones.
+ */
+export function assertModeKey(key: string | undefined, mode: "test" | "live"): string {
   if (key === undefined || key.length === 0) {
-    throw new Error("STRIPE_SECRET_KEY is not set. Export a test mode key (sk_test_...) first.");
-  }
-  if (!/^(sk|rk)_test_[A-Za-z0-9]{8,}$/.test(key)) {
     throw new Error(
-      "STRIPE_SECRET_KEY is not a Stripe test mode key. This script creates the test mode catalogue only.",
+      `STRIPE_SECRET_KEY is not set. Export a ${mode} mode key (sk_${mode}_...) first.`,
+    );
+  }
+  if (!new RegExp(`^(sk|rk)_${mode}_[A-Za-z0-9]{8,}$`).test(key)) {
+    throw new Error(
+      `${
+        mode === "test"
+          ? "STRIPE_SECRET_KEY is not a Stripe test mode key. This script creates the test mode catalogue unless you pass --live."
+          : "STRIPE_SECRET_KEY is not a Stripe live mode key, and --live creates the live catalogue only."
+      } ${describeKey(key)}`,
     );
   }
   return key;
+}
+
+/**
+ * What a refused key looks like, without its secret part: its type prefix (sk_live_, pk_live_, rk_test_ and so on),
+ * its length, and whether it carries spaces or line breaks, so the owner can tell which key they pasted.
+ */
+export function describeKey(key: string): string {
+  const prefix = /^[a-z]+_(?:[a-z]+_)?/.exec(key)?.[0] ?? "no recognised prefix";
+  const kind = prefix.startsWith("pk_")
+    ? " (a publishable key: use the secret key, sk_)"
+    : prefix.startsWith("whsec_")
+      ? " (a webhook signing secret: use the API secret key, sk_)"
+      : "";
+  const spaces = /\s/.test(key) ? ", with spaces or line breaks in it" : "";
+  return `It starts ${prefix}${kind}, is ${String(key.length)} characters long${spaces}.`;
+}
+
+/** Refuses anything but a Stripe test mode secret or restricted key (ADR 0035: test mode by default). */
+export function assertTestModeKey(key: string | undefined): string {
+  return assertModeKey(key, "test");
 }

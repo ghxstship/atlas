@@ -82,3 +82,12 @@ regexes = [
   # make on the local stack (apps/gateway/e2e); no real account has it
   '''^Tidal\-Copper\-Ladder\-4821$''',
 ]
+
+[[allowlists]]
+description = "Reviewed fake values on orch-cli-v3 (2026-11-10)"
+regexTarget = "secret"
+regexes = [
+  # A JWT-shaped stand-in for the retired legacy anon key in Compass's release-config test
+  # (apps/compass/test/store-release.test.ts): header {"alg":"HS256"}, empty payload, no signature
+  '''^eyJhbGciOiJIUzI1NiJ9\.e30\.x$''',
+]
