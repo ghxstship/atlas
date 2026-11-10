@@ -613,6 +613,38 @@ export type Database = {
           },
         ];
       };
+      briefings: {
+        Row: {
+          agenda: string | null;
+          cancel_reason: string | null;
+          canceled_at: string | null;
+          ends_at: string;
+          id: string;
+          location: string | null;
+          project_id: string | null;
+          project_name: string;
+          starts_at: string;
+          time_zone: string;
+          title: string;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: "workforce_events_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "workforce_events_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "quote_versions";
+            referencedColumns: ["project_id"];
+          },
+        ];
+      };
       change_order_lines: {
         Row: {
           amount_minor: number | null;
