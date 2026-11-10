@@ -6,7 +6,7 @@ import { useActionState, useMemo, useState } from "react";
 import { useBulk } from "@/components/bulk/use-bulk";
 import { requestAllocationAction } from "@/lib/actions/allocations";
 import type { FormResult } from "@/lib/actions/operations";
-import { FormShell } from "./forms";
+import { FormShell } from "./form-shell";
 
 type Translate = (key: string, values?: Record<string, string | number>) => string;
 

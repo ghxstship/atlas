@@ -1,11 +1,10 @@
 "use client";
 
-import type { WorkflowSignal } from "@xos/data/product-workflows";
 import { emitWorkflow } from "@xos/data/workflow-signal";
 import { Button, Checkbox, InlineAlert, Input, Textarea } from "@xos/ui";
 import { useActionOutcome } from "@xos/ui/pwa/action-outcome";
 import { useTranslations } from "next-intl";
-import { useActionState, useEffect, useRef, useState, type ReactNode } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { OutcomeAlert } from "@/components/actions/action-button";
 import {
@@ -30,11 +29,11 @@ import {
 import { keepInputOnSubmit } from "@/components/forms/keep-input";
 import type { Database } from "@xos/data/database.types";
 import * as enums from "@xos/data/enums";
-type Translate = (key: string, values?: Record<string, string | number>) => string;
+import { FormShell, useCopy } from "./form-shell";
 
-export function useCopy(): Translate {
-  return useTranslations("gateway.engagement.forms") as unknown as Translate;
-}
+// The shared form chrome lives in its own module, so a screen that needs only it (Settings' team invite) does not
+// carry every engagement form; these re-exports keep the existing imports working.
+export { FormShell, useCopy };
 
 // Workflow funnel signals (A146): a submitted invoice completes Get paid, an uploaded item is Onboard's step, and a
 // sent reply completes Communicate. An uploaded item can leave its list with the result, so the tabs that list them
@@ -43,70 +42,6 @@ const done = (s: FormResult) => s.done === true;
 const invoiced = () => emitWorkflow("gateway.get_paid:done");
 const uploaded = () => emitWorkflow("gateway.onboard:step1");
 const replied = () => emitWorkflow("gateway.communicate:done");
-
-/** Shared form chrome: field and outcome errors, a success line, refresh on success. */
-export function FormShell({
-  state,
-  pending,
-  submitLabel,
-  doneLabel,
-  children,
-  action,
-  label,
-  row = false,
-  submitSignal,
-}: {
-  state: FormResult;
-  pending: boolean;
-  submitLabel: string;
-  doneLabel: string;
-  children: ReactNode;
-  action: (form: FormData) => void;
-  label: string;
-  /** One of several forms in a list (an answer per section, a decision per row): its submit is
-   *  secondary, so the screen keeps one primary action (Section 11.10; finding A59-029). */
-  row?: boolean;
-  /** Workflow funnel signal sent when the form is submitted (A146). */
-  submitSignal?: WorkflowSignal;
-}) {
-  const t = useCopy();
-  const router = useRouter();
-  useEffect(() => {
-    if (state.done) router.refresh();
-  }, [state.done, router]);
-  if (state.done)
-    return (
-      <p role="status" className="m-0 text-text-13 text-success-text">
-        {doneLabel}
-      </p>
-    );
-  return (
-    <form
-      action={action}
-      onSubmit={keepInputOnSubmit(action)}
-      className="flex w-full flex-col gap-12"
-      aria-label={label}
-      data-workflow={submitSignal}
-    >
-      {state.fieldError ? (
-        <InlineAlert tone="danger">{t(`errors.${state.fieldError}`)}</InlineAlert>
-      ) : null}
-      <OutcomeAlert outcome={state.outcome} />
-      {children}
-      <div>
-        <Button
-          type="submit"
-          variant={row ? "secondary" : "primary"}
-          size="sm"
-          disabled={pending}
-          aria-busy={pending}
-        >
-          {submitLabel}
-        </Button>
-      </div>
-    </form>
-  );
-}
 
 export function AdvanceAnswerForm(props: {
   recipientId: string;
