@@ -14,15 +14,21 @@ DIR="$HOME/xos-signing-keys"
 FILE="$DIR/$PROJECT.jwk.json"
 umask 077
 mkdir -p "$DIR"
+# The CLI reads the nearest supabase/config.toml; this needs none, so it runs from an empty folder.
+WORK="$(mktemp -d)"
+trap 'rm -rf "$WORK"' EXIT
+cd "$WORK"
 
 if [[ ! -s "$FILE" ]]; then
-  supabase gen signing-key --algorithm ES256 > "$FILE" 2> /dev/null
+  # The key goes to the file; only the CLI's messages reach the screen.
+  supabase gen signing-key --algorithm ES256 > "$FILE" ||
+    { rm -f "$FILE"; echo "supabase gen signing-key failed (above)." >&2; exit 1; }
 fi
 kid="$(python3 -c 'import json,sys; k=json.load(open(sys.argv[1])); k=k[0] if isinstance(k,list) else k; assert k["kty"]=="EC" and k["crv"]=="P-256" and k.get("d") and k.get("kid"); print(k["kid"])' "$FILE")" ||
   { echo "$FILE is not an ES256 private JWK; remove it and run again." >&2; exit 1; }
 
 echo "1/2 Setting XOS_API_JWT_SIGNING_KEY on $PROJECT (key id $kid)"
-supabase secrets set --project-ref "$PROJECT" XOS_API_JWT_SIGNING_KEY="$(cat "$FILE")" > /dev/null
+supabase secrets set --remote="$PROJECT" --yes XOS_API_JWT_SIGNING_KEY="$(cat "$FILE")" > /dev/null
 
 python3 -c 'import json,sys; k=json.load(open(sys.argv[1])); k=k[0] if isinstance(k,list) else k; print(json.dumps(k))' "$FILE" | pbcopy
 cat <<EOF
