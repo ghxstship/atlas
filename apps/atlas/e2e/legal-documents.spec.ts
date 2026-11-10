@@ -29,9 +29,7 @@ test.describe("without JavaScript", () => {
       // Terms of Service 15: every version, its effective date and a summary of changes.
       const history = page.getByRole("region", { name: "Version history" });
       await expect(history.getByRole("listitem")).toHaveCount(1);
-      await expect(
-        history.getByText(/^Version 1\.0\.0: in effect from /),
-      ).toBeVisible();
+      await expect(history.getByText(/^Version 1\.0\.0: in effect from /)).toBeVisible();
       await expect(history.getByText("First version.")).toHaveAttribute("lang", "en-US");
       await expect(h1.locator("xpath=ancestor::*[@lang='en-US'][1]")).toHaveCount(1);
     });
