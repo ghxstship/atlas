@@ -170,7 +170,12 @@
       "break_types": "break types",
       "itinerary_changes": "itinerary changes",
       "my_transfers": "Drives",
-      "local_contacts": "Local contacts"
+      "local_contacts": "Local contacts",
+      "client_approvals": "approvals waiting",
+      "vendor_delivery_windows": "load-in and load-out windows",
+      "briefings": "briefings",
+      "hospitality": "hospitality",
+      "space_bookings": "activation schedule"
     }
   },
   "queue": {
@@ -346,6 +351,45 @@
       "contactTitle": "Contact",
       "contactSentence": "Ask them about your call, gear or parking.",
       "projectDetails": "Update project details"
+    },
+    "blocks": {
+      "due": "Due {day}",
+      "requested": "Asked {day}",
+      "arriveAt": "Arrive at {zone}",
+      "quoteReference": "Give reference {reference} on arrival",
+      "placesLeftOne": "1 place left",
+      "placesLeftOther": "{count} places left",
+      "quantity": "× {count}",
+      "deliverableState": {
+        "Open": "To hand in",
+        "Returned": "Returned for changes"
+      },
+      "fulfilled": "Fulfilled",
+      "canceled": "Canceled",
+      "loading": "Reading the guest list…",
+      "guestListOffline": "The guest list is read live. Connect to see it.",
+      "guestListFailed": "Compass could not read the guest list. Try again when you are connected.",
+      "guestPlusOnesOne": "{name} + 1",
+      "guestPlusOnesOther": "{name} + {count}",
+      "guestState": {
+        "Requested": "Requested",
+        "Approved": "Approved",
+        "Declined": "Declined",
+        "CheckedIn": "Checked in"
+      },
+      "empty": {
+        "approvalsWaiting": "Nothing is waiting on your approval.",
+        "dockSlot": "No dock slot is booked for you on this project.",
+        "loadInAndLoadOutWindows": "No load-in or load-out windows are open.",
+        "deliveryInstructions": "Delivery instructions appear when a dock slot is booked for you.",
+        "tasksAndDeliverablesDue": "Nothing is due from you.",
+        "siteAccessTimes": "You hold no site credential on this project yet.",
+        "briefings": "No briefings are called for this project.",
+        "hospitality": "No hospitality is listed for your party.",
+        "guestList": "Your guest list is empty.",
+        "activationSchedule": "No activation space is booked yet.",
+        "entitlementChecklist": "No entitlements are listed for this project."
+      }
     }
   },
   "orgs": {
@@ -424,6 +468,7 @@
     "locationCoarse": "Your location is not precise enough yet. Step outside or wait a moment.",
     "locationOff": "Location is off. Turn it on in Settings to clock in on site.",
     "unfenced": "This project has no geofence; your location is recorded with the punch.",
+    "checkedOnPunch": "The venue boundary is checked when you punch; your location is recorded with it.",
     "queued": "Saved on this device. It uploads when you're back online.",
     "forgotten": "Your last shift ran past 16 hours and closed for your supervisor to review.",
     "skewReview": "Your phone's clock looks off, so this punch goes to your supervisor to check.",

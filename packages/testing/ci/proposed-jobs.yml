@@ -32,7 +32,7 @@ e2e:
         cache: pnpm
     - uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
       with:
-        version: 2.120.0
+        version: 3.1.0
     - run: pnpm install --frozen-lockfile
     - run: pnpm exec playwright install --with-deps chromium ${{ matrix.engine }}
       working-directory: apps/${{ matrix.app }}
@@ -41,7 +41,7 @@ e2e:
     - run: supabase start
     - name: Write the app environment from the stack
       run: |
-        ANON=$(supabase status -o env | sed -n 's/^ANON_KEY="\(.*\)"$/\1/p')
+        ANON=$(supabase status -o env | sed -n 's/^PUBLISHABLE_KEY="\(.*\)"$/\1/p')
         printf 'SUPABASE_URL=http://127.0.0.1:55421\nSUPABASE_ANON_KEY=%s\nATLAS_SITE_URL=http://127.0.0.1:3006\nGATEWAY_SITE_URL=http://127.0.0.1:3127\nSUPABASE_INBUCKET_URL=http://127.0.0.1:55424\n' "$ANON" > apps/atlas/.env.local
         printf 'SUPABASE_URL=http://127.0.0.1:55421\nSUPABASE_ANON_KEY=%s\nGATEWAY_SITE_URL=http://127.0.0.1:3127\nGATEWAY_PLATFORM_HOSTS=127.0.0.1,localhost\n' "$ANON" > apps/gateway/.env.local
         echo "E2E_ATLAS_URL=http://127.0.0.1:3006" >> "$GITHUB_ENV"
@@ -90,7 +90,7 @@ e2e-pseudo-locales:
         cache: pnpm
     - uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
       with:
-        version: 2.120.0
+        version: 3.1.0
     - run: pnpm install --frozen-lockfile
     - run: pnpm exec playwright install --with-deps chromium
       working-directory: apps/atlas
@@ -98,7 +98,7 @@ e2e-pseudo-locales:
     - run: supabase start -x studio,imgproxy,logflare,vector,postgres-meta,supavisor
     - name: Write the app environments from the stack
       run: |
-        ANON=$(supabase status -o env | sed -n 's/^ANON_KEY="\(.*\)"$/\1/p')
+        ANON=$(supabase status -o env | sed -n 's/^PUBLISHABLE_KEY="\(.*\)"$/\1/p')
         printf 'SUPABASE_URL=http://127.0.0.1:55421\nSUPABASE_ANON_KEY=%s\nATLAS_SITE_URL=http://127.0.0.1:3006\nGATEWAY_SITE_URL=http://127.0.0.1:3127\n' "$ANON" > apps/atlas/.env.local
         printf 'SUPABASE_URL=http://127.0.0.1:55421\nSUPABASE_ANON_KEY=%s\nGATEWAY_SITE_URL=http://127.0.0.1:3127\nGATEWAY_PLATFORM_HOSTS=127.0.0.1,localhost\n' "$ANON" > apps/gateway/.env.local
         echo "E2E_SUPABASE_URL=http://127.0.0.1:55421" >> "$GITHUB_ENV"
@@ -143,7 +143,7 @@ core-screen-visual:
         cache: pnpm
     - uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
       with:
-        version: 2.120.0
+        version: 3.1.0
     - run: pnpm install --frozen-lockfile
     - run: docker pull --platform linux/amd64 mcr.microsoft.com/playwright:v1.64.0-noble
     # The full stack with migrations and the demo seed the baselines show.
@@ -155,7 +155,7 @@ core-screen-visual:
       run: packages/testing/ci/visual-clock.sh >> "$GITHUB_ENV"
     - name: Write the app environment from the stack
       run: |
-        ANON=$(supabase status -o env | sed -n 's/^ANON_KEY="\(.*\)"$/\1/p')
+        ANON=$(supabase status -o env | sed -n 's/^PUBLISHABLE_KEY="\(.*\)"$/\1/p')
         # Without a key the app exits at boot (lib/env.ts) and the failure shows only later.
         test -n "$ANON" || { echo "::error title=Supabase status::no anon key; is the stack healthy?"; exit 1; }
         printf 'SUPABASE_URL=http://127.0.0.1:55421\nSUPABASE_ANON_KEY=%s\nATLAS_SITE_URL=http://127.0.0.1:3006\nGATEWAY_SITE_URL=http://127.0.0.1:3127\n' "$ANON" > apps/atlas/.env.local
@@ -198,7 +198,7 @@ lighthouse:
         cache: pnpm
     - uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
       with:
-        version: 2.120.0
+        version: 3.1.0
     - run: pnpm install --frozen-lockfile
     - run: pnpm exec playwright install --with-deps chromium
       working-directory: apps/atlas
@@ -206,7 +206,7 @@ lighthouse:
     - run: pnpm turbo run build --filter=@xos/atlas --filter=@xos/gateway --filter=@xos/docs
     - name: Serve the three production builds and run Lighthouse
       run: |
-        ANON=$(supabase status -o env | sed -n 's/^ANON_KEY="\(.*\)"$/\1/p')
+        ANON=$(supabase status -o env | sed -n 's/^PUBLISHABLE_KEY="\(.*\)"$/\1/p')
         export SUPABASE_URL=http://127.0.0.1:55421 SUPABASE_ANON_KEY="$ANON"
         (cd apps/atlas && ATLAS_SITE_URL=http://127.0.0.1:3006 pnpm exec next start --port 3006 &)
         (cd apps/gateway && GATEWAY_SITE_URL=http://127.0.0.1:3127 pnpm exec next start --port 3127 &)
@@ -234,13 +234,13 @@ load-smoke:
         cache: pnpm
     - uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
       with:
-        version: 2.120.0
+        version: 3.1.0
     - run: pnpm install --frozen-lockfile
     - run: supabase start
     - run: pnpm turbo run build --filter=@xos/atlas
     - name: Smoke the three scripts through grafana/k6:2.3.0
       run: |
-        ANON=$(supabase status -o env | sed -n 's/^ANON_KEY="\(.*\)"$/\1/p')
+        ANON=$(supabase status -o env | sed -n 's/^PUBLISHABLE_KEY="\(.*\)"$/\1/p')
         export SUPABASE_ANON_KEY="$ANON"
         (cd apps/atlas && SUPABASE_URL=http://127.0.0.1:55421 ATLAS_SITE_URL=http://127.0.0.1:3006 pnpm exec next start --port 3006 &)
         sleep 10
@@ -263,14 +263,14 @@ maestro-ios:
         cache: pnpm
     - uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
       with:
-        version: 2.120.0
+        version: 3.1.0
     - run: pnpm install --frozen-lockfile
     - run: supabase start
     - name: Build Compass for the simulator against the CI stack
       working-directory: apps/compass
       run: |
         export EXPO_PUBLIC_SUPABASE_URL=http://127.0.0.1:55421
-        export EXPO_PUBLIC_SUPABASE_ANON_KEY=$(supabase status -o env | sed -n 's/^ANON_KEY="\(.*\)"$/\1/p')
+        export EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=$(supabase status -o env | sed -n 's/^PUBLISHABLE_KEY="\(.*\)"$/\1/p')
         pnpm exec expo prebuild --platform ios --no-install
         (cd ios && pod install)
         xcodebuild -workspace ios/*.xcworkspace -scheme Compass -configuration Release \
@@ -301,14 +301,14 @@ maestro-android:
         cache: pnpm
     - uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
       with:
-        version: 2.120.0
+        version: 3.1.0
     - run: pnpm install --frozen-lockfile
     - run: supabase start
     - name: Build the release APK against the CI stack (emulator reaches the host at 10.0.2.2)
       working-directory: apps/compass
       run: |
         export EXPO_PUBLIC_SUPABASE_URL=http://10.0.2.2:55421
-        export EXPO_PUBLIC_SUPABASE_ANON_KEY=$(supabase status -o env | sed -n 's/^ANON_KEY="\(.*\)"$/\1/p')
+        export EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=$(supabase status -o env | sed -n 's/^PUBLISHABLE_KEY="\(.*\)"$/\1/p')
         pnpm exec expo prebuild --platform android --no-install
         (cd android && ./gradlew assembleRelease)
     - name: Run the field flows on an emulator

@@ -527,8 +527,6 @@ async function unsubscribeStakeholderPack(db, input) {
   return ok({ refused: false });
 }
 var PACK_DELIVER_JOB = "pack.deliver";
-var escapeHtml = (s) =>
-  s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 /** The expiry as the recipient reads it: in the project's zone, with the zone's name. */
 function packExpiryText(expiresAt, locale, timeZone) {
   return new Intl.DateTimeFormat(locale, {
@@ -541,56 +539,17 @@ function packExpiryText(expiresAt, locale, timeZone) {
     timeZoneName: "short",
   }).format(new Date(expiresAt));
 }
-/** The email of one delivery. It carries a sign-in link, never a code and never a file. */
-/** One line of the HTML part: escaped, with the pack's own links clickable rather than left to the mail client. */
-function linked(line, ...urls) {
-  return urls.reduce((html, url) => {
-    const safe = escapeHtml(url);
-    return html.replaceAll(safe, `<a href="${safe}">${safe}</a>`);
-  }, escapeHtml(line));
-}
-function packEmail(link, copy, env) {
-  const facts = link.email;
-  const url = `${env.appUrl}${packPath(link.token)}`;
-  const stopUrl = `${env.appUrl}${packUnsubscribePath(link.unsubscribeToken)}`;
-  const words = {
-    sender: facts.senderName ?? facts.brandName,
-    pack: facts.packName,
-  };
-  const date = packExpiryText(link.expiresAt, facts.locale, facts.timeZone);
-  const paragraphs = [
-    copy.intro(words),
-    ...(facts.message ? [copy.message({ message: facts.message })] : []),
-    ...(facts.itemTitles.length > 0 ? [copy.items({ items: facts.itemTitles.join(", ") })] : []),
-    copy.open({ url }),
-    copy.expires({ date }),
-    copy.code(),
-  ];
-  const footer = [
-    copy.sentBy({
-      org: facts.orgName,
-      address: env.postalAddress,
-    }),
-    copy.stop({ url: stopUrl }),
-  ];
+/** The links of a minted delivery on the Atlas origin, with the one-click stop on the API origin (RFC 8058). */
+function packEmailLinks(link, env) {
   return {
-    to: facts.recipientEmail,
-    toName: facts.recipientName,
-    subject: copy.subject(words),
-    text: [...paragraphs, ...footer].join("\n\n"),
-    html: [
-      ...paragraphs.map((p) => `<p>${linked(p, url, stopUrl)}</p>`),
-      ...footer.map((p) => `<p><small>${linked(p, url, stopUrl)}</small></p>`),
-    ].join(""),
-    headers: {
-      "List-Unsubscribe": `<${env.apiUrl}/functions/v1/email-unsubscribe?token=${link.unsubscribeToken}>`,
-      "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
-    },
+    url: `${env.appUrl}${packPath(link.token)}`,
+    stopUrl: `${env.appUrl}${packUnsubscribePath(link.unsubscribeToken)}`,
+    oneClickUrl: `${env.apiUrl}/functions/v1/email-unsubscribe?token=${link.unsubscribeToken}`,
   };
 }
 /** One pass of the pack.deliver worker: claim, mint, send, finish. */
 async function runPackDeliveries(options) {
-  const { store, mailer, copy, env, worker } = options;
+  const { store, mailer, compose, env, worker } = options;
   const claimed = await store.claim(worker, options.limit ?? 25);
   const results = [];
   for (const job of claimed)
@@ -608,11 +567,14 @@ async function runPackDeliveries(options) {
         });
         continue;
       }
-      const email = packEmail(link, await copy(link.email.locale), {
-        appUrl: env.appUrl,
-        postalAddress: env.postalAddress,
-        apiUrl: env.apiUrl,
-      });
+      const email = await compose(
+        link,
+        packEmailLinks(link, {
+          appUrl: env.appUrl,
+          apiUrl: env.apiUrl,
+        }),
+        { postalAddress: env.postalAddress },
+      );
       const sent = await mailer.send(email);
       await store.finish(job.deliveryId, {
         sent: true,
@@ -674,8 +636,15 @@ function supabasePackDeliveryStore(client) {
           recipientName: str(e["recipient_name"]),
           recipientEmail: str(e["recipient_email"]),
           locale: str(e["locale"]) || "en-US",
+          orgId: str(e["org_id"]),
           orgName: str(e["org_name"]),
           brandName: str(e["brand_name"]),
+          whiteLabel: e["white_label"] === true,
+          brandSenderName: strOrNull(e["brand_sender_name"]),
+          replyTo: strOrNull(e["reply_to"]),
+          logoPath: strOrNull(e["logo_path"]),
+          accentHex: strOrNull(e["accent_hex"]),
+          suppressPoweredBy: e["suppress_powered_by"] === true,
           packName: str(e["pack_name"]),
           message: strOrNull(e["message"]),
           itemTitles: (Array.isArray(e["item_titles"]) ? e["item_titles"] : []).map(str),
@@ -738,7 +707,7 @@ export {
   openStakeholderPack,
   orderPackItems,
   packAsksForCode,
-  packEmail,
+  packEmailLinks,
   packExpiryText,
   packFileTicket,
   packPath,

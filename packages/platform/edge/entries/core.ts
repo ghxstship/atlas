@@ -8,3 +8,10 @@ export { createObservability, observe } from "../../../../infra/observability/sr
 export { observeEdgeFunction } from "../../../../infra/observability/src/edge.ts";
 export { edgeFunctionName, internalErrorResponse, requestIdFor } from "../../src/http/failure.ts";
 export { PlatformDbError, restDb, type PlatformDb } from "../../src/stores.ts";
+export type { ProjectTokenSigner } from "../../src/jwt/project-token.ts";
+import type * as ProjectTokens from "../../src/jwt/project-token.ts";
+
+/** The project token signer (ADR 0168), loaded on demand: only api-token and the workers that mint tokens need it. */
+export function loadProjectTokens(): Promise<typeof ProjectTokens> {
+  return import("../../src/jwt/project-token.ts");
+}

@@ -1,5 +1,6 @@
 import type { XosClient } from "./client.ts";
-import { Constants, type Database } from "./database.types.ts";
+import type { Database } from "./database.types.ts";
+import { dataClassification } from "./enums.generated.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 
 /**
@@ -16,8 +17,7 @@ export type DataRequestState = Database["app"]["Enums"]["dsar_state"];
 export type DataRequestType = Database["app"]["Enums"]["dsar_request_type"];
 export type DataClassification = Database["app"]["Enums"]["data_classification"];
 
-export const DATA_CLASSIFICATIONS: readonly DataClassification[] =
-  Constants.app.Enums.data_classification;
+export const DATA_CLASSIFICATIONS: readonly DataClassification[] = dataClassification;
 
 /** Allowed moves of a data request (0501's lifecycle rules), in the order the buttons appear. */
 export const DATA_REQUEST_MOVES: Readonly<Record<DataRequestState, readonly DataRequestState[]>> = {

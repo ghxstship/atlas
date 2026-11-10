@@ -229,7 +229,7 @@ describe("no-seed comparison", () => {
   });
 });
 
-describe("plain SQL for supabase db query --linked", () => {
+describe("plain SQL for supabase db query --remote", () => {
   const script = readFileSync(sqlPath, "utf8");
   const noMeta = (sql: string) => sql.split("\n").filter((l) => /^\s*\\/.test(l));
 
@@ -299,7 +299,7 @@ describe("the linked runner", () => {
     expect(() => parseReport('[{"other":1}]')).toThrow(/no report/);
   });
 
-  it("runs the translated SQL through db query --linked as JSON", () => {
+  it("runs the translated SQL through db query --remote as JSON, with consent", () => {
     const calls: string[][] = [];
     const report = runLinked<{ mode: string }>(
       readFileSync(sqlPath, "utf8"),
@@ -313,10 +313,10 @@ describe("the linked runner", () => {
       },
     );
     expect(report.mode).toBe("dry-run");
-    expect(calls[0]?.slice(0, 5)).toEqual(["db", "query", "--linked", "-o", "json"]);
+    expect(calls[0]?.slice(0, 6)).toEqual(["db", "query", "--remote", "--yes", "-o", "json"]);
   });
 
-  it("deletes storage objects through storage rm --linked in batches of 50", () => {
+  it("deletes storage objects through storage rm --remote in batches of 50", () => {
     const calls: string[][] = [];
     const objects = Array.from({ length: 120 }, (_, i) => ({
       bucket: "org-brand",
@@ -324,7 +324,7 @@ describe("the linked runner", () => {
     }));
     expect(deleteStorageLinked(objects, repoRoot, (args) => (calls.push(args), ""))).toBe(120);
     expect(calls).toHaveLength(3);
-    expect(calls[0]?.slice(0, 4)).toEqual(["storage", "rm", "--linked", "--experimental"]);
+    expect(calls[0]?.slice(0, 4)).toEqual(["storage", "rm", "--remote", "--experimental"]);
     expect(calls[0]).toContain("ss:///org-brand/org/0.png");
   });
 });

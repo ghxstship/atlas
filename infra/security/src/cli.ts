@@ -5,6 +5,7 @@
  *   node --experimental-strip-types infra/security/src/cli.ts audit
  *   node --experimental-strip-types infra/security/src/cli.ts pins [--remote]
  *   node --experimental-strip-types infra/security/src/cli.ts advisors <project-ref>   # SUPABASE_ACCESS_TOKEN
+ *   node --experimental-strip-types infra/security/src/cli.ts advisors-local <report.json>   # supabase db advisors
  *   node --experimental-strip-types infra/security/src/cli.ts zap <report.json> <target>
  *   node --experimental-strip-types infra/security/src/cli.ts redact <folder>   # VERCEL_AUTOMATION_BYPASS_SECRET
  *   node --experimental-strip-types infra/security/src/cli.ts sbom <sbom.cdx.json> <notices.md> <version>
@@ -22,7 +23,13 @@ import {
   findUses,
   type PinProblem,
 } from "./action-pins.ts";
-import { advisorsSummary, evaluateAdvisors, fetchAdvisors, type AcceptedLint } from "./advisors.ts";
+import {
+  advisorsSummary,
+  cliAdvisorLints,
+  evaluateAdvisors,
+  fetchAdvisors,
+  type AcceptedLint,
+} from "./advisors.ts";
 import {
   auditPasses,
   auditSummary,
@@ -166,6 +173,20 @@ async function advisors(projectRef: string | undefined): Promise<number> {
   return verdict.failures.length === 0 ? 0 : 1;
 }
 
+/** The local stack's advisors (infra/security/supabase-advisors.sh), against the same accepted list as staging. */
+function advisorsLocal(reportPath: string | undefined): number {
+  if (!reportPath)
+    throw new Error("Pass the JSON report of `supabase db advisors --output-format json`.");
+  const accepted = readJson<{ accepted: AcceptedLint[] }>(
+    `${repoRoot}infra/security/advisors-accepted.json`,
+  ).accepted;
+  const verdict = evaluateAdvisors(cliAdvisorLints(readJson<unknown>(reportPath)), accepted);
+  for (const f of verdict.failures)
+    annotate("error", `${f.level} ${f.kind} advisor ${f.name}: ${f.detail}`);
+  report(advisorsSummary("the local stack", verdict));
+  return verdict.failures.length === 0 ? 0 : 1;
+}
+
 function zap(reportPath: string | undefined, target: string | undefined): number {
   if (!reportPath || !target) throw new Error("Pass the ZAP JSON report and the target URL.");
   const rules = parseZapRules(
@@ -222,6 +243,7 @@ const run: Record<string, () => number | Promise<number>> = {
   audit: () => audit(),
   pins: () => pins(args.includes("--remote")),
   advisors: () => advisors(args[0]),
+  "advisors-local": () => advisorsLocal(args[0]),
   zap: () => zap(args[0], args[1]),
   redact: () => redact(args[0]),
   sbom: () => sbom(args[0], args[1], args[2]),

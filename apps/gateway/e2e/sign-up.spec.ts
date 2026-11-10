@@ -84,7 +84,7 @@ test("sign-up asks once for the email and records the Worker Terms acceptance", 
     [email],
   );
   expect(accepted.map(({ slug, version, org }) => ({ slug, version, org }))).toEqual([
-    { slug: "worker-terms", version: "1.0.0-draft", org: null },
+    { slug: "worker-terms", version: "1.0.0", org: null },
   ]);
   expect(accepted[0]?.pending ?? null).toBeNull();
 });

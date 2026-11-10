@@ -26,6 +26,7 @@ import { itemZone } from "../../src/domain/orgs";
 import { useHomeWidgets, useOngoingNotification } from "../../src/runtime/glance";
 import { CombinedToday } from "../../src/screens/CombinedToday";
 import { TodaySearch } from "../../src/screens/TodaySearch";
+import { isWiredBlock, TodayBlock } from "../../src/screens/TodayBlocks";
 import { RosterToday } from "../../src/screens/RosterToday";
 import { useTodayGlance, type TodayGlance } from "../../src/screens/useTodayGlance";
 import { formatDistance, hapticsOn, scheduleZone } from "../../src/domain/settings";
@@ -161,8 +162,13 @@ function ClockCard({
         : null;
   const primary = primaryPunch(clock.snapshot.state);
   const refusal = clock.refusal(primary);
+  // Outside crew sync no geofence shapes: the server checks each of their punches against the venue boundary
+  // (record_punch), so an empty list is not "no geofence" for them and is not shown as a pass.
+  const external = resolved?.identity ? !isInternal(resolved.identity.audience) : false;
   const geofenceText = (() => {
     const g = clock.geofence;
+    if (external && g.kind === "unfenced" && !clock.locationDenied)
+      return t("compass.clock.checkedOnPunch");
     if (clock.locationDenied) return t("compass.clock.locationOff");
     if (g.kind === "inside") return t("compass.clock.inside", { name: g.geofence.name });
     if (g.kind === "outside")
@@ -270,7 +276,9 @@ function ClockCard({
           : {})}
         {...(refusal && clock.snapshot.state === "out" ? { detail: t(REFUSAL_KEY[refusal]) } : {})}
         geofence={geofenceText}
-        geofenceOk={clock.geofence.kind === "inside" || clock.geofence.kind === "unfenced"}
+        geofenceOk={
+          clock.geofence.kind === "inside" || (clock.geofence.kind === "unfenced" && !external)
+        }
         haptics={hapticsOn(settings.haptics, orgSettings)}
         onPress={() => void run(primary)}
       />
@@ -559,16 +567,20 @@ export default function TodayScreen(): ReactElement {
               "tasks",
             ].includes(b),
         )
-        .map((b) => (
-          <Card
-            key={b}
-            title={t(
-              `nav.compass.content.${b.replace(/-([a-z])/g, (_m, c: string) => c.toUpperCase())}`,
-            )}
-          >
-            <Text tone="secondary">{t("compass.today.blockEmpty")}</Text>
-          </Card>
-        ))}
+        .map((b) =>
+          projectId && isWiredBlock(b) ? (
+            <TodayBlock key={b} id={b} projectId={projectId} zone={zone} />
+          ) : (
+            <Card
+              key={b}
+              title={t(
+                `nav.compass.content.${b.replace(/-([a-z])/g, (_m, c: string) => c.toUpperCase())}`,
+              )}
+            >
+              <Text tone="secondary">{t("compass.today.blockEmpty")}</Text>
+            </Card>
+          ),
+        )}
     </Screen>
   );
 }

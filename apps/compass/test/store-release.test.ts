@@ -256,7 +256,7 @@ describe("release build guard (app.config.ts)", () => {
     EAS_BUILD: "true",
     EAS_BUILD_PROFILE: "production",
     EXPO_PUBLIC_SUPABASE_URL: "https://abc.supabase.co",
-    EXPO_PUBLIC_SUPABASE_ANON_KEY: "public-anon-key",
+    EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "sb_publishable_example",
     EXPO_PUBLIC_ATLAS_URL: "https://app.example.com",
     EXPO_PUBLIC_GATEWAY_URL: "https://gateway.example.com",
   };
@@ -273,6 +273,13 @@ describe("release build guard (app.config.ts)", () => {
     const missing = { EAS_BUILD: "true", EAS_BUILD_PROFILE: "preview" };
     expect(releaseConfigProblems(missing)).toHaveLength(4);
     expect(() => withStoreBuild(expo, missing, true)).toThrow(/eas env:create/);
+  });
+
+  it("stops a release build that carries the legacy JWT-based anon key (ADR 0168)", () => {
+    const legacy = { ...good, EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "eyJhbGciOiJIUzI1NiJ9.e30.x" };
+    expect(releaseConfigProblems(legacy, true)).toEqual([
+      'EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY must be the project\'s sb_publishable_ key (EAS environment "production")',
+    ]);
   });
 
   it("stops a release build without the app icon and uses the icon once it exists", () => {

@@ -13,7 +13,7 @@ Production deployment is in `infra/runbooks/production.md`, under "Upload scanni
    - Files for the public buckets `profile-media` and `org-brand` are uploaded to the private
      `upload-staging` bucket as `<bucket>/<name>` (migration 1265). Nobody signed in writes the public
      buckets.
-2. The `upload-scan` Edge Function runs on a schedule with the service key and calls `runUploadScans`
+2. The `upload-scan` Edge Function runs on a schedule with a secret key on the `apikey` header and calls `runUploadScans`
    from `@xos/platform`. For each due scan it:
    - downloads the file and, for attachments, checks its SHA-256 against the one given at upload;
    - checks the leading bytes against the declared type and the extension
@@ -61,10 +61,10 @@ docker compose -f infra/scanning/docker-compose.yaml -p xos4-clamav up -d
 ```
 
 Add `XOS_CLAMAV_HOST=host.docker.internal` and `XOS_CLAMAV_PORT=3310` to `supabase/functions/.env`,
-serve the functions, and call the worker with the service key:
+serve the functions, and call the worker with a secret key (`supabase status`, Secret) on the apikey header:
 
 ```sh
-curl -X POST "$SUPABASE_URL/functions/v1/upload-scan" -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY"
+curl -X POST "$SUPABASE_URL/functions/v1/upload-scan" -H "apikey: $SUPABASE_SECRET_KEY"
 ```
 
 Without those two variables, the local stack uses the logged pass-through. Uploads still need the worker

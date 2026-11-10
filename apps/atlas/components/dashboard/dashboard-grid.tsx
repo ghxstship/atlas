@@ -27,6 +27,7 @@ export function DashboardGrid({
   tiles,
   saved,
   label,
+  ready = false,
 }: {
   dashboard: DashboardId;
   header: ReactNode;
@@ -36,6 +37,11 @@ export function DashboardGrid({
   saved: DashboardSpans;
   /** Names the grid, such as "Home tiles". */
   label: string;
+  /**
+   * Every tile's content is already computed on the page (no async server child), so the tiles render in the first
+   * paint, without a Suspense boundary each (Region `streams`): none appears late and pushes the others down.
+   */
+  ready?: boolean;
 }) {
   const t = useTranslations("home.layout");
   const [spans, setSpans] = useState<DashboardSpans>(saved);
@@ -43,8 +49,12 @@ export function DashboardGrid({
   const [version, setVersion] = useState(0);
   const [failed, setFailed] = useState(false);
   const regions = useMemo(
-    () => tiles.map((tile) => ({ ...tile, content: <Region>{tile.content}</Region> })),
-    [tiles],
+    () =>
+      tiles.map((tile) => ({
+        ...tile,
+        content: <Region streams={!ready}>{tile.content}</Region>,
+      })),
+    [tiles, ready],
   );
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(

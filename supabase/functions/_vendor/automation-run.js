@@ -507,8 +507,8 @@ function renderField(template, event, limit) {
  * retries the run from the failed step (retry); anything else fails the run for good (failed). Each POST carries an
  * Idempotency-Key per run and action, so a retry never repeats a write the API already made.
  *
- * The token is an HS256 JWT signed with the project's JWT secret (XOS_API_JWT_SIGNING_KEY, the same secret api-token
- * and A83's chat sessions use), valid for two minutes, minted per action and never stored or logged. Its claims carry
+ * The token is a JWT signed by the signer the worker is handed (the project signing key XOS_API_JWT_SIGNING_KEY that
+ * api-token and A83's chat sessions also use, ADR 0168), valid for two minutes, minted per action and never stored or logged. Its claims carry
  * the org it is bound to and the run (xos_automation_run_id), which the fan-out trigger reads to keep automation-caused
  * chains within private.automation_max_depth().
  */
@@ -575,12 +575,6 @@ function supabaseAutomationRunStore(client) {
     },
   };
 }
-function base64url(bytes) {
-  let binary = "";
-  for (const byte of bytes) binary += String.fromCharCode(byte);
-  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-}
-var encode = (value) => base64url(new TextEncoder().encode(JSON.stringify(value)));
 /** The claims of an owner token: an ordinary session of the owner, bound to the org and marked with the run. */
 function ownerTokenClaims(input) {
   return {
@@ -602,25 +596,9 @@ function ownerTokenClaims(input) {
     xos_automation_run_id: input.runId,
   };
 }
-/** An HS256 JWT acting as the automation's owner for OWNER_TOKEN_SECONDS. */
-async function mintOwnerToken(input) {
-  if (input.signingKey.length < 32) throw new Error("The JWT signing key is too short.");
-  const head = `${encode({
-    alg: "HS256",
-    typ: "JWT",
-  })}.${encode(ownerTokenClaims(input))}`;
-  const key = await crypto.subtle.importKey(
-    "raw",
-    new TextEncoder().encode(input.signingKey),
-    {
-      name: "HMAC",
-      hash: "SHA-256",
-    },
-    false,
-    ["sign"],
-  );
-  const signature = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(head));
-  return `${head}.${base64url(new Uint8Array(signature))}`;
+/** A JWT acting as the automation's owner for OWNER_TOKEN_SECONDS. */
+function mintOwnerToken(input) {
+  return input.sign(ownerTokenClaims(input));
 }
 /** A failed step and what can fix it. */
 var StepFailure = class extends Error {
@@ -935,7 +913,7 @@ async function runOne(deps, job) {
       orgId: begun.org_id,
       automationId: begun.automation_id,
       runId: begun.run_id,
-      signingKey: deps.signingKey,
+      sign: deps.sign,
       issuer: deps.issuer,
       nowSeconds: Math.floor(now() / 1e3),
     }),

@@ -1,5 +1,6 @@
 import type { XosClient } from "./client.ts";
-import { Constants, type Database } from "./database.types.ts";
+import type { Database } from "./database.types.ts";
+import { customDataType, spendDocumentType } from "./enums.generated.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 
 /**
@@ -16,8 +17,7 @@ import { fail, ok, toDataError, type Result } from "./result.ts";
  */
 
 export type SpendDocumentType = Database["app"]["Enums"]["spend_document_type"];
-export const SPEND_DOCUMENT_TYPES: readonly SpendDocumentType[] =
-  Constants.app.Enums.spend_document_type;
+export const SPEND_DOCUMENT_TYPES: readonly SpendDocumentType[] = spendDocumentType;
 
 export interface SpendAuthority {
   readonly id: string;
@@ -197,7 +197,7 @@ export async function setSeparationOption(
 // Custom fields ----------------------------------------------------------------------------------------------
 
 export type CustomDataType = Database["app"]["Enums"]["custom_data_type"];
-export const CUSTOM_DATA_TYPES: readonly CustomDataType[] = Constants.app.Enums.custom_data_type;
+export const CUSTOM_DATA_TYPES: readonly CustomDataType[] = customDataType;
 
 export interface CustomFieldChoice {
   readonly id: string;

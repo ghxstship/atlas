@@ -45,6 +45,8 @@ select is(pg_temp.emails('rae@freelance.test'), 1, 'exactly one party_invitation
 select pg_temp.as_platform();
 select is((select e.args ->> 'kind' from private.platform_emails e where e.to_email = 'rae@freelance.test'), 'pool', 'of kind pool');
 select ok((select e.args::text not like '%Secret Stagehands%' and e.args::text not like '%' || pg_temp.id('pool') || '%' from private.platform_emails e where e.to_email = 'rae@freelance.test'), 'whose args name no pool');
+select is((select e.args ->> 'org_id' from private.platform_emails e where e.to_email = 'rae@freelance.test'), pg_temp.id('org_a')::text,
+  'and name the inviting org, so the email wears its brand while white label is in force (904090003)');
 select is((select e.args ->> 'org_name' from private.platform_emails e where e.to_email = 'rae@freelance.test'), 'Northwind Live', 'and name the org');
 select pg_temp.as_user('alice');
 select is(pg_temp.refusal(format($$select app.invite_to_talent_pool('%s', 'rae@freelance.test')$$, pg_temp.id('pool'))), 'pool_invitation_duplicate', 'a second pending invitation is refused');

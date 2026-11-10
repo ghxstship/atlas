@@ -43,6 +43,9 @@ var email_default$1 = {
     heading: "{reportName}",
     body: "Your scheduled report for {periodLabel} is attached as {format}.",
     membersOnly: "Scheduled reports go only to members of {orgName}.",
+    contents:
+      "It has {rows, plural, one {# row} other {# rows}}{unpriced, plural, =0 {.} one {; # carries an unpriced amount, left out of its totals.} other {; # carry an unpriced amount, left out of their totals.}}",
+    access: "It ran with your own access, so it shows only what you may see.",
   },
   export_ready: {
     subject: "Your export {exportName} is ready",
@@ -142,6 +145,18 @@ var email_default$1 = {
       "Queue Failure": "queue failure",
     },
   },
+  stakeholder_pack: {
+    subject: "{sender} shared {pack} with you",
+    intro:
+      "{sender} shared {pack} with you. Open it with the button below and the access code they gave you.",
+    message: "Their message: {message}",
+    items: "In this pack: {items}",
+    expires: "This link works until {date}.",
+    code: "The access code never comes by email. If you do not have it, ask the person who shared this pack.",
+    open: "Open the pack",
+    why: "You are receiving this email because {sender} shared a pack from {orgName} with you.",
+    preferences: "Stop these emails",
+  },
   guest_message: {
     invitationSubject: "{orgName} invites you to {projectName}",
     passSubject: "Your pass for {projectName}",
@@ -198,6 +213,9 @@ var email_default = {
     heading: "{reportName}",
     body: "Tu informe programado de {periodLabel} va adjunto en formato {format}.",
     membersOnly: "Los informes programados se envían solo a miembros de {orgName}.",
+    contents:
+      "Tiene {rows, plural, one {# fila} other {# filas}}{unpriced, plural, =0 {.} one {; # tiene un importe sin precio, fuera de sus totales.} other {; # tienen un importe sin precio, fuera de sus totales.}}",
+    access: "Se ejecutó con tu propio acceso, así que solo muestra lo que puedes ver.",
   },
   export_ready: {
     subject: "Tu exportación {exportName} está lista",
@@ -299,6 +317,18 @@ var email_default = {
       "Undelivered Notice": "aviso no entregado",
       "Queue Failure": "fallo de la cola",
     },
+  },
+  stakeholder_pack: {
+    subject: "{sender} compartió {pack} contigo",
+    intro:
+      "{sender} compartió {pack} contigo. Ábrelo con el botón de abajo y el código de acceso que te dio.",
+    message: "Su mensaje: {message}",
+    items: "En este paquete: {items}",
+    expires: "Este enlace funciona hasta {date}.",
+    code: "El código de acceso nunca llega por correo. Si no lo tienes, pídeselo a quien compartió este paquete.",
+    open: "Abrir el paquete",
+    why: "Recibes este correo porque {sender} compartió contigo un paquete de {orgName}.",
+    preferences: "Dejar de recibir estos correos",
   },
   guest_message: {
     invitationSubject: "{orgName} te invita a {projectName}",

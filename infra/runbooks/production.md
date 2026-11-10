@@ -257,7 +257,7 @@ supabase db push
   (decision 75).
 - Never load `supabase/seeds` into production; they are the demo tenant.
 - Then put back any Realtime channel rule the project lacks:
-  `supabase db query --linked "select private.ensure_realtime_channel_policies();"`. It answers the names of the
+  `supabase db query --remote --yes "select private.ensure_realtime_channel_policies();"`. It answers the names of the
   rules it created, usually none (`{}`). Realtime creates `realtime.messages` itself, the first time it starts and
   in some upgrades, and the co-editing rooms refuse every join until their rules exist (ADR 0044, decision 6). The
   `xos_ensure_realtime_channel_policies` job does the same every minute.
@@ -267,11 +267,11 @@ supabase db push
 ### 2. Edge Functions
 
 ```sh
-supabase functions deploy --project-ref <production-ref>
-supabase secrets list --project-ref <production-ref>   # names only; values never print
+supabase functions deploy --remote=<production-ref> --yes
+supabase secrets list --remote=<production-ref>   # names only; values never print
 ```
 
-Set any secret new in this release with `supabase secrets set --project-ref <production-ref> NAME=...` from the owner's secret store. Confirm the worker schedules (`webhook-dispatch`, `notification-dispatch`, `upload-scan`, `report-run`, `import-run`, `integration-worker`, `subprocessor-notices`, `automation-run`, `search-embed`, each every minute; `infra/runbooks/integrations.md`; and `xos_fx_rates_ecb`, `xos_export_render`, `xos_guest_email` (every minute while guest emails are queued) and `xos_weather_feed` (every 10 minutes while a weather feed is on), which migrations create, sections Exchange rates and Exports, and ADR 0147; and `xos_send_waiting_crisis_alerts`, every 15 seconds from migration 6800, without which a large crisis alert stops at the people told inline and Atlas keeps showing the rest as still being told) still exist: `select jobname, schedule from cron.job order by 1;`.
+Set any secret new in this release with `supabase secrets set --remote=<production-ref> --yes NAME=...` from the owner's secret store. Confirm the worker schedules (`webhook-dispatch`, `notification-dispatch`, `upload-scan`, `report-run`, `import-run`, `integration-worker`, `subprocessor-notices`, `automation-run`, `search-embed`, each every minute; `infra/runbooks/integrations.md`; and `xos_fx_rates_ecb`, `xos_export_render`, `xos_guest_email` (every minute while guest emails are queued) and `xos_weather_feed` (every 10 minutes while a weather feed is on), which migrations create, sections Exchange rates and Exports, and ADR 0147; and `xos_send_waiting_crisis_alerts`, every 15 seconds from migration 6800, without which a large crisis alert stops at the people told inline and Atlas keeps showing the rest as still being told) still exist: `select jobname, schedule from cron.job order by 1;`.
 
 How the functions are bundled (A85, RRR-130):
 
@@ -311,7 +311,7 @@ See Compass releases below. Compass ships on its own cadence; a web release neve
 | ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------- |
 | A feature              | Kill switch: `pnpm --filter @xos/infra rollout:gate flag-kill <flag> on` prints the SQL; run it with the service role (`progressive-delivery.md`)                                               | 1 request       |
 | Atlas, Gateway or docs | Atlas: abort the Rolling Release, which returns all traffic to the previous production deployment. Gateway, docs and the console: Vercel Instant Rollback to the previous production deployment | Seconds         |
-| Edge Functions         | Check out the previous tag and redeploy the functions: `git switch --detach vPREV`, then `supabase functions deploy --project-ref <production-ref>`, then return to `main`                      | Minutes         |
+| Edge Functions         | Check out the previous tag and redeploy the functions: `git switch --detach vPREV`, then `supabase functions deploy --remote=<production-ref> --yes`, then return to `main`                     | Minutes         |
 | A migration            | Never run a down migration. Ship a forward fix as a new migration. The previous app build keeps working on the new schema (expand and contract)                                                 | One deploy      |
 | Lost or corrupted data | Restore to a new project and switch traffic (`backup-and-restore.md`, Restoring production). Declare a SEV1 first                                                                               | Under 4 h (RTO) |
 | A published package    | Never unpublish. Publish the next patch; `npm deprecate @ghxstship/xos-sdk@X.Y.Z "<reason>"` and yank on PyPI                                                                                   | Minutes         |
@@ -365,7 +365,7 @@ None. The site is built from the repository and the OpenAPI document. Project se
 
 | Secret                                                           | Notes                                                                                                                                                                                                                                                          |
 | ---------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `XOS_API_JWT_SIGNING_KEY`                                        | The project's JWT secret, for `api-token`, `integration-worker` and `automation-run` (ADR 0047)                                                                                                                                                                |
+| `XOS_API_JWT_SIGNING_KEY`                                        | XOS's own ES256 signing key, a private JWK imported under Settings, JWT Keys (`infra/production/signing-key-setup.sh`; never the legacy JWT secret, ADR 0168), for `api-token`, `integration-worker` and `automation-run` (ADR 0047)                           |
 | `XOS_CONSOLE_URL`                                                | `https://console.ghxstship.tech`; the link in a legal queue alert. Without it the alert has no link (ADR 0167)                                                                                                                                                 |
 | `XOS_APP_URL`, `XOS_GATEWAY_URL`, `XOS_POSTAL_ADDRESS`           | `https://atlas.ghxstship.tech`, `https://gateway.ghxstship.tech`; the postal address in email (CAN-SPAM)                                                                                                                                                       |
 | `XOS_EMAIL_TRANSPORT`, `XOS_EMAIL_FROM`, `RESEND_API_KEY`        | `resend`; an address on the verified domain, such as `XOS <notifications@mail.ghxstship.tech>`; the Resend key                                                                                                                                                 |
@@ -393,7 +393,7 @@ None. The site is built from the repository and the OpenAPI document. Project se
 | `XOS_WEATHER_USER_AGENT`                                         | `weather-feed`: the contact string the US National Weather Service asks every client to send, such as `XOS weather feed (ops contact address)`. Not a secret. Unset, every due feed records "XOS_WEATHER_USER_AGENT is not set" and fetches nothing (ADR 0147) |
 | `APPLE_TEAM_ID`, `APPLE_SIGN_IN_CLIENT_IDS`                      | The team ID `wallet-pass` also uses; the bundle IDs the key serves, `pro.ghxstship.compass` first                                                                                                                                                              |
 
-`SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are provided to functions by Supabase. The worker schedules read the service role key from Vault (`xos_worker_key`).
+`SUPABASE_URL`, `SUPABASE_SECRET_KEYS` and `SUPABASE_PUBLISHABLE_KEYS` are provided to functions by Supabase; the functions read only these, never the legacy `SUPABASE_SERVICE_ROLE_KEY` or `SUPABASE_ANON_KEY` (ADR 0168). The worker schedules send a secret key from Vault (`xos_worker_key`, an `sb_secret_` key) on the `apikey` header through `private.worker_request`.
 
 ### File handover (OWNER, A103)
 
@@ -410,19 +410,19 @@ To rotate, set the new value on both sides, function first; downloads of those f
 
 Set in the EAS dashboard (project, Environment variables, `production`). Every value is public by design.
 
-| Variable                           | Value                                                                                                                                                                        |
-| ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `EXPO_PUBLIC_SUPABASE_URL`         | The production Supabase API URL                                                                                                                                              |
-| `EXPO_PUBLIC_SUPABASE_ANON_KEY`    | The production anon key (public), the new one after the key rotation                                                                                                         |
-| `EXPO_PUBLIC_ATLAS_URL`            | `https://atlas.ghxstship.tech`                                                                                                                                               |
-| `EXPO_PUBLIC_GATEWAY_URL`          | `https://gateway.ghxstship.tech`                                                                                                                                             |
-| `EXPO_PUBLIC_DOCS_URL`             | `https://docs.ghxstship.tech`, for the help center row in Settings                                                                                                           |
-| `XOS_UNIVERSAL_LINK_HOSTS`         | Leave unset: the build claims `atlas.ghxstship.tech` and `gateway.ghxstship.tech`. An empty value turns universal links off for that build                                   |
-| `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` | The Google Web client ID (public), "Sign in with Google (OWNER)" below                                                                                                       |
-| `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID` | The Google iOS client ID (public), the same section. Compass shows Google on iOS only beside Sign in with Apple, so it may be set before Apple ships (ADR 0033, decision 58) |
-| `EXPO_PUBLIC_APPLE_SIGN_IN`        | `1` once Sign in with Apple is set up, "Sign in with Apple (OWNER)" below; unset, iOS shows neither Apple nor Google                                                         |
-| `XOS_APPLE_TEAM_ID`                | The Apple team id (signs the widget extension in local device builds)                                                                                                        |
-| `GOOGLE_SERVICES_JSON`             | Secret file variable: the Firebase `google-services.json` for `pro.ghxstship.compass` (Android push)                                                                         |
+| Variable                               | Value                                                                                                                                                                        |
+| -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `EXPO_PUBLIC_SUPABASE_URL`             | The production Supabase API URL                                                                                                                                              |
+| `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | The production publishable key (`sb_publishable_`, public; ADR 0168)                                                                                                         |
+| `EXPO_PUBLIC_ATLAS_URL`                | `https://atlas.ghxstship.tech`                                                                                                                                               |
+| `EXPO_PUBLIC_GATEWAY_URL`              | `https://gateway.ghxstship.tech`                                                                                                                                             |
+| `EXPO_PUBLIC_DOCS_URL`                 | `https://docs.ghxstship.tech`, for the help center row in Settings                                                                                                           |
+| `XOS_UNIVERSAL_LINK_HOSTS`             | Leave unset: the build claims `atlas.ghxstship.tech` and `gateway.ghxstship.tech`. An empty value turns universal links off for that build                                   |
+| `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID`     | The Google Web client ID (public), "Sign in with Google (OWNER)" below                                                                                                       |
+| `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID`     | The Google iOS client ID (public), the same section. Compass shows Google on iOS only beside Sign in with Apple, so it may be set before Apple ships (ADR 0033, decision 58) |
+| `EXPO_PUBLIC_APPLE_SIGN_IN`            | `1` once Sign in with Apple is set up, "Sign in with Apple (OWNER)" below; unset, iOS shows neither Apple nor Google                                                         |
+| `XOS_APPLE_TEAM_ID`                    | The Apple team id (signs the widget extension in local device builds)                                                                                                        |
+| `GOOGLE_SERVICES_JSON`                 | Secret file variable: the Firebase `google-services.json` for `pro.ghxstship.compass` (Android push)                                                                         |
 
 A preview or production build on EAS stops in `apps/compass/app.config.ts` when a server URL is missing, not https or local, or when the app icon `apps/compass/assets/icon.png` is missing.
 
@@ -481,7 +481,7 @@ Production uses the host, port and three mutual TLS secrets of `infra/scanning/f
 `XOS_CLAMAV_TLS_KEY`. The three are all or none: the function refuses to choose a scanner with only some of them. A
 clamd reached over a private network instead takes only the host and port, 3310 by default.
 
-Then call `upload-scan` once with the service key. A 200 with `"scanner": "clamav"` means it is connected.
+Then call `upload-scan` once with a secret key on the `apikey` header. A 200 with `"scanner": "clamav"` means it is connected.
 A 503 `scanner-not-configured` means the secret is missing. The `retrying` outcome, with "clamd is
 unreachable", means the network path is wrong. Leave `XOS_ENVIRONMENT=production` set: with it, the function
 never falls back to the development pass-through, even if `SUPABASE_URL` looked local.
@@ -731,8 +731,8 @@ exchange rates (ADR 0053, migration 1542). pg_cron job `xos_fx_rates_ecb` runs i
 21:30 UTC (`30 15,21 * * 1-5`), after the 16:00 CET publication. The rates file is public: no key is needed to read
 it.
 
-1. Deploy the function with the others: `supabase functions deploy fx-rates-ecb --project-ref <ref>`. It keeps the
-   default `verify_jwt = true` and checks the service key, as the other workers do.
+1. Deploy the function with the others: `supabase functions deploy fx-rates-ecb --remote=<ref> --yes`. It runs with
+   `verify_jwt = false` and checks the secret key on the `apikey` header itself, as the other workers do (ADR 0168).
 2. Add the functions URL to Vault once, beside `xos_worker_key` (example value, use your own project ref):
    `select vault.create_secret('https://<project ref>.supabase.co/functions/v1', 'xos_functions_url');`
 3. Check the first run (the next weekday after 15:30 UTC, or call `select private.request_fx_feed();`):
@@ -750,8 +750,8 @@ Every Atlas collection exports its current view to CSV, .xlsx or PDF (ADR 0060, 
 expired files. pg_cron job `xos_export_render` calls it every minute, but only while an export is queued or a file has
 expired.
 
-1. Deploy it with the others: `supabase functions deploy export-render --project-ref <ref>`. It keeps the default
-   `verify_jwt = true` and checks the service key, as the other workers do. It loads exceljs and pdfkit only for
+1. Deploy it with the others: `supabase functions deploy export-render --remote=<ref> --yes`. It runs with
+   `verify_jwt = false` and checks the secret key on the `apikey` header itself, as the other workers do (ADR 0168). It loads exceljs and pdfkit only for
    .xlsx and PDF exports.
 2. The schedule reads the same Vault secrets as the exchange rates, `xos_functions_url` and `xos_worker_key`
    (section Exchange rates, step 2). Without them it does nothing and exports stay at "Preparing your export".
@@ -765,7 +765,7 @@ expired.
 
 ## Push and SMS (OWNER)
 
-`notification-dispatch` (every minute) sends email, push and SMS deliveries and reads push receipts; a run sends up to 600 pushes, 200 texts and 50 emails, the kinds that bypass quiet hours (safety alerts, a crisis alert and its all-clear) before any backlog (6800), so a crisis alert's emails to a large project take many minutes; `sms-webhook` takes Twilio's inbound messages and status callbacks (finding A65-012, migrations 1361 to 1363). Until the steps below are done both channels record instead of sending: deliveries are marked Sent with a `recorded-` provider id and nothing leaves the platform. Every secret is set with `supabase secrets set --project-ref <ref> NAME=...` from the owner's secret store; values never go into the repository, a ticket or a chat.
+`notification-dispatch` (every minute) sends email, push and SMS deliveries and reads push receipts; a run sends up to 600 pushes, 200 texts and 50 emails, the kinds that bypass quiet hours (safety alerts, a crisis alert and its all-clear) before any backlog (6800), so a crisis alert's emails to a large project take many minutes; `sms-webhook` takes Twilio's inbound messages and status callbacks (finding A65-012, migrations 1361 to 1363). Until the steps below are done both channels record instead of sending: deliveries are marked Sent with a `recorded-` provider id and nothing leaves the platform. Every secret is set with `supabase secrets set --remote=<ref> --yes NAME=...` from the owner's secret store; values never go into the repository, a ticket or a chat.
 
 ### Push (Expo push service, ADR 0030)
 
@@ -918,10 +918,10 @@ The Services ID is what Apple knows the web sign-in by, and what the key in step
 3. Give the key to the `apple-revoke` Edge Function. When a person who signs in with Apple deletes their account, Compass asks Apple's sheet once more for a fresh authorization code, and the function exchanges it and revokes Compass's Apple tokens, as App Store Review Guideline 5.1.1(v) asks (ADR 0036, amendment of 2026-10-23, decision 8). It signs a five-minute client secret for each request and stores nothing. Until these secrets are set it answers 503, and Compass tells the person to remove Compass from Sign in with Apple in their Apple Account settings:
 
    ```sh
-   npx supabase secrets set --project-ref <project-ref> \
+   npx supabase secrets set --remote=<project-ref> --yes \
      APPLE_TEAM_ID=<10 characters> APPLE_SIGN_IN_KEY_ID=<10 characters> \
      APPLE_SIGN_IN_KEY_PEM="$(cat AuthKey_<key ID>.p8)" APPLE_SIGN_IN_CLIENT_IDS=pro.ghxstship.compass
-   npx supabase functions deploy apple-revoke --project-ref <project-ref>
+   npx supabase functions deploy apple-revoke --remote=<project-ref> --yes
    ```
 
    `APPLE_TEAM_ID` is the same team ID `wallet-pass` uses. `APPLE_SIGN_IN_CLIENT_IDS` lists the bundle IDs this team's key serves, comma-separated: Compass's, and a tenant build's only when that build is signed by the same team. A tenant build in the tenant's own Apple account needs its own key and is not revoked by this function, so its people get the same instruction. Read the `.p8` file from the secret store; the key never goes into this repository, a ticket or a chat.
@@ -1062,7 +1062,7 @@ The accounts (ADR 0033, decisions 11 and 12): an Apple Developer Program organiz
 
    ```sh
    npx eas env:set production --name EXPO_PUBLIC_SUPABASE_URL --value https://<project-ref>.supabase.co --visibility plaintext
-   npx eas env:set production --name EXPO_PUBLIC_SUPABASE_ANON_KEY --value <anon key> --visibility plaintext
+   npx eas env:set production --name EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY --value <sb_publishable_ key> --visibility plaintext
    npx eas env:set production --name EXPO_PUBLIC_ATLAS_URL --value https://app.<domain> --visibility plaintext
    npx eas env:set production --name EXPO_PUBLIC_GATEWAY_URL --value https://gateway.<domain> --visibility plaintext
    npx eas env:set production --name XOS_UNIVERSAL_LINK_HOSTS --value atlas:app.<domain>,gateway:gateway.<domain> --visibility plaintext
@@ -1182,13 +1182,13 @@ An org on a plan with `branded_compass_build` gets its own app (Section 12 Mobil
 Compass adds a person's own badge and accepted shifts to Apple Wallet and Google Wallet through the `wallet-pass` Edge Function (ADR 0049 item 9). Until these secrets are set the function answers 503 and Compass explains that passes are not set up yet:
 
 ```sh
-npx supabase secrets set --project-ref <project-ref> \
+npx supabase secrets set --remote=<project-ref> --yes \
   APPLE_PASS_TYPE_ID=pass.<reverse domain> APPLE_TEAM_ID=<10 characters> \
   APPLE_PASS_CERT_PEM="$(cat pass.pem)" APPLE_PASS_KEY_PEM="$(cat pass-key.pem)" APPLE_WWDR_CERT_PEM="$(cat wwdr.pem)"
-npx supabase secrets set --project-ref <project-ref> \
+npx supabase secrets set --remote=<project-ref> --yes \
   GOOGLE_WALLET_ISSUER_ID=<issuer id> GOOGLE_WALLET_SERVICE_ACCOUNT_EMAIL=<name>@<project>.iam.gserviceaccount.com \
   GOOGLE_WALLET_PRIVATE_KEY_PEM="$(cat wallet-key.pem)"
-npx supabase functions deploy wallet-pass --project-ref <project-ref>
+npx supabase functions deploy wallet-pass --remote=<project-ref> --yes
 ```
 
 - **Apple:** in Certificates, Identifiers and Profiles, register a Pass Type ID and create its certificate; export it from Keychain Access as a .p12 and convert it: `openssl pkcs12 -in pass.p12 -clcerts -nokeys -out pass.pem` and `openssl pkcs12 -in pass.p12 -nocerts -nodes | openssl pkcs8 -topk8 -nocrypt -out pass-key.pem`. Download Apple's WWDR intermediate (G4) and convert it to PEM. Delete the local files afterwards.

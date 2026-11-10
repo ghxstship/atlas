@@ -1,4 +1,5 @@
-import { Constants, type Database } from "./database.types.ts";
+import type { Database } from "./database.types.ts";
+import { assetState } from "./enums.generated.ts";
 import type { XosClient } from "./client.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 import * as enums from "./enums.generated.ts";
@@ -17,7 +18,7 @@ import * as enums from "./enums.generated.ts";
 export type AssetState = Database["app"]["Enums"]["asset_state"];
 
 /** The ten asset states in lifecycle order, from the generated enum (Section 3.15, rule 3; Returned is R7a's). */
-export const ASSET_STATES: readonly AssetState[] = Constants.app.Enums.asset_state;
+export const ASSET_STATES: readonly AssetState[] = assetState;
 
 export function isAssetState(value: string): value is AssetState {
   return (ASSET_STATES as readonly string[]).includes(value);

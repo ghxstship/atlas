@@ -632,31 +632,29 @@ describe("inbound store", () => {
 });
 
 describe("chat sessions", () => {
-  it("mints a one-minute HS256 token for the linked user", async () => {
-    const key = "k".repeat(40);
+  it("mints a one-minute session for the linked user with the signer it is handed", async () => {
+    const signed: Record<string, unknown>[] = [];
     const token = await mintChatSession(
       "u-dave",
-      key,
+      async (claims) => {
+        signed.push(claims);
+        return "signed.token";
+      },
       "https://project.test/auth/v1",
       1_800_000_000,
     );
-    const [head, payload, signature] = token.split(".");
-    const claims = JSON.parse(Buffer.from(String(payload), "base64url").toString()) as Record<
-      string,
-      unknown
-    >;
-    expect(JSON.parse(Buffer.from(String(head), "base64url").toString())).toEqual({
-      alg: "HS256",
-      typ: "JWT",
-    });
-    expect(claims).toMatchObject({
-      sub: "u-dave",
-      role: "authenticated",
-      aud: "authenticated",
-      exp: 1_800_000_000 + CHAT_SESSION_SECONDS,
-    });
-    const expected = createHmac("sha256", key).update(`${head}.${payload}`).digest("base64url");
-    expect(signature).toBe(expected);
-    await expect(mintChatSession("u", "short", "i")).rejects.toThrow("too short");
+    expect(token).toBe("signed.token");
+    expect(signed).toEqual([
+      {
+        iss: "https://project.test/auth/v1",
+        sub: "u-dave",
+        aud: "authenticated",
+        role: "authenticated",
+        iat: 1_800_000_000,
+        exp: 1_800_000_000 + CHAT_SESSION_SECONDS,
+        is_anonymous: false,
+        amr: [{ method: "xos_chat", timestamp: 1_800_000_000 }],
+      },
+    ]);
   });
 });

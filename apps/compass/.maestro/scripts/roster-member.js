@@ -71,7 +71,7 @@ try {
   rpc(crew, "record_legal_acceptances", {
     p_org_id: null,
     p_document_slugs: ["mobile-eula", "worker-terms"],
-    p_document_versions: ["1.0.0-draft", "1.0.0-draft"],
+    p_document_versions: ["1.0.0", "1.0.0"],
   });
   var vendor = signIn("vendor@example.com");
   var owner = signIn("owner@example.com");

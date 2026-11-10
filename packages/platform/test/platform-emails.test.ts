@@ -118,6 +118,88 @@ describe("platform emails", () => {
     expect(finished).toEqual([["e4", true, "recorded-1", null]]);
   });
 
+  it("sends an invitation under the inviting org's brand while white label is in force, and as XOS otherwise", async () => {
+    const claim: ClaimedPlatformEmail = {
+      id: "e6",
+      template: "party_invitation",
+      to: "nell@touring.test",
+      locale: "en-US",
+      args: {
+        kind: "pool",
+        org_id: "org-1",
+        inviter_name: "Victor Osei",
+        org_name: "Northwind Live",
+        job_title: "Rigger",
+        expires_at: "2027-06-01T12:00:00Z",
+      },
+    };
+    const brandReads: string[] = [];
+    const branded = new RecordingTransport();
+    const withBrand = store([claim]);
+    await dispatchPlatformEmails(
+      {
+        ...withBrand.s,
+        brandFor: async (orgId) => {
+          brandReads.push(orgId);
+          return {
+            brandName: "Northwind Presents",
+            senderName: "Northwind Crew Desk",
+            replyTo: "crew@northwind.test",
+            logoPath: "org-1/logo.png",
+            accentHex: "#0B5FFF",
+            suppressPoweredBy: false,
+          };
+        },
+      },
+      branded,
+      {
+        ...OPTIONS,
+        gatewayUrl: "https://gateway.xos.test",
+        brandAssetUrl: "https://project.supabase.test/storage/v1/object/public/org-brand",
+      },
+    );
+    expect(brandReads).toEqual(["org-1"]);
+    const [mail] = branded.sent;
+    expect(mail?.from).toBe("Northwind Crew Desk <notices@mail.xos.test>");
+    expect(mail?.replyTo).toBe("crew@northwind.test");
+    expect(mail?.subject).toBe("Victor Osei invites you to join the Northwind Presents crew list");
+    expect(mail?.html).toContain("org-brand/org-1/logo.png");
+    expect(mail?.text).not.toContain("Northwind Live");
+
+    const plain = new RecordingTransport();
+    const withoutBrand = store([claim]);
+    await dispatchPlatformEmails({ ...withoutBrand.s, brandFor: async () => null }, plain, {
+      ...OPTIONS,
+      gatewayUrl: "https://gateway.xos.test",
+    });
+    expect(plain.sent[0]?.from).toBe("XOS <notices@mail.xos.test>");
+    expect(plain.sent[0]?.replyTo).toBeUndefined();
+    expect(plain.sent[0]?.subject).toBe(
+      "Victor Osei invites you to join the Northwind Live crew list",
+    );
+  });
+
+  it("never asks for a brand for XOS's own notices", async () => {
+    const reads: string[] = [];
+    const { s } = store([
+      {
+        id: "e7",
+        template: "subprocessor_confirm",
+        to: "dana@example.test",
+        locale: "en-US",
+        args: { confirm_token: "xspn_t", org_id: "org-1" },
+      },
+    ]);
+    const transport = new RecordingTransport();
+    await dispatchPlatformEmails(
+      { ...s, brandFor: async (id) => (reads.push(id), null) },
+      transport,
+      OPTIONS,
+    );
+    expect(reads).toEqual([]);
+    expect(transport.sent[0]?.from).toBe("XOS <notices@mail.xos.test>");
+  });
+
   it("sends a pool invitation that names the org and the role, never the pool, in both languages (B10)", async () => {
     for (const [locale, subject, role] of [
       ["en-US", "Victor Osei invites you to join the Northwind Live crew list", "Role: Rigger"],

@@ -1,13 +1,11 @@
 ---
 title: Trademark Policy
-version: 1.0.0-draft
-effective_date: The date GHXSTSHIP states when it makes this version final
-status: Draft before launch
+version: 1.0.0
+effective_date: 2026-11-10
+status: In effect
 ---
 
 # Trademark Policy
-
-> **Draft before launch.** This document is a draft. It is not in effect and no one may rely on it. Showing it at /legal does not put it in effect. It takes effect only on the effective date that GHXSTSHIP Industries LLC states at the top of a final version.
 
 This policy expands on `TRADEMARKS.md` in the XOS repository. It also covers Aurora, the GHXSTSHIP name and some uses that file does not mention. If they ever differ, the version published at /legal controls.
 

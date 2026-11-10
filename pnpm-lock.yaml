@@ -806,6 +806,9 @@ importers:
       '@xos/config':
         specifier: workspace:*
         version: link:../config
+      '@xos/platform':
+        specifier: workspace:*
+        version: link:../platform
       eslint:
         specifier: 10.12.0
         version: 10.12.0(jiti@2.7.0)

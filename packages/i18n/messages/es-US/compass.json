@@ -170,7 +170,12 @@
       "break_types": "tipos de descanso",
       "itinerary_changes": "cambios del itinerario",
       "my_transfers": "Traslados que conduzco",
-      "local_contacts": "Contactos locales"
+      "local_contacts": "Contactos locales",
+      "client_approvals": "aprobaciones pendientes",
+      "vendor_delivery_windows": "ventanas de carga y descarga",
+      "briefings": "sesiones informativas",
+      "hospitality": "hospitalidad",
+      "space_bookings": "agenda de activación"
     }
   },
   "queue": {
@@ -346,6 +351,45 @@
       "contactTitle": "Contacto",
       "contactSentence": "Pregúntale sobre tu citación, tu equipo o el estacionamiento.",
       "projectDetails": "Actualizar datos del proyecto"
+    },
+    "blocks": {
+      "due": "Vence el {day}",
+      "requested": "Solicitado el {day}",
+      "arriveAt": "Llega a {zone}",
+      "quoteReference": "Da la referencia {reference} al llegar",
+      "placesLeftOne": "Queda 1 lugar",
+      "placesLeftOther": "Quedan {count} lugares",
+      "quantity": "× {count}",
+      "deliverableState": {
+        "Open": "Por entregar",
+        "Returned": "Devuelto para cambios"
+      },
+      "fulfilled": "Cumplido",
+      "canceled": "Cancelado",
+      "loading": "Leyendo la lista de invitados…",
+      "guestListOffline": "La lista de invitados se lee en línea. Conéctate para verla.",
+      "guestListFailed": "Compass no pudo leer la lista de invitados. Inténtalo de nuevo cuando tengas conexión.",
+      "guestPlusOnesOne": "{name} + 1",
+      "guestPlusOnesOther": "{name} + {count}",
+      "guestState": {
+        "Requested": "Solicitado",
+        "Approved": "Aprobado",
+        "Declined": "Rechazado",
+        "CheckedIn": "Registrado"
+      },
+      "empty": {
+        "approvalsWaiting": "Nada espera tu aprobación.",
+        "dockSlot": "No tienes un turno de muelle reservado en este proyecto.",
+        "loadInAndLoadOutWindows": "No hay ventanas de carga ni descarga abiertas.",
+        "deliveryInstructions": "Las instrucciones de entrega aparecen cuando se te reserva un turno de muelle.",
+        "tasksAndDeliverablesDue": "No tienes entregas pendientes.",
+        "siteAccessTimes": "Aún no tienes una credencial de acceso en este proyecto.",
+        "briefings": "No hay sesiones informativas convocadas para este proyecto.",
+        "hospitality": "No hay hospitalidad registrada para tu grupo.",
+        "guestList": "Tu lista de invitados está vacía.",
+        "activationSchedule": "Aún no hay espacio de activación reservado.",
+        "entitlementChecklist": "No hay beneficios registrados para este proyecto."
+      }
     }
   },
   "orgs": {
@@ -424,6 +468,7 @@
     "locationCoarse": "Tu ubicación aún no es precisa. Sal al exterior o espera un momento.",
     "locationOff": "La ubicación está apagada. Actívala en Ajustes para marcar en el lugar.",
     "unfenced": "Este proyecto no tiene geocerca; tu ubicación se guarda con la marcación.",
+    "checkedOnPunch": "El límite del lugar se comprueba al marcar; tu ubicación se guarda con la marcación.",
     "queued": "Guardado en este dispositivo. Se sube cuando vuelvas a tener conexión.",
     "forgotten": "Tu último turno pasó de 16 horas y se cerró para que tu supervisor lo revise.",
     "skewReview": "El reloj de tu teléfono parece desfasado; tu supervisor revisará esta marcación.",

@@ -5,7 +5,7 @@ import { format, resolveConfig } from "prettier";
 
 /**
  * Generates src/database.types.ts from the local Supabase database (Section 3.15: data shapes come
- * from the migrations). Runs `supabase gen types typescript --local` for the schemas the apps read,
+ * from the migrations). Runs `supabase gen types typescript` (the local stack, Supabase CLI 3) for the schemas the apps read,
  * stamps the file, and formats it with the repository Prettier config so format:check stays green.
  * With --check, writes nothing and exits 1 when the committed file differs (gate 12 drift check).
  * Needs a running local stack with every migration applied (`supabase db start` or `db reset`).
@@ -21,7 +21,7 @@ const STAMP = [
 
 const raw = execFileSync(
   "supabase",
-  ["gen", "types", "typescript", "--local", ...SCHEMAS.flatMap((s) => ["--schema", s])],
+  ["gen", "types", "typescript", ...SCHEMAS.flatMap((s) => ["--schema", s])],
   { cwd: repoRoot, encoding: "utf8", stdio: ["ignore", "pipe", "inherit"], maxBuffer: 64 << 20 },
 );
 const options = (await resolveConfig(target)) ?? {};

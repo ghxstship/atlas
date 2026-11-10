@@ -17,36 +17,36 @@
 // locale on first use.
 //
 // Stakeholder packs (B2, ADR 0141): after the report deliveries it runs the pack.deliver jobs, which email an
-// outside recipient a sign-in link, never a report file. XOS_APP_URL and XOS_POSTAL_ADDRESS are read here and
-// not through the shared env(), which throws: report deliveries keep working when they are unset, and a pack
-// delivery fails with the reason.
+// outside recipient a sign-in link, never a report file.
+//
+// Both emails wear the org's brand (A138, 904090003; edge/report-email.ts). Without XOS_APP_URL or XOS_POSTAL_ADDRESS
+// a delivery fails with the reason (they are not read through env(), which throws) and the runs still finish.
 import { createClient } from "@supabase/supabase-js";
 import {
+  lazyPackEmailComposer,
+  lazyReportEmailComposer,
   lazyResendClient,
+  loadPackDeliveries,
   mailpitMailer,
-  packEmailCopy,
   readEmailEnv,
   readReplicaUrl,
   recipientAllowed,
-  reportDeliveryCopy,
   reportRunLabels,
   resendMailer,
-  runPackDeliveries,
   runScheduledReports,
-  supabasePackDeliveryStore,
   supabaseReportDeliveryStore,
   supabaseReportRunStore,
   supabaseResultFiles,
   supabaseResultStorage,
   type ReportMailer,
 } from "../_vendor/report-run.js";
-import { env, hasBearer, json, serve } from "../_shared/runtime.ts";
+import { isServiceRequest, json, env, secretKey, serve, serviceDb } from "../_shared/runtime.ts";
 
 function reportMailer(): ReportMailer {
   const emailEnv = readEmailEnv(Deno.env.toObject());
   const address = emailEnv.XOS_EMAIL_FROM.replace(/^.*<([^>]+)>$/, "$1");
   const mailpit = Deno.env.get("XOS_REPORT_MAILPIT_URL");
-  if (mailpit) return mailpitMailer(mailpit, { email: address, name: "XOS Reports" });
+  if (mailpit) return mailpitMailer(mailpit, { email: address, name: "XOS" });
   if (emailEnv.XOS_EMAIL_TRANSPORT === "resend" && emailEnv.RESEND_API_KEY) {
     const policy = {
       allowed: emailEnv.XOS_EMAIL_ALLOWLIST,
@@ -65,18 +65,18 @@ function reportMailer(): ReportMailer {
 }
 
 serve(async (request) => {
-  if (!hasBearer(request, env("SUPABASE_SERVICE_ROLE_KEY"))) {
+  if (!isServiceRequest(request)) {
     return json(401, { type: "/problems/unauthorized", title: "Unauthorized", status: 401 });
   }
   const options = { auth: { persistSession: false, autoRefreshToken: false } };
-  const client = createClient(env("SUPABASE_URL"), env("SUPABASE_SERVICE_ROLE_KEY"), options);
+  const client = createClient(env("SUPABASE_URL"), secretKey(), options);
   const replicaUrl = readReplicaUrl(Deno.env.toObject(), (message) => console.warn(message));
-  const replica =
-    replicaUrl === null
-      ? null
-      : createClient(replicaUrl, env("SUPABASE_SERVICE_ROLE_KEY"), options);
+  const replica = replicaUrl === null ? null : createClient(replicaUrl, secretKey(), options);
   const mailer = reportMailer();
   const worker = `report-run:${crypto.randomUUID()}`;
+  const supabaseUrl = env("SUPABASE_URL").replace(/\/+$/, "");
+  const fromAddress = readEmailEnv(Deno.env.toObject()).XOS_EMAIL_FROM;
+  const brandAssetUrl = `${supabaseUrl}/storage/v1/object/public/org-brand`;
   const outcome = await runScheduledReports({
     runs: supabaseReportRunStore(client, {
       replica,
@@ -88,14 +88,21 @@ serve(async (request) => {
     deliveries: supabaseReportDeliveryStore(client),
     files: supabaseResultFiles(client),
     mailer,
-    copy: await reportDeliveryCopy("en-US"),
+    compose: lazyReportEmailComposer({
+      db: serviceDb(),
+      appUrl: Deno.env.get("XOS_APP_URL"),
+      postalAddress: Deno.env.get("XOS_POSTAL_ADDRESS"),
+      fromAddress,
+      functionsUrl: `${supabaseUrl}/functions/v1`,
+      brandAssetUrl,
+    }),
     worker,
   });
   const { runPackDeliveries, supabasePackDeliveryStore } = await loadPackDeliveries();
   const packs = await runPackDeliveries({
     store: supabasePackDeliveryStore(client),
     mailer,
-    copy: packEmailCopy,
+    compose: lazyPackEmailComposer({ fromAddress, brandAssetUrl }),
     env: {
       appUrl: Deno.env.get("XOS_APP_URL"),
       postalAddress: Deno.env.get("XOS_POSTAL_ADDRESS"),

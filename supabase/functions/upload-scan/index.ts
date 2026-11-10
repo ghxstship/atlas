@@ -19,7 +19,7 @@ import {
   type ClamdTls,
 } from "../_vendor/upload-scan.js";
 import { createLogger, identityFromEnv } from "../_vendor/core.js";
-import { env, hasBearer, json, serve, serviceDb } from "../_shared/runtime.ts";
+import { isServiceRequest, json, env, secretKey, serve, serviceDb } from "../_shared/runtime.ts";
 
 /**
  * A clamd connection over Deno TCP, or mutual TLS to clamd's TLS terminator, that reads until the NUL
@@ -74,7 +74,7 @@ async function connectClamd(
 }
 
 serve(async (request) => {
-  if (!hasBearer(request, env("SUPABASE_SERVICE_ROLE_KEY"))) {
+  if (!isServiceRequest(request)) {
     return json(401, { type: "/problems/unauthorized", title: "Unauthorized", status: 401 });
   }
   const logger = createLogger(identityFromEnv("edge.upload-scan", Deno.env.toObject()));
@@ -92,7 +92,7 @@ serve(async (request) => {
       detail: choice.reason,
     });
   }
-  const client = createClient(env("SUPABASE_URL"), env("SUPABASE_SERVICE_ROLE_KEY"), {
+  const client = createClient(env("SUPABASE_URL"), secretKey(), {
     auth: { persistSession: false, autoRefreshToken: false },
   });
   const outcomes = await runUploadScans({

@@ -194,9 +194,9 @@ SQL
 if [[ "$MODE" == --reader ]]; then
   dump_with_reader
 else
-  supabase db dump --db-url "$XOS_BACKUP_DB_URL" --role-only -f "$WORK/roles.sql"
-  supabase db dump --db-url "$XOS_BACKUP_DB_URL" -f "$WORK/schema.sql"
-  supabase db dump --db-url "$XOS_BACKUP_DB_URL" --data-only --use-copy -f "$WORK/data.sql"
+  supabase db dump --remote="$XOS_BACKUP_DB_URL" --role-only -f "$WORK/roles.sql"
+  supabase db dump --remote="$XOS_BACKUP_DB_URL" -f "$WORK/schema.sql"
+  supabase db dump --remote="$XOS_BACKUP_DB_URL" --data-only --use-copy -f "$WORK/data.sql"
   FILES=(roles.sql schema.sql data.sql)
 fi
 

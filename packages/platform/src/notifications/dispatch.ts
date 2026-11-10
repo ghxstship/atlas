@@ -88,7 +88,9 @@ const reportDelivery = z.object({
   reportName: z.string(),
   periodLabel: z.string(),
   format: z.string(),
-  url: z.url(),
+  url: z.url().optional(),
+  rows: z.number().int().nonnegative().optional(),
+  unpriced: z.number().int().nonnegative().optional(),
 });
 
 function messageArgs(raw: Readonly<Record<string, unknown>>): MessageArgs {
@@ -132,8 +134,18 @@ async function propsFor(
       return { code: "export_ready", props: exportReady.parse(claim.messageArgs) };
     case "import_finished":
       return { code: "import_finished", props: importFinished.parse(claim.messageArgs) };
-    case "report_delivery":
-      return { code: "report_delivery", props: reportDelivery.parse(claim.messageArgs) };
+    case "report_delivery": {
+      const { url, rows, unpriced, ...words } = reportDelivery.parse(claim.messageArgs);
+      return {
+        code: "report_delivery",
+        props: {
+          ...words,
+          ...(url === undefined ? {} : { url }),
+          ...(rows === undefined ? {} : { rows }),
+          ...(unpriced === undefined ? {} : { unpriced }),
+        },
+      };
+    }
     case "approval_link_code": {
       // P9: the code is minted while the email is rendered, so it exists in clear only in this email.
       const code = (await store.mintApprovalLinkCodeFor?.(claim)) ?? null;

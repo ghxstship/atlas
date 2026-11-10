@@ -9,7 +9,7 @@ import { CUE_CALL_KINDS, CUE_CALL_SLUGS, type CueCallKind } from "@xos/data/cue-
 import type { Row } from "@xos/sync";
 import * as Haptics from "expo-haptics";
 import { activateKeepAwakeAsync, deactivateKeepAwake } from "expo-keep-awake";
-import { useEffect, useRef, useState, type ReactElement } from "react";
+import { type ReactElement, useEffect, useId, useRef, useState } from "react";
 import type { TFunction } from "i18next";
 import { useTranslation } from "react-i18next";
 import {
@@ -64,11 +64,15 @@ export function ShowView({ readOnly }: { readonly readOnly: boolean }): ReactEle
   // Journey 15: followers see cues called in Atlas as they happen. A realtime change on the project's
   // cues pulls them at once; a 10 s pull covers externals (whose cues come through an api_external view)
   // and a dropped channel. On the simulator a called cue stayed "next" until a manual refresh.
+  // Run of Show and Show both render this view, and Show opens over Run of Show. The realtime client returns the
+  // already subscribed channel for a repeated name, and adding a listener to it throws, which crashed Compass; each
+  // mounted view takes its own channel name.
+  const instance = useId();
   useEffect(() => {
     if (!projectId || !network.isConnected) return undefined;
     const pull = () => void refreshTables(LIVE_TABLES);
     const channel = client
-      .channel(`show:${projectId}`)
+      .channel(`show:${projectId}:${instance}`)
       .on(
         "postgres_changes",
         { event: "*", schema: "app", table: "cues", filter: `project_id=eq.${projectId}` },
@@ -80,7 +84,7 @@ export function ShowView({ readOnly }: { readonly readOnly: boolean }): ReactEle
       clearInterval(timer);
       void client.removeChannel(channel);
     };
-  }, [client, projectId, network.isConnected, refreshTables]);
+  }, [client, projectId, network.isConnected, refreshTables, instance]);
   const canCall = useAllowed("show.callCue") && !readOnly;
   const [showMode, setShowMode] = useState(false);
   const [now, setNow] = useState(Date.now());

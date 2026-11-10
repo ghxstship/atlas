@@ -169,6 +169,12 @@ export const NOTIFICATION_EMAIL_TEMPLATES: readonly EmailTemplateDefinition[] = 
       "The 6-digit access code of a signed-out approval link, valid 10 minutes, and the org that asks (P9).",
   },
   {
+    code: "stakeholder_pack",
+    transactional: false,
+    description:
+      "A stakeholder pack shared with an outside recipient, as a sign-in link with the pack's stop link.",
+  },
+  {
     code: "guest_message",
     transactional: false,
     description:

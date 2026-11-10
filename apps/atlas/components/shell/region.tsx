@@ -30,10 +30,18 @@ function isNextControlFlow(error: unknown): boolean {
 export function Region({
   title,
   fallback = null,
+  streams = true,
   children,
 }: {
   title?: string;
   fallback?: ReactNode;
+  /**
+   * False for a region whose content the page has already computed (plain markup, or client components given their
+   * data): it renders in the page's first paint with no Suspense boundary. React may stream a large boundary's
+   * content after the rest of the page, which painted the tiles below a Home tile first and then pushed them down
+   * (cumulative layout shift 0.305, gate 10).
+   */
+  streams?: boolean;
   children: ReactNode;
 }) {
   const router = useRouter();
@@ -51,7 +59,7 @@ export function Region({
         })
       }
     >
-      <Suspense fallback={fallback}>{children}</Suspense>
+      {streams ? <Suspense fallback={fallback}>{children}</Suspense> : children}
     </RegionBoundary>
   );
 }

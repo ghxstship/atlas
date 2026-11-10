@@ -30,9 +30,9 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: pnpm
-      - uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
+      - uses: supabase/setup-cli@689adcfb80d947100a1eab127289b97d1fb07b13 # v3.2.0
         with:
-          version: 2.120.0
+          version: 3.1.0
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install --with-deps chromium
         working-directory: apps/atlas
@@ -52,7 +52,7 @@ jobs:
             docs) PORT=3014 ;;
           esac
           if [ "$APP" != docs ]; then
-            ANON=$(supabase status -o env | sed -n 's/^ANON_KEY="\(.*\)"$/\1/p')
+            ANON=$(supabase status -o env | sed -n 's/^PUBLISHABLE_KEY="\(.*\)"$/\1/p')
             export SUPABASE_URL=http://127.0.0.1:55421 SUPABASE_ANON_KEY="$ANON"
           fi
           (cd "apps/$APP" && ATLAS_SITE_URL=http://127.0.0.1:3006 GATEWAY_SITE_URL=http://127.0.0.1:3127 nohup pnpm exec next start --port "$PORT" > "/tmp/$APP.log" 2>&1 &)
@@ -82,9 +82,9 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: pnpm
-      - uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
+      - uses: supabase/setup-cli@689adcfb80d947100a1eab127289b97d1fb07b13 # v3.2.0
         with:
-          version: 2.120.0
+          version: 3.1.0
       - run: pnpm install --frozen-lockfile
       # Services no test uses stay off; the images come from GHCR first (infra/ci/README.md).
       - run: infra/ci/supabase-images.sh start
@@ -102,7 +102,7 @@ jobs:
             "select string_agg(email, ',' order by email) from auth.users where email like 'load-99-%@load.example.test'")" >> "$GITHUB_ENV"
       - name: Smoke the three scripts through grafana/k6:2.3.0
         run: |
-          ANON=$(supabase status -o env | sed -n 's/^ANON_KEY="\(.*\)"$/\1/p')
+          ANON=$(supabase status -o env | sed -n 's/^PUBLISHABLE_KEY="\(.*\)"$/\1/p')
           export SUPABASE_ANON_KEY="$ANON"
           (cd apps/atlas && SUPABASE_URL=http://127.0.0.1:55421 ATLAS_SITE_URL=http://127.0.0.1:3006 nohup pnpm exec next start --port 3006 > /tmp/atlas.log 2>&1 &)
           for i in $(seq 60); do curl -fs -o /dev/null http://127.0.0.1:3006 && break; sleep 2; done
@@ -175,9 +175,9 @@ jobs:
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
+      - uses: supabase/setup-cli@689adcfb80d947100a1eab127289b97d1fb07b13 # v3.2.0
         with:
-          version: 2.120.0
+          version: 3.1.0
       - run: infra/ci/supabase-images.sh db
       - run: supabase db start
       - name: Run the benchmark and fail on any FAIL verdict
@@ -241,9 +241,9 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: pnpm
-      - uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
+      - uses: supabase/setup-cli@689adcfb80d947100a1eab127289b97d1fb07b13 # v3.2.0
         with:
-          version: 2.120.0
+          version: 3.1.0
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install --with-deps ${{ matrix.engine }} chromium
         working-directory: apps/${{ matrix.app }}
@@ -295,7 +295,12 @@ jobs:
     runs-on: macos-15-intel
     timeout-minutes: 150
     env:
-      MAESTRO_VERSION: 2.0.10
+      # 2.12.1 (2026-11-02) carries "Fix inputText crashing on iOS pincode screens": on 2.0.10 the XCTest driver
+      # dropped its connection typing the password in field-sign-in (run 42768003872).
+      MAESTRO_VERSION: 2.12.1
+      # The XCTest driver takes longer than Maestro's default to start on a hosted macOS runner: every night from
+      # 2026-10-29 failed with "iOS driver not ready in time" before the first flow (run 42666314984). Milliseconds.
+      MAESTRO_DRIVER_STARTUP_TIMEOUT: "240000"
       HOMEBREW_NO_AUTO_UPDATE: "1"
       HOMEBREW_NO_INSTALL_CLEANUP: "1"
     steps:
@@ -318,9 +323,9 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: pnpm
-      - uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
+      - uses: supabase/setup-cli@689adcfb80d947100a1eab127289b97d1fb07b13 # v3.2.0
         with:
-          version: 2.120.0
+          version: 3.1.0
       - run: pnpm install --frozen-lockfile
       # Services no test uses stay off; the images come from GHCR first (infra/ci/README.md).
       - run: infra/ci/supabase-images.sh start
@@ -336,7 +341,7 @@ jobs:
         run: |
           sudo xcode-select -s /Applications/Xcode_26.3.app
           export EXPO_PUBLIC_SUPABASE_URL=http://127.0.0.1:55421
-          export EXPO_PUBLIC_SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY"
+          export EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY="$SUPABASE_ANON_KEY"
           # The runner has no audio input, so the simulator could never record a voice note: this test
           # build swaps in the silent fake recorder (src/runtime/voiceRecorder.ts; refused in EAS builds).
           export EXPO_PUBLIC_XOS_FAKE_RECORDER=1
@@ -364,7 +369,7 @@ jobs:
       # (apps/compass/scripts/maestro-network.ts) stops and restarts the CI stack's API gateway instead.
       - name: Run the field flows, the offline ones through the network helper
         run: |
-          SUPABASE_PROJECT_ID=xos4 node --experimental-strip-types --no-warnings \
+          XOS_SUPABASE_STACK=xos4 node --experimental-strip-types --no-warnings \
             apps/compass/scripts/maestro-network.ts serve &
           sleep 1
           apps/compass/scripts/maestro-ci.sh
@@ -380,7 +385,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 90
     env:
-      MAESTRO_VERSION: 2.0.10
+      MAESTRO_VERSION: 2.12.1
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       # Without /dev/kvm the emulator runs unaccelerated (-accel off): it took 13 minutes to boot, then
@@ -399,9 +404,9 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: pnpm
-      - uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
+      - uses: supabase/setup-cli@689adcfb80d947100a1eab127289b97d1fb07b13 # v3.2.0
         with:
-          version: 2.120.0
+          version: 3.1.0
       - run: pnpm install --frozen-lockfile
       # Services no test uses stay off; the images come from GHCR first (infra/ci/README.md).
       - run: infra/ci/supabase-images.sh start
@@ -413,7 +418,7 @@ jobs:
         working-directory: apps/compass
         run: |
           export EXPO_PUBLIC_SUPABASE_URL=http://10.0.2.2:55421
-          export EXPO_PUBLIC_SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY"
+          export EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY="$SUPABASE_ANON_KEY"
           # An emulator has no NFC radio: the test tag stands in (src/runtime/nfc.ts; refused in EAS builds).
           export EXPO_PUBLIC_XOS_FAKE_NFC=1
           pnpm exec expo prebuild --platform android --no-install
@@ -426,8 +431,16 @@ jobs:
           # 42489339979 and the five before it). The runner has 16 GB.
           sed -i 's/^org\.gradle\.jvmargs=.*/org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1536m/' android/gradle.properties
           grep -q '^org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1536m$' android/gradle.properties
+          # 1536 MB was still not enough (run 42666314984: OutOfMemoryError: Metaspace in the Kotlin compile daemon's
+          # RMI threads from 18:09, then nothing until the job was cancelled at 90 minutes). The Kotlin daemon gets
+          # its own heap and metaspace, and this test build skips the release lint (lintVitalRelease), which EAS
+          # store builds still run.
+          # A line of its own: prebuild's gradle.properties may end without a newline (run 42768003872 failed in
+          # configuration with the last property run together).
+          printf '\nkotlin.daemon.jvmargs=-Xmx3g -XX:MaxMetaspaceSize=1g\n' >> android/gradle.properties
+          grep -q '^kotlin.daemon.jvmargs=-Xmx3g -XX:MaxMetaspaceSize=1g$' android/gradle.properties
           # The emulator is x86_64: one ABI instead of four (the first nightly spent 23 minutes here).
-          (cd android && ./gradlew assembleRelease -PreactNativeArchitectures=x86_64)
+          (cd android && ./gradlew assembleRelease -PreactNativeArchitectures=x86_64 -x lintVitalRelease)
       - name: Run the field flows on an emulator
         uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
         with:

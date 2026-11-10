@@ -1,16 +1,14 @@
 ---
 title: Data Protection Impact Assessment Template
-version: 1.0.0-draft
-effective_date: The date GHXSTSHIP states when it makes this version final
-status: Draft before launch
+version: 1.0.0
+effective_date: 2026-11-10
+status: In effect
 audience: Customers and internal
 ---
 
 # Data Protection Impact Assessment Template
 
-> **Draft before launch.** This template is a draft. Showing it at /legal does not put it in effect. It takes effect only on the effective date that GHXSTSHIP Industries LLC states at the top of a final version.
-
-GHXSTSHIP Industries LLC uses this template for its own high-risk processing and offers it to Customers for assessing their use of XOS 4.0. It follows GDPR Article 35 and the UK ICO's DPIA guidance, and also serves as a privacy impact assessment under Quebec Law 25. Complete each section; the guidance in italics explains what to write.
+GHXSTSHIP Industries LLC uses this template for its own high-risk processing and offers it to Customers for assessing their use of XOS. It follows GDPR Article 35 and the UK ICO's DPIA guidance, and also serves as a privacy impact assessment under Quebec Law 25. Complete each section; the guidance in italics explains what to write.
 
 ## 1. Overview
 

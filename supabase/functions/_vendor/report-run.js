@@ -887,8 +887,6 @@ var CONTENT_TYPES = {
   XLSX: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
   PDF: "application/pdf",
 };
-var escapeHtml = (s) =>
-  s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 /** The attachment's file name: the report name in safe characters, then the format's extension. */
 function attachmentName(report, format) {
   return `${
@@ -899,9 +897,11 @@ function attachmentName(report, format) {
       .toLowerCase() || "report"
   }.${format.toLowerCase()}`;
 }
+var SUPPRESSED =
+  "The recipient stopped scheduled report emails, or the address is on the organization's suppression list.";
 /** One pass of the delivery worker: sends each claimed delivery once. */
 async function runReportDeliveries(options) {
-  const { store, files, mailer, copy, worker } = options;
+  const { store, files, mailer, compose, worker } = options;
   const claimed = await store.claim(worker, options.limit ?? 10);
   const results = [];
   for (const job of claimed) {
@@ -916,30 +916,30 @@ async function runReportDeliveries(options) {
       continue;
     }
     try {
+      if (d.suppressed) {
+        await store.finish(d.deliveryId, {
+          sent: false,
+          error: SUPPRESSED,
+        });
+        await store.finishJob(job.jobId, true, null);
+        results.push({
+          jobId: job.jobId,
+          deliveryId: d.deliveryId,
+          status: "Skipped",
+          error: SUPPRESSED,
+        });
+        continue;
+      }
       if (!d.recipientEmail) throw new Error("The recipient has no email address on file.");
       if (!d.storagePath) throw new Error("The report run has no file to attach.");
       const content = await files.download(REPORT_RESULTS_BUCKET, d.storagePath);
-      const words = {
-        report: d.reportName,
-        org: d.orgName,
-      };
-      const body = copy.body({
-        ...words,
-        rows: d.rowCount ?? 0,
-        unpriced: d.unpricedCount ?? 0,
-      });
-      const sent = await mailer.send({
-        to: d.recipientEmail,
-        toName: d.recipientName,
-        subject: copy.subject(words),
-        text: body,
-        html: `<p>${escapeHtml(body)}</p>`,
-        attachment: {
+      const sent = await mailer.send(
+        await compose(d, {
           filename: attachmentName(d.reportName, d.exportFormat),
           contentType: CONTENT_TYPES[d.exportFormat],
           content,
-        },
-      });
+        }),
+      );
       await store.finish(d.deliveryId, {
         sent: true,
         messageId: sent.messageId,
@@ -986,7 +986,7 @@ async function runScheduledReports(options) {
       store: options.deliveries,
       files: options.files,
       mailer: options.mailer,
-      copy: options.copy,
+      compose: options.compose,
       worker: options.worker,
       limit: 25,
     }),
@@ -1035,6 +1035,8 @@ function supabaseReportDeliveryStore(client) {
       if (!r) return null;
       return {
         deliveryId: text(r, "delivery_id"),
+        orgId: text(r, "org_id"),
+        orgSlug: text(r, "org_slug"),
         orgName: text(r, "org_name"),
         reportName: text(r, "report_name"),
         exportFormat: text(r, "export_format"),
@@ -1045,6 +1047,9 @@ function supabaseReportDeliveryStore(client) {
         recipientName: textOrNull(r, "recipient_name"),
         status: text(r, "delivery_status"),
         scheduledFor: text(r, "scheduled_for"),
+        recipientPersonId: textOrNull(r, "recipient_person_id"),
+        reportDefinitionId: textOrNull(r, "report_definition_id"),
+        suppressed: r["suppressed"] === true,
       };
     },
     async finish(id, outcome) {
@@ -1089,12 +1094,32 @@ function supabaseResultFiles(client) {
 /**
  * The report.run and report.deliver workers for the Edge bundle (A35, RRR-79; A43, RRR-87). The
  * workers live with the report builder in @xos/data (report-runs.ts, report-deliveries.ts), so a run
- * aggregates exactly as the preview does; this file re-exports them and adds the file headers and
- * the scheduled email copy from @xos/i18n. Only the two namespaces the copy uses (workflow and
- * reporting) are read, and each locale's pair loads the first time a run asks for that locale (A85).
+ * aggregates exactly as the preview does; this file re-exports them and adds the file headers from
+ * @xos/i18n. Only the two namespaces the headers use (workflow and reporting) are read, and each
+ * locale's pair loads the first time a run asks for that locale (A85). The scheduled report and
+ * stakeholder pack emails are the org's branded packages/email emails (report-email.ts), loaded the
+ * first time a delivery needs one.
  */
 /** The pack.deliver worker, loaded when a run reaches it, so report-run's boot stays inside its budget. */
 var loadPackDeliveries = () => import("./chunks/data-stakeholder-packs.js");
+/** The branded report and pack emails, with React Email, loaded the first time a delivery needs one. */
+var loadReportEmail = () => import("./chunks/platform-edge-report-email.js");
+/** The org's branded scheduled report email, its module loaded on the first delivery. */
+function lazyReportEmailComposer(options) {
+  let built = null;
+  return async (delivery, attachment) => {
+    built ??= (await loadReportEmail()).reportEmailComposer(options);
+    return built(delivery, attachment);
+  };
+}
+/** The org's branded stakeholder pack email, its module loaded on the first delivery. */
+function lazyPackEmailComposer(options) {
+  let built = null;
+  return async (link, links, env) => {
+    built ??= (await loadReportEmail()).packEmailComposer(options);
+    return built(link, links, env);
+  };
+}
 /**
  * The workflow and reporting namespaces of each launch locale, loaded on first use. A Beta locale (ADR 0053)
  * reads en-US here: the Edge bundle carries no Beta catalog.
@@ -1180,49 +1205,21 @@ async function reportRunLabels(locale) {
     },
   };
 }
-/** The scheduled report email in a locale (en-US when unknown). */
-async function reportDeliveryCopy(locale) {
-  const messages = await messagesFor(locale);
-  const email = (key) => lookup(messages, ["reporting", "email", key]) ?? key;
-  return {
-    subject: (values) => fill(email("subject"), values),
-    body: (values) => fill(email("body"), values),
-  };
-}
-/**
- * The stakeholder pack email in a locale (B2, ADR 0141), from the same reporting namespace, which is loaded
- * only when a pack job exists. Its footer carries the org's name and postal address (ADR 0033 decision 41).
- */
-async function packEmailCopy(locale) {
-  const messages = await messagesFor(locale);
-  const line = (key, values = {}) =>
-    fill(lookup(messages, ["reporting", "packEmail", key]) ?? key, values);
-  return {
-    subject: (values) => line("subject", values),
-    intro: (values) => line("intro", values),
-    message: (values) => line("message", values),
-    items: (values) => line("items", values),
-    open: (values) => line("open", values),
-    expires: (values) => line("expires", values),
-    code: () => line("code"),
-    sentBy: (values) => line("sentBy", values),
-    stop: (values) => line("stop", values),
-  };
-}
 //#endregion
 export {
   READ_REPLICA_ENV,
   REPORT_DELIVER_JOB,
   REPORT_RESULTS_BUCKET,
   REPORT_RUN_JOB,
+  lazyPackEmailComposer,
+  lazyReportEmailComposer,
   lazyResendClient,
   loadPackDeliveries,
+  loadReportEmail,
   mailpitMailer,
-  packEmailCopy,
   readEmailEnv,
   readReplicaUrl,
   recipientAllowed,
-  reportDeliveryCopy,
   reportRunLabels,
   resendMailer,
   runReportDeliveries,

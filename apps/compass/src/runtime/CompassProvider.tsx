@@ -482,7 +482,7 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
         // Photos, voice notes and documents upload resumably (TUS) and survive restarts (A65-011).
         uploadFile: resumableMediaUploader(client, {
           supabaseUrl: config.supabaseUrl,
-          anonKey: config.supabaseAnonKey,
+          anonKey: config.supabasePublishableKey,
           store: opened,
         }),
       });

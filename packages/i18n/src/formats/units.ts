@@ -20,7 +20,14 @@ export function formatUnit(
   const key = `${locale}|${unit}|${maximumFractionDigits}`;
   let format = unitFormats.get(key);
   if (format === undefined) {
-    format = new Intl.NumberFormat(locale, { style: "unit", unit, maximumFractionDigits });
+    try {
+      format = new Intl.NumberFormat(locale, { style: "unit", unit, maximumFractionDigits });
+    } catch {
+      // An engine without unit formatting (Hermes, in Compass): the number, then the unit's symbol.
+      const symbol = unit in FALLBACK_SYMBOL ? FALLBACK_SYMBOL[unit as MeasureUnit] : unit;
+      const plain = new Intl.NumberFormat(locale, { maximumFractionDigits });
+      return `${plain.format(value)} ${symbol}`;
+    }
     unitFormats.set(key, format);
   }
   return format.format(value);
@@ -123,18 +130,39 @@ export function resolveUnitSystem(
   return unitSystemForRegion(context.locale ? regionOfLocale(context.locale) : null);
 }
 
-/** A unit's short symbol in a locale, from Intl ("km/h", "mi", "°F"), for labels such as "Wind (km/h)". */
+/** Short symbols for engines whose Intl lacks unit formatting or formatToParts (Hermes, in Compass). */
+const FALLBACK_SYMBOL: Record<MeasureUnit, string> = {
+  meter: "m",
+  kilometer: "km",
+  foot: "ft",
+  mile: "mi",
+  kilogram: "kg",
+  pound: "lb",
+  celsius: "°C",
+  fahrenheit: "°F",
+  "kilometer-per-hour": "km/h",
+  "mile-per-hour": "mph",
+};
+
+/**
+ * A unit's short symbol in a locale, from Intl ("km/h", "mi", "°F"), for labels such as "Wind (km/h)". Where the
+ * engine cannot format units (Hermes throws, or has no formatToParts), the international symbol stands in, so a
+ * screen such as Compass's Weather never fails on a label.
+ */
 export function unitSymbol(locale: string, unit: MeasureUnit): string {
-  const parts = new Intl.NumberFormat(locale, {
-    style: "unit",
-    unit,
-    unitDisplay: "short",
-  }).formatToParts(1);
-  return parts
-    .filter((p) => p.type === "unit")
-    .map((p) => p.value)
-    .join("")
-    .trim();
+  try {
+    const format = new Intl.NumberFormat(locale, { style: "unit", unit, unitDisplay: "short" });
+    if (typeof format.formatToParts !== "function") return FALLBACK_SYMBOL[unit];
+    const symbol = format
+      .formatToParts(1)
+      .filter((p) => p.type === "unit")
+      .map((p) => p.value)
+      .join("")
+      .trim();
+    return symbol === "" ? FALLBACK_SYMBOL[unit] : symbol;
+  } catch {
+    return FALLBACK_SYMBOL[unit];
+  }
 }
 
 /** The unit a quantity shows in for a system. */

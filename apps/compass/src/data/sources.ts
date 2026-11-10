@@ -639,6 +639,52 @@ const EXTERNAL_SOURCES: readonly Source[] = [
     projectColumn: "project_id",
     audiences: ["sponsor"],
   },
+  // Today's blocks for outside parties (Compass Today): a vendor's open delivery windows, an artist's hospitality,
+  // a client's approvals waiting, a sponsor's activation bookings and outside crew's project briefings (904090002).
+  {
+    table: "vendor_delivery_windows",
+    schema: "api_external",
+    relation: "delivery_windows",
+    select:
+      "id,project_id,project_name,time_zone,zone_code,zone_name,starts_at,ends_at,places_left",
+    projectColumn: "project_id",
+    audiences: ["vendor"],
+  },
+  {
+    table: "hospitality",
+    schema: "api_external",
+    relation: "hospitality",
+    select:
+      "id,fulfillment_id,project_id,project_name,fulfillment_kind,title,supplier_name,starts_at,ends_at,description,quantity,person_id",
+    projectColumn: "project_id",
+    audiences: ["artist", "artist-representative"],
+  },
+  {
+    table: "client_approvals",
+    schema: "api_external",
+    relation: "client_approvals",
+    select:
+      "id,engagement_id,project_id,project_name,subject_kind,message,requested_at,decision,decided_at",
+    projectColumn: "project_id",
+    audiences: ["client"],
+  },
+  {
+    table: "space_bookings",
+    schema: "api_external",
+    relation: "space_bookings",
+    select: "id,engagement_id,project_id,space_name,purpose,starts_at,ends_at,set_label",
+    projectColumn: "project_id",
+    audiences: ["sponsor"],
+  },
+  {
+    table: "briefings",
+    schema: "api_external",
+    relation: "briefings",
+    select:
+      "id,project_id,project_name,time_zone,title,agenda,location,starts_at,ends_at,canceled_at,cancel_reason",
+    projectColumn: "project_id",
+    audiences: ["crew", "staff"],
+  },
   {
     table: "engagement_documents",
     schema: "api_external",

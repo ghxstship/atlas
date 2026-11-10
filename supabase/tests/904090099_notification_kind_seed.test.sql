@@ -1,4 +1,4 @@
--- 6999_notification_kind_seed.test.sql
+-- 904090099_notification_kind_seed.test.sql
 -- Generated from packages/schemas/notification-kinds.yaml by
 -- `pnpm --filter @xos/schemas generate:notifications`. Never edit by hand.
 --
@@ -34,6 +34,7 @@ select set_eq(
   ('subprocessor_notice', 'Announces a Subprocessor List change at least 30 days before it applies.', false),
   ('party_invitation', 'Invites an email address to an external account or onto a crew roster, with a link to sign in to Gateway.', true),
   ('approval_link_code', 'The 6-digit access code of a signed-out approval link, valid 10 minutes, and the org that asks (P9).', true),
+  ('stakeholder_pack', 'A stakeholder pack shared with an outside recipient, as a sign-in link with the pack''s stop link.', false),
   ('guest_message', 'An org''s email to a guest on its guest list: an invitation, the guest''s pass (the guest-pass PDF attached) or a message, with the unsubscribe link and the postal address (B8, ADR 0147 decision 7).', false),
   ('billing_notice', 'A notice the billing terms promise, such as a renewal reminder or a cancel confirmation, which no setting or unsubscribe stops (ADR 0161).', true),
   ('legal_clock_alert', 'The legal queue''s digest of clocks coming due or overdue, to platform operators, a backup contact or an outside reviewer (ADR 0167).', true),

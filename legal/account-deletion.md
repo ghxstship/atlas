@@ -1,13 +1,11 @@
 ---
 title: Delete Your Account
-version: 1.0.0-draft
-effective_date: The date GHXSTSHIP states when it makes this version final
-status: Draft before launch
+version: 1.0.0
+effective_date: 2026-11-10
+status: In effect
 ---
 
 # Delete Your Account
-
-> **Draft before launch.** This document is a draft. It is not in effect and no one may rely on it. Showing it at /legal does not put it in effect. It takes effect only on the effective date that GHXSTSHIP Industries LLC states at the top of a final version.
 
 This page explains how to delete your XOS account, whether or not you have the Compass app installed. XOS and Compass are published by GHXSTSHIP Industries LLC. This page is written to serve as the account deletion link Google Play asks for, and it supports the in-app deletion that Apple requires. One account works across Atlas, Gateway and Compass, so deleting it once deletes it everywhere.
 

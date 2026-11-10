@@ -1,6 +1,12 @@
 import { sendEmail, type EmailAttachment, type EmailTransport, type Sender } from "@xos/email";
 import { isLocale, type Locale } from "@xos/i18n/locales";
-import type { PlatformDb } from "../stores.ts";
+import {
+  brandedSender,
+  orgEmailBrandFromRow,
+  rows,
+  type OrgEmailBrand,
+  type PlatformDb,
+} from "../stores.ts";
 
 /**
  * Guest list emails (B8, gap G-71, migration 6255, ADR 0147 decision 7). The guest-email Edge Function claims Queued
@@ -44,8 +50,27 @@ export interface GuestPassFacts {
   readonly decidedAt: string;
 }
 
+/**
+ * The brand of an org's document (app.document_brand_for_org, 904090003): what Atlas prints on a guest pass it
+ * downloads, whatever the org's plan.
+ */
+export interface GuestPassBrand {
+  readonly name: string;
+  readonly legalEntity: string | null;
+  readonly accentHex: string | null;
+  readonly logoPath: string | null;
+}
+
+/** What a guest email of an org wears: its email brand while white label is in force, and its document brand. */
+export interface GuestEmailBrand {
+  readonly email: OrgEmailBrand | null;
+  readonly document: GuestPassBrand;
+}
+
 export interface GuestEmailStore {
   claim(limit: number): Promise<readonly ClaimedGuestEmail[]>;
+  /** The org's brands, read once per org in a pass. */
+  brandFor(orgId: string, orgName: string): Promise<GuestEmailBrand>;
   finish(id: string, providerMessageId: string | null, error: string | null): Promise<void>;
 }
 
@@ -58,25 +83,24 @@ export interface GuestEmailOptions {
   readonly fromAddress: string;
   /** The postal address every email carries (decision 41). */
   readonly postalAddress: string;
+  /**
+   * Public base URL of the org-brand bucket (`<SUPABASE_URL>/storage/v1/object/public/org-brand`), for the logo of a
+   * white-label org's email. Without it the email carries no logo.
+   */
+  readonly brandAssetUrl?: string | null;
 }
 
-/** Renders a guest's pass as an A6 PDF from the claim's own facts, so it carries only the row's org. */
+/** Renders a guest's pass as an A6 PDF from the claim's own facts and its org's document brand, so it carries only the row's org. */
 export type RenderGuestPass = (
   claim: ClaimedGuestEmail,
   pass: GuestPassFacts,
+  brand: GuestPassBrand,
 ) => Promise<Uint8Array>;
 
 export interface GuestEmailSummary {
   readonly attempted: number;
   readonly sent: number;
   readonly failed: number;
-}
-
-/** The From header: the org's name as the display name, in quotes, with the configured address. */
-export function guestFrom(orgName: string, fromAddress: string): string {
-  const address = /<([^>]+)>/.exec(fromAddress)?.[1] ?? fromAddress.trim();
-  const name = orgName.replace(/["\\\r\n]/g, "").trim();
-  return name === "" ? address : `"${name}" <${address}>`;
 }
 
 /** The one-click link (RFC 8058) the List-Unsubscribe header and the footer carry. */
@@ -95,13 +119,29 @@ export async function dispatchGuestEmails(
   limit = 50,
 ): Promise<GuestEmailSummary> {
   const claims = await store.claim(limit);
+  const brands = new Map<string, Promise<GuestEmailBrand>>();
   let sent = 0;
   let failed = 0;
   for (const claim of claims) {
     try {
       const unsubscribeUrl = guestUnsubscribeUrl(options.unsubscribeUrl, claim.unsubscribeToken);
+      let pending = brands.get(claim.orgId);
+      if (pending === undefined) {
+        pending = store.brandFor(claim.orgId, claim.orgName);
+        brands.set(claim.orgId, pending);
+      }
+      const brand = await pending.catch((error: unknown) => {
+        brands.delete(claim.orgId);
+        throw error;
+      });
+      // The org's brand while white label is in force (A138): name, From, reply-to, logo and accent.
+      const parts = brandedSender(claim.orgName, brand.email, {
+        fromAddress: options.fromAddress,
+        brandAssetUrl: options.brandAssetUrl ?? null,
+      });
       const sender: Sender = {
-        orgName: claim.orgName,
+        orgName: parts.orgName,
+        ...(parts.brand === undefined ? {} : { brand: parts.brand }),
         postalAddress: options.postalAddress,
         preferencesUrl: new URL(
           `/unsubscribe/${encodeURIComponent(claim.unsubscribeToken)}`,
@@ -118,7 +158,7 @@ export async function dispatchGuestEmails(
           ? [
               {
                 filename: `guest-pass-${claim.pass.passCode}.pdf`,
-                content: await renderPass(claim, claim.pass),
+                content: await renderPass(claim, claim.pass, brand.document),
                 contentType: "application/pdf",
               },
             ]
@@ -137,7 +177,8 @@ export async function dispatchGuestEmails(
         locale: claim.locale,
         sender,
         recipientName: claim.guestName,
-        from: guestFrom(claim.orgName, options.fromAddress),
+        from: parts.from,
+        ...(parts.replyTo === undefined ? {} : { replyTo: parts.replyTo }),
         to: claim.to,
         attachments,
         tags: [
@@ -203,6 +244,22 @@ export function guestEmailStore(db: PlatformDb): GuestEmailStore {
               }
             : null,
       }));
+    },
+    async brandFor(orgId, orgName) {
+      const [email, document] = await Promise.all([
+        db.rpc("email_brand_for_org", { p_org_id: orgId }),
+        db.rpc("document_brand_for_org", { p_org_id: orgId }),
+      ]);
+      const doc = rows(document)[0];
+      return {
+        email: orgEmailBrandFromRow(rows(email)[0]),
+        document: {
+          name: nullableText(doc?.["name"]) ?? orgName,
+          legalEntity: nullableText(doc?.["legal_entity"]),
+          accentHex: nullableText(doc?.["accent_hex"]),
+          logoPath: nullableText(doc?.["logo_path"]),
+        },
+      };
     },
     async finish(id, providerMessageId, error) {
       await db.rpc("finish_guest_email", {

@@ -1,15 +1,13 @@
 ---
 title: Security Overview
-version: 1.0.0-draft
-effective_date: The date GHXSTSHIP states when it makes this version final
-status: Draft before launch
+version: 1.0.0
+effective_date: 2026-11-10
+status: In effect
 ---
 
 # Security Overview
 
-> **Draft before launch.** This document is a draft. It is not in effect and no one may rely on it. Showing it at /legal does not put it in effect. It takes effect only on the effective date that GHXSTSHIP Industries LLC states at the top of a final version.
-
-This page describes how GHXSTSHIP Industries LLC ("GHXSTSHIP") protects XOS 4.0 and the data our Customers trust it with. It summarizes our internal policies and what the product does today. It is not a certification or a warranty. Where a program is in progress, or a policy is not yet fully in practice, this page says so. Our contractual security commitments are in Annex II of the Data Processing Agreement.
+This page describes how GHXSTSHIP Industries LLC ("GHXSTSHIP") protects XOS and the data our Customers trust it with. It summarizes our internal policies and what the product does today. It is not a certification or a warranty. Where a program is in progress, or a policy is not yet fully in practice, this page says so. Our contractual security commitments are in Annex II of the Data Processing Agreement.
 
 ## 1. Program and Frameworks
 
@@ -19,7 +17,7 @@ We have not been audited or certified against any framework named here. They are
 - **ISO/IEC 27001:2022.** We keep an internal Statement of Applicability against ISO/IEC 27001:2022 Annex A, in which some controls are still planned. We do not hold ISO/IEC 27001 or ISO/IEC 27701 certification.
 - **OWASP ASVS 5.0 Level 2.** This is our internal verification standard. A self-assessed matrix maps each requirement to a test or a document, or records it as a gap or an accepted risk.
 - **NIST SP 800-63B.** We use it as a reference for authentication strength and account recovery. We have not assessed XOS against an assurance level.
-- **PCI DSS v4.0.1.** Card data never touches XOS. Checkout and the customer portal are hosted by Stripe, and we rely on that design to keep our scope to SAQ A. Live card billing opens separately from launch.
+- **PCI DSS v4.0.1.** Card data never touches XOS. Checkout and the customer portal are hosted by Stripe, and we rely on that design to keep our scope to SAQ A. Live card billing runs through Stripe Checkout and the Stripe customer portal.
 - **HIPAA.** We make no claim of HIPAA compliance. GHXSTSHIP does not offer the Service as a covered entity or business associate service and does not sign business associate agreements.
 
 ## 2. Architecture

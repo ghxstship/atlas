@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   advisorsSummary,
   advisorsUrl,
+  cliAdvisorLints,
   evaluateAdvisors,
   fetchAdvisors,
   type AcceptedLint,
@@ -112,6 +113,54 @@ describe("fetchAdvisors", () => {
     const fake = (async () => new Response("no", { status: 401 })) as typeof fetch;
     await expect(fetchAdvisors(REF, "token-value", fake)).rejects.toThrow(/answered 401/);
     await expect(fetchAdvisors(REF, "token-value", fake)).rejects.not.toThrow(/token-value/);
+  });
+});
+
+describe("cliAdvisorLints (the local stack, Supabase CLI 3)", () => {
+  const report = {
+    results: [
+      {
+        name: "security_definer_view",
+        title: "Security Definer View",
+        level: "ERROR",
+        categories: ["SECURITY"],
+        detail: "View `app.email_templates` is defined with the SECURITY DEFINER property",
+        remediation:
+          "https://supabase.com/docs/guides/database/database-linter?lint=0010_security_definer_view",
+        cacheKey: "security_definer_view_app_email_templates",
+      },
+      {
+        name: "unindexed_foreign_keys",
+        level: "WARN",
+        categories: ["PERFORMANCE"],
+        cacheKey: "fk_x",
+      },
+    ],
+  };
+
+  it("maps the CLI's report to the Management API's lints, cacheKey to cache_key", () => {
+    const [security, performance] = cliAdvisorLints(report);
+    expect(security?.kind).toBe("security");
+    expect(security?.lints[0]?.cache_key).toBe("security_definer_view_app_email_templates");
+    expect(performance?.lints.map((l) => l.name)).toEqual(["unindexed_foreign_keys"]);
+  });
+
+  it("judges it against the accepted list like staging's", () => {
+    const accepted: AcceptedLint[] = [
+      {
+        name: "security_definer_view",
+        match: "_app_",
+        reason: "Reference catalogs read as their owner by design.",
+        recorded: "2026-11-10",
+      },
+    ];
+    const verdict = evaluateAdvisors(cliAdvisorLints(report), accepted);
+    expect(verdict.accepted.map((f) => f.name)).toEqual(["security_definer_view"]);
+    expect(verdict.failures.map((f) => f.name)).toEqual(["unindexed_foreign_keys"]);
+  });
+
+  it("refuses a report without results", () => {
+    expect(() => cliAdvisorLints({ message: "error" })).toThrow(/no results/);
   });
 });
 

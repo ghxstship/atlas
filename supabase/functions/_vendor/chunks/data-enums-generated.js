@@ -3,6 +3,8 @@
 //#region ../data/src/enums.generated.ts
 /** app.budget_line_type */
 var budgetLineType = ["Cost", "Labor", "Fee", "Contingency"];
+/** app.cue_call_kind */
+var cueCallKind = ["Audio", "Lighting", "Video", "Special Effects", "Stage"];
 /** app.data_classification */
 var dataClassification = ["Public", "Internal", "Confidential", "Restricted"];
 /** app.export_format */
@@ -25,6 +27,7 @@ var warehouseProvider = ["S3", "Google Cloud Storage", "Azure Blob", "BigQuery",
 //#endregion
 export {
   budgetLineType,
+  cueCallKind,
   dataClassification,
   exportFormat,
   integrationSyncScope,

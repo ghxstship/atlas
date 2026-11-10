@@ -71,6 +71,16 @@ const samples: { readonly [C in TemplateCode]: TemplateProps[C] } = {
     periodLabel: "October 2026",
     format: "PDF",
     url: "https://atlas.xos.test/rep/1",
+    rows: 42,
+    unpriced: 1,
+  },
+  stakeholder_pack: {
+    senderName: "Alice Moreno",
+    packName: "Sponsor recap",
+    message: "Here is the recap.",
+    itemTitles: ["Attendance", "Activation photos"],
+    url: "https://atlas.xos.test/pack/xpkl_1",
+    expiresText: "Nov 17, 2026, 5:00 PM EST",
   },
   export_ready: { exportName: "Vendors", expiresAt: when, url: "https://atlas.xos.test/exp/1" },
   import_finished: {

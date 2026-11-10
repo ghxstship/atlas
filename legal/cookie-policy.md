@@ -1,13 +1,11 @@
 ---
 title: Cookie Policy
-version: 1.0.0-draft
-effective_date: The date GHXSTSHIP states when it makes this version final
-status: Draft before launch
+version: 1.0.0
+effective_date: 2026-11-10
+status: In effect
 ---
 
 # Cookie Policy
-
-> **Draft before launch.** This document is a draft. It is not in effect and no one may rely on it. Showing it at /legal does not put it in effect. It takes effect only on the effective date that GHXSTSHIP Industries LLC states at the top of a final version.
 
 This Cookie Policy explains how GHXSTSHIP Industries LLC ("GHXSTSHIP", "we" or "us") uses cookies and similar technologies on Atlas, Gateway and the documentation site. Compass is covered in Section 4. Our operator console is for GHXSTSHIP staff only and has no consent banner. This policy should be read with our Privacy Policy.
 

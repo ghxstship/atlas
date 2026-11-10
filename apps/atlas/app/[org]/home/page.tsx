@@ -341,6 +341,9 @@ export default async function HomePage({ params }: PageProps<"/[org]/home">) {
       tiles={tiles}
       saved={saved}
       label={dashboard("tiles")}
+      // Every tile here is computed above (the checklist, plan and stat tiles' markup, the other tiles' data), so the
+      // grid paints whole rather than tile by tile.
+      ready
     />
   );
 }

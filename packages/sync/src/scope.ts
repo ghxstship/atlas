@@ -282,6 +282,13 @@ export const TABLE_RULES: readonly TableRule[] = [
       ["sponsor_entitlements", "project_id", "engagedProjectIds", SPONSOR],
       ["engagement_documents", "engagement_id", "engagementIds", SPONSOR],
       ["proof_of_performance_photos", "engagement_id", "engagementIds", SPONSOR],
+      // Compass Today's blocks for outside parties: a vendor's open delivery windows, an artist's hospitality, a
+      // client's approvals, a sponsor's activation bookings and outside crew's project briefings.
+      ["vendor_delivery_windows", "project_id", "engagedProjectIds", VENDOR],
+      ["hospitality", "project_id", "engagedProjectIds", ARTIST_PARTY],
+      ["client_approvals", "engagement_id", "engagementIds", CLIENT],
+      ["space_bookings", "engagement_id", "engagementIds", SPONSOR],
+      ["briefings", "project_id", "engagedProjectIds", CREW_STAFF],
     ] as const
   ).map(([table, column, key, audiences]): TableRule => ({
     table,

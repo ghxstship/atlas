@@ -1,5 +1,6 @@
 import type { XosClient } from "./client.ts";
-import { Constants, type Database } from "./database.types.ts";
+import type { Database } from "./database.types.ts";
+import { projectDayType } from "./enums.generated.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 import { untyped } from "./untyped.ts";
 
@@ -16,7 +17,7 @@ export { dayTypeSlug, dayTypeTone, type DayTypeTone } from "./schedule-day-tones
 import { dayTypeTone, type DayTypeTone } from "./schedule-day-tones.ts";
 
 /** The seven day types, in enum order. */
-export const DAY_TYPES: readonly DayType[] = Constants.app.Enums.project_day_type;
+export const DAY_TYPES: readonly DayType[] = projectDayType;
 
 export function isDayType(value: unknown): value is DayType {
   return typeof value === "string" && (DAY_TYPES as readonly string[]).includes(value);

@@ -1,10 +1,7 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { mailpitMailer } from "@xos/data/report-deliveries";
-import {
-  runPackDeliveries,
-  supabasePackDeliveryStore,
-  type PackEmailCopy,
-} from "@xos/data/stakeholder-packs";
+import { runPackDeliveries, supabasePackDeliveryStore } from "@xos/data/stakeholder-packs";
+import { packEmailComposer } from "@xos/platform/report-email";
 import { expect, type APIRequestContext } from "@playwright/test";
 import pg from "pg";
 
@@ -142,28 +139,17 @@ export async function displayLink(person: string, project: string, name: string)
   return link?.live_link_id as string;
 }
 
-const fill = (template: string, values: Readonly<Record<string, string>>) =>
-  template.replace(/\{(\w+)\}/g, (all, name: string) => values[name] ?? all);
-
-const COPY: PackEmailCopy = {
-  subject: (v) => fill("{sender} shared {pack} with you", v),
-  intro: (v) => fill("{sender} shared {pack} with you.", v),
-  message: (v) => fill("Their message: {message}", v),
-  items: (v) => fill("In this pack: {items}", v),
-  open: (v) => fill("Open the pack: {url}", v),
-  expires: (v) => fill("This link works until {date}.", v),
-  code: () => "The access code never comes by email.",
-  sentBy: (v) => fill("Sent by {org}, {address}.", v),
-  stop: (v) => fill("Stop these emails: {url}", v),
-};
-
 /** One pass of the worker, as report-run makes it, against the local inbox. */
 export async function deliverPacks(appUrl: string): Promise<void> {
   const { client, inbox, url } = localStack();
   const results = await runPackDeliveries({
     store: supabasePackDeliveryStore(client),
     mailer: mailpitMailer(inbox, { email: "reports@xos.localhost", name: "XOS" }),
-    copy: async () => COPY,
+    // The branded stakeholder_pack email report-run sends (904090003).
+    compose: packEmailComposer({
+      fromAddress: "reports@xos.localhost",
+      brandAssetUrl: `${url}/storage/v1/object/public/org-brand`,
+    }),
     env: { appUrl, postalAddress: "100 Harbor Way, Miami, FL 33132", apiUrl: url },
     worker: `e2e:${crypto.randomUUID()}`,
   });

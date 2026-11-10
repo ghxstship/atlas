@@ -246,6 +246,8 @@ nodes:
             label: nav.gateway.work.quoteRequests
             route: /work/quote-requests
             list: { views: [list], default: list }
+            # An account's page: only the person acting for the vendor's account reads its quote requests.
+            conditions: [company-account]
             visibility:
               individual: hidden
               account-owner: full

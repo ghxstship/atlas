@@ -8,7 +8,8 @@ import {
   createTransport,
   readEmailEnv,
 } from "./chunks/email-env.js";
-import { isTemplateCode, sendEmail } from "./chunks/email-send.js";
+import { isTemplateCode } from "./chunks/email-render.js";
+import { sendEmail } from "./chunks/email-send.js";
 import {
   clip,
   createSmsProvider,
@@ -48,7 +49,9 @@ var reportDelivery = z.object({
   reportName: z.string(),
   periodLabel: z.string(),
   format: z.string(),
-  url: z.url(),
+  url: z.url().optional(),
+  rows: z.number().int().nonnegative().optional(),
+  unpriced: z.number().int().nonnegative().optional(),
 });
 function messageArgs(raw) {
   const args = {};
@@ -91,11 +94,18 @@ async function propsFor(claim, store) {
         code: "import_finished",
         props: importFinished.parse(claim.messageArgs),
       };
-    case "report_delivery":
+    case "report_delivery": {
+      const { url, rows, unpriced, ...words } = reportDelivery.parse(claim.messageArgs);
       return {
         code: "report_delivery",
-        props: reportDelivery.parse(claim.messageArgs),
+        props: {
+          ...words,
+          ...(url === void 0 ? {} : { url }),
+          ...(rows === void 0 ? {} : { rows }),
+          ...(unpriced === void 0 ? {} : { unpriced }),
+        },
       };
+    }
     case "approval_link_code": {
       const code = (await store.mintApprovalLinkCodeFor?.(claim)) ?? null;
       if (code === null || !/^[0-9]{6}$/.test(code))

@@ -141,7 +141,7 @@ Fly.io that runs it, so Fly.io is on the Subprocessor List (ADR 0034, amendment 
 1. Run clamd as described in `infra/scanning/fly/README.md`.
 2. Set the function secrets `XOS_CLAMAV_HOST` and `XOS_CLAMAV_PORT`, and `XOS_CLAMAV_TLS_CA`, `XOS_CLAMAV_TLS_CERT` and
    `XOS_CLAMAV_TLS_KEY` (all three or none) as its step 4 shows.
-3. Schedule `upload-scan` every minute with the service key, as for `webhook-dispatch`.
+3. Schedule `upload-scan` every minute with a secret key on the `apikey` header, as for `webhook-dispatch`.
 
 Without `XOS_CLAMAV_HOST`, `upload-scan` answers 503 and claims nothing. Every upload stays quarantined,
 and nothing is passed through unscanned outside a local stack.
@@ -184,7 +184,7 @@ Check the hosted project once, on staging, before relying on per-address limits 
 
 ## Report runs (A35)
 
-Schedule the `report-run` Edge Function every minute with the service key, as for
+Schedule the `report-run` Edge Function every minute with a secret key on the `apikey` header, as for
 `webhook-dispatch`. It processes `report.run` jobs (migration 1050): until it is scheduled, report runs
 stay Queued. Result files go to the private `report-results` bucket, readable only by the person each
 run is for.

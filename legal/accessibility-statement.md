@@ -1,15 +1,13 @@
 ---
 title: Accessibility Statement
-version: 1.0.0-draft
-effective_date: The date GHXSTSHIP states when it makes this version final
-status: Draft before launch
+version: 1.0.0
+effective_date: 2026-11-10
+status: In effect
 ---
 
 # Accessibility Statement
 
-> **Draft before launch.** This document is a draft. It is not in effect and no one may rely on it. Showing it at /legal does not put it in effect. It takes effect only on the effective date that GHXSTSHIP Industries LLC states at the top of a final version.
-
-GHXSTSHIP Industries LLC ("GHXSTSHIP") wants everyone who plans, staffs, supplies and works at live productions to be able to use XOS 4.0, including people with disabilities. This statement covers Atlas, Gateway, Compass for iOS and Android, the documentation site, our emails and the PDFs XOS generates. It was prepared on 6 November 2026.
+GHXSTSHIP Industries LLC ("GHXSTSHIP") wants everyone who plans, staffs, supplies and works at live productions to be able to use XOS, including people with disabilities. This statement covers Atlas, Gateway, Compass for iOS and Android, the documentation site, our emails and the PDFs XOS generates. It was prepared on 6 November 2026.
 
 ## 1. Our Standard
 
@@ -29,7 +27,7 @@ Generated PDFs are designed to PDF/UA-1. An automated veraPDF check of the gener
 - For Atlas and Gateway, the evaluation ran in headless Chrome 155 only, using automated checks with axe-core 4.13, scripted keyboard journeys and reading of the browser's accessibility tree. For Compass, it rested on reading the source code, not on testing a device.
 - Versions 4.1 to 4.5 have shipped since then. They have been through our automated checks, but the evaluation has not been repeated.
 
-The results are in our draft Accessibility Conformance Reports for Atlas, Gateway and Compass at /legal/acr-atlas, /legal/acr-gateway and /legal/acr-compass. They mark as Partially Supports each criterion that depends on the human passes still owed. We will update this statement and those reports as evaluation continues.
+The results are in our Accessibility Conformance Reports for Atlas, Gateway and Compass at /legal/acr-atlas, /legal/acr-gateway and /legal/acr-compass. They mark as Partially Supports each criterion that depends on the human passes still owed. We will update this statement and those reports as evaluation continues.
 
 ## 3. What We Build In
 
