@@ -3,21 +3,30 @@
 import type { Route } from "next";
 import NextLink from "next/link";
 import { usePathname } from "next/navigation";
+import { inSection } from "@/lib/localized";
 
-/** The console top bar (ia/sitemap.yaml chrome.topBar), marking the current section for assistive technology. */
+/**
+ * The console top bar (ia/sitemap.yaml chrome.topBar), marking the current section for assistive technology: the one
+ * whose route, or a route below it, the page is on.
+ */
 export function ConsoleNav({
   label,
   items,
 }: {
   label: string;
-  items: readonly { readonly href: string; readonly label: string }[];
+  /** `paths`: the item's route and the routes below it (lib/localized.ts sectionPaths). */
+  items: readonly {
+    readonly href: string;
+    readonly label: string;
+    readonly paths?: readonly string[];
+  }[];
 }) {
   const path = usePathname();
   return (
     <nav aria-label={label}>
       <ul className="m-0 flex list-none flex-wrap gap-4 p-0">
         {items.map((item) => {
-          const current = path === item.href || path.startsWith(`${item.href}/`);
+          const current = inSection(path, item.paths ?? [item.href]);
           return (
             <li key={item.href}>
               <NextLink

@@ -342,8 +342,9 @@
     "aurora_requests_per_month": "Aurora requests a month"
   },
   "flags": {
-    "title": "Feature flags",
+    "title": "Feature Flags",
     "intro": "Defaults, plan requirements and per-org overrides. The kill switch turns a feature off everywhere at once.",
+    "descriptionsInEnglish": "Flag descriptions are written in English.",
     "flag": "Flag",
     "default": "Default",
     "planGate": "Needs plan feature",
@@ -421,7 +422,7 @@
     "notRecorded": "Not recorded"
   },
   "support": {
-    "title": "Support sessions",
+    "title": "Support Sessions",
     "intro": "Open platform support sessions an org's Owner granted. While one lasts you may read the org's overview, members, projects and settings; every read is logged for the org.",
     "none": "No platform support session is open. An org's Owner grants one in Atlas, under Settings, Security.",
     "org": "Org",
@@ -594,7 +595,7 @@
     "Other": "Something else"
   },
   "banners": {
-    "title": "System banners",
+    "title": "System Banners",
     "intro": "Maintenance windows, incidents, plan notices and other notices at the top of Atlas, Gateway and Compass. Shells pick up a change within a minute.",
     "none": "No banner yet.",
     "new": "Publish a banner",
@@ -727,7 +728,7 @@
     }
   },
   "team": {
-    "title": "Platform team",
+    "title": "Platform Team",
     "intro": "Who may use the console and with which role. Support handles tenants, flags, banners and support sessions; Trust and Safety handles moderation; Administrators do everything, including plans and this list.",
     "person": "Person",
     "role": "Role",
@@ -1270,7 +1271,7 @@
     "feedFailureNote": "One of the queue's automatic feeds is failing, so records of that kind are not reaching this list. Everything else still runs, and this item closes itself when the feed works again. Check the error below and the most recent migration."
   },
   "ratingDisputes": {
-    "title": "Rating disputes",
+    "title": "Rating Disputes",
     "intro": "People disputing a rating an organization gave them. The score is not shown, because it cannot decide a dispute. Uphold only on a named ground; the reasons go to the person and the organization.",
     "link": "Rating disputes",
     "backToListings": "Reported listings",
@@ -1284,6 +1285,8 @@
     "waiting": "Filed",
     "decidedAt": "Decided",
     "detailIntro": "{person} disputes a rating from {org}, project {project}, given on {when}.",
+    "detailTitle": "Rating Dispute from {person}",
+    "back": "Back to Rating Disputes",
     "what": "What the person says",
     "comment": "The rating's comment",
     "noComment": "The rating has no comment.",
