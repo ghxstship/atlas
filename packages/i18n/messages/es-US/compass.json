@@ -777,7 +777,9 @@
     "updateFrom": "Novedad de {org}",
     "new": "Nuevo",
     "crisisAlert": "Alerta de crisis en {project}: {code}",
-    "crisisAllClear": "Fin de alerta en {project}: {code}"
+    "crisisAllClear": "Fin de alerta en {project}: {code}",
+    "timesheetRequest": "Hoja de horas de {worker}, {period}",
+    "timesheetRequestUnnamed": "Hoja de horas, {period}"
   },
   "more": {
     "title": "Más",

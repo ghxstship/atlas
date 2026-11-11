@@ -10,8 +10,10 @@ import {
   crisisAlertNotice,
   inboxRecordKey,
   inboxTarget,
+  timesheetRequestOf,
   type InboxNotificationRow,
 } from "../../src/domain/notifications";
+import { formatCalendarRange } from "../../src/domain/dates";
 import { useCompass, useRows } from "../../src/runtime/CompassProvider";
 import { useInboxNotifications, useNotificationPermission } from "../../src/runtime/notifications";
 import {
@@ -32,7 +34,7 @@ import { Button, Card, EmptyState, ListRow, Screen, Text } from "../../src/ui";
  * role lens (A128) a member sees what is addressed to them and what the lens role's capabilities brought them.
  */
 export default function InboxScreen(): ReactElement {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const roleTitle = useRoleTitle();
   const router = useRouter();
   const { config, resolved, projectId, status, lens } = useCompass();
@@ -99,7 +101,23 @@ export default function InboxScreen(): ReactElement {
   ];
   const notificationRow = (n: InboxNotificationRow): ReactElement => {
     const target = inboxTarget(n);
-    const title = typeof n.args["title"] === "string" ? n.args["title"].trim() : "";
+    // A timesheet request is written here, in the person's language and with their dates (C-24).
+    const sheet = timesheetRequestOf(n);
+    const period = sheet
+      ? formatCalendarRange(
+          sheet.periodStart,
+          sheet.periodEnd,
+          (from, to) => t("compassExternal.between", { from, to }),
+          i18n.language,
+        )
+      : "";
+    const title = sheet
+      ? sheet.worker === ""
+        ? t("compass.inbox.timesheetRequestUnnamed", { period })
+        : t("compass.inbox.timesheetRequest", { worker: sheet.worker, period })
+      : typeof n.args["title"] === "string"
+        ? n.args["title"].trim()
+        : "";
     const org = typeof n.args["orgName"] === "string" ? n.args["orgName"].trim() : "";
     const crisis = crisisAlertNotice(n);
     const subtitle = [

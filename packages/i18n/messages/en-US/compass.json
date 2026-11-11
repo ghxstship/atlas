@@ -777,7 +777,9 @@
     "updateFrom": "Update from {org}",
     "new": "New",
     "crisisAlert": "Crisis alert at {project}: {code}",
-    "crisisAllClear": "All clear at {project}: {code}"
+    "crisisAllClear": "All clear at {project}: {code}",
+    "timesheetRequest": "Timesheet {worker}, {period}",
+    "timesheetRequestUnnamed": "Timesheet, {period}"
   },
   "more": {
     "title": "More",

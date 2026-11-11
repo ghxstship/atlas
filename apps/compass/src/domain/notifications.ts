@@ -295,3 +295,28 @@ export async function readActOutcome(
   }
   return { kind: "failed" };
 }
+
+export interface TimesheetRequest {
+  readonly worker: string;
+  readonly periodStart: string;
+  readonly periodEnd: string;
+}
+
+const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;
+
+/**
+ * A timesheet approval request's worker and period, from the arguments it carries (workerName, periodStart and
+ * periodEnd since 4755), so the Inbox writes its title in the person's language with their dates. The server's title
+ * read "Timesheet Demo Staff One, 2026-11-08 to 2026-11-10" (C-24). Null for any other notification.
+ */
+export function timesheetRequestOf(row: InboxNotificationRow): TimesheetRequest | null {
+  if (row.kind !== "approval.requested" || row.subjectTable !== "timesheets") return null;
+  const { workerName, periodStart, periodEnd } = row.args;
+  if (typeof periodStart !== "string" || !ISO_DAY.test(periodStart)) return null;
+  if (typeof periodEnd !== "string" || !ISO_DAY.test(periodEnd)) return null;
+  return {
+    worker: typeof workerName === "string" ? workerName.trim() : "",
+    periodStart,
+    periodEnd,
+  };
+}
