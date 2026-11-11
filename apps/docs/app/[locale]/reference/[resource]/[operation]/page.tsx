@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { outlineLinkClass } from "@/components/markdown.tsx";
 import { OperationBody } from "@/components/operation.tsx";
 import { Breadcrumbs, TemplateDocument } from "@/components/ui.tsx";
 import { isLocale, translator } from "@/lib/i18n.ts";
@@ -45,11 +46,11 @@ export default async function OperationPage({ params }: Params) {
             <a
               href={`/${locale}/reference/${doc.slug}/${operationSlug(other)}`}
               aria-current={other.id === op.id ? "page" : undefined}
-              className={
+              className={`${outlineLinkClass} ${
                 other.id === op.id
-                  ? "text-text-primary font-semibold no-underline"
-                  : "text-text-secondary hover:text-text-primary no-underline"
-              }
+                  ? "text-text-primary font-semibold"
+                  : "text-text-secondary hover:text-text-primary"
+              }`}
             >
               {other.verb}
             </a>

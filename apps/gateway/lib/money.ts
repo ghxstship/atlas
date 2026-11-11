@@ -36,19 +36,32 @@ export function moneyOverview(input: {
   return { earned, pending, next };
 }
 
-/** Paid amounts by month for one currency, in major units for the chart (last six months). */
+/**
+ * Paid amounts by month for one currency, in major units for the chart (last six months). `months` are the ISO
+ * months (YYYY-MM) the amounts belong to; `labels` name them in the person's locale for the axis, with the year only
+ * when the six months cross one. `paid` is false when nothing was paid in them, so the page shows a sentence instead
+ * of an all-zero chart.
+ */
 export function paidByMonth(
   payments: readonly Payment[],
   currency: string,
   today: string,
-): { months: string[]; values: number[] } {
-  const months: string[] = [];
+  locale: string,
+): { months: string[]; labels: string[]; values: number[]; paid: boolean } {
+  const starts: Date[] = [];
   const end = new Date(`${today.slice(0, 7)}-01T00:00:00Z`);
   for (let i = 5; i >= 0; i--) {
     const d = new Date(end);
     d.setUTCMonth(d.getUTCMonth() - i);
-    months.push(d.toISOString().slice(0, 7));
+    starts.push(d);
   }
+  const months = starts.map((d) => d.toISOString().slice(0, 7));
+  const oneYear = months[0]?.slice(0, 4) === months[months.length - 1]?.slice(0, 4);
+  const label = new Intl.DateTimeFormat(locale, {
+    month: "short",
+    ...(oneYear ? {} : { year: "numeric" }),
+    timeZone: "UTC",
+  });
   const digits = minorDigits(currency);
   const values = months.map(
     (m) =>
@@ -57,5 +70,10 @@ export function paidByMonth(
         .reduce((sum, p) => sum + p.amountMinor, 0) /
       10 ** digits,
   );
-  return { months, values };
+  return {
+    months,
+    labels: starts.map((d) => label.format(d)),
+    values,
+    paid: values.some((v) => v !== 0),
+  };
 }

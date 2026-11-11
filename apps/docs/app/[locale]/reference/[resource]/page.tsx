@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { outlineLinkClass } from "@/components/markdown.tsx";
 import { MethodTag } from "@/components/operation.tsx";
 import { Breadcrumbs, Link, TemplateDocument } from "@/components/ui.tsx";
 import { isLocale, translator } from "@/lib/i18n.ts";
@@ -40,7 +41,7 @@ export default async function ResourcePage({ params }: Params) {
           <li key={op.id}>
             <a
               href={href(op.verb)}
-              className="text-text-secondary hover:text-text-primary no-underline"
+              className={`${outlineLinkClass} text-text-secondary hover:text-text-primary`}
             >
               {op.verb}
             </a>

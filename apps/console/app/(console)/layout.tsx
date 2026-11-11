@@ -9,6 +9,7 @@ import { ConsoleNav } from "@/components/console-nav";
 import { Button, InlineAlert } from "@/components/ui";
 import { sitemap } from "@/ia/sitemap.generated";
 import { getConsoleFormat } from "@/lib/format";
+import { sectionPaths } from "@/lib/localized";
 import { getConsoleContext } from "@/lib/operator";
 
 const SITEMAP_ROLE = {
@@ -34,6 +35,7 @@ export default async function ConsoleLayout({ children }: { children: ReactNode 
     (node) => ({
       href: node.route ?? "/",
       label: (nav as unknown as (k: string) => string)(node.label.replace(/^nav\./, "")),
+      paths: sectionPaths(node),
     }),
   );
   return (

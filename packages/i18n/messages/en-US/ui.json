@@ -287,7 +287,7 @@
     "unpriced": "Unpriced"
   },
   "nav": {
-    "account": "Account menu for {name}",
+    "account": "Open the account menu for {name}",
     "breadcrumb": "Breadcrumb",
     "main": "Main",
     "next": "Next",
