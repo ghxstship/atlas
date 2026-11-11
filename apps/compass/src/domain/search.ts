@@ -176,14 +176,21 @@ export function groupHits(
 
 /**
  * The actions search reaches: a verb, the feature it needs (null for every person) and its route. Their
- * labels live under compassSearch.actions.
+ * labels live under compassSearch.actions. An action with `live` opens that route instead for a person who has its
+ * feature: Run of Show opens the live /show for an internal stage manager (show.live) and the read-only /run-of-show
+ * for the Client (show.read), as each one's sitemap does.
  */
 export const COMPASS_SEARCH_ACTIONS = [
   { key: "reportIncident", feature: "incidents.report", href: "/incidents/new" },
   { key: "startInspection", feature: "inspections.perform", href: "/inspections" },
   { key: "scan", feature: null, href: "/scan" },
   { key: "addExpense", feature: "expenses.submit", href: "/expenses" },
-  { key: "runOfShow", feature: "show.read", href: "/show" },
+  {
+    key: "runOfShow",
+    feature: "show.read",
+    href: "/run-of-show",
+    live: { feature: "show.live", href: "/show" },
+  },
   { key: "openSchedule", feature: null, href: "/schedule" },
   { key: "openInbox", feature: null, href: "/inbox" },
   { key: "offlineQueue", feature: null, href: "/offline-queue" },
@@ -194,9 +201,14 @@ export const COMPASS_SEARCH_ACTIONS = [
 
 export type CompassSearchAction = (typeof COMPASS_SEARCH_ACTIONS)[number];
 
-/** The action documents for a person: those whose feature they have, labeled by `label`. */
+/** A feature an action needs, or the one that opens its live route. */
+export type CompassSearchFeature =
+  | Exclude<CompassSearchAction["feature"], null>
+  | Extract<CompassSearchAction, { live: unknown }>["live"]["feature"];
+
+/** The action documents for a person: those whose feature they have, labeled by `label`, each on the route they reach. */
 export function actionDocs(
-  allowed: (feature: Exclude<CompassSearchAction["feature"], null>) => boolean,
+  allowed: (feature: CompassSearchFeature) => boolean,
   label: (key: CompassSearchAction["key"]) => string,
 ): LocalSearchDoc[] {
   return COMPASS_SEARCH_ACTIONS.filter((a) => a.feature === null || allowed(a.feature)).map(
@@ -204,7 +216,7 @@ export function actionDocs(
       kind: "action",
       id: a.key,
       title: label(a.key),
-      href: a.href,
+      href: "live" in a && allowed(a.live.feature) ? a.live.href : a.href,
     }),
   );
 }

@@ -77,8 +77,110 @@ export interface ShowState {
 /** Seconds of warning before a cue: the haptic fires when the countdown crosses it (Section 11.13). */
 export const PRE_CUE_WARNING_MS = 10_000;
 
+/** Cues of one running order in running order: by position, then by planned time for a tie. */
+export function inRunningOrder(cues: readonly Cue[]): Cue[] {
+  return [...cues].sort((a, b) => a.position - b.position || plannedMs(a) - plannedMs(b));
+}
+
+function plannedMs(cue: Cue): number {
+  return cue.planned_at ? Date.parse(cue.planned_at) : Number.POSITIVE_INFINITY;
+}
+
+/** A running order as the device stores it (app.run_of_show or api_external.run_of_show). */
+export interface RunningOrderRow {
+  readonly id: string;
+  readonly name?: string | null;
+  readonly show_date?: string | null;
+}
+
+/** One running order and its cues, which the Show screen and Today read on their own (C-08). */
+export interface RunningOrder {
+  readonly id: string;
+  /** The running order's name; empty when its row has not reached the device. */
+  readonly name: string;
+  /** The show day (YYYY-MM-DD), or null when unknown. */
+  readonly showDate: string | null;
+  readonly cues: readonly Cue[];
+}
+
+/**
+ * A project's cues split by running order (app.cues.run_of_show_id), each in running order. A project can hold several
+ * running orders, a main stage and a side stage, or one per show day; their positions restart in each, so merging them
+ * interleaved the stages and counted one show's cues in another's progress. Running orders read by show day, then by
+ * their first planned cue, then by name.
+ */
+export function runningOrders(
+  cues: readonly Cue[],
+  rows: readonly RunningOrderRow[] = [],
+): RunningOrder[] {
+  const byId = new Map(rows.map((r) => [r.id, r] as const));
+  const groups = new Map<string, Cue[]>();
+  for (const cue of cues) {
+    groups.set(cue.run_of_show_id, [...(groups.get(cue.run_of_show_id) ?? []), cue]);
+  }
+  const orders = [...groups].map(([id, of]): RunningOrder => {
+    const row = byId.get(id);
+    return {
+      id,
+      name: row?.name ?? "",
+      showDate: row?.show_date ?? null,
+      cues: inRunningOrder(of),
+    };
+  });
+  const firstPlanned = (o: RunningOrder) => Math.min(...o.cues.map(plannedMs));
+  return orders.sort(
+    (a, b) =>
+      (a.showDate ?? "\uffff").localeCompare(b.showDate ?? "\uffff") ||
+      firstPlanned(a) - firstPlanned(b) ||
+      a.name.localeCompare(b.name) ||
+      a.id.localeCompare(b.id),
+  );
+}
+
+/**
+ * The running order to open on: one under way (a cue called, not complete), else the one whose next cue comes
+ * soonest, else the last to finish. Among several under way, the one whose next cue comes soonest.
+ */
+export function liveRunningOrder(
+  orders: readonly RunningOrder[],
+  nowMs: number,
+): RunningOrder | null {
+  const states = orders.map((order) => ({ order, state: showState(order.cues, nowMs) }));
+  const soonest = (list: typeof states) =>
+    list.reduce<(typeof states)[number] | null>((best, x) => {
+      if (best === null) return x;
+      const at = (s: ShowState) =>
+        s.next?.planned_at ? Date.parse(s.next.planned_at) : Number.POSITIVE_INFINITY;
+      return at(x.state) < at(best.state) ? x : best;
+    }, null);
+  const underWay = states.filter((x) => x.state.status === "running" || x.state.status === "late");
+  const open = states.filter((x) => x.state.status !== "complete");
+  return (soonest(underWay) ?? soonest(open))?.order ?? states[states.length - 1]?.order ?? null;
+}
+
+/**
+ * The running order the Show screen reads: the one the person is on while the project still has it, else the live one
+ * (liveRunningOrder) to open on. The screen stores what this returns and passes it back as `chosenId`, so the live
+ * choice is only where it opens: calling a cue moves the live order to whichever stage's next cue now comes sooner,
+ * and the screen must not follow it there while an operator calls cues (C-08).
+ */
+export function shownRunningOrder(
+  orders: readonly RunningOrder[],
+  chosenId: string | null,
+  nowMs: number,
+): RunningOrder | null {
+  return orders.find((o) => o.id === chosenId) ?? liveRunningOrder(orders, nowMs);
+}
+
+/** The next cue of a project's cues, read in the running order it belongs to (Today, the combined Today). */
+export function nextCueOf(cues: readonly Cue[], nowMs: number): Cue | null {
+  const order = liveRunningOrder(runningOrders(cues), nowMs);
+  return order ? showState(order.cues, nowMs).next : null;
+}
+
+/** The state of one running order's cues; a caller with several running orders passes one (runningOrders). */
 export function showState(cues: readonly Cue[], nowMs: number): ShowState {
-  const ordered = [...cues].sort((a, b) => a.position - b.position);
+  const ordered = inRunningOrder(cues);
   const progress = cueProgress(
     ordered.map((c) => ({
       position: c.position,
@@ -144,6 +246,24 @@ export const COUNTDOWN_HORIZON_MS = 12 * 3600_000;
  */
 export function showsCountdown(msToNext: number | null): msToNext is number {
   return msToNext !== null && msToNext <= COUNTDOWN_HORIZON_MS;
+}
+
+/**
+ * What stands where the countdown goes, on Show and Run of Show as on Today (C-09): TBC for a time to be confirmed, the
+ * countdown inside the horizon, and past it the day and time the cue is planned for. A cue months away read
+ * "178665:45" here while Today already named its day.
+ */
+export type CountdownDisplay =
+  | { readonly kind: "tbc" }
+  | { readonly kind: "countdown"; readonly ms: number }
+  | { readonly kind: "planned"; readonly at: string }
+  | { readonly kind: "none" };
+
+export function countdownDisplay(state: ShowState): CountdownDisplay {
+  if (!state.next) return { kind: "none" };
+  if (state.startTbc) return { kind: "tbc" };
+  if (showsCountdown(state.msToNext)) return { kind: "countdown", ms: state.msToNext };
+  return state.next.planned_at ? { kind: "planned", at: state.next.planned_at } : { kind: "none" };
 }
 
 /** Seconds before a cue at which the countdown is spoken; 0 is the cue itself (A23-009). */

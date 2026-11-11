@@ -30,7 +30,12 @@ export default function ProfileScreen(): ReactElement {
               key={e.id}
               icon="file-text"
               title={e.projectName}
-              subtitle={`${e.orgName} · ${e.state}`}
+              // An artist's engagement the person works as their representative says so (C-10).
+              subtitle={
+                e.roleType === "artist-representative"
+                  ? `${e.orgName} · ${t("compass.profile.representingArtist")} · ${e.state}`
+                  : `${e.orgName} · ${e.state}`
+              }
             />
           ))}
         </Card>

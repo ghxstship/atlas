@@ -570,6 +570,35 @@ describe("the combined Today on each item's own calendar (A71)", () => {
     expect(east?.sheets.map((d) => d.id)).toEqual(["d-e"]);
   });
 
+  it("reads the next cue in its own running order when a project has several (C-08)", () => {
+    const cue = (id: string, ros: string, position: number, at: string, called: string | null) => ({
+      id,
+      run_of_show_id: ros,
+      position,
+      label: id,
+      planned_at: at,
+      duration: null,
+      called_at: called,
+      project_id: "p-n",
+    });
+    const groups = combinedToday({
+      orgs,
+      activeOrgId: "org-s",
+      shifts: [],
+      sheets: [],
+      cues: [
+        cue("Walk-in", "main", 1, "2027-06-12T01:00:00Z", "2027-06-12T01:00:00Z"),
+        // The side stage numbers its cues from 1 too; merged by position it read as the main stage's next.
+        cue("Side set", "side", 1, "2027-06-12T03:00:00Z", null),
+        cue("Headliner", "main", 2, "2027-06-12T02:15:00Z", null),
+      ],
+      projects,
+      personZone: "America/Chicago",
+      nowMs: NOW,
+    });
+    expect(groups.find((g) => g.orgId === "org-n")?.nextCue?.label).toBe("Headliner");
+  });
+
   it("places an item without a project zone on the person's own calendar", () => {
     expect(itemZone(null, null, "America/Chicago")).toBe("America/Chicago");
     expect(itemZone("Europe/Berlin", "Asia/Tokyo", "UTC")).toBe("Europe/Berlin");

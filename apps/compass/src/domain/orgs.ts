@@ -13,7 +13,7 @@
  * org in org_id, or through its project.
  */
 import { dateIn, isTimeZone, todayIn } from "@xos/data/calendar";
-import { showState, type Cue } from "./show";
+import { nextCueOf, type Cue } from "./show";
 import { currentShift, isMine, type ShiftRow } from "./shifts";
 
 /** The org a local row belongs to: its org_id, else its project's org; null when neither is known. */
@@ -149,7 +149,8 @@ export function combinedToday<S extends ShiftRow>(input: TodayInput<S>): OrgToda
     let nextCue: TodayCue | null = null;
     for (const projectId of org.projectIds) {
       const cues = input.cues.filter((c) => c.project_id === projectId);
-      const next = cues.length > 0 ? showState(cues, input.nowMs).next : null;
+      // Each running order on its own: a side stage's cues never count as the main stage's next (C-08).
+      const next = cues.length > 0 ? nextCueOf(cues, input.nowMs) : null;
       const zone = itemZone(null, zones.get(projectId), input.personZone);
       if (!next?.planned_at || !isTodayIn(next.planned_at, zone, input.nowMs)) continue;
       if (!nextCue?.planned_at || Date.parse(next.planned_at) < Date.parse(nextCue.planned_at))

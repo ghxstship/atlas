@@ -32,13 +32,19 @@ import {
 import {
   buildCallCue,
   countdownAnnouncement,
+  countdownDisplay,
   cueCallLines,
   formatCountdown,
   showsCountdown,
   COUNTDOWN_HORIZON_MS,
+  inRunningOrder,
+  liveRunningOrder,
+  nextCueOf,
   preCueHapticDue,
   PRE_CUE_WARNING_MS,
+  runningOrders,
   showState,
+  shownRunningOrder,
   storedDepartment,
   type Cue,
 } from "../src/domain/show";
@@ -433,6 +439,27 @@ describe("live run of show", () => {
     expect(formatCountdown(-12_000)).toBe("+0:12");
   });
 
+  it("names the day and time of a next cue past the horizon, as Today does, instead of counting down (C-09)", () => {
+    // The demo's next cue is months away: Show and Run of Show read "178665:45".
+    const far = showState([cue(1, -10, -10), cue(2, 178_665)], now);
+    expect(countdownDisplay(far)).toEqual({ kind: "planned", at: far.next?.planned_at });
+    expect(countdownDisplay(showState([cue(1, -10, -10), cue(2, 12 * 60)], now))).toEqual({
+      kind: "countdown",
+      ms: 12 * 3600_000,
+    });
+    expect(countdownDisplay(showState([cue(1, -10, -10), cue(2, -1)], now))).toEqual({
+      kind: "countdown",
+      ms: -60_000,
+    });
+    expect(
+      countdownDisplay(showState([cue(1, -10, -10), { ...cue(2, 178_665), start_tbc: true }], now)),
+    ).toEqual({ kind: "tbc" });
+    expect(countdownDisplay(showState([cue(1, -10, -10), cue(2, null)], now))).toEqual({
+      kind: "none",
+    });
+    expect(countdownDisplay(showState([cue(1, -10, -10)], now))).toEqual({ kind: "none" });
+  });
+
   it("takes the caller's standby as next, as Atlas does (show-timing, ADR 0131)", () => {
     const s = showState(
       [
@@ -490,6 +517,89 @@ describe("live run of show", () => {
     expect(storedDepartment("Pyro")).toBeNull();
     expect(storedDepartment(undefined)).toBeNull();
     expect(storedDepartment(3)).toBeNull();
+  });
+
+  describe("several running orders in one project (C-08)", () => {
+    // The demo project: the main stage (5 cues) and a side stage, whose positions restart at 1.
+    const main = (position: number, planned: number, called: number | null = null): Cue => ({
+      ...cue(position, planned, called),
+      id: `main-${position}`,
+      label: `Main ${position}`,
+    });
+    const side = (position: number, planned: number, called: number | null = null): Cue => ({
+      ...cue(position, planned, called),
+      id: `side-${position}`,
+      run_of_show_id: "ros-side",
+      label: `Side ${position}`,
+    });
+    const rows = [
+      { id: "ros-1", name: "Main Stage", show_date: "2027-03-13" },
+      { id: "ros-side", name: "Side Stage", show_date: "2027-03-13" },
+    ];
+
+    it("keeps each running order apart, in its own order, with its own count", () => {
+      const cues = [side(2, 65), main(2, 1), side(1, 60), main(1, 0), main(3, 5)];
+      const orders = runningOrders(cues, rows);
+      expect(orders.map((o) => [o.name, o.cues.map((c) => c.id)])).toEqual([
+        ["Main Stage", ["main-1", "main-2", "main-3"]],
+        ["Side Stage", ["side-1", "side-2"]],
+      ]);
+      expect(orders[0]?.showDate).toBe("2027-03-13");
+      // Merged, the side stage's cue 1 ran between the main stage's 1 and 2 and the count read 0 of 5.
+      expect(showState(orders[0]?.cues ?? [], now)).toMatchObject({ total: 3, calledCount: 0 });
+    });
+
+    it("opens on the running order under way, and its next cue is that show's", () => {
+      // The side stage is called through its first cue; the main stage has not started.
+      const cues = [main(1, 30), main(2, 40), side(1, -5, -5), side(2, 20)];
+      const live = liveRunningOrder(runningOrders(cues, rows), now);
+      expect(live?.id).toBe("ros-side");
+      expect(nextCueOf(cues, now)?.id).toBe("side-2");
+      const s = showState(live?.cues ?? [], now);
+      expect(s).toMatchObject({ calledCount: 1, total: 2, status: "running" });
+    });
+
+    it("else the one whose next cue comes soonest, else the last to finish", () => {
+      const waiting = [main(1, 30), side(1, 10)];
+      expect(liveRunningOrder(runningOrders(waiting, rows), now)?.id).toBe("ros-side");
+      const done = [main(1, -30, -30), side(1, -10, -10)];
+      expect(liveRunningOrder(runningOrders(done, rows), now)?.id).toBe("ros-side");
+      expect(liveRunningOrder([], now)).toBeNull();
+      expect(nextCueOf([], now)).toBeNull();
+    });
+
+    it("stays on the running order the screen is on when a called cue makes another stage's next cue the sooner", () => {
+      // Both stages under way. Main's next cue (2) is in 5 min, side's in 10: the screen opens on main.
+      const before = [main(1, -5, -5), main(2, 5), main(3, 30), side(1, -5, -5), side(2, 10)];
+      const opened = shownRunningOrder(runningOrders(before, rows), null, now);
+      expect(opened?.id).toBe("ros-1");
+      // The operator calls main 2; main's next is now 30 min off, side's 10, so the live order is the side stage.
+      const after = before.map((c) =>
+        c.id === "main-2" ? { ...c, called_at: new Date(now).toISOString() } : c,
+      );
+      expect(liveRunningOrder(runningOrders(after, rows), now)?.id).toBe("ros-side");
+      // The screen stays on the main stage it is on, and its next cue is main 3.
+      const kept = shownRunningOrder(runningOrders(after, rows), opened?.id ?? null, now);
+      expect(kept?.id).toBe("ros-1");
+      expect(showState(kept?.cues ?? [], now).next?.id).toBe("main-3");
+      // An order no longer in the project falls back to the live one.
+      expect(shownRunningOrder(runningOrders(after, rows), "ros-gone", now)?.id).toBe("ros-side");
+    });
+
+    it("orders running orders by show day, and reads one whose row has not arrived", () => {
+      const orders = runningOrders(
+        [side(1, 0), main(1, 60)],
+        [{ id: "ros-1", name: "Day 1", show_date: "2027-03-12" }],
+      );
+      expect(orders.map((o) => [o.id, o.name, o.showDate])).toEqual([
+        ["ros-1", "Day 1", "2027-03-12"],
+        ["ros-side", "", null],
+      ]);
+      // Equal positions within one running order fall back to the planned time.
+      expect(
+        inRunningOrder([main(1, 10), { ...main(1, 5), id: "early" }]).map((c) => c.id),
+      ).toEqual(["early", "main-1"]);
+    });
   });
 
   it("calls a cue once; a second operator's call stands as applied", () => {

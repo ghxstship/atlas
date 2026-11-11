@@ -193,6 +193,25 @@ describe("data", () => {
     expect([complete, snooze, onPress].map((f) => f.mock.calls.length)).toEqual([1, 1, 1]);
     await expectAccessible(container);
   });
+
+  it("tells assistive technology which row of a choice is the chosen one", async () => {
+    const onPress = vi.fn();
+    const { container } = render(
+      <div>
+        <ListRow title="Main Stage" icon="Check" selected onPress={onPress} />
+        <ListRow title="Side Stage" icon="List" selected={false} onPress={onPress} />
+      </div>,
+    );
+    expect(screen.getByRole("radio", { name: /Main Stage/ }).getAttribute("aria-checked")).toBe(
+      "true",
+    );
+    expect(screen.getByRole("radio", { name: /Side Stage/ }).getAttribute("aria-checked")).toBe(
+      "false",
+    );
+    fireEvent.click(screen.getByRole("radio", { name: /Side Stage/ }));
+    expect(onPress).toHaveBeenCalledOnce();
+    await expectAccessible(container);
+  });
 });
 
 describe("overlays", () => {

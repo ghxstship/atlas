@@ -41,7 +41,7 @@ import { secondFactorGate, type ChallengeFactor, type SecondFactorGate } from ".
 import {
   activateOrg,
   cachedContexts,
-  IdentityError,
+  identityOutcome,
   internalAudience,
   isServerUnreachable,
   projectOrgs,
@@ -69,6 +69,7 @@ import {
   type LensOption,
 } from "../domain/roleLens";
 import { storedDepartment } from "../domain/show";
+import { signOutThisDevice } from "./signOut";
 import { readDefaultOrg } from "../settings/organizations";
 import { compassUserAgent } from "../settings/security";
 import {
@@ -160,6 +161,8 @@ export type Phase =
   /** Those questions need the server, and nothing shows this person has ever answered them. */
   | { readonly kind: "legal-connection" }
   | { readonly kind: "identity-failed"; readonly step: string; readonly message: string }
+  /** The sign-in works, but no org has made the person a member and no engagement is open to them yet. */
+  | { readonly kind: "no-access" }
   | { readonly kind: "ready" };
 
 export interface CompassContextValue {
@@ -627,8 +630,8 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
           await open(activateOrg(cached, storedOrg), false);
           return;
         }
-        const step = error instanceof IdentityError ? error.step : "access";
-        setPhase({ kind: "identity-failed", step, message });
+        // A sign-in that nothing has opened yet is no failure: it shows who can open access (C-12).
+        setPhase(identityOutcome(error));
       });
     return () => {
       live = false;
@@ -839,10 +842,9 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
     [engine],
   );
 
+  // Sign Out ends this device's session only; the person's other devices and browsers stay signed in.
   const signOut = useCallback(async () => {
-    if (syncSession) await syncSession.remoteSignOut();
-    else if (store) await store.wipe();
-    await client.auth.signOut();
+    await signOutThisDevice({ auth: client.auth, syncSession, store });
     setContexts(null);
     setLenses({});
     setBrands(new Map());

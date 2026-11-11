@@ -18,7 +18,14 @@ import {
   type PunchKind,
   type PunchRefusal,
 } from "../../src/domain/clock";
-import { formatCountdown, showState, showsCountdown, type Cue } from "../../src/domain/show";
+import {
+  formatCountdown,
+  liveRunningOrder,
+  runningOrders,
+  showState,
+  showsCountdown,
+  type Cue,
+} from "../../src/domain/show";
 import { todayIn } from "@xos/data/calendar";
 import { punchAnnouncementKey } from "../../src/domain/announce";
 import { ongoingContent, type Translate } from "../../src/domain/glance";
@@ -321,7 +328,10 @@ function NextCue({ projectId }: { readonly projectId: string }): ReactElement | 
     (c) => c.project_id === projectId,
   );
   if (cues.length === 0) return null;
-  const s = showState(cues, Date.now());
+  // The project's running orders read on their own: the next cue is the live running order's (C-08).
+  const now = Date.now();
+  const order = liveRunningOrder(runningOrders(cues), now);
+  const s = showState(order?.cues ?? [], now);
   if (!s.next) return null;
   return (
     <Card title={t("compass.today.nextCue")}>

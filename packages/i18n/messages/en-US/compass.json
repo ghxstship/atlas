@@ -59,7 +59,10 @@
       "projects": "projects",
       "engagements": "engagements",
       "access": "access"
-    }
+    },
+    "noAccessTitle": "Nothing is open for you yet",
+    "noAccess": "You are signed in, but no organization has added you to its team and none of your engagements is active yet. Ask the person who invited you to check your invitation. Then tap Check Again.",
+    "checkAgain": "Check Again"
   },
   "startup": {
     "title": "Compass could not start",
@@ -720,7 +723,11 @@
     "callLine": "{department} · {instruction}",
     "noCall": "No {department} call",
     "noCalls": "No department calls",
-    "countdownTbc": "{cue}: time to be confirmed"
+    "countdownTbc": "{cue}: time to be confirmed",
+    "runningOrders": "Running orders",
+    "runningOrderOnScreen": "Running order: {name}",
+    "runningOrderUnnamed": "Running order",
+    "countdownPlanned": "{cue}, planned for {day} at {time}"
   },
   "kiosk": {
     "title": "Kiosk",
@@ -844,7 +851,8 @@
     "editInAtlas": "Edit in Atlas",
     "editInGateway": "Edit in Gateway",
     "manageInAtlas": "Manage in Atlas",
-    "manageInGateway": "Manage in Gateway"
+    "manageInGateway": "Manage in Gateway",
+    "representingArtist": "Representing the artist"
   },
   "legalGate": {
     "age": {

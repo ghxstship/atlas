@@ -59,7 +59,10 @@
       "projects": "tus proyectos",
       "engagements": "tus contrataciones",
       "access": "tu acceso"
-    }
+    },
+    "noAccessTitle": "Todavía no tienes nada abierto",
+    "noAccess": "Iniciaste sesión, pero ninguna organización te ha agregado a su equipo y ninguna de tus contrataciones está activa todavía. Pide a la persona que te invitó que revise tu invitación. Después toca Volver a comprobar.",
+    "checkAgain": "Volver a comprobar"
   },
   "startup": {
     "title": "Compass no pudo iniciar",
@@ -720,7 +723,11 @@
     "callLine": "{department} · {instruction}",
     "noCall": "Sin llamada de {department}",
     "noCalls": "Sin llamadas de departamento",
-    "countdownTbc": "{cue}: hora por confirmar"
+    "countdownTbc": "{cue}: hora por confirmar",
+    "runningOrders": "Órdenes del show",
+    "runningOrderOnScreen": "Orden del show: {name}",
+    "runningOrderUnnamed": "Orden del show",
+    "countdownPlanned": "{cue}, previsto para el {day} a las {time}"
   },
   "kiosk": {
     "title": "Quiosco",
@@ -844,7 +851,8 @@
     "editInAtlas": "Editar en Atlas",
     "editInGateway": "Editar en Gateway",
     "manageInAtlas": "Administrar en Atlas",
-    "manageInGateway": "Administrar en Gateway"
+    "manageInGateway": "Administrar en Gateway",
+    "representingArtist": "En representación del artista"
   },
   "legalGate": {
     "age": {

@@ -14,7 +14,7 @@ name: first-sign-in-acceptance
     file: ../subflows/open-dev-bundle.yaml
 - extendedWaitUntil:
     visible:
-      id: "sign-in|tab-bar|identity-failed|legal-gate-age"
+      id: "sign-in|tab-bar|identity-failed|no-access|legal-gate-age"
     timeout: 120000
 - runFlow:
     when:
@@ -28,6 +28,13 @@ name: first-sign-in-acceptance
     commands:
       - tapOn:
           id: "identity-failed-sign-out"
+- runFlow:
+    when:
+      visible:
+        id: "no-access"
+    commands:
+      - tapOn:
+          id: "no-access-sign-out"
 - tapOn:
     id: "sign-in-toggle"
 - tapOn:
@@ -52,15 +59,15 @@ name: first-sign-in-acceptance
 - runFlow: ../subflows/first-sign-in-answers.yaml
 - extendedWaitUntil:
     visible:
-      id: "identity-failed"
+      id: "no-access"
     timeout: 30000
 - stopApp
 - launchApp
 - extendedWaitUntil:
     visible:
-      id: "identity-failed"
+      id: "no-access"
     timeout: 60000
 - assertNotVisible:
     id: "legal-gate-age"
 - tapOn:
-    id: "identity-failed-delete-account"
+    id: "no-access-delete-account"

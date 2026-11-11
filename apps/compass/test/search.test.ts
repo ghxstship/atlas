@@ -191,4 +191,14 @@ describe("groups and actions", () => {
       href: "/incidents/new",
     });
   });
+
+  it("opens the run of show on the screen the person's access opens", () => {
+    // show.live opens the live /show (internal); show.read alone opens the read-only /run-of-show (the Client).
+    const label = (key: string) => key;
+    const href = (features: readonly string[]) =>
+      actionDocs((f) => features.includes(f), label).find((d) => d.id === "runOfShow")?.href;
+    expect(href(["show.read", "show.live"])).toBe("/show");
+    expect(href(["show.read"])).toBe("/run-of-show");
+    expect(href([])).toBeUndefined();
+  });
 });

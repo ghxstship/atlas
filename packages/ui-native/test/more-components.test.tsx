@@ -23,6 +23,7 @@ import {
   RadioChannelTable,
   RefusalNotice,
   RunOfShowLive,
+  countdownClock,
   Screen,
   SignaturePad,
   Skeleton,
@@ -255,6 +256,30 @@ describe("XOS cards", () => {
     expect(screen.getByText("Next: Lights up")).toBeTruthy();
     expect(screen.getByText("0:08")).toBeTruthy();
     await expectAccessible(container);
+  });
+
+  it("counts down in hours past an hour, never in raw minutes (C-09)", () => {
+    expect(countdownClock(8)).toBe("0:08");
+    expect(countdownClock(3599)).toBe("59:59");
+    expect(countdownClock(3600)).toBe("1:00:00");
+    expect(countdownClock(43_200)).toBe("12:00:00");
+    // A cue months away read "178665:45" in minutes.
+    expect(countdownClock(178_665 * 60 + 45)).toBe("2977:45:45");
+    expect(countdownClock(-5)).toBe("0:00");
+    render(
+      <RunOfShowLive
+        cues={[
+          { number: "1", time: "7:00 PM", title: "Walk-in music out" },
+          { number: "2", time: "Sat, Mar 13 7:01 PM", title: "Host welcome" },
+        ]}
+        current={0}
+        nextInSeconds={10_719_945}
+        countdownText="Planned for Sat, Mar 13 at 7:01 PM"
+        nextLabel="Next cue"
+      />,
+    );
+    expect(screen.getByText("Planned for Sat, Mar 13 at 7:01 PM")).toBeTruthy();
+    expect(screen.queryByText(/178665/)).toBeNull();
   });
 
   it("shows the credential with its QR code", async () => {
