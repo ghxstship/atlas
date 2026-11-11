@@ -26,7 +26,6 @@ import {
 } from "@/components/collection-kit/kit";
 import { InlineAlert, PageHeader, StateChip } from "@/components/collection-kit/ui";
 import { DataTable } from "@/components/platform/client/data-table";
-import { EmptyStateLink } from "@/components/ui";
 import {
   addAlertRoleAction,
   recordReadingAction,
@@ -35,9 +34,15 @@ import {
   setThresholdAction,
 } from "@/lib/workforce/actions";
 import type { SearchParams } from "@/lib/collection-kit/page";
-import { nodeHref } from "@/lib/shell/sitemap";
 import type { OrgContext } from "@/lib/shell/context";
-import { ProjectPicker, REFUSALS, chosenProject, orgPickers, workforceCopy } from "./shared";
+import {
+  ProjectPicker,
+  REFUSALS,
+  NoSiteProject,
+  chosenProject,
+  orgPickers,
+  workforceCopy,
+} from "./shared";
 import { WeatherFeedSwitch, WeatherHoldControls } from "./weather-controls";
 import { CollectionPage } from "@/components/platform/collection-page";
 
@@ -68,16 +73,7 @@ export async function WeatherSection({
   const title = t("weather.title");
   const project = chosenProject(pickers.projects, search);
   if (project === null) {
-    return (
-      <CollectionPage header={<PageHeader title={title} />}>
-        <EmptyStateLink
-          icon="FolderPlus"
-          sentence={t("site.noProjects")}
-          actionLabel={t("site.openProjects")}
-          href={nodeHref("projects.all", { org: ctx.org.slug }) ?? "/"}
-        />
-      </CollectionPage>
-    );
+    return <NoSiteProject ctx={ctx} t={t} title={title} path={path} projects={pickers.projects} />;
   }
   const db = ctx.viewer.db;
   const [board, roles, settings, jurisdiction, locale, feedBoard] = await Promise.all([

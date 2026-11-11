@@ -26,6 +26,7 @@ import { useRowMenu } from "@/components/menus/use-row-menu";
 import { undoStack, type UndoResult } from "@/components/undo/undo-stack";
 import type { ActionResult } from "@/components/work/action-result";
 import { ActionErrorAlert, useAction, useCopy } from "@/components/work/action-ui";
+import { initialProjectId, projectChoiceOptions } from "@/lib/projects/project-choice";
 import { formatDay, formatScheduleTime, formatWhen, withQuery } from "@/components/work/format";
 import { useScheduleView } from "@/components/work/use-schedule-view";
 import { shiftMonth } from "@/components/work/record-collection";
@@ -290,11 +291,12 @@ function CreateSheet({
   open: boolean;
 }) {
   const t = useCopy("show");
+  const shell = useCopy("shell");
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
   const { pending, error, run, clear } = useAction();
-  const [projectId, setProjectId] = useState(projects[0]?.id ?? "");
+  const [projectId, setProjectId] = useState(initialProjectId(projects));
   const [day, setDay] = useState("");
   const setOpen = (value: boolean) => {
     clear();
@@ -347,7 +349,10 @@ function CreateSheet({
               id={`${kind}-project`}
               label={t(`${kind}.project`)}
               value={projectId}
-              options={projects.map((p) => ({ value: p.id, label: `${p.key} · ${p.name}` }))}
+              options={projectChoiceOptions(
+                projects.map((p) => ({ value: p.id, label: `${p.key} · ${p.name}` })),
+                shell("create.chooseProject"),
+              )}
               onChange={(e) => setProjectId(e.target.value)}
             />
           ) : null}

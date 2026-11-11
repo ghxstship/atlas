@@ -3,7 +3,7 @@ import { SafetyTiles } from "@/components/safety/landing/safety-landing";
 import { PermitsView } from "@/components/safety/permits/permits-page";
 import { requireNode } from "@/lib/shell/require-node";
 import { getProjectContextFor } from "@/lib/projects/context";
-import { nodeHref } from "@/lib/shell/sitemap";
+import { nodeHref, visibleNodeHref } from "@/lib/shell/sitemap";
 import { getTranslate } from "@/lib/shell/translate";
 
 /**
@@ -20,7 +20,8 @@ export default async function Page({
   if (!ctx) notFound();
   const t = await getTranslate();
   const path = nodeHref("project.safety", routeParams) ?? "/";
-  const settings = nodeHref("project.settings", routeParams);
+  // Only for roles that may open project settings: for the others the link led to "Page not found".
+  const settings = visibleNodeHref("project.settings", routeParams, ctx.org.nav);
   return (
     <div className="flex flex-col gap-24">
       <PermitsView

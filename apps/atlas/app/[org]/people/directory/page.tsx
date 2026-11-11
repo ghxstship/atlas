@@ -14,10 +14,11 @@ import { CrewRecord } from "@/components/crew/record";
 import { Avatar, InlineAlert } from "@/components/crew/ui";
 import { PeekTable } from "@/components/crew/views-peek-table";
 import { collectionPeek } from "@/components/shell/collection-peek";
+import { EmptyRefresh } from "@/components/collection-kit/kit";
 import { ButtonLink, EmptyStateLink } from "@/components/ui";
 import { flatParams, getCrewContext, getProjects, withParams } from "@/lib/crew/context";
 import { workforceRoles } from "@/lib/people/roles";
-import { nodeHref } from "@/lib/shell/sitemap";
+import { nodeHref, visibleNodeHref } from "@/lib/shell/sitemap";
 import { getTranslate } from "@/lib/shell/translate";
 import { LiveList } from "@/components/live/live-list";
 import * as enums from "@xos/data/enums";
@@ -46,6 +47,9 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/p
   const canAssign = crew.can("people.role.write");
   const roleLabel = (code: string, name: string | null) => name ?? t(`shell.roles.${code}`);
   const name = (n: string | null) => n ?? t("crew.common.unnamed");
+  // Invite leads to Members settings, so it shows only to roles that may open it (crawl 4.9: members and managers
+  // reached "Page not found").
+  const invite = visibleNodeHref("settings.members", routeParams, crew.ctx.nav);
 
   let peek = null;
   if (search["peek"]) {
@@ -190,14 +194,17 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/p
   const peekHref = (id: string) => withParams(base, search, { peek: id, full: null });
   let body;
   if (people.length === 0) {
-    body = (
-      <EmptyStateLink
-        icon="Users"
-        sentence={query ? t("people.directory.noMatch") : t("people.directory.empty")}
-        actionLabel={query ? t("crew.common.clearFilter") : t("people.directory.invite")}
-        href={query ? withParams(base, search, { q: null }) : `/${crew.slug}/settings/members`}
-      />
-    );
+    body =
+      query || invite ? (
+        <EmptyStateLink
+          icon="Users"
+          sentence={query ? t("people.directory.noMatch") : t("people.directory.empty")}
+          actionLabel={query ? t("crew.common.clearFilter") : t("people.directory.invite")}
+          href={query ? withParams(base, search, { q: null }) : (invite ?? base)}
+        />
+      ) : (
+        <EmptyRefresh icon="Users" sentence={t("people.directory.emptyNoInvite")} />
+      );
   } else if (view === "gallery") {
     body = (
       <ul
@@ -284,10 +291,10 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/p
       search={search}
       count={people.length}
       view={view}
-      {...(crew.canAll("people.directory.read")
+      {...(crew.canAll("people.directory.read") && invite
         ? {
             actions: (
-              <ButtonLink href={`/${crew.slug}/settings/members`} size="sm">
+              <ButtonLink href={invite} size="sm">
                 {t("people.directory.invite")}
               </ButtonLink>
             ),

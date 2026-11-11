@@ -18,7 +18,7 @@ import { AssetsCollection, type CollectionRow } from "@/components/assets/collec
 import { NewUnitForm } from "@/components/assets/forms";
 import { Breadcrumbs, PageHeader } from "@/components/assets/ui";
 import { UnitRecord } from "@/components/assets/unit-record";
-import { assetCapabilities, loadPickers, must } from "@/lib/assets/context";
+import { assetCapabilities, loadPickers, must, unitCapabilities } from "@/lib/assets/context";
 import { DEFAULT_CURRENCY, pageViews } from "@/lib/assets/page";
 import {
   ASSET_STATE_TONE,
@@ -74,6 +74,9 @@ export async function UnitsView({
   const peekTag = query.peek;
   const detail = peekTag ? await getAssetUnit(db, ctx.org.id, peekTag) : null;
   if (detail && !detail.ok && detail.error.kind !== "not-found") must(detail, "asset unit");
+  // The unit's own actions also follow what the viewer holds on the project that has it (custody and damage).
+  const unitCan =
+    detail && detail.ok ? await unitCapabilities(ctx, detail.data.custody?.projectId ?? null) : can;
 
   const record =
     detail && detail.ok ? (
@@ -81,7 +84,7 @@ export async function UnitsView({
         org={ctx.org.slug}
         unit={detail.data}
         pickers={pickers}
-        can={can}
+        can={unitCan}
         currency={DEFAULT_CURRENCY}
         today={today}
         t={t}

@@ -20,6 +20,18 @@ export function nodeHref(id: string, params: Readonly<Record<string, string>>): 
   return fillRoute(node.route, params) as Route;
 }
 
+/**
+ * The URL of a node the viewer may open, for a link on a page; undefined when the node is hidden from them (or its
+ * route needs a param that is missing). A link to a hidden node leads to "Page not found" (crawl 4.9).
+ */
+export function visibleNodeHref(
+  id: string,
+  params: Readonly<Record<string, string>>,
+  ctx: NavContext,
+): Route | undefined {
+  return isNodeVisible(sitemap, id, ctx) ? nodeHref(id, params) : undefined;
+}
+
 /** The i18n key holding a page's empty state copy: `finance.change-orders` to `shell.pages.finance.changeOrders`. */
 export function pageCopyKey(id: string): string {
   const path = id
@@ -27,6 +39,39 @@ export function pageCopyKey(id: string): string {
     .map((part) => part.replace(/-([a-z0-9])/g, (_, c: string) => c.toUpperCase()))
     .join(".");
   return `shell.pages.${path}`;
+}
+
+/** A page's empty state: the catalog copy under `copy` (`.empty`, `.action`, with `values`) and where the action leads. */
+export interface PageEmptyState {
+  readonly copy: string;
+  readonly values: Readonly<Record<string, string>>;
+  readonly href: Route;
+}
+
+/**
+ * The empty state of a generated page. A section page (one with child pages it can list; a record child needs a row) is
+ * empty only when every child page is
+ * hidden from the viewer, as under a role lens; it has no copy of its own, so it says no page here is open to the role
+ * and leads Home (crawl 4.9: `/settings` under the Field lens showed `shell.pages.settings.empty`). A leaf page uses
+ * its own copy and its empty state target.
+ */
+export function pageEmptyState(
+  id: string,
+  params: Readonly<Record<string, string>>,
+  ctx: NavContext,
+  section: string,
+): PageEmptyState {
+  const pages = navigableChildren(getNode(sitemap, id).node).filter(
+    (child) => nodeHref(child.id, params) !== undefined,
+  );
+  if (pages.length > 0) {
+    return {
+      copy: "shell.page.noneOpen",
+      values: { section },
+      href: visibleNodeHref("home", params, ctx) ?? (`/${params["org"] ?? ""}` as Route),
+    };
+  }
+  return { copy: pageCopyKey(id), values: {}, href: emptyStateHref(id, params, ctx) };
 }
 
 /** Navigable children of a node (looking through groups), in sitemap order. */
