@@ -190,8 +190,9 @@ function Report(): ReactElement {
 }
 
 export default function NewIncident(): ReactElement {
+  const { t } = useTranslation();
   return (
-    <Gate feature="incidents.report">
+    <Gate feature="incidents.report" title={t("compass.incidents.new")}>
       <Report />
     </Gate>
   );

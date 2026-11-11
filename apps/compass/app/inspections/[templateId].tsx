@@ -198,8 +198,9 @@ function WalkScreen({ templateId }: { readonly templateId: string }): ReactEleme
 
 export default function InspectionWalk(): ReactElement {
   const { templateId } = useLocalSearchParams<{ templateId: string }>();
+  const { t } = useTranslation();
   return (
-    <Gate feature="inspections.perform">
+    <Gate feature="inspections.perform" title={t("compass.inspections.title")}>
       <WalkScreen templateId={templateId ?? ""} />
     </Gate>
   );

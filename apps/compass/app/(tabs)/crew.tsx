@@ -151,8 +151,9 @@ function Crew(): ReactElement {
 }
 
 export default function CrewScreen(): ReactElement {
+  const { t } = useTranslation();
   return (
-    <Gate feature="crew.board">
+    <Gate feature="crew.board" title={t("compass.crew.title")}>
       <Crew />
     </Gate>
   );
