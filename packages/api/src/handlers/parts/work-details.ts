@@ -8,8 +8,8 @@
  * app.my_allergies. The retired uniform size and travel preference fields (R6a, 4664) are R6b's API
  * half (4.10): v1 keeps them, always null, never reads or writes their columns, refuses a value with
  * 422 work_detail_field_moved as the database does, accepts and ignores a null, and treats a sort or
- * filter on them as a no-op. The columns stay through 4.10 so the release before keeps working; R6b's
- * drop (4.11) removes them once no deployed API selects them. v1's category enum is frozen, so
+ * filter on them as a no-op. The columns stayed through 4.10 so the release before kept working; R6b's
+ * drop (904110101, 4.11) removed them once no deployed API selected them. v1's category enum is frozen, so
  * R6a's Contact category leaves the category lists and travels as share_contact, contact_shared and
  * includes_contact.
  */
@@ -47,7 +47,7 @@ const RETIRED_FIELDS = [
   "home_airport",
 ] as const;
 
-/** Refuses a retired field with a value, as the database's guard does (4664) and still will once R6b drops the columns; a null is ignored. */
+/** Refuses a retired field with a value, as the database's guard did (4664) before R6b dropped the columns; a null is ignored. */
 function refuseRetired(body: Row): void {
   if (RETIRED_FIELDS.some((field) => body[field] !== undefined && body[field] !== null)) {
     throw refused(

@@ -22,7 +22,7 @@
 #   kinds:           kind (subject.event), its category, its email template (default notification), an
 #                    optional push category: the actionable category Compass registers (ADR 0030),
 #                    bypasses_quiet_hours for the few kinds that reach a person even during quiet hours, and
-#                    either emitted_by or deferred:
+#                    one of emitted_by, deferred or retired:
 #     emitted_by:    every place that sends the kind: the migration function (or module) that calls private.notify
 #                    with it, as path#symbol of a migration that defines it, and the test that observes the
 #                    notification. test/notifications/emitters.test.ts checks each one at the function's latest
@@ -30,6 +30,9 @@
 #                    while it still sends the kind, and a kind nothing sends cannot be added.
 #     deferred:      { reason, decision } for a kind nothing sends yet, naming the owner decision or work package
 #                    it waits on (RRR-125).
+#     retired:       { reason } for a kind nothing sends again and nothing waits on: it stays, with its category and
+#                    copy, so the notices already delivered still read. No function at its latest definition may
+#                    send it.
 #
 # Quiet hours (ADR 0033 decision 35): texts and pushes wait out the person's quiet hours, and texts also wait
 # out 21:00 to 08:00 in their time zone when they set none; held texts go out as one summary. Only the kinds
@@ -390,12 +393,12 @@ kinds:
       - emitter: supabase/migrations/1561_signed_in_sessions.sql#app.sign_out_my_other_sessions
         test: supabase/tests/1561_signed_in_sessions.test.sql
   # Uniform sizes and travel preferences leave the profile (R6a, ADR 0102 decision 2): sent once to each person whose
-  # values the move deleted; moved names which (uniform, travel or both).
+  # values the move deleted; moved names which (uniform, travel or both). The move ran in 4664 and R6b
+  # (904110101) dropped it with the columns; the kind stays so the notices already sent still read.
   - kind: account.work_details_moved
     category: account
-    emitted_by:
-      - emitter: supabase/migrations/4664_work_details_profile_move.sql#private.move_profile_work_details
-        test: supabase/tests/4664_work_details_profile_move.test.sql
+    retired:
+      reason: "R6a's one-time move (4664, private.move_profile_work_details) sent this to each person whose profile held a uniform size or travel preference; R6b (904110101) dropped the move with the columns, so nothing sends it again, and the kind stays for the notices already in inboxes."
   # Sensitive data consent (ADR 0164): someone entered a person's sensitive data for them, or a value from before
   # consent was recorded waits for theirs. category names which; no value travels.
   - kind: account.sensitive_data_attested
