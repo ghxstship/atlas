@@ -15,6 +15,7 @@ import { useTranslation } from "react-i18next";
 import {
   buildCallCue,
   countdownAnnouncement,
+  countdownDisplay,
   countdownParts,
   cueCallLines,
   liveRunningOrder,
@@ -45,7 +46,7 @@ import {
   Text,
   ThemeProvider,
 } from "../ui";
-import { formatTime, ProjectPicker, SyncBanner, useAllowed } from "./common";
+import { formatDay, formatTime, ProjectPicker, SyncBanner, useAllowed } from "./common";
 
 type CueRow = Cue & Row & { project_id?: string | null };
 type CallRow = CueCallRow & Row;
@@ -182,6 +183,15 @@ export function ShowView({ readOnly }: { readonly readOnly: boolean }): ReactEle
       </Card>
     );
   };
+  // Past the 12-hour horizon the countdown names the cue's day and time, as Today does (C-09).
+  const display = countdownDisplay(state);
+  const planned =
+    display.kind === "planned"
+      ? { day: formatDay(display.at), time: formatTime(display.at) }
+      : null;
+  const today = formatDay(new Date(now).toISOString());
+  const cueTime = (at: string) =>
+    formatDay(at) === today ? formatTime(at) : `${formatDay(at)} ${formatTime(at)}`;
   const statusLabel = t(`compass.show.${state.status === "complete" ? "complete" : state.status}`);
   const body = (
     <Screen
@@ -237,7 +247,7 @@ export function ShowView({ readOnly }: { readonly readOnly: boolean }): ReactEle
             c.start_tbc && c.planned_at
               ? t("compass.show.tbc")
               : c.planned_at
-                ? formatTime(c.planned_at)
+                ? cueTime(c.planned_at)
                 : "",
           title: c.label,
         }))}
@@ -246,12 +256,23 @@ export function ShowView({ readOnly }: { readonly readOnly: boolean }): ReactEle
         nextInSeconds={state.msToNext === null ? 0 : Math.round(state.msToNext / 1000)}
         showMode={showMode}
         nextLabel={state.onStandby ? t("compass.show.onStandby") : t("compass.show.nextCue")}
-        {...(state.startTbc ? { countdownText: t("compass.show.tbc") } : {})}
-        {...(state.next && state.startTbc
-          ? { countdownLabel: t("compass.show.countdownTbc", { cue: state.next.label }) }
-          : state.next && state.msToNext !== null
-            ? { countdownLabel: spokenCountdown(t, state.next.label, state.msToNext) }
+        {...(display.kind === "tbc"
+          ? { countdownText: t("compass.show.tbc") }
+          : planned
+            ? { countdownText: t("compass.today.nextCueAt", planned) }
             : {})}
+        {...(state.next && display.kind === "tbc"
+          ? { countdownLabel: t("compass.show.countdownTbc", { cue: state.next.label }) }
+          : state.next && planned
+            ? {
+                countdownLabel: t("compass.show.countdownPlanned", {
+                  cue: state.next.label,
+                  ...planned,
+                }),
+              }
+            : state.next && state.msToNext !== null
+              ? { countdownLabel: spokenCountdown(t, state.next.label, state.msToNext) }
+              : {})}
       />
       {readOnly
         ? null

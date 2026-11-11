@@ -725,7 +725,8 @@
     "noCalls": "Sin llamadas de departamento",
     "countdownTbc": "{cue}: hora por confirmar",
     "runningOrders": "Órdenes del show",
-    "runningOrderUnnamed": "Orden del show"
+    "runningOrderUnnamed": "Orden del show",
+    "countdownPlanned": "{cue}, previsto para el {day} a las {time}"
   },
   "kiosk": {
     "title": "Quiosco",

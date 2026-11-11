@@ -381,7 +381,10 @@ export interface RunOfShowLiveProps extends NativeBaseProps {
    * after a jump (ADR 0131). Defaults to `current + 1`.
    */
   next?: number;
-  /** Shown in place of the countdown, such as "TBC" while the next cue's time is to be confirmed. */
+  /**
+   * Shown in place of the countdown, such as "TBC" while the next cue's time is to be confirmed, or the cue's day and
+   * time once it is too far off to count down.
+   */
   countdownText?: string;
 }
 

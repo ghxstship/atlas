@@ -32,6 +32,7 @@ import {
 import {
   buildCallCue,
   countdownAnnouncement,
+  countdownDisplay,
   cueCallLines,
   formatCountdown,
   showsCountdown,
@@ -435,6 +436,27 @@ describe("live run of show", () => {
     expect(showsCountdown(-5_000)).toBe(true);
     expect(showsCountdown(null)).toBe(false);
     expect(formatCountdown(-12_000)).toBe("+0:12");
+  });
+
+  it("names the day and time of a next cue past the horizon, as Today does, instead of counting down (C-09)", () => {
+    // The demo's next cue is months away: Show and Run of Show read "178665:45".
+    const far = showState([cue(1, -10, -10), cue(2, 178_665)], now);
+    expect(countdownDisplay(far)).toEqual({ kind: "planned", at: far.next?.planned_at });
+    expect(countdownDisplay(showState([cue(1, -10, -10), cue(2, 12 * 60)], now))).toEqual({
+      kind: "countdown",
+      ms: 12 * 3600_000,
+    });
+    expect(countdownDisplay(showState([cue(1, -10, -10), cue(2, -1)], now))).toEqual({
+      kind: "countdown",
+      ms: -60_000,
+    });
+    expect(
+      countdownDisplay(showState([cue(1, -10, -10), { ...cue(2, 178_665), start_tbc: true }], now)),
+    ).toEqual({ kind: "tbc" });
+    expect(countdownDisplay(showState([cue(1, -10, -10), cue(2, null)], now))).toEqual({
+      kind: "none",
+    });
+    expect(countdownDisplay(showState([cue(1, -10, -10)], now))).toEqual({ kind: "none" });
   });
 
   it("takes the caller's standby as next, as Atlas does (show-timing, ADR 0131)", () => {

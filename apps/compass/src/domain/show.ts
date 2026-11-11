@@ -234,6 +234,24 @@ export function showsCountdown(msToNext: number | null): msToNext is number {
   return msToNext !== null && msToNext <= COUNTDOWN_HORIZON_MS;
 }
 
+/**
+ * What stands where the countdown goes, on Show and Run of Show as on Today (C-09): TBC for a time to be confirmed, the
+ * countdown inside the horizon, and past it the day and time the cue is planned for. A cue months away read
+ * "178665:45" here while Today already named its day.
+ */
+export type CountdownDisplay =
+  | { readonly kind: "tbc" }
+  | { readonly kind: "countdown"; readonly ms: number }
+  | { readonly kind: "planned"; readonly at: string }
+  | { readonly kind: "none" };
+
+export function countdownDisplay(state: ShowState): CountdownDisplay {
+  if (!state.next) return { kind: "none" };
+  if (state.startTbc) return { kind: "tbc" };
+  if (showsCountdown(state.msToNext)) return { kind: "countdown", ms: state.msToNext };
+  return state.next.planned_at ? { kind: "planned", at: state.next.planned_at } : { kind: "none" };
+}
+
 /** Seconds before a cue at which the countdown is spoken; 0 is the cue itself (A23-009). */
 export const COUNTDOWN_ANNOUNCE_AT_S: readonly number[] = [60, 30, 10, 0];
 
