@@ -1,13 +1,16 @@
 import { isActionableApproval, listInbox } from "@xos/data/inbox";
 import { personNames } from "@xos/data/person-names";
+import { getMyNotificationTimeZone } from "@xos/data/notification-settings";
 import { inboxItemInLens } from "@xos/data/role-lens";
-import { getTranslations } from "next-intl/server";
+import { getLocale, getMessages, getTranslations } from "next-intl/server";
 import { InboxView, type InboxRow } from "@/components/inbox/inbox-view";
 import { ErrorPanel } from "@/components/platform/kit";
 import { PageHeader, TemplateCollection } from "@/components/platform/client/page-header";
 import { describeInboxItem, type InboxCopy } from "@/lib/inbox/describe";
+import { emailCopy } from "@/lib/inbox/email-copy";
 import { requireNode } from "@/lib/shell/require-node";
 import { getFormatters } from "@/lib/platform/format";
+import { getOrgTimeZone } from "@/lib/shell/time-zone";
 
 type Translator = ((key: string, values?: Record<string, unknown>) => string) & {
   has: (key: string) => boolean;
@@ -18,12 +21,21 @@ type Translator = ((key: string, values?: Record<string, unknown>) => string) & 
  * above what is for their information. Each item reads as a human title and summary (A59-006) and
  * opens where it belongs; it is approved (A), rejected with a reason (R), marked Done (E) or snoozed
  * (H) right here, without opening the record; J and K move between items. Under a role lens (A128) it lists what
- * is addressed to the viewer and what the lens role's capabilities brought them, never another role's items.
+ * is addressed to the viewer and what the lens role's capabilities brought them, never another role's items. Email copy
+ * is formatted with its named date and time styles, in the time zone the member's email is sent in, or the org's
+ * (lib/inbox/email-copy.ts).
  */
 export default async function Page({ params }: PageProps<"/[org]/inbox">) {
   const ctx = await requireNode("inbox", await params);
-  const { t, money, dateTime } = await getFormatters(ctx);
+  const [{ t, money, dateTime }, locale, messages, zone] = await Promise.all([
+    getFormatters(ctx),
+    getLocale(),
+    getMessages(),
+    getMyNotificationTimeZone(ctx.viewer.db, ctx.org.id),
+  ]);
   const email = (await getTranslations("email")) as unknown as Translator;
+  const timeZone = (zone.ok ? zone.data : null) ?? (await getOrgTimeZone(ctx));
+  const styled = emailCopy((messages as Record<string, unknown>)["email"], locale, timeZone);
   const platform = (await getTranslations("platform")) as unknown as Translator;
   const title = t("inbox.title");
   const result = await listInbox(ctx.viewer.db, ctx.org.id);
@@ -51,7 +63,7 @@ export default async function Page({ params }: PageProps<"/[org]/inbox">) {
   );
   const copy: InboxCopy = {
     t,
-    email: (key, values) => email(key, values),
+    email: (key, values) => styled(key, values) ?? email(key, values),
     hasEmail: (key) => email.has(key),
     hasPlatform: (key) => platform.has(key),
     money,
