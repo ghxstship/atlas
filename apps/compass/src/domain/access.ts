@@ -261,6 +261,25 @@ export function access(
   return deny("engagement-not-active");
 }
 
+/**
+ * Why the person may use none of a screen's features on the project, or null when one of them is allowed. A screen
+ * built from several features (Logistics, the gate view) refuses with this reason: it said "capability" for everyone,
+ * which told external people to ask a supervisor they do not have (C-16).
+ */
+export function refusalFor(
+  identity: CompassIdentity,
+  features: readonly Feature[],
+  projectId: string | null,
+): Denial | null {
+  let reason: Denial | null = null;
+  for (const feature of features) {
+    const decision = access(identity, feature, projectId);
+    if (decision.allowed) return null;
+    reason ??= decision.reason;
+  }
+  return reason ?? "role";
+}
+
 export type ScanMode = "asset" | "receiving" | "credential" | "lookup";
 export type ScanScope = "all" | "own" | "assigned" | "own-and-party" | "acknowledgment";
 

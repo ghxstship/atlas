@@ -6,7 +6,7 @@ import { useRouter } from "expo-router";
 import { useEffect, useRef, useState, type ReactElement, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { View } from "react-native";
-import { access, type Denial, type Feature } from "../domain/access";
+import { access, refusalFor, type Denial, type Feature } from "../domain/access";
 import { queueAnnouncement } from "../domain/announce";
 import { useCompass, useRows } from "../runtime/CompassProvider";
 import { countKey } from "../runtime/i18n";
@@ -89,6 +89,12 @@ export function Gate({
 export function useAllowed(feature: Feature): boolean {
   const { resolved, projectId } = useCompass();
   return resolved ? access(resolved.identity, feature, projectId).allowed : false;
+}
+
+/** Why a screen made of these features is refused, or null when one is allowed (see refusalFor). */
+export function useRefusal(features: readonly Feature[]): Denial | null {
+  const { resolved, projectId } = useCompass();
+  return resolved ? refusalFor(resolved.identity, features, projectId) : "role";
 }
 
 /** The project and scope picker in every tab's header (Section 4.5.7). */

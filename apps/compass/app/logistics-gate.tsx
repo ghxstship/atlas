@@ -22,6 +22,7 @@ import {
   ProjectPicker,
   SyncBanner,
   useAllowed,
+  useRefusal,
 } from "../src/screens/common";
 import {
   Button,
@@ -34,6 +35,8 @@ import {
   Text,
   TextField,
 } from "../src/ui";
+
+const REFUSAL_FEATURES = ["logistics.dock", "logistics.yard", "logistics.release"] as const;
 
 interface ZoneRow extends Row {
   readonly code: string;
@@ -62,6 +65,8 @@ export default function LogisticsGateScreen(): ReactElement {
   const canDock = useAllowed("logistics.dock");
   const canYard = useAllowed("logistics.yard");
   const canRelease = useAllowed("logistics.release");
+  // External people get the role refusal, internal ones the missing capability (C-16).
+  const refusal = useRefusal(REFUSAL_FEATURES);
   const { rows: windows } = useRows<DeliveryWindowRow & Row>("delivery_windows");
   const { rows: slots } = useRows<BookingRow & Row>("dock_slots");
   const { rows: gate } = useRows<GateRow & Row>("gate_queue");
@@ -73,10 +78,10 @@ export default function LogisticsGateScreen(): ReactElement {
   const [plateError, setPlateError] = useState<string | null>(null);
   const [queued, setQueued] = useState<string | null>(null);
 
-  if (!canDock && !canYard && !canRelease) {
+  if (refusal) {
     return (
       <Screen testID="logistics-gate" title={t("compass.gateView.title")}>
-        <DenialNotice reason="capability" />
+        <DenialNotice reason={refusal} />
       </Screen>
     );
   }

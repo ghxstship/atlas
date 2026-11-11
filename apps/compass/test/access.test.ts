@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { EXTERNAL_AUDIENCES, type Audience } from "@xos/sync";
 import { describe, expect, it } from "vitest";
 import {
@@ -8,6 +10,7 @@ import {
   moreMenu,
   moreSections,
   operationalEngagements,
+  refusalFor,
   rosterOnly,
   scanModes,
   tabBar,
@@ -305,5 +308,31 @@ describe("a person who works the project only on a party's roster (R8)", () => {
     expect(ids({})).toContain("timesheets");
     expect(ids({ rosterOnly: true })).not.toContain("timesheets");
     expect(ids({ rosterOnly: true })).not.toContain("invoices");
+  });
+});
+
+describe("C-16: a screen of several features refuses with the reason that applies", () => {
+  const logistics = ["logistics.dock", "logistics.yard", "logistics.release"] as const;
+
+  it("gives external people the role refusal, never the supervisor one", () => {
+    for (const audience of ["client", "vendor", "contractor", "artist"] as const) {
+      expect(refusalFor(external(audience), logistics, "proj-1")).toBe("role");
+    }
+  });
+
+  it("gives an internal person without the capability the capability refusal", () => {
+    expect(refusalFor(internal("field", []), logistics, "proj-1")).toBe("capability");
+  });
+
+  it("is what Logistics and the gate view refuse with", () => {
+    for (const path of ["../app/logistics.tsx", "../app/logistics-gate.tsx"]) {
+      const screen = readFileSync(fileURLToPath(new URL(path, import.meta.url)), "utf8");
+      expect(screen).toContain("<DenialNotice reason={refusal} />");
+      expect(screen).not.toContain('reason="capability"');
+    }
+  });
+
+  it("refuses nothing when one feature is allowed", () => {
+    expect(refusalFor(internal("field", ["logistics.yard.write"]), logistics, "proj-1")).toBeNull();
   });
 });
