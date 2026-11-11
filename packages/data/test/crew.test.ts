@@ -1201,6 +1201,33 @@ describe("per diems", () => {
       amountMinor: 6500,
     });
     expect(calls[0]?.steps).toContainEqual(["eq", ["project_id", "pr1"]]);
+    expect(calls.some((c) => c.target === "rpc:engaged_person_names")).toBe(false);
+    expect((await listPerDiems(db, { orgId: "o1" })).ok).toBe(false);
+  });
+
+  it("names an engaged person who is not a member through engaged_person_names", async () => {
+    // Row level security nulls the people embed for someone outside the org (crawl 4.9: "Unnamed person").
+    const hidden = { ...perDiemRow, engagement: { id: "e1", person_id: "p9", person: null } };
+    const { db, calls } = client({
+      "from:per_diems": [
+        okResponse([hidden, { ...hidden, id: "pd3", day: "2027-06-02" }]),
+        okResponse([hidden]),
+      ],
+      "rpc:engaged_person_names": [
+        okResponse([{ engagement_id: "e1", full_name: "Demo Road Crew" }]),
+        errorResponse("XX000", "down"),
+      ],
+    });
+    const list = await listPerDiems(db, { orgId: "o1" });
+    expect(list.ok && list.data.map((d) => d.personName)).toEqual([
+      "Demo Road Crew",
+      "Demo Road Crew",
+    ]);
+    // One read for the run of days, not one per row.
+    expect(calls.filter((c) => c.target === "rpc:engaged_person_names")).toHaveLength(1);
+    expect(calls.find((c) => c.target === "rpc:engaged_person_names")?.steps[0]?.[1]).toEqual([
+      { p_engagement_ids: ["e1"] },
+    ]);
     expect((await listPerDiems(db, { orgId: "o1" })).ok).toBe(false);
   });
 
