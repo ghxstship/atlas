@@ -4,6 +4,7 @@
     "library": "Elegir una foto",
     "noLines": "No hay partidas del presupuesto en las que puedas registrar gastos en este proyecto. Pide a tu productor que te agregue al presupuesto.",
     "sentence": "Toma una foto del recibo. Aurora completa lo que puede leer; tú revisas cada campo antes de guardar.",
+    "sentenceManual": "Toma una foto del recibo e ingresa sus datos tú mismo. Las funciones de IA están desactivadas, como elegiste. Puedes cambiarlo en Configuración.",
     "title": "Agregar un gasto"
   },
   "aurora": {

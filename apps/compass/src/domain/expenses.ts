@@ -502,3 +502,13 @@ export function myExpenses(rows: readonly ExpenseRow[], personId: string | null)
         (b.created_at ?? "").localeCompare(a.created_at ?? ""),
     );
 }
+
+/**
+ * The intro over the receipt buttons. After the person chose Don't Allow it says the details are entered by hand and
+ * where AI features turn back on; it promised Aurora would read the receipt whatever they chose (C-13).
+ */
+export function expenseIntroKey(aiChoice: AiChoiceState): string {
+  return aiChoice === "Declined"
+    ? "compassExpenses.add.sentenceManual"
+    : "compassExpenses.add.sentence";
+}
