@@ -6,14 +6,8 @@ import { useTranslations } from "next-intl";
 import { useActionState, useState } from "react";
 import { createOrganizationAction } from "@/app/auth/actions";
 import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
-import {
-  AgeConfirmation,
-  errorMessage,
-  fieldError,
-  INITIAL,
-  Submit,
-  useAuthCopy,
-} from "@/components/auth/forms";
+import { errorMessage } from "@/components/auth/error-message";
+import { AgeConfirmation, fieldError, INITIAL, Submit, useAuthCopy } from "@/components/auth/forms";
 
 /**
  * The organization step (app.create_organization). Its own module, because its country question needs Select and

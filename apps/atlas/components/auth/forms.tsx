@@ -15,6 +15,7 @@ import {
 } from "@/app/auth/actions";
 import { Button, InlineAlert, Input } from "@xos/ui";
 
+import { errorMessage } from "@/components/auth/error-message";
 import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
 /** Auth forms (Auth template). Each keeps typed input after a failed submit (Section 11.7). */
 
@@ -23,17 +24,6 @@ type Translate = (key: string, values?: Record<string, string>) => string;
 export function useAuthCopy(): Translate {
   const t = useTranslations("shell.auth");
   return (key, values) => (t as unknown as Translate)(key, values);
-}
-
-/** The message for a form state error key: refusals from invites, everything else from errors. */
-export function errorMessage(
-  t: Translate,
-  key: string,
-  values?: Readonly<Record<string, string>>,
-): string {
-  return key.startsWith("invite.")
-    ? t(`invite.refused.${key.slice("invite.".length)}`)
-    : t(`errors.${key}`, values ? { ...values } : undefined);
 }
 
 /** The field's error message, or an empty string (no error shown). */
