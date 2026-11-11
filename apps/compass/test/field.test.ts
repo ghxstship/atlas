@@ -15,6 +15,7 @@ import {
   type Severity,
 } from "../src/domain/incidents";
 import {
+  failGaps,
   answer,
   answerProblems,
   averageSecondsPerItem,
@@ -675,5 +676,25 @@ describe("kiosk", () => {
     expect(m.payload).not.toHaveProperty("photoUri");
     expect(m.payload).not.toHaveProperty("id");
     expect(Object.values(m.payload).includes(null)).toBe(false);
+  });
+});
+
+describe("C-14: a failed item's errors follow what the person has entered", () => {
+  it("asks for both until each is given, and nothing once both are", () => {
+    expect(failGaps("", null)).toEqual(["note", "photo"]);
+    expect(failGaps("   ", null)).toEqual(["note", "photo"]);
+    expect(failGaps("Exit 3 blocked by road cases", null)).toEqual(["photo"]);
+    expect(failGaps("", "file:///photo.jpg")).toEqual(["note"]);
+    expect(failGaps("Exit 3 blocked by road cases", "file:///photo.jpg")).toEqual([]);
+  });
+
+  it("is read on every render of the walk, not kept from the last Save Fail", async () => {
+    const { readFileSync } = await import("node:fs");
+    const walk = readFileSync(
+      new URL("../app/inspections/[templateId].tsx", import.meta.url),
+      "utf8",
+    );
+    expect(walk).toContain("const missing = triedSave ? failGaps(note, photo) : [];");
+    expect(walk).not.toContain("setMissing");
   });
 });
