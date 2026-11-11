@@ -329,7 +329,12 @@
     },
     "shifts": {
       "empty": "No shifts yet. Published shifts appear here for you to accept.",
-      "accept": "Accept shift"
+      "accept": "Accept shift",
+      "decline": "Can't work it",
+      "declineTitle": "Decline this shift?",
+      "declineSentence": "The organization is told, and the shift goes back to be staffed again. You cannot undo this; message the organization if you change your mind.",
+      "declineReason": "Reason (optional)",
+      "declineConfirm": "Decline shift"
     },
     "positions": {
       "empty": "No positions assigned yet. They follow once training is done.",
@@ -2346,7 +2351,8 @@
       "accepted": "Shift accepted. Your crew lead sees it now.",
       "noRole": "Crew",
       "forget": "Forget this code",
-      "signIn": "Sign in to see all your work"
+      "signIn": "Sign in to see all your work",
+      "declineSignedIn": "Can't make it? Sign in to decline it with a reason, or tell your crew lead."
     }
   },
   "settings": {

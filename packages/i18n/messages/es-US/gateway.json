@@ -329,7 +329,12 @@
     },
     "shifts": {
       "empty": "Aún no hay turnos. Los turnos publicados aparecen aquí para que los aceptes.",
-      "accept": "Aceptar turno"
+      "accept": "Aceptar turno",
+      "decline": "No puedo trabajarlo",
+      "declineTitle": "¿Rechazar este turno?",
+      "declineSentence": "Se avisa a la organización y el turno vuelve a quedar por cubrir. No se puede deshacer; escribe a la organización si cambias de opinión.",
+      "declineReason": "Motivo (opcional)",
+      "declineConfirm": "Rechazar turno"
     },
     "positions": {
       "empty": "Aún no tienes puestos asignados. Llegan cuando termines la capacitación.",
@@ -2346,7 +2351,8 @@
       "accepted": "Turno aceptado. Tu jefe de equipo ya lo ve.",
       "noRole": "Equipo",
       "forget": "Olvidar este código",
-      "signIn": "Inicia sesión para ver todo tu trabajo"
+      "signIn": "Inicia sesión para ver todo tu trabajo",
+      "declineSignedIn": "¿No puedes ir? Inicia sesión para rechazarlo con un motivo, o avisa a tu jefe de equipo."
     }
   },
   "settings": {

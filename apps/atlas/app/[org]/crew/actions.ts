@@ -30,6 +30,7 @@ import {
   createTimeEntry,
   createTimesheet,
   decideCorrection,
+  declineShift,
   decideSwap,
   decideTimeOff,
   decideTimesheet,
@@ -399,6 +400,19 @@ export async function acceptShiftAction(_: State, form: FormData): Promise<State
   const r = reason.safeParse(form.get("reason"));
   if (!id.success || !r.success) return invalid(t, { reason: "crew.errors.reason" });
   return done(ctx.org.slug, await acceptShift(db, id.data, r.data), t);
+}
+
+/** The person assigned declines a Published shift with an optional reason (app.decline_shift). */
+export async function declineShiftAction(_: State, form: FormData): Promise<State> {
+  const { ctx, db, t } = await context(form);
+  const id = uuid.safeParse(form.get("id"));
+  const r = z
+    .string()
+    .trim()
+    .max(500)
+    .safeParse(form.get("reason") ?? "");
+  if (!id.success || !r.success) return invalid(t, { reason: "crew.errors.reason" });
+  return done(ctx.org.slug, await declineShift(db, id.data, r.data || null), t);
 }
 
 export async function claimShiftAction(_: State, form: FormData): Promise<State> {

@@ -27,6 +27,7 @@ import {
   acceptShiftAction,
   awardShiftAction,
   claimShiftAction,
+  declineShiftAction,
   decideClaimAction,
   withdrawClaimAction,
   clockInAction,
@@ -391,6 +392,18 @@ export async function ShiftsCollection(props: {
               action={acceptShiftAction}
               hidden={hidden}
               variant="primary"
+            />
+          ) : null}
+          {mine && s.state === "Published" ? (
+            <ConfirmButton
+              label={t("crew.shifts.decline")}
+              title={t("crew.shifts.declineTitle")}
+              description={t("crew.shifts.declineHelp")}
+              defaultReason=""
+              reasonOptional
+              action={declineShiftAction}
+              hidden={hidden}
+              variant="ghost"
             />
           ) : null}
           {open && !myClaim ? (
