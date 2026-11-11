@@ -1,5 +1,6 @@
 import { readSensitiveConsentReport } from "@xos/data/sensitive-consent";
 import { listAuditEvents } from "@xos/data/activity";
+import { getTranslations } from "next-intl/server";
 import { listCanonExtensionProposals, listDepartments, listDisciplines } from "@xos/data/canon";
 import {
   DATA_REQUEST_MOVES,
@@ -20,6 +21,8 @@ import {
   saveDepartmentsAction,
   saveLocationDefaultsAction,
 } from "@/app/[org]/settings/surface-actions";
+import { auditActionText, auditActorText, auditDetailText, tableWords } from "@/lib/activity-audit";
+import { getOrgTimeZone } from "@/lib/shell/time-zone";
 import type { SettingsPanelProps } from "../contributions/types";
 import { SaveBarFields, SaveBarForm, SurfaceButton, SurfaceForm } from "./forms";
 import {
@@ -422,7 +425,7 @@ export async function LegalHoldsPanel({ ctx }: SettingsPanelProps) {
               </>
             ),
             meta: [
-              h.tableName ? <Code key="t">{h.tableName}</Code> : f.t(`${P}.privacy.allTables`),
+              h.tableName ? tableWords(h.tableName) : f.t(`${P}.privacy.allTables`),
               f.t(`${P}.privacy.placed`, { date: f.day(h.placedAt) }),
               h.releasedAt ? f.t(`${P}.privacy.releasedOn`, { date: f.day(h.releasedAt) }) : null,
             ],
@@ -467,7 +470,10 @@ export async function LegalHoldsPanel({ ctx }: SettingsPanelProps) {
                 label: f.t(`${P}.privacy.table`),
                 options: [
                   { value: "", label: f.t(`${P}.privacy.allTables`) },
-                  ...policies.data.map((p) => ({ value: p.tableName, label: p.tableName })),
+                  // Each table by name in words, in alphabetical order, never its identifier (crawl 4.9).
+                  ...policies.data
+                    .map((p) => ({ value: p.tableName, label: tableWords(p.tableName) }))
+                    .sort((a, b) => a.label.localeCompare(b.label, f.locale)),
                 ],
                 defaultValue: "",
               },
@@ -588,11 +594,22 @@ export async function ExportsAndRetentionPanel({ ctx }: SettingsPanelProps) {
 // Audit log -------------------------------------------------------------------------------------------------
 
 export async function AuditLogPanel({ ctx }: SettingsPanelProps) {
-  const [f, events] = await Promise.all([
+  const [f, events, activity, zone] = await Promise.all([
     formatters(ctx),
     listAuditEvents(ctx.viewer.db, { orgId: ctx.org.id, limit: 10 }),
+    getTranslations("activity"),
+    getOrgTimeZone(ctx),
   ]);
   const canRead = ctx.capabilities.has("audit.log.read");
+  // The action in words with its code beside it, who made it, and the time with its zone named (crawl 4.9), as the
+  // full Activity audit log reads them.
+  const words = activity as unknown as Parameters<typeof auditActionText>[2];
+  const when = new Intl.DateTimeFormat(f.locale, {
+    dateStyle: "medium",
+    timeStyle: "short",
+    timeZone: zone,
+    timeZoneName: "short",
+  });
   return (
     <Section
       id="audit-latest"
@@ -606,15 +623,22 @@ export async function AuditLogPanel({ ctx }: SettingsPanelProps) {
       ) : (
         <Rows
           label={f.t(`${P}.audit.title`)}
-          rows={events.data.entries.map((e) => ({
-            id: e.id,
-            title: <Code>{e.action}</Code>,
-            meta: [
-              e.actor ?? f.t(`${P}.audit.actors.${e.actorKind}`),
-              f.when(e.at),
-              e.redacted ? f.t(`${P}.audit.redacted`) : null,
-            ],
-          }))}
+          rows={events.data.entries.map((e) => {
+            const detail = auditDetailText(e, words);
+            return {
+              id: e.id,
+              title: (
+                <>
+                  {auditActionText(e.action, e.subjectTable, words)} <Code>{e.action}</Code>
+                </>
+              ),
+              meta: [
+                auditActorText(e, words),
+                when.format(new Date(e.at)),
+                e.redacted ? f.t(`${P}.audit.redacted`) : detail === "" ? null : detail,
+              ],
+            };
+          })}
         />
       )}
       <Quiet>{f.t(`${P}.audit.retention`)}</Quiet>
