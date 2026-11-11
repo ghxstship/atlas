@@ -1392,6 +1392,7 @@
     "NO_ANSWER": "No answer",
     "UNRATIFIED": "Not ratified"
   },
+  "refusalReference": "Reference for support: {code}",
   "commandMenu": {
     "groups": {
       "actions": "Actions",

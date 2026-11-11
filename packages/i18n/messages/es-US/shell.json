@@ -1392,6 +1392,7 @@
     "NO_ANSWER": "Sin respuesta",
     "UNRATIFIED": "Sin ratificar"
   },
+  "refusalReference": "Referencia para soporte: {code}",
   "commandMenu": {
     "groups": {
       "actions": "Acciones",
