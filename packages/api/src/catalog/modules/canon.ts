@@ -398,29 +398,28 @@ export const additions = defineAdditions("Canon", {
         "The view xpms.v_phase_coverage (0104, 1610) reports per phase its gate, label, element and category counts, whether an element is Active, and the declared gap the owner ratified for a phase without one (xpms.declared_gap, owner decision 39) with its reason.",
       apply: editShape({
         add: {
-          gate: { schema: orNull(fields.int("Gate ordinal.", 3)) },
-          phase: { schema: orNull(canonLabel("Phase label.", "Advance")) },
+          // The example row is Scope, whose PhaseCode example is the frozen phase_code's: one of the
+          // gaps decision 39 declares, so no element is Active and the frozen counts restate that.
+          active_element_count: { schema: fields.int("Active elements in the phase.", 0) },
+          declared_gap: { schema: fields.bool("Whether the phase carries a declared gap.", true) },
+          gate: { schema: orNull(fields.int("Gate ordinal.", 1)) },
+          phase: { schema: orNull(canonLabel("Phase label.", "Scope")) },
           element_count: { schema: orNull(fields.int("Elements participating in the phase.", 42)) },
           category_count: {
             schema: orNull(fields.int("Distinct categories among participating elements.", 7)),
           },
           has_active_element: {
             schema: orNull(
-              fields.bool("True when at least one participating element is Active.", true),
+              fields.bool("True when at least one participating element is Active.", false),
             ),
           },
-          // The example row has an Active element, so it carries no gap and no reason.
           declared_gap_reason: {
             schema: orNull(
               fields.text(
                 "Why the phase has no Active element, as its declared gap states it; null without one.",
                 "No Scope item is Active yet; the Item Catalog proposes every one.",
               ),
-            ).meta({
-              description:
-                "Why the phase has no Active element, as its declared gap states it; null without one.",
-              example: null,
-            }),
+            ),
           },
         },
       }),
