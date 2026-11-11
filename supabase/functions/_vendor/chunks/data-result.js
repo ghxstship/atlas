@@ -23,8 +23,47 @@ function splitRefusal(message, hint) {
     message: separator > 0 && prefix === rule ? message.slice(separator + 2) : message,
   };
 }
+/**
+ * Constraints whose violation is a problem with one form field, not a concurrent save or a server
+ * fault. A unique key here is a value the person typed (an invoice number repeated for the same
+ * counterparty or payee, 0321 and 1120), so it reads as invalid on that field instead of the
+ * generic conflict; a foreign key to a canon vocabulary (every `unit_basis` references
+ * xpms.dim_unit_alias) is a value outside the vocabulary.
+ */
+var FIELD_CONSTRAINTS = [
+  {
+    code: "23505",
+    constraint: /^invoices_(person_)?number_key$/,
+    field: "number",
+  },
+  {
+    code: "23503",
+    constraint: /_unit_basis_fkey$/,
+    field: "unitBasis",
+  },
+];
+/** The constraint a Postgres integrity error names in its message (`... constraint "name"`). */
+function constraintOf(error) {
+  return /constraint "([^"]+)"/.exec(`${error.message} ${error.details ?? ""}`)?.[1] ?? null;
+}
+/** The form field an integrity error is about, when its constraint maps to one. */
+function fieldOf(error) {
+  const constraint = constraintOf(error);
+  if (constraint === null) return null;
+  return (
+    FIELD_CONSTRAINTS.find((c) => c.code === error.code && c.constraint.test(constraint))?.field ??
+    null
+  );
+}
 /** Maps a database error to a typed repository error. */
 function toDataError(error) {
+  const field = error.code === "23505" || error.code === "23503" ? fieldOf(error) : null;
+  if (field !== null)
+    return {
+      kind: "invalid",
+      message: error.message,
+      field,
+    };
   switch (error.code) {
     case "XR001":
       return {
@@ -40,6 +79,7 @@ function toDataError(error) {
         message: error.message,
       };
     case "23514":
+    case "23503":
     case "22023":
     case "22P02":
       return {
