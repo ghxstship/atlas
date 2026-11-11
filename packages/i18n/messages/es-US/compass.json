@@ -616,6 +616,7 @@
     "severity": "¿Qué tan grave es?",
     "location": "Ubicación",
     "locationAuto": "Cerca de {latitude}, {longitude} (a {accuracy})",
+    "locationSite": "{site} (cerca de {latitude}, {longitude}, a {accuracy})",
     "locationUnknown": "No se encontró la ubicación. Describe dónde en el título.",
     "change": "Cambiar",
     "titleLabel": "Qué pasó",

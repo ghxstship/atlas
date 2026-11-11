@@ -191,6 +191,16 @@ export function evaluateGeofence(
   return { kind: "outside", nearest, distanceM, quality };
 }
 
+/**
+ * The named site (geofence) a fix falls inside, or null when it is outside every one or too coarse to say. An
+ * incident report names the site first, with the coordinates after it; it showed only the coordinates (C-19).
+ */
+export function siteAt(fix: LocationFix | null, geofences: readonly Geofence[]): Geofence | null {
+  if (!fix || fix.accuracyM > FIX_MAX_ACCURACY_M) return null;
+  const point: Position = [fix.longitude, fix.latitude];
+  return geofences.find((g) => shapeContains(g.boundary, point)) ?? null;
+}
+
 export interface BatteryState {
   /** 0 to 1. */
   readonly level: number;
