@@ -47,6 +47,8 @@ const DYNAMIC = [
   "schedule-shift-",
   "expense-line-",
   "expense-aurora-",
+  // The AI features disclosure's buttons, named after the testID its screen gives it (`${testID}-decline`).
+  "expense-ai-disclosure-",
   "external-",
   "settings-section-",
   "settings-privacy-section-",
