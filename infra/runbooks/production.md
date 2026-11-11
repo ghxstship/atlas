@@ -595,7 +595,6 @@ How it behaves:
 3. Set `STRIPE_SECRET_KEY` on the `atlas` Vercel project for the staging environment, then redeploy. Without it Billing and Plan says billing is not open yet.
 4. Check on staging: sign up, create an org (it starts the Pro trial), open Settings, Billing and plan, choose Core, pass the second factor, and pay with Stripe's test card `4242 4242 4242 4242`. Back in Atlas the page says the card is saved and the org is on Core: the rest of the trial carried over, so Stripe charges the card when the trial ends. "Open the billing portal" opens the portal on the org's customer. In the Dashboard, the webhook endpoint shows every event delivered with HTTP 200.
 5. If a payment went through and Billing and Plan keeps saying Stripe is confirming it, the subscription's event has not been applied yet. Find the failed `customer.subscription.*` delivery on the endpoint and resend it. Meanwhile Atlas offers that org no second Checkout, for up to three days after the payment (Stripe's retry window); after that a new checkout can open, so resolve it before then.
-6. Extra seats are not sold in Atlas yet, and the portal switches plan prices only. When a paying Owner asks for more seats, open the org's subscription in the Dashboard and add the plan's extra-seat price (`xos_seat_<plan>_<monthly|annual>_v4` in `plans.yaml`, on the same term as the plan) with the number of seats asked. The webhook syncs the quantity as extra seats.
 
 ### 4. Stopping Stripe (ADR 0161)
 

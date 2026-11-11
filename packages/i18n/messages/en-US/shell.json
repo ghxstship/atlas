@@ -1300,7 +1300,7 @@
       "seatUsageUnlimited": "{used, plural, one {# seat} other {# seats}} in use. Your plan has unlimited seats.",
       "extraSeats": "{count, plural, one {Includes # extra seat} other {Includes # extra seats}} bought on top of the plan.",
       "grandfathered": "Your subscription started before plans had seat limits, so it keeps unlimited seats. Changing plan applies the new seat limits.",
-      "seatsFull": "Every seat is in use. Upgrade the plan to add members above Field, or contact support to add extra seats to a paid plan.",
+      "seatsFull": "Every seat is in use. Buy extra seats or upgrade the plan to add members above Field.",
       "seatsFullUpgrade": "Every seat is in use, and your plan sells no extra seats. Upgrade the plan to add members above Field.",
       "buySeats": "Buy extra seats",
       "contactSales": "Talk to sales",
