@@ -218,3 +218,13 @@ describe("Occupancy load wording", () => {
     }
   });
 });
+
+describe("C-18: the survey thanks reads correctly", () => {
+  it.each(locales)("says the answers are saved and sent in %s", async (locale) => {
+    const t = await translator(locale);
+    const thanks = t("workforce.compass.survey.submitted");
+    expect(thanks).not.toContain("saved and send");
+    expect(thanks).not.toContain("se envían cuando");
+    expect(thanks).toMatch(locale === "es-US" ? /se enviarán cuando/ : /saved and sent when/);
+  });
+});

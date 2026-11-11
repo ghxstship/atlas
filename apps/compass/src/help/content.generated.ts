@@ -1582,7 +1582,26 @@ export const COMPASS_HELP: HelpContent = {
                 v: "Run of Show lets you follow today's running order cue by cue, with the next cue counting down and how many cues are called. The stage manager calls the cues; you follow along. A cue whose time is still to be confirmed shows ",
               },
               { t: "strong", v: "TBC" },
-              { t: "text", v: " instead of a countdown." },
+              {
+                t: "text",
+                v: " instead of a countdown. A cue more than 12 hours away shows the day and time it is planned for, such as ",
+              },
+              { t: "strong", v: "Planned for Nov 14 at 8:00 PM" },
+              { t: "text", v: ", instead of a countdown." },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "When the project has more than one running order, such as a main stage and a side stage or one for each show day, the ",
+              },
+              { t: "strong", v: "Running order" },
+              {
+                t: "text",
+                v: " button names the one on screen. Tap it to pick another. Each running order reads on its own, and the screen stays on the one you picked.",
+              },
             ],
           },
           {
@@ -2762,6 +2781,21 @@ export const COMPASS_HELP: HelpContent = {
               { t: "text", v: ". A cue whose time is still to be confirmed shows " },
               { t: "strong", v: "TBC" },
               { t: "text", v: ": it is not counted down, buzzed or spoken." },
+            ],
+          },
+          { t: "h2", v: "Running orders" },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "When the project has more than one running order, such as a main stage and a side stage, the ",
+              },
+              { t: "strong", v: "Running order" },
+              {
+                t: "text",
+                v: " button names the one on screen; tap it to pick another. The screen stays on the one you picked while you call cues; it never moves to another stage by itself. In show mode the running order's name stays on screen. A cue more than 12 hours away shows the day and time it is planned for instead of a countdown.",
+              },
             ],
           },
           { t: "h2", v: "Your department" },
@@ -5162,7 +5196,26 @@ export const COMPASS_HELP: HelpContent = {
                 v: "El Orden del show te deja seguir el orden de hoy cue por cue, con la cuenta regresiva del siguiente cue y cuántos cues se llamaron. El jefe de escena llama los cues; tú los sigues. Un cue cuya hora aún está por confirmar muestra ",
               },
               { t: "strong", v: "Por confirmar" },
-              { t: "text", v: " en lugar de la cuenta regresiva." },
+              {
+                t: "text",
+                v: " en lugar de la cuenta regresiva. Un cue que falta más de 12 horas muestra el día y la hora previstos, como ",
+              },
+              { t: "strong", v: "Previsto para el 14 nov a las 8:00 p. m." },
+              { t: "text", v: ", en lugar de la cuenta regresiva." },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Cuando el proyecto tiene más de un orden del show, como un escenario principal y uno secundario o uno por cada día de show, el botón ",
+              },
+              { t: "strong", v: "Orden del show" },
+              {
+                t: "text",
+                v: " nombra el que está en pantalla. Tócalo para elegir otro. Cada orden se lee por separado, y la pantalla se queda en el que elegiste.",
+              },
             ],
           },
           {
@@ -6385,6 +6438,21 @@ export const COMPASS_HELP: HelpContent = {
               { t: "text", v: ". Un cue cuya hora aún está por confirmar muestra " },
               { t: "strong", v: "Por confirmar" },
               { t: "text", v: ": no tiene cuenta regresiva, vibración ni aviso hablado." },
+            ],
+          },
+          { t: "h2", v: "Órdenes del show" },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Cuando el proyecto tiene más de un orden del show, como un escenario principal y uno secundario, el botón ",
+              },
+              { t: "strong", v: "Orden del show" },
+              {
+                t: "text",
+                v: " nombra el que está en pantalla; tócalo para elegir otro. La pantalla se queda en el que elegiste mientras llamas cues; nunca pasa sola a otro escenario. En el modo show, el nombre del orden sigue en pantalla. Un cue que falta más de 12 horas muestra el día y la hora previstos en lugar de la cuenta regresiva.",
+              },
             ],
           },
           { t: "h2", v: "Tu departamento" },

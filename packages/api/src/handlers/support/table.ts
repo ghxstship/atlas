@@ -13,7 +13,8 @@
  *
  * A resource whose contract names differ from its columns passes `aliases`; one whose create body
  * lacks a NOT NULL column derived from a parent passes `beforeCreate`; one whose read shape holds a
- * derived field passes `extraColumns` and `toContract`.
+ * derived field passes `extraColumns` and `toContract`. A field the contract keeps after its column
+ * retired passes `retired`: it reads null, and sort and filter terms on it are no-ops.
  */
 import type { DataError, XosClient } from "@xos/data";
 import { applyArchived, parseArchived } from "@xos/data/archive";
@@ -29,12 +30,12 @@ import {
 } from "../../catalog/corrections.ts";
 import { MODULE_ADDITIONS } from "../../catalog/modules/index.generated.ts";
 import type { Module, ResourceSpec, Verb } from "../../catalog/types.ts";
-import { conflict, notFound, preconditionFailed, refused } from "../../problem.ts";
+import { badRequest, conflict, notFound, preconditionFailed, refused } from "../../problem.ts";
 import type { RequestContext } from "../../runtime/context.ts";
 import { assertIfMatch, versionFromIfMatch } from "../../runtime/etag.ts";
 import type { ErasedHandler, ErasedRequest, HandlerSet } from "../../runtime/handler.ts";
 import { created, noContent, ok } from "../../runtime/handler.ts";
-import type { ListQuery } from "../../runtime/listing.ts";
+import type { FilterValue, ListQuery } from "../../runtime/listing.ts";
 import { listPage } from "../../runtime/listing.ts";
 import type { Page } from "../../runtime/pagination.ts";
 import { selectColumns } from "../../runtime/pagination.ts";
@@ -241,6 +242,37 @@ export function withSort(query: ListQuery, sort: string | undefined): ListQuery 
   return sort === undefined ? query : { ...query, sort };
 }
 
+/**
+ * A list query without its sort and filter terms on `retired` fields, which always read null: a sort
+ * term and `is_null=true` match every row and are dropped, and any other filter matches no row, which
+ * the result's `none` says. The query is otherwise left for `listPage` to check.
+ */
+export function withoutRetired(
+  query: ListQuery,
+  retired: ReadonlySet<string>,
+): { query: ListQuery; none: boolean } {
+  if (retired.size === 0) return { query, none: false };
+  let none = false;
+  const filter: Record<string, FilterValue> = {};
+  for (const [field, ops] of Object.entries(query.filter ?? {})) {
+    if (!retired.has(field)) {
+      filter[field] = ops;
+      continue;
+    }
+    for (const [op, value] of Object.entries(ops)) {
+      if (op !== "is_null") none = true;
+      else if (value === "false") none = true;
+      else if (value !== "true") throw badRequest(`filter[${field}][is_null] takes true or false.`);
+    }
+  }
+  const { sort: requested, ...rest } = query;
+  const sort = (requested ?? "")
+    .split(",")
+    .filter((term) => term !== "" && !retired.has(term.replace(/^-/, "")))
+    .join(",");
+  return { query: sort === "" ? { ...rest, filter } : { ...rest, filter, sort }, none };
+}
+
 /** The default order of a resource as a `sort` value, descending for a feed. */
 export function defaultSort(spec: ResourceSpec): string | undefined {
   if (spec.order.descending !== true) return undefined;
@@ -261,6 +293,11 @@ export interface TableOptions {
   readonly aliases?: Readonly<Record<string, string>>;
   /** Read fields the table does not hold, filled by `toContract`. */
   readonly derived?: readonly string[];
+  /**
+   * Read fields the contract keeps after their columns retired: never selected, always null, and
+   * sort and filter terms on them are no-ops rather than a 400 (see `withoutRetired`).
+   */
+  readonly retired?: readonly string[];
   /** Columns `toContract` needs beyond the read shape. */
   readonly extraColumns?: readonly string[];
   /** Maps a row read from the table to the contract shape. */
@@ -318,7 +355,8 @@ export function tableResource(op: string, options: TableOptions = {}): TableReso
   const spec = resourceSpec(op);
   const { schema, table } = relationOf(spec);
   const aliases = options.aliases ?? {};
-  const derived = new Set(options.derived ?? []);
+  const retired = new Set(options.retired ?? []);
+  const derived = new Set([...(options.derived ?? []), ...retired]);
   const fields = readFields(spec);
   const stored = fields.filter((f) => !derived.has(f));
   const key = options.key ?? (spec.def.key === "" ? (spec.order.by[0] as string) : spec.def.key);
@@ -339,7 +377,7 @@ export function tableResource(op: string, options: TableOptions = {}): TableReso
     options.enrich !== undefined && wanted.some((f) => derived.has(f));
   const shape = async (context: RequestContext, row: Row, wanted: readonly string[]) => {
     const mapped = options.toContract === undefined ? row : await options.toContract(row, context);
-    return Object.fromEntries(wanted.map((f) => [f, mapped[f] ?? null]));
+    return Object.fromEntries(wanted.map((f) => [f, retired.has(f) ? null : (mapped[f] ?? null)]));
   };
 
   const read = async (context: RequestContext, id: string, wanted: readonly string[] = fields) => {
@@ -354,7 +392,16 @@ export function tableResource(op: string, options: TableOptions = {}): TableReso
     return shape(context, enriched ?? row, wanted);
   };
 
-  const list = async (context: RequestContext, query: ListQuery) => {
+  const list = async (context: RequestContext, request: ListQuery) => {
+    const live = withoutRetired(request, retired);
+    // A retired-field filter no row can match becomes one on the key, so the rest of the query is
+    // still checked and run as ever.
+    const query: ListQuery = live.none
+      ? {
+          ...live.query,
+          filter: { ...live.query.filter, [key]: { ...live.query.filter?.[key], is_null: "true" } },
+        }
+      : live.query;
     const wanted = selectColumns(query.fields, fields, key);
     const sortable = options.sortable ?? stored;
     const page = await listPage<Row>(
@@ -381,7 +428,7 @@ export function tableResource(op: string, options: TableOptions = {}): TableReso
         key,
         defaultOrder: spec.order.by,
         sortable,
-        filterable: sortable,
+        filterable: live.none ? [...sortable, key] : sortable,
       },
     );
     const rows = enriches(wanted)

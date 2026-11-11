@@ -52,9 +52,23 @@ onFlowComplete:
     visible:
       id: "expense-form"
     timeout: 30000
+# Until the person has chosen, the form shows the AI features disclosure first (4.8, ADR 0156). The flow chooses
+# Don't Allow, so the form says the details are typed by hand; a stack where the choice is already made shows the
+# Aurora state straight away.
 - extendedWaitUntil:
     visible:
-      id: "expense-aurora-failed|expense-aurora-off|expense-aurora-not-in-plan|expense-aurora-limit"
+      id: "expense-ai-disclosure|expense-aurora-failed|expense-aurora-off|expense-aurora-not-in-plan|expense-aurora-limit|expense-aurora-declined"
+    timeout: 60000
+- runFlow:
+    when:
+      visible:
+        id: "expense-ai-disclosure"
+    commands:
+      - tapOn:
+          id: "expense-ai-disclosure-decline"
+- extendedWaitUntil:
+    visible:
+      id: "expense-aurora-failed|expense-aurora-off|expense-aurora-not-in-plan|expense-aurora-limit|expense-aurora-declined"
     timeout: 60000
 - tapOn:
     id: "expense-line"

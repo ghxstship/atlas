@@ -17,7 +17,12 @@ export default [
     files: ["metro.config.js"],
     languageOptions: {
       sourceType: "commonjs",
-      globals: { require: "readonly", module: "writable", __dirname: "readonly" },
+      globals: {
+        require: "readonly",
+        module: "writable",
+        __dirname: "readonly",
+        process: "readonly",
+      },
     },
     rules: { "@typescript-eslint/no-require-imports": "off" },
   },

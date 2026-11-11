@@ -3,8 +3,8 @@ appId: pro.ghxstship.compass
 # Named after its file: config.yaml orders flows by name.
 name: account-delete
 ---
-# A throwaway account with no organization or engagement lands on the screen Compass shows such a sign-in;
-# it offers Delete Account there, as Settings, Account does for members and crew (SIM-004).
+# A throwaway account with no organization or engagement lands on the no-access screen Compass shows such a
+# sign-in (C-12); it offers Delete Account there, as Settings, Account does for members and crew (SIM-004).
 - runScript:
     file: ../scripts/throwaway-account.js
 - assertTrue: ${output.throwaway.status == 200}
@@ -16,7 +16,7 @@ name: account-delete
     file: ../subflows/open-dev-bundle.yaml
 - extendedWaitUntil:
     visible:
-      id: "sign-in|tab-bar|identity-failed|legal-gate-age"
+      id: "sign-in|tab-bar|identity-failed|no-access|legal-gate-age"
     timeout: 120000
 - runFlow:
     when:
@@ -30,6 +30,13 @@ name: account-delete
     commands:
       - tapOn:
           id: "identity-failed-sign-out"
+- runFlow:
+    when:
+      visible:
+        id: "no-access"
+    commands:
+      - tapOn:
+          id: "no-access-sign-out"
 - tapOn:
     id: "sign-in-toggle"
 - tapOn:
@@ -56,10 +63,10 @@ name: account-delete
 - runFlow: ../subflows/first-sign-in-answers.yaml
 - extendedWaitUntil:
     visible:
-      id: "identity-failed"
+      id: "no-access"
     timeout: 30000
 - tapOn:
-    id: "identity-failed-delete-account"
+    id: "no-access-delete-account"
 - extendedWaitUntil:
     visible:
       id: "account-email"

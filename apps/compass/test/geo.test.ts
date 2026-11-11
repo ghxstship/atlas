@@ -7,6 +7,7 @@ import {
   parseGeoShape,
   samplingPlan,
   shapeContains,
+  siteAt,
   type Geofence,
 } from "../src/domain/geo";
 
@@ -221,5 +222,37 @@ describe("stored boundaries", () => {
     expect(parseGeoShape("{not json")).toBeNull();
     expect(parseGeoShape({ type: "Point", coordinates: [-97.74, 30.26] })).toBeNull();
     expect(parseGeoShape(null)).toBeNull();
+  });
+});
+
+describe("C-19: an incident names the site the person is at", () => {
+  const at = (longitude: number, latitude: number, accuracyM = 10) => ({
+    longitude,
+    latitude,
+    accuracyM,
+    at: 0,
+  });
+
+  it("finds the geofence a fix falls inside", () => {
+    expect(siteAt(at(-97.7445, 30.2655), [venue, lot])?.name).toBe("Main Venue");
+    expect(siteAt(at(-97.7495, 30.2705), [venue, lot])?.id).toBe(lot.id);
+  });
+
+  it("names no site outside every geofence, for a coarse fix or with no fix", () => {
+    expect(siteAt(at(-97.7, 30.2), [venue, lot])).toBeNull();
+    expect(siteAt(at(-97.7445, 30.2655, 500), [venue, lot])).toBeNull();
+    expect(siteAt(null, [venue, lot])).toBeNull();
+  });
+
+  it("puts the site before the coordinates in both locales", async () => {
+    const { getMessages } = await import("@xos/i18n");
+    for (const locale of ["en-US", "es-US"] as const) {
+      const incidents = (
+        getMessages(locale) as unknown as { compass: { incidents: Record<string, string> } }
+      ).compass.incidents;
+      expect(incidents["locationSite"], locale).toMatch(
+        /^\{site\} \(.*\{latitude\}, \{longitude\}/,
+      );
+    }
   });
 });

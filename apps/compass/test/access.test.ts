@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { EXTERNAL_AUDIENCES, type Audience } from "@xos/sync";
 import { describe, expect, it } from "vitest";
 import {
@@ -8,6 +10,7 @@ import {
   moreMenu,
   moreSections,
   operationalEngagements,
+  refusalFor,
   rosterOnly,
   scanModes,
   tabBar,
@@ -92,6 +95,30 @@ describe("external access (Section 8.7)", () => {
       "sponsor",
     ] as Audience[]) {
       expect(access(external(a), "clock", "proj-1")).toEqual({ allowed: false, reason: "role" });
+    }
+  });
+
+  it("opens the read-only Run of Show to the Client only, as the server and the sitemap do (C-11)", () => {
+    // api_external.cues gives a Client the whole running order and an artist only their own set, which Today shows;
+    // crew and staff receive no cue, so the screen would always be empty for them.
+    expect(access(external("client"), "show.read", "proj-1")).toEqual({ allowed: true });
+    for (const a of [
+      "crew",
+      "staff",
+      "artist",
+      "artist-representative",
+      "vendor",
+      "contractor",
+      "sponsor",
+    ] as Audience[]) {
+      expect(access(external(a), "show.read", "proj-1"), a).toEqual({
+        allowed: false,
+        reason: "role",
+      });
+      expect(
+        moreMenu(a).some((m) => m.id === "run-of-show"),
+        a,
+      ).toBe(false);
     }
   });
 
@@ -305,5 +332,31 @@ describe("a person who works the project only on a party's roster (R8)", () => {
     expect(ids({})).toContain("timesheets");
     expect(ids({ rosterOnly: true })).not.toContain("timesheets");
     expect(ids({ rosterOnly: true })).not.toContain("invoices");
+  });
+});
+
+describe("C-16: a screen of several features refuses with the reason that applies", () => {
+  const logistics = ["logistics.dock", "logistics.yard", "logistics.release"] as const;
+
+  it("gives external people the role refusal, never the supervisor one", () => {
+    for (const audience of ["client", "vendor", "contractor", "artist"] as const) {
+      expect(refusalFor(external(audience), logistics, "proj-1")).toBe("role");
+    }
+  });
+
+  it("gives an internal person without the capability the capability refusal", () => {
+    expect(refusalFor(internal("field", []), logistics, "proj-1")).toBe("capability");
+  });
+
+  it("is what Logistics and the gate view refuse with", () => {
+    for (const path of ["../app/logistics.tsx", "../app/logistics-gate.tsx"]) {
+      const screen = readFileSync(fileURLToPath(new URL(path, import.meta.url)), "utf8");
+      expect(screen).toContain("<DenialNotice reason={refusal} />");
+      expect(screen).not.toContain('reason="capability"');
+    }
+  });
+
+  it("refuses nothing when one feature is allowed", () => {
+    expect(refusalFor(internal("field", ["logistics.yard.write"]), logistics, "proj-1")).toBeNull();
   });
 });

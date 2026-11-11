@@ -1049,7 +1049,7 @@
     },
     "survey": {
       "submit": "Send Answers",
-      "submitted": "Thanks. Your answers are saved and send when you're online.",
+      "submitted": "Thanks. Your answers are saved and sent when you're online.",
       "closed": "This survey is closed.",
       "anonymous": "Anonymous: your name is not stored with your answers.",
       "optional": "{prompt} (optional)",

@@ -285,6 +285,25 @@ describe("startPlanCheckout", () => {
     );
   });
 
+  it("returns to the trial page only when it carried a trial over, so nothing was charged", async () => {
+    const trialSuccessUrl = "https://atlas.test/northwind/settings/billing-and-plan?checkout=trial";
+    const successUrlFor = async (trialEndsAt: string | null) => {
+      const stripe = fakeStripe();
+      await startPlanCheckout(stripe.client, registry, accountStore({ trialEndsAt }).store, {
+        ...request,
+        trialSuccessUrl,
+      });
+      const created = stripe.calls.find((c) => c.method === "checkout.sessions.create");
+      return created?.params as { success_url: string; subscription_data: object };
+    };
+    expect((await successUrlFor("2026-11-05T05:00:00Z")).success_url).toBe(trialSuccessUrl);
+    // A day left is under Stripe's 48 hours: the card is charged today, so the page says payment was received.
+    const short = await successUrlFor("2026-10-24T12:00:00Z");
+    expect(short.subscription_data).not.toHaveProperty("trial_end");
+    expect(short.success_url).toBe(request.successUrl);
+    expect((await successUrlFor(null)).success_url).toBe(request.successUrl);
+  });
+
   it("expires the org's open checkouts before opening another", async () => {
     const stripe = fakeStripe({ sessions: { cs_test_Old1: "open", cs_test_Old2: "expired" } });
     const account = accountStore({ openSessionIds: ["cs_test_Old1", "cs_test_Old2"] });

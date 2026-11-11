@@ -39,6 +39,11 @@ describe("Compass safety wording", () => {
     expect(incidents("es-US")["nearMiss"]).toMatch(/Level 5 - Advisory/);
     // One marker in every language, in the field as it is labelled, so a mixed crew's reports are found by one search.
     expect(incidents("es-US")["nearMiss"]).toMatch(/Near miss/);
+    // C-23: in Spanish the two English words are quoted as they appear, so they read as the labels, not a slip.
+    expect(incidents("es-US")["nearMiss"]).toContain(
+      "“Level 5 - Advisory”, como aparece en la lista",
+    );
+    expect(incidents("es-US")["nearMiss"]).toContain("“Near miss”, en inglés");
     for (const locale of ["en-US", "es-US"] as const) {
       expect(incidents(locale)["nearMiss"]).toContain(String(incidents(locale)["titleLabel"]));
     }

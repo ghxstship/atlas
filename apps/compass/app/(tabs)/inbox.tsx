@@ -4,13 +4,16 @@ import * as Linking from "expo-linking";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, type ReactElement } from "react";
 import { useTranslation } from "react-i18next";
+import { notificationPromptKeys } from "../../src/domain/audienceCopy";
 import { dispatchQueue, type IncidentRow, type Severity } from "../../src/domain/incidents";
 import {
   crisisAlertNotice,
   inboxRecordKey,
   inboxTarget,
+  timesheetRequestOf,
   type InboxNotificationRow,
 } from "../../src/domain/notifications";
+import { formatCalendarRange } from "../../src/domain/dates";
 import { useCompass, useRows } from "../../src/runtime/CompassProvider";
 import { useInboxNotifications, useNotificationPermission } from "../../src/runtime/notifications";
 import {
@@ -31,11 +34,13 @@ import { Button, Card, EmptyState, ListRow, Screen, Text } from "../../src/ui";
  * role lens (A128) a member sees what is addressed to them and what the lens role's capabilities brought them.
  */
 export default function InboxScreen(): ReactElement {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const roleTitle = useRoleTitle();
   const router = useRouter();
   const { config, resolved, projectId, status, lens } = useCompass();
   const canDispatch = useAllowed("incidents.dispatch");
+  // Approving from the alert is for timesheet approvers; everyone else is told what notifications bring them (C-17).
+  const promptKeys = notificationPromptKeys(useAllowed("timesheets.approve"));
   const identity = resolved?.identity;
   const permission = useNotificationPermission();
   const notifications = useInboxNotifications();
@@ -96,7 +101,23 @@ export default function InboxScreen(): ReactElement {
   ];
   const notificationRow = (n: InboxNotificationRow): ReactElement => {
     const target = inboxTarget(n);
-    const title = typeof n.args["title"] === "string" ? n.args["title"].trim() : "";
+    // A timesheet request is written here, in the person's language and with their dates (C-24).
+    const sheet = timesheetRequestOf(n);
+    const period = sheet
+      ? formatCalendarRange(
+          sheet.periodStart,
+          sheet.periodEnd,
+          (from, to) => t("compassExternal.between", { from, to }),
+          i18n.language,
+        )
+      : "";
+    const title = sheet
+      ? sheet.worker === ""
+        ? t("compass.inbox.timesheetRequestUnnamed", { period })
+        : t("compass.inbox.timesheetRequest", { worker: sheet.worker, period })
+      : typeof n.args["title"] === "string"
+        ? n.args["title"].trim()
+        : "";
     const org = typeof n.args["orgName"] === "string" ? n.args["orgName"].trim() : "";
     const crisis = crisisAlertNotice(n);
     const subtitle = [
@@ -153,13 +174,9 @@ export default function InboxScreen(): ReactElement {
       <ProjectPicker />
       <SyncBanner />
       {permission.state === "ask" || permission.state === "denied" ? (
-        <Card testID="inbox-notifications" title={t("compass.notifications.promptTitle")}>
+        <Card testID="inbox-notifications" title={t(promptKeys.title)}>
           <Text tone="secondary">
-            {t(
-              permission.state === "ask"
-                ? "compass.notifications.prompt"
-                : "compass.notifications.denied",
-            )}
+            {t(permission.state === "ask" ? promptKeys.prompt : promptKeys.denied)}
           </Text>
           {permission.state === "ask" ? (
             <Button

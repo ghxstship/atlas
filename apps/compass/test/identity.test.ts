@@ -2,14 +2,18 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { describe, expect, it } from "vitest";
 import {
   audienceForRoleType,
+  engagementAudience,
   engagementSummaries,
   externalAudience,
   IdentityError,
+  identityOutcome,
   internalAudience,
+  NoAccessYet,
+  representedArtists,
   resolveIdentity,
   scopeFor,
 } from "../src/data/identity";
-import type { EngagementSummary } from "../src/domain/access";
+import { moreMenu, type EngagementSummary } from "../src/domain/access";
 
 const eng = (over: Partial<EngagementSummary>): EngagementSummary => ({
   id: "e1",
@@ -207,6 +211,126 @@ describe("resolveIdentity", () => {
     expect(r.scope.engagementIds).toEqual(["e1"]);
   });
 
+  it("resolves an artist's agent as the Artist Representative, never the Artist (C-10)", async () => {
+    const artistEngagement = {
+      org_id: "o1",
+      org_name: "Demo Northwind",
+      project_id: "p1",
+      project_name: "Summer Series",
+      role_type: "Artist",
+      // The artist holds the engagement; the agent reaches it through app.representations.
+      person_id: "person-artist",
+      engagement_state: "Active",
+    };
+    const r = await resolveIdentity(
+      fake({
+        "app.people": { data: { id: "person-agent", full_name: "Demo Artist Agent" }, error: null },
+        "app.memberships": { data: [], error: null },
+        "api_external.engagements": {
+          data: [
+            { ...artistEngagement, id: "e-a1" },
+            { ...artistEngagement, id: "e-a2", project_id: "p2", project_name: "Winter Series" },
+          ],
+          error: null,
+        },
+        "api_external.representations": {
+          data: [
+            {
+              artist_person_id: "person-artist",
+              expires_on: "2999-12-31",
+              accepted_at: "2026-01-02T00:00:00Z",
+              revoked_at: null,
+            },
+          ],
+          error: null,
+        },
+      }),
+      "user-agent",
+    );
+    expect(r.identity.audience).toBe("artist-representative");
+    expect(r.identity.engagements.map((e) => e.roleType)).toEqual([
+      "artist-representative",
+      "artist-representative",
+    ]);
+    expect(r.scope.audience).toBe("artist-representative");
+    expect(r.scope.engagementIds).toEqual(["e-a1", "e-a2"]);
+    // The representative's More menu, which the sitemap gives no Project Details.
+    expect(moreMenu(r.identity.audience).map((m) => m.id)).not.toContain("project-details");
+    expect(moreMenu("artist").map((m) => m.id)).toContain("project-details");
+  });
+
+  it("keeps the artist's own engagement, and one no person holds, as the Artist", () => {
+    const row = {
+      id: "e1",
+      org_id: "o1",
+      org_name: "Demo Org",
+      project_id: "p1",
+      project_name: "Fest",
+      role_type: "Artist",
+      engagement_state: "Active",
+    };
+    expect(
+      engagementSummaries([{ ...row, person_id: "me" }], [], "me").map((e) => e.roleType),
+    ).toEqual(["artist"]);
+    expect(
+      engagementSummaries([{ ...row, person_id: null }], [], "me").map((e) => e.roleType),
+    ).toEqual(["artist"]);
+    expect(engagementAudience("Artist", "someone", "me", new Set(["someone"]))).toBe(
+      "artist-representative",
+    );
+    // Only an artist's engagement has a representative: a crew engagement of the person's company stays crew.
+    expect(engagementAudience("Crew", "someone", "me")).toBe("crew");
+    expect(engagementAudience("Mystery", null, "me")).toBeNull();
+  });
+
+  it("keeps an assigned member or account admin on an artist's engagement the Artist, without a representation", async () => {
+    // private.engagement_party_areas opens an Artist engagement to the account's Owner, Admin and Finance members and
+    // to the people assigned to it, such as a band member; none of them represents the artist.
+    const r = await resolveIdentity(
+      fake({
+        "app.people": { data: { id: "person-band", full_name: "Demo Band Member" }, error: null },
+        "app.memberships": { data: [], error: null },
+        "api_external.engagements": {
+          data: [
+            {
+              id: "e-a1",
+              org_id: "o1",
+              org_name: "Demo Northwind",
+              project_id: "p1",
+              project_name: "Summer Series",
+              role_type: "Artist",
+              person_id: "person-artist",
+              engagement_state: "Active",
+            },
+          ],
+          error: null,
+        },
+        "api_external.representations": { data: [], error: null },
+      }),
+      "user-band",
+    );
+    expect(r.identity.audience).toBe("artist");
+    expect(moreMenu(r.identity.audience).map((m) => m.id)).toContain("project-details");
+    expect(engagementAudience("Artist", "someone", "me")).toBe("artist");
+    expect(engagementAudience("Artist", "someone", "me", new Set(["another"]))).toBe("artist");
+  });
+
+  it("reads only an accepted, unrevoked and unexpired representation as live", () => {
+    const row = {
+      artist_person_id: "a1",
+      expires_on: "2026-11-10",
+      accepted_at: "2026-01-01T00:00:00Z",
+      revoked_at: null,
+    };
+    const live = (over: Record<string, unknown>) => [
+      ...representedArtists([{ ...row, ...over }], "2026-11-10"),
+    ];
+    expect(live({})).toEqual(["a1"]);
+    expect(live({ accepted_at: null })).toEqual([]);
+    expect(live({ revoked_at: "2026-02-01T00:00:00Z" })).toEqual([]);
+    expect(live({ expires_on: "2026-11-09" })).toEqual([]);
+  });
+
   it("resolves a person who works only on a party's roster as crew, with their entry in scope (R8)", async () => {
     const r = await resolveIdentity(
       fake({
@@ -281,10 +405,65 @@ describe("resolveIdentity", () => {
         fake({
           "app.people": { data: { id: "p", full_name: null }, error: null },
           "app.memberships": { data: [], error: null },
-          "api_external.engagements": { data: [], error: null },
+          "api_external.engagements": { data: null, error: { message: "permission denied" } },
         }),
         "u",
       ),
     ).rejects.toMatchObject({ step: "engagements" });
+  });
+
+  it("reads a sign-in with no membership and no engagement as nothing open yet, not a failure (C-12)", async () => {
+    const empty = resolveIdentity(
+      fake({
+        "app.people": { data: { id: "p", full_name: null }, error: null },
+        "app.memberships": { data: [], error: null },
+        "api_external.engagements": { data: [], error: null },
+        "api_external.my_roster_engagements": { data: [], error: null },
+      }),
+      "u",
+    );
+    await expect(empty).rejects.toBeInstanceOf(NoAccessYet);
+    const error = await empty.catch((e: unknown) => e);
+    expect(identityOutcome(error)).toEqual({ kind: "no-access" });
+  });
+
+  it("reads a failed roster read as a failure naming its step, never as nothing open yet", async () => {
+    const failed = resolveIdentity(
+      fake({
+        "app.people": { data: { id: "p", full_name: null }, error: null },
+        "app.memberships": { data: [], error: null },
+        "api_external.engagements": { data: [], error: null },
+        "api_external.my_roster_engagements": {
+          data: null,
+          error: { message: "permission denied for view my_roster_engagements" },
+        },
+      }),
+      "u",
+    );
+    const error = await failed.catch((e: unknown) => e);
+    expect(error).not.toBeInstanceOf(NoAccessYet);
+    expect(identityOutcome(error)).toEqual({
+      kind: "identity-failed",
+      step: "engagements",
+      message: "permission denied for view my_roster_engagements",
+    });
+  });
+
+  it("keeps every other identity error a failure that names its step", () => {
+    expect(identityOutcome(new IdentityError("roles", "permission denied"))).toEqual({
+      kind: "identity-failed",
+      step: "roles",
+      message: "permission denied",
+    });
+    expect(identityOutcome(new Error("boom"))).toEqual({
+      kind: "identity-failed",
+      step: "access",
+      message: "boom",
+    });
+    expect(identityOutcome("odd")).toEqual({
+      kind: "identity-failed",
+      step: "access",
+      message: "odd",
+    });
   });
 });

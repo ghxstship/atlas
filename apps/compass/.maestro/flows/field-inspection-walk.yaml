@@ -30,6 +30,9 @@ name: field-inspection-walk
     id: "fail-note"
 - inputText: "Exit 3 blocked by road cases"
 - hideKeyboard
+# Each error clears as soon as it is fixed, before Save Fail is pressed again (C-14).
+- assertNotVisible: "Say what failed so someone can fix it."
+- assertVisible: "Add a photo of the failure."
 # The simulator has no camera; the iOS simulator's capture still returns an image, which is enough to
 # exercise compression, upload to field-media and the RPC.
 - tapOn:
@@ -40,6 +43,7 @@ name: field-inspection-walk
     visible:
       id: "fail-photo-added"
     timeout: 10000
+- assertNotVisible: "Add a photo of the failure."
 - tapOn:
     id: "fail-save"
 - assertVisible: "Cable runs taped or ramped"

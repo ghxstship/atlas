@@ -41,7 +41,7 @@ import { secondFactorGate, type ChallengeFactor, type SecondFactorGate } from ".
 import {
   activateOrg,
   cachedContexts,
-  IdentityError,
+  identityOutcome,
   internalAudience,
   isServerUnreachable,
   projectOrgs,
@@ -69,6 +69,7 @@ import {
   type LensOption,
 } from "../domain/roleLens";
 import { storedDepartment } from "../domain/show";
+import { signOutThisDevice } from "./signOut";
 import { readDefaultOrg } from "../settings/organizations";
 import { compassUserAgent } from "../settings/security";
 import {
@@ -160,6 +161,8 @@ export type Phase =
   /** Those questions need the server, and nothing shows this person has ever answered them. */
   | { readonly kind: "legal-connection" }
   | { readonly kind: "identity-failed"; readonly step: string; readonly message: string }
+  /** The sign-in works, but no org has made the person a member and no engagement is open to them yet. */
+  | { readonly kind: "no-access" }
   | { readonly kind: "ready" };
 
 export interface CompassContextValue {
@@ -333,6 +336,8 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
   const orgRef = useRef<string | null>(null);
   const storeRef = useRef<LocalStore | null>(null);
   const userRef = useRef<string | null>(null);
+  /** True once this launch has seen no session: the storage notice then belongs to no one here (C-22). */
+  const signedOutRef = useRef(false);
   const orgProjectsRef = useRef<Record<string, string>>({});
   /** Whether the person chose an org on this device; a branded build opens on its own org until they do. */
   const chosenOrgRef = useRef(false);
@@ -468,7 +473,9 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
           `[compass] offline storage replaced: ${recovery.reason}; ${String(recovery.recovered)} unsent writes carried over${recovery.unreadable ? ", old file unreadable" : ""}`,
         );
       }
-      setStorageNotice(await storageNoticePending());
+      // Only the person signed in when the store was replaced is told; with no one signed in the saved flag is
+      // deleted here, because the sign-out that may have run first found nothing to delete (C-22).
+      setStorageNotice(await storageNoticePending(() => signedOutRef.current));
       const uploader = new SupabaseUploader({
         client,
         functionsUrl: config.supabaseUrl,
@@ -527,7 +534,12 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
     const { data } = client.auth.onAuthStateChange((_event, next) => {
       setSession(next);
       if (next) userRef.current = next.user.id;
+      signedOutRef.current = !next;
       if (!next) {
+        // The storage reset notice is about the unsent work of the person who just left: the next person to sign
+        // in on a shared device never sees it (C-22).
+        setStorageNotice(false);
+        void forgetStorageNotice();
         // What this device remembers about the person's legal step goes with their data.
         if (userRef.current) void forgetGate(userRef.current);
         userRef.current = null;
@@ -627,8 +639,8 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
           await open(activateOrg(cached, storedOrg), false);
           return;
         }
-        const step = error instanceof IdentityError ? error.step : "access";
-        setPhase({ kind: "identity-failed", step, message });
+        // A sign-in that nothing has opened yet is no failure: it shows who can open access (C-12).
+        setPhase(identityOutcome(error));
       });
     return () => {
       live = false;
@@ -839,10 +851,9 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
     [engine],
   );
 
+  // Sign Out ends this device's session only; the person's other devices and browsers stay signed in.
   const signOut = useCallback(async () => {
-    if (syncSession) await syncSession.remoteSignOut();
-    else if (store) await store.wipe();
-    await client.auth.signOut();
+    await signOutThisDevice({ auth: client.auth, syncSession, store });
     setContexts(null);
     setLenses({});
     setBrands(new Map());

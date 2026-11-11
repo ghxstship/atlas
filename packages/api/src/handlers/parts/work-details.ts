@@ -5,8 +5,11 @@
  * checks of app.shared_work_details decide. The Restricted passport number is written through its
  * encrypting RPC, always read masked, and shown only by the logged reveal actions. Allergies are
  * Restricted too (R6a, 4663): the column is not selectable, so the owner's come from
- * app.my_allergies. The retired uniform size and travel preference fields (4664) still pass through,
- * so the database refuses a value with 422 work_detail_field_moved. v1's category enum is frozen, so
+ * app.my_allergies. The retired uniform size and travel preference fields (R6a, 4664) are R6b's API
+ * half (4.10): v1 keeps them, always null, never reads or writes their columns, refuses a value with
+ * 422 work_detail_field_moved as the database does, accepts and ignores a null, and treats a sort or
+ * filter on them as a no-op. The columns stay through 4.10 so the release before keeps working; R6b's
+ * drop (4.11) removes them once no deployed API selects them. v1's category enum is frozen, so
  * R6a's Contact category leaves the category lists and travels as share_contact, contact_shared and
  * includes_contact.
  */
@@ -30,8 +33,34 @@ const ownRow = (_body: Row, context: RequestContext): Row => ({
 
 // Work details ----------------------------------------------------------------------------------------
 
+/** v1's uniform size and travel preference fields, retired by R6a (4664): always null, their columns never read. */
+const RETIRED_FIELDS = [
+  "shirt_size",
+  "jacket_size",
+  "pants_size",
+  "shoe_size",
+  "glove_size",
+  "hat_size",
+  "uniform_notes",
+  "seat_preference",
+  "meal_preference",
+  "home_airport",
+] as const;
+
+/** Refuses a retired field with a value, as the database's guard does (4664) and still will once R6b drops the columns; a null is ignored. */
+function refuseRetired(body: Row): void {
+  if (RETIRED_FIELDS.some((field) => body[field] !== undefined && body[field] !== null)) {
+    throw refused(
+      "REFUSE",
+      "Uniform sizes and travel preferences are no longer kept on your profile; enter them on each project you are rostered on.",
+      "work_detail_field_moved",
+    );
+  }
+}
+
 const workDetails = tableResource("workDetails", {
   verbs: ["list", "get", "delete"],
+  retired: RETIRED_FIELDS,
   derived: [
     "passport_number",
     "allergies",
@@ -61,21 +90,11 @@ const workDetails = tableResource("workDetails", {
 });
 
 const DETAIL_FIELDS = [
-  "shirt_size",
-  "jacket_size",
-  "pants_size",
-  "shoe_size",
-  "glove_size",
-  "hat_size",
-  "uniform_notes",
   "dietary_needs",
   "allergies",
   "dietary_notes",
   "accessibility_needs",
   "accessibility_notes",
-  "seat_preference",
-  "meal_preference",
-  "home_airport",
   "passport_issuing_country",
   "passport_expires_on",
   "passport_name",
@@ -166,6 +185,7 @@ export const workDetailHandlers = {
   ...handlersFor("Identity", workDetails),
   "workDetails.create": async ({ body }, context) => {
     requirePerson(context);
+    refuseRetired(body as Row);
     const id = await run<string>(rpc(context.db, "ensure_my_work_details"));
     const patch = detailColumns(body as Row);
     if (Object.keys(patch).length > 0) {
@@ -179,6 +199,7 @@ export const workDetailHandlers = {
   "workDetails.update": async ({ params, body, ifMatch }, context) => {
     const current = await workDetails.read(context, params.id);
     assertIfMatch(ifMatch ?? "*", current);
+    refuseRetired(body as Row);
     const patch = detailColumns(body as Row);
     if (Object.keys(patch).length > 0) {
       const rows = await run<Row[]>(

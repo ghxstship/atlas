@@ -198,9 +198,16 @@ export function RadioChannelTable({
   );
 }
 
-function clock(seconds: number): string {
+/**
+ * The countdown as it reads at arm's length: M:SS under an hour, H:MM:SS above. Minutes alone read a cue months away as
+ * "178665:45" (C-09); past a horizon a screen passes `countdownText` naming the cue's day and time instead.
+ */
+export function countdownClock(seconds: number): string {
   const s = Math.max(0, Math.round(seconds));
-  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const ss = String(s % 60).padStart(2, "0");
+  return h > 0 ? `${h}:${String(m).padStart(2, "0")}:${ss}` : `${m}:${ss}`;
 }
 
 /** The live cue list with the countdown to the next cue; show mode is large type for arm's length. */
@@ -218,7 +225,7 @@ export function RunOfShowLive({
   const theme = useTheme();
   const live = cues[current];
   const next = cues[nextIndex ?? current + 1];
-  const shown = countdownText ?? clock(nextInSeconds);
+  const shown = countdownText ?? countdownClock(nextInSeconds);
   return (
     <View {...(testID === undefined ? {} : { testID })} style={{ gap: theme.space["12"] }}>
       {live ? (

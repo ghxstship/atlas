@@ -1,6 +1,6 @@
 import * as Linking from "expo-linking";
 import { hapticsOn, themeOptionsOf } from "../src/domain/settings";
-import { Stack } from "expo-router";
+import { Slot, Stack, usePathname } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useMemo, useState, type ReactElement } from "react";
 import { activeBrand, brandColors } from "../src/domain/brand";
@@ -23,6 +23,7 @@ import { SecondFactor, SecondFactorRequired } from "../src/screens/SecondFactor"
 import { SignIn } from "../src/screens/SignIn";
 import {
   Button,
+  EmptyState,
   ErrorState,
   ForceUpdateScreen,
   Screen,
@@ -30,7 +31,7 @@ import {
   ThemeProvider,
   useTheme,
 } from "../src/ui";
-import { NativeHeaderContext } from "../src/ui/layout";
+import { NativeHeaderProvider } from "../src/ui/layout";
 
 initI18n();
 
@@ -67,7 +68,7 @@ function Gatekeeper(): ReactElement {
   const [legalPromptHidden, setLegalPromptHidden] = useState(false);
   // The delete screen belongs to this failed sign-in only; the next sign-in starts from the error screen.
   useEffect(() => {
-    if (phase.kind !== "identity-failed") setDeleting(false);
+    if (phase.kind !== "identity-failed" && phase.kind !== "no-access") setDeleting(false);
   }, [phase.kind]);
   const theme = useTheme();
   const update = useUpdateGate(client);
@@ -140,6 +141,38 @@ function Gatekeeper(): ReactElement {
     // Asked again after each answer; what the server still wants starts the steps afresh.
     return <LegalGate key={JSON.stringify(phase.needs)} needs={phase.needs} />;
   }
+  if (phase.kind === "no-access") {
+    // A sign-in that works but has nothing open yet (C-12): no error and no reason line, just who can open it. Check
+    // Again reads the person's access afresh, for the moment the org adds them.
+    if (deleting) return <DeleteAccount onBack={() => setDeleting(false)} />;
+    return (
+      <Screen testID="no-access" title={t("compass.signIn.noAccessTitle")}>
+        <EmptyState
+          testID="no-access-empty"
+          icon="hourglass"
+          sentence={t("compass.signIn.noAccess")}
+          actionLabel={t("compass.signIn.checkAgain")}
+          onAction={retryIdentity}
+        />
+        <Button
+          testID="no-access-sign-out"
+          variant="secondary"
+          icon="log-out"
+          block
+          label={t("compass.settings.signOut")}
+          onPress={() => void signOut()}
+        />
+        <Button
+          testID="no-access-delete-account"
+          variant="secondary"
+          icon="ban"
+          block
+          label={t("compass.settings.deleteAccount")}
+          onPress={() => setDeleting(true)}
+        />
+      </Screen>
+    );
+  }
   if (phase.kind === "identity-failed") {
     // A sign-in with no membership or engagement can still sign out or delete itself (SIM-004).
     if (deleting) return <DeleteAccount onBack={() => setDeleting(false)} />;
@@ -207,7 +240,7 @@ function Gatekeeper(): ReactElement {
           : {})}
       />
       <BiometricLock enabled={settings.biometric}>
-        <NativeHeaderContext.Provider value={true}>
+        <NativeHeaderProvider value={true}>
           <Stack
             screenOptions={{
               // Pushed screens use the native large-title header: the back button, so they can be left by
@@ -234,7 +267,7 @@ function Gatekeeper(): ReactElement {
               options={{ headerShown: false, gestureEnabled: settings.kioskDeviceKey === null }}
             />
           </Stack>
-        </NativeHeaderContext.Provider>
+        </NativeHeaderProvider>
       </BiometricLock>
     </View>
   );
@@ -265,6 +298,17 @@ function Themed(): ReactElement {
 }
 
 export default function RootLayout(): ReactElement {
+  const pathname = usePathname();
+  // Gallery builds only (EXPO_PUBLIC_XOS_GALLERY=1, A141): the component gallery under app/dev opens without
+  // sign-in, sync or the server, so its snapshots never depend on them. Every other build has no app/dev
+  // (metro.config.js) and never takes this branch.
+  if (process.env["EXPO_PUBLIC_XOS_GALLERY"] === "1" && pathname.startsWith("/dev/")) {
+    return (
+      <SafeAreaProvider>
+        <Slot />
+      </SafeAreaProvider>
+    );
+  }
   return (
     <SafeAreaProvider>
       <CompassProvider>

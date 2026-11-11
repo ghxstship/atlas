@@ -268,4 +268,16 @@ describe("searchDocs", () => {
     expect(ids(actions)).toContain("reportIncident");
     expect(ids(searchDocs(input(field, { allowed: () => false })))).not.toContain("reportIncident");
   });
+
+  it("opens Run of Show live for an internal stage manager and read-only for the Client", () => {
+    const runOfShow = (identity: CompassIdentity) =>
+      searchDocs(input(identity)).find((d) => d.id === "runOfShow")?.href;
+    const stageManager: CompassIdentity = {
+      ...field,
+      capabilities: ["show.run_of_show.read", "show.cue.call"],
+    };
+    expect(runOfShow(stageManager)).toBe("/show");
+    expect(runOfShow(external("client"))).toBe("/run-of-show");
+    expect(runOfShow(external("crew"))).toBeUndefined();
+  });
 });

@@ -5,7 +5,8 @@ import { useTranslation } from "react-i18next";
 import { isInternal } from "@xos/sync";
 import { View } from "react-native";
 import { access, operationalEngagements, rosterOnly, todayBlocks } from "../../src/domain/access";
-import { currentShift, isMine } from "../../src/domain/shifts";
+import { noShiftsKey } from "../../src/domain/audienceCopy";
+import { currentShift, isMine, todayShiftList } from "../../src/domain/shifts";
 import {
   breakChoice,
   formatElapsed,
@@ -18,7 +19,14 @@ import {
   type PunchKind,
   type PunchRefusal,
 } from "../../src/domain/clock";
-import { formatCountdown, showState, showsCountdown, type Cue } from "../../src/domain/show";
+import {
+  formatCountdown,
+  liveRunningOrder,
+  runningOrders,
+  showState,
+  showsCountdown,
+  type Cue,
+} from "../../src/domain/show";
 import { todayIn } from "@xos/data/calendar";
 import { punchAnnouncementKey } from "../../src/domain/announce";
 import { ongoingContent, type Translate } from "../../src/domain/glance";
@@ -73,11 +81,13 @@ const REFUSAL_KEY: Readonly<Record<PunchRefusal, string>> = {
   "not-rostered": "compass.clock.refusal.notRostered",
 };
 
-/** The shift being worked as the On Shift card names it: role, times and place. */
+/**
+ * The shift named on the live clock card. It has no place line: the card's place is where the geofence puts the
+ * person ("You're at Pier Site"), which a "Venue to be confirmed" under it contradicted (C-20).
+ */
 interface WorkingShift {
   readonly title: string;
   readonly time: string;
-  readonly place: string;
 }
 
 function ClockCard({
@@ -242,7 +252,6 @@ function ClockCard({
           place={geofenceText}
           nextShift={current?.title ?? ""}
           nextTime={current?.time ?? ""}
-          {...(current ? { nextPlace: current.place } : {})}
           onBreak={clock.snapshot.state === "break"}
           labels={{
             break: t("compass.clock.startBreak"),
@@ -321,7 +330,10 @@ function NextCue({ projectId }: { readonly projectId: string }): ReactElement | 
     (c) => c.project_id === projectId,
   );
   if (cues.length === 0) return null;
-  const s = showState(cues, Date.now());
+  // The project's running orders read on their own: the next cue is the live running order's (C-08).
+  const now = Date.now();
+  const order = liveRunningOrder(runningOrders(cues), now);
+  const s = showState(order?.cues ?? [], now);
   if (!s.next) return null;
   return (
     <Card title={t("compass.today.nextCue")}>
@@ -463,7 +475,6 @@ export default function TodayScreen(): ReactElement {
           start: formatTime(working.starts_at, scheduleZone(working.time_zone, orgSettings)),
           end: formatTime(working.ends_at, scheduleZone(working.time_zone, orgSettings)),
         }),
-        place: t("compass.schedule.noPlace"),
       }
     : null;
   const onShiftNow = clockState !== "out";
@@ -472,6 +483,8 @@ export default function TodayScreen(): ReactElement {
     <Screen
       testID="today"
       title={t("compass.today.title")}
+      // A search result opens on the first tap, the keyboard still up; it only closed the keyboard before (C-15).
+      keyboardShouldPersistTaps="handled"
       refreshing={refreshing}
       onRefresh={() => {
         setRefreshing(true);
@@ -501,23 +514,16 @@ export default function TodayScreen(): ReactElement {
       {!combined &&
       blocks.some((b) => ["shifts", "engaged-shifts-and-positions", "call-times"].includes(b)) ? (
         upcoming.length > 0 ? (
-          upcoming.slice(0, 3).map((s) => (
+          // While on shift the clock card names the shift being worked; the list leaves it out (C-20).
+          todayShiftList(upcoming, working, onShiftNow).map((s) => (
             <ShiftCard
               key={s.id}
               testID={`shift-${s.id}`}
-              state={
-                s.shift_state === "Accepted" || (onShiftNow && s.id === working?.id)
-                  ? "active"
-                  : "scheduled"
-              }
+              state={s.shift_state === "Accepted" ? "active" : "scheduled"}
               stateLabel={t(
-                onShiftNow && s.id === working?.id
-                  ? clockState === "break"
-                    ? "compass.clock.onBreak"
-                    : "compass.clock.onShift"
-                  : s.shift_state === "Accepted"
-                    ? "compass.schedule.accepted"
-                    : "compass.schedule.published",
+                s.shift_state === "Accepted"
+                  ? "compass.schedule.accepted"
+                  : "compass.schedule.published",
               )}
               role={roleTitle(s)}
               date={formatDay(s.starts_at, scheduleZone(s.time_zone, orgSettings))}
@@ -533,7 +539,7 @@ export default function TodayScreen(): ReactElement {
           <EmptyState
             testID="today-no-shifts"
             icon="calendar"
-            sentence={t("compass.today.noShifts")}
+            sentence={t(noShiftsKey(identity.audience))}
             actionLabel={t("compass.today.openSchedule")}
             onAction={() => router.push("/schedule")}
           />

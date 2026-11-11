@@ -1,6 +1,7 @@
 -- pgTAP: migration 1612, finding A65-027 (Section 7.2). A new org receives an editable copy of the XOS Standard
--- Library, each row naming its standard source; an existing org adopts it with the "Adopt Standard Library" action;
--- adopting again changes nothing and never overwrites an org's edits. Emergency codes are org data in numeric order.
+-- Library, each row naming its standard source, whether its Owner creates it, a partner does or an external account
+-- subscribes; an existing org adopts it with the "Adopt Standard Library" action; adopting again changes nothing and
+-- never overwrites an org's edits. Emergency codes are org data in numeric order.
 -- The SOPs and documents written from the real CSMIA26 activation were generalized and released (RRR-67, migrations 2001
 -- and 2002): every org receives all 34 of each, and no canon row or copy names the activation. Standard labor rates go
 -- only on a current card.
@@ -9,7 +10,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0200_identity_world.psql
 
-select plan(46);
+select plan(50);
 
 create function pg_temp.status(p_org uuid) returns table (library text, standard_count integer, adopted_count integer)
 language sql as $$ select * from app.standard_library_status(p_org) $$;
@@ -55,6 +56,22 @@ select is((select count(distinct rate_card_id)::int from app.rate_card_lines whe
 select is((select count(*)::int from app.radio_channel_plan where org_id = pg_temp.id('new_org')), 32, 'the 32 radio channels form the org''s radio plan');
 select is((select count(*)::int from app.enumerations where org_id = pg_temp.id('new_org')), 91, 'the 91 enumeration values are copied');
 select is((select count(*)::int from app.role_library where org_id = pg_temp.id('new_org')), 35, 'the 35 Roles Library roles are copied');
+
+-- A partner's client org and a subscribed external account receive theirs too ------------------------------------
+select pg_temp.as_user('cora');
+select is(
+  (select string_agg(library, ', ' order by library) from pg_temp.status(pg_temp.id('org_c')) where adopted_count <> standard_count),
+  null, 'a client org its partner creates holds a copy of every Standard Library row');
+select pg_temp.as_user('nina');
+insert into world values ('acct', app.create_external_account('Nina Lighting Rentals', 'nina-lighting', 'For-Profit'));
+select pg_temp.as_platform();
+select is((select count(*)::int from app.emergency_codes where org_id = pg_temp.id('acct')), 0,
+  'an external account holds no copy before it subscribes');
+select pg_temp.as_user('nina');
+select is(app.subscribe_external_account(pg_temp.id('acct')), pg_temp.id('acct'), 'its Account Owner subscribes it');
+select is(
+  (select string_agg(library, ', ' order by library) from pg_temp.status(pg_temp.id('acct')) where adopted_count <> standard_count),
+  null, 'the subscribed account holds a copy of every Standard Library row');
 
 -- Nothing names the real CSMIA26 activation, and nothing is withheld (RRR-67) ------------------------------------
 select is(

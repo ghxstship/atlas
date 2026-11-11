@@ -58,7 +58,11 @@ export function View(props: AnyProps) {
 export function ScrollView(props: AnyProps) {
   return createElement(
     "div",
-    semantic(props),
+    {
+      ...semantic(props),
+      // How the scroll view insets under a native header (C-06), so a test can read it.
+      "data-content-inset": props["contentInsetAdjustmentBehavior"],
+    },
     props["refreshControl"] as ReactNode,
     props.children,
   );

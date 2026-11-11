@@ -1,5 +1,6 @@
 import { getMessages } from "@xos/i18n";
 import { describe, expect, it } from "vitest";
+import { formatCalendarRange } from "../src/domain/dates";
 import {
   actRequest,
   APPROVAL_CATEGORY,
@@ -13,6 +14,7 @@ import {
   readActionResponse,
   readActOutcome,
   tapRoute,
+  timesheetRequestOf,
   type ActionResponseLike,
   type InboxNotificationRow,
 } from "../src/domain/notifications";
@@ -244,5 +246,92 @@ describe("the in-app Inbox opens notifications the same way", () => {
       inboxTarget(row({ subjectTable: null, args: { gatewayPath: "https://x.test" } })),
     ).toBeNull();
     expect(needsRecordLookup(row({ subjectId: null }))).toBe(false);
+  });
+});
+
+describe("C-24: a timesheet request's title has the person's dates, never ISO ones", () => {
+  const request = (
+    args: Record<string, unknown>,
+    kind = "approval.requested",
+  ): InboxNotificationRow => ({
+    id: "n1",
+    kind,
+    createdAt: "2026-11-10T15:00:00Z",
+    read: false,
+    args: { title: "Timesheet Demo Staff One, 2026-11-08 to 2026-11-10", ...args },
+    subjectTable: "timesheets",
+    subjectId: "ts1",
+    orgSlug: "northwind",
+    lookedUpRecordKey: null,
+  });
+
+  it("reads the worker and the period the request carries", () => {
+    expect(
+      timesheetRequestOf(
+        request({
+          workerName: "Demo Staff One",
+          periodStart: "2026-11-08",
+          periodEnd: "2026-11-10",
+        }),
+      ),
+    ).toEqual({ worker: "Demo Staff One", periodStart: "2026-11-08", periodEnd: "2026-11-10" });
+  });
+
+  it("reads a reminder of the request the same way, so it is not left in the server's English", () => {
+    expect(
+      timesheetRequestOf(
+        request(
+          { workerName: "Demo Staff One", periodStart: "2026-11-08", periodEnd: "2026-11-10" },
+          "approval.reminder",
+        ),
+      ),
+    ).toEqual({ worker: "Demo Staff One", periodStart: "2026-11-08", periodEnd: "2026-11-10" });
+    // A reminder sent before its arguments carried the period keeps its own title.
+    expect(timesheetRequestOf(request({}, "approval.reminder"))).toBeNull();
+  });
+
+  it("leaves other notifications and requests without dates to their own title", () => {
+    expect(timesheetRequestOf(request({}))).toBeNull();
+    expect(
+      timesheetRequestOf(request({ periodStart: "soon", periodEnd: "2026-11-10" })),
+    ).toBeNull();
+    expect(
+      timesheetRequestOf(
+        request({ periodStart: "2026-11-08", periodEnd: "2026-11-10" }, "assignment.created"),
+      ),
+    ).toBeNull();
+  });
+
+  it("writes the title in each locale with its own dates", () => {
+    const words = (locale: "en-US" | "es-US") => {
+      const m = getMessages(locale) as unknown as {
+        compass: { inbox: Record<string, string> };
+        compassExternal: { between: string };
+      };
+      const period = formatCalendarRange(
+        "2026-11-08",
+        "2026-11-10",
+        (from, to) => m.compassExternal.between.replace("{from}", from).replace("{to}", to),
+        locale,
+      );
+      return String(m.compass.inbox["timesheetRequest"])
+        .replace("{worker}", "Demo Staff One")
+        .replace("{period}", period);
+    };
+    expect(words("en-US")).toBe("Timesheet Demo Staff One, Sun, Nov 8 to Tue, Nov 10");
+    expect(words("es-US")).toMatch(
+      /^Hoja de horas de Demo Staff One, dom, 8 de nov.* a mar, 10 de nov/,
+    );
+    for (const locale of ["en-US", "es-US"] as const)
+      expect(words(locale)).not.toMatch(/\d{4}-\d{2}/);
+  });
+
+  it("is what the Inbox shows for a timesheet request", async () => {
+    const { readFileSync } = await import("node:fs");
+    const inbox = readFileSync(new URL("../app/(tabs)/inbox.tsx", import.meta.url), "utf8");
+    expect(inbox).toContain("const sheet = timesheetRequestOf(n);");
+    expect(inbox).toContain(
+      't("compass.inbox.timesheetRequest", { worker: sheet.worker, period })',
+    );
   });
 });

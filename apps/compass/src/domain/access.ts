@@ -148,7 +148,9 @@ const EXTERNAL_ROLES: Readonly<Record<Feature, readonly Audience[]>> = {
   "inspections.signOff": [],
   "show.live": [],
   "show.callCue": [],
-  "show.read": ["client", "crew", "staff", "artist", "artist-representative"],
+  // The read-only running order is the Client's (Section 4.5.7, sitemap run-of-show): api_external.cues gives crew and
+  // staff no cue and an artist only their own set, which Today shows (C-11).
+  "show.read": ["client"],
   "scan.asset": ["crew", "staff"],
   "scan.receiving": ["vendor"],
   // Externals never receive against an order: the order, its lines and the receipt are internal records.
@@ -259,6 +261,25 @@ export function access(
     return deny("engagement-closed");
   }
   return deny("engagement-not-active");
+}
+
+/**
+ * Why the person may use none of a screen's features on the project, or null when one of them is allowed. A screen
+ * built from several features (Logistics, the gate view) refuses with this reason: it said "capability" for everyone,
+ * which told external people to ask a supervisor they do not have (C-16).
+ */
+export function refusalFor(
+  identity: CompassIdentity,
+  features: readonly Feature[],
+  projectId: string | null,
+): Denial | null {
+  let reason: Denial | null = null;
+  for (const feature of features) {
+    const decision = access(identity, feature, projectId);
+    if (decision.allowed) return null;
+    reason ??= decision.reason;
+  }
+  return reason ?? "role";
 }
 
 export type ScanMode = "asset" | "receiving" | "credential" | "lookup";

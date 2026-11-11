@@ -8,6 +8,7 @@ import {
   buildInspection,
   criticalFailures,
   FAIL_CODE,
+  failGaps,
   goTo,
   isComplete,
   PASS_CODE,
@@ -50,7 +51,9 @@ function WalkScreen({ templateId }: { readonly templateId: string }): ReactEleme
   const [note, setNote] = useState("");
   const [photo, setPhoto] = useState<string | null>(null);
   const [photoOpen, setPhotoOpen] = useState(false);
-  const [missing, setMissing] = useState<string[]>([]);
+  // Set by Save Fail; the errors then follow the note and photo as they change (C-14).
+  const [triedSave, setTriedSave] = useState(false);
+  const missing = triedSave ? failGaps(note, photo) : [];
   const current = useMemo(
     () =>
       walk ??
@@ -125,7 +128,7 @@ function WalkScreen({ templateId }: { readonly templateId: string }): ReactEleme
             setFailing(code);
             setNote("");
             setPhoto(null);
-            setMissing([]);
+            setTriedSave(false);
           }
         }}
         onIndexChange={(index) => setWalk(goTo(current, index))}
@@ -167,9 +170,8 @@ function WalkScreen({ templateId }: { readonly templateId: string }): ReactEleme
                 variant="danger"
                 label={t("compass.inspections.saveFail")}
                 onPress={() => {
-                  const gaps = [...(note.trim() ? [] : ["note"]), ...(photo ? [] : ["photo"])];
-                  setMissing(gaps);
-                  if (gaps.length > 0) return;
+                  setTriedSave(true);
+                  if (failGaps(note, photo).length > 0) return;
                   record(failing, fail.id, note, photo);
                   setFailing(null);
                 }}
@@ -198,8 +200,9 @@ function WalkScreen({ templateId }: { readonly templateId: string }): ReactEleme
 
 export default function InspectionWalk(): ReactElement {
   const { templateId } = useLocalSearchParams<{ templateId: string }>();
+  const { t } = useTranslation();
   return (
-    <Gate feature="inspections.perform">
+    <Gate feature="inspections.perform" title={t("compass.inspections.title")}>
       <WalkScreen templateId={templateId ?? ""} />
     </Gate>
   );

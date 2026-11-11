@@ -27,6 +27,7 @@ import {
   ProjectPicker,
   SyncBanner,
   useAllowed,
+  useRefusal,
 } from "../src/screens/common";
 import {
   Button,
@@ -35,11 +36,19 @@ import {
   InlineAlert,
   ListRow,
   Screen,
+  Skeleton,
   Tag,
   Text,
   TextField,
   useTheme,
 } from "../src/ui";
+
+const REFUSAL_FEATURES = [
+  "logistics.dock",
+  "logistics.yard",
+  "logistics.release",
+  "hospitality.fulfillment",
+] as const;
 
 interface ZoneRow extends Row {
   readonly code: string;
@@ -58,6 +67,8 @@ export default function LogisticsScreen(): ReactElement {
   const canYard = useAllowed("logistics.yard");
   const canRelease = useAllowed("logistics.release");
   const canFulfill = useAllowed("hospitality.fulfillment");
+  // External people get the role refusal, internal ones the missing capability (C-16).
+  const refusal = useRefusal(REFUSAL_FEATURES);
   const { rows: slots } = useRows<DockSlotRow & Row>("dock_slots");
   const { rows: gate } = useRows<GateQueueRow & Row>("gate_queue");
   const { rows: log } = useRows<MarshallingRow & Row>("marshalling_log");
@@ -69,10 +80,17 @@ export default function LogisticsScreen(): ReactElement {
   const [entryError, setEntryError] = useState<string | undefined>(undefined);
   const [queued, setQueued] = useState<string | null>(null);
 
-  if (!canDock && !canYard && !canRelease && !canFulfill) {
+  if (refusal === "loading") {
     return (
       <Screen testID="logistics" title={t("compass.logistics.title")}>
-        <DenialNotice reason="capability" />
+        <Skeleton lines={3} />
+      </Screen>
+    );
+  }
+  if (refusal) {
+    return (
+      <Screen testID="logistics" title={t("compass.logistics.title")}>
+        <DenialNotice reason={refusal} />
       </Screen>
     );
   }

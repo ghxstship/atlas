@@ -47,6 +47,8 @@ const DYNAMIC = [
   "schedule-shift-",
   "expense-line-",
   "expense-aurora-",
+  // The AI features disclosure's buttons, named after the testID its screen gives it (`${testID}-decline`).
+  "expense-ai-disclosure-",
   "external-",
   "settings-section-",
   "settings-privacy-section-",
@@ -71,6 +73,8 @@ const DYNAMIC = [
   "gate-check-in-",
   // A feed's source choices: one per calendar source.
   "settings-feeds-source-",
+  // A141's component gallery: a page by its number.
+  "gallery-page-",
 ];
 
 function ids(node: unknown, out: string[] = []): string[] {
@@ -89,6 +93,13 @@ const files = [
   ...readdirSync(subflowDir).map((f) => join(subflowDir, f)),
   ...readdirSync(journeyDir).map((f) => join(journeyDir, f)),
 ];
+
+function tagsOf(file: string): string[] {
+  const header = parseAllDocuments(readFileSync(join(flowDir, file), "utf8"))[0]?.toJS() as {
+    tags?: string[];
+  };
+  return header.tags ?? [];
+}
 
 describe("Maestro flows", () => {
   it.each(files)("%s parses as a Maestro flow with an app id header", (file) => {
@@ -123,14 +134,26 @@ describe("Maestro flows", () => {
     expect(header.name).toBe(file.replace(/\.yaml$/, ""));
   });
 
-  it("orders every flow in config.yaml", () => {
+  it("orders every flow of the suite in config.yaml and leaves the gallery flows out of it", () => {
     const config = parseAllDocuments(
       readFileSync(join(root, ".maestro/config.yaml"), "utf8"),
-    )[0]?.toJS() as { executionOrder: { flowsOrder: string[] } };
+    )[0]?.toJS() as { excludeTags: string[]; executionOrder: { flowsOrder: string[] } };
+    expect(config.excludeTags).toEqual(["gallery"]);
+    const suite = readdirSync(flowDir).filter((f) => !tagsOf(f).includes("gallery"));
     expect(config.executionOrder.flowsOrder.sort()).toEqual(
-      readdirSync(flowDir)
-        .map((f) => f.replace(/\.yaml$/, ""))
-        .sort(),
+      suite.map((f) => f.replace(/\.yaml$/, "")).sort(),
     );
+  });
+
+  // A141: gallery-*.yaml need a gallery build (EXPO_PUBLIC_XOS_GALLERY=1), which the suite's release build is not.
+  it("tags every gallery flow, and only those, gallery", () => {
+    for (const file of readdirSync(flowDir)) {
+      expect(tagsOf(file).includes("gallery"), file).toBe(file.startsWith("gallery-"));
+    }
+    expect(
+      readdirSync(flowDir)
+        .filter((f) => f.startsWith("gallery-"))
+        .sort(),
+    ).toEqual(["gallery-dark.yaml", "gallery-light.yaml"]);
   });
 });

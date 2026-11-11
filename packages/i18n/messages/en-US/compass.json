@@ -59,7 +59,10 @@
       "projects": "projects",
       "engagements": "engagements",
       "access": "access"
-    }
+    },
+    "noAccessTitle": "Nothing is open for you yet",
+    "noAccess": "You are signed in, but no organization has added you to its team and none of your engagements is active yet. Ask the person who invited you to check your invitation. Then tap Check Again.",
+    "checkAgain": "Check Again"
   },
   "startup": {
     "title": "Compass could not start",
@@ -319,6 +322,7 @@
     "title": "Today",
     "search": "Search Compass",
     "noShifts": "No shifts today. Open shifts appear in Schedule.",
+    "noShiftsExternal": "Nothing booked for you today. Schedule shows what you are booked for.",
     "openSchedule": "Open Schedule",
     "noTasks": "No tasks due today.",
     "noDaySheet": "No day sheet for today yet.",
@@ -616,6 +620,7 @@
     "severity": "How serious is it?",
     "location": "Location",
     "locationAuto": "Near {latitude}, {longitude} (within {accuracy})",
+    "locationSite": "{site} (near {latitude}, {longitude}, within {accuracy})",
     "locationUnknown": "Location not found. Describe where in the title.",
     "change": "Change",
     "titleLabel": "What happened",
@@ -720,7 +725,11 @@
     "callLine": "{department} · {instruction}",
     "noCall": "No {department} call",
     "noCalls": "No department calls",
-    "countdownTbc": "{cue}: time to be confirmed"
+    "countdownTbc": "{cue}: time to be confirmed",
+    "runningOrders": "Running orders",
+    "runningOrderOnScreen": "Running order: {name}",
+    "runningOrderUnnamed": "Running order",
+    "countdownPlanned": "{cue}, planned for {day} at {time}"
   },
   "kiosk": {
     "title": "Kiosk",
@@ -775,7 +784,9 @@
     "updateFrom": "Update from {org}",
     "new": "New",
     "crisisAlert": "Crisis alert at {project}: {code}",
-    "crisisAllClear": "All clear at {project}: {code}"
+    "crisisAllClear": "All clear at {project}: {code}",
+    "timesheetRequest": "Timesheet {worker}, {period}",
+    "timesheetRequestUnnamed": "Timesheet, {period}"
   },
   "more": {
     "title": "More",
@@ -844,7 +855,8 @@
     "editInAtlas": "Edit in Atlas",
     "editInGateway": "Edit in Gateway",
     "manageInAtlas": "Manage in Atlas",
-    "manageInGateway": "Manage in Gateway"
+    "manageInGateway": "Manage in Gateway",
+    "representingArtist": "Representing the artist"
   },
   "legalGate": {
     "age": {
@@ -1174,8 +1186,11 @@
     "failed": "Not done: Compass could not reach the server. Try again from the Inbox.",
     "signedOut": "Not done: sign in to Compass, then try again from the Inbox.",
     "promptTitle": "Approve from notifications",
+    "promptTitleGeneral": "Get notified",
     "prompt": "Turn on notifications to approve timesheets and other requests right from the alert.",
+    "promptGeneral": "Turn on notifications to hear about changes to your work and to answer requests right from the alert.",
     "denied": "Notifications are off for Compass. Turn them on in Settings to approve from the alert.",
+    "deniedGeneral": "Notifications are off for Compass. Turn them on in Settings to hear about changes to your work.",
     "turnOn": "Turn On Notifications"
   },
   "offerActions": {

@@ -8,7 +8,7 @@
 
 The owner was given every open decision blocking the release, each with its options and a recommendation. On 2026-10-19 the owner approved every recommendation except decision 1. For decision 1 the owner chose to promote the existing Supabase project to production.
 
-On 2026-10-23 the owner was given a second list of 42 open decisions, again each with its options and a recommendation, and approved every recommendation. They are decisions 39 to 80, in the order of that list.
+On 2026-10-23 the owner was given a second list of 42 open decisions, again each with its options and a recommendation, and approved every recommendation. They are decisions 39 to 80, in the order of that list. The list is not in the repository, so where a decision depends on more than the one-line summary of what was approved (decisions 40 and 54), it quotes the recommendation the owner approved.
 
 ## Decision
 

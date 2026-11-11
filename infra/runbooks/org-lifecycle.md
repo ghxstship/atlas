@@ -84,6 +84,9 @@ org's time zone, and its PDF and email date the deletion on that calendar.
   for that plan, monthly or yearly (ADR 0033 decision 59, migration 1640). The Owner passes step-up first. Until
   `STRIPE_SECRET_KEY` is set on the Atlas deployment, the page says billing is not open yet and the buttons answer
   the same.
+- Back from a Checkout that carried the trial over, the page says the card is saved and nothing is charged until the
+  trial ends. An org Checkout always refuses (a client org its partner bills, a sandbox, an org read-only for deletion
+  or cancellation) sees why instead of the buttons (migration 904100201).
 
 ## Deletion and certificates
 

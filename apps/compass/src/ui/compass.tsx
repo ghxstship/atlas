@@ -18,6 +18,7 @@ import qrcode from "qrcode-generator";
 import { useMemo, type ReactElement } from "react";
 import { Pressable, Text as NativeText, View } from "react-native";
 import Svg, { Path, Rect } from "react-native-svg";
+import { formatCountdown } from "../domain/show";
 import { Card, ProgressBar, Tag } from "./layout";
 import { Button, Icon, SegmentedControl, Text, tid, typography } from "./primitives";
 
@@ -412,11 +413,9 @@ export function RunOfShowLive({
   const next = cues[after];
   const now = cues[current];
   const big = showMode ? "heading32" : "heading24";
-  const minutes = Math.floor(Math.abs(nextInSeconds) / 60);
-  const seconds = Math.abs(nextInSeconds) % 60;
-  const countdown =
-    countdownText ??
-    `${nextInSeconds < 0 ? "+" : ""}${minutes}:${seconds.toString().padStart(2, "0")}`;
+  // M:SS under an hour, H:MM:SS above (formatCountdown); past the horizon the screen passes the cue's day and time
+  // as countdownText, so a cue months away never reads "178665:45" (C-09).
+  const countdown = countdownText ?? formatCountdown(nextInSeconds * 1000);
   return (
     <View testID={testID} style={{ gap: theme.space["16"] }}>
       {now ? (

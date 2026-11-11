@@ -190,3 +190,19 @@ export function currentShift<T extends ShiftRow>(shifts: readonly T[], nowMs: nu
       .sort((a, b) => Date.parse(a.starts_at) - Date.parse(b.starts_at))[0] ?? null
   );
 }
+
+/**
+ * The shifts Today lists under the clock, soonest first and at most `limit`. While the person is on shift the clock
+ * card already names the shift being worked, so the list leaves it out: it showed the same shift twice, once in the
+ * card and again marked On Shift (C-20).
+ */
+export function todayShiftList<T extends ShiftRow>(
+  upcoming: readonly T[],
+  working: T | null,
+  onShift: boolean,
+  limit = 3,
+): T[] {
+  return upcoming
+    .filter((s) => !(onShift && working !== null && s.id === working.id))
+    .slice(0, limit);
+}

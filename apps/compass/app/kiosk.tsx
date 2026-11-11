@@ -31,7 +31,7 @@ import { countKey } from "../src/runtime/i18n";
 import { deviceClock } from "../src/runtime/platform";
 
 import { Gate, useAllowed } from "../src/screens/common";
-import { NativeHeaderContext } from "../src/ui/layout";
+import { NativeHeaderProvider } from "../src/ui/layout";
 import {
   Button,
   Card,
@@ -507,11 +507,12 @@ function Kiosk(): ReactElement {
 
 /** The kiosk hides the stack header, so its screens draw their own title (finding A59-031). */
 export default function KioskScreen(): ReactElement {
+  const { t } = useTranslation();
   return (
-    <NativeHeaderContext.Provider value={false}>
-      <Gate feature="kiosk.operate">
+    <NativeHeaderProvider value={false}>
+      <Gate feature="kiosk.operate" title={t("compass.kiosk.title")}>
         <Kiosk />
       </Gate>
-    </NativeHeaderContext.Provider>
+    </NativeHeaderProvider>
   );
 }

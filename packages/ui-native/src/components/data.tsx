@@ -160,6 +160,7 @@ export function ListRow({
   icon,
   trailing,
   onPress,
+  selected,
   swipeStart,
   swipeEnd,
   testID,
@@ -268,7 +269,9 @@ export function ListRow({
       >
         {onPress ? (
           <Pressable
-            role="button"
+            {...(selected === undefined
+              ? { role: "button" as const }
+              : { role: "radio" as const, "aria-checked": selected })}
             onPress={onPress}
             style={({ pressed }) => ({
               ...rowStyle,
