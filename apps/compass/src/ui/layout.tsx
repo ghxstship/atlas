@@ -184,6 +184,7 @@ export function ListRow({
   icon,
   trailing,
   onPress,
+  selected,
   swipeStart,
   swipeEnd,
   testID,
@@ -208,7 +209,10 @@ export function ListRow({
       }
     >
       <Pressable
-        accessibilityRole={onPress ? "button" : undefined}
+        // A row that picks one of several reads as a radio, so VoiceOver says which one is chosen.
+        {...(selected === undefined
+          ? { accessibilityRole: onPress ? ("button" as const) : undefined }
+          : { accessibilityRole: "radio" as const, accessibilityState: { checked: selected } })}
         onPress={onPress}
         disabled={!onPress}
         style={{

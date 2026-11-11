@@ -725,6 +725,7 @@
     "noCalls": "Sin llamadas de departamento",
     "countdownTbc": "{cue}: hora por confirmar",
     "runningOrders": "Órdenes del show",
+    "runningOrderOnScreen": "Orden del show: {name}",
     "runningOrderUnnamed": "Orden del show",
     "countdownPlanned": "{cue}, previsto para el {day} a las {time}"
   },

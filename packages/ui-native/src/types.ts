@@ -161,6 +161,11 @@ export interface ListRowProps extends NativeBaseProps {
   /** Trailing value or control. */
   trailing?: ReactNode;
   onPress?: () => void;
+  /**
+   * For a row that picks one of several (a running order, an org): whether it is the chosen one. The row then reads as a
+   * radio, checked or not, so assistive technology says which is chosen, not only the icon.
+   */
+  selected?: boolean;
   /** Swipe actions: right to complete, left to snooze or reassign (Section 11.13 Tasks). */
   swipeStart?: { label: string; icon: IconName; tone?: Tone; onAction: () => void };
   swipeEnd?: { label: string; icon: IconName; tone?: Tone; onAction: () => void };

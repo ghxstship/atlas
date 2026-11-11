@@ -44,6 +44,7 @@ import {
   PRE_CUE_WARNING_MS,
   runningOrders,
   showState,
+  shownRunningOrder,
   storedDepartment,
   type Cue,
 } from "../src/domain/show";
@@ -565,6 +566,24 @@ describe("live run of show", () => {
       expect(liveRunningOrder(runningOrders(done, rows), now)?.id).toBe("ros-side");
       expect(liveRunningOrder([], now)).toBeNull();
       expect(nextCueOf([], now)).toBeNull();
+    });
+
+    it("stays on the running order the screen is on when a called cue makes another stage's next cue the sooner", () => {
+      // Both stages under way. Main's next cue (2) is in 5 min, side's in 10: the screen opens on main.
+      const before = [main(1, -5, -5), main(2, 5), main(3, 30), side(1, -5, -5), side(2, 10)];
+      const opened = shownRunningOrder(runningOrders(before, rows), null, now);
+      expect(opened?.id).toBe("ros-1");
+      // The operator calls main 2; main's next is now 30 min off, side's 10, so the live order is the side stage.
+      const after = before.map((c) =>
+        c.id === "main-2" ? { ...c, called_at: new Date(now).toISOString() } : c,
+      );
+      expect(liveRunningOrder(runningOrders(after, rows), now)?.id).toBe("ros-side");
+      // The screen stays on the main stage it is on, and its next cue is main 3.
+      const kept = shownRunningOrder(runningOrders(after, rows), opened?.id ?? null, now);
+      expect(kept?.id).toBe("ros-1");
+      expect(showState(kept?.cues ?? [], now).next?.id).toBe("main-3");
+      // An order no longer in the project falls back to the live one.
+      expect(shownRunningOrder(runningOrders(after, rows), "ros-gone", now)?.id).toBe("ros-side");
     });
 
     it("orders running orders by show day, and reads one whose row has not arrived", () => {

@@ -725,6 +725,7 @@
     "noCalls": "No department calls",
     "countdownTbc": "{cue}: time to be confirmed",
     "runningOrders": "Running orders",
+    "runningOrderOnScreen": "Running order: {name}",
     "runningOrderUnnamed": "Running order",
     "countdownPlanned": "{cue}, planned for {day} at {time}"
   },

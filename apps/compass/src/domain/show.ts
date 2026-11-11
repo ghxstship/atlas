@@ -158,6 +158,20 @@ export function liveRunningOrder(
   return (soonest(underWay) ?? soonest(open))?.order ?? states[states.length - 1]?.order ?? null;
 }
 
+/**
+ * The running order the Show screen reads: the one the person is on while the project still has it, else the live one
+ * (liveRunningOrder) to open on. The screen stores what this returns and passes it back as `chosenId`, so the live
+ * choice is only where it opens: calling a cue moves the live order to whichever stage's next cue now comes sooner,
+ * and the screen must not follow it there while an operator calls cues (C-08).
+ */
+export function shownRunningOrder(
+  orders: readonly RunningOrder[],
+  chosenId: string | null,
+  nowMs: number,
+): RunningOrder | null {
+  return orders.find((o) => o.id === chosenId) ?? liveRunningOrder(orders, nowMs);
+}
+
 /** The next cue of a project's cues, read in the running order it belongs to (Today, the combined Today). */
 export function nextCueOf(cues: readonly Cue[], nowMs: number): Cue | null {
   const order = liveRunningOrder(runningOrders(cues), nowMs);

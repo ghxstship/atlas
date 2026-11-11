@@ -18,10 +18,10 @@ import {
   countdownDisplay,
   countdownParts,
   cueCallLines,
-  liveRunningOrder,
   preCueHapticDue,
   runningOrders,
   showState,
+  shownRunningOrder,
   type Cue,
   type CueCallRow,
   type RunningOrder,
@@ -99,10 +99,28 @@ export function ShowView({ readOnly }: { readonly readOnly: boolean }): ReactEle
   const [now, setNow] = useState(Date.now());
   const { rows: cues } = useRows<CueRow>("cues", (c) => c.project_id === projectId);
   const { rows: orderRows } = useRows<OrderRow>("run_of_show", (r) => r.project_id === projectId);
-  // Each running order reads on its own (C-08): the one the person picked, else the live one.
-  const [chosenOrder, setChosenOrder] = useState<string | null>(null);
+  // Each running order reads on its own (C-08). The live one is only where the screen opens on a project; it is stored
+  // at once, and from then on only the person changes it. Worked out again on each tick, it moved the screen to the
+  // side stage as soon as calling a main stage cue made the side stage's next cue the sooner one, and Call Cue then
+  // called the side stage.
+  const [chosen, setChosen] = useState<{
+    readonly projectId: string | null;
+    readonly orderId: string;
+  } | null>(null);
   const orders = runningOrders(cues, orderRows);
-  const order = orders.find((o) => o.id === chosenOrder) ?? liveRunningOrder(orders, now);
+  const order = shownRunningOrder(
+    orders,
+    chosen?.projectId === projectId ? chosen.orderId : null,
+    now,
+  );
+  const orderId = order?.id ?? null;
+  useEffect(() => {
+    if (orderId === null) return;
+    setChosen((was) =>
+      was?.projectId === projectId && was.orderId === orderId ? was : { projectId, orderId },
+    );
+  }, [orderId, projectId]);
+  const chooseOrder = (id: string) => setChosen({ projectId, orderId: id });
   const ordered = order?.cues ?? [];
   const cueIds = new Set(ordered.map((c) => c.id));
   const { rows: calls } = useRows<CallRow>("cue_calls", (c) => cueIds.has(c.cue_id));
@@ -116,7 +134,14 @@ export function ShowView({ readOnly }: { readonly readOnly: boolean }): ReactEle
     const timer = setInterval(() => setNow(Date.now()), 500);
     return () => clearInterval(timer);
   }, []);
+  // The countdown a haptic or spoken point is crossed from belongs to the running order on screen: a change of order
+  // starts it again, so another stage's countdown never fires this one's haptic.
+  const countdownOf = useRef<string | null>(null);
   useEffect(() => {
+    if (countdownOf.current !== orderId) {
+      countdownOf.current = orderId;
+      previous.current = null;
+    }
     // A cue to be confirmed has no firm time: no pre-cue haptic and no spoken countdown for it.
     if (haptics && preCueHapticDue(previous.current, state.msToNext, state.startTbc)) {
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
@@ -131,7 +156,7 @@ export function ShowView({ readOnly }: { readonly readOnly: boolean }): ReactEle
       );
     }
     previous.current = state.msToNext;
-  }, [state.msToNext, state.next, state.startTbc, haptics, t]);
+  }, [state.msToNext, state.next, state.startTbc, haptics, t, orderId]);
   useEffect(() => {
     if (!showMode) return undefined;
     void activateKeepAwakeAsync(KEEP_AWAKE_TAG);
@@ -210,8 +235,13 @@ export function ShowView({ readOnly }: { readonly readOnly: boolean }): ReactEle
       }
     >
       {showMode ? null : <ProjectPicker />}
-      {showMode || orders.length < 2 || !order ? null : (
-        <RunningOrderPicker orders={orders} current={order} onChoose={setChosenOrder} />
+      {orders.length < 2 || !order ? null : showMode ? (
+        // Show mode hides the picker, never which running order is on screen.
+        <Text testID="running-order-name" variant="heading20">
+          {orderControlLabel(t, order)}
+        </Text>
+      ) : (
+        <RunningOrderPicker orders={orders} current={order} onChoose={chooseOrder} />
       )}
       <SyncBanner />
       <Tag
@@ -306,6 +336,11 @@ function orderLabel(t: TFunction, order: RunningOrder): string {
   return order.showDate ? `${name} · ${formatCalendarDay(order.showDate)}` : name;
 }
 
+/** The control and show mode name the running order on screen as one: "Running order: Main Stage · Nov 14". */
+function orderControlLabel(t: TFunction, order: RunningOrder): string {
+  return t("compass.show.runningOrderOnScreen", { name: orderLabel(t, order) });
+}
+
 /** A project with several running orders (a side stage, another show day) picks one; each reads on its own. */
 function RunningOrderPicker({
   orders,
@@ -324,7 +359,7 @@ function RunningOrderPicker({
         testID="running-order-picker"
         variant="secondary"
         icon="list"
-        label={orderLabel(t, current)}
+        label={orderControlLabel(t, current)}
         onPress={() => setOpen(true)}
       />
       <Sheet
@@ -339,6 +374,7 @@ function RunningOrderPicker({
             testID={`running-order-${o.id}`}
             title={orderLabel(t, o)}
             icon={o.id === current.id ? "check" : "list"}
+            selected={o.id === current.id}
             onPress={() => {
               onChoose(o.id);
               setOpen(false);
