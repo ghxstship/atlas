@@ -172,3 +172,23 @@ describe("A66: Compass never sits on a blank screen when startup fails", () => {
     expect(read("../app/(tabs)/today.tsx")).toContain("<StorageResetNotice />");
   });
 });
+
+describe("C-22: the storage reset notice never carries over to the next person", () => {
+  it("is cleared when the session ends, and not raised for a launch with no one signed in", async () => {
+    const { readFileSync } = await import("node:fs");
+    const provider = readFileSync(
+      new URL("../src/runtime/CompassProvider.tsx", import.meta.url),
+      "utf8",
+    );
+    const listener = provider.slice(provider.indexOf("client.auth.onAuthStateChange("));
+    const signedOut = listener.slice(
+      listener.indexOf("if (!next) {"),
+      listener.indexOf('setPhase({ kind: "signed-out" });'),
+    );
+    expect(signedOut).toContain("setStorageNotice(false);");
+    expect(signedOut).toContain("void forgetStorageNotice();");
+    expect(provider).toContain(
+      "setStorageNotice((await storageNoticePending()) && !signedOutRef.current);",
+    );
+  });
+});
