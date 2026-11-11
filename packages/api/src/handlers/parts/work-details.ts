@@ -5,9 +5,11 @@
  * checks of app.shared_work_details decide. The Restricted passport number is written through its
  * encrypting RPC, always read masked, and shown only by the logged reveal actions. Allergies are
  * Restricted too (R6a, 4663): the column is not selectable, so the owner's come from
- * app.my_allergies. The retired uniform size and travel preference fields left the table with R6b
- * (904100101): v1 keeps them, always null, and refuses a value with 422 work_detail_field_moved as the
- * database did; a null is accepted and ignored. v1's category enum is frozen, so
+ * app.my_allergies. The retired uniform size and travel preference fields (R6a, 4664) are R6b's API
+ * half (4.10): v1 keeps them, always null, never reads or writes their columns, refuses a value with
+ * 422 work_detail_field_moved as the database does, accepts and ignores a null, and treats a sort or
+ * filter on them as a no-op. The columns stay through 4.10 so the release before keeps working; R6b's
+ * drop (4.11) removes them once no deployed API selects them. v1's category enum is frozen, so
  * R6a's Contact category leaves the category lists and travels as share_contact, contact_shared and
  * includes_contact.
  */
@@ -31,7 +33,7 @@ const ownRow = (_body: Row, context: RequestContext): Row => ({
 
 // Work details ----------------------------------------------------------------------------------------
 
-/** v1's uniform size and travel preference fields, dropped from the table by R6b (904100101): always null. */
+/** v1's uniform size and travel preference fields, retired by R6a (4664): always null, their columns never read. */
 const RETIRED_FIELDS = [
   "shirt_size",
   "jacket_size",
@@ -45,12 +47,12 @@ const RETIRED_FIELDS = [
   "home_airport",
 ] as const;
 
-/** Refuses a retired field with a value, as the database did before R6b dropped the columns; a null is ignored. */
+/** Refuses a retired field with a value, as the database's guard does (4664) and still will once R6b drops the columns; a null is ignored. */
 function refuseRetired(body: Row): void {
   if (RETIRED_FIELDS.some((field) => body[field] !== undefined && body[field] !== null)) {
     throw refused(
       "REFUSE",
-      "Uniform sizes and travel preferences are entered per roster entry now.",
+      "Uniform sizes and travel preferences are no longer kept on your profile; enter them on each project you are rostered on.",
       "work_detail_field_moved",
     );
   }
@@ -58,8 +60,8 @@ function refuseRetired(body: Row): void {
 
 const workDetails = tableResource("workDetails", {
   verbs: ["list", "get", "delete"],
+  retired: RETIRED_FIELDS,
   derived: [
-    ...RETIRED_FIELDS,
     "passport_number",
     "allergies",
     "dietary_needs",
@@ -84,11 +86,7 @@ const workDetails = tableResource("workDetails", {
       accessibility_notes: own["accessibility_notes"] ?? null,
     }));
   },
-  toContract: (row) => ({
-    ...row,
-    ...Object.fromEntries(RETIRED_FIELDS.map((field) => [field, null])),
-    passport_number: masked(PASSPORT_REASON),
-  }),
+  toContract: (row) => ({ ...row, passport_number: masked(PASSPORT_REASON) }),
 });
 
 const DETAIL_FIELDS = [
