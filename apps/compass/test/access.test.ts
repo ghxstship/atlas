@@ -95,6 +95,30 @@ describe("external access (Section 8.7)", () => {
     }
   });
 
+  it("opens the read-only Run of Show to the Client only, as the server and the sitemap do (C-11)", () => {
+    // api_external.cues gives a Client the whole running order and an artist only their own set, which Today shows;
+    // crew and staff receive no cue, so the screen would always be empty for them.
+    expect(access(external("client"), "show.read", "proj-1")).toEqual({ allowed: true });
+    for (const a of [
+      "crew",
+      "staff",
+      "artist",
+      "artist-representative",
+      "vendor",
+      "contractor",
+      "sponsor",
+    ] as Audience[]) {
+      expect(access(external(a), "show.read", "proj-1"), a).toEqual({
+        allowed: false,
+        reason: "role",
+      });
+      expect(
+        moreMenu(a).some((m) => m.id === "run-of-show"),
+        a,
+      ).toBe(false);
+    }
+  });
+
   it("opens at Active, stays through Closing and ends at Complete", () => {
     expect(access(external("crew", "Onboarding"), "clock", "proj-1")).toEqual({
       allowed: false,

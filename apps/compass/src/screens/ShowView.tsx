@@ -1,7 +1,7 @@
 /**
  * Live run of show (Section 4.3 item 9, Section 11.13 Show): cue progression and time to the next cue;
  * show mode is large type, dark, kept awake, with a haptic before each cue. Read-only for audiences that
- * follow the show (client, crew, artist) and for anyone without show.cue.call. A person picks their
+ * follow the show (the Client) and for anyone without show.cue.call. A person picks their
  * department once on the device and sees its call for the current and next cue (G-74); a cue whose time is
  * to be confirmed reads TBC and is never counted down (G-40, ADR 0131).
  */
@@ -127,7 +127,10 @@ export function ShowView({ readOnly }: { readonly readOnly: boolean }): ReactEle
 
   if (cues.length === 0) {
     return (
-      <Screen testID="show" title={t("compass.show.title")}>
+      <Screen
+        testID="show"
+        title={readOnly ? t("compass.show.runOfShow") : t("compass.show.title")}
+      >
         <ProjectPicker />
         <EmptyState
           testID="show-empty"

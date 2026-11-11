@@ -148,7 +148,9 @@ const EXTERNAL_ROLES: Readonly<Record<Feature, readonly Audience[]>> = {
   "inspections.signOff": [],
   "show.live": [],
   "show.callCue": [],
-  "show.read": ["client", "crew", "staff", "artist", "artist-representative"],
+  // The read-only running order is the Client's (Section 4.5.7, sitemap run-of-show): api_external.cues gives crew and
+  // staff no cue and an artist only their own set, which Today shows (C-11).
+  "show.read": ["client"],
   "scan.asset": ["crew", "staff"],
   "scan.receiving": ["vendor"],
   // Externals never receive against an order: the order, its lines and the receipt are internal records.
