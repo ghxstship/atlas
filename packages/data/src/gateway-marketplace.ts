@@ -244,8 +244,12 @@ export function acceptsApplications(
   return o.state === "Published" && (o.deadlineAt === null || new Date(o.deadlineAt) > now);
 }
 
-/** How the role type applies (Section 4.4.3 Applying): people, vendor bids, artist EPKs, agency slates. */
-export type ApplicationMode = "person" | "bid" | "artist" | "slate";
+/**
+ * How the role type applies (Section 4.4.3 Applying): people, vendor bids, artist EPKs, agency slates, and a contractor
+ * company: someone acting for their company applies for a Contractor opportunity as that company, so the application,
+ * and the engagement an accepted one becomes, belong to the company (its counterparty, Crew tab and billing).
+ */
+export type ApplicationMode = "person" | "bid" | "artist" | "slate" | "company";
 
 export function applicationMode(
   roleType: ExternalRoleType,
@@ -255,7 +259,13 @@ export function applicationMode(
   if (roleType === "Vendor" || rateType === "Bid") return "bid";
   if (roleType === "Artist") return "artist";
   if (roleType === "Staff" && asAccount) return "slate";
+  if (roleType === "Contractor" && asAccount) return "company";
   return "person";
+}
+
+/** Whether an application in this mode is the company's, not the person's (applicant_organization_id). */
+export function appliesAsAccount(mode: ApplicationMode, acting: boolean): boolean {
+  return acting && (mode === "bid" || mode === "slate" || mode === "company");
 }
 
 // Applications ------------------------------------------------------------------------------------

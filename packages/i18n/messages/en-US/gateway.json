@@ -1641,7 +1641,8 @@
         "answer": "Answer every required question.",
         "fee": "Enter the fee as a number, or leave it blank.",
         "bidLines": "Add at least one bid line with an item and a quantity above zero.",
-        "slate": "Pick at least one team member for the slate."
+        "slate": "Pick at least one team member for the slate.",
+        "bidLinePrice": "Line {n}: enter a unit price of zero or more, or leave it blank to leave the line unpriced."
       },
       "profileSections": "Also share from your profile with {org}",
       "profileSectionsHelp": "Only the sections you check are shared, as they read today, including ones your profile keeps private. Revoke sharing at any time in Settings.",
@@ -1655,7 +1656,8 @@
         "rates": "Rates",
         "languages": "Languages",
         "links": "Links"
-      }
+      },
+      "applyingAs": "You apply as {account}. The application, and the engagement it becomes if accepted, belong to the company."
     },
     "reportForm": {
       "title": "Report this listing",

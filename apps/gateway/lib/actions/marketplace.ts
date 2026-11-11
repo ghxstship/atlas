@@ -2,6 +2,7 @@
 
 import {
   applicationMode,
+  appliesAsAccount,
   applyToOpportunity,
   getOpportunity,
   listMarketplacePlaces,
@@ -41,6 +42,8 @@ import { createServerSupabase } from "@/lib/supabase/server";
 export interface ApplyState {
   /** `gateway.explore.applyForm.errors.*` key for a field problem the form can fix. */
   readonly fieldError?: string;
+  /** The bid line (from 1, as the form numbers its rows) the field problem is on. */
+  readonly line?: number;
   /** `gateway.outcomes.*` key for a database outcome. */
   readonly outcome?: string;
   readonly sent?: boolean;
@@ -77,19 +80,34 @@ export async function applyAction(_: ApplyState, form: FormData): Promise<ApplyS
   const fee = feeText === "" ? null : parseMoneyInput(feeText, currency);
   if (feeText !== "" && fee === null) return { fieldError: "fee" };
 
-  const lines =
+  const rows =
     mode === "bid"
       ? strings(form, "lineDescription")
-          .map((description, i) => ({
-            description,
-            quantity: Number(strings(form, "lineQuantity")[i] ?? "0"),
-            unitPriceMinor: parseMoneyInput(strings(form, "linePrice")[i] ?? "", currency),
-          }))
+          .map((description, i) => {
+            const price = strings(form, "linePrice")[i] ?? "";
+            return {
+              row: i + 1,
+              description,
+              quantity: Number(strings(form, "lineQuantity")[i] ?? "0"),
+              // A blank price leaves the line unpriced (null), never zero.
+              priced: price !== "",
+              unitPriceMinor: parseMoneyInput(price, currency),
+            };
+          })
           .filter((l) => l.description !== "")
       : [];
-  if (mode === "bid" && (lines.length === 0 || lines.some((l) => !(l.quantity > 0)))) {
+  if (mode === "bid" && (rows.length === 0 || rows.some((l) => !(l.quantity > 0)))) {
     return { fieldError: "bidLines" };
   }
+  // A typed unit price is zero or more; a negative or unreadable one is refused on its own line, never saved as another
+  // amount (a blank one stays unpriced).
+  const misPriced = rows.find((l) => l.priced && l.unitPriceMinor === null);
+  if (misPriced) return { fieldError: "bidLinePrice", line: misPriced.row };
+  const lines = rows.map((l) => ({
+    description: l.description,
+    quantity: l.quantity,
+    unitPriceMinor: l.unitPriceMinor,
+  }));
   const slate =
     mode === "slate" ? strings(form, "slate").filter((s) => z.uuid().safeParse(s).success) : [];
   if (mode === "slate" && slate.length === 0) return { fieldError: "slate" };
@@ -127,7 +145,8 @@ export async function applyAction(_: ApplyState, form: FormData): Promise<ApplyS
     profileShareId = shared.data.profileShareId;
   }
 
-  const asAccount = account !== null && (mode === "bid" || mode === "slate");
+  // A bid, a slate and a contractor company apply as the account the person acts for (applicant_organization_id).
+  const asAccount = account !== null && appliesAsAccount(mode, true);
   const applied = await applyToOpportunity(ctx.db, {
     opportunityId: opp.id,
     applicantPersonId: asAccount ? null : ctx.personId,
@@ -135,7 +154,7 @@ export async function applyAction(_: ApplyState, form: FormData): Promise<ApplyS
     profileShareId,
     availabilityConfirmed: true,
     coverNote: String(form.get("coverNote") ?? "").trim() || null,
-    proposedFeeMinor: mode === "artist" || mode === "person" ? fee : null,
+    proposedFeeMinor: mode === "artist" || mode === "person" || mode === "company" ? fee : null,
     currency,
     answers,
   });

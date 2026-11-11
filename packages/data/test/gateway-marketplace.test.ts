@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   acceptsApplications,
   applicationMode,
+  appliesAsAccount,
   applyToOpportunity,
   bidTotal,
   decideApplication,
@@ -158,6 +159,14 @@ describe("search", () => {
     expect(applicationMode("Artist", "Flat", false)).toBe("artist");
     expect(applicationMode("Staff", "Hourly", true)).toBe("slate");
     expect(applicationMode("Staff", "Hourly", false)).toBe("person");
+    // Someone acting for their company applies for a Contractor opportunity as the company (4.9 surface crawl).
+    expect(applicationMode("Contractor", "Day", true)).toBe("company");
+    expect(applicationMode("Contractor", "Day", false)).toBe("person");
+    expect(appliesAsAccount("company", true)).toBe(true);
+    expect(appliesAsAccount("slate", true)).toBe(true);
+    expect(appliesAsAccount("bid", false)).toBe(false);
+    expect(appliesAsAccount("person", true)).toBe(false);
+    expect(appliesAsAccount("artist", true)).toBe(false);
   });
 });
 

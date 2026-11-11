@@ -1641,7 +1641,8 @@
         "answer": "Responde todas las preguntas obligatorias.",
         "fee": "Escribe la tarifa como número o déjala en blanco.",
         "bidLines": "Agrega al menos una línea con un artículo y una cantidad mayor que cero.",
-        "slate": "Elige al menos un miembro del equipo para la propuesta."
+        "slate": "Elige al menos un miembro del equipo para la propuesta.",
+        "bidLinePrice": "Línea {n}: ingresa un precio unitario de cero o más, o déjalo en blanco para dejar la línea sin precio."
       },
       "profileSections": "Compartir también de su perfil con {org}",
       "profileSectionsHelp": "Solo se comparten las secciones que marque, tal como están hoy, incluidas las que su perfil mantiene privadas. Puede revocar el acceso en cualquier momento en Configuración.",
@@ -1655,7 +1656,8 @@
         "rates": "Tarifas",
         "languages": "Idiomas",
         "links": "Enlaces"
-      }
+      },
+      "applyingAs": "Te postulas como {account}. La postulación, y el contrato que resulte si la aceptan, pertenecen a la empresa."
     },
     "reportForm": {
       "title": "Reportar esta publicación",
