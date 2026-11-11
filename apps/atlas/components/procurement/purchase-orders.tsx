@@ -22,7 +22,7 @@ import dynamic from "next/dynamic";
 import { listTransitionRules, listVendors } from "@xos/data/vendors";
 import { listSpendAuthorities } from "@xos/data/governance";
 import { listApprovalPolicies, listApprovals } from "@xos/data/workflow";
-import { InlineAlert } from "@xos/ui";
+import { InlineAlert } from "@/components/ui";
 import { getFormatter } from "next-intl/server";
 import {
   addPoLineAction,
