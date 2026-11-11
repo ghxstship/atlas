@@ -52,6 +52,8 @@ import {
   type SubmittalKind,
 } from "@xos/data/procurement";
 import type { XosClient } from "@xos/data";
+import { requestApproval } from "@xos/data/workflow";
+import { revalidatePath } from "next/cache";
 import { applySuggestions, suggestionIds } from "@/lib/aurora/suggestions";
 import { actionContext, finish } from "@/lib/collection-kit/actions";
 import { getOrgContext } from "@/lib/shell/context";
@@ -416,6 +418,27 @@ export async function approvePoAction(_: ActionState, form: FormData): Promise<A
     finish(result, ctx, MODULE);
     return { error: "approvalPending" };
   }
+  return finish(result, ctx, MODULE);
+}
+
+/**
+ * Submits a Proposed order to the Active purchase order policy (app.request_approval, A33), from the
+ * order's own page: while the policy applies, Approve refuses with approval_policy_pending until the
+ * policy approves it (crawl 4.9). The RPC refuses an unpriced order, one no policy applies to and one
+ * already in review.
+ */
+export async function submitPoForApprovalAction(
+  _: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  const ctx = await actionContext(form);
+  const id = uuid(form, "id");
+  if (id === null) return { error: "notFound" };
+  const result = await requestApproval(ctx.viewer.db, {
+    documentType: "Purchase Order",
+    documentId: id,
+  });
+  if (result.ok) revalidatePath(`/${ctx.org.slug}/approvals`);
   return finish(result, ctx, MODULE);
 }
 

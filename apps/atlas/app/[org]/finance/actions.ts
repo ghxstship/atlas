@@ -8,6 +8,7 @@ import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 import { applySuggestions, suggestionIds } from "@/lib/aurora/suggestions";
+import { fieldErrorOf } from "@/lib/finance/field-errors";
 import { exponentOf, getExponents } from "@/lib/finance/money";
 import { getOrgContext, type OrgContext } from "@/lib/shell/context";
 import { customFieldsOf } from "@/lib/custom-fields/form";
@@ -63,7 +64,11 @@ async function contextFor(form: FormData): Promise<OrgContext> {
 }
 
 function finish(ctx: OrgContext, result: Result<unknown>, extra: ActionState = {}): ActionState {
-  if (!result.ok) return { error: toActionError(result.error), at: Date.now() };
+  if (!result.ok) {
+    const field = fieldErrorOf(result.error);
+    if (field) return inputError(field.field, field.key);
+    return { error: toActionError(result.error), at: Date.now() };
+  }
   revalidatePath(`/${ctx.org.slug}`, "layout");
   return { ok: true, at: Date.now(), ...extra };
 }

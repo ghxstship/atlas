@@ -15,7 +15,9 @@ import {
   type PhaseTransition,
 } from "@xos/data/projects";
 import type { Result } from "@xos/data";
+import { getTranslations } from "next-intl/server";
 import type { ProjectContext } from "./context";
+import { localizeCriteria } from "./gate-criteria";
 
 /** Unwraps a repository result for a page load; a failure surfaces in the page's error boundary. */
 export function must<T>(result: Result<T>, what: string): T {
@@ -48,19 +50,23 @@ export interface GateData {
 /** Canon phases and criteria with the project's evidence and gate history. */
 export async function loadGates(ctx: ProjectContext): Promise<GateData> {
   const db = ctx.org.viewer.db;
-  const [phases, criteria, statuses, evidence, transitions] = await Promise.all([
+  const [phases, criteria, statuses, evidence, transitions, tr] = await Promise.all([
     listPhases(db),
     listGateCriteria(db),
     listCriterionStatus(db, [ctx.project.id]),
     listGateEvidence(db, ctx.project.id),
     listPhaseTransitions(db, ctx.project.id),
+    getTranslations(),
   ]);
+  // Criterion keys are computed from canon codes, so the typed key union is widened here.
+  const t = (key: string) => (tr as unknown as (k: string) => string)(key);
+  const has = (key: string) => (tr as unknown as { has: (k: string) => boolean }).has(key);
   const p = must(phases, "phases");
   const passed = new Set(must(transitions, "gate history").map((x) => x.gate));
   const phaseGate = p.find((x) => x.code === ctx.project.phaseCode)?.gate ?? null;
   return {
     phases: p,
-    criteria: must(criteria, "gate criteria"),
+    criteria: localizeCriteria(must(criteria, "gate criteria"), t, has),
     statuses: must(statuses, "gate readiness"),
     evidence: must(evidence, "gate evidence"),
     transitions: must(transitions, "gate history"),

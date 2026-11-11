@@ -10,7 +10,6 @@ import {
 } from "@xos/data/finance";
 import {
   SETTLEMENT_LINE_KINDS,
-  SETTLEMENT_ORG_NEXT,
   SETTLEMENT_STATES,
   listEngagementRefs,
   listSettlementLines,
@@ -20,6 +19,9 @@ import { getNode } from "@xos/ia";
 import type { FinancePage } from "@/lib/finance/context";
 import { getFinanceCopy } from "@/lib/finance/copy";
 import { iconState } from "@/lib/finance/states";
+import { engagementOptions } from "@/lib/finance/engagement-options";
+import { enumKey } from "@/lib/opportunities/format";
+import { settlementMoves } from "@/lib/finance/settlement-moves";
 import { sitemap } from "@/lib/shell/sitemap";
 import { orgToday } from "@/lib/shell/time-zone";
 import { applyPaymentAction, saveSettlementLineAction } from "@/app/[org]/finance/actions";
@@ -338,7 +340,7 @@ async function SettlementsTab({ page }: { page: FinancePage }) {
   const engagementLabel = new Map(
     engagements.data.map((e) => [
       e.id,
-      `${projectKey.get(e.projectId) ?? ""} · ${(e.counterpartyId && partyName.get(e.counterpartyId)) || e.personName || ""} · ${e.roleType}`,
+      `${projectKey.get(e.projectId) ?? ""} · ${(e.counterpartyId && partyName.get(e.counterpartyId)) || e.personName || ""} · ${t(`opportunities.roleTypes.${enumKey(e.roleType)}`)}`,
     ]),
   );
   const term = query.q?.toLowerCase() ?? null;
@@ -358,9 +360,12 @@ async function SettlementsTab({ page }: { page: FinancePage }) {
       listTransitions(db, "settlement_state_transitions", peek.id),
     ]);
     const editable = peek.state === "Proposed" && canWrite;
-    const allowed = SETTLEMENT_ORG_NEXT[peek.state].filter((n) =>
-      n === "Submitted" ? canApprove && peek.createdBy !== me : n === "Paid" ? canPay : canWrite,
-    );
+    const { allowed, ownDraft } = settlementMoves(peek.state, {
+      canWrite,
+      canApprove,
+      canPay,
+      author: me !== null && peek.createdBy === me,
+    });
     detail = {
       kindLabel: t("finance.settlements.kind"),
       recordKey: keyOf(peek),
@@ -397,6 +402,11 @@ async function SettlementsTab({ page }: { page: FinancePage }) {
           {peek.state === "Submitted" ? (
             <p className="m-0 text-text-12 text-text-secondary">
               {t("finance.settlements.awaitingParty")}
+            </p>
+          ) : null}
+          {ownDraft ? (
+            <p className="m-0 text-text-12 text-text-secondary">
+              {t("finance.settlements.ownDraft")}
             </p>
           ) : null}
           <AllInCost
@@ -508,10 +518,15 @@ async function SettlementsTab({ page }: { page: FinancePage }) {
           <FormSheet title={t("finance.settlements.create")} flag="create">
             <SettlementForm
               org={ctx.org.slug}
-              engagements={engagements.data.map((e) => ({
-                value: e.id,
-                label: engagementLabel.get(e.id) ?? e.id,
-              }))}
+              engagements={engagementOptions(engagements.data, {
+                projectKey: (id) => projectKey.get(id) ?? "",
+                party: (e) =>
+                  (e.counterpartyId && partyName.get(e.counterpartyId)) || e.personName || "",
+                role: (r) => t(`opportunities.roleTypes.${enumKey(r)}`),
+                state: (s) => t(`opportunities.engagementStates.${enumKey(s)}`),
+                day: (d) => t("finance.settlements.engagementStarts", { day: c.date(d) }),
+                numbered: (label, n) => t("finance.settlements.engagementNumbered", { label, n }),
+              })}
               currencies={[...c.exponents.keys()].sort()}
               defaultCurrency={page.project?.currency || "USD"}
             />

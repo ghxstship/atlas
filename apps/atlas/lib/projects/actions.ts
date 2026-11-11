@@ -33,6 +33,8 @@ import { PROJECT_COPY_PARTS } from "@xos/data/project-copy";
 import { bumpRefusalField, copySourceMissing } from "@/components/projects/intake-steps";
 import { EVENT_AUDIENCES, EVENT_SCALES } from "@xos/data/setup";
 import { withEcho } from "./echo";
+import { localizeCriteria } from "./gate-criteria";
+import { getTranslations } from "next-intl/server";
 
 /**
  * Server actions for Projects (Section 4.2). Each resolves the viewer's org or project context
@@ -590,8 +592,15 @@ async function namedCriteria(ctx: ProjectContext, state: ActionState): Promise<A
     .map((c) => c.trim())
     .filter(Boolean);
   if (codes.length === 0) return state;
-  const criteria = await listGateCriteria(ctx.org.viewer.db);
-  const statement = new Map(criteria.ok ? criteria.data.map((c) => [c.id, c.statement]) : []);
+  const [criteria, tr] = await Promise.all([
+    listGateCriteria(ctx.org.viewer.db),
+    getTranslations(),
+  ]);
+  const t = (key: string) => (tr as unknown as (k: string) => string)(key);
+  const has = (key: string) => (tr as unknown as { has: (k: string) => boolean }).has(key);
+  const statement = new Map(
+    criteria.ok ? localizeCriteria(criteria.data, t, has).map((c) => [c.id, c.statement]) : [],
+  );
   const named = codes.map((code) => {
     const sentence = statement.get(code);
     return sentence ? `${sentence.replace(/\.$/, "")} (${code})` : code;

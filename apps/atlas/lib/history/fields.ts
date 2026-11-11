@@ -41,6 +41,32 @@ export function historyLabelKey(field: string): string | null {
   return `views.export.columns.${field}`;
 }
 
+/**
+ * State columns whose values the record's own pages word through a catalog (`table.column` to the
+ * catalog prefix), so a field history reads "Draft to Approved" in the viewer's language as the
+ * state history beside it does, never the stored enum "Proposed" (crawl 4.9).
+ */
+export const STATE_VALUE_LABELS: Readonly<Record<string, string>> = {
+  "app.purchase_orders.po_state": "procurement.poStates",
+  "app.rfqs.rfq_state": "procurement.rfqStates",
+  "app.submittals.submittal_state": "procurement.reviewStates",
+  "app.requisitions.requisition_state": "people.states.requisition",
+  "app.expenses.expense_state": "finance.states.expense",
+  "app.change_orders.change_order_state": "finance.states.change_order",
+  "app.invoices.invoice_state": "finance.states.invoice",
+  "app.payments.payment_state": "finance.states.payment",
+  "app.journal_entries.journal_state": "finance.states.journal",
+  "app.settlements.settlement_state": "finance.states.settlement",
+};
+
+/** The catalog key that words a state value of a history field, or null when it is not one. */
+export function historyStateKey(table: string, field: string, value: Json): string | null {
+  const prefix = STATE_VALUE_LABELS[`${table}.${field}`];
+  return prefix !== undefined && typeof value === "string"
+    ? `${prefix}.${value.replace(/\s+/g, "")}`
+    : null;
+}
+
 export interface HistoryFormat {
   readonly t: Translate;
   /** An instant, in the viewer's format. */

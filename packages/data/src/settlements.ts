@@ -155,6 +155,8 @@ export interface EngagementRef {
   readonly counterpartyId: string | null;
   readonly personId: string | null;
   readonly personName: string | null;
+  /** The engagement's first day (YYYY-MM-DD), which tells apart engagements of one party and role. */
+  readonly startDate: string | null;
 }
 
 /** Engagements of the org the viewer may read, for settlements and self-billing. */
@@ -165,7 +167,7 @@ export async function listEngagementRefs(
   let query = untyped(db)
     .from("engagements")
     .select(
-      "id, project_id, role_type, engagement_state, currency_code, counterparty_id, person_id, person:people!engagements_person_id_fkey(full_name)",
+      "id, project_id, role_type, engagement_state, currency_code, counterparty_id, person_id, start_date, person:people!engagements_person_id_fkey(full_name)",
     )
     .eq("org_id", input.orgId)
     .is("deleted_at", null)
@@ -180,6 +182,7 @@ export async function listEngagementRefs(
     counterpartyId: strOrNull(r["counterparty_id"]),
     personId: strOrNull(r["person_id"]),
     personName: strOrNull(obj(r["person"])?.["full_name"]),
+    startDate: strOrNull(r["start_date"]),
   }));
   if (!refs.ok) return refs;
   // The people embed hides engaged externals, so their names come through the one name resolution (1275).
