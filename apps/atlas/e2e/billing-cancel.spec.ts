@@ -39,7 +39,8 @@ async function paidOrg(page: Page, label: string) {
   await page.getByRole("button", { name: "Agree and continue to payment" }).click();
   await page.waitForURL(`${stripe.url}/pay/**`);
   await page.getByRole("button", { name: "Pay and subscribe" }).click();
-  await page.waitForURL(`**/${slug}/settings/billing-and-plan?checkout=done`);
+  // A new org is on its trial, so Checkout carries the trial over and returns to its own page (904100201).
+  await page.waitForURL(`**/${slug}/settings/billing-and-plan?checkout=trial`);
   await expect(page.getByRole("heading", { name: "End the plan" })).toBeVisible();
   const subscription = [...stripe.subscriptions.values()].at(-1);
   if (!subscription) throw new Error("The fake created no subscription");
