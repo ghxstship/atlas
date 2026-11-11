@@ -1,6 +1,5 @@
 import { labelActivity, listActivity, type ActivityEntry } from "@xos/data/activity";
 import { addCalendarDays, startOfDayIn, todayIn } from "@xos/data/calendar";
-import { listActiveCrisisAlerts } from "@xos/data/crisis-alerts";
 import {
   buildAlerts,
   type Alert,
@@ -17,6 +16,7 @@ import {
   listProjects,
   type ProjectSummary,
 } from "@xos/data/projects";
+import { loadActiveCrisisAlerts } from "@/lib/home/crisis";
 import { must } from "@/lib/projects/loaders";
 import { regionOf, regionRead, type RegionData } from "@/lib/shell/region-data";
 import { getOrgTimeZone } from "@/lib/shell/time-zone";
@@ -75,7 +75,7 @@ export async function loadAlerts(
     personId
       ? listMyOverdueRecords(db, { orgId: ctx.org.id, personId, now })
       : Promise.resolve({ ok: true as const, data: [] }),
-    listActiveCrisisAlerts(db, { orgId: ctx.org.id, personId, now }),
+    loadActiveCrisisAlerts(ctx),
   ]);
   return buildAlerts({
     readiness,
