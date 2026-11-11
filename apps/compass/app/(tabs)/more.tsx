@@ -5,39 +5,10 @@ import { useRouter, type Href } from "expo-router";
 import type { ReactElement } from "react";
 import { useTranslation } from "react-i18next";
 import { elsewhereLink, moreSections, rosterOnly } from "../../src/domain/access";
+import { moreIcon } from "../../src/domain/moreIcons";
 import { useCompass } from "../../src/runtime/CompassProvider";
 import { ProjectPicker, SyncBanner, useAllowed } from "../../src/screens/common";
 import { Badge, Card, ListRow, Screen } from "../../src/ui";
-
-/** Icons by More menu id. */
-const ICONS: Readonly<Record<string, string>> = {
-  incidents: "shield-alert",
-  inspections: "clipboard-check",
-  logistics: "package",
-  "logistics.gate": "truck",
-  show: "clapperboard",
-  "run-of-show": "clapperboard",
-  reference: "book-open",
-  "offline-queue": "refresh-cw",
-  profile: "user",
-  settings: "settings",
-  expenses: "receipt",
-  timesheets: "clock",
-  "per-diem": "banknote",
-  "travel-and-lodging": "plane",
-  onboarding: "list-checks",
-  "purchase-orders": "file-text",
-  deliveries: "truck",
-  submittals: "file-check",
-  "time-entries": "clock",
-  deliverables: "file-check",
-  "advance-summary": "clipboard-list",
-  rider: "clipboard-list",
-  settlement: "banknote",
-  reports: "chart-column",
-  "proof-of-performance": "megaphone",
-  "project-details": "clipboard-list",
-};
 
 /**
  * The More menu in the sitemap's order for the person's role (Section 4.5.7). Every entry is a Compass
@@ -69,7 +40,7 @@ export default function MoreScreen(): ReactElement {
           <ListRow
             key={item.id}
             testID={`more-${item.id}`}
-            icon={ICONS[item.id] ?? "chevron-right"}
+            icon={moreIcon(item.id)}
             title={t(item.label)}
             trailing={
               item.id === "offline-queue" && status ? (
