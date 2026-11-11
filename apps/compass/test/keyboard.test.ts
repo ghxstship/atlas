@@ -56,3 +56,21 @@ describe("C-06: the Workforce screens sit below the native header", () => {
     }
   });
 });
+
+describe("Today search answers the first tap", () => {
+  it("opens a result while the keyboard is up (C-15)", () => {
+    const today = read("../app/(tabs)/today.tsx");
+    const main = today.slice(today.lastIndexOf("<Screen"));
+    expect(main).toMatch(/<Screen\s+testID="today"[^>]*keyboardShouldPersistTaps="handled"/);
+    expect(main.indexOf("<TodaySearch />")).toBeGreaterThan(0);
+  });
+
+  it("makes the search field itself at least the minimum touch height (C-25)", () => {
+    const search = read("../src/screens/TodaySearch.tsx");
+    const input = search.slice(
+      search.indexOf('testID="today-search"'),
+      search.indexOf("/>", search.indexOf('testID="today-search"')),
+    );
+    expect(input).toContain("minHeight: theme.density.touchMin");
+  });
+});
