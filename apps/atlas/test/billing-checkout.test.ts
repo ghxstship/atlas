@@ -414,10 +414,11 @@ describe("billing once the key is set", () => {
     expect(await alerts("trial")).toContain(
       "checkoutTrialDone(Northwind Live,shell.plans.pro.name)",
     );
-    expect(await alerts("trial")).not.toContain(
-      "checkoutDone(Northwind Live,shell.plans.pro.name)",
-    );
-    expect(await alerts("done")).toContain("checkoutDone(Northwind Live,shell.plans.pro.name)");
+    // A paid Checkout's message goes on with the renewal terms (ADR 0161): "checkoutDone(...) checkoutTerms".
+    const paidDone = (texts: string[]) =>
+      texts.some((t) => t.startsWith("checkoutDone(Northwind Live,shell.plans.pro.name)"));
+    expect(paidDone(await alerts("trial"))).toBe(false);
+    expect(paidDone(await alerts("done"))).toBe(true);
     expect(await alerts("done")).not.toContain("refusals.other");
     data.account = { ...(data.account as object), paidThroughStripe: false, checkoutRefusal: null };
     expect(await alerts("trial")).toEqual(["checkoutPending"]);
