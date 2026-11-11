@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { tabBar } from "../../src/domain/access";
 import { useCompass } from "../../src/runtime/CompassProvider";
 import { TabBar } from "../../src/ui";
-import { NativeHeaderContext } from "../../src/ui/layout";
+import { NativeHeaderProvider } from "../../src/ui/layout";
 
 /** Tab icons by sitemap tab id. */
 const TAB_ICONS: Readonly<Record<string, string>> = {
@@ -28,7 +28,7 @@ export default function TabsLayout(): ReactElement {
   const ids = new Set(tabs.map((tab) => tab.id));
   // Tabs hide the stack header, so each tab draws its own title (finding A59-031).
   return (
-    <NativeHeaderContext.Provider value={false}>
+    <NativeHeaderProvider value={false}>
       <Tabs
         screenOptions={{ headerShown: false }}
         tabBar={({ state }) => (
@@ -60,6 +60,6 @@ export default function TabsLayout(): ReactElement {
         <Tabs.Screen name="more" />
         <Tabs.Screen name="crew" options={{ href: ids.has("crew") ? "/crew" : null }} />
       </Tabs>
-    </NativeHeaderContext.Provider>
+    </NativeHeaderProvider>
   );
 }

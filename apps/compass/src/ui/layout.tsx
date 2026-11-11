@@ -18,10 +18,22 @@ import type {
   TagProps,
   ToastProps,
 } from "@xos/ui-native";
-import { announce, useReducedMotion } from "@xos/ui-native";
+import {
+  announce,
+  NativeScreenHeaderContext,
+  useReducedMotion,
+  type NativeScreenHeader,
+} from "@xos/ui-native";
 import { useTheme, type XosNativeTheme } from "@xos/ui-native/theme";
 import { Stack } from "expo-router";
-import { createContext, useContext, useEffect, type ReactElement, type RefObject } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  type ReactElement,
+  type ReactNode,
+  type RefObject,
+} from "react";
 import {
   KeyboardAvoidingView,
   Modal,
@@ -39,6 +51,32 @@ import { Button, gloveSlop, Icon, Text, tid } from "./primitives";
  * and the rest), false on the tabs, the kiosk and the screens drawn before navigation exists.
  */
 export const NativeHeaderContext = createContext(false);
+
+/** The root stack's header, as @xos/ui-native's Screen (the Workforce screens) puts its title there. */
+const STACK_HEADER: NativeScreenHeader = {
+  title: (title) => <Stack.Screen options={{ title }} />,
+};
+
+/**
+ * Says whether the screens below sit under the root stack's native large-title header, to Compass's Screen and to
+ * @xos/ui-native's, which the Workforce screens draw with. Only Compass's Screen knew before, so the Workforce
+ * screens drew from the top of the window, under the header (C-06).
+ */
+export function NativeHeaderProvider({
+  value,
+  children,
+}: {
+  readonly value: boolean;
+  readonly children: ReactNode;
+}): ReactElement {
+  return (
+    <NativeHeaderContext.Provider value={value}>
+      <NativeScreenHeaderContext.Provider value={value ? STACK_HEADER : null}>
+        {children}
+      </NativeScreenHeaderContext.Provider>
+    </NativeHeaderContext.Provider>
+  );
+}
 
 export function Screen({
   title,

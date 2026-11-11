@@ -30,7 +30,7 @@ import {
   ThemeProvider,
   useTheme,
 } from "../src/ui";
-import { NativeHeaderContext } from "../src/ui/layout";
+import { NativeHeaderProvider } from "../src/ui/layout";
 
 initI18n();
 
@@ -207,7 +207,7 @@ function Gatekeeper(): ReactElement {
           : {})}
       />
       <BiometricLock enabled={settings.biometric}>
-        <NativeHeaderContext.Provider value={true}>
+        <NativeHeaderProvider value={true}>
           <Stack
             screenOptions={{
               // Pushed screens use the native large-title header: the back button, so they can be left by
@@ -234,7 +234,7 @@ function Gatekeeper(): ReactElement {
               options={{ headerShown: false, gestureEnabled: settings.kioskDeviceKey === null }}
             />
           </Stack>
-        </NativeHeaderContext.Provider>
+        </NativeHeaderProvider>
       </BiometricLock>
     </View>
   );

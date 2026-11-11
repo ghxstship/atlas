@@ -23,6 +23,7 @@ import {
   RadioChannelTable,
   RefusalNotice,
   RunOfShowLive,
+  NativeScreenHeaderContext,
   Screen,
   SignaturePad,
   Skeleton,
@@ -319,6 +320,34 @@ describe("screens and Compass layouts", () => {
         onCancel={onCancel}
       />,
     );
+  });
+
+  it("insets under a native large-title header and hands it the title (C-06)", () => {
+    const header = {
+      title: vi.fn((title: string) => <span data-testid="native-title">{title}</span>),
+    };
+    render(
+      <NativeScreenHeaderContext.Provider value={header}>
+        <Screen testID="pushed" title="Chat">
+          <Text>New Message</Text>
+        </Screen>
+      </NativeScreenHeaderContext.Provider>,
+    );
+    const pushed = screen.getByTestId("pushed");
+    expect(header.title).toHaveBeenCalledWith("Chat");
+    expect(screen.getByTestId("native-title").textContent).toBe("Chat");
+    expect(screen.queryByRole("heading", { name: "Chat" })).toBeNull();
+    expect(pushed.querySelector('[data-content-inset="automatic"]')).toBeTruthy();
+  });
+
+  it("draws its own title and no inset without a native header", () => {
+    render(
+      <Screen testID="tab" title="Today">
+        <Text>Body</Text>
+      </Screen>,
+    );
+    expect(screen.getByRole("heading", { name: "Today" })).toBeTruthy();
+    expect(screen.getByTestId("tab").querySelector('[data-content-inset="never"]')).toBeTruthy();
   });
 
   it("shows the day sheet and calls a contact", async () => {

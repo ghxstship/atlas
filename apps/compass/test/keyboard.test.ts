@@ -38,3 +38,21 @@ describe("A66: the keyboard never covers the scan tab's code entry", () => {
     expect(screen).not.toContain("automaticallyAdjustKeyboardInsets");
   });
 });
+
+describe("C-06: the Workforce screens sit below the native header", () => {
+  it("tells @xos/ui-native's Screen about the root stack's header, as Compass's own Screen is told", () => {
+    const layout = read("../src/ui/layout.tsx");
+    const provider = layout.slice(layout.indexOf("export function NativeHeaderProvider("));
+    expect(provider).toContain(
+      "<NativeScreenHeaderContext.Provider value={value ? STACK_HEADER : null}>",
+    );
+    expect(layout).toContain("title: (title) => <Stack.Screen options={{ title }} />");
+    expect(read("../app/_layout.tsx")).toContain("<NativeHeaderProvider value={true}>");
+    for (const path of ["../app/(tabs)/_layout.tsx", "../app/kiosk.tsx"]) {
+      expect(read(path)).toContain("<NativeHeaderProvider value={false}>");
+    }
+    for (const path of ["../app/_layout.tsx", "../app/(tabs)/_layout.tsx", "../app/kiosk.tsx"]) {
+      expect(read(path)).not.toContain("NativeHeaderContext.Provider");
+    }
+  });
+});
