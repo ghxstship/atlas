@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { describe, expect, it } from "vitest";
 import {
   audienceForRoleType,
+  engagementAudience,
   engagementSummaries,
   externalAudience,
   IdentityError,
@@ -11,7 +12,7 @@ import {
   resolveIdentity,
   scopeFor,
 } from "../src/data/identity";
-import type { EngagementSummary } from "../src/domain/access";
+import { moreMenu, type EngagementSummary } from "../src/domain/access";
 
 const eng = (over: Partial<EngagementSummary>): EngagementSummary => ({
   id: "e1",
@@ -207,6 +208,65 @@ describe("resolveIdentity", () => {
     expect(r.identity).toMatchObject({ audience: "crew", membershipId: null });
     expect(r.projects).toEqual([{ id: "p1", name: "Fest" }]);
     expect(r.scope.engagementIds).toEqual(["e1"]);
+  });
+
+  it("resolves an artist's agent as the Artist Representative, never the Artist (C-10)", async () => {
+    const artistEngagement = {
+      org_id: "o1",
+      org_name: "Demo Northwind",
+      project_id: "p1",
+      project_name: "Summer Series",
+      role_type: "Artist",
+      // The artist holds the engagement; the agent reaches it through app.representations.
+      person_id: "person-artist",
+      engagement_state: "Active",
+    };
+    const r = await resolveIdentity(
+      fake({
+        "app.people": { data: { id: "person-agent", full_name: "Demo Artist Agent" }, error: null },
+        "app.memberships": { data: [], error: null },
+        "api_external.engagements": {
+          data: [
+            { ...artistEngagement, id: "e-a1" },
+            { ...artistEngagement, id: "e-a2", project_id: "p2", project_name: "Winter Series" },
+          ],
+          error: null,
+        },
+      }),
+      "user-agent",
+    );
+    expect(r.identity.audience).toBe("artist-representative");
+    expect(r.identity.engagements.map((e) => e.roleType)).toEqual([
+      "artist-representative",
+      "artist-representative",
+    ]);
+    expect(r.scope.audience).toBe("artist-representative");
+    expect(r.scope.engagementIds).toEqual(["e-a1", "e-a2"]);
+    // The representative's More menu, which the sitemap gives no Project Details.
+    expect(moreMenu(r.identity.audience).map((m) => m.id)).not.toContain("project-details");
+    expect(moreMenu("artist").map((m) => m.id)).toContain("project-details");
+  });
+
+  it("keeps the artist's own engagement, and one no person holds, as the Artist", () => {
+    const row = {
+      id: "e1",
+      org_id: "o1",
+      org_name: "Demo Org",
+      project_id: "p1",
+      project_name: "Fest",
+      role_type: "Artist",
+      engagement_state: "Active",
+    };
+    expect(
+      engagementSummaries([{ ...row, person_id: "me" }], [], "me").map((e) => e.roleType),
+    ).toEqual(["artist"]);
+    expect(
+      engagementSummaries([{ ...row, person_id: null }], [], "me").map((e) => e.roleType),
+    ).toEqual(["artist"]);
+    expect(engagementAudience("Artist", "someone", "me")).toBe("artist-representative");
+    // Only an artist's engagement has a representative: a crew engagement of the person's company stays crew.
+    expect(engagementAudience("Crew", "someone", "me")).toBe("crew");
+    expect(engagementAudience("Mystery", null, "me")).toBeNull();
   });
 
   it("resolves a person who works only on a party's roster as crew, with their entry in scope (R8)", async () => {

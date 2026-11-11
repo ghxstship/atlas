@@ -847,7 +847,8 @@
     "editInAtlas": "Editar en Atlas",
     "editInGateway": "Editar en Gateway",
     "manageInAtlas": "Administrar en Atlas",
-    "manageInGateway": "Administrar en Gateway"
+    "manageInGateway": "Administrar en Gateway",
+    "representingArtist": "En representación del artista"
   },
   "legalGate": {
     "age": {

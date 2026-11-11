@@ -95,6 +95,8 @@ interface EngagementRow {
   readonly project_id: unknown;
   readonly project_name: unknown;
   readonly role_type: unknown;
+  /** The engaged person, when a person holds the engagement (api_external.engagements). */
+  readonly person_id?: unknown;
   readonly engagement_state: unknown;
   readonly roster_entry_id?: unknown;
   readonly lead_name?: unknown;
@@ -102,16 +104,39 @@ interface EngagementRow {
 }
 
 /**
+ * The audience of an engagement the person reaches through api_external.engagements. An artist's engagement held by
+ * someone else is reached as that artist's representative (app.representations, Section 8.7): the agent works it as
+ * the Artist Representative, never as the Artist, as Gateway's engagement record does (representationFor).
+ */
+export function engagementAudience(
+  roleType: string,
+  engagedPersonId: string | null,
+  personId: string | null,
+): Audience | null {
+  const audience = audienceForRoleType(roleType);
+  if (audience === "artist" && engagedPersonId !== null && engagedPersonId !== personId) {
+    return "artist-representative";
+  }
+  return audience;
+}
+
+/**
  * The person's engagements as Compass summaries: their own (api_external.engagements), then the ones they
- * work only on a party's roster (api_external.my_roster_engagements, R8) as crew, each once.
+ * work only on a party's roster (api_external.my_roster_engagements, R8) as crew, each once. `personId` is the
+ * signed-in person, so an artist's engagement they reach as a representative reads as one.
  */
 export function engagementSummaries(
   own: readonly EngagementRow[],
   rostered: readonly EngagementRow[],
+  personId: string | null = null,
 ): EngagementSummary[] {
   const summaries: EngagementSummary[] = [];
   for (const e of own) {
-    const audience = audienceForRoleType(String(e.role_type));
+    const audience = engagementAudience(
+      String(e.role_type),
+      e.person_id === null || e.person_id === undefined ? null : String(e.person_id),
+      personId,
+    );
     if (!audience) continue;
     summaries.push({
       id: String(e.id),
@@ -492,7 +517,9 @@ export async function resolveIdentity(
   const engagements = await client
     .schema("api_external")
     .from("engagements")
-    .select("id, org_id, org_name, project_id, project_name, role_type, engagement_state, areas");
+    .select(
+      "id, org_id, org_name, project_id, project_name, role_type, person_id, engagement_state, areas",
+    );
   // A member whose engagement read fails still opens their own orgs; only an external sign-in needs it.
   if (engagements.error && members.length === 0)
     throw new IdentityError("engagements", engagements.error.message);
@@ -506,6 +533,7 @@ export async function resolveIdentity(
   const summaries = engagementSummaries(
     engagements.error ? [] : (engagements.data as EngagementRow[]),
     rostered.error ? [] : (rostered.data as EngagementRow[]),
+    personId,
   );
   const contexts = [
     ...members,
