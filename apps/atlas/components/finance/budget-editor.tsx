@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import type { BudgetLine, BudgetLineInput } from "@xos/data/finance";
-import { accountForUrid, clientUnitPrice, mergeSavedLine, xyzFor } from "@xos/data/finance";
+import { clientUnitPrice, mergeSavedLine, xyzFor } from "@xos/data/finance";
 import { Button, SpreadsheetGrid, ToastRegion, UndoToast, type GridColumn } from "@xos/ui";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
@@ -311,6 +311,10 @@ export function BudgetEditor(props: Props) {
         quantity: l.quantity,
         unitBasis: l.unitBasis,
         unitPrice: toMajor(l.unitPriceMinor, props.exponent),
+        // The account the line posts to (app.budget_line_amounts): the item's explicit GL default
+        // before the URID class's account (decision 39), as the account pivot reads it. Blank while
+        // a changed URID or item saves, until the page rereads it.
+        account: l.accountCode,
         // Blank when withheld or unpriced, so the column total stays blank too (the silence rule).
         committed: l.committedWithheld ? null : toMajor(l.committedMinor, props.exponent),
         actual: toMajor(l.actualMinor, props.exponent),
@@ -462,7 +466,6 @@ export function BudgetEditor(props: Props) {
       label: t("budgets.columns.account"),
       type: "code",
       width: 96,
-      derive: (r) => accountForUrid(String(r["urid"] ?? ""), props.accounts)?.code ?? null,
     },
     {
       key: "extended",

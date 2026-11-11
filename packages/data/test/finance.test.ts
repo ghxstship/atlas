@@ -759,6 +759,13 @@ describe("budgets", () => {
       extendedMinor: 2000,
       updatedAt: "2027-01-02T00:00:00Z",
     });
+    // A save that changes the URID or the item changes the account the line posts to (decision 39):
+    // the account read for the old one no longer applies, so it is blank until the page rereads it.
+    expect(finance.mergeSavedLine(previous, { ...saved, urid: "6000.01" }).accountCode).toBeNull();
+    expect(
+      finance.mergeSavedLine(previous, { ...saved, elementId: "0000.51.01-XOS-005" }).accountCode,
+    ).toBeNull();
+    expect(finance.mergeSavedLine(previous, saved).accountCode).toBe("5500");
   });
 
   it("totals committed by the silence rule", () => {
