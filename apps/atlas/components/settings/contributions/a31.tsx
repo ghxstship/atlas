@@ -155,7 +155,7 @@ async function ToursTipsPanel(props: SettingsPanelProps) {
  * Me, Account: the XOS account itself (name, sign-in methods, deletion) lives in Gateway (Section 4.5.8), so Atlas says
  * so and links there instead of promising controls it does not have (crawl 4.9).
  */
-async function AccountInGatewayPanel(_: SettingsPanelProps) {
+async function AccountInGatewayPanel() {
   const t = await getTranslate();
   return (
     <section

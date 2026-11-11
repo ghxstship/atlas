@@ -11,11 +11,16 @@ import { ChoiceDisclosure } from "@/components/settings/choice-disclosure";
 describe("ChoiceDisclosure", () => {
   it("sizes the checkboxes it holds to the 24 px target", () => {
     const html = renderToStaticMarkup(
-      h(
-        ChoiceDisclosure,
-        { title: "Events", summary: "0 chosen" },
-        h("label", null, h("input", { type: "checkbox", className: "xos-check-input" }), "x"),
-      ),
+      h(ChoiceDisclosure, {
+        title: "Events",
+        summary: "0 chosen",
+        children: h(
+          "label",
+          null,
+          h("input", { type: "checkbox", className: "xos-check-input" }),
+          "x",
+        ),
+      }),
     );
     expect(html).toContain("[&amp;_.xos-check-input]:[--ui-check:var(--density-target-fine)]");
   });

@@ -1,3 +1,5 @@
+import { supportAccessArea } from "@xos/data/enums";
+
 /**
  * An audit ledger action in words (Section 11.10 item 2, A59-017): `goods_receipts.update` on
  * `app.goods_receipts` reads "Updated a goods receipt", with the code beside it, never alone. The noun
@@ -32,7 +34,7 @@ export function tableWords(subjectTable: string): string {
 
 /** Tables only the platform support team writes during a support session the Owner granted (A90, 1472). */
 const SUPPORT_TABLES = new Set(["support_sessions", "support_session_accesses"]);
-const SUPPORT_AREAS = new Set(["Overview", "Members", "Projects", "Settings"]);
+const SUPPORT_AREAS: ReadonlySet<string> = new Set(supportAccessArea);
 
 /** The area a platform support read opened, from the audit copy of its app.support_session_accesses row. */
 function supportArea(subjectTable: string, diff: Readonly<Record<string, unknown>>): string | null {

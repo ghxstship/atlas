@@ -262,7 +262,9 @@ function ConfirmedSubmit({
           </Button>
         </>
       }
-    />
+    >
+      {null}
+    </Dialog>
   );
 }
 
