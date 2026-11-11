@@ -2,7 +2,16 @@
 
 import * as enums from "@xos/data/enums";
 import { Button, Dialog, InlineAlert, Input, MultiSelect, Select } from "@xos/ui";
-import { useActionState, useId, useRef, useState } from "react";
+import {
+  createContext,
+  useActionState,
+  useContext,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { useStepUpForm } from "@/components/auth/security/step-up";
 import { keepInputOnSubmit, useKeepInput } from "@/components/collection-kit/keep-input";
 import { pauseSubscriptionAction, resumeSubscriptionAction } from "@/lib/billing/actions";
@@ -160,6 +169,24 @@ export function BlocklistRemove({
 
 // Pause --------------------------------------------------------------------------------------------------------
 
+/**
+ * Where a pause outcome is said. A success re-renders the panel with the other form (Pause becomes Resume, and back), so
+ * the form that succeeded unmounts with its state; the area around both keeps the message (crawl 4.9).
+ */
+const PauseNotice = createContext<((message: string) => void) | null>(null);
+
+export function PauseArea({ children }: { children: ReactNode }) {
+  const [done, setDone] = useState<string | null>(null);
+  return (
+    <PauseNotice.Provider value={setDone}>
+      <div aria-live="polite" data-testid="pause-outcome">
+        {done ? <InlineAlert tone="success">{done}</InlineAlert> : null}
+      </div>
+      {children}
+    </PauseNotice.Provider>
+  );
+}
+
 function PauseOutcome({
   state,
   refusals,
@@ -169,15 +196,75 @@ function PauseOutcome({
   refusals: Readonly<Record<string, string>>;
   success: string;
 }) {
+  const report = useContext(PauseNotice);
+  const ok = state.ok === true && !state.rule && !state.error;
+  useEffect(() => {
+    if (ok && report) report(success);
+  }, [ok, report, state, success]);
   if (state.rule && state.rule !== "step_up_required") {
     return <InlineAlert tone="warning">{refusals[state.rule] ?? refusals["other"]}</InlineAlert>;
   }
   if (state.error) return <InlineAlert tone="danger">{refusals["other"]}</InlineAlert>;
-  if (state.ok) return <InlineAlert tone="success">{success}</InlineAlert>;
+  if (ok && !report) return <InlineAlert tone="success">{success}</InlineAlert>;
   return null;
 }
 
 const stepUpRefused = (state: PlatformActionState) => state.rule === "step_up_required";
+
+/** The confirm step before a pause, a resume or a canceled pause posts to Stripe. */
+export interface PauseConfirmLabels {
+  readonly title: string;
+  readonly body: string;
+  readonly cancel: string;
+}
+
+/**
+ * The form's button opens a dialog that says what happens, and only its confirm button submits the form (each of these
+ * acts on Stripe at once, and resuming charges a new period today). The dialog closes when the action answers.
+ */
+function ConfirmedSubmit({
+  formId,
+  label,
+  confirm,
+  pending,
+  state,
+}: {
+  formId: string;
+  label: string;
+  confirm: PauseConfirmLabels;
+  pending: boolean;
+  state: PlatformActionState;
+}) {
+  const [open, setOpen] = useState(false);
+  const [seen, setSeen] = useState(state);
+  if (state !== seen) {
+    setSeen(state);
+    setOpen(false);
+  }
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={setOpen}
+      trigger={
+        <Button type="button" variant="secondary">
+          {label}
+        </Button>
+      }
+      title={confirm.title}
+      description={confirm.body}
+      actions={
+        <>
+          <Button type="button" onClick={() => setOpen(false)}>
+            {confirm.cancel}
+          </Button>
+          <Button type="submit" form={formId} variant="primary" loading={pending}>
+            {label}
+          </Button>
+        </>
+      }
+    />
+  );
+}
 
 /** The months select, with the dates each choice gives, and the Pause button. */
 export function PauseForm({
@@ -185,12 +272,14 @@ export function PauseForm({
   previews,
   labels,
   refusals,
+  confirm,
 }: {
   org: string;
   /** One sentence per choice of 1 to 6 months: "Pauses on ... Billing and changes resume on ...". */
   previews: readonly string[];
   labels: { months: string; options: readonly string[]; pause: string; paused: string };
   refusals: Readonly<Record<string, string>>;
+  confirm: PauseConfirmLabels;
 }) {
   const [state, dispatch, pending] = useActionState(
     pauseSubscriptionAction,
@@ -198,11 +287,14 @@ export function PauseForm({
   );
   const [months, setMonths] = useState("1");
   const ref = useRef<HTMLFormElement>(null);
+  const formId = useId();
   const stepUp = useStepUpForm(state, stepUpRefused, ref);
+  const preview = previews[Number(months) - 1] ?? "";
   return (
     <>
       <form
         ref={ref}
+        id={formId}
         action={dispatch}
         // Keeps the chosen length when the pause is refused; the ref stays for the step-up's resubmit.
         onSubmit={keepInputOnSubmit(dispatch)}
@@ -218,17 +310,21 @@ export function PauseForm({
           onChange={(e) => setMonths(e.target.value)}
         />
         <p className="m-0 text-text-13" data-testid="pause-preview">
-          {previews[Number(months) - 1]}
+          {preview}
         </p>
         <div aria-live="polite">
           <PauseOutcome state={state} refusals={refusals} success={labels.paused} />
         </div>
-        <div>
-          <Button type="submit" variant="secondary" loading={pending}>
-            {labels.pause}
-          </Button>
-        </div>
       </form>
+      <div>
+        <ConfirmedSubmit
+          formId={formId}
+          label={labels.pause}
+          confirm={{ ...confirm, body: `${preview} ${confirm.body}`.trim() }}
+          pending={pending}
+          state={state}
+        />
+      </div>
       {stepUp}
     </>
   );
@@ -241,33 +337,46 @@ export function ResumeForm({
   note,
   done,
   refusals,
+  confirm,
 }: {
   org: string;
   label: string;
   note: string | null;
   done: string;
   refusals: Readonly<Record<string, string>>;
+  confirm: PauseConfirmLabels;
 }) {
   const [state, dispatch, pending] = useActionState(
     resumeSubscriptionAction,
     INITIAL_PLATFORM_STATE,
   );
   const ref = useRef<HTMLFormElement>(null);
+  const formId = useId();
   const stepUp = useStepUpForm(state, stepUpRefused, ref);
   return (
     <>
-      <form ref={ref} action={dispatch} className="flex flex-col gap-8" data-testid="resume-form">
+      <form
+        ref={ref}
+        id={formId}
+        action={dispatch}
+        className="flex flex-col gap-8"
+        data-testid="resume-form"
+      >
         <input type="hidden" name="org" value={org} />
         {note ? <p className="m-0 text-text-13 text-text-secondary">{note}</p> : null}
         <div aria-live="polite">
           <PauseOutcome state={state} refusals={refusals} success={done} />
         </div>
-        <div>
-          <Button type="submit" variant="secondary" loading={pending}>
-            {label}
-          </Button>
-        </div>
       </form>
+      <div>
+        <ConfirmedSubmit
+          formId={formId}
+          label={label}
+          confirm={confirm}
+          pending={pending}
+          state={state}
+        />
+      </div>
       {stepUp}
     </>
   );

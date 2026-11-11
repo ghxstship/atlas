@@ -15,6 +15,16 @@
   "ownerOnly": "Only the Owner can pause or resume billing.",
   "paused": "Billing is paused. It starts on {startsOn}.",
   "resumed": "Billing has resumed.",
+  "scheduleCanceled": "The scheduled pause is canceled. Billing continues as before.",
+  "confirm": {
+    "pauseTitle": "Pause billing?",
+    "pauseBody": "While the pause runs the organization is read-only. You can resume early from this page.",
+    "resumeTitle": "Resume billing now?",
+    "resumeBody": "A new billing period starts today and Stripe charges it now. The organization can make changes again at once.",
+    "cancelScheduledTitle": "Cancel the scheduled pause?",
+    "cancelScheduledBody": "Billing continues as before and the organization stays writable.",
+    "back": "Go back"
+  },
   "banner": "This organization is paused until {date}. Everything stays readable and exportable; changes resume when it does.",
   "bannerOpen": "This organization is paused. Everything stays readable and exportable; changes resume when the Owner resumes billing.",
   "bannerScheduled": "Billing pauses on {startsOn}. The organization will be read-only until {resumesOn}.",
