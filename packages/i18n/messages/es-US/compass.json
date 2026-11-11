@@ -723,7 +723,9 @@
     "callLine": "{department} · {instruction}",
     "noCall": "Sin llamada de {department}",
     "noCalls": "Sin llamadas de departamento",
-    "countdownTbc": "{cue}: hora por confirmar"
+    "countdownTbc": "{cue}: hora por confirmar",
+    "runningOrders": "Órdenes del show",
+    "runningOrderUnnamed": "Orden del show"
   },
   "kiosk": {
     "title": "Quiosco",

@@ -17,11 +17,16 @@ import {
   countdownAnnouncement,
   countdownParts,
   cueCallLines,
+  liveRunningOrder,
   preCueHapticDue,
+  runningOrders,
   showState,
   type Cue,
   type CueCallRow,
+  type RunningOrder,
+  type RunningOrderRow,
 } from "../domain/show";
+import { formatCalendarDay } from "../domain/dates";
 import { hapticsOn } from "../domain/settings";
 import { useCompass, useRows } from "../runtime/CompassProvider";
 import {
@@ -30,10 +35,12 @@ import {
   Card,
   EmptyState,
   InlineAlert,
+  ListRow,
   ProgressBar,
   RunOfShowLive,
   Screen,
   SegmentedControl,
+  Sheet,
   Tag,
   Text,
   ThemeProvider,
@@ -42,6 +49,7 @@ import { formatTime, ProjectPicker, SyncBanner, useAllowed } from "./common";
 
 type CueRow = Cue & Row & { project_id?: string | null };
 type CallRow = CueCallRow & Row;
+type OrderRow = RunningOrderRow & Row & { project_id?: string | null };
 
 const KEEP_AWAKE_TAG = "compass-show-mode";
 
@@ -89,9 +97,15 @@ export function ShowView({ readOnly }: { readonly readOnly: boolean }): ReactEle
   const [showMode, setShowMode] = useState(false);
   const [now, setNow] = useState(Date.now());
   const { rows: cues } = useRows<CueRow>("cues", (c) => c.project_id === projectId);
-  const cueIds = new Set(cues.map((c) => c.id));
+  const { rows: orderRows } = useRows<OrderRow>("run_of_show", (r) => r.project_id === projectId);
+  // Each running order reads on its own (C-08): the one the person picked, else the live one.
+  const [chosenOrder, setChosenOrder] = useState<string | null>(null);
+  const orders = runningOrders(cues, orderRows);
+  const order = orders.find((o) => o.id === chosenOrder) ?? liveRunningOrder(orders, now);
+  const ordered = order?.cues ?? [];
+  const cueIds = new Set(ordered.map((c) => c.id));
   const { rows: calls } = useRows<CallRow>("cue_calls", (c) => cueIds.has(c.cue_id));
-  const state = showState(cues, now);
+  const state = showState(ordered, now);
   const department = settings.showDepartment;
   const previous = useRef<number | null>(null);
   // The pre-cue haptic follows the person's me.haptics once resolved, as every Compass haptic does.
@@ -141,7 +155,6 @@ export function ShowView({ readOnly }: { readonly readOnly: boolean }): ReactEle
       </Screen>
     );
   }
-  const ordered = [...cues].sort((a, b) => a.position - b.position);
   const currentIndex = state.current ? ordered.findIndex((c) => c.id === state.current?.id) : -1;
   const nextIndex = state.next ? ordered.findIndex((c) => c.id === state.next?.id) : -1;
   const departmentName = (k: CueCallKind) => t(`compass.show.departments.${CUE_CALL_SLUGS[k]}`);
@@ -187,6 +200,9 @@ export function ShowView({ readOnly }: { readonly readOnly: boolean }): ReactEle
       }
     >
       {showMode ? null : <ProjectPicker />}
+      {showMode || orders.length < 2 || !order ? null : (
+        <RunningOrderPicker orders={orders} current={order} onChoose={setChosenOrder} />
+      )}
       <SyncBanner />
       <Tag
         testID="show-status"
@@ -261,6 +277,56 @@ export function ShowView({ readOnly }: { readonly readOnly: boolean }): ReactEle
     </Screen>
   );
   return showMode ? <ThemeProvider preference="dark">{body}</ThemeProvider> : body;
+}
+
+/** The running order's name and show day, as the picker reads it. */
+function orderLabel(t: TFunction, order: RunningOrder): string {
+  const name = order.name || t("compass.show.runningOrderUnnamed");
+  return order.showDate ? `${name} · ${formatCalendarDay(order.showDate)}` : name;
+}
+
+/** A project with several running orders (a side stage, another show day) picks one; each reads on its own. */
+function RunningOrderPicker({
+  orders,
+  current,
+  onChoose,
+}: {
+  readonly orders: readonly RunningOrder[];
+  readonly current: RunningOrder;
+  readonly onChoose: (id: string) => void;
+}): ReactElement {
+  const { t } = useTranslation();
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <Button
+        testID="running-order-picker"
+        variant="secondary"
+        icon="list"
+        label={orderLabel(t, current)}
+        onPress={() => setOpen(true)}
+      />
+      <Sheet
+        open={open}
+        title={t("compass.show.runningOrders")}
+        closeLabel={t("compass.common.close")}
+        onClose={() => setOpen(false)}
+      >
+        {orders.map((o) => (
+          <ListRow
+            key={o.id}
+            testID={`running-order-${o.id}`}
+            title={orderLabel(t, o)}
+            icon={o.id === current.id ? "check" : "list"}
+            onPress={() => {
+              onChoose(o.id);
+              setOpen(false);
+            }}
+          />
+        ))}
+      </Sheet>
+    </>
+  );
 }
 
 /** The countdown as a screen reader says it: "2 min 10 s to Doors", or late for a missed cue. */
