@@ -18,6 +18,7 @@ import {
   listMyLinks,
   listMySkills,
   listSectionVisibility,
+  type OrganizationProfile,
   PROFILE_SECTIONS,
 } from "@xos/data/profiles";
 import { DEFAULT_FEED_SOURCES, listMyPersonCalendarFeeds } from "@xos/data/calendar-feeds";
@@ -38,7 +39,7 @@ import { RegionError, Section } from "@/components/page/page";
 import { countryOptions } from "@xos/i18n/formats";
 import { currentOffering } from "@/lib/offering";
 import { offeredTerritoriesPhrase } from "@/lib/territory";
-import { InlineAlert } from "@/components/ui";
+import { ButtonLink, InlineAlert } from "@/components/ui";
 import { revokeProfileShareAction, revokeRepresentationAction } from "@/lib/actions/engagement";
 import {
   addCertificationAction,
@@ -58,6 +59,8 @@ import { formatDate, formatMoney, minorDigits } from "@/lib/format";
 import { getChosenTimeZone, personToday } from "@/lib/time-zone";
 import { choiceLabelKey, formText, NO_ORG, personalSettings } from "@/lib/settings";
 import type { GatewayContext } from "@/lib/shell/context";
+import { canEditCompanyProfile, canRemoveMember } from "@/lib/account-team";
+import { certificateTag } from "@/lib/invoice-status";
 import { sitemap } from "@/lib/shell/sitemap";
 import { enumLabelKey, getTranslate, type Translate } from "@/lib/shell/translate";
 import { AddPersonFeedForm, PersonFeedActions } from "./calendar-feeds-forms";
@@ -720,7 +723,18 @@ async function PayoutTaxSection(props: SectionProps & { account?: boolean }) {
       <Section title={t("gateway.money.tax.payouts")}>
         <p className="m-0 text-text-13 text-text-secondary">{t("gateway.settings.payout.body")}</p>
         {payouts.data.filter(scope).length === 0 ? (
-          <p className="m-0 text-text-13 text-text-secondary">{t("gateway.money.tax.noPayouts")}</p>
+          // No Gateway form adds a destination: each org's payment provider does, so the way on is
+          // to ask the org, never back to this page (crawl 4.9).
+          <>
+            <p className="m-0 text-text-13 text-text-secondary">
+              {t("gateway.money.tax.noPayouts")}
+            </p>
+            <div>
+              <ButtonLink href="/messages" size="sm">
+                {t("nav.gateway.primary.messages")}
+              </ButtonLink>
+            </div>
+          </>
         ) : (
           <RowList
             label={t("gateway.money.tax.payouts")}
@@ -850,14 +864,36 @@ async function RegistrySection(props: SectionProps) {
   );
 }
 
+/**
+ * The company's public profile (Section 4.8.3). An Account Owner or Admin edits it, and opening the
+ * page creates it on first use; Finance and Members read it (the sitemap's `read`), so they never
+ * call app.ensure_organization_profile, which refuses anyone who cannot edit (crawl 4.9).
+ */
 async function CompanyProfileSection(props: SectionProps) {
   const { ctx, t } = props;
   if (!ctx.acting) return null;
-  const profile = await getOrganizationProfile(ctx.db, ctx.acting.id, true);
+  const editor = canEditCompanyProfile(ctx.acting.roles);
+  const profile = await getOrganizationProfile(ctx.db, ctx.acting.id, editor);
+  if (!profile.ok) {
+    return (
+      <>
+        <Header t={t} node={props.node} />
+        <RegionError />
+      </>
+    );
+  }
+  if (!editor) {
+    return (
+      <>
+        <Header t={t} node={props.node} />
+        <CompanyProfileReadOnly t={t} profile={profile.data} />
+      </>
+    );
+  }
   return (
     <>
       <Header t={t} node={props.node} />
-      {!profile.ok || !profile.data ? (
+      {!profile.data ? (
         <InlineAlert tone="info">{t("gateway.settings.company.profileUnavailable")}</InlineAlert>
       ) : (
         <>
@@ -924,10 +960,65 @@ async function CompanyProfileSection(props: SectionProps) {
   );
 }
 
+function CompanyProfileReadOnly({
+  t,
+  profile,
+}: {
+  t: Translate;
+  profile: OrganizationProfile | null;
+}) {
+  if (!profile) {
+    return (
+      <InlineAlert tone="info">{t("gateway.settings.company.profileUnavailable")}</InlineAlert>
+    );
+  }
+  const none = t("gateway.settings.company.notGiven");
+  const rows: [string, ReactNode][] = [
+    [t("gateway.settings.profile.handle"), profile.handle],
+    [t("gateway.settings.company.about"), profile.about || none],
+    [t("gateway.settings.company.website"), profile.websiteUrl || none],
+    [t("gateway.settings.company.email"), profile.contactEmail || none],
+    [
+      t("gateway.settings.privacy.visibility"),
+      t(enumLabelKey("profileVisibility", profile.visibility)),
+    ],
+    [
+      t("gateway.settings.privacy.indexing"),
+      t(
+        profile.searchIndexing
+          ? "gateway.settings.company.indexed"
+          : "gateway.settings.company.notIndexed",
+      ),
+    ],
+  ];
+  return (
+    <>
+      <p className="m-0 text-text-13 text-text-secondary">
+        {t("gateway.settings.company.profileReadOnly")}
+      </p>
+      <Link
+        href={`/c/${profile.handle}` as Route}
+        className="text-text-13 text-accent-text underline"
+      >
+        {t("gateway.settings.company.publicLink", { handle: profile.handle })}
+      </Link>
+      <dl className="m-0 grid grid-cols-[minmax(0,12rem)_1fr] gap-x-12 gap-y-8 text-text-14">
+        {rows.map(([term, value]) => (
+          <div key={term} className="contents">
+            <dt className="text-text-secondary">{term}</dt>
+            <dd className="m-0 whitespace-pre-line break-words">{value}</dd>
+          </div>
+        ))}
+      </dl>
+    </>
+  );
+}
+
 async function TeamSection(props: SectionProps) {
   const { ctx, t, locale } = props;
   if (!ctx.acting) return null;
-  const admin = ctx.acting.roles.some((r) => r === "Account Owner" || r === "Account Admin");
+  const actingRoles = ctx.acting.roles;
+  const admin = actingRoles.some((r) => r === "Account Owner" || r === "Account Admin");
   const [members, invitations] = await Promise.all([
     listAccountMembers(ctx.db, ctx.acting.id),
     admin ? listAccountInvitations(ctx.db, ctx.acting.id) : null,
@@ -956,7 +1047,12 @@ async function TeamSection(props: SectionProps) {
                   },
                 }
               : {}),
-            ...(admin && m.personId !== ctx.personId
+            // Only an Owner removes an Owner (crawl 4.9); the database refuses anyone else.
+            ...(canRemoveMember({
+              actingRoles,
+              personId: ctx.personId,
+              member: m,
+            })
               ? {
                   action: (
                     <ActionButton
@@ -1011,7 +1107,10 @@ async function InsuranceSection(props: SectionProps) {
   const certificates = await readView(ctx.db, "vendor_insurance_certificates", {
     order: ["valid_to", "desc"],
   });
-  const prequal = await readView(ctx.db, "vendor_prequalifications", {});
+  const [prequal, today] = await Promise.all([
+    readView(ctx.db, "vendor_prequalifications", {}),
+    personToday(ctx),
+  ]);
   if (!certificates.ok || !prequal.ok) return <RegionError />;
   const mine = certificates.data.filter((c) => c.account_id === ctx.acting?.id);
   return (
@@ -1040,9 +1139,8 @@ async function InsuranceSection(props: SectionProps) {
                   })
                 : null,
             ],
-            tag: c.is_current
-              ? { label: t("gateway.engagement.compliance.current"), tone: "success" as const }
-              : { label: t("gateway.engagement.compliance.expired"), tone: "danger" as const },
+            // Dated against today: a certificate not yet in force never reads Expired (crawl 4.9).
+            tag: certificateTag(c, today, t, (iso) => formatDate(locale, iso)),
           }))}
         />
       )}

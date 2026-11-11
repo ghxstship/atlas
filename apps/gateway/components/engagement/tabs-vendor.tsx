@@ -18,6 +18,7 @@ import { InlineAlert, Tag } from "@/components/ui";
 import { acknowledgePurchaseOrderAction } from "@/lib/actions/operations";
 import { hasArea, isLiveEngagement, tabHref } from "@/lib/engagement";
 import { formatDate, formatDateRange, formatDateTime, formatMoney } from "@/lib/format";
+import { certificateTag } from "@/lib/invoice-status";
 import { enumLabelKey } from "@/lib/shell/translate";
 import { toneFor } from "@/lib/states";
 import { DeliveryBookingActions, DeliveryBookingForm } from "./delivery-forms";
@@ -580,9 +581,8 @@ export async function ComplianceTab({ view, t, locale, engagementKey }: TabProps
                 formatMoney(locale, c.coverage_limit_minor, c.currency_code),
                 formatDateRange(locale, c.valid_from, c.valid_to),
               ],
-              tag: c.is_current
-                ? { label: t("gateway.engagement.compliance.current"), tone: "success" as const }
-                : { label: t("gateway.engagement.compliance.expired"), tone: "danger" as const },
+              // Dated against today: a certificate not yet in force never reads Expired (crawl 4.9).
+              tag: certificateTag(c, view.today, t, (iso) => formatDate(locale, iso)),
               detail: (
                 <CertificateInsureds
                   t={t}
