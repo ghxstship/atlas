@@ -45,8 +45,12 @@ async function PlatformSupportPanel({ ctx }: SettingsPanelProps) {
   // Times on the org's calendar with the zone named, as the audit log shows the same reads (crawl 4.9), never in the
   // server's own zone.
   const zoned = new Intl.DateTimeFormat(locale, {
-    dateStyle: "medium",
-    timeStyle: "short",
+    // dateStyle and timeStyle cannot be combined with timeZoneName (a RangeError), so the fields are named.
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
     timeZone: zone,
     timeZoneName: "short",
   });

@@ -605,8 +605,12 @@ export async function AuditLogPanel({ ctx }: SettingsPanelProps) {
   // full Activity audit log reads them.
   const words = activity as unknown as Parameters<typeof auditActionText>[2];
   const when = new Intl.DateTimeFormat(f.locale, {
-    dateStyle: "medium",
-    timeStyle: "short",
+    // dateStyle and timeStyle cannot be combined with timeZoneName (a RangeError), so the fields are named.
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
     timeZone: zone,
     timeZoneName: "short",
   });
