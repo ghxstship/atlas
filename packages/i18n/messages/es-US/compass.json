@@ -61,7 +61,7 @@
       "access": "tu acceso"
     },
     "noAccessTitle": "Todavía no tienes nada abierto",
-    "noAccess": "Iniciaste sesión, pero ninguna organización te ha agregado a su equipo y ninguna de tus contrataciones está activa todavía. Pide a la persona que te invitó que revise tu invitación. Compass se abre en cuanto lo haga.",
+    "noAccess": "Iniciaste sesión, pero ninguna organización te ha agregado a su equipo y ninguna de tus contrataciones está activa todavía. Pide a la persona que te invitó que revise tu invitación. Después toca Volver a comprobar.",
     "checkAgain": "Volver a comprobar"
   },
   "startup": {

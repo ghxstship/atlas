@@ -61,7 +61,7 @@
       "access": "access"
     },
     "noAccessTitle": "Nothing is open for you yet",
-    "noAccess": "You are signed in, but no organization has added you to its team and none of your engagements is active yet. Ask the person who invited you to check your invitation. Compass opens as soon as they do.",
+    "noAccess": "You are signed in, but no organization has added you to its team and none of your engagements is active yet. Ask the person who invited you to check your invitation. Then tap Check Again.",
     "checkAgain": "Check Again"
   },
   "startup": {

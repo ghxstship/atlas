@@ -105,30 +105,75 @@ interface EngagementRow {
 
 /**
  * The audience of an engagement the person reaches through api_external.engagements. An artist's engagement held by
- * someone else is reached as that artist's representative (app.representations, Section 8.7): the agent works it as
- * the Artist Representative, never as the Artist, as Gateway's engagement record does (representationFor).
+ * someone else is worked as the Artist Representative only through a live representation of that artist
+ * (app.representations, Section 8.7), as Gateway's engagement record decides it (representationFor). Anyone else who
+ * reaches it, an account Owner, Admin or Finance member or a person assigned to the engagement such as a band member,
+ * keeps the Artist set.
  */
 export function engagementAudience(
   roleType: string,
   engagedPersonId: string | null,
   personId: string | null,
+  representedArtists: ReadonlySet<string> = new Set(),
 ): Audience | null {
   const audience = audienceForRoleType(roleType);
-  if (audience === "artist" && engagedPersonId !== null && engagedPersonId !== personId) {
+  if (
+    audience === "artist" &&
+    engagedPersonId !== null &&
+    engagedPersonId !== personId &&
+    representedArtists.has(engagedPersonId)
+  ) {
     return "artist-representative";
   }
   return audience;
 }
 
+/** A representation as api_external.representations gives it, with what its standing reads. */
+export interface RepresentationRow {
+  readonly artist_person_id: unknown;
+  readonly expires_on: unknown;
+  readonly accepted_at: unknown;
+  readonly revoked_at: unknown;
+}
+
+/**
+ * The artists the person represents today: accepted, not revoked and not past its expiry, the rule of @xos/data's
+ * representationStanding ("active"). `today` is YYYY-MM-DD.
+ */
+export function representedArtists(
+  rows: readonly RepresentationRow[],
+  today: string,
+): ReadonlySet<string> {
+  return new Set(
+    rows
+      .filter(
+        (r) =>
+          (r.revoked_at === null || r.revoked_at === undefined) &&
+          r.accepted_at !== null &&
+          r.accepted_at !== undefined &&
+          String(r.expires_on) >= today,
+      )
+      .map((r) => String(r.artist_person_id)),
+  );
+}
+
+/** Today on the device's calendar as YYYY-MM-DD, never UTC's date. */
+function localDay(now: Date): string {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+}
+
 /**
  * The person's engagements as Compass summaries: their own (api_external.engagements), then the ones they
  * work only on a party's roster (api_external.my_roster_engagements, R8) as crew, each once. `personId` is the
- * signed-in person, so an artist's engagement they reach as a representative reads as one.
+ * signed-in person and `represented` the artists they represent today, so an artist's engagement they reach as a
+ * representative reads as one.
  */
 export function engagementSummaries(
   own: readonly EngagementRow[],
   rostered: readonly EngagementRow[],
   personId: string | null = null,
+  represented: ReadonlySet<string> = new Set(),
 ): EngagementSummary[] {
   const summaries: EngagementSummary[] = [];
   for (const e of own) {
@@ -136,6 +181,7 @@ export function engagementSummaries(
       String(e.role_type),
       e.person_id === null || e.person_id === undefined ? null : String(e.person_id),
       personId,
+      represented,
     );
     if (!audience) continue;
     summaries.push({
@@ -214,8 +260,8 @@ export class IdentityError extends Error {
 
 /**
  * A sign-in that nothing has opened yet: no membership in any org and no engagement that is open to the person (a new
- * sign-up, or a roster member whose engagement is still being set up). The read worked, so it is no failure and Try
- * Again cannot change it; Compass says who can open access instead (C-12).
+ * sign-up, or a roster member whose engagement is still being set up). Every read worked (resolveIdentity throws the
+ * failed step otherwise), so it is no failure; Compass says who can open access instead (C-12).
  */
 export class NoAccessYet extends IdentityError {
   constructor() {
@@ -530,15 +576,29 @@ export async function resolveIdentity(
     .select(
       "id, org_id, org_name, project_id, project_name, role_type, engagement_state, roster_entry_id, lead_name",
     );
+  // The artists the person represents (Section 8.7). A failed read leaves an artist's engagement the Artist's, as
+  // before representations were read: row level security still decides what it opens.
+  const representations = await client
+    .schema("api_external")
+    .from("representations")
+    .select("artist_person_id, expires_on, accepted_at, revoked_at");
   const summaries = engagementSummaries(
     engagements.error ? [] : (engagements.data as EngagementRow[]),
     rostered.error ? [] : (rostered.data as EngagementRow[]),
     personId,
+    representations.error
+      ? new Set()
+      : representedArtists(representations.data as RepresentationRow[], localDay(new Date())),
   );
   const contexts = [
     ...members,
     ...engagedContexts(personId, displayName, summaries, new Set(members.map((c) => c.orgId))),
   ];
-  if (contexts.length === 0) throw new NoAccessYet();
+  if (contexts.length === 0) {
+    // Nothing open is only nothing open when every read worked; a failed roster read names its step instead (C-12). A
+    // failed engagements read with no membership already threw above.
+    if (rostered.error) throw new IdentityError("engagements", rostered.error.message);
+    throw new NoAccessYet();
+  }
   return activateOrg(contexts, preferredOrgId);
 }
