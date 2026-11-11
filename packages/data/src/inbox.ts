@@ -110,9 +110,21 @@ export async function listInbox(db: XosClient, orgId: string): Promise<Result<In
   return ok(sortInbox(items));
 }
 
+/**
+ * True for a crisis alert still in force (crawl 4.9): app.inbox_items (904110303) puts crisis_alert.issued under Needs
+ * You until its all-clear reaches the person, and the Inbox shows it first and as urgent. Its all-clear, and an alert
+ * already over, are For Your Information like any notice.
+ */
+export function isUrgentInboxItem(item: Pick<InboxItem, "kind" | "section">): boolean {
+  return item.kind === "crisis_alert.issued" && item.section === "Needs You";
+}
+
+/** Needs You first, crisis alerts in force at its top, then newest first. */
 export function sortInbox(items: readonly InboxItem[]): InboxItem[] {
   return [...items].sort((a, b) => {
     if (a.section !== b.section) return a.section === "Needs You" ? -1 : 1;
+    const urgent = Number(isUrgentInboxItem(b)) - Number(isUrgentInboxItem(a));
+    if (urgent !== 0) return urgent;
     return b.createdAt.localeCompare(a.createdAt) || b.id.localeCompare(a.id);
   });
 }

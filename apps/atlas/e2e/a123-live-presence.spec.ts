@@ -98,7 +98,8 @@ test("the dispatch board shows a new incident without a reload", async ({ browse
   const reporter = await asPerson(browser, "producer@example.com");
   await reporter.goto(`/${DEMO_ORG}/safety/incidents?project=NWS&create=1`);
   await reporter.locator("#incident-title").fill(title);
-  await reporter.locator("#incident-severity").selectOption({ index: 0 });
+  // Index 0 is the Severity prompt (crawl 4.9); index 1 is the first level.
+  await reporter.locator("#incident-severity").selectOption({ index: 1 });
   await reporter
     .locator("#incident-zone")
     .selectOption({ label: "LAWN · Festival Lawn · Bayside Festival Grounds" });

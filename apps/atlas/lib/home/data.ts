@@ -16,6 +16,7 @@ import {
   listProjects,
   type ProjectSummary,
 } from "@xos/data/projects";
+import { loadActiveCrisisAlerts } from "@/lib/home/crisis";
 import { must } from "@/lib/projects/loaders";
 import { regionOf, regionRead, type RegionData } from "@/lib/shell/region-data";
 import { getOrgTimeZone } from "@/lib/shell/time-zone";
@@ -56,7 +57,11 @@ export async function loadReadiness(ctx: OrgContext): Promise<GateReadiness[]> {
   return (await loadReadinessBoard(ctx)).readiness;
 }
 
-/** Everything the alert list needs, read for the viewer. */
+/**
+ * Everything the alert list needs, read for the viewer: crisis alerts in force first (app.crisis_alerts and the
+ * viewer's own crisis_alert.issued notifications, listActiveCrisisAlerts), then gate readiness, blocked and overdue
+ * records.
+ */
 export async function loadAlerts(
   ctx: OrgContext,
   now: Date = new Date(),
@@ -64,17 +69,19 @@ export async function loadAlerts(
 ): Promise<Alert[]> {
   const db = ctx.viewer.db;
   const personId = ctx.viewer.person?.id ?? null;
-  const [readiness, blocked, overdue] = await Promise.all([
+  const [readiness, blocked, overdue, crisis] = await Promise.all([
     known ? Promise.resolve([...known]) : loadReadiness(ctx),
     listBlockedRecords(db, ctx.org.id),
     personId
       ? listMyOverdueRecords(db, { orgId: ctx.org.id, personId, now })
       : Promise.resolve({ ok: true as const, data: [] }),
+    loadActiveCrisisAlerts(ctx),
   ]);
   return buildAlerts({
     readiness,
     blocked: must(blocked, "blocked records"),
     overdue: must(overdue, "overdue records"),
+    crisis: must(crisis, "crisis alerts"),
     today: todayIn(await getOrgTimeZone(ctx), now),
   });
 }

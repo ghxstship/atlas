@@ -83,7 +83,7 @@ select results_eq(
     ('collaborator', 5::smallint), ('field', 6::smallint), ('viewer', 7::smallint)$$,
   'seven system roles in band order'
 );
-select is((select count(*)::integer from app.role_capabilities), 987, '987 system role grants (987 seeded by 0203, less the Field role''s incident dispatch removed in 1110, plus its expense recording added in 1622)');
+select is((select count(*)::integer from app.role_capabilities), 985, '985 system role grants (987 seeded by 0203, less the Field role''s incident dispatch removed in 1110, plus its expense recording added in 1622, less the Member and Collaborator roles'' incident dispatch removed in 904110301)');
 select is(
   (select count(*)::integer from app.role_capabilities rc join app.roles r on r.id = rc.role_id where r.code = 'owner'),
   (select count(*)::integer from app.capabilities),

@@ -1,3 +1,4 @@
+import { issuableCredentialIds } from "@xos/data/credentials";
 import { generateBadgeBatch } from "@xos/data/documents/generate";
 import { isPrintSizeFor } from "@xos/data/documents/model";
 import { MAX_BATCH } from "@xos/data/documents/render";
@@ -18,7 +19,8 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
  * Credential badges in one PDF (P5, ADR 0031 amendment): `?id=` repeated 1 to 100 times and `&paper=` Letter, A4,
  * A6 or CR80 (the default). Each credential is read with the viewer's own row level security and must belong to
  * this org; those the viewer cannot read, of another org, revoked or expired are left out and counted in
- * X-Badges-Skipped. 400 for no id, more than 100 or a malformed one; 404 when nothing is left to print. The PDF is
+ * X-Badges-Skipped, as are those on a project where the viewer may not issue credentials (crawl 4.9: printing a badge
+ * belongs to its issuers). 400 for no id, more than 100 or a malformed one; 404 when nothing is left to print. The PDF is
  * streamed as each badge is drawn, since a run with photos is larger than a buffered function response allows.
  */
 export async function GET(
@@ -33,6 +35,14 @@ export async function GET(
   if (ids.length < 1 || ids.length > MAX_BATCH || !ids.every((id) => UUID.test(id))) {
     return new Response(null, { status: 400 });
   }
+  const asked = ids.map((id) => id.toLowerCase());
+  const issuable = await issuableCredentialIds(ctx.viewer.db, ctx.org.id, asked);
+  if (!issuable.ok) {
+    observability.logger.error("badge batch access failed", { error: issuable.error });
+    return new Response(null, { status: 500 });
+  }
+  const allowed = asked.filter((id) => issuable.data.has(id));
+  if (allowed.length === 0) return new Response(null, { status: 404 });
   const paperParam = search.get("paper") ?? "cr80";
   const paper = isPrintSizeFor("credential-badge", paperParam) ? paperParam : "cr80";
   const negotiated = await getLocale();
@@ -42,7 +52,7 @@ export async function GET(
     db: ctx.viewer.db,
     orgId: ctx.org.id,
     orgName: ctx.org.name,
-    ids: ids.map((id) => id.toLowerCase()),
+    ids: allowed,
     locale,
     messages: (await loadMessages(locale)).documents,
     paper,
@@ -61,7 +71,7 @@ export async function GET(
       "Content-Type": "application/pdf",
       "Content-Disposition": `attachment; filename="${result.data.fileName}"`,
       "Cache-Control": "private, no-store",
-      "X-Badges-Skipped": String(result.data.skipped),
+      "X-Badges-Skipped": String(result.data.skipped + asked.length - allowed.length),
     },
   });
 }
