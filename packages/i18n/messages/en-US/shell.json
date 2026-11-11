@@ -866,7 +866,8 @@
     "versionUpcoming": "Version {version}: takes effect on {date}",
     "contents": "On this page",
     "englishOnly": "This document is published in English.",
-    "action": "Back to Atlas"
+    "action": "Back to Atlas",
+    "indexTitle": "Legal documents"
   },
   "home": {
     "welcome": "Welcome to {org}",

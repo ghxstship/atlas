@@ -55,6 +55,8 @@ export const SHELL_ROUTES: Readonly<Record<string, string>> = {
   "/sw.js": "Route handler: the service worker, served at the origin root (A96, ADR 0052).",
   "/api/product-events":
     "Route handler: consent-gated, first-party product analytics events (A96, Section 11.14).",
+  "/legal":
+    "Public page: every public legal document Atlas serves, with its version; the documents are the legal node (crawl 4.9).",
   "/support/feedback":
     "Platform staff: the product feedback triage list (A96, Section 11.7); 404 for anyone else.",
   "/oauth/authorize":

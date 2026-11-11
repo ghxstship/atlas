@@ -2950,7 +2950,10 @@
     "versionUpcoming": "Versión {version}: entra en vigor el {date}",
     "contents": "En esta página",
     "englishOnly": "Este documento se publica solo en inglés.",
-    "back": "Ir a Gateway"
+    "back": "Ir a Gateway",
+    "indexTitle": "Documentos legales",
+    "indexOnAtlas": "Los demás documentos públicos, como el Acuerdo de procesamiento de datos y la Lista de subencargados, están en Atlas.",
+    "indexOnAtlasLink": "Ver todos los documentos en Atlas"
   },
   "diversity": {
     "title": "Diversidad de proveedores",

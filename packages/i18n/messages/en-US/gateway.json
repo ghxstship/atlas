@@ -2950,7 +2950,10 @@
     "versionUpcoming": "Version {version}: takes effect on {date}",
     "contents": "On this page",
     "englishOnly": "This document is published in English.",
-    "back": "Go to Gateway"
+    "back": "Go to Gateway",
+    "indexTitle": "Legal documents",
+    "indexOnAtlas": "The other public documents, such as the Data Processing Agreement and the Subprocessor List, are on Atlas.",
+    "indexOnAtlasLink": "See every document on Atlas"
   },
   "diversity": {
     "title": "Supplier diversity",
