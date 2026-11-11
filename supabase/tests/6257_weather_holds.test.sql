@@ -26,6 +26,11 @@ select app.record_scan(pg_temp.id('zone'), pg_temp.id('cred'));
 insert into app.role_assignments (project_id, role_code, person_id) values (pg_temp.id('prj_a'), (select role_code from xpms.dim_role order by role_code limit 1), pg_temp.id('bob'));
 insert into app.weather_alert_roles (org_id, project_id, alert_level, role_code) values
   (pg_temp.id('org_a'), pg_temp.id('prj_a'), 'Evacuate', (select role_code from xpms.dim_role order by role_code limit 1));
+-- The project's dispatchers: dave and erin are its Field Supervisors (dispatch belongs to the manager band and Field
+-- Supervisors, 1110 and 904110301).
+insert into app.project_member_roles (project_member_id, project_role)
+select pm.id, 'Field Supervisor' from app.project_members pm
+where pm.project_id = pg_temp.id('prj_a') and pm.membership_id in (pg_temp.id('dave@org_a'), pg_temp.id('erin@org_a')) and pm.deleted_at is null;
 
 -- Templates -----------------------------------------------------------------------------------------------------------------
 insert into app.weather_message_templates (project_id, message_kind, body) values

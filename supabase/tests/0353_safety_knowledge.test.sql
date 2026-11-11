@@ -37,7 +37,10 @@ select throws_ok($$update app.incidents set severity_enum_id = 'ENM-100', incide
 select throws_ok($$update app.incidents set incident_state = 'Closed' where id = (select id from world where key = 'inc')$$, 'XR001', null, 'an incident never closes by a direct update');
 select throws_ok($$select app.transition_incident((select id from world where key = 'inc'), 'Reported', 'Closed', 'Done.')$$,
   'XR001', 'incident_close_rpc: Close an incident through app.close_incident, which records sign-off.', 'inv_22_critical_incident_close: closing goes through the sign-off RPC');
+-- Dispatch belongs to the manager band and Field Supervisors (1110, 904110301): the Manager dispatches, the reporter contains.
+select pg_temp.as_user('carol');
 select lives_ok($$select app.transition_incident((select id from world where key = 'inc'), 'Reported', 'Dispatched', 'Riggers sent.')$$, 'Reported to Dispatched');
+select pg_temp.as_user('dave');
 select lives_ok($$select app.transition_incident((select id from world where key = 'inc'), 'Dispatched', 'Contained', 'Area cleared.')$$, 'Dispatched to Contained');
 select throws_ok($$select app.close_incident((select id from world where key = 'inc'), 'Signed off.')$$,
   'XR001', 'sod_approval_requester: An approval is decided by an eligible approver, never the requester.', 'the reporter cannot sign off a critical incident');
@@ -92,7 +95,8 @@ select throws_ok($$update app.inspection_results set note = 'Late.' where inspec
 select pg_temp.as_platform();
 
 -- Crisis alerts and radio -----------------------------------------------------------------------------------
-select pg_temp.as_user('dave');
+-- Announcing an alert needs dispatch (904110301): the Manager announces it.
+select pg_temp.as_user('carol');
 select lives_ok($$insert into app.crisis_alerts (project_id, emergency_code, message) values ((select id from world where key = 'prj_a'), (select code from xpms.emergency_code order by sort_order limit 1), 'Evacuate stage left.')$$,
   'a crisis alert uses a global canon emergency code');
 select pg_temp.as_user('carol');
