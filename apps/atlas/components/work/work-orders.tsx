@@ -25,6 +25,7 @@ import { useFormatter, useLocale } from "next-intl";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState, type ReactNode } from "react";
 import type { ActionResult } from "./action-result";
+import { initialProjectId, projectChoiceOptions } from "@/lib/projects/project-choice";
 import { ActionErrorAlert, useAction, useCopy } from "./action-ui";
 import { formatWhen, fromLocalInput, toLocalInput, withQuery, workOrderToken } from "./format";
 import {
@@ -365,11 +366,12 @@ export function CreateWorkOrderDialog({
   open: boolean;
 }) {
   const t = useCopy("work");
+  const shell = useCopy("shell");
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
   const { pending, error, run, clear } = useAction();
-  const [projectId, setProjectId] = useState(fixedProjectId ?? projects[0]?.id ?? "");
+  const [projectId, setProjectId] = useState(fixedProjectId ?? initialProjectId(projects));
   const [title, setTitle] = useState("");
   const [scope, setScope] = useState("");
   const [bidDue, setBidDue] = useState("");
@@ -443,7 +445,10 @@ export function CreateWorkOrderDialog({
               id="wo-project"
               label={t("fields.project")}
               value={projectId}
-              options={projects.map((p) => ({ value: p.id, label: `${p.key} · ${p.name}` }))}
+              options={projectChoiceOptions(
+                projects.map((p) => ({ value: p.id, label: `${p.key} · ${p.name}` })),
+                shell("create.chooseProject"),
+              )}
               onChange={(e) => setProjectId(e.target.value)}
             />
           )}

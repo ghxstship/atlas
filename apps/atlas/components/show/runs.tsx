@@ -43,6 +43,7 @@ import { useFormatter, useLocale } from "next-intl";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState, type ReactNode } from "react";
 import { ActionErrorAlert, useAction, useCopy } from "@/components/work/action-ui";
+import { initialProjectId, projectChoiceOptions } from "@/lib/projects/project-choice";
 // B4: the cue grid's one-module wrapper loads it when opened, so the run of show carries none of it until then.
 import { CueGrid } from "@/components/lazy-ui/cue-grid";
 import {
@@ -375,11 +376,12 @@ export function CreateRunDialog({
   open: boolean;
 }) {
   const t = useCopy("show");
+  const shell = useCopy("shell");
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
   const { pending, error, run, clear } = useAction();
-  const [projectId, setProjectId] = useState(fixedProjectId ?? projects[0]?.id ?? "");
+  const [projectId, setProjectId] = useState(fixedProjectId ?? initialProjectId(projects));
   const [name, setName] = useState("");
   const [showDate, setShowDate] = useState("");
   const [scope, setScope] = useState("");
@@ -438,7 +440,10 @@ export function CreateRunDialog({
               id="run-project"
               label={t("runs.project")}
               value={projectId}
-              options={projects.map((p) => ({ value: p.id, label: `${p.key} · ${p.name}` }))}
+              options={projectChoiceOptions(
+                projects.map((p) => ({ value: p.id, label: `${p.key} · ${p.name}` })),
+                shell("create.chooseProject"),
+              )}
               onChange={(e) => setProjectId(e.target.value)}
             />
           )}
