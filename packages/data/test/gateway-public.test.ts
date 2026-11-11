@@ -2,8 +2,10 @@ import { describe, expect, it } from "vitest";
 import {
   beginAdvanceUpload,
   finishAdvanceUpload,
+  getPublicPersonProfile,
   inviteAdvanceRosterMember,
   listAdvanceRoster,
+  organizationProfilePath,
   previewAdvance,
   requestAdvanceGuest,
   storeAdvanceUpload,
@@ -434,5 +436,30 @@ describe("token calls (R10)", () => {
       data: { refused: true, reason: "roster_empty_submit" },
     });
     expect((await submitAdvanceRoster(db, link)).ok).toBe(false);
+  });
+});
+
+describe("a public person profile's organizations (0860)", () => {
+  it("reads the org_handle the function returns and links to that company's profile", async () => {
+    const empty = () => okResponse([]);
+    const { db } = fakeClient({
+      "rpc:api_public.person_profile": [
+        okResponse([{ handle: "demo-crew", full_name: "Demo Crew" }]),
+      ],
+      "rpc:api_public.person_profile_skills": [empty()],
+      "rpc:api_public.person_profile_languages": [empty()],
+      "rpc:api_public.person_profile_links": [empty()],
+      "rpc:api_public.person_profile_portfolio": [empty()],
+      "rpc:api_public.person_profile_references": [empty()],
+      "rpc:api_public.person_profile_certifications": [empty()],
+      "rpc:api_public.person_profile_organizations": [
+        okResponse([{ org_handle: "demo-productions", name: "Demo Productions" }]),
+      ],
+    });
+    const person = await getPublicPersonProfile(db as XosClient, "demo-crew");
+    const orgs = person.ok ? (person.data?.organizations ?? []) : [];
+    expect(orgs.map((o) => [o.name, organizationProfilePath(o)])).toEqual([
+      ["Demo Productions", "/c/demo-productions"],
+    ]);
   });
 });
