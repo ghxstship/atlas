@@ -1827,7 +1827,14 @@
         "credentialRevoked": "Your {title} credential for {projectName} was revoked",
         "other": "{title}",
         "untitled": "New update",
-        "shiftNoShow": "Marked as a no-show: {title}"
+        "shiftNoShow": "Marked as a no-show: {title}",
+        "rosterDeclined": "{personName} declined the {partyName} crew for {projectName}",
+        "rosterInvited": "You were put on the {partyName} crew for {projectName}",
+        "allocationDecided": "{decision, select, declined {Declined} other {Approved}}: {itemName} for {projectName}",
+        "allocationAssigned": "{orgName} gave you {itemName} for {projectName}",
+        "allocationIssued": "{itemName} for {projectName} was handed over to you",
+        "allocationWithdrawn": "Withdrawn: {itemName} for {projectName}",
+        "ratingDisputeDecided": "The rating dispute for {project} was {outcome, select, Upheld {upheld} other {not upheld}}"
       }
     },
     "recommended": {

@@ -31,6 +31,15 @@ const KINDS: Readonly<Record<string, string>> = {
   "roster_entry.removed": "fyi.kinds.rosterRemoved",
   "roster_entry.facts_requested": "fyi.kinds.rosterFactsRequested",
   "credential.revoked": "fyi.kinds.credentialRevoked",
+  // Roster answers and invitations (R4, 2642), advance allocations (R7, 4693 and 4694) and a decided rating dispute
+  // (ADR 0158, 6821): each reads with its own arguments rather than a bare "New update" (4.9 surface crawl).
+  "roster_entry.declined": "fyi.kinds.rosterDeclined",
+  "roster_entry.invited": "fyi.kinds.rosterInvited",
+  "allocation.decided": "fyi.kinds.allocationDecided",
+  "allocation.assigned": "fyi.kinds.allocationAssigned",
+  "allocation.issued": "fyi.kinds.allocationIssued",
+  "allocation.withdrawn": "fyi.kinds.allocationWithdrawn",
+  "rating_dispute.decided": "fyi.kinds.ratingDisputeDecided",
   // A crisis alert and its all-clear (6800): an alert names what to do, and the two never read the same.
   "crisis_alert.issued": "fyi.kinds.crisisAlert",
   "crisis_alert.ended": "fyi.kinds.crisisAllClear",
@@ -54,6 +63,10 @@ export function fyiSentence(
     reminder: n.args["reminder"] ?? "other",
     project: n.args["project"] ?? "",
     message: n.args["message"] ?? "",
+    personName: n.args["personName"] ?? "",
+    itemName: n.args["itemName"] ?? "",
+    decision: n.args["decision"] ?? "other",
+    outcome: n.args["outcome"] ?? "other",
   };
   return key
     ? t(`gateway.home.${key}`, values)

@@ -1827,7 +1827,14 @@
         "credentialRevoked": "Se revocó tu credencial {title} para {projectName}",
         "other": "{title}",
         "untitled": "Novedad",
-        "shiftNoShow": "Marcado como ausente: {title}"
+        "shiftNoShow": "Marcado como ausente: {title}",
+        "rosterDeclined": "{personName} rechazó el equipo de {partyName} para {projectName}",
+        "rosterInvited": "Te incluyeron en el equipo de {partyName} para {projectName}",
+        "allocationDecided": "{decision, select, declined {Rechazado} other {Aprobado}}: {itemName} para {projectName}",
+        "allocationAssigned": "{orgName} te asignó {itemName} para {projectName}",
+        "allocationIssued": "Se te entregó {itemName} para {projectName}",
+        "allocationWithdrawn": "Retirado: {itemName} para {projectName}",
+        "ratingDisputeDecided": "La impugnación de la calificación de {project} {outcome, select, Upheld {fue aceptada} other {no fue aceptada}}"
       }
     },
     "recommended": {
