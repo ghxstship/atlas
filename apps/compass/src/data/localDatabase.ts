@@ -63,6 +63,26 @@ export const DEFAULT_DB_NAME = "compass.sqlite";
 /** Set when unsent work may have been lost, until the person has seen the notice. */
 export const STORAGE_NOTICE = "xos.compass.storage-reset-notice";
 
+/**
+ * Whether the storage reset notice is shown once the store has opened (C-22). The notice is about the unsent work of
+ * the person signed in when the file was replaced. When this launch has seen no session it belongs to no one here, so
+ * the saved flag is deleted, not only hidden: the sign-out that ran before the store opened found nothing to delete,
+ * and a flag left behind would reach the next person to sign in on their next launch. `signedOut` is read after the
+ * flag, so a sign-out that lands while it is being read still counts.
+ */
+export async function settleStorageNotice(
+  flag: {
+    readonly getItem: (key: string) => Promise<string | null>;
+    readonly deleteItem: (key: string) => Promise<void>;
+  },
+  signedOut: () => boolean,
+): Promise<boolean> {
+  if ((await flag.getItem(STORAGE_NOTICE)) !== "1") return false;
+  if (!signedOut()) return true;
+  await flag.deleteItem(STORAGE_NOTICE);
+  return false;
+}
+
 const ROWS_TABLE = "xos_local_rows";
 
 function message(error: unknown): string {

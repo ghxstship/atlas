@@ -470,8 +470,9 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
           `[compass] offline storage replaced: ${recovery.reason}; ${String(recovery.recovered)} unsent writes carried over${recovery.unreadable ? ", old file unreadable" : ""}`,
         );
       }
-      // Only the person signed in when the store was replaced is told; with no one signed in it was cleared (C-22).
-      setStorageNotice((await storageNoticePending()) && !signedOutRef.current);
+      // Only the person signed in when the store was replaced is told; with no one signed in the saved flag is
+      // deleted here, because the sign-out that may have run first found nothing to delete (C-22).
+      setStorageNotice(await storageNoticePending(() => signedOutRef.current));
       const uploader = new SupabaseUploader({
         client,
         functionsUrl: config.supabaseUrl,

@@ -6,6 +6,7 @@ import {
   DB_NAME,
   DEFAULT_DB_NAME,
   openLocalStore,
+  settleStorageNotice,
   STORAGE_NOTICE,
   type DatabaseConnection,
   type LocalDatabaseDeps,
@@ -174,7 +175,61 @@ describe("A66: Compass never sits on a blank screen when startup fails", () => {
 });
 
 describe("C-22: the storage reset notice never carries over to the next person", () => {
-  it("is cleared when the session ends, and not raised for a launch with no one signed in", async () => {
+  /** The device's flag, deleted as the sign-out handler deletes it (dismissStorageNotice). */
+  const flagOn = (d: ReturnType<typeof device>) => ({
+    getItem: d.deps.getItem,
+    deleteItem: (key: string) => {
+      d.secure.delete(key);
+      return Promise.resolve();
+    },
+  });
+  /** Replaces the store with one whose old file cannot be read, which raises the notice. */
+  async function replaceStore(d: ReturnType<typeof device>) {
+    d.secure.set(DB_KEY, "device-key");
+    d.oldFile("lost-key", [[OUTBOX_TABLE, "m1", unsent("m1")]]);
+    await openLocalStore(d.deps);
+    expect(d.secure.get(STORAGE_NOTICE)).toBe("1");
+  }
+
+  it("deletes the saved flag when no one signed in before the store opened, so the next person never sees it", async () => {
+    const d = device();
+    const flag = flagOn(d);
+    // A cold launch with no one signed in: the signed-out handler runs first and finds nothing to delete.
+    let signedOut = true;
+    await flag.deleteItem(STORAGE_NOTICE);
+    await replaceStore(d);
+    expect(await settleStorageNotice(flag, () => signedOut)).toBe(false);
+    expect(d.secure.has(STORAGE_NOTICE)).toBe(false);
+    // The next person signs in, and on their next launch nothing is pending.
+    signedOut = false;
+    expect(await settleStorageNotice(flag, () => signedOut)).toBe(false);
+  });
+
+  it("tells the person signed in when the store was replaced, until they dismiss it", async () => {
+    const d = device();
+    const flag = flagOn(d);
+    await replaceStore(d);
+    expect(await settleStorageNotice(flag, () => false)).toBe(true);
+    expect(d.secure.get(STORAGE_NOTICE)).toBe("1");
+  });
+
+  it("counts a sign-out that lands while the flag is being read", async () => {
+    const d = device();
+    let signedOut = false;
+    const flag = {
+      getItem: async (key: string) => {
+        const value = await d.deps.getItem(key);
+        signedOut = true;
+        return value;
+      },
+      deleteItem: flagOn(d).deleteItem,
+    };
+    await replaceStore(d);
+    expect(await settleStorageNotice(flag, () => signedOut)).toBe(false);
+    expect(d.secure.has(STORAGE_NOTICE)).toBe(false);
+  });
+
+  it("is cleared when the session ends, and the provider settles it with the launch's sign-in state", async () => {
     const { readFileSync } = await import("node:fs");
     const provider = readFileSync(
       new URL("../src/runtime/CompassProvider.tsx", import.meta.url),
@@ -188,7 +243,7 @@ describe("C-22: the storage reset notice never carries over to the next person",
     expect(signedOut).toContain("setStorageNotice(false);");
     expect(signedOut).toContain("void forgetStorageNotice();");
     expect(provider).toContain(
-      "setStorageNotice((await storageNoticePending()) && !signedOutRef.current);",
+      "setStorageNotice(await storageNoticePending(() => signedOutRef.current));",
     );
   });
 });

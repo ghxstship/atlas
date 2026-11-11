@@ -9,7 +9,12 @@ import { uuidv7, type DeviceClock, type NetworkState } from "@xos/sync";
 import * as Crypto from "expo-crypto";
 import * as Network from "expo-network";
 import * as SecureStore from "expo-secure-store";
-import { openLocalStore, STORAGE_NOTICE, type OpenedStore } from "../data/localDatabase";
+import {
+  openLocalStore,
+  settleStorageNotice,
+  STORAGE_NOTICE,
+  type OpenedStore,
+} from "../data/localDatabase";
 
 export interface CompassConfig {
   readonly supabaseUrl: string;
@@ -95,9 +100,18 @@ export function openStore(): Promise<OpenedStore> {
   return opening;
 }
 
-/** Whether the person still has to be told that unsent offline work could not be recovered. */
-export async function storageNoticePending(): Promise<boolean> {
-  return (await SecureStore.getItemAsync(STORAGE_NOTICE)) === "1";
+/**
+ * Whether the person still has to be told that unsent offline work could not be recovered: never when this launch has
+ * seen no session, whose saved flag is then deleted (C-22, settleStorageNotice).
+ */
+export function storageNoticePending(signedOut: () => boolean): Promise<boolean> {
+  return settleStorageNotice(
+    {
+      getItem: (key) => SecureStore.getItemAsync(key),
+      deleteItem: (key) => SecureStore.deleteItemAsync(key),
+    },
+    signedOut,
+  );
 }
 
 export async function dismissStorageNotice(): Promise<void> {
