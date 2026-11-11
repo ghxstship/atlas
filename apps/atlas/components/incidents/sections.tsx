@@ -28,6 +28,8 @@ import { getFormatter } from "next-intl/server";
 import type { ReactNode } from "react";
 import { ActionForm } from "@/components/operations/action-form";
 import { alertReach } from "@/lib/incidents/alert-reach";
+import { INCIDENT_MEDIA_ACCEPT } from "@/lib/incidents/media";
+import { reportSeverityOptions } from "@/lib/incidents/severity-options";
 import {
   chooseProjectNotice,
   dateTime,
@@ -85,7 +87,13 @@ import {
   updateIncidentAction,
   withdrawAction,
 } from "@/lib/incidents/actions";
-import { can, chooseView, type ModulePage } from "@/lib/operations/context";
+import {
+  can,
+  canOnProject,
+  chooseView,
+  projectsWith,
+  type ModulePage,
+} from "@/lib/operations/context";
 import { rememberView } from "@/lib/shell/recents";
 import { instantToLocal } from "@/lib/operations/time";
 import { IncidentOshaPanel } from "@/components/compliance/osha-panels";
@@ -177,7 +185,10 @@ export async function IncidentsSection({ page }: { page: ModulePage }) {
   const view = views.includes(declared.view) ? declared.view : "list";
   const peekId = param(page.search, "peek");
   const creating = param(page.search, "create") === "1";
-  const canReport = can(page, "safety.incident.write");
+  // Anyone who may report on one project is offered Report incident here; with no project chosen, the form asks for one
+  // of the projects they may report on (crawl 4.9: org-level capabilities alone hid it from assigned reporters).
+  const reportProjects = projectsWith(page, "safety.incident.write");
+  const canReport = can(page, "safety.incident.write") || reportProjects.length > 0;
   const title = t("nav.atlas.pages.safety.incidents");
   const peekHref = (i: Incident) =>
     sectionHref(page, { peek: i.id, full: undefined, create: undefined, section });
@@ -316,7 +327,7 @@ export async function IncidentsSection({ page }: { page: ModulePage }) {
           page.project ? (
             <ReportForm page={page} project={page.project} severities={severities} />
           ) : (
-            chooseProjectNotice(page, section, {
+            chooseProjectNotice({ ...page, projects: reportProjects }, section, {
               choose: t("incidents.chooseProject"),
               none: t("incidents.noProjects"),
             })
@@ -415,7 +426,8 @@ async function ReportForm({
           id="incident-severity"
           name="severityId"
           label={t("incidents.severity")}
-          options={severities.map((s) => ({ value: s.id, label: s.label }))}
+          options={reportSeverityOptions(severities, t("incidents.chooseSeverity"))}
+          defaultValue=""
           required
         />
         <ZoneSelect page={page} id="incident-zone" zones={zones} />
@@ -798,14 +810,23 @@ async function IncidentRecord({
             layout="inline"
             resetOnSuccess
           >
-            <TextField
-              id="media-uri"
-              name="mediaUri"
-              label={t("incidents.mediaUri")}
-              help={t("incidents.mediaUriHelp")}
-              required
-              maxLength={1000}
-            />
+            <div className="flex w-(--ui-field) max-w-full flex-col gap-4">
+              <label htmlFor="media-file" className="text-text-12 font-medium text-text-secondary">
+                {t("incidents.mediaFile")}
+              </label>
+              <input
+                id="media-file"
+                name="file"
+                type="file"
+                accept={INCIDENT_MEDIA_ACCEPT}
+                required
+                aria-describedby="media-file-help"
+                className="text-text-13"
+              />
+              <span id="media-file-help" className="text-text-12 text-text-secondary">
+                {t("incidents.mediaFileHelp")}
+              </span>
+            </div>
           </ActionForm>
         ) : null}
       </RecordSection>
@@ -1049,6 +1070,8 @@ export async function EmergencyCodesSection({ page }: { page: ModulePage }) {
   const peek = param(page.search, "peek");
   const title = t("nav.atlas.pages.safety.emergencyCodes");
   const canAlert = can(page, "safety.incident.dispatch");
+  // The projects an alert may be announced on, so an org-level page asks for one of them (crawl 4.9).
+  const alertProjects = projectsWith(page, "safety.incident.dispatch");
   const peekHref = (c: EmergencyCode) =>
     sectionHref(page, { peek: c.code, full: undefined, section: undefined });
   const columns: Column<EmergencyCode>[] = [
@@ -1088,7 +1111,14 @@ export async function EmergencyCodesSection({ page }: { page: ModulePage }) {
           {t("incidents.codes.notAdopted")}
         </p>
       ) : null}
-      <AlertsPanel page={page} alerts={alerts} codes={codes} format={format} canAlert={canAlert} />
+      <AlertsPanel
+        page={page}
+        alerts={alerts}
+        codes={codes}
+        format={format}
+        canAlert={canAlert}
+        alertProjects={alertProjects}
+      />
       {view === "list" ? (
         <OpsList
           label={title}
@@ -1120,12 +1150,16 @@ function AlertsPanel({
   codes,
   format,
   canAlert,
+  alertProjects,
 }: {
   page: ModulePage;
   alerts: readonly CrisisAlert[];
   codes: readonly EmergencyCode[];
   format: Format;
+  /** Dispatch on the project in scope, or org-wide. */
   canAlert: boolean;
+  /** The projects the viewer may announce an alert on (projectsWith). */
+  alertProjects: readonly OperationsProject[];
 }) {
   const t = page.t;
   const active = alerts.filter((a) => a.endedAt === null);
@@ -1161,7 +1195,7 @@ function AlertsPanel({
                   </span>
                 ) : null}
               </span>
-              {canAlert ? (
+              {canOnProject(page, "safety.incident.dispatch", a.projectId) ? (
                 <ActionForm
                   action={endAlertAction}
                   hidden={{ org: page.ctx.org.slug, id: a.id }}
@@ -1177,8 +1211,8 @@ function AlertsPanel({
       ) : (
         <p className="m-0 text-text-13 text-text-secondary">{t("incidents.alerts.none")}</p>
       )}
-      {canAlert ? (
-        page.project ? (
+      {page.project ? (
+        canAlert ? (
           <ActionForm
             action={issueAlertAction}
             hidden={{ org: page.ctx.org.slug, projectId: page.project.id }}
@@ -1206,11 +1240,12 @@ function AlertsPanel({
               maxLength={1000}
             />
           </ActionForm>
-        ) : (
-          <p className="m-0 text-text-13 text-text-secondary">
-            {t("incidents.alerts.chooseProject")}
-          </p>
-        )
+        ) : null
+      ) : alertProjects.length > 0 ? (
+        // No project chosen: the hint shows to anyone who may announce on one, with those projects to choose from.
+        chooseProjectNotice({ ...page, projects: alertProjects }, "codes", {
+          choose: t("incidents.alerts.chooseProject"),
+        })
       ) : null}
       {alerts.length > active.length ? (
         <details>

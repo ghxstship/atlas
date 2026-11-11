@@ -149,7 +149,9 @@ test.describe("Safety incidents (journey 16, Atlas)", () => {
     await page.goto(`/${ORG}/safety/incidents?project=${PROJECT}&create=1`);
     await expectAccessibleInBothThemes(page);
     await page.locator("#incident-title").fill(title);
-    await page.locator("#incident-severity").selectOption({ index: 0 });
+    // Crawl 4.9: no severity is preselected; index 1 is the first level after the prompt (Level 1 - Critical).
+    await expect(page.locator("#incident-severity")).toHaveValue("");
+    await page.locator("#incident-severity").selectOption({ index: 1 });
     await page
       .locator("#incident-zone")
       .selectOption({ label: "LAWN · Festival Lawn · Bayside Festival Grounds" });

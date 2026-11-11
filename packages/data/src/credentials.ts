@@ -1362,3 +1362,27 @@ export async function myModuleCapabilities(
   if (error) return fail(toDataError(error));
   return ok(new Set((data ?? []) as ModuleCapability[]));
 }
+
+/**
+ * For each module capability, the projects of an org on which the signed-in person may use it
+ * (app.my_projects_with_capabilities, 904110302), in one read: an org-level Safety or Credentials page offers a control,
+ * and the projects to choose for it, when one project grants it (crawl 4.9). A capability no project grants is absent.
+ */
+export async function myModuleCapabilityProjects(
+  db: XosClient,
+  orgId: string,
+): Promise<Result<ReadonlyMap<ModuleCapability, ReadonlySet<string>>>> {
+  const { data, error } = await db.rpc("my_projects_with_capabilities", {
+    p_org_id: orgId,
+    p_capabilities: [...MODULE_CAPABILITIES],
+  });
+  if (error) return fail(toDataError(error));
+  const out = new Map<ModuleCapability, Set<string>>();
+  for (const row of data ?? []) {
+    const code = row.capability_code as ModuleCapability;
+    const set = out.get(code) ?? new Set<string>();
+    set.add(row.project_id);
+    out.set(code, set);
+  }
+  return ok(out);
+}

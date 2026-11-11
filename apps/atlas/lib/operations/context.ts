@@ -2,6 +2,7 @@ import { getNode, isNodeVisible } from "@xos/ia";
 import {
   MODULE_CAPABILITIES,
   myModuleCapabilities,
+  myModuleCapabilityProjects,
   operationsProjectByKey,
   operationsProjects,
   type ModuleCapability,
@@ -33,12 +34,55 @@ export interface ModulePage {
   /** True on a project tab, where the project cannot be changed. */
   readonly projectFixed: boolean;
   readonly caps: ReadonlySet<ModuleCapability>;
+  /**
+   * With no project in scope, the projects (by id) on which each capability may be used: `caps` holds only what the
+   * org grants org-wide, so a capability held on one's own projects (assigned reach, a project role, a grant) shows
+   * here alone (crawl 4.9). Empty when a project is in scope, where `caps` already answers for it.
+   */
+  readonly capabilityProjects: ReadonlyMap<ModuleCapability, ReadonlySet<string>>;
   readonly views: readonly string[];
   readonly view: string;
 }
 
 export function can(page: ModulePage, capability: ModuleCapability): boolean {
   return page.caps.has(capability);
+}
+
+/**
+ * The projects to choose for a capability: the project in scope when it grants it, otherwise every project of the
+ * filter that grants it (capabilityProjects). An org-level page offers the control, with a choose-a-project prompt
+ * listing these, whenever this is not empty.
+ */
+export function projectsWith(
+  page: ModulePage,
+  capability: ModuleCapability,
+): readonly OperationsProject[] {
+  if (page.project) return can(page, capability) ? [page.project] : [];
+  const ids = page.capabilityProjects.get(capability);
+  return ids ? page.projects.filter((p) => ids.has(p.id)) : [];
+}
+
+/** True when the capability may be used on this project: the one in scope, or one of capabilityProjects. */
+export function canOnProject(
+  page: ModulePage,
+  capability: ModuleCapability,
+  projectId: string,
+): boolean {
+  if (page.project) return page.project.id === projectId && can(page, capability);
+  return (
+    can(page, capability) || (page.capabilityProjects.get(capability)?.has(projectId) ?? false)
+  );
+}
+
+async function capabilityProjectsFor(
+  ctx: OrgContext,
+  project: OperationsProject | null,
+): Promise<ReadonlyMap<ModuleCapability, ReadonlySet<string>>> {
+  if (project) return new Map();
+  const held = await myModuleCapabilityProjects(ctx.viewer.db, ctx.org.id);
+  if (!held.ok)
+    throw new Error(`Cannot read the projects' capabilities: ${JSON.stringify(held.error)}`);
+  return held.data;
 }
 
 async function capabilitiesFor(
@@ -79,7 +123,10 @@ export async function loadModulePage(
   if (!projects.ok) throw new Error(`Cannot list projects: ${JSON.stringify(projects.error)}`);
   const key = param(search, "project");
   const project = key ? (projects.data.find((p) => p.key === key) ?? null) : null;
-  const caps = await capabilitiesFor(ctx, project);
+  const [caps, capabilityProjects] = await Promise.all([
+    capabilitiesFor(ctx, project),
+    capabilityProjectsFor(ctx, project),
+  ]);
   return {
     ctx,
     t,
@@ -90,6 +137,7 @@ export async function loadModulePage(
     project,
     projectFixed: false,
     caps,
+    capabilityProjects,
     ...chooseView(node, param(search, "view")),
   };
 }
@@ -127,6 +175,7 @@ export async function loadProjectTab(
     project: project.data,
     projectFixed: true,
     caps,
+    capabilityProjects: new Map(),
     ...chooseView(node, param(search, "view")),
   };
 }

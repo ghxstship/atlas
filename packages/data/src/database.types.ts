@@ -89155,6 +89155,13 @@ export type Database = {
           project_role: Database["app"]["Enums"]["project_role"];
         }[];
       };
+      my_projects_with_capabilities: {
+        Args: { p_capabilities: string[]; p_org_id: string };
+        Returns: {
+          capability_code: string;
+          project_id: string;
+        }[];
+      };
       my_recovery_code_status: {
         Args: Record<PropertyKey, never>;
         Returns: {
