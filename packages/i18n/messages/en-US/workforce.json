@@ -34,7 +34,9 @@
     "project": "Project",
     "show": "Show",
     "noProjects": "No projects yet. Create a project to run site operations on it.",
-    "openProjects": "Open projects"
+    "openProjects": "Open projects",
+    "chooseProject": "Choose a project",
+    "choosePrompt": "Choose a project to see this page for it."
   },
   "settings": {
     "readReceipts": {

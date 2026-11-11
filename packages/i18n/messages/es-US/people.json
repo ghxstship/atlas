@@ -23,6 +23,7 @@
     "noCerts": "No hay certificados registrados.",
     "noMatch": "Nadie coincide con ese nombre. Quite la búsqueda para ver a todos.",
     "empty": "Aún no hay miembros. Invite personas desde la configuración de Miembros.",
+    "emptyNoInvite": "Aún no hay miembros que mostrar. Un Propietario o Administrador invita personas desde la configuración de Miembros.",
     "invite": "Invitar personas",
     "caption": "Personas",
     "search": "Buscar por nombre",
@@ -129,9 +130,25 @@
     "headcountHelp": "Use la calculadora de dotación en Roles para dimensionar los roles con proporción según el aforo.",
     "terms": "Clasificación, base de pago y acuerdo",
     "termsValue": "{classification} · {basis} · {arrangement}",
+    "classifications": {
+      "employee": "Empleado",
+      "independentContractor": "Contratista independiente",
+      "vendorSupplied": "Aportado por proveedor",
+      "unpaidIntern": "Pasante no remunerado",
+      "volunteer": "Voluntario"
+    },
+    "payBases": {
+      "dayRate": "Tarifa diaria",
+      "flatFee": "Tarifa fija",
+      "hourly": "Por hora",
+      "salary": "Salario"
+    },
+    "arrangements": {
+      "perEngagement": "Por contratación",
+      "retainer": "Iguala"
+    },
     "termsHelp": "Las combinaciones vienen de la tabla de tarifas laborales del canon.",
     "noTerms": "Aún no decidido",
-    "comboOption": "{id} · {role} · {classification} · {basis} · {arrangement}",
     "units": "Unidades por persona",
     "unitsHelp": "Horas o días que trabaja cada persona, en la base de pago. Déjelo en blanco si no se sabe; la estimación queda sin precio.",
     "unknown": "Aún no se sabe",
@@ -151,7 +168,8 @@
     "emptyReader": "Aún no hay requisiciones. Las requisiciones de personal aparecen aquí cuando se solicitan.",
     "viewRoles": "Ver roles",
     "caption": "Requisiciones",
-    "secondApprover": "Su aprobación quedó registrada. Esta requisición supera el umbral de doble aprobación, así que un segundo aprobador la termina."
+    "secondApprover": "Su aprobación quedó registrada. Esta requisición supera el umbral de doble aprobación, así que un segundo aprobador la termina.",
+    "chooseRole": "Elija un rol"
   },
   "roleTypes": {
     "Client": "Cliente",

@@ -851,7 +851,11 @@
   },
   "page": {
     "sections": "Páginas en {section}",
-    "skipToContent": "Ir al contenido"
+    "skipToContent": "Ir al contenido",
+    "noneOpen": {
+      "empty": "Ninguna de las páginas de {section} está disponible para el rol con el que estás viendo. Elige Todos los roles en el selector de organización para verlas.",
+      "action": "Ir a Inicio"
+    }
   },
   "legal": {
     "draftTitle": "Borrador, aún no vigente",
@@ -1435,6 +1439,7 @@
     "prompt": "¿Qué quieres crear?",
     "here": "En esta página",
     "more": "Todo lo demás",
+    "chooseProject": "Elige un proyecto",
     "kinds": {
       "project": "Proyecto",
       "record": "Registro",

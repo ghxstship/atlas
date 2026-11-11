@@ -851,7 +851,11 @@
   },
   "page": {
     "sections": "Pages in {section}",
-    "skipToContent": "Skip to content"
+    "skipToContent": "Skip to content",
+    "noneOpen": {
+      "empty": "None of the pages in {section} are open to the role you are viewing as. Choose All roles in the org switcher to see them.",
+      "action": "Go to Home"
+    }
   },
   "legal": {
     "draftTitle": "Draft, not yet in effect",
@@ -1435,6 +1439,7 @@
     "prompt": "What do you want to create?",
     "here": "On this page",
     "more": "Everything else",
+    "chooseProject": "Choose a project",
     "kinds": {
       "project": "Project",
       "record": "Record",

@@ -23,6 +23,7 @@
     "noCerts": "No certificates recorded.",
     "noMatch": "No one matches that name. Clear the search to see everyone.",
     "empty": "No members yet. Invite people from Members settings.",
+    "emptyNoInvite": "No members to show yet. An Owner or Admin invites people from Members settings.",
     "invite": "Invite people",
     "caption": "People",
     "search": "Search by name",
@@ -129,9 +130,25 @@
     "headcountHelp": "Use the staffing calculator in Roles to size ratio roles from the occupancy.",
     "terms": "Classification, pay basis and arrangement",
     "termsValue": "{classification} · {basis} · {arrangement}",
+    "classifications": {
+      "employee": "Employee",
+      "independentContractor": "Independent Contractor",
+      "vendorSupplied": "Vendor-Supplied",
+      "unpaidIntern": "Unpaid Intern",
+      "volunteer": "Volunteer"
+    },
+    "payBases": {
+      "dayRate": "Day Rate",
+      "flatFee": "Flat Fee",
+      "hourly": "Hourly",
+      "salary": "Salary"
+    },
+    "arrangements": {
+      "perEngagement": "Per Engagement",
+      "retainer": "Retainer"
+    },
     "termsHelp": "Combinations come from the canon Labor Rate Card.",
     "noTerms": "Not decided yet",
-    "comboOption": "{id} · {role} · {classification} · {basis} · {arrangement}",
     "units": "Units per person",
     "unitsHelp": "Hours or days each person works, in the pay basis. Leave blank while unknown; the estimate stays unpriced.",
     "unknown": "Not known yet",
@@ -151,7 +168,8 @@
     "emptyReader": "No requisitions yet. Requisitions for staff appear here once requested.",
     "viewRoles": "View roles",
     "caption": "Requisitions",
-    "secondApprover": "Your approval is recorded. This requisition is above the dual approval threshold, so a second approver finishes it."
+    "secondApprover": "Your approval is recorded. This requisition is above the dual approval threshold, so a second approver finishes it.",
+    "chooseRole": "Choose a role"
   },
   "roleTypes": {
     "Client": "Client",
