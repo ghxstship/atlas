@@ -1049,7 +1049,7 @@
     },
     "survey": {
       "submit": "Enviar respuestas",
-      "submitted": "Gracias. Tus respuestas se guardaron y se envían cuando tengas conexión.",
+      "submitted": "Gracias. Tus respuestas se guardaron y se enviarán cuando tengas conexión.",
       "closed": "Esta encuesta está cerrada.",
       "anonymous": "Anónima: tu nombre no se guarda con tus respuestas.",
       "optional": "{prompt} (opcional)",
