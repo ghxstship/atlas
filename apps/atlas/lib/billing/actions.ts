@@ -53,8 +53,11 @@ const refused = (rule: string): PlatformActionState => ({ rule, at: Date.now() }
 /** The terms worded now differ from those on the page, for example across midnight or after a price change. */
 class RenewalTermsChangedError extends Error {}
 
-/** The page Checkout and the portal return to, with what happened. */
-function billingPage(slug: string, outcome?: "done" | "canceled"): string {
+/**
+ * The page Checkout and the portal return to, with what happened: done (paid), trial (the card is saved and charged
+ * when the carried-over trial ends) or canceled.
+ */
+function billingPage(slug: string, outcome?: "done" | "trial" | "canceled"): string {
   const url = new URL(`/${slug}/settings/billing-and-plan`, env().ATLAS_SITE_URL);
   if (outcome !== undefined) url.searchParams.set("checkout", outcome);
   return url.toString();
@@ -118,6 +121,7 @@ export async function startCheckoutAction(
         currency,
         ...(ctx.viewer.email === null ? {} : { customerEmail: ctx.viewer.email }),
         successUrl: billingPage(ctx.org.slug, "done"),
+        trialSuccessUrl: billingPage(ctx.org.slug, "trial"),
         cancelUrl: billingPage(ctx.org.slug, "canceled"),
         consent: ({ trialEndsAt }) => {
           const terms = word({

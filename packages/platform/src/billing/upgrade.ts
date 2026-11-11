@@ -3,6 +3,7 @@ import {
   createCheckoutSession,
   createPortalSession,
   findPortalConfiguration,
+  stripeTrialEnd,
   type PORTAL_CONFIGURATION_KEYS,
 } from "./checkout.ts";
 import type { StripeClient } from "./env.ts";
@@ -104,6 +105,11 @@ export interface PlanCheckoutRequest {
   /** The Owner's email, for the org's first checkout; later ones reuse its Stripe customer. */
   readonly customerEmail?: string;
   readonly successUrl: string;
+  /**
+   * Where Checkout returns when it carried a running trial over, so Stripe saved the card and charged nothing yet;
+   * successUrl otherwise, and also when this is left out.
+   */
+  readonly trialSuccessUrl?: string;
   readonly cancelUrl: string;
   /**
    * The renewal terms the Owner agreed to, worded once the database has said when the trial ends, so the first charge
@@ -125,7 +131,8 @@ export interface PlanCheckoutRequest {
  *   2. the database's checks, step-up last (a refusal from the store)
  *   3. the renewal terms the Owner agreed to are recorded (ADR 0161)
  *   4. the org's open sessions are expired, or CheckoutCompletedError when one was paid meanwhile
- *   5. the session opens on the org's Stripe customer, carrying the rest of a running trial and repeating the renewal terms
+ *   5. the session opens on the org's Stripe customer, carrying the rest of a running trial (and then returning to
+ *      trialSuccessUrl, since nothing is charged before the trial ends) and repeating the renewal terms
  *   6. the session is recorded, tied to the consent; any session another tab opened in the meantime is expired too
  * Returns the URL to send the Owner to.
  */
@@ -150,6 +157,9 @@ export async function startPlanCheckout(
     consent,
   });
   for (const id of account.openSessionIds) await expireCheckoutSession(stripe, id);
+  const now = request.now ?? new Date();
+  const carriesTrial =
+    account.trialEndsAt !== null && stripeTrialEnd(account.trialEndsAt, now) !== undefined;
   const session = await createCheckoutSession(stripe, registry, {
     orgId: request.orgId,
     planCode: request.planCode,
@@ -160,11 +170,11 @@ export async function startPlanCheckout(
         ? { customerEmail: request.customerEmail }
         : {}),
     ...(account.trialEndsAt === null ? {} : { trialEnd: account.trialEndsAt }),
-    successUrl: request.successUrl,
+    successUrl: carriesTrial ? (request.trialSuccessUrl ?? request.successUrl) : request.successUrl,
     cancelUrl: request.cancelUrl,
     currency: consent.currency,
     renewalMessage: consent.statement,
-    ...(request.now === undefined ? {} : { now: request.now }),
+    now,
   });
   const closed = await store.record({
     orgId: request.orgId,

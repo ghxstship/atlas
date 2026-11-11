@@ -1254,7 +1254,8 @@
         "annual": "Anual, dos meses gratis"
       },
       "checkoutDone": "Pago recibido. {org} está en el plan {plan}.",
-      "checkoutPending": "Pago recibido. Stripe lo está confirmando, y el plan que se muestra aquí se actualiza en un momento.",
+      "checkoutTrialDone": "Tu tarjeta quedó guardada. {org} está en el plan {plan}, y no se cobra nada hasta que termine la prueba.",
+      "checkoutPending": "El proceso de pago terminó. Stripe lo está confirmando, y el plan que se muestra aquí se actualiza en un momento.",
       "checkoutCanceled": "Se canceló el pago, y no se cobró nada.",
       "redirecting": "Abriendo Stripe…",
       "portal": {

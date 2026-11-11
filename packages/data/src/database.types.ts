@@ -86043,6 +86043,7 @@ export type Database = {
         Returns: {
           awaiting_subscription: boolean;
           billing_interval: Database["app"]["Enums"]["billing_interval"];
+          checkout_refusal: string;
           current_period_end: string;
           has_stripe_customer: boolean;
           paid_through_stripe: boolean;
