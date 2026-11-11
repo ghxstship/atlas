@@ -340,6 +340,25 @@ describe("screens and Compass layouts", () => {
     expect(pushed.querySelector('[data-content-inset="automatic"]')).toBeTruthy();
   });
 
+  it("draws a title the native header would cut short in its body, where it wraps (C-23)", () => {
+    const header = {
+      title: vi.fn(() => null),
+      fits: (title: string) => title.length <= 20,
+    };
+    render(
+      <NativeScreenHeaderContext.Provider value={header}>
+        <Screen testID="long" title="Requisitos de incorporación">
+          <Text>Body</Text>
+        </Screen>
+      </NativeScreenHeaderContext.Provider>,
+    );
+    expect(screen.getByRole("heading", { name: "Requisitos de incorporación" })).toBeTruthy();
+    expect(header.title).toHaveBeenCalledWith("Requisitos de incorporación");
+    expect(
+      screen.getByTestId("long").querySelector('[data-content-inset="automatic"]'),
+    ).toBeTruthy();
+  });
+
   it("draws its own title and no inset without a native header", () => {
     render(
       <Screen testID="tab" title="Today">

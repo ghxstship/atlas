@@ -46,7 +46,10 @@ describe("C-06: the Workforce screens sit below the native header", () => {
     expect(provider).toContain(
       "<NativeScreenHeaderContext.Provider value={value ? STACK_HEADER : null}>",
     );
-    expect(layout).toContain("title: (title) => <Stack.Screen options={{ title }} />");
+    expect(layout).toContain(
+      "title: (title) => <Stack.Screen options={stackTitleOptions(title)} />",
+    );
+    expect(layout).toContain("fits: largeTitleFits,");
     expect(read("../app/_layout.tsx")).toContain("<NativeHeaderProvider value={true}>");
     for (const path of ["../app/(tabs)/_layout.tsx", "../app/kiosk.tsx"]) {
       expect(read(path)).toContain("<NativeHeaderProvider value={false}>");
@@ -72,5 +75,18 @@ describe("Today search answers the first tap", () => {
       search.indexOf("/>", search.indexOf('testID="today-search"')),
     );
     expect(input).toContain("minHeight: theme.density.touchMin");
+  });
+});
+
+describe("C-23: Compass's Screen draws a long title in the page", () => {
+  it("keeps the title out of the header when the large title would cut it", () => {
+    const layout = read("../src/ui/layout.tsx");
+    const screen = layout.slice(
+      layout.indexOf("export function Screen("),
+      layout.indexOf("export function Card("),
+    );
+    expect(screen).toContain('const titleInHeader = nativeHeader && largeTitleFits(title ?? "");');
+    expect(screen).toContain("{title && !titleInHeader ? (");
+    expect(screen).toContain('<Stack.Screen options={stackTitleOptions(title ?? "")} />');
   });
 });

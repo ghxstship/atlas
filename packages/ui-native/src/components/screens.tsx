@@ -34,6 +34,11 @@ import { Button, IconButton } from "./primitives.tsx";
 export interface NativeScreenHeader {
   /** Puts the screen's title in the native header; rendered once inside the screen. */
   readonly title: (title: string) => ReactNode;
+  /**
+   * False when the header would cut the title short (a one-line large title): the screen then draws the title in its
+   * body, where it wraps, and `title` leaves it out of the header. Every title fits when this is left out.
+   */
+  readonly fits?: (title: string) => boolean;
 }
 
 export const NativeScreenHeaderContext = createContext<NativeScreenHeader | null>(null);
@@ -50,9 +55,10 @@ export function Screen({
 }: ScreenProps): ReactElement {
   const theme = useTheme();
   const nativeHeader = useContext(NativeScreenHeaderContext);
+  const inHeader = nativeHeader !== null && (nativeHeader.fits?.(title ?? "") ?? true);
   const body = (
     <View style={{ gap: theme.space["16"], padding: theme.space["16"] }}>
-      {title && !nativeHeader ? (
+      {title && !inHeader ? (
         <Text variant="heading24" heading>
           {title}
         </Text>

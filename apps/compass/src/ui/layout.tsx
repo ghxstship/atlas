@@ -44,6 +44,7 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { largeTitleFits, stackTitleOptions } from "../domain/titles";
 import { Button, gloveSlop, Icon, Text, tid } from "./primitives";
 
 /**
@@ -54,7 +55,8 @@ export const NativeHeaderContext = createContext(false);
 
 /** The root stack's header, as @xos/ui-native's Screen (the Workforce screens) puts its title there. */
 const STACK_HEADER: NativeScreenHeader = {
-  title: (title) => <Stack.Screen options={{ title }} />,
+  title: (title) => <Stack.Screen options={stackTitleOptions(title)} />,
+  fits: largeTitleFits,
 };
 
 /**
@@ -109,13 +111,15 @@ export function Screen({
   // bar and collapses on scroll; drawing the title and the inset again left a band of about 120 pt
   // under the back button (finding A59-031).
   const nativeHeader = useContext(NativeHeaderContext);
+  // A title the large-title header would cut short is drawn in the page, where it wraps (C-23).
+  const titleInHeader = nativeHeader && largeTitleFits(title ?? "");
   // Without scrolling the body fills the screen, so a flex child (the scan sheet's camera) gets the room
   // left; it collapsed to nothing before, and its Done button drew over the manual entry.
   const body = (
     <View
       style={{ padding: theme.space["16"], gap: theme.space["16"], ...(scroll ? {} : { flex: 1 }) }}
     >
-      {title && !nativeHeader ? (
+      {title && !titleInHeader ? (
         <Text variant="heading24" heading>
           {title}
         </Text>
@@ -132,7 +136,7 @@ export function Screen({
         paddingTop: nativeHeader ? 0 : insets.top,
       }}
     >
-      {nativeHeader ? <Stack.Screen options={{ title: title ?? "" }} /> : null}
+      {nativeHeader ? <Stack.Screen options={stackTitleOptions(title ?? "")} /> : null}
       {scroll ? (
         <ScrollView
           ref={scrollRef}
