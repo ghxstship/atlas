@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./engine-test";
 import { DEMO_ORG, reloadUntil, runImportWorker, signInAs } from "./a36-support";
 import { personOf, sql } from "./b2-support";
 import { uniqueId } from "./support";

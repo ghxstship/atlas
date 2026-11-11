@@ -1,6 +1,6 @@
 import { writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./engine-test";
 import { parseHandoffUrl } from "@xos/ia/handoff";
 import { DEMO_ORG, signInAs } from "./a36-support";
 
