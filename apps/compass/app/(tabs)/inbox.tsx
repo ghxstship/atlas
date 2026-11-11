@@ -4,6 +4,7 @@ import * as Linking from "expo-linking";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, type ReactElement } from "react";
 import { useTranslation } from "react-i18next";
+import { notificationPromptKeys } from "../../src/domain/audienceCopy";
 import { dispatchQueue, type IncidentRow, type Severity } from "../../src/domain/incidents";
 import {
   crisisAlertNotice,
@@ -36,6 +37,8 @@ export default function InboxScreen(): ReactElement {
   const router = useRouter();
   const { config, resolved, projectId, status, lens } = useCompass();
   const canDispatch = useAllowed("incidents.dispatch");
+  // Approving from the alert is for timesheet approvers; everyone else is told what notifications bring them (C-17).
+  const promptKeys = notificationPromptKeys(useAllowed("timesheets.approve"));
   const identity = resolved?.identity;
   const permission = useNotificationPermission();
   const notifications = useInboxNotifications();
@@ -153,13 +156,9 @@ export default function InboxScreen(): ReactElement {
       <ProjectPicker />
       <SyncBanner />
       {permission.state === "ask" || permission.state === "denied" ? (
-        <Card testID="inbox-notifications" title={t("compass.notifications.promptTitle")}>
+        <Card testID="inbox-notifications" title={t(promptKeys.title)}>
           <Text tone="secondary">
-            {t(
-              permission.state === "ask"
-                ? "compass.notifications.prompt"
-                : "compass.notifications.denied",
-            )}
+            {t(permission.state === "ask" ? promptKeys.prompt : promptKeys.denied)}
           </Text>
           {permission.state === "ask" ? (
             <Button

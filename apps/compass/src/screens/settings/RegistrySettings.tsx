@@ -30,6 +30,7 @@ import {
   type SettingProblem,
 } from "../../settings/preferences";
 import { zoneLabel } from "../../settings/zones";
+import { settingsForAudience } from "../../domain/audienceCopy";
 import {
   Button,
   Card,
@@ -302,10 +303,11 @@ export function RegistrySettingsScreen({
   readonly children?: ReactNode;
 }): ReactElement {
   const { t } = useTranslation();
-  const { network, offeredLocales } = useCompass();
+  const { network, offeredLocales, resolved } = useCompass();
   const mirror = useRegistrySettings();
   const orgName = useOrgName();
-  const defs = sectionSettings(section);
+  // An external person never sees Atlas's own settings, and reads help in their own terms (C-17).
+  const defs = settingsForAudience(sectionSettings(section), resolved?.identity.audience ?? null);
   const byKey = checks?.(mirror.rows) ?? {};
   return (
     <Screen testID={testID} title={title} refreshing={false} onRefresh={mirror.reload}>

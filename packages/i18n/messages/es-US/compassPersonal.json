@@ -4,7 +4,11 @@
     "deviceZone": "Compass usa la zona horaria de este teléfono, {zone}, hasta que elijas una.",
     "deviceLanguage": "Compass sigue el idioma de este teléfono hasta que tú o tu organización elijan uno.",
     "date": "Escribe la fecha como año-mes-día, por ejemplo 2026-11-02.",
-    "dateHelp": "Año-mes-día, por ejemplo 2026-11-02. Déjala en blanco para no indicar fecha."
+    "dateHelp": "Año-mes-día, por ejemplo 2026-11-02. Déjala en blanco para no indicar fecha.",
+    "externalHelp": {
+      "outOfOffice": "Avisa a quienes te escriban que no estás disponible.",
+      "workPhone": "Tu número de trabajo, que se completa por ti en los formularios de registro que llenes. No aparece en ningún directorio."
+    }
   },
   "zones": {
     "search": "Buscar zonas horarias",

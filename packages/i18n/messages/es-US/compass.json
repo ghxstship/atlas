@@ -319,6 +319,7 @@
     "title": "Hoy",
     "search": "Buscar en Compass",
     "noShifts": "No tienes turnos hoy. Los turnos abiertos aparecen en Agenda.",
+    "noShiftsExternal": "Hoy no tienes nada programado. En Agenda ves para qué estás contratado.",
     "openSchedule": "Abrir Agenda",
     "noTasks": "No hay tareas para hoy.",
     "noDaySheet": "Aún no hay hoja del día.",
@@ -1175,8 +1176,11 @@
     "failed": "No se hizo: Compass no pudo conectar con el servidor. Inténtalo de nuevo desde la bandeja.",
     "signedOut": "No se hizo: inicia sesión en Compass e inténtalo de nuevo desde la bandeja.",
     "promptTitle": "Aprobar desde notificaciones",
+    "promptTitleGeneral": "Recibe notificaciones",
     "prompt": "Activa las notificaciones para aprobar hojas de horas y otras solicitudes desde la alerta.",
+    "promptGeneral": "Activa las notificaciones para enterarte de los cambios en tu trabajo y responder solicitudes desde la alerta.",
     "denied": "Las notificaciones de Compass están desactivadas. Actívalas en Ajustes para aprobar desde la alerta.",
+    "deniedGeneral": "Las notificaciones de Compass están desactivadas. Actívalas en Ajustes para enterarte de los cambios en tu trabajo.",
     "turnOn": "Activar notificaciones"
   },
   "offerActions": {

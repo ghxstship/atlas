@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { isInternal } from "@xos/sync";
 import { View } from "react-native";
 import { access, operationalEngagements, rosterOnly, todayBlocks } from "../../src/domain/access";
+import { noShiftsKey } from "../../src/domain/audienceCopy";
 import { currentShift, isMine, todayShiftList } from "../../src/domain/shifts";
 import {
   breakChoice,
@@ -529,7 +530,7 @@ export default function TodayScreen(): ReactElement {
           <EmptyState
             testID="today-no-shifts"
             icon="calendar"
-            sentence={t("compass.today.noShifts")}
+            sentence={t(noShiftsKey(identity.audience))}
             actionLabel={t("compass.today.openSchedule")}
             onAction={() => router.push("/schedule")}
           />

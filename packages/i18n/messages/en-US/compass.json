@@ -319,6 +319,7 @@
     "title": "Today",
     "search": "Search Compass",
     "noShifts": "No shifts today. Open shifts appear in Schedule.",
+    "noShiftsExternal": "Nothing booked for you today. Schedule shows what you are booked for.",
     "openSchedule": "Open Schedule",
     "noTasks": "No tasks due today.",
     "noDaySheet": "No day sheet for today yet.",
@@ -1175,8 +1176,11 @@
     "failed": "Not done: Compass could not reach the server. Try again from the Inbox.",
     "signedOut": "Not done: sign in to Compass, then try again from the Inbox.",
     "promptTitle": "Approve from notifications",
+    "promptTitleGeneral": "Get notified",
     "prompt": "Turn on notifications to approve timesheets and other requests right from the alert.",
+    "promptGeneral": "Turn on notifications to hear about changes to your work and to answer requests right from the alert.",
     "denied": "Notifications are off for Compass. Turn them on in Settings to approve from the alert.",
+    "deniedGeneral": "Notifications are off for Compass. Turn them on in Settings to hear about changes to your work.",
     "turnOn": "Turn On Notifications"
   },
   "offerActions": {
