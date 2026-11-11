@@ -581,7 +581,7 @@
         "action": "Agregar entidad"
       },
       "rolesAndCapabilities": {
-        "empty": "Crea roles personalizados a partir del conjunto de capacidades.",
+        "empty": "Los roles que puede tener un miembro, del que más acceso da al que menos, y las capacidades que concede cada uno. Los roles de la plataforma son fijos; Ver como rol muestra uno.",
         "action": "Nuevo rol"
       },
       "teams": {

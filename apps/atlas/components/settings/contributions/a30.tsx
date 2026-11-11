@@ -1,4 +1,4 @@
-import { getSubscription, listRoles, listWorkspaces } from "@xos/data";
+import { getSubscription, listRoleCapabilities, listRoles, listWorkspaces } from "@xos/data";
 import type { Route } from "next";
 import Link from "next/link";
 import {
@@ -30,6 +30,7 @@ import {
 } from "@/components/settings/profile-panels";
 import { referenceOptions } from "@/components/settings/registry-section";
 import { SettingsForm } from "@/components/settings/setting-field";
+import { capabilitiesByModule } from "@/lib/settings/role-capabilities";
 import { InlineAlert } from "@/components/ui";
 import {
   HEX_COLOR,
@@ -515,22 +516,64 @@ async function TeamsPanel({ ctx }: SettingsPanelProps) {
   );
 }
 
+/**
+ * Roles and Capabilities (Section 8): each role the org's members can hold, in band order, with what it is for and the
+ * capabilities it grants, behind a disclosure. XOS has no custom-role builder yet, so the page promises none
+ * (crawl 4.9); View as role (A36) previews a role below.
+ */
 async function RolesPanel({ ctx }: SettingsPanelProps) {
   const t = await getTranslate();
   const roles = await listRoles(ctx.viewer.db, ctx.org.id);
   if (!roles.ok) return <LoadFailed message={t("settings.loadFailed")} />;
+  const grants = await Promise.all(
+    roles.data.map((r) => listRoleCapabilities(ctx.viewer.db, [r.id])),
+  );
   return (
     <ul className="m-0 flex max-w-layout-form list-none flex-col divide-y divide-border-subtle p-0">
-      {roles.data.map((r) => (
-        <li key={r.id} className="flex flex-col gap-2 py-8">
-          <span className="text-label-13 font-medium">{r.name ?? t(`shell.roles.${r.code}`)}</span>
-          <span className="text-text-12 text-text-secondary">
-            {r.system
-              ? t("settings.roles.system", { band: r.band })
-              : t("settings.roles.custom", { band: r.band })}
-          </span>
-        </li>
-      ))}
+      {roles.data.map((r, i) => {
+        const name = r.name ?? t(`shell.roles.${r.code}`);
+        const held = grants[i];
+        const reach = held?.ok ? held.data : new Map<string, string>();
+        return (
+          <li key={r.id} className="flex flex-col gap-4 py-8" data-testid={`role-${r.code}`}>
+            <span className="text-label-13 font-medium">{name}</span>
+            <span className="text-text-12 text-text-secondary">
+              {r.system
+                ? t("settings.roles.system", { band: r.band })
+                : t("settings.roles.custom", { band: r.band })}
+              {" · "}
+              {t("settings.roles.capabilities", { count: reach.size })}
+            </span>
+            {r.system ? (
+              <span className="text-text-13">{t(`settings.roles.descriptions.${r.code}`)}</span>
+            ) : null}
+            {reach.size > 0 ? (
+              <details className="text-text-12">
+                <summary className="min-h-target-fine cursor-pointer py-4 font-medium text-accent-text">
+                  {t("settings.roles.showCapabilities", { role: name })}
+                </summary>
+                <dl className="m-0 flex flex-col gap-8 pt-8">
+                  {capabilitiesByModule(reach).map((m) => (
+                    <div key={m.group} className="flex flex-col gap-2">
+                      <dt className="font-medium">{m.group}</dt>
+                      <dd className="m-0 flex flex-col gap-2">
+                        {m.capabilities.map(([code, r2]) => (
+                          <span key={code}>
+                            <code className="font-mono text-text-11">{code}</code>{" "}
+                            <span className="text-text-secondary">
+                              {t(`settings.roles.reach.${r2}`)}
+                            </span>
+                          </span>
+                        ))}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+              </details>
+            ) : null}
+          </li>
+        );
+      })}
     </ul>
   );
 }

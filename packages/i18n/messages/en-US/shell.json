@@ -581,7 +581,7 @@
         "action": "Add entity"
       },
       "rolesAndCapabilities": {
-        "empty": "Build custom roles from the capability set.",
+        "empty": "The roles a member can hold, from most access to least, and the capabilities each one grants. Platform roles are fixed; View as role previews one.",
         "action": "New role"
       },
       "teams": {

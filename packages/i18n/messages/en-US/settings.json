@@ -676,7 +676,23 @@
   },
   "roles": {
     "system": "Platform role, band {band}",
-    "custom": "Custom role, band {band}"
+    "custom": "Custom role, band {band}",
+    "capabilities": "{count, plural, one {# capability} other {# capabilities}}",
+    "showCapabilities": "Show what {role} can do",
+    "reach": {
+      "own": "own records",
+      "assigned": "assigned work",
+      "organization": "the whole organization"
+    },
+    "descriptions": {
+      "owner": "Everything, including billing, deletion and data rights.",
+      "admin": "Org configuration, members, integrations and canon extensions.",
+      "manager": "Full project and finance operations.",
+      "member": "Creates and edits within projects they belong to, with no finance approval.",
+      "collaborator": "Edits assigned records only, with no finance or procurement writes.",
+      "field": "Compass field functions, own shifts, own time and assigned tasks.",
+      "viewer": "Reads within granted scopes."
+    }
   },
   "favorites": {
     "pin": "Pin page",
