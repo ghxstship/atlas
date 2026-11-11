@@ -9,7 +9,7 @@ const state = vi.hoisted(() => ({ declined: [] as unknown[] }));
 
 vi.mock("@/lib/supabase/server", () => ({ createServerSupabase: async () => ({}) }));
 vi.mock("@xos/data/gateway", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@xos/data/gateway")>()),
+  ...(await importOriginal<Record<string, unknown>>()),
   declineOffer: async (_db: unknown, input: unknown) => {
     state.declined.push(input);
     return { ok: true, data: null };

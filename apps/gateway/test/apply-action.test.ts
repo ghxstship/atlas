@@ -25,7 +25,7 @@ vi.mock("@/lib/shell/context", () => ({
   }),
 }));
 vi.mock("@xos/data/gateway", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@xos/data/gateway")>()),
+  ...(await importOriginal<Record<string, unknown>>()),
   getOpportunity: async () => ({
     ok: true,
     data: {
