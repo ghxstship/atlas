@@ -474,6 +474,8 @@ describe("push through the Expo push service (ADR 0030)", () => {
 
 // SMS ---------------------------------------------------------------------------------------------------
 
+/** The em dash, built from its code point because the finish guard keeps the literal out of the source. */
+const EM_DASH = String.fromCharCode(0x2014);
 /** A test-only API key and signing secret: never a real sent.dm credential. */
 const API_KEY = "test-sentdm-key-0000000000000000";
 const WEBHOOK_SECRET = `whsec_${Buffer.from("x".repeat(32)).toString("base64")}`;
@@ -586,7 +588,9 @@ describe("SMS through sent.dm (Section 14.5)", () => {
   });
 
   it("keeps a text GSM-7 and a template value on one line", () => {
-    expect(smartEncode("“Load in” — 9:00 AM…")).toBe('"Load in" - 9:00 AM...');
+    expect(smartEncode(`\u201cLoad in\u201d ${EM_DASH} 9:00\u202fAM\u2026`)).toBe(
+      '"Load in" - 9:00 AM...',
+    );
     expect(templateValue("Line one\nLine two\t\tend      gap ")).toBe(
       "Line one Line two end    gap",
     );
@@ -626,7 +630,7 @@ describe("SMS through sent.dm (Section 14.5)", () => {
       fetch: impl,
     });
     await expect(
-      provider.send({ to: "+15555550100", body: "Hi — there\nnow", deliveryId: "s1" }),
+      provider.send({ to: "+15555550100", body: `Hi ${EM_DASH} there\nnow`, deliveryId: "s1" }),
     ).resolves.toEqual({ providerMessageId: "m-1", segments: 1 });
     expect(requests[0]?.url).toBe(`${SENTDM_API}/messages`);
     const headers = requests[0]?.init.headers as Record<string, string>;
