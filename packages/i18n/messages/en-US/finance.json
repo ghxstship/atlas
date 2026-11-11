@@ -43,7 +43,7 @@
     "properties": "Properties",
     "reason": "Reason",
     "reasonHelp": "The reason is recorded in the document's history with your name.",
-    "refusedTitle": "Refused",
+    "refusedTitle": "The change did not go through",
     "remove": "Remove",
     "retry": "Try again",
     "save": "Save",
@@ -339,8 +339,8 @@
     "sod_self_grant": "A person cannot set a limit or grant that applies to themselves.",
     "sod_vendor_payment": "A person who created a vendor or edited its bank details cannot approve payment to it.",
     "spend_approval_duplicate": "You already approved this. A second approval needs a different approver.",
-    "spend_authority_exceeded": "This exceeds your spend authority. Route it to the next approver in the policy.",
-    "spend_authority_missing": "No spend authority lets you approve this document type in this currency. Ask an Admin to set one.",
+    "spend_authority_exceeded": "This is above your spend authority. Someone whose limit covers the amount has to approve it, such as an Owner or Admin; they set limits under Settings, Spend authority.",
+    "spend_authority_missing": "Nobody gave you a spend authority for this document type in this currency. Ask an Owner or Admin to set one under Settings, Spend authority, or ask someone who holds one to approve.",
     "spend_unpriced": "An unpriced amount cannot be approved. Price it first.",
     "tax_rate_overlap": "Rates of one tax jurisdiction and tax type never overlap.",
     "tax_type_unknown": "That is not a canon tax type.",
@@ -995,7 +995,10 @@
     "net": "Net settlement",
     "noLines": "No lines yet. Add the guarantee, bonuses, expenses and deductions.",
     "noLinesRead": "This settlement has no lines yet.",
-    "unpricedNet": "{count, plural, one {Unpriced, # line has no amount} other {Unpriced, # lines have no amount}}"
+    "unpricedNet": "{count, plural, one {Unpriced, # line has no amount} other {Unpriced, # lines have no amount}}",
+    "ownDraft": "You drafted this settlement, so someone else submits it.",
+    "engagementStarts": "from {day}",
+    "engagementNumbered": "{label} ({n})"
   },
   "yearEnd": {
     "empty": "No payee reached {threshold} in approved USD payments as an independent contractor in {year}. Payees appear here once their payments are approved.",

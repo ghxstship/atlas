@@ -43,7 +43,7 @@
     "properties": "Propiedades",
     "reason": "Motivo",
     "reasonHelp": "El motivo queda en el historial del documento con su nombre.",
-    "refusedTitle": "Rechazado",
+    "refusedTitle": "El cambio no se aplicó",
     "remove": "Quitar",
     "retry": "Reintentar",
     "save": "Guardar",
@@ -339,8 +339,8 @@
     "sod_self_grant": "Una persona no puede fijar un límite o permiso que se aplique a sí misma.",
     "sod_vendor_payment": "Quien creó un proveedor o editó sus datos bancarios no puede aprobar pagos a ese proveedor.",
     "spend_approval_duplicate": "Ya aprobó esto. Una segunda aprobación necesita a otra persona.",
-    "spend_authority_exceeded": "Esto supera su autoridad de gasto. Envíelo a la siguiente persona aprobadora de la política.",
-    "spend_authority_missing": "Ninguna autoridad de gasto le permite aprobar este tipo de documento en esta moneda. Pida a un Administrador que la configure.",
+    "spend_authority_exceeded": "Esto supera su autoridad de gasto. Debe aprobarlo alguien cuyo límite cubra el importe, como un Propietario o Administrador; ellos fijan los límites en Configuración, Autoridad de gasto.",
+    "spend_authority_missing": "Nadie le asignó una autoridad de gasto para este tipo de documento en esta moneda. Pida a un Propietario o Administrador que la configure en Configuración, Autoridad de gasto, o pida a alguien que tenga una que lo apruebe.",
     "spend_unpriced": "Un importe sin precio no se puede aprobar. Póngale precio primero.",
     "tax_rate_overlap": "Las tasas de una jurisdicción fiscal y un tipo de impuesto nunca se superponen.",
     "tax_type_unknown": "Ese no es un tipo de impuesto del canon.",
@@ -995,7 +995,10 @@
     "net": "Liquidación neta",
     "noLines": "Aún no hay líneas. Agregue la garantía, los bonos, los gastos y las deducciones.",
     "noLinesRead": "Esta liquidación aún no tiene líneas.",
-    "unpricedNet": "{count, plural, one {Sin precio, # línea no tiene importe} other {Sin precio, # líneas no tienen importe}}"
+    "unpricedNet": "{count, plural, one {Sin precio, # línea no tiene importe} other {Sin precio, # líneas no tienen importe}}",
+    "ownDraft": "Usted redactó esta liquidación, así que la envía otra persona.",
+    "engagementStarts": "desde {day}",
+    "engagementNumbered": "{label} ({n})"
   },
   "yearEnd": {
     "empty": "Ningún beneficiario alcanzó {threshold} en pagos aprobados en USD como contratista independiente en {year}. Los beneficiarios aparecen aquí cuando se aprueban sus pagos.",

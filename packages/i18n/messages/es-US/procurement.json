@@ -177,7 +177,16 @@
     "addLine": "Agregar línea",
     "removeLine": "Quitar línea {n}",
     "linesLocked": "Las líneas se bloquean tras la aprobación. Use una orden de cambio para modificar la orden.",
-    "back": "Volver a las órdenes de compra"
+    "back": "Volver a las órdenes de compra",
+    "submitForApproval": "Enviar a aprobación",
+    "ownOrder": "Usted creó esta orden de compra, así que la aprueba otra persona.",
+    "policyTitle": "Primero la política de aprobación",
+    "policySubmit": "La política {policy} cubre esta orden. Envíela a aprobación; cuando la política la apruebe, apruebe la orden aquí.",
+    "policyInReview": "Esta orden está en revisión según la política {policy}. Cuando la política la apruebe, apruebe la orden aquí.",
+    "openApprovals": "Abrir Aprobaciones",
+    "noSpendAuthorityTitle": "Nadie puede aprobar este importe",
+    "noSpendAuthority": "Ninguna autoridad de gasto para órdenes de compra cubre {total} en esta moneda, así que nadie puede dar a esta orden su aprobación final. Un Propietario o Administrador fija los límites en Configuración, Autoridad de gasto.",
+    "openSpendAuthority": "Abrir Autoridad de gasto"
   },
   "changes": {
     "title": "Órdenes de cambio",
@@ -342,8 +351,8 @@
     "purchase_order_use_rpc": "Apruebe las órdenes de compra con el botón Aprobar.",
     "purchase_order_transition_not_allowed": "Ese cambio de la orden no se permite desde el estado actual.",
     "sod_po_creator": "Separación de funciones: quien creó la orden de compra no puede aprobarla.",
-    "spend_authority_missing": "Ninguna autoridad de gasto le permite aprobar este documento en esta moneda. Pida a un aprobador de finanzas.",
-    "spend_authority_exceeded": "El importe supera su autoridad de gasto. Debe aprobarlo alguien con un límite mayor.",
+    "spend_authority_missing": "Nadie le asignó una autoridad de gasto para órdenes de compra en esta moneda. Pida a un Propietario o Administrador que la configure en Configuración, Autoridad de gasto, o pida a alguien que tenga una que la apruebe.",
+    "spend_authority_exceeded": "El importe supera su autoridad de gasto. Debe aprobarla alguien cuyo límite lo cubra; un Propietario o Administrador fija los límites en Configuración, Autoridad de gasto.",
     "spend_approval_duplicate": "Usted ya lo aprobó. Se necesita un segundo aprobador distinto.",
     "production_closed": "La producción está cerrada, así que no admite gastos nuevos.",
     "vendor_blocked": "Un proveedor bloqueado o cancelado no recibe órdenes de compra nuevas.",
@@ -429,7 +438,14 @@
     "submittal_files_changes_requested": "Un archivo de esta presentación necesita cambios; revisa primero su versión más reciente.",
     "sod_file_review_uploader": "Quien subió una versión de archivo no puede revisarla.",
     "file_review_not_clean": "Solo se revisa un archivo que pasó su análisis de virus.",
-    "file_review_note_required": "Di qué cambiar en hasta 1,000 caracteres."
+    "file_review_note_required": "Di qué cambiar en hasta 1,000 caracteres.",
+    "approval_policy_pending": "Esta orden pasa primero por su política de aprobación. Envíela a aprobación y apruébela aquí cuando la política la apruebe.",
+    "spend_unpriced": "Ponga precio a cada línea antes de aprobar la orden.",
+    "approval_policy_none": "Ninguna política de aprobación activa cubre esta orden, así que apruébela directamente.",
+    "approval_policy_no_steps": "La política de aprobación aún no tiene pasos. Pida a un administrador de políticas que agregue uno.",
+    "approval_unpriced": "Ponga precio a cada línea antes de enviar la orden a aprobación.",
+    "approval_in_review": "Esta orden ya está en revisión. Sígala en la página Aprobaciones.",
+    "approval_already_approved": "La política ya aprobó esta orden por su total actual. Apruebe la orden aquí."
   },
   "kit": {
     "views": "Vista",
@@ -464,8 +480,9 @@
       "transition": "Ese cambio no se permite desde el estado actual. Elija uno de los cambios ofrecidos.",
       "conflict": "Alguien lo cambió primero. Actualice para ver el estado actual e inténtelo de nuevo.",
       "separation": "Separación de funciones: otra persona distinta de quien lo inició debe decidirlo.",
-      "spend": "La autoridad de gasto no cubre este importe. Pida a un aprobador con un límite mayor.",
-      "other": "La base de datos rechazó este cambio. El código de la regla abajo explica el motivo."
+      "spend": "La autoridad de gasto no cubre este importe. Pida a un aprobador con un límite mayor, o pida a un Propietario o Administrador que lo configure en Configuración, Autoridad de gasto.",
+      "other": "La base de datos rechazó este cambio. Actualice la página e inténtelo de nuevo; si sigue pasando, dé a su administrador la regla que aparece abajo.",
+      "approval": "Este documento pasa primero por su política de aprobación. Envíelo a aprobación y apruébelo aquí cuando la política lo apruebe."
     },
     "errors": {
       "notFound": "Este elemento ya no existe o ya no tiene acceso a él. Actualice la página.",
@@ -553,7 +570,8 @@
       "created": "Creado como {state}",
       "moved": "{from} a {to}",
       "someone": "Alguien"
-    }
+    },
+    "refusalRule": "Regla: {rule}"
   },
   "hireWarnings": {
     "title": "Revise el período de alquiler",
