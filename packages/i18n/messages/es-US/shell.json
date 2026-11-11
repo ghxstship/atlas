@@ -1244,6 +1244,8 @@
     },
     "billing": {
       "current": "{org} está en el plan {plan}.",
+      "canceled": "Esta organización está cancelada, así que está en el plan Access y es de solo lectura. Reactívala antes de elegir un plan.",
+      "canceledAction": "Reactivar en Zona de peligro",
       "perMonth": "{price} al mes",
       "choose": "Elegir {plan}",
       "chooseAnnual": "Elegir {plan}, con facturación anual",
@@ -1296,6 +1298,7 @@
       "perYear": "{price} al año, dos meses gratis",
       "seats": "Asientos",
       "seatUsage": "{used} de {limit} asientos en uso.",
+      "seatUsageOver": "{used} asientos en uso. El plan incluye {limit}.",
       "seatUsageUnlimited": "{used, plural, one {# asiento} other {# asientos}} en uso. Tu plan tiene asientos ilimitados.",
       "extraSeats": "{count, plural, one {Incluye # asiento adicional comprado} other {Incluye # asientos adicionales comprados}} además del plan.",
       "grandfathered": "Tu suscripción empezó antes de que los planes tuvieran límite de asientos, así que conserva asientos ilimitados. Cambiar de plan aplica los nuevos límites.",

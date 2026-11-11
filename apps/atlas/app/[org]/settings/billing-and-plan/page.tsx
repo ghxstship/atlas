@@ -5,6 +5,7 @@ import {
   orgCheckoutCurrency,
   type BillingAccount,
 } from "@xos/data/billing";
+import { getOrgBannerStatus } from "@xos/data/org-lifecycle";
 import { planFeatureOffered } from "@xos/i18n/offering";
 import type { Route } from "next";
 import Link from "next/link";
@@ -20,6 +21,7 @@ import {
 import { StripeCancellationNotice } from "@/components/settings/stripe-cancellation-notice";
 import { requireNode } from "@/lib/shell/require-node";
 import { Button, ButtonLink, Card, InlineAlert } from "@/components/ui";
+import { seatUsageKey, subscriptionOrAccess } from "@/lib/billing/current-subscription";
 import { renewalWording } from "@/lib/billing/renewal-terms";
 import { billingStatus } from "@/lib/billing/stripe";
 import { currentOffering } from "@/lib/offering";
@@ -62,6 +64,7 @@ export default async function BillingSettingsPage({
     zone,
     cancellations,
     currency,
+    lifecycle,
   ] = await Promise.all([
     getSubscription(ctx.viewer.db, ctx.org.id),
     getSeatUsage(ctx.viewer.db, ctx.org.id),
@@ -75,10 +78,10 @@ export default async function BillingSettingsPage({
     getStripeCancellations(ctx.viewer.db, ctx.org.id),
     // The currency Checkout charges in (ADR 0160), so the terms shown are the terms the action words again.
     orgCheckoutCurrency(ctx.viewer.db, ctx.org.id),
+    getOrgBannerStatus(ctx.viewer.db, ctx.org.id),
   ]);
-  if (!subscription.ok) {
-    throw new Error(`Cannot read the subscription: ${JSON.stringify(subscription.error)}`);
-  }
+  // A canceled org has no subscription in force: it is on Access, as planHasFeature reads it (crawl 4.9).
+  const { subscription: plan, none: noSubscription } = subscriptionOrAccess(subscription);
   if (!seats.ok) {
     throw new Error(`Cannot read the seat usage: ${JSON.stringify(seats.error)}`);
   }
@@ -88,9 +91,11 @@ export default async function BillingSettingsPage({
   const stripe: BillingAccount | null = account?.ok ? account.data : null;
   const paid = stripe?.paidThroughStripe === true;
   const awaiting = stripe?.awaitingSubscription === true;
-  const buying = billing.open && !paid && !awaiting;
-  const current = subscription.data.planCode;
-  const trialing = subscription.data.state === "trialing";
+  // A canceled org reactivates in Danger Zone before it chooses a plan, so it is offered no Checkout here.
+  const canceled = noSubscription && lifecycle.ok && lifecycle.data.readOnlyReason === "canceled";
+  const buying = billing.open && !paid && !awaiting && !canceled;
+  const current = plan.planCode;
+  const trialing = plan.state === "trialing";
   const term = search["term"] === "annual" ? "Annual" : "Monthly";
   const checkout =
     search["checkout"] === "done" ? "done" : search["checkout"] === "canceled" ? "canceled" : null;
@@ -104,7 +109,7 @@ export default async function BillingSettingsPage({
           planCode: reviewCode,
           interval: term,
           currency,
-          trialEndsAt: subscription.data.trialEndsAt,
+          trialEndsAt: plan.trialEndsAt,
           zone,
         })
       : null;
@@ -135,6 +140,17 @@ export default async function BillingSettingsPage({
         }}
       />
       <p className="m-0 text-text-14">{t("current", { org: ctx.org.name, plan: name(current) })}</p>
+      {canceled ? (
+        <InlineAlert tone="warning">
+          {t("canceled")}{" "}
+          <Link
+            href={`/${org}/settings/danger-zone` as Route}
+            className="font-medium text-accent-text underline"
+          >
+            {t("canceledAction")}
+          </Link>
+        </InlineAlert>
+      ) : null}
       <StripeCancellationNotice ctx={ctx} />
       {billing.open ? null : <InlineAlert tone="info">{t("notAvailable")}</InlineAlert>}
       {checkout === "done" && paid ? (
@@ -207,7 +223,7 @@ export default async function BillingSettingsPage({
           <p className="m-0 text-text-14">
             {usage.limit === null
               ? t("seatUsageUnlimited", { used: usage.used })
-              : t("seatUsage", {
+              : t(seatUsageKey(usage), {
                   used: format.number(usage.used),
                   limit: format.number(usage.limit),
                 })}

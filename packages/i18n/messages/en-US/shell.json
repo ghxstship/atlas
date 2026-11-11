@@ -1244,6 +1244,8 @@
     },
     "billing": {
       "current": "{org} is on the {plan} plan.",
+      "canceled": "This organization is canceled, so it is on the Access plan and read-only. Reactivate it before you choose a plan.",
+      "canceledAction": "Reactivate in Danger Zone",
       "perMonth": "{price} per month",
       "choose": "Choose {plan}",
       "chooseAnnual": "Choose {plan}, billed yearly",
@@ -1296,6 +1298,7 @@
       "perYear": "{price} a year, two months free",
       "seats": "Seats",
       "seatUsage": "{used} of {limit} seats in use.",
+      "seatUsageOver": "{used} seats in use. The plan includes {limit}.",
       "seatUsageUnlimited": "{used, plural, one {# seat} other {# seats}} in use. Your plan has unlimited seats.",
       "extraSeats": "{count, plural, one {Includes # extra seat} other {Includes # extra seats}} bought on top of the plan.",
       "grandfathered": "Your subscription started before plans had seat limits, so it keeps unlimited seats. Changing plan applies the new seat limits.",
