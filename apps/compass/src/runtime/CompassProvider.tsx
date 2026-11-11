@@ -69,6 +69,7 @@ import {
   type LensOption,
 } from "../domain/roleLens";
 import { storedDepartment } from "../domain/show";
+import { signOutThisDevice } from "./signOut";
 import { readDefaultOrg } from "../settings/organizations";
 import { compassUserAgent } from "../settings/security";
 import {
@@ -839,10 +840,9 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
     [engine],
   );
 
+  // Sign Out ends this device's session only; the person's other devices and browsers stay signed in.
   const signOut = useCallback(async () => {
-    if (syncSession) await syncSession.remoteSignOut();
-    else if (store) await store.wipe();
-    await client.auth.signOut();
+    await signOutThisDevice({ auth: client.auth, syncSession, store });
     setContexts(null);
     setLenses({});
     setBrands(new Map());
