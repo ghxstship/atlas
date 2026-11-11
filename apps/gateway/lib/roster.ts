@@ -1,6 +1,7 @@
 import type { Engagement } from "@xos/data/gateway";
 import type { Condition } from "@xos/ia";
 import type { RosterEntry } from "@xos/data/roster";
+import { rosterFactChip, type RosterFactStatus } from "@xos/data/roster-facts";
 
 /**
  * The crew roster in Gateway (R4, ADR 0101). Pure, so who sees the Crew tab is unit tested.
@@ -57,4 +58,45 @@ export function rosterEntriesToSubmit<T extends SubmittableEntry>(
 /** Drafts a names lock holds back from the submit; none while unlocked. */
 export function rosterDraftsHeld(entries: readonly SubmittableEntry[], locked: boolean): number {
   return locked ? entries.filter((e) => submittable(e) && e.entryState === "Draft").length : 0;
+}
+
+type FactKind = "travel" | "uniform" | "vehicle";
+
+/** One person on the engagement's roster who owes project details the viewer cannot enter as their own. */
+export interface OwedFacts {
+  readonly rosterEntryId: string;
+  readonly name: string | null;
+  /** The kinds the project asks of them, each on file or missing; never a kind that is not offered. */
+  readonly kinds: readonly { readonly kind: FactKind; readonly chip: "onFile" | "missing" }[];
+}
+
+/**
+ * What the rest of the roster owes in project details (R5), for someone who manages it without being on it, such as an
+ * artist's representative (4.9 surface crawl): each live entry of another person who has not declined it, with the kinds
+ * the project asks and whether each is on file, as app.roster_project_fact_status reports them to the viewer.
+ */
+export function othersOwedFacts(
+  entries: readonly Pick<
+    RosterEntry,
+    "id" | "personId" | "fullName" | "entryState" | "personResponse"
+  >[],
+  statuses: readonly Pick<RosterFactStatus, "rosterEntryId" | "offered" | "present">[],
+  viewerPersonId: string,
+): OwedFacts[] {
+  const statusOf = new Map(statuses.map((s) => [s.rosterEntryId, s]));
+  return entries.flatMap((e) => {
+    const status = statusOf.get(e.id);
+    if (
+      !status ||
+      e.personId === viewerPersonId ||
+      e.entryState === "Withdrawn" ||
+      e.personResponse === "Declined"
+    )
+      return [];
+    const kinds = (["travel", "uniform", "vehicle"] as const).flatMap((kind) => {
+      const chip = rosterFactChip(status, kind);
+      return chip === "notOffered" ? [] : [{ kind, chip }];
+    });
+    return kinds.length > 0 ? [{ rosterEntryId: e.id, name: e.fullName, kinds }] : [];
+  });
 }

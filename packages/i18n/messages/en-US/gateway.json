@@ -1059,6 +1059,12 @@
       "awaitingVerification": "Waiting for verification",
       "acknowledge": "I have read and acknowledge this",
       "noShowTag": "No-show"
+    },
+    "projectDetails": {
+      "othersTitle": "What the crew still owes",
+      "othersSentence": "Travel, uniform and vehicle details are each person's own step: they enter theirs in Gateway. This is what the project still needs from them.",
+      "othersCrew": "Enter details for someone on the Crew tab",
+      "someone": "Someone on the roster"
     }
   },
   "enums": {

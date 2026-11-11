@@ -1059,6 +1059,12 @@
       "awaitingVerification": "Pendiente de verificación",
       "acknowledge": "Lo he leído y lo confirmo",
       "noShowTag": "Ausencia"
+    },
+    "projectDetails": {
+      "othersTitle": "Lo que aún falta del equipo",
+      "othersSentence": "Los datos de viaje, uniforme y vehículo son un paso de cada persona: cada quien ingresa los suyos en Gateway. Esto es lo que el proyecto aún necesita de ellos.",
+      "othersCrew": "Ingresar datos de alguien en la pestaña Equipo",
+      "someone": "Alguien de la lista"
     }
   },
   "enums": {
