@@ -2,7 +2,7 @@
   "name": "@xos/platform",
   "version": "0.0.0",
   "private": true,
-  "description": "XOS platform services: Stripe billing, signed webhook dispatch, notification dispatch on email, push (Expo) and SMS (Twilio), the SMS webhook, chat translation and inbound mail, with every external client injected. Used by the Edge Functions and Atlas.",
+  "description": "XOS platform services: Stripe billing, signed webhook dispatch, notification dispatch on email, push (Expo) and SMS and WhatsApp (sent.dm), the SMS webhook, chat translation and inbound mail, with every external client injected. Used by the Edge Functions and Atlas.",
   "license": "AGPL-3.0-only",
   "type": "module",
   "exports": {

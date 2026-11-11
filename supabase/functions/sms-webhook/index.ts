@@ -1,10 +1,17 @@
-// Twilio webhook (Section 14.5 TCPA and 10DLC, finding A65-012): inbound messages to the Messaging Service and
-// delivery status callbacks. Authenticated by Twilio's request signature (X-Twilio-Signature, keyed with
-// TWILIO_AUTH_TOKEN) over the public URL Twilio calls: XOS_SMS_WEBHOOK_URL, or this function's URL on
-// SUPABASE_URL. STOP, START and HELP are recorded through app.record_sms_keyword (STOP writes the STOP
-// suppression) and answered with the catalog's reply; status callbacks go to app.record_sms_status.
-import { handleTwilioWebhook, readSmsEnv, smsInboundStore } from "../_vendor/sms-webhook.js";
-import { env, json, serve, serviceDb } from "../_shared/runtime.ts";
+// sent.dm webhook (owner decision 2026-11-11; Section 14.5 TCPA and 10DLC, finding A65-012): delivery events for the
+// texts XOS sends, inbound messages to its numbers, and network-reported opt-outs. Authenticated by sent.dm's
+// Standard Webhooks signature (webhook-signature, or x-webhook-signature on version 1 webhooks), keyed with
+// SENT_DM_WEBHOOK_SECRET, over the raw body, refused outside a five-minute window. STOP, START and HELP are recorded
+// through app.record_sms_keyword (STOP writes the STOP suppression); sent.dm answers them with the auto-replies the
+// owner sets. Delivery events go to app.record_sms_status. Register this function's URL as the endpoint in sent.dm,
+// subscribed to message and contact events (infra/runbooks/production.md).
+import {
+  handleSentdmWebhook,
+  readSmsEnv,
+  sentdmHeaders,
+  smsInboundStore,
+} from "../_vendor/sms-webhook.js";
+import { json, serve, serviceDb } from "../_shared/runtime.ts";
 
 serve(async (request) => {
   if (request.method !== "POST") {
@@ -15,23 +22,21 @@ serve(async (request) => {
     });
   }
   const smsEnv = readSmsEnv(Deno.env.toObject());
-  if (smsEnv.TWILIO_AUTH_TOKEN === undefined || smsEnv.XOS_SMS_HELP_CONTACT === undefined) {
+  if (smsEnv.SENT_DM_WEBHOOK_SECRET === undefined) {
     return json(503, {
       type: "/problems/sms-not-configured",
       title: "SMS not configured",
       status: 503,
-      detail: "Set TWILIO_AUTH_TOKEN and XOS_SMS_HELP_CONTACT to accept Twilio webhooks.",
+      detail: "Set SENT_DM_WEBHOOK_SECRET to accept sent.dm webhooks.",
     });
   }
-  const params = Object.fromEntries(new URLSearchParams(await request.text()));
-  const answer = await handleTwilioWebhook(
+  const answer = await handleSentdmWebhook(
     {
-      url: Deno.env.get("XOS_SMS_WEBHOOK_URL") ?? `${env("SUPABASE_URL")}/functions/v1/sms-webhook`,
-      params,
-      signature: request.headers.get("X-Twilio-Signature"),
+      headers: sentdmHeaders((name) => request.headers.get(name)),
+      rawBody: await request.text(),
     },
     smsInboundStore(serviceDb()),
-    { authToken: smsEnv.TWILIO_AUTH_TOKEN, helpContact: smsEnv.XOS_SMS_HELP_CONTACT },
+    { webhookSecret: smsEnv.SENT_DM_WEBHOOK_SECRET },
   );
   return new Response(answer.status === 204 ? null : answer.body, {
     status: answer.status,

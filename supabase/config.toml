@@ -478,7 +478,7 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.sms-webhook]
-# Authenticates Twilio by its request signature (A80, migration 1361).
+# Authenticates sent.dm by its webhook signature (A80, migration 1361; sent.dm since 4.12).
 verify_jwt = false
 
 [functions.api-token]

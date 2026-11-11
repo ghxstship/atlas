@@ -1,3 +1,3 @@
-/** sms-webhook: Twilio's signed inbound messages and status callbacks, and their store. */
-export { handleTwilioWebhook, readSmsEnv } from "../../src/notifications/sms.ts";
+/** sms-webhook: sent.dm's signed delivery, inbound and contact events, and their store. */
+export { handleSentdmWebhook, readSmsEnv, sentdmHeaders } from "../../src/notifications/sms.ts";
 export { smsInboundStore } from "../../src/notifications/stores.ts";
