@@ -8,7 +8,8 @@
 --   * app.billing_account: also returns checkout_refusal, the rule that refuses every plan's Checkout for the org now,
 --     so the page offers Checkout only where it opens and says why otherwise.
 --   * app.record_billing_checkout: a session already recorded for another org, plan, term or mode is refused
---     (checkout_session_taken) instead of passing as a repeat that records nothing.
+--     (checkout_session_taken) instead of passing as a repeat that records nothing; a true repeat returns before the
+--     insert, so the live mode renewal consent trigger (6811) never refuses it and no other session is closed.
 
 -- Checks ---------------------------------------------------------------------------------------------------------
 
@@ -122,6 +123,11 @@ begin
                     or c.billing_interval <> p_billing_interval or c.livemode <> p_livemode)) then
     perform private.refuse('checkout_session_taken', 'That Checkout session was recorded for another checkout.');
   end if;
+  -- A repeat returns before the insert: the renewal consent trigger (6811) runs before ON CONFLICT would skip the row, and
+  -- in live mode it would refuse the repeat, whose consent the first record already took; nor is any other session closed.
+  if exists (select 1 from app.billing_checkouts c where c.stripe_checkout_session_id = p_stripe_checkout_session_id) then
+    return '{}'::text[];
+  end if;
   with closed as (
     update app.billing_checkouts c set checkout_state = 'Expired', finished_at = now()
     where c.org_id = p_org_id and c.checkout_state = 'Open' and c.livemode = p_livemode and c.deleted_at is null
@@ -137,7 +143,7 @@ begin
 end;
 $$;
 
-comment on function app.record_billing_checkout(uuid, text, app.billing_interval, text, boolean, timestamptz) is 'Atlas, once Stripe opened a Checkout session for a plan: runs the checkout checks again, records the session as Open (once; a repeat for the same org, plan, term and mode changes nothing, and a session recorded for any other is refused with checkout_session_taken) and closes every other open session of the org in that mode as Expired, returning their ids so Atlas expires them in Stripe too. Serialized per org with the billing lock of app.sync_subscription_from_stripe.';
+comment on function app.record_billing_checkout(uuid, text, app.billing_interval, text, boolean, timestamptz) is 'Atlas, once Stripe opened a Checkout session for a plan: runs the checkout checks again, records the session as Open (once; a repeat for the same org, plan, term and mode changes nothing and closes no other session, in either mode, and a session recorded for any other is refused with checkout_session_taken) and closes every other open session of the org in that mode as Expired, returning their ids so Atlas expires them in Stripe too. Serialized per org with the billing lock of app.sync_subscription_from_stripe.';
 
 -- Atlas: the billing summary -------------------------------------------------------------------------------------
 

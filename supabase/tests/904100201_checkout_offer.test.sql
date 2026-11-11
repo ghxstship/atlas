@@ -6,7 +6,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0200_identity_world.psql
 
-select plan(19);
+select plan(24);
 
 -- Nina starts an org on the 14-day Pro trial (1350), and a second org that is her sandbox (1530).
 select pg_temp.as_user('nina');
@@ -62,6 +62,26 @@ select pg_temp.as_platform();
 select is((select count(*)::integer from app.billing_checkouts c where c.stripe_checkout_session_id = 'cs_test_N1naOffer'
   and c.org_id = pg_temp.id('org_n') and c.plan_code = 'core' and c.checkout_state = 'Open'), 1,
   'the session stays Nina''s, open, for Core');
+
+-- A live mode repeat: the renewal consent trigger (6811) must not see it ---------------------------------------------
+select pg_temp.as_user_stepped_up('nina');
+select app.record_renewal_consent(pg_temp.id('org_n'), 'core', 'Monthly', 14900, 'USD', (now() at time zone 'UTC')::date + 10,
+  '2026-11-06', 'en-US', 'Core renews every month.', '', true);
+select is(app.record_billing_checkout(pg_temp.id('org_n'), 'core', 'Monthly', 'cs_live_N1naRepeat', true, now() + interval '1 day'),
+  '{}'::text[], 'with consent the Owner records a live session');
+select is(app.record_billing_checkout(pg_temp.id('org_n'), 'core', 'Monthly', 'cs_live_N1naRepeat', true, now() + interval '1 day'),
+  '{}'::text[], 'recording it again in live mode changes nothing, though its consent is already taken');
+select app.record_renewal_consent(pg_temp.id('org_n'), 'core', 'Monthly', 14900, 'USD', (now() at time zone 'UTC')::date + 10,
+  '2026-11-06', 'en-US', 'Core renews every month.', '', true);
+select is(app.record_billing_checkout(pg_temp.id('org_n'), 'core', 'Monthly', 'cs_live_N1naNewer', true, now() + interval '1 day'),
+  array['cs_live_N1naRepeat'], 'a newer live session closes the first');
+select is(app.record_billing_checkout(pg_temp.id('org_n'), 'core', 'Monthly', 'cs_live_N1naRepeat', true, now() + interval '1 day'),
+  '{}'::text[], 'a late repeat of the first changes nothing');
+select pg_temp.as_platform();
+select is((select array_agg(c.stripe_checkout_session_id || ':' || c.checkout_state::text order by c.stripe_checkout_session_id)
+           from app.billing_checkouts c where c.org_id = pg_temp.id('org_n') and c.livemode),
+  array['cs_live_N1naNewer:Open', 'cs_live_N1naRepeat:Expired'],
+  'the newer session stays open and the first stays closed');
 
 -- Paid, then subscribed, then read-only ----------------------------------------------------------------------------
 set local role service_role;
