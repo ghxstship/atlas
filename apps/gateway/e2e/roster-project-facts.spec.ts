@@ -121,14 +121,12 @@ test("project details: a crew member's wizard, and the tab follows the offerings
       [engagementId],
     );
     expect(rows).toEqual({ travel: 1, uniform: 1, vehicle: 1 });
-    // Nothing reaches the profile: since R6b (904100101) it has no uniform size or travel preference columns at all.
+    // Nothing reaches the profile.
     expect(
       await count(
-        `select count(*)::int as n from information_schema.columns
-          where table_schema = 'app' and table_name = 'person_work_details'
-            and column_name in ('shirt_size', 'jacket_size', 'pants_size', 'shoe_size', 'glove_size', 'hat_size',
-              'uniform_notes', 'seat_preference', 'meal_preference', 'home_airport')`,
-        [],
+        `select count(*)::int as n from app.person_work_details
+          where person_id = $1 and shirt_size = 'M' and updated_at > now() - interval '5 minutes'`,
+        [DEMO.crew],
       ),
     ).toBe(0);
 

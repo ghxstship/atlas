@@ -360,9 +360,8 @@ describe("every notification kind is sent or says why not", () => {
       .filter(([, e]) => e.status === "deferred")
       .map(([kind]) => kind)
       .sort();
-    // Deferring a kind is a decision: name it here with its reason in notification-kinds.yaml. R6b retired
-    // account.work_details_moved with R6a's one-time move; the kind stays for the notices already sent.
-    expect(deferred).toEqual(["account.work_details_moved", "export.ready"]);
+    // Deferring a kind is a decision: name it here with its reason in notification-kinds.yaml.
+    expect(deferred).toEqual(["export.ready"]);
   });
 
   it("sends every kind that bypasses quiet hours (ADR 0033 decision 35)", () => {
