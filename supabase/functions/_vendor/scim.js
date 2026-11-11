@@ -255,6 +255,12 @@ async function upsertUser(store, admin, providerId, externalId, body, existing) 
       "A provisioned user keeps its email address; deprovision it and provision the new address.",
       "mutability",
     );
+  if (!existing && parsed.active && (await store.emailBlocked(providerId, parsed.email)))
+    return scimError(
+      400,
+      "You cannot join this organization. Ask one of its administrators.",
+      "invalidValue",
+    );
   const userId = existing?.userId ?? (await admin.findOrCreateUser(parsed.email, parsed.fullName));
   const id =
     existing?.externalId ??
@@ -593,6 +599,16 @@ function supabaseScimStore(db) {
       )
         .map(toIdentity)
         .filter((i) => i !== null);
+    },
+    async emailBlocked(providerId, email) {
+      return (
+        (await unwrap(
+          db.rpc("scim_email_blocked", {
+            p_identity_provider_id: providerId,
+            p_email: email,
+          }),
+        )) === true
+      );
     },
     async provision(providerId, externalId, userName, userId, active, groups) {
       return unwrap(

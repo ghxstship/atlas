@@ -3,7 +3,7 @@ import { loadPlanRegistry } from "@xos/schemas/plans";
 import {
   CheckoutCompletedError,
   NotSelfServeError,
-  PORTAL_CONFIGURATION_KEY,
+  PORTAL_CONFIGURATION_KEYS,
   expireCheckoutSession,
   lookupKeyFor,
   openBillingPortal,
@@ -97,7 +97,13 @@ function fakeStripe(
           data:
             options.portalConfigured === false
               ? []
-              : [{ id: "bpc_xos", metadata: { xos_portal: PORTAL_CONFIGURATION_KEY } }],
+              : [
+                  {
+                    id: "bpc_monthly",
+                    metadata: { xos_portal: PORTAL_CONFIGURATION_KEYS.Monthly },
+                  },
+                  { id: "bpc_annual", metadata: { xos_portal: PORTAL_CONFIGURATION_KEYS.Annual } },
+                ],
         }),
       },
     },
@@ -119,7 +125,12 @@ function accountStore(
 ) {
   const recorded: Parameters<CheckoutAccountStore["record"]>[0][] = [];
   const begun: Parameters<CheckoutAccountStore["begin"]>[0][] = [];
+  const consents: Parameters<CheckoutAccountStore["recordConsent"]>[0][] = [];
   const store: CheckoutAccountStore = {
+    async recordConsent(input) {
+      consents.push(input);
+      return `consent-${String(consents.length)}`;
+    },
     async begin(input) {
       begun.push(input);
       if (options.refuse !== undefined) throw new Error(options.refuse);
@@ -138,7 +149,7 @@ function accountStore(
       return options.customerId ?? "cus_none";
     },
   };
-  return { store, recorded, begun };
+  return { store, recorded, begun, consents };
 }
 
 const request = {
@@ -149,10 +160,78 @@ const request = {
   customerEmail: "owner@northwind.test",
   successUrl: "https://atlas.test/northwind/settings/billing-and-plan?checkout=done",
   cancelUrl: "https://atlas.test/northwind/settings/billing-and-plan?checkout=canceled",
+  consent: () => ({
+    amountMinor: 14900,
+    currency: "USD",
+    nextChargeOn: "2026-10-23",
+    textVersion: "2026-11-06",
+    locale: "en-US",
+    statement: "Core renews automatically every month.",
+    initials: null,
+  }),
   now: new Date("2026-10-23T12:00:00Z"),
 };
 
 describe("startPlanCheckout", () => {
+  it("records what the Owner agreed to, after the checks and before Stripe, and repeats it on Stripe's page", async () => {
+    const stripe = fakeStripe();
+    const account = accountStore({ trialEndsAt: "2026-11-05T05:00:00Z" });
+    const seen: (string | null)[] = [];
+    await startPlanCheckout(stripe.client, registry, account.store, {
+      ...request,
+      consent: ({ trialEndsAt }) => {
+        seen.push(trialEndsAt);
+        return request.consent();
+      },
+    });
+    expect(seen).toEqual(["2026-11-05T05:00:00Z"]);
+    expect(account.consents).toEqual([
+      {
+        orgId: "org-1",
+        planCode: "core",
+        interval: "Monthly",
+        livemode: false,
+        consent: request.consent(),
+      },
+    ]);
+    const created = stripe.calls.find((c) => c.method === "checkout.sessions.create");
+    expect(JSON.stringify(created)).toContain("Core renews automatically every month.");
+    expect(created?.params).toMatchObject({
+      currency: "usd",
+      adaptive_pricing: { enabled: false },
+    });
+  });
+
+  it("tells Checkout the currency the Owner agreed to, so the statement and the charge cannot differ", async () => {
+    const stripe = fakeStripe();
+    await startPlanCheckout(stripe.client, registry, accountStore().store, {
+      ...request,
+      consent: () => ({ ...request.consent(), amountMinor: 13900, currency: "EUR" }),
+    });
+    const created = stripe.calls.find((c) => c.method === "checkout.sessions.create");
+    expect(created?.params).toMatchObject({ currency: "eur" });
+  });
+
+  it("records no consent and calls no Stripe when the database refuses or the terms changed", async () => {
+    const stripe = fakeStripe();
+    const refused = accountStore({ refuse: "step_up_required" });
+    await expect(
+      startPlanCheckout(stripe.client, registry, refused.store, request),
+    ).rejects.toThrow("step_up_required");
+    expect(refused.consents).toEqual([]);
+    const account = accountStore();
+    await expect(
+      startPlanCheckout(stripe.client, registry, account.store, {
+        ...request,
+        consent: () => {
+          throw new Error("renewal_terms_changed");
+        },
+      }),
+    ).rejects.toThrow("renewal_terms_changed");
+    expect(account.consents).toEqual([]);
+    expect(stripe.calls.filter((c) => c.method === "checkout.sessions.create")).toEqual([]);
+  });
+
   it("opens an org's first checkout with the Owner's email and carries the rest of its trial", async () => {
     const stripe = fakeStripe();
     const account = accountStore({ trialEndsAt: "2026-11-05T05:00:00Z" });
@@ -348,7 +427,7 @@ describe("expireCheckoutSession", () => {
 });
 
 describe("openBillingPortal", () => {
-  it("opens the portal on the org's customer with the configuration stripe:setup created", async () => {
+  it("opens the portal on the org's customer with the configuration of the plan's term", async () => {
     const stripe = fakeStripe();
     const url = await openBillingPortal(
       stripe.client,
@@ -357,6 +436,7 @@ describe("openBillingPortal", () => {
         orgId: "org-1",
         livemode: false,
         returnUrl: "https://atlas.test/northwind/settings/billing-and-plan",
+        term: "Annual",
       },
     );
     expect(url).toBe("https://billing.stripe.test/p/1");
@@ -365,9 +445,20 @@ describe("openBillingPortal", () => {
       params: {
         customer: "cus_N1na",
         return_url: "https://atlas.test/northwind/settings/billing-and-plan",
-        configuration: "bpc_xos",
+        configuration: "bpc_annual",
       },
     });
+  });
+
+  it("uses the monthly configuration with no term on record, which cannot move anyone onto an annual plan", async () => {
+    const stripe = fakeStripe();
+    await openBillingPortal(stripe.client, accountStore({ customerId: "cus_N1na" }).store, {
+      orgId: "org-1",
+      livemode: false,
+      returnUrl: "https://atlas.test/b",
+      term: null,
+    });
+    expect(stripe.calls.at(-1)?.params).toMatchObject({ configuration: "bpc_monthly" });
   });
 
   it("falls back to the account's default portal before stripe:setup has run", async () => {
@@ -376,6 +467,7 @@ describe("openBillingPortal", () => {
       orgId: "org-1",
       livemode: false,
       returnUrl: "https://atlas.test/b",
+      term: "Monthly",
     });
     expect(stripe.calls.at(-1)?.params).toEqual({
       customer: "cus_N1na",
@@ -390,6 +482,7 @@ describe("openBillingPortal", () => {
         orgId: "org-1",
         livemode: false,
         returnUrl: "https://atlas.test/b",
+        term: "Monthly",
       }),
     ).rejects.toThrow("billing_no_customer");
     expect(stripe.calls).toEqual([]);

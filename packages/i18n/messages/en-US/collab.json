@@ -17,7 +17,32 @@
     "someRow": "A selected row",
     "done": "{count, plural, one {Changed # row.} other {Changed # rows.}}",
     "failed": "The change couldn't be saved. Try again.",
-    "none": "None"
+    "none": "None",
+    "staleTitle": "{count, plural, one {# row changed} other {# rows changed}} after you loaded the page",
+    "staleBody": "Someone saved these rows after you opened this page. Keep your change on them, or take theirs and leave them out of this change.",
+    "staleRow": "{row}: you chose {mine}; someone else saved {theirs}.",
+    "keepMine": "Keep mine",
+    "takeTheirs": "Take theirs",
+    "shift": {
+      "action": "Shift time",
+      "title": "Shift time of {count, plural, one {# record} other {# records}}",
+      "minutes": "Minutes",
+      "minutesHelp": "Later with +, earlier with -, up to 10,080 minutes (seven days).",
+      "minutesInvalid": "Enter whole minutes other than 0, such as +15 or -30, up to 10,080.",
+      "presets": "Common shifts",
+      "preset": "{minutes} min",
+      "explain": "Preview shows every record that moves, including the successors pushed to keep their dependencies.",
+      "preview": "Preview",
+      "apply": "Move {count, plural, one {# record} other {# records}}",
+      "cancel": "Cancel",
+      "moves": "{count, plural, one {# selected record moves} other {# selected records move}} by {minutes} min.",
+      "pushed": "{count, plural, one {# successor outside the selection is pushed:} other {# successors outside the selection are pushed:}}",
+      "pushedMore": "{count, plural, one {and # more.} other {and # more.}}",
+      "skipped": "{count, plural, one {# selected record has no dates or is canceled, so it stays where it is.} other {# selected records have no dates or are canceled, so they stay where they are.}}",
+      "nothing": "None of the selected records has a date to move.",
+      "someRecord": "A record",
+      "done": "{count, plural, one {Moved # record} other {Moved # records}} {minutes} min."
+    }
   },
   "undo": {
     "notifications": "Undo notifications",
@@ -61,7 +86,28 @@
     "notSet": "Not set",
     "trash": "In Trash",
     "restored": "Restored",
-    "unavailable": "The field history could not be loaded."
+    "unavailable": "The field history could not be loaded.",
+    "yes": "Yes",
+    "no": "No",
+    "minorUnits": "{amount} minor units",
+    "money": {
+      "agreed_rate_minor": "Agreed rate",
+      "amount_minor": "Amount",
+      "budget_minor": "Budget",
+      "cost_minor": "Cost",
+      "coverage_limit_minor": "Coverage limit",
+      "default_unit_price_minor": "Default price",
+      "nightly_rate_minor": "Nightly rate",
+      "pay_max_minor": "Pay up to",
+      "pay_min_minor": "Pay from",
+      "price_minor": "Fare",
+      "printed_total_minor": "Printed total",
+      "proposed_fee_minor": "Proposed fee",
+      "rate_minor": "Rate",
+      "shipping_minor": "Shipping",
+      "tax_minor": "Tax",
+      "printed_total_minor": "Printed total"
+    }
   },
   "coedit": {
     "open": "Edit together",
@@ -75,5 +121,34 @@
     "offline": "Offline. Your changes stay here and are sent when you reconnect.",
     "saved": "Saved. Everyone in the document sees changes as you type.",
     "done": "Done"
+  },
+  "conflict": {
+    "title": "{subject} changed while you edited it",
+    "sentence": "Someone saved the same fields after you opened them. Choose which values to keep; nothing is overwritten until you choose.",
+    "field": "Field",
+    "mineColumn": "Your change",
+    "theirsColumn": "Saved by someone else",
+    "mine": "Keep mine",
+    "theirs": "Take theirs"
+  },
+  "presence": {
+    "label": "Also viewing",
+    "editingLine": "{name} is editing line {line}",
+    "viewing": "{count, plural, one {# other person here} other {# other people here}}"
+  },
+  "preview": {
+    "open": "Preview",
+    "loading": "Loading the preview…",
+    "failed": "The preview couldn't be loaded. Try again, or download the file.",
+    "office": "Office files can't be previewed here. Download the file to open it.",
+    "unsupported": "This file type can't be previewed. Download the file to open it.",
+    "tooLarge": "This file is too large to preview. Download the file to open it.",
+    "download": "Download",
+    "watermarked": "Confidential and Restricted files preview as they download: with your email and the time on every page.",
+    "pages": "{count, plural, one {# page} other {# pages}}",
+    "pageOf": "Page {page} of {count}",
+    "image": "Image",
+    "video": "Video",
+    "videoLabel": "Video: {name}"
   }
 }

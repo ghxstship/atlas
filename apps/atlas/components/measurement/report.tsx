@@ -21,7 +21,7 @@ import { ViewSwitcher } from "@/components/finance/kit-view-switcher";
 import { EmptyPanel, ErrorPanel, RefusalPanel } from "@/components/finance/panels";
 import { PageHeader, TemplateCollection } from "@/components/finance/ui";
 import { ExportCsvButton } from "@/components/reports/client";
-import { Chart } from "@/components/lazy-ui";
+import { Chart } from "@/components/lazy-ui/chart";
 import type { FinancePage } from "@/lib/finance/context";
 import { getFinanceCopy, type FinanceCopy } from "@/lib/finance/copy";
 import { sitemap } from "@/lib/shell/sitemap";

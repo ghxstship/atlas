@@ -9,6 +9,12 @@ import {
   type QueueSummary,
   type SummaryContext,
 } from "../src/domain/queue-summary";
+import {
+  dismissSettledNote,
+  settledNotes,
+  subscribeSettledNotes,
+  type SettledNote,
+} from "../src/domain/settled-notes";
 import { useCompass, useRows } from "../src/runtime/CompassProvider";
 import { formatDay, formatTime } from "../src/screens/common";
 import { Button, Card, EmptyState, Screen, Sheet, SyncConflictSheet, Tag, Text } from "../src/ui";
@@ -24,6 +30,9 @@ export default function OfflineQueue(): ReactElement {
   const { rows: zones } = useRows<{ id: string; name: string }>("zones");
   const [queue, setQueue] = useState<Mutation[]>([]);
   const [open, setOpen] = useState<Mutation | null>(null);
+  // Writes the server settled without them (a gate override nobody needed): one informational line each.
+  const [settled, setSettled] = useState<readonly SettledNote[]>(settledNotes);
+  useEffect(() => subscribeSettledNotes(() => setSettled(settledNotes())), []);
   useEffect(() => {
     if (!engine || !store) return undefined;
     const read = () => void engine.outbox.all().then(setQueue);
@@ -64,6 +73,21 @@ export default function OfflineQueue(): ReactElement {
         ) : undefined
       }
     >
+      {settled.map((n) => (
+        <Card
+          key={`settled-${n.id}`}
+          testID={`queue-settled-${n.id}`}
+          title={t("compass.queue.settledTitle")}
+        >
+          <Text tone="secondary">{t(`compass.queue.${n.key}`)}</Text>
+          <Button
+            testID={`queue-settled-dismiss-${n.id}`}
+            variant="secondary"
+            label={t("compass.queue.settledDismiss")}
+            onPress={() => dismissSettledNote(n.id)}
+          />
+        </Card>
+      ))}
       {queue.length === 0 ? (
         <EmptyState
           testID="queue-empty"

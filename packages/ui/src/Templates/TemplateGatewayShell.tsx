@@ -10,7 +10,10 @@ export function TemplateGatewayShell({
   tabBar,
 }: TemplateGatewayShellProps): ReactElement {
   return (
-    <div className="flex flex-col min-h-full max-md:flex-1 max-md:min-h-0 bg-bg-canvas text-text-14">
+    <div
+      data-template="gateway-shell"
+      className="flex flex-col min-h-full max-md:flex-1 max-md:min-h-0 bg-bg-canvas text-text-14"
+    >
       <div className="max-md:hidden">{topNav}</div>
       <main
         className={cx(

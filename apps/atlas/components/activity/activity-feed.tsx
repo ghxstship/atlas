@@ -5,46 +5,16 @@ import { Button, EmptyState, SegmentedControl } from "@xos/ui";
 import type { Route } from "next";
 import { useFormatter, useTranslations } from "next-intl";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
-import { CollectionViews } from "@/components/views/collection-views";
-// The table is an alternative to the feed (A24-009).
-import { DataTable } from "@/components/lazy-ui";
+import { useState, type ReactNode } from "react";
 import { ActivityLine } from "./activity-line";
 import { collapseRepeats, useDescribe } from "./describe";
 
-export type ActivityView = "feed" | "list" | "table";
-
-/**
- * The activity feed (Feed view, Section 11.15) of an org or one project, with list and table
- * alternatives, a filter that keeps across views, and keyset paging through `before`.
- */
-export function ActivityFeed({
-  label,
-  entries,
-  views,
-  view,
-  next,
-  paged,
-  empty,
-}: {
-  label: string;
-  entries: readonly ActivityEntry[];
-  views: readonly ActivityView[];
-  view: ActivityView;
-  next: string | null;
-  paged: boolean;
-  empty: { readonly sentence: string; readonly action: string; readonly href: string };
-}) {
-  const t = useTranslations("activity.feed");
-  const format = useFormatter();
+/** Sets or removes query parameters of the current page. */
+export function useActivityGo() {
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
-  const describe = useDescribe();
-  const viewLabel = useTranslations("projects.views");
-  const [filter, setFilter] = useState<"all" | "projects" | "records">("all");
-
-  const go = (changes: Record<string, string | null>) => {
+  return (changes: Record<string, string | null>) => {
     const q = new URLSearchParams(params.toString());
     for (const [k, v] of Object.entries(changes)) {
       if (v === null) q.delete(k);
@@ -53,6 +23,45 @@ export function ActivityFeed({
     const s = q.toString();
     router.push((s ? `${pathname}?${s}` : pathname) as Route);
   };
+}
+
+/**
+ * The activity feed (Feed view, Section 11.15) of an org or one project, with a filter that keeps
+ * across views and keyset paging through `before`. A page offering other views passes them in
+ * (activity-feed-views.tsx), so a feed without any, as on Project Overview, carries none of their
+ * code (ADR 0027).
+ */
+export function ActivityFeed({
+  label,
+  entries,
+  next,
+  paged,
+  empty,
+  switcher,
+  alternative,
+  notice,
+  trailing,
+}: {
+  label: string;
+  entries: readonly ActivityEntry[];
+  next: string | null;
+  paged: boolean;
+  empty: { readonly sentence: string; readonly action: string; readonly href: string };
+  /** The view switcher, beside the filter. */
+  switcher?: ReactNode;
+  /** Renders the filtered entries in the chosen view; null keeps the feed. */
+  alternative?: (shown: readonly ActivityEntry[]) => ReactNode;
+  /** Above the feed, whichever entries are shown (the Activity pages announce a restore here). */
+  notice?: ReactNode;
+  /** Beside an entry (the Activity pages offer Restore), with what the entry acts on. */
+  trailing?: (entry: ActivityEntry, target: string) => ReactNode;
+}) {
+  const t = useTranslations("activity.feed");
+  const format = useFormatter();
+  const router = useRouter();
+  const describe = useDescribe();
+  const go = useActivityGo();
+  const [filter, setFilter] = useState<"all" | "projects" | "records">("all");
 
   if (entries.length === 0 && !paged) {
     return (
@@ -74,21 +83,13 @@ export function ActivityFeed({
   );
   const when = (iso: string) =>
     format.dateTime(new Date(iso), { dateStyle: "medium", timeStyle: "short" });
+  const shownInView = alternative?.(shown);
 
   return (
     <section aria-label={label} className="flex flex-col gap-12">
+      {notice}
       <div className="flex flex-wrap items-end gap-12">
-        {views.length > 1 ? (
-          <CollectionViews
-            label={t("title")}
-            value={view}
-            options={views.map((v) => ({
-              value: v,
-              label: viewLabel(v),
-            }))}
-            onChange={(v) => go({ view: v })}
-          />
-        ) : null}
+        {switcher}
         <SegmentedControl
           label={t("filter")}
           value={filter}
@@ -107,50 +108,14 @@ export function ActivityFeed({
           actionLabel={t("showAll")}
           onAction={() => setFilter("all")}
         />
-      ) : view === "table" ? (
-        <DataTable
-          caption={label}
-          columns={[
-            { key: "when", label: t("table.when"), width: 180 },
-            { key: "who", label: t("table.who"), width: 160 },
-            { key: "what", label: t("table.what"), wrap: true },
-            { key: "project", label: t("table.project"), type: "code", width: 96 },
-          ]}
-          rows={shown.map((e) => {
-            const d = describe(e);
-            return {
-              id: e.id,
-              when: when(e.at),
-              who: d.actor,
-              what: [d.action, d.target, d.comment].filter(Boolean).join(" "),
-              project: e.project?.key ?? "",
-            };
-          })}
-        />
-      ) : view === "list" ? (
-        <ul className="m-0 flex list-none flex-col divide-y divide-border-subtle p-0">
-          {collapseRepeats(shown, describe).map(({ entry: e, description: d, count }) => (
-            <li key={e.id} className="flex flex-wrap items-baseline gap-8 py-8 text-text-13">
-              <time
-                dateTime={e.at}
-                className="w-(--ui-props-label) shrink-0 text-text-secondary tabular-nums"
-              >
-                {when(e.at)}
-              </time>
-              <span className="font-medium text-text-primary">{d.actor}</span>
-              <span className="text-text-secondary">{d.action}</span>
-              <span className="text-text-primary">{d.target}</span>
-              {count > 1 ? (
-                <span className="text-text-secondary">{t("times", { count })}</span>
-              ) : null}
-            </li>
-          ))}
-        </ul>
+      ) : shownInView ? (
+        shownInView
       ) : (
         <ol className="m-0 flex list-none flex-col gap-4 p-0">
           {collapseRepeats(shown, describe).map(({ entry: e, description: d, count }) => (
-            <li key={e.id}>
+            <li key={e.id} className="flex items-start gap-8">
               <ActivityLine description={d} time={when(e.at)} count={count} />
+              {trailing?.(e, d.target)}
             </li>
           ))}
         </ol>

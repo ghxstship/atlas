@@ -5,7 +5,7 @@ Section 5.1 (global performance and reliability), Section 9 (operations) and Sec
 | Directory        | What it holds                                                                                             | Entry point                                |
 | ---------------- | --------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
 | `observability/` | Structured logs, OpenTelemetry tracing and Sentry error reporting, all through one personal data redactor | `observability/README.md` (wiring per app) |
-| `synthetics/`    | Read-only checks for sign-in, Gateway, the API, Realtime, Compass sync and notifications                  | `pnpm --filter @xos/infra synthetics`      |
+| `synthetics/`    | Read-only checks for sign-in, Gateway, the API, the docs, Realtime, Compass sync and notifications        | `pnpm --filter @xos/infra synthetics`      |
 | `status/`        | The public status page (static HTML, en-US and es-US) and the incident list                               | `pnpm --filter @xos/infra status:build`    |
 | `delivery/`      | Progressive delivery: feature rollouts on A18's flags and the deployment release gate                     | `runbooks/progressive-delivery.md`         |
 | `drills/`        | Backup and restore drills against a local Docker stack only                                               | `runbooks/backup-and-restore.md`           |
@@ -14,7 +14,7 @@ Section 5.1 (global performance and reliability), Section 9 (operations) and Sec
 | `powersync/`     | PowerSync service configuration, local stack and readiness check for Compass sync                         | `powersync/README.md`                      |
 | `ci/`            | Reusable CI scripts and the exact workflow snippets for the orchestrator                                  | `ci/README.md`                             |
 | `production/`    | Demo-data removal before promoting staging to production, its row-count comparison and storage step       | `runbooks/promote-to-production.md`        |
-| `runbooks/`      | Production deploys and rollback, incident response, backup and restore, progressive delivery              | `runbooks/production.md`                   |
+| `runbooks/`      | Production deploys and rollback, incident response, backup and restore, progressive delivery, owner steps | `runbooks/production.md`                   |
 
 ## Cost rules
 

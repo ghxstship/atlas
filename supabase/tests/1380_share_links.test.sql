@@ -8,7 +8,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(45);
+select plan(56);
 
 create temporary table k (key text primary key, id uuid, val text);
 grant select, insert, update on k to public;
@@ -84,7 +84,7 @@ select throws_ok($$select * from app.record_file_download((select id from k wher
   'the download log refuses the same caller');
 select pg_temp.as_user('bob');
 select is((select count(*)::int from storage.objects where bucket_id = 'attachments' and name = (select val from k where key = 'stage.png')),
-  1, 'an admin holding data.export.confidential can download it');
+  0, 'an admin holding data.export.confidential still never reads a Confidential image from Storage: it must carry the watermark, so it leaves only through the watermarking route (2041)');
 select results_eq($$select classification::text, watermark from app.record_file_download((select id from k where key = 'stage.png:version'))$$,
   $$values ('Confidential'::text, true)$$, 'a Confidential image download is logged and must carry the watermark');
 select pg_temp.as_platform();
@@ -97,11 +97,11 @@ select throws_ok($$select * from app.create_share_link((select id from k where k
   'a link to an Internal file needs an expiry');
 select throws_ok($$select * from app.create_share_link((select id from k where key = 'rider.pdf'), now() + interval '120 days')$$, 'XR001', null,
   'a link expires within 90 days');
-insert into k select 'internal', l.share_link_id, l.token
-from app.create_share_link((select id from k where key = 'rider.pdf'), now() + interval '7 days', false, null, 'For the venue') l;
+with l as (select * from app.create_share_link((select id from k where key = 'rider.pdf'), now() + interval '7 days', null, 'For the venue'))
+insert into k select 'internal', l.share_link_id, l.token from l union all select 'internal:code', null, l.access_code from l;
 select matches((select val from k where key = 'internal'), '^xshr_[0-9a-f]{64}$', 'the token is returned once, 32 random bytes');
 select results_eq($$select classification::text, access_code_required, attachment_version_id from app.share_links where id = (select id from k where key = 'internal')$$,
-  $$values ('Internal'::text, false, (select id from k where key = 'rider.pdf:version'))$$,
+  $$values ('Internal'::text, true, (select id from k where key = 'rider.pdf:version'))$$,
   'the database copies the classification and the current clean version');
 select throws_ok($$select token_hash from app.share_links where id = (select id from k where key = 'internal')$$, '42501', null,
   'the token hash is never readable by signed-in callers');
@@ -113,7 +113,8 @@ select ok((select token_hash = extensions.digest((select val from k where key = 
 select is((select count(*)::int from app.file_access_log where action = 'Share Link Created' and object_path = (select val from k where key = 'rider.pdf')),
   1, 'making a link is logged');
 
-select is(pg_temp.open((select val from k where key = 'internal'), null), 'ok:false:-', 'an Internal link opens without a code or a watermark');
+select is(pg_temp.open((select val from k where key = 'internal'), null), 'share_link_access_code_required', 'every link asks for its code');
+select is(pg_temp.open((select val from k where key = 'internal'), (select val from k where key = 'internal:code')), 'ok:false:-', 'and an Internal link opens with it, without a watermark');
 select results_eq($$select open_count, last_opened_at is not null from app.share_links where id = (select id from k where key = 'internal')$$,
   $$values (1, true)$$, 'an open is counted');
 select is((select count(*)::int from app.file_access_log where action = 'Share Link Opened' and person_id is null), 1, 'an open is logged');
@@ -156,17 +157,17 @@ select is(pg_temp.open((select val from k where key = 'internal'), null), 'share
 
 -- Confidential links ------------------------------------------------------------------------------------------------
 select pg_temp.as_user('dave');
-select throws_ok($$select * from app.create_share_link((select id from k where key = 'stage.png'), now() + interval '7 days', true, 'ana@venue.test')$$,
+select throws_ok($$select * from app.create_share_link((select id from k where key = 'stage.png'), now() + interval '7 days', 'ana@venue.test')$$,
   'XR001', null, 'sharing a Confidential file needs data.export.confidential');
 select pg_temp.as_user('bob');
 select throws_ok($$select * from app.create_share_link((select id from k where key = 'stage.png'), now() + interval '7 days')$$, 'XR001', null,
   'a Confidential link names its recipient');
-select throws_ok($$select * from app.create_share_link((select id from k where key = 'stage.png'), now() + interval '45 days', false, 'ana@venue.test')$$,
+select throws_ok($$select * from app.create_share_link((select id from k where key = 'stage.png'), now() + interval '45 days', 'ana@venue.test')$$,
   'XR001', null, 'a Confidential link expires within 30 days');
-select throws_ok($$select * from app.create_share_link((select id from k where key = 'rider.pdf'), now() + interval '7 days', true, 'ana@venue.test')$$,
-  'XR001', null, 'a Confidential PDF cannot carry the watermark, so it is not shared by link');
+select lives_ok($$select * from app.create_share_link((select id from k where key = 'rider.pdf'), now() + interval '7 days', 'ana@venue.test')$$,
+  'a Confidential PDF carries the watermark on every page since 2040, so it may be shared by link');
 insert into k select 'conf', l.share_link_id, l.token || ' ' || l.access_code
-from app.create_share_link((select id from k where key = 'stage.png'), now() + interval '7 days', false, 'Ana@Venue.test') l;
+from app.create_share_link((select id from k where key = 'stage.png'), now() + interval '7 days', 'Ana@Venue.test') l;
 select matches((select split_part(val, ' ', 2) from k where key = 'conf'), '^[0-9]{6}$',
   'a Confidential link always gets a 6-digit access code, asked for or not');
 
@@ -178,7 +179,7 @@ select is(pg_temp.open((select split_part(val, ' ', 1) from k where key = 'conf'
 -- Five wrong codes lock a link, for the right code too
 select pg_temp.as_user('bob');
 insert into k select 'locked', l.share_link_id, l.token || ' ' || l.access_code
-from app.create_share_link((select id from k where key = 'stage.png'), now() + interval '7 days', true, 'ana@venue.test') l;
+from app.create_share_link((select id from k where key = 'stage.png'), now() + interval '7 days', 'ana@venue.test') l;
 select is(pg_temp.open(split_part((select val from k where key = 'locked'), ' ', 1), '000000', '198.51.100.20'), 'share_link_access_code',
   'a wrong code is refused and counted');
 select pg_temp.open(split_part((select val from k where key = 'locked'), ' ', 1), '000000', '198.51.100.21');
@@ -201,7 +202,7 @@ select is(pg_temp.open((select split_part(val, ' ', 1) from k where key = 'conf'
 -- Restricted files are never shared
 select pg_temp.as_user('alice');
 update app.attachments set classification = 'Restricted' where id = (select id from k where key = 'stage.png');
-select throws_ok($$select * from app.create_share_link((select id from k where key = 'stage.png'), now() + interval '7 days', true, 'ana@venue.test')$$,
+select throws_ok($$select * from app.create_share_link((select id from k where key = 'stage.png'), now() + interval '7 days', 'ana@venue.test')$$,
   'XR001', null, 'a Restricted file never gets a share link (Section 8.6)');
 
 -- Failed lookups count against the caller's address
@@ -218,6 +219,57 @@ end $$;
 select is(pg_temp.guess(20), 'share_link_invalid', 'twenty unknown tokens are refused one by one');
 select is(pg_temp.open((select val from k where key = 'internal'), null, '203.0.113.99'), 'share_link_rate_limited',
   'after twenty failures in ten minutes the address is refused before any lookup');
+
+-- Owner decisions of 2026-11-06 (ADR 0142): always a code, and a link ends with its project ----------------------------
+select pg_temp.clean_file('dave', 'ending.pdf', 'application/pdf');
+select pg_temp.as_user('dave');
+with l as (select * from app.create_share_link((select id from k where key = 'ending.pdf'), now() + interval '7 days'))
+insert into k select 'always', l.share_link_id, l.token from l union all select 'always:code', null, l.access_code from l;
+select matches((select val from k where key = 'always:code'), '^[0-9]{6}$', 'a link with no choice made still gets a code');
+select throws_ok($$select * from app.create_share_link((select id from k where key = 'ending.pdf'), now() + interval '7 days', false, null, null)$$, '42883', null,
+  'no call can turn the code off');
+insert into app.share_links (attachment_id, access_code_required, expires_at) values ((select id from k where key = 'ending.pdf'), false, now() + interval '7 days');
+select pg_temp.as_platform();
+select is((select count(*)::int from app.share_links where not access_code_required), 0, 'a direct insert asking for no code gets one too');
+select private.begin_trusted_operation('share_link_service');
+select throws_ok($$update app.share_links set access_code_required = false, access_code_hash = null where id = (select id from k where key = 'always')$$, '23514', null,
+  'and no live row can lose its code');
+select lives_ok($$update app.share_links set deleted_at = now(), access_code_required = false, access_code_hash = null where id = (select id from k where key = 'always')$$,
+  'only a removed one can have none, as the migration leaves any old link');
+alter table app.share_links drop constraint share_links_always_code;
+update app.share_links set deleted_at = null where id = (select id from k where key = 'always');
+select private.end_trusted_operation('share_link_service');
+select is(pg_temp.open((select val from k where key = 'always'), null), 'share_link_invalid', 'and if one ever had none, it would not open');
+
+select pg_temp.as_user('dave');
+with l as (select * from app.create_share_link((select id from k where key = 'ending.pdf'), now() + interval '7 days'))
+insert into k select 'ending', l.share_link_id, l.token from l union all select 'ending:code', null, l.access_code from l;
+select pg_temp.as_platform();
+create function pg_temp.end_project(p_id uuid, p_state text) returns void language plpgsql as $f$
+begin
+  perform set_config('t.state', (select project_state::text from app.projects where id = p_id), true);
+  set local session_replication_role = replica;
+  update app.projects set project_state = p_state::app.project_state where id = p_id;
+  set local session_replication_role = origin;
+end $f$;
+create function pg_temp.reopen_project(p_id uuid) returns void language plpgsql as $f$
+begin
+  set local session_replication_role = replica;
+  update app.projects set project_state = current_setting('t.state')::app.project_state, archived_at = null, deleted_at = null where id = p_id;
+  set local session_replication_role = origin;
+end $f$;
+select pg_temp.end_project(pg_temp.id('prj_a'), 'Complete');
+select is(pg_temp.open((select val from k where key = 'ending'), (select val from k where key = 'ending:code')), 'share_link_ended', 'a file share stops opening when its project is Complete');
+select pg_temp.reopen_project(pg_temp.id('prj_a'));
+select pg_temp.end_project(pg_temp.id('prj_a'), 'Canceled');
+select is(pg_temp.open((select val from k where key = 'ending'), (select val from k where key = 'ending:code')), 'share_link_ended', 'or Canceled');
+select pg_temp.reopen_project(pg_temp.id('prj_a'));
+set local session_replication_role = replica;
+update app.projects set archived_at = now() where id = pg_temp.id('prj_a');
+set local session_replication_role = origin;
+select is(pg_temp.open((select val from k where key = 'ending'), (select val from k where key = 'ending:code')), 'share_link_ended', 'or archived');
+select pg_temp.reopen_project(pg_temp.id('prj_a'));
+select is(pg_temp.open((select val from k where key = 'ending'), (select val from k where key = 'ending:code')), 'ok:false:-', 'and opens again once the project is reopened');
 
 select * from finish();
 rollback;

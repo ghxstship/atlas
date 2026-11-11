@@ -6,6 +6,7 @@ import {
   createPunchItem,
   createWorkOrder,
   deleteWorkOrder,
+  restoreWorkOrder,
   transitionWorkOrder,
   updateBid,
   updateWorkOrder,
@@ -112,10 +113,21 @@ export async function transitionWorkOrderAction(
   return done(null);
 }
 
+/** Moves a Draft work order to Trash; the caller puts it on the undo stack (Section 11.7). */
 export async function deleteWorkOrderAction(org: string, id: string): Promise<ActionResult> {
   const ctx = await context(org);
   if (!z.uuid().safeParse(id).success) return invalid();
   const result = await deleteWorkOrder(ctx.viewer.db, id);
+  if (!result.ok) return failed(result.error);
+  refresh(org);
+  return done(null);
+}
+
+/** Restores a deleted work order from Trash: the undo of a delete, refused once it is purged. */
+export async function restoreWorkOrderAction(org: string, id: string): Promise<ActionResult> {
+  const ctx = await context(org);
+  if (!z.uuid().safeParse(id).success) return invalid();
+  const result = await restoreWorkOrder(ctx.viewer.db, id);
   if (!result.ok) return failed(result.error);
   refresh(org);
   return done(null);
@@ -220,10 +232,14 @@ export async function createPunchItemAction(
   return done(result.data);
 }
 
-/** Copies a record with its checklist into a new Proposed record (journey 70). */
+/**
+ * Copies a record with its checklist into a new Proposed record (journey 70); `withoutDates` leaves
+ * the copy undated, for the schedule's Unscheduled list (P8).
+ */
 export async function duplicateRecordAction(
   org: string,
   recordId: string,
+  options: { withoutDates?: boolean } = {},
 ): Promise<ActionResult<{ key: string }>> {
   const ctx = await context(org);
   if (!z.uuid().safeParse(recordId).success) return invalid();
@@ -231,6 +247,7 @@ export async function duplicateRecordAction(
     orgId: ctx.org.id,
     recordId,
     withChildren: true,
+    withoutDates: options.withoutDates === true,
   });
   if (!result.ok) return failed(result.error);
   const copy = await getRecord(ctx.viewer.db, result.data.id);

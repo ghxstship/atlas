@@ -14,8 +14,10 @@ import {
   listGateCriteria,
   listPhases,
   listProjects,
+  type ProjectSummary,
 } from "@xos/data/projects";
 import { must } from "@/lib/projects/loaders";
+import { regionOf, regionRead, type RegionData } from "@/lib/shell/region-data";
 import { getOrgTimeZone } from "@/lib/shell/time-zone";
 
 export type { Alert, AlertKind } from "@xos/data/home";
@@ -77,15 +79,21 @@ export async function loadAlerts(
   });
 }
 
+/**
+ * Home's tiles, each read on its own (ADR 0118): a read that fails takes down only the tiles built
+ * on it. Gate readiness feeds the readiness tile, the open blockers count and the alerts.
+ */
 export interface HomeTilesData {
-  readonly projectCount: number;
-  readonly active: number;
-  readonly blocked: number;
-  readonly dueToday: number | null;
-  readonly openBlockers: number;
-  readonly readiness: GateReadiness[];
-  readonly alerts: Alert[];
-  readonly activity: ActivityEntry[];
+  /** How many projects the viewer may read; null when they could not be read. */
+  readonly projectCount: number | null;
+  readonly active: RegionData<number>;
+  readonly blocked: RegionData<number>;
+  /** Null inside when the viewer has no person in the org, so nothing is theirs. */
+  readonly dueToday: RegionData<number | null>;
+  readonly openBlockers: RegionData<number>;
+  readonly readiness: RegionData<GateReadiness[]>;
+  readonly alerts: RegionData<Alert[]>;
+  readonly activity: RegionData<ActivityEntry[]>;
 }
 
 /**
@@ -109,25 +117,41 @@ export async function loadHomeTiles(
   const personId = ctx.viewer.person?.id ?? null;
   const { from: start, to: end } = todayWindow(await getOrgTimeZone(ctx), now);
   const canFeed = ctx.capabilities.has("activity.feed.read");
-  const readiness = await loadReadiness(ctx);
+  const readiness = await regionRead("home.readiness", () => loadReadiness(ctx));
   const [projects, alerts, due, activity] = await Promise.all([
     listProjects(db, ctx.org.id),
-    loadAlerts(ctx, now, readiness),
+    // The alerts include every gate readiness alert, so without readiness they do not show.
+    readiness.ok
+      ? regionRead("home.alerts", () => loadAlerts(ctx, now, readiness.data))
+      : Promise.resolve(readiness),
     personId
       ? listMyRecordsBetween(db, { orgId: ctx.org.id, personId, from: start, to: end })
       : Promise.resolve(null),
-    canFeed ? listActivity(db, { orgId: ctx.org.id, limit: 6 }) : Promise.resolve(null),
+    canFeed
+      ? regionRead("home.activity", async () =>
+          labelActivity(
+            db,
+            must(await listActivity(db, { orgId: ctx.org.id, limit: 6 }), "activity").entries,
+          ),
+        )
+      : Promise.resolve({ ok: true as const, data: [] }),
   ]);
-  const all = must(projects, "projects");
+  const all = regionOf("home.projects", () => must(projects, "projects"));
+  const count = (pick: (p: ProjectSummary) => boolean): RegionData<number> =>
+    all.ok ? { ok: true, data: all.data.filter(pick).length } : all;
   return {
-    projectCount: all.length,
-    active: all.filter((p) => p.projectState !== "Complete" && p.projectState !== "Canceled")
-      .length,
-    blocked: all.filter((p) => p.projectState === "Blocked").length,
-    dueToday: due === null ? null : must(due, "today's records").length,
-    openBlockers: readiness.reduce((n, r) => n + r.unmet.length, 0),
-    readiness: readiness.slice(0, 5),
-    alerts: alerts.slice(0, 5),
-    activity: activity === null ? [] : await labelActivity(db, must(activity, "activity").entries),
+    projectCount: all.ok ? all.data.length : null,
+    active: count((p) => p.projectState !== "Complete" && p.projectState !== "Canceled"),
+    blocked: count((p) => p.projectState === "Blocked"),
+    dueToday:
+      due === null
+        ? { ok: true, data: null }
+        : regionOf("home.due-today", () => must(due, "today's records").length),
+    openBlockers: readiness.ok
+      ? { ok: true, data: readiness.data.reduce((n, r) => n + r.unmet.length, 0) }
+      : readiness,
+    readiness: readiness.ok ? { ok: true, data: readiness.data.slice(0, 5) } : readiness,
+    alerts: alerts.ok ? { ok: true, data: alerts.data.slice(0, 5) } : alerts,
+    activity,
   };
 }

@@ -1,0 +1,40 @@
+{
+  "loadFailed": "Esta sección no se cargó. Desliza hacia abajo para reintentar.",
+  "registry": {
+    "deviceZone": "Compass usa la zona horaria de este teléfono, {zone}, hasta que elijas una.",
+    "deviceLanguage": "Compass sigue el idioma de este teléfono hasta que tú o tu organización elijan uno.",
+    "date": "Escribe la fecha como año-mes-día, por ejemplo 2026-11-02.",
+    "dateHelp": "Año-mes-día, por ejemplo 2026-11-02. Déjala en blanco para no indicar fecha."
+  },
+  "zones": {
+    "search": "Buscar zonas horarias",
+    "searchHelp": "Escribe una ciudad o región, por ejemplo Chicago.",
+    "none": "Ninguna zona horaria coincide. Revisa la ortografía o escribe el nombre completo, por ejemplo America/Chicago.",
+    "device": "Zona horaria de este teléfono ({zone})"
+  },
+  "notifications": {
+    "orgsTitle": "En tus organizaciones",
+    "orgsHelp": "Cada organización a la que perteneces guarda sus propias opciones. Atlas muestra las mismas.",
+    "org": "Organización",
+    "timeHelp": "Hora en formato de 24 horas, por ejemplo 22:00. Deja ambas horas en blanco para no tener horas de silencio.",
+    "textsTitle": "Mensajes de texto",
+    "otherTitle": "De otras organizaciones",
+    "otherHelp": "Organizaciones con las que trabajas sin ser miembro y alertas del marketplace. Las notificaciones en la app siempre aparecen en tu Bandeja. Gateway muestra las mismas opciones.",
+    "ownQuietTitle": "Tus propias horas de silencio",
+    "ownQuietHelp": "Las notificaciones push de organizaciones de las que no eres miembro esperan a que terminen tus horas de silencio. Las alertas de seguridad, los cambios en el acceso a tu cuenta, el uso de uno de tus códigos de recuperación y los turnos nuevos o cambiados que empiezan en menos de 12 horas te llegan igual. El correo nunca se retiene.",
+    "errors": {
+      "time": "Escribe la hora como horas y minutos, por ejemplo 22:00.",
+      "pair": "Indica un inicio y un fin, o deja ambos en blanco para desactivar las horas de silencio.",
+      "same": "Elige una hora de fin distinta de la de inicio.",
+      "zone": "Elige tu zona horaria de la lista."
+    }
+  },
+  "outOfOffice": {
+    "order": "Termina en la fecha de inicio o después."
+  },
+  "workDetails": {
+    "offline": "Tus datos de trabajo se editan solo con conexión, así que nunca se quedan en este teléfono.",
+    "webTitle": "Pasaporte, programas de lealtad y lo que compartes",
+    "webHelp": "Tu pasaporte, tus programas de lealtad, lo que compartes con cada contratación y tu registro de acceso se abren en Gateway."
+  }
+}

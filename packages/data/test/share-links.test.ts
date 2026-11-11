@@ -125,7 +125,6 @@ describe("share links", () => {
     const result = await createShareLink(db, {
       attachmentId: "a1",
       expiresAt: "2026-10-27T00:00:00Z",
-      accessCodeRequired: true,
       recipientEmail: "ana@venue.test",
       note: null,
     });
@@ -142,7 +141,6 @@ describe("share links", () => {
     expect(calls[0]?.steps[0]?.[1][0]).toEqual({
       p_attachment_id: "a1",
       p_expires_at: "2026-10-27T00:00:00Z",
-      p_access_code_required: true,
       p_recipient_email: "ana@venue.test",
     });
   });
@@ -160,7 +158,6 @@ describe("share links", () => {
     const result = await createShareLink(db, {
       attachmentId: "a1",
       expiresAt: null,
-      accessCodeRequired: false,
       recipientEmail: null,
       note: null,
     });
@@ -228,6 +225,7 @@ describe("opening a link", () => {
             watermark: true,
             recipient_email: "ana@venue.test",
             expires_at: "2026-10-27T00:00:00Z",
+            attachment_version_id: "0192f0a0-0000-7000-8000-000000000001",
           },
         ]),
       ],
@@ -239,44 +237,106 @@ describe("opening a link", () => {
       watermark: true,
       recipientEmail: "ana@venue.test",
       contentType: "image/png",
+      versionId: "0192f0a0-0000-7000-8000-000000000001",
     });
+  });
+
+  // A69-013: before migration 2000 the database answers no version, and the copy links nowhere.
+  it("answers no version when the database names none", async () => {
+    const { db } = withPublic({
+      "rpc:api_public.open_share_link": [
+        okResponse([{ refusal: null, reason: null, ticket: "xdlt_ticket", watermark: false }]),
+      ],
+    });
+    const result = await openShareLink(db, { token: TOKEN, accessCode: null });
+    expect(result.ok && !result.data.refused && result.data.versionId).toBeNull();
   });
 });
 
 describe("file handover and classified downloads", () => {
   it("trades a ticket for the bytes at the file-download function", async () => {
-    const seen: { url: string; body: unknown }[] = [];
+    const seen: { url: string; body: unknown; authorization: string | null }[] = [];
     const fetchImpl = (async (url: string, init?: RequestInit) => {
-      seen.push({ url, body: JSON.parse(String(init?.body)) });
+      seen.push({
+        url,
+        body: JSON.parse(String(init?.body)),
+        authorization: new Headers(init?.headers).get("Authorization"),
+      });
       return new Response(new Uint8Array([1, 2, 3]), {
         status: 200,
-        headers: { "Content-Type": "image/png" },
+        headers: { "Content-Type": "image/png", "X-XOS-Watermark": "none" },
       });
     }) as unknown as typeof fetch;
-    const result = await fetchTicketFile("https://db.test/functions/v1/", "xdlt_t", fetchImpl);
+    const result = await fetchTicketFile("https://db.test/functions/v1/", "xdlt_t", { fetchImpl });
     expect(result.ok && [...result.data.bytes]).toEqual([1, 2, 3]);
+    expect(result.ok && result.data.watermark).toBe(false);
     expect(seen).toEqual([
-      { url: "https://db.test/functions/v1/file-download", body: { ticket: "xdlt_t" } },
+      {
+        url: "https://db.test/functions/v1/file-download",
+        body: { ticket: "xdlt_t" },
+        authorization: null,
+      },
     ]);
     const gone = (async () => new Response(null, { status: 404 })) as unknown as typeof fetch;
-    expect(await fetchTicketFile("https://db.test/functions/v1", "x", gone)).toEqual({
-      ok: false,
-      error: { kind: "not-found" },
+    expect(await fetchTicketFile("https://db.test/functions/v1", "x", { fetchImpl: gone })).toEqual(
+      { ok: false, error: { kind: "not-found" } },
+    );
+  });
+
+  it("proves the web shell with the handover secret and reads whether the copy must be marked", async () => {
+    const secret = "s".repeat(64);
+    let authorization: string | null = null;
+    const fetchImpl = (async (_url: string, init?: RequestInit) => {
+      authorization = new Headers(init?.headers).get("Authorization");
+      return new Response(new Uint8Array([37, 80, 68, 70]), {
+        status: 200,
+        headers: { "Content-Type": "application/pdf", "X-XOS-Watermark": "required" },
+      });
+    }) as unknown as typeof fetch;
+    const result = await fetchTicketFile("https://db.test/functions/v1", "xdlt_t", {
+      handoverSecret: secret,
+      fetchImpl,
     });
+    expect(authorization).toBe(`Bearer ${secret}`);
+    expect(result).toMatchObject({
+      ok: true,
+      data: { contentType: "application/pdf", watermark: true },
+    });
+    const broken = (async () => new Response(null, { status: 500 })) as unknown as typeof fetch;
+    expect(
+      await fetchTicketFile("https://db.test/functions/v1", "x", { fetchImpl: broken }),
+    ).toEqual({ ok: false, error: { kind: "unexpected", message: "file-download answered 500" } });
   });
 
   it("logs a classified download and answers its watermark rule", async () => {
     const { db } = fakeClient({
       "rpc:record_file_download": [
         okResponse([
-          { classification: "Confidential", watermark: true, viewer_email: "bob@northwind.test" },
+          {
+            classification: "Confidential",
+            watermark: true,
+            viewer_email: "bob@northwind.test",
+            ticket: "xdlt_t",
+          },
+        ]),
+        okResponse([
+          { classification: "Internal", watermark: false, viewer_email: null, ticket: null },
         ]),
         errorResponse("XR001", "needs the capability", "download_confidential"),
       ],
     });
     expect(await recordFileDownload(db, "v1")).toEqual({
       ok: true,
-      data: { classification: "Confidential", watermark: true, viewerEmail: "bob@northwind.test" },
+      data: {
+        classification: "Confidential",
+        watermark: true,
+        viewerEmail: "bob@northwind.test",
+        ticket: "xdlt_t",
+      },
+    });
+    expect(await recordFileDownload(db, "v1")).toEqual({
+      ok: true,
+      data: { classification: "Internal", watermark: false, viewerEmail: null, ticket: null },
     });
     const refused = await recordFileDownload(db, "v1");
     expect(!refused.ok && refused.error).toMatchObject({

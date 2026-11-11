@@ -36,6 +36,7 @@ import {
 } from "@/lib/collection-kit/page";
 import type { OrgContext } from "@/lib/shell/context";
 import { orgToday } from "@/lib/shell/time-zone";
+import { CollectionPage } from "@/components/platform/collection-page";
 
 const VIEWS: readonly ViewKind[] = ["table", "list", "board"];
 const REFUSALS = "procurement.refusals";
@@ -79,10 +80,9 @@ export async function InvoiceMatchingSection({
   const title = t("matching.title");
   if (!matches.ok || !invoices.ok || !receipts.ok || !currencies.ok) {
     return (
-      <>
-        <PageHeader title={title} />
+      <CollectionPage header={<PageHeader title={title} />}>
         <ErrorPanel what={t("matching.what")} />
-      </>
+      </CollectionPage>
     );
   }
   const canMatch = ctx.capabilities.has("procurement.invoice_match.write");

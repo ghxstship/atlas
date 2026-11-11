@@ -4,8 +4,9 @@ import { listPendingReacceptances } from "@xos/data/legal-reacceptance";
 import { recordLegalAcceptances } from "@xos/data/settings";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
-import { clientIp } from "@/lib/auth/legal";
+import { clientIp, gatewayLegalDocument } from "@/lib/auth/legal";
 import { createServerSupabase } from "@/lib/supabase/server";
+import { observability } from "@/lib/observability";
 
 /**
  * Accepts an announced change to a personal legal document such as the Worker Terms (Section 14.4,
@@ -17,6 +18,8 @@ export async function acceptPersonalLegalChangeAction(form: FormData): Promise<v
   const db = await createServerSupabase();
   const slug = String(form.get("document") ?? "");
   const version = String(form.get("version") ?? "");
+  // A document Gateway does not publish was not on the page the person read here (the Mobile EULA is Compass's to ask).
+  if (!gatewayLegalDocument(slug)?.accept) return;
   const pending = await listPendingReacceptances(db, null);
   const asked =
     pending.ok &&
@@ -27,6 +30,7 @@ export async function acceptPersonalLegalChangeAction(form: FormData): Promise<v
     documents: [{ slug, version }],
     clientIp: clientIp(await headers()),
   });
-  if (!recorded.ok) console.error("legal acceptance was not recorded", recorded.error);
+  if (!recorded.ok)
+    observability.logger.error("legal acceptance was not recorded", { error: recorded.error });
   revalidatePath("/", "layout");
 }

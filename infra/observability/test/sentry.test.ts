@@ -1,6 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import {
   DEFAULT_TRACES_SAMPLE_RATE,
+  KEPT_REQUEST_HEADERS,
+  SENTRY_DATA_COLLECTION,
   createSentryEnvelopeSink,
   parseDsn,
   scrubEvent,
@@ -40,10 +42,27 @@ describe("sentryDsn and sentryInitOptions", () => {
       environment: "preview",
       release: "abc123",
       tracesSampleRate: 1,
-      sendDefaultPii: false,
+      dataCollection: SENTRY_DATA_COLLECTION,
       beforeSend: scrubEvent,
       beforeSendTransaction: scrubEvent,
     });
+  });
+
+  // A69-012: Sentry 11 ignores sendDefaultPii and collects everything unless dataCollection says not to.
+  it("switches off what the SDK collects on its own, keeping only the scrubbed request headers", () => {
+    expect(SENTRY_DATA_COLLECTION).toEqual({
+      userInfo: false,
+      cookies: false,
+      httpHeaders: { request: { allow: [...KEPT_REQUEST_HEADERS] }, response: false },
+      httpBodies: [],
+      urlQueryParams: false,
+      graphQL: { document: false, variables: false },
+      genAI: { inputs: false, outputs: false },
+      databaseQueryData: false,
+      queues: false,
+      stackFrameVariables: false,
+    });
+    expect(KEPT_REQUEST_HEADERS).not.toContain("next-router-state-tree");
   });
 
   it("reads XOS_TRACES_SAMPLE_RATE, defaulting to 0.05 when unset or out of range", () => {

@@ -42,12 +42,17 @@ function Incidents(): ReactElement {
         />
       }
     >
+      <InlineAlert
+        testID="incident-emergency"
+        tone="danger"
+        message={t("compass.incidents.emergencyFirst")}
+      />
       <ProjectPicker />
       <SyncBanner />
       {filed ? (
         <InlineAlert
           testID="incident-filed"
-          tone="success"
+          tone={filed === "sent" ? "success" : "warning"}
           message={t(filed === "sent" ? "compass.incidents.sent" : "compass.incidents.queued")}
         />
       ) : null}
@@ -96,7 +101,11 @@ function Incidents(): ReactElement {
               ) : undefined
             }
           >
-            <Text tone="secondary">{`${label.get(i.severity_enum_id) ?? ""} · ${formatTime(i.occurred_at)}`}</Text>
+            <Text tone="secondary">
+              {label.get(i.severity_enum_id) ?? ""}
+              {" · "}
+              {formatTime(i.occurred_at)}
+            </Text>
             <Text variant="text13" tone="tertiary">
               {i.incident_number !== null && i.incident_number !== undefined
                 ? t("compass.incidents.number", { number: i.incident_number })

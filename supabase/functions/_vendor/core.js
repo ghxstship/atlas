@@ -38,6 +38,8 @@ var EXACT_KEYS = /* @__PURE__ */ new Set([
   "iban",
   "cookie",
   "cookies",
+  "ticket",
+  "pticket",
   "session",
   "notes",
   "street",
@@ -76,6 +78,8 @@ var KEY_SUFFIXES = [
   "setcookie",
   "sessionid",
   "recoverycode",
+  "accesscode",
+  "downloadticket",
   "totp",
   "email",
   "emailaddress",
@@ -146,11 +150,22 @@ var VALUE_PATTERNS = [
     replace: "[api-key]",
   },
   {
-    pattern: /\b(?:xadv|xagr|xcal|xdoc|xinv|xlnk|xos_scim)_[0-9a-f]{16,}\b/gi,
+    pattern:
+      /(?:xact|xadv|xagr|xcal|xcch|xcgr|xcrw|xdlt|xdoc|xfrg|xfrm|xgue|xinv|xkio|xlch|xlgr|xlnk|xpkg|xpkl|xpku|xscl|xscr|xshr|xshv|xspn|xspu|xvig|xvin|xos_pat|xos_scim)_[0-9a-f]{16,}(?:\.[0-9a-f]{16,})?\b/gi,
     replace: "[token]",
   },
   {
     pattern: /(\/ical\/)[^/?#\s"'<>]+/gi,
+    replace: (_m, prefix) => `${prefix}[token]`,
+  },
+  {
+    pattern:
+      /(?=\/share\/)(?<=^|[\s"'(<=,]|(?<!\/)\/\/[^/?#\s"'<>]+)(\/share\/(?:view\/|screen\/|showcaller\/|pack\/(?:unsubscribe\/)?)?)[^/?#\s"'<>]+/gi,
+    replace: (_m, prefix) => `${prefix}[token]`,
+  },
+  {
+    pattern:
+      /(?=\/(?:onboard|forms)\/)(?<=^|[\s"'(<=,]|(?<!\/)\/\/[^/?#\s"'<>]+)(\/(?:onboard|forms)\/)[^/?#\s"'<>]+/gi,
     replace: (_m, prefix) => `${prefix}[token]`,
   },
   {
@@ -163,11 +178,11 @@ var VALUE_PATTERNS = [
   },
   {
     pattern:
-      /([?&;](?:token|access_token|refresh_token|id_token|code|key|apikey|api_key|signature|sig|password|email|phone|token_hash)=)[^&#\s"']+/gi,
+      /([?&;](?:token|access_token|refresh_token|id_token|code|key|apikey|api_key|signature|sig|password|email|phone|token_hash|ticket|access_code)=)[^&#\s"']+/gi,
     replace: (_m, prefix) => `${prefix}${REDACTED}`,
   },
   {
-    pattern: /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi,
+    pattern: /[A-Z0-9._%+-]{1,64}@[A-Z0-9.-]+\.[A-Z]{2,}/gi,
     replace: "[email]",
   },
   {
@@ -440,8 +455,8 @@ function createErrorReporter(options) {
     },
   };
 }
-/** Request headers kept on error events; every other header is dropped. */
-var KEPT_HEADERS = /* @__PURE__ */ new Set([
+/** Request headers kept on error events and spans; every other header is dropped. */
+var KEPT_REQUEST_HEADERS = [
   "accept",
   "content-type",
   "content-length",
@@ -449,7 +464,27 @@ var KEPT_HEADERS = /* @__PURE__ */ new Set([
   "x-request-id",
   "x-vercel-id",
   "sb-request-id",
-]);
+];
+var KEPT_HEADERS = new Set(KEPT_REQUEST_HEADERS);
+/** Span attributes that copy one HTTP header each (`http.request.header.accept`). */
+var HEADER_ATTRIBUTE = /^http\.(request|response)\.header\.(.+)$/i;
+/**
+ * A span's attributes with every header outside the kept request headers removed, then redacted.
+ * Next's router state header, for one, carries the page's route parameters, and a bearer link
+ * carries its token there (A69-012).
+ */
+function scrubSpanData(data) {
+  const kept = {};
+  for (const [key, value] of Object.entries(data)) {
+    const [, direction = "", name = ""] = HEADER_ATTRIBUTE.exec(key) ?? [];
+    if (!(
+      direction !== "" &&
+      !(direction.toLowerCase() === "request" && KEPT_HEADERS.has(name.toLowerCase()))
+    ))
+      kept[key] = value;
+  }
+  return redact(kept);
+}
 /**
  * Sentry `beforeSend` hook. Returns the same event object with personal data removed, so it can
  * be passed to `Sentry.init({ beforeSend: scrubEvent, beforeSendTransaction: scrubEvent })`.
@@ -484,7 +519,23 @@ function scrubEvent(event) {
       return next;
     });
   if (event.extra) event.extra = redact(event.extra);
-  if (event.contexts) event.contexts = redact(event.contexts);
+  if (event.contexts) {
+    const trace = event.contexts["trace"];
+    const contexts = redact(event.contexts);
+    if (trace && typeof trace.data === "object" && trace.data !== null)
+      contexts["trace"] = {
+        ...contexts["trace"],
+        data: scrubSpanData(trace.data),
+      };
+    event.contexts = contexts;
+  }
+  if (event.spans)
+    event.spans = event.spans.map((span) => {
+      const next = { ...span };
+      if (next.description) next.description = redactString(next.description);
+      if (next.data) next.data = scrubSpanData(next.data);
+      return next;
+    });
   if (event.tags) event.tags = redact(event.tags);
   if (event.transaction) event.transaction = redactUrl(event.transaction);
   delete event.server_name;
@@ -761,6 +812,7 @@ function sentryDsn(env) {
     if (value) return value;
   }
 }
+[...KEPT_REQUEST_HEADERS];
 function parseDsn(dsn) {
   let url;
   try {
@@ -1012,6 +1064,12 @@ function internalErrorResponse(error, options) {
   );
 }
 //#endregion
+//#region edge/entries/core.ts
+/** The project token signer (ADR 0168), loaded on demand: only api-token and the workers that mint tokens need it. */
+function loadProjectTokens() {
+  return import("./chunks/platform-jwt-project-token.js");
+}
+//#endregion
 export {
   PlatformDbError,
   createLogger,
@@ -1019,6 +1077,7 @@ export {
   edgeFunctionName,
   identityFromEnv,
   internalErrorResponse,
+  loadProjectTokens,
   observe,
   observeEdgeFunction,
   requestIdFor,

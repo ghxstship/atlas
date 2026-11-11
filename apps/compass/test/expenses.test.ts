@@ -9,6 +9,7 @@ import {
   amountText,
   applyProposal,
   buildReceiptSave,
+  reimbursementStatusOf,
   draftProblems,
   formatMoney,
   isIsoDay,
@@ -58,7 +59,13 @@ const FIELDS: SuggestionField[] = [
     refusal: null,
     missing: null,
   },
-  { field_path: "currency", proposed_value: "USD", confidence: 0.99, refusal: null, missing: null },
+  {
+    field_path: "currency_code",
+    proposed_value: "USD",
+    confidence: 0.99,
+    refusal: null,
+    missing: null,
+  },
   {
     field_path: "incurred_on",
     proposed_value: null,
@@ -207,9 +214,34 @@ describe("reading a receipt with Aurora (Section 4.7)", () => {
     expect(RECEIPT_FILE_NAME).toBe("receipt.jpg");
   });
 
+  it("sends nothing until the person allows AI features", async () => {
+    const asked = reader();
+    const reading = await readReceipt(asked.r, "AAAA", true, "unknown");
+    expect(reading).toEqual({ state: "ask", proposal: null });
+    expect(asked.calls).toEqual(["status"]);
+    const declined = reader();
+    expect((await readReceipt(declined.r, "AAAA", true, "Declined")).state).toBe("declined");
+    expect(declined.calls).toEqual([]);
+    // A decline made on another device binds too, though this one still holds Allowed.
+    const elsewhere = reader({
+      status: async () => ({
+        ok: true,
+        data: {
+          enabled_features: [],
+          used: 0,
+          allowance: null,
+          plan_includes_aurora: true,
+          declined_by_person: true,
+        },
+      }),
+    });
+    expect((await readReceipt(elsewhere.r, "AAAA", true, "Allowed")).state).toBe("declined");
+    expect(elsewhere.calls).not.toContain("extract");
+  });
+
   it("reads the fields when the org has document extraction on", async () => {
     const { r, calls } = reader();
-    const reading = await readReceipt(r, "AAAA", true);
+    const reading = await readReceipt(r, "AAAA", true, "Allowed");
     expect(calls).toEqual(["status", "extract receipt", "suggestion sug-1"]);
     expect(reading.state).toBe("read");
     expect(reading.proposal).toEqual({
@@ -234,7 +266,7 @@ describe("reading a receipt with Aurora (Section 4.7)", () => {
         },
       }),
     });
-    expect((await readReceipt(off.r, "AAAA", true)).state).toBe("off");
+    expect((await readReceipt(off.r, "AAAA", true, "Allowed")).state).toBe("off");
     expect(off.calls).toEqual([]);
     const plan = reader({
       status: async () => ({
@@ -242,7 +274,7 @@ describe("reading a receipt with Aurora (Section 4.7)", () => {
         data: { enabled_features: [], used: 0, allowance: null, plan_includes_aurora: false },
       }),
     });
-    expect((await readReceipt(plan.r, "AAAA", true)).state).toBe("not-in-plan");
+    expect((await readReceipt(plan.r, "AAAA", true, "Allowed")).state).toBe("not-in-plan");
     const limit = reader({
       status: async () => ({
         ok: true,
@@ -254,10 +286,10 @@ describe("reading a receipt with Aurora (Section 4.7)", () => {
         },
       }),
     });
-    expect((await readReceipt(limit.r, "AAAA", true)).state).toBe("limit");
+    expect((await readReceipt(limit.r, "AAAA", true, "Allowed")).state).toBe("limit");
     expect(limit.calls).toEqual([]);
     const offline = reader();
-    expect(await readReceipt(offline.r, "AAAA", false)).toEqual({
+    expect(await readReceipt(offline.r, "AAAA", false, "Allowed")).toEqual({
       state: "offline",
       proposal: null,
     });
@@ -271,21 +303,21 @@ describe("reading a receipt with Aurora (Section 4.7)", () => {
         problem: { status: 422, rule: "aurora_feature_off", detail: "off" },
       }),
     });
-    expect((await readReceipt(refused.r, "AAAA", true)).state).toBe("off");
+    expect((await readReceipt(refused.r, "AAAA", true, "Allowed")).state).toBe("off");
     const used = reader({
       extract: async () => ({
         ok: false,
         problem: { status: 422, rule: "plan_limit_exceeded", detail: "x" },
       }),
     });
-    expect((await readReceipt(used.r, "AAAA", true)).state).toBe("limit");
+    expect((await readReceipt(used.r, "AAAA", true, "Allowed")).state).toBe("limit");
     const away = reader({
       status: async () => ({
         ok: false,
         problem: { status: 0, rule: null, detail: "Network request failed" },
       }),
     });
-    expect((await readReceipt(away.r, "AAAA", true)).state).toBe("failed");
+    expect((await readReceipt(away.r, "AAAA", true, "Allowed")).state).toBe("failed");
     const silent = reader({
       extract: async () => ({
         ok: true,
@@ -301,7 +333,7 @@ describe("reading a receipt with Aurora (Section 4.7)", () => {
         },
       }),
     });
-    expect((await readReceipt(silent.r, "AAAA", true)).state).toBe("no-answer");
+    expect((await readReceipt(silent.r, "AAAA", true, "Allowed")).state).toBe("no-answer");
   });
 
   it("calls the public API with the person's own token and only the receipt", async () => {
@@ -332,7 +364,7 @@ describe("reading a receipt with Aurora (Section 4.7)", () => {
       headers: () => ({ Authorization: "Bearer person-session" }),
       idempotencyKey: () => "k",
     });
-    await readReceipt(client, "AAAA", true);
+    await readReceipt(client, "AAAA", true, "Allowed");
     expect(seen.map((s) => s.url)).toEqual([
       "https://atlas.test/api/v1/aurora/status",
       "https://atlas.test/api/v1/aurora/extract",
@@ -364,9 +396,9 @@ describe("reading a receipt with Aurora (Section 4.7)", () => {
       applyProposal({ ...empty, description: "Mine" }, proposal, "USD").draft.description,
     ).toBe("Mine");
     const euros = receiptProposal("sug-2", [
-      ...FIELDS.filter((f) => f.field_path !== "currency" && f.field_path !== "incurred_on"),
+      ...FIELDS.filter((f) => f.field_path !== "currency_code" && f.field_path !== "incurred_on"),
       {
-        field_path: "currency",
+        field_path: "currency_code",
         proposed_value: "EUR",
         confidence: 0.9,
         refusal: null,
@@ -595,5 +627,51 @@ describe("expense copy", () => {
       expect(typeof (copy["aurora"] as Record<string, string>)[s], s).toBe("string");
     expect(all.compass.queue.summary["expenseReceipt"]).toMatch(/\{description\}/);
     expect(typeof all.compass.queue.kinds["expenses"]).toBe("string");
+  });
+});
+
+describe("an expense the person paid themselves (6542)", () => {
+  const save = (isReimbursable?: boolean) =>
+    buildReceiptSave(
+      {
+        personId: "person-1",
+        line: line(),
+        description: "Ice and water",
+        amountMinor: 4250,
+        incurredOn: "2027-06-10",
+        localUri: "file:///cache/receipt.jpg",
+        captureSource: "Camera",
+        capturedAt: "2027-06-10T22:00:00Z",
+        suggestionId: null,
+        ...(isReimbursable === undefined ? {} : { isReimbursable }),
+      },
+      Date.parse("2027-06-10T22:01:00Z"),
+      () => "exp-1",
+    );
+
+  it("sends the argument only when the switch is on, so an older server never refuses the common case", () => {
+    expect(save(true).payload).toMatchObject({ p_is_reimbursable: true });
+    expect(save(false).payload).not.toHaveProperty("p_is_reimbursable");
+    expect(save().payload).not.toHaveProperty("p_is_reimbursable");
+  });
+
+  it("marks the row it shows at once", () => {
+    expect(save(true).optimistic).toMatchObject({
+      is_reimbursable: true,
+      credit_of_expense_id: null,
+    });
+    expect(save().optimistic).toMatchObject({ is_reimbursable: false });
+  });
+
+  it("reads where it stands from its state alone, and nothing for an ordinary expense", () => {
+    const status = (expense_state: string, is_reimbursable = true) =>
+      reimbursementStatusOf({ expense_state, is_reimbursable });
+    expect(status("Proposed")).toBe("recorded");
+    expect(status("Approved")).toBe("owed");
+    expect(status("Paid")).toBe("paid");
+    expect(status("Rejected")).toBe("notOwed");
+    expect(status("Canceled")).toBe("notOwed");
+    expect(status("Approved", false)).toBeNull();
+    expect(reimbursementStatusOf({ expense_state: "Paid", is_reimbursable: null })).toBeNull();
   });
 });

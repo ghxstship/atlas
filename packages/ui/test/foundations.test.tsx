@@ -469,6 +469,26 @@ describe("surfaces and states", () => {
     expect(region.textContent).toContain("NWS-1 moved to Trash.");
   });
 
+  it("pauses the undo timer while the pointer is over it, and resumes with the time left (WCAG 2.2.1)", () => {
+    vi.useFakeTimers();
+    try {
+      const onExpire = vi.fn();
+      render(<UndoToast message="200 lines pasted." seconds={8} onExpire={onExpire} />);
+      const toast = screen.getByRole("status");
+      act(() => vi.advanceTimersByTime(5_000));
+      fireEvent.pointerEnter(toast);
+      act(() => vi.advanceTimersByTime(60_000));
+      expect(onExpire).not.toHaveBeenCalled();
+      fireEvent.pointerLeave(toast);
+      act(() => vi.advanceTimersByTime(2_900));
+      expect(onExpire).not.toHaveBeenCalled();
+      act(() => vi.advanceTimersByTime(200));
+      expect(onExpire).toHaveBeenCalledTimes(1);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("keeps a status role on a toast outside a region", () => {
     render(<Toast message="Saved." />);
     expect(screen.getByRole("status").textContent).toContain("Saved.");
@@ -490,6 +510,24 @@ describe("surfaces and states", () => {
     const onUndo = vi.fn();
     render(<UndoToast message="Moved." onUndo={onUndo} />);
     await userEvent.click(screen.getByRole("button", { name: /Undo/ }));
+    expect(onUndo).toHaveBeenCalledTimes(1);
+  });
+
+  it("leaves Shift+Cmd+Z to redo and Cmd+Z in a text field to the field", () => {
+    const onUndo = vi.fn();
+    render(
+      <>
+        <label>
+          Note
+          <input />
+        </label>
+        <UndoToast message="Moved." onUndo={onUndo} />
+      </>,
+    );
+    fireEvent.keyDown(document, { key: "z", metaKey: true, shiftKey: true });
+    fireEvent.keyDown(screen.getByLabelText("Note"), { key: "z", ctrlKey: true });
+    expect(onUndo).not.toHaveBeenCalled();
+    fireEvent.keyDown(document, { key: "z", ctrlKey: true });
     expect(onUndo).toHaveBeenCalledTimes(1);
   });
 });

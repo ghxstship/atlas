@@ -2,37 +2,70 @@
 
 import {
   Button,
-  Card,
   Checkbox,
   DataTable,
   EmptyState,
   Input,
   PageHeader,
-  PhaseChip,
-  PropertyList,
-  StateChip,
   TemplateCollection,
 } from "@xos/ui";
 import type { ProjectSummary } from "@xos/data/projects";
-import type { PhaseCode, RecordState } from "@xos/ui";
 import type { Route } from "next";
 import { useFormatter, useTranslations } from "next-intl";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
-import { phaseCode, PROJECT_STATE_ORDER, stateIcon } from "@/lib/projects/format";
-import { CreateProjectDialog, type ProjectFormOptions } from "./create-project";
+import { phaseCode, stateIcon } from "@/lib/projects/format";
+import type { ProjectFormOptions } from "./create-project";
 import { collectionPeek } from "@/components/shell/collection-peek";
 import { CollectionViews } from "@/components/views/collection-views";
+import dynamic from "next/dynamic";
+import type { ProjectViewHelpers } from "./project-other-views";
+import type { BulkConfig } from "@/components/bulk/types";
+import { useBulk } from "@/components/bulk/use-bulk";
+// Its menu loads on the first right-click, keeping the page in its route budget.
+import { useRowMenuOnDemand } from "@/components/menus/row-menu-on-demand";
+import { useCustomFieldColumns } from "@/components/custom-fields/list";
+import { isConditionParam } from "@/lib/views/query";
+
 // Views other than the default table, and the peek, load when shown (A24-009).
-import {
-  Board,
-  Calendar,
-  Drawer,
-  Gallery,
-  RecordList,
-  RecordRow,
-  Timeline,
-} from "@/components/lazy-ui";
+function CreateProjectLoading() {
+  const t = useTranslations("projects");
+  return (
+    <Button variant="primary" icon="Plus" loading>
+      {t("list.newProject")}
+    </Button>
+  );
+}
+
+// Most visits to Projects never open the dialog, and the page sits at its route budget.
+const CreateProjectDialog = dynamic(
+  () => import("./create-project").then((m) => m.CreateProjectDialog),
+  { loading: CreateProjectLoading },
+);
+
+/** The button renders and hydrates with the page, so a click is never lost; the first one loads the dialog. */
+function CreateProject({
+  org,
+  options,
+  defaultOpen,
+}: {
+  org: string;
+  options: ProjectFormOptions;
+  defaultOpen: boolean;
+}) {
+  const t = useTranslations("projects");
+  const [wanted, setWanted] = useState(defaultOpen);
+  if (wanted) return <CreateProjectDialog org={org} options={options} defaultOpen />;
+  return (
+    <Button variant="primary" icon="Plus" onClick={() => setWanted(true)}>
+      {t("list.newProject")}
+    </Button>
+  );
+}
+const ProjectOtherView = dynamic(() =>
+  import("./project-other-views").then((m) => m.ProjectOtherView),
+);
+const ProjectPeek = dynamic(() => import("./project-other-views").then((m) => m.ProjectPeek));
 
 export type ProjectView = "table" | "list" | "board" | "gallery" | "timeline" | "calendar";
 
@@ -48,7 +81,8 @@ export type BoardMode = "state" | "phase";
  * The Projects collection (Collection template, Section 11.6): the views the sitemap allows for the
  * page, a search over key and name, the archived filter, a side peek and the New project dialog.
  * Every view keeps the same search and filter state, and the view lives in the query string
- * (Section 4.5.3), so a link reopens the same view.
+ * (Section 4.5.3), so a link reopens the same view. The table selects projects for bulk changes,
+ * and each row's menu offers the same changes as the bulk bar (Section 11.7).
  */
 export function ProjectCollection({
   org,
@@ -63,6 +97,7 @@ export function ProjectCollection({
   today,
   create,
   sharers = [],
+  bulk,
 }: {
   org: string;
   title: string;
@@ -80,6 +115,8 @@ export function ProjectCollection({
    * Producers), named in the empty state so it never sends them in a loop (A59-014).
    */
   sharers?: readonly string[];
+  /** Bulk edit of the table view's selection, for people who may change projects. */
+  bulk?: BulkConfig | null;
 }) {
   const t = useTranslations("projects");
   const format = useFormatter();
@@ -88,6 +125,14 @@ export function ProjectCollection({
   const params = useSearchParams();
   const [query, setQuery] = useState("");
   const [peekKey, setPeekState] = useState<string | null>(params.get("peek"));
+  // The org's filterable project fields (A117), from the CustomFieldList the page wraps this in.
+  const custom = useCustomFieldColumns();
+  const tv = useTranslations("views");
+  const clearFilters = () => {
+    const next = new URLSearchParams(window.location.search);
+    for (const name of [...next.keys()]) if (isConditionParam(name)) next.delete(name);
+    router.replace(`${pathname}${next.size > 0 ? `?${next}` : ""}` as Route, { scroll: false });
+  };
   /** Opens or closes the peek and keeps it in the URL (`?peek=KEY`) without a server round trip. */
   const setPeekKey = (key: string | null) => {
     setPeekState(key);
@@ -99,12 +144,19 @@ export function ProjectCollection({
   };
 
   const gateOf = (code: string) => phases.find((p) => p.code === code)?.gate ?? 0;
+  // B14 (6260): the event type, read with the list (event_type:event_types(name)), as a column when any project has one.
+  const hasEventTypes = projects.some((p) => Boolean(p.eventTypeName));
   const shown = useMemo(() => {
     const q = query.trim().toLowerCase();
     return q === ""
       ? projects
       : projects.filter((p) => p.key.toLowerCase().includes(q) || p.name.toLowerCase().includes(q));
   }, [projects, query]);
+
+  // The selection keeps only projects the search still shows (Section 11.7).
+  const bulkRows = useMemo(() => shown.map((p) => ({ id: p.id, label: p.key })), [shown]);
+  const bulkKit = useBulk(view === "table" ? bulk : null, bulkRows);
+  const rowMenu = useRowMenuOnDemand();
 
   const setParam = (name: string, value: string | null) => {
     const next = new URLSearchParams(params.toString());
@@ -113,7 +165,6 @@ export function ProjectCollection({
     const qs = next.toString();
     router.replace((qs ? `${pathname}?${qs}` : pathname) as Route);
   };
-  const projectHref = (key: string, tab = "overview") => `/${org}/p/${key}/${tab}` as Route;
   const date = (iso: string | null) =>
     iso === null ? null : format.dateTime(new Date(`${iso}T00:00:00`), { dateStyle: "medium" });
   const dates = (p: ProjectSummary) => {
@@ -127,6 +178,16 @@ export function ProjectCollection({
   const stateLabel = (p: ProjectSummary) => t(`states.${p.projectState}`);
   const phaseName = (code: string) => t(`phases.${phaseCode(code)}`);
   const peek = projects.find((p) => p.key === peekKey) ?? null;
+  const helpers: ProjectViewHelpers = {
+    org,
+    phases,
+    gateOf,
+    dates,
+    stateLabel,
+    phaseName,
+    setPeekKey,
+    setParam,
+  };
 
   const header = (
     <PageHeader
@@ -144,7 +205,7 @@ export function ProjectCollection({
       }
       actions={
         create ? (
-          <CreateProjectDialog
+          <CreateProject
             key={String(create.open)}
             org={org}
             options={create.options}
@@ -174,7 +235,9 @@ export function ProjectCollection({
   );
 
   let body: React.ReactNode;
-  if (projects.length === 0) {
+  // Custom field filters apply on the server (A117), so an empty list under them is no match, not no projects.
+  const filtering = [...params.keys()].some(isConditionParam);
+  if (projects.length === 0 && !filtering) {
     body = create ? (
       <EmptyState
         icon="FolderPlus"
@@ -198,158 +261,73 @@ export function ProjectCollection({
     body = (
       <EmptyState
         icon="Search"
-        sentence={t("list.noMatch", { query })}
-        actionLabel={t("list.clearSearch")}
-        onAction={() => setQuery("")}
+        sentence={query === "" && filtering ? tv("filter.noMatches") : t("list.noMatch", { query })}
+        actionLabel={query === "" && filtering ? tv("filter.clear") : t("list.clearSearch")}
+        onAction={() => (query === "" && filtering ? clearFilters() : setQuery(""))}
       />
     );
   } else if (view === "table") {
+    const columns = [
+      { key: "key", label: t("fields.key"), type: "code" as const, width: 88 },
+      { key: "name", label: t("fields.name"), wrap: true },
+      { key: "state", label: t("fields.state"), type: "state" as const, width: 128 },
+      { key: "phase", label: t("fields.phase"), width: 160 },
+      ...(hasEventTypes ? [{ key: "eventType", label: t("eventTypes.field"), width: 160 }] : []),
+      { key: "jurisdiction", label: t("fields.jurisdiction"), type: "code" as const, width: 180 },
+      { key: "venue", label: t("fields.venue"), width: 180 },
+      { key: "dates", label: t("fields.dates"), width: 220 },
+      ...custom.columns,
+    ];
     body = (
-      <DataTable
-        caption={t("list.caption")}
-        columns={[
-          { key: "key", label: t("fields.key"), type: "code", width: 88 },
-          { key: "name", label: t("fields.name"), wrap: true },
-          { key: "state", label: t("fields.state"), type: "state", width: 128 },
-          { key: "phase", label: t("fields.phase"), width: 160 },
-          { key: "jurisdiction", label: t("fields.jurisdiction"), type: "code", width: 180 },
-          { key: "venue", label: t("fields.venue"), width: 180 },
-          { key: "dates", label: t("fields.dates"), width: 220 },
-        ]}
-        pinStart={["key"]}
-        rows={shown.map((p) => ({
-          id: p.key,
-          key: p.key,
-          name: p.name,
-          state: { state: stateIcon(p.projectState), label: stateLabel(p) },
-          phase: t("gates.gate", { gate: gateOf(p.phaseCode) }) + ` · ${phaseName(p.phaseCode)}`,
-          jurisdiction: p.jurisdictionId ?? t("values.unresolved"),
-          venue: p.venueName ?? t("values.none"),
-          dates: dates(p),
-        }))}
-        onRowActivate={(row) => setPeekKey(String(row["key"]))}
-      />
-    );
-  } else if (view === "list") {
-    body = (
-      <RecordList label={t("list.caption")}>
-        {shown.map((p) => (
-          <RecordRow
-            key={p.id}
-            state={stateIcon(p.projectState)}
-            stateLabel={stateLabel(p)}
-            recordKey={p.key}
-            title={p.name}
-            chips={
-              <PhaseChip
-                gate={gateOf(p.phaseCode)}
-                code={phaseCode(p.phaseCode)}
-                name={phaseName(p.phaseCode)}
-              />
-            }
-            next={dates(p)}
-            actionLabel={t("list.open")}
-            onAction={() => setPeekKey(p.key)}
-            onOpen={() => setPeekKey(p.key)}
-          />
-        ))}
-      </RecordList>
-    );
-  } else if (view === "board") {
-    const columns =
-      board === "phase"
-        ? phases.map((ph) => ({
-            state: "active" as RecordState,
-            label: t("gates.gate", { gate: ph.gate }) + ` · ${phaseName(ph.code)}`,
-            cards: shown
-              .filter((p) => p.phaseCode === ph.code)
-              .map((p) => ({ key: p.key, title: p.name, meta: `${p.key} · ${stateLabel(p)}` })),
-          }))
-        : PROJECT_STATE_ORDER.map((s) => ({
-            state: stateIcon(s),
-            label: t(`states.${s}`),
-            cards: shown
-              .filter((p) => p.projectState === s)
-              .map((p) => ({
-                key: p.key,
-                title: p.name,
-                meta: `${p.key} · ${phaseName(p.phaseCode)}`,
-              })),
-          }));
-    body = (
-      <section aria-label={board === "phase" ? t("list.phaseBoardLabel") : t("list.boardLabel")}>
-        <Board readOnly columns={columns} onOpen={(key) => setPeekKey(key)} />
-      </section>
-    );
-  } else if (view === "gallery") {
-    body = (
-      <Gallery label={t("list.galleryLabel")}>
-        {shown.map((p) => (
-          <Card
-            key={p.id}
-            interactive
-            title={`${p.key} ${p.name}`}
-            meta={<StateChip state={stateIcon(p.projectState)} label={stateLabel(p)} />}
-            footer={
-              <Button size="sm" variant="ghost" onClick={() => setPeekKey(p.key)}>
-                {t("list.open")}
-              </Button>
-            }
-          >
-            <div className="flex flex-col gap-6 text-text-13 text-text-secondary">
-              <PhaseChip
-                gate={gateOf(p.phaseCode)}
-                code={phaseCode(p.phaseCode)}
-                name={phaseName(p.phaseCode)}
-              />
-              <span>{p.venueName ?? p.jurisdictionId ?? t("values.unresolved")}</span>
-              <span>{dates(p)}</span>
-            </div>
-          </Card>
-        ))}
-      </Gallery>
-    );
-  } else if (view === "timeline") {
-    body = (
-      <PortfolioTimeline
-        projects={shown}
-        label={t("list.timelineLabel")}
-        today={today}
-        format={(d) => format.dateTime(d, { weekday: "narrow", timeZone: "UTC" })}
-        onAddDates={(key) => router.push(projectHref(key, "settings"))}
-      />
+      <>
+        <DataTable
+          caption={t("list.caption")}
+          columns={columns}
+          pinStart={["key"]}
+          rows={shown.map((p) => ({
+            id: p.id,
+            key: p.key,
+            name: p.name,
+            state: { state: stateIcon(p.projectState), label: stateLabel(p) },
+            phase: t("gates.gate", { gate: gateOf(p.phaseCode) }) + ` · ${phaseName(p.phaseCode)}`,
+            eventType: p.eventTypeName ?? t("values.none"),
+            jurisdiction: p.jurisdictionId ?? t("values.unresolved"),
+            venue: p.venueName ?? t("values.none"),
+            dates: dates(p),
+            ...custom.cells(p.id),
+          }))}
+          onRowActivate={(row) => setPeekKey(String(row["key"]))}
+          onRowContextMenu={(_row, index, at, cell) => {
+            const p = shown[index];
+            if (!p) return;
+            rowMenu.open(
+              {
+                id: p.id,
+                label: p.key,
+                open: () => setPeekKey(p.key),
+                href: `/${org}/p/${p.key}/overview`,
+                bulk: bulkKit,
+              },
+              at,
+              cell,
+            );
+          }}
+          {...(bulkKit.selection ? { selection: bulkKit.selection } : {})}
+        />
+        {bulkKit.bar}
+        {rowMenu.menu}
+      </>
     );
   } else {
-    const byLabel = new Map<string, string>();
-    const events = shown.flatMap((p) => {
-      const out: { date: string; label: string; state: RecordState }[] = [];
-      const add = (iso: string | null, label: string) => {
-        if (iso?.startsWith(month.slice(0, 7))) {
-          byLabel.set(label, p.key);
-          out.push({ date: iso, label, state: stateIcon(p.projectState) });
-        }
-      };
-      add(p.startsOn, t("list.starts", { key: p.key }));
-      add(p.endsOn, t("list.ends", { key: p.key }));
-      return out;
-    });
     body = (
-      <div className="flex flex-col gap-8">
-        <div className="flex gap-8">
-          <Button onClick={() => setParam("month", shiftMonth(month, -1))}>
-            {t("list.previousMonth")}
-          </Button>
-          <Button onClick={() => setParam("month", shiftMonth(month, 1))}>
-            {t("list.nextMonth")}
-          </Button>
-        </div>
-        <Calendar
-          month={month}
-          today={today}
-          events={events}
-          onEventSelect={(e) => setPeekKey(byLabel.get(e.label) ?? null)}
-        />
-      </div>
+      <ProjectOtherView
+        view={view}
+        shown={shown}
+        board={board}
+        month={month}
+        today={today}
+        h={helpers}
+      />
     );
   }
 
@@ -359,49 +337,7 @@ export function ProjectCollection({
     <TemplateCollection
       header={header}
       filters={filters}
-      peek={collectionPeek(
-        peekKey,
-        peek ? (
-          <Drawer
-            open
-            onOpenChange={(open) => (open ? undefined : setPeekKey(null))}
-            title={t("peek.title", { key: peek.key, name: peek.name })}
-            footer={
-              <>
-                <Button onClick={() => router.push(projectHref(peek.key, "gates"))}>
-                  {t("peek.gates")}
-                </Button>
-                <Button variant="primary" onClick={() => router.push(projectHref(peek.key))}>
-                  {t("peek.openProject")}
-                </Button>
-              </>
-            }
-          >
-            <div className="flex flex-wrap gap-6">
-              <StateChip state={stateIcon(peek.projectState)} label={stateLabel(peek)} />
-              <PhaseChip
-                gate={gateOf(peek.phaseCode)}
-                code={phaseCode(peek.phaseCode) as PhaseCode}
-                name={phaseName(peek.phaseCode)}
-              />
-            </div>
-            <PropertyList
-              items={[
-                { label: t("fields.production"), value: t(`states.${peek.productionState}`) },
-                {
-                  label: t("fields.jurisdiction"),
-                  value: peek.jurisdictionId ?? t("values.unresolved"),
-                },
-                { label: t("fields.venue"), value: peek.venueName ?? t("values.none") },
-                { label: t("fields.region"), value: peek.regionCode ?? t("values.none") },
-                { label: t("fields.currency"), value: peek.currency },
-                { label: t("fields.timeZone"), value: peek.timeZone },
-                { label: t("fields.dates"), value: dates(peek) },
-              ]}
-            />
-          </Drawer>
-        ) : undefined,
-      )}
+      peek={collectionPeek(peekKey, peek ? <ProjectPeek peek={peek} h={helpers} /> : undefined)}
     >
       {body}
       {(view === "timeline" || view === "calendar") && undated > 0 ? (
@@ -410,73 +346,5 @@ export function ProjectCollection({
         </p>
       ) : null}
     </TemplateCollection>
-  );
-}
-
-/** `2026-11-01` moved by whole months, as the first of that month. */
-function shiftMonth(month: string, by: number): string {
-  const [y, m] = month.split("-").map(Number) as [number, number];
-  const d = new Date(Date.UTC(y, m - 1 + by, 1));
-  return d.toISOString().slice(0, 10);
-}
-
-const DAY = 86_400_000;
-
-/** Projects on a day grid from the earliest start to the latest end (Timeline view). */
-function PortfolioTimeline({
-  projects,
-  label,
-  today,
-  format,
-  onAddDates,
-}: {
-  projects: readonly ProjectSummary[];
-  label: string;
-  today: string;
-  format: (d: Date) => string;
-  onAddDates: (key: string) => void;
-}) {
-  const t = useTranslations("projects");
-  const dated = projects.filter((p) => p.startsOn || p.endsOn);
-  const first0 = projects[0];
-  if (dated.length === 0) {
-    return first0 ? (
-      <EmptyState
-        icon="CalendarRange"
-        sentence={t("list.addDates")}
-        actionLabel={t("list.open")}
-        onAction={() => onAddDates(first0.key)}
-      />
-    ) : null;
-  }
-  const time = (iso: string) => Date.parse(`${iso}T00:00:00Z`);
-  const starts = dated.map((p) => time((p.startsOn ?? p.endsOn) as string));
-  const ends = dated.map((p) => time((p.endsOn ?? p.startsOn) as string));
-  const first = Math.min(...starts);
-  const last = Math.min(Math.max(...ends), first + 365 * DAY);
-  const count = Math.round((last - first) / DAY) + 1;
-  const days = Array.from({ length: count }, (_, i) => {
-    const d = new Date(first + i * DAY);
-    const dow = d.getUTCDay();
-    return { dow: format(d), date: d.getUTCDate(), weekend: dow === 0 || dow === 6 };
-  });
-  const index = (ms: number) => Math.max(0, Math.min(count - 1, Math.round((ms - first) / DAY)));
-  const todayIndex = Math.round((time(today) - first) / DAY);
-  return (
-    <div className="min-w-0">
-      <Timeline
-        label={label}
-        days={days}
-        dayWidth={count > 120 ? 8 : count > 45 ? 16 : 32}
-        {...(todayIndex >= 0 && todayIndex < count ? { today: todayIndex } : {})}
-        rows={dated.map((p, i) => ({
-          key: p.key,
-          title: p.name,
-          state: stateIcon(p.projectState),
-          start: index(starts[i] ?? first),
-          end: index(ends[i] ?? first),
-        }))}
-      />
-    </div>
   );
 }

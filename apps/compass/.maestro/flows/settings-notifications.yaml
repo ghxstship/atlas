@@ -1,0 +1,117 @@
+appId: pro.ghxstship.compass
+# Settings, Notifications in Compass (A111, S4.3-15 part 3): a member of Demo Productions turns off Schedule by
+# email, sets quiet hours in that org and their own quiet hours. The server then holds what Atlas Me (the member's
+# matrix and quiet hours in the org) and Gateway (their own quiet hours) show, and a fresh sign-in, which wipes the
+# phone, shows the same values read back from it.
+# Named after its file: config.yaml orders flows by name.
+name: settings-notifications
+---
+- runFlow:
+    file: ../subflows/sign-in.yaml
+    env:
+      EMAIL: field@example.com
+- runFlow:
+    file: ../subflows/open-route.yaml
+    env:
+      ROUTE: settings/notifications
+- extendedWaitUntil:
+    visible:
+      id: "notify-schedule"
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: "notify-schedule-email"
+    direction: DOWN
+    timeout: 20000
+- tapOn:
+    id: "notify-schedule-email"
+- extendedWaitUntil:
+    visible:
+      id: "notify-matrix-write-saved"
+    timeout: 30000
+# Quiet hours in the org, with the digest beside them, as Atlas Me shows them.
+- scrollUntilVisible:
+    element:
+      id: "notify-quiet-start"
+    direction: DOWN
+    timeout: 20000
+- tapOn:
+    id: "notify-quiet-start"
+- inputText: "22:00"
+- tapOn:
+    id: "notify-quiet-end"
+- inputText: "6:30"
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: "notify-quiet-save"
+    direction: DOWN
+    timeout: 20000
+- tapOn:
+    id: "notify-quiet-save"
+- extendedWaitUntil:
+    visible:
+      id: "notify-quiet-write-saved"
+    timeout: 30000
+# The person's own quiet hours, as Gateway shows them.
+- scrollUntilVisible:
+    element:
+      id: "notify-own-start"
+    direction: DOWN
+    timeout: 20000
+- tapOn:
+    id: "notify-own-start"
+- inputText: "23:00"
+- tapOn:
+    id: "notify-own-end"
+- inputText: "07:00"
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: "notify-own-save"
+    direction: DOWN
+    timeout: 20000
+- tapOn:
+    id: "notify-own-save"
+- extendedWaitUntil:
+    visible:
+      id: "notify-own-write-saved"
+    timeout: 30000
+# What Atlas and Gateway read.
+- runScript:
+    file: ../scripts/notification-settings-saved.js
+    env:
+      EMAIL: field@example.com
+      ORG_ID: 01920000-0000-7000-8000-000000000001
+      CATEGORY: schedule
+      CHANNEL: Email
+- assertTrue: ${output.notifications.status == 200 && output.notifications.enabled == false}
+- assertTrue: ${output.notifications.orgStart == "22:00" && output.notifications.orgEnd == "06:30"}
+- assertTrue: ${output.notifications.ownStart == "23:00" && output.notifications.ownEnd == "07:00"}
+# A fresh sign-in reads them from the server again.
+- runFlow:
+    file: ../subflows/sign-in.yaml
+    env:
+      EMAIL: field@example.com
+- runFlow:
+    file: ../subflows/open-route.yaml
+    env:
+      ROUTE: settings/notifications
+- extendedWaitUntil:
+    visible:
+      id: "notify-schedule"
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: "notify-quiet-start"
+    direction: DOWN
+    timeout: 20000
+- assertVisible: "22:00"
+- assertVisible: "06:30"
+- scrollUntilVisible:
+    element:
+      id: "notify-own-start"
+    direction: DOWN
+    timeout: 20000
+- assertVisible: "23:00"
+- assertVisible: "07:00"

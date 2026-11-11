@@ -12,6 +12,7 @@ import {
   type PlatformDb,
 } from "../_vendor/core.js";
 import { observeFunction } from "./observability.ts";
+import { apiKey, apiKeys, carriesSecretKey, constantTimeEqual } from "./api-keys.ts";
 
 /** A required environment variable, or a thrown error naming it. */
 export function env(name: string): string {
@@ -20,9 +21,24 @@ export function env(name: string): string {
   return value;
 }
 
-/** The service-role database seam over PostgREST. Never exposed to callers. */
-export function serviceDb(): PlatformDb {
-  return restDb({ url: env("SUPABASE_URL"), serviceKey: env("SUPABASE_SERVICE_ROLE_KEY") });
+const readEnv = (name: string): string | undefined => Deno.env.get(name);
+
+/** The project's `default` secret key (ADR 0168). Bypasses RLS: server use only. */
+export function secretKey(): string {
+  return apiKey("secret", readEnv);
+}
+
+/** The project's `default` publishable key, for calls made as a signed-in person. */
+export function publishableKey(): string {
+  return apiKey("publishable", readEnv);
+}
+
+/**
+ * The service-role database seam over PostgREST, in the app schema unless another is named (api_public, for
+ * example). Never exposed to callers.
+ */
+export function serviceDb(schema = "app"): PlatformDb {
+  return restDb({ url: env("SUPABASE_URL"), serviceKey: secretKey(), schema });
 }
 
 export function json(status: number, body: unknown): Response {
@@ -32,17 +48,18 @@ export function json(status: number, body: unknown): Response {
   });
 }
 
-function constantTimeEqual(a: string, b: string): boolean {
-  if (a.length !== b.length) return false;
-  let diff = 0;
-  for (let i = 0; i < a.length; i += 1) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
-  return diff === 0;
-}
-
-/** True when the request carries the expected bearer secret (workers are called by pg_cron with the service key). */
+/** True when the request carries the expected bearer secret (the file handover and the inbound webhooks' secrets). */
 export function hasBearer(request: Request, secret: string): boolean {
   const header = request.headers.get("Authorization") ?? "";
   return header.startsWith("Bearer ") && constantTimeEqual(header.slice(7), secret);
+}
+
+/** True when the request carries one of the project's secret keys, as pg_cron's worker schedule sends it. */
+export function isServiceRequest(request: Request): boolean {
+  return carriesSecretKey(
+    { apikey: request.headers.get("apikey"), authorization: request.headers.get("Authorization") },
+    apiKeys("secret", readEnv),
+  );
 }
 
 /**

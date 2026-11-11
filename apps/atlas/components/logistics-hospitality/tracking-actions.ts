@@ -4,6 +4,7 @@ import type { DataError } from "@xos/data";
 import { asDbClient, startTracking, stopTracking } from "@xos/integrations";
 import { z } from "zod";
 import { contextFor, contextForSlug, refresh } from "@/lib/logistics-hospitality/actions-kit";
+import { observability } from "@/lib/observability";
 
 /**
  * Carrier tracking on a shipment (A19 0634, Section 17): start through a Connected carrier
@@ -27,7 +28,7 @@ function errorOf(error: DataError): string {
   if (error.kind === "conflict") return "alreadyTracked";
   if (error.kind === "invalid") return "numberFormat";
   if (error.kind === "not-found") return "notFound";
-  console.error("Shipment tracking action failed", error);
+  observability.logger.error("Shipment tracking action failed", { error: error });
   return "unexpected";
 }
 

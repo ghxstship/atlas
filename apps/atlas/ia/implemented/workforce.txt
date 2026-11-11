@@ -10,5 +10,7 @@ people.recognition
 people.help-desk
 site-ops.occupancy
 site-ops.weather
+# B8 (G-149): the muster list.
+site-ops.muster
 site-ops.guest-check-in
 site-ops.lost-and-found

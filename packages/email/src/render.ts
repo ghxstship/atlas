@@ -1,5 +1,4 @@
 import type { Locale } from "@xos/i18n";
-import { translator } from "./messages.ts";
 import { TEMPLATE_CODES } from "./templates/codes.ts";
 import type { Sender } from "./templates/layout.tsx";
 import type { TemplateCode, TemplateProps } from "./templates/index.tsx";
@@ -35,9 +34,11 @@ export async function renderEmail<C extends TemplateCode>(
   props: TemplateProps[C],
   options: RenderOptions,
 ): Promise<RenderedEmail> {
-  const [{ render }, { templates }] = await Promise.all([
+  const [{ render }, { templates }, { translator }] = await Promise.all([
     import("@react-email/components"),
     import("./templates/index.tsx"),
+    // The copy of every template and kind in both locales: loaded with the templates, never at an Edge Function's boot.
+    import("./messages.ts"),
   ]);
   const template = templates[code];
   if (!template.transactional && options.sender.unsubscribeUrl === undefined) {

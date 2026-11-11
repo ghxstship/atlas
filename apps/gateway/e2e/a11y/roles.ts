@@ -19,6 +19,8 @@ export const PEOPLE = [
     person: "vendor",
     email: "vendor@example.com",
     standing: "account-owner",
+    // The account the sweep acts for: Gateway acts for oneself until the xos-acting cookie names an account.
+    account: "01920000-0000-7000-8000-000000000301",
     roleType: "vendor",
     engagementKey: toDisplayKey("engagement", "01920000-0000-7000-8000-000000228402"),
   },

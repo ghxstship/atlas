@@ -1,9 +1,17 @@
 import { describe, expect, it } from "vitest";
 import {
   beginBillingCheckout,
+  beginSubscriptionPause,
+  beginSubscriptionResume,
   getBillingAccount,
   getBillingPortalCustomer,
+  getStripeCancellations,
+  getSubscriptionPause,
   recordBillingCheckout,
+  recordRenewalConsent,
+  recordSubscriptionPause,
+  recordSubscriptionResume,
+  requestPlanEnd,
 } from "../src/billing.ts";
 import { errorResponse, fakeClient, okResponse } from "./fake-client.ts";
 
@@ -182,6 +190,208 @@ describe("billing portal and summary", () => {
     await expect(getBillingAccount(db, org, false)).resolves.toMatchObject({
       ok: true,
       data: { paidThroughStripe: false, checkoutRefusal: null },
+    });
+  });
+});
+
+describe("subscription pause (B16, 6051)", () => {
+  it("begins and records a pause, and begins and records a resume", async () => {
+    const { db, calls } = fakeClient({
+      "rpc:begin_subscription_pause": [
+        okResponse([
+          {
+            stripe_subscription_id: "sub_1",
+            starts_at: "2026-11-15T00:00:00Z",
+            resumes_at: "2027-01-15T00:00:00Z",
+          },
+        ]),
+        errorResponse(
+          "XR001",
+          "pause_annual: An annual plan is paid for the year and cannot pause.",
+        ),
+        okResponse([]),
+      ],
+      "rpc:record_subscription_pause": [okResponse("pause-1")],
+      "rpc:begin_subscription_resume": [
+        okResponse([{ stripe_subscription_id: "sub_1", started: true }]),
+        okResponse([]),
+      ],
+      "rpc:record_subscription_resume": [okResponse("pause-1")],
+    });
+    expect(await beginSubscriptionPause(db, { orgId: org, months: 2, livemode: false })).toEqual({
+      ok: true,
+      data: {
+        stripeSubscriptionId: "sub_1",
+        startsAt: "2026-11-15T00:00:00Z",
+        resumesAt: "2027-01-15T00:00:00Z",
+      },
+    });
+    expect(calls[0]?.steps[0]).toEqual([
+      "args",
+      [{ p_org_id: org, p_months: 2, p_livemode: false }],
+    ]);
+    const annual = await beginSubscriptionPause(db, { orgId: org, months: 2, livemode: false });
+    expect(annual.ok === false && annual.error).toMatchObject({
+      kind: "refusal",
+      rule: "pause_annual",
+    });
+    expect((await beginSubscriptionPause(db, { orgId: org, months: 2, livemode: false })).ok).toBe(
+      false,
+    );
+    expect(
+      await recordSubscriptionPause(db, {
+        orgId: org,
+        months: 2,
+        livemode: false,
+        stripeSubscriptionId: "sub_1",
+      }),
+    ).toEqual({ ok: true, data: "pause-1" });
+    expect(await beginSubscriptionResume(db, { orgId: org, livemode: false })).toEqual({
+      ok: true,
+      data: { stripeSubscriptionId: "sub_1", started: true },
+    });
+    expect((await beginSubscriptionResume(db, { orgId: org, livemode: false })).ok).toBe(false);
+    expect(await recordSubscriptionResume(db, { orgId: org, livemode: false })).toEqual({
+      ok: true,
+      data: "pause-1",
+    });
+  });
+
+  it("reads the open pause, or none", async () => {
+    const { db } = fakeClient({
+      "rpc:subscription_pause_status": [
+        okResponse([
+          {
+            pause_id: "p1",
+            source: "Stripe",
+            months: null,
+            starts_at: "2026-10-01T00:00:00Z",
+            resumes_at: null,
+            started: true,
+          },
+        ]),
+        okResponse([]),
+      ],
+    });
+    expect(await getSubscriptionPause(db, org)).toEqual({
+      ok: true,
+      data: {
+        pauseId: "p1",
+        source: "Stripe",
+        months: null,
+        startsAt: "2026-10-01T00:00:00Z",
+        resumesAt: null,
+        started: true,
+      },
+    });
+    expect(await getSubscriptionPause(db, org)).toEqual({ ok: true, data: null });
+  });
+});
+
+describe("renewal consent and Stripe cancels (ADR 0161)", () => {
+  const consent = {
+    orgId: org,
+    planCode: "core",
+    interval: "Monthly" as const,
+    livemode: false,
+    amountMinor: 14900,
+    currency: "USD",
+    nextChargeOn: "2026-11-06",
+    textVersion: "2026-11-06",
+    locale: "en-US",
+    statement: "Core renews automatically.",
+    initials: null,
+  };
+
+  it("records what the Owner agreed to, and passes on a refusal", async () => {
+    const { db, calls } = fakeClient({
+      "rpc:record_renewal_consent": [
+        okResponse("consent-1"),
+        errorResponse("XR001", "renewal_price_mismatch: The price changed."),
+      ],
+    });
+    await expect(recordRenewalConsent(db, consent)).resolves.toEqual({
+      ok: true,
+      data: "consent-1",
+    });
+    expect(calls[0]?.steps[0]).toEqual([
+      "args",
+      [
+        {
+          p_org_id: org,
+          p_plan_code: "core",
+          p_billing_interval: "Monthly",
+          p_amount_minor: 14900,
+          p_currency_code: "USD",
+          p_next_charge_on: "2026-11-06",
+          p_text_version: "2026-11-06",
+          p_locale: "en-US",
+          p_statement: "Core renews automatically.",
+          p_initials: "",
+          p_livemode: false,
+        },
+      ],
+    ]);
+    await expect(recordRenewalConsent(db, { ...consent, initials: "BB" })).resolves.toMatchObject({
+      ok: false,
+    });
+    expect((calls[1]?.steps[0]?.[1] as { p_initials: string }[])[0]?.p_initials).toBe("BB");
+  });
+
+  it("reads where the org's cancels stand", async () => {
+    const { db } = fakeClient({
+      "rpc:stripe_cancellation_status": [
+        okResponse([
+          {
+            cancellation_id: "c-1",
+            stripe_subscription_id: "sub_1",
+            cancel_mode: "At Period End",
+            cancellation_state: "Accepted",
+            source: "Plan Ended",
+            requested_at: "2026-11-06T00:00:00Z",
+            accepted_at: "2026-11-06T00:00:01Z",
+            ends_at: "2026-12-06T00:00:00Z",
+          },
+        ]),
+        errorResponse("42501", "org.billing.read is required"),
+      ],
+    });
+    await expect(getStripeCancellations(db, org)).resolves.toEqual({
+      ok: true,
+      data: [
+        {
+          id: "c-1",
+          stripeSubscriptionId: "sub_1",
+          mode: "At Period End",
+          state: "Accepted",
+          requestedAt: "2026-11-06T00:00:00Z",
+          acceptedAt: "2026-11-06T00:00:01Z",
+          endsAt: "2026-12-06T00:00:00Z",
+        },
+      ],
+    });
+    await expect(getStripeCancellations(db, org)).resolves.toMatchObject({ ok: false });
+  });
+
+  it("ends a plan, and passes on no paid plan or an empty answer", async () => {
+    const { db } = fakeClient({
+      "rpc:request_plan_end": [
+        okResponse([
+          { cancellation_id: "c-1", stripe_subscription_id: "sub_1", cancellation_state: "Queued" },
+        ]),
+        errorResponse("XR001", "billing_no_subscription: None."),
+        okResponse([]),
+      ],
+    });
+    const input = { orgId: org, livemode: false };
+    await expect(requestPlanEnd(db, input)).resolves.toEqual({
+      ok: true,
+      data: { cancellationId: "c-1", stripeSubscriptionId: "sub_1", state: "Queued" },
+    });
+    await expect(requestPlanEnd(db, input)).resolves.toMatchObject({ ok: false });
+    await expect(requestPlanEnd(db, input)).resolves.toMatchObject({
+      ok: false,
+      error: { kind: "unexpected" },
     });
   });
 });

@@ -1,4 +1,3 @@
-import { createHmac } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import {
   failureOf,
@@ -20,10 +19,9 @@ const RECORD = "0192f1e2-7c3a-7b4d-9e8f-000000091103";
 const PROJECT = "0192f1e2-7c3a-7b4d-9e8f-000000091104";
 const ROOT = "0192f1e2-7c3a-7b4d-9e8f-000000091105";
 const PERSON = "0192f1e2-7c3a-7b4d-9e8f-000000091106";
-// A throwaway key built at run time for the test only; no real secret is used or stored.
-const SIGNING_KEY = Array.from({ length: 48 }, (_, i) => String.fromCharCode(97 + (i % 26))).join(
-  "",
-);
+// The worker is handed a signer; this one marks the claims so the test can read them back. No key is involved.
+const sign = async (claims: Record<string, unknown>) =>
+  `test.${Buffer.from(JSON.stringify(claims)).toString("base64url")}.signed`;
 const API = "https://atlas.example.test/api/v1";
 
 const event = {
@@ -110,7 +108,7 @@ const deps = (
   store: s,
   fetch,
   apiBaseUrl: `${API}/`,
-  signingKey: SIGNING_KEY,
+  sign,
   issuer: "http://127.0.0.1:54321/auth/v1",
   worker: "test-worker",
   now: () => Date.parse("2026-10-21T12:00:00Z"),
@@ -123,20 +121,17 @@ function claims(token: string): Record<string, unknown> {
 }
 
 describe("the owner's token", () => {
-  it("is an HS256 session of the owner bound to the org and marked with the run", async () => {
+  it("is a session of the owner bound to the org and marked with the run, signed by the signer it is handed", async () => {
     const token = await mintOwnerToken({
       userId: "user-1",
       orgId: "org-1",
       automationId: "auto-1",
       runId: RUN,
-      signingKey: SIGNING_KEY,
+      sign,
       issuer: "iss",
       nowSeconds: 1000,
     });
-    const [head, payload, signature] = token.split(".") as [string, string, string];
-    expect(createHmac("sha256", SIGNING_KEY).update(`${head}.${payload}`).digest("base64url")).toBe(
-      signature,
-    );
+    expect(token.endsWith(".signed")).toBe(true);
     expect(claims(token)).toEqual({
       iss: "iss",
       sub: "user-1",
@@ -150,17 +145,6 @@ describe("the owner's token", () => {
       xos_automation_id: "auto-1",
       xos_automation_run_id: RUN,
     });
-    await expect(
-      mintOwnerToken({
-        userId: "u",
-        orgId: "o",
-        automationId: "a",
-        runId: "r",
-        signingKey: "short",
-        issuer: "i",
-        nowSeconds: 1,
-      }),
-    ).rejects.toThrow(/too short/);
   });
 });
 

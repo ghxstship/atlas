@@ -1,0 +1,20 @@
+appId: pro.ghxstship.compass
+# Settings, Connected Apps works natively (A112): the Demo Field Tech has allowed no app to act for them, and the
+# screen says what an app could do.
+# Named after its file: config.yaml orders flows by name.
+name: settings-connected-apps
+---
+- runFlow:
+    file: ../subflows/sign-in.yaml
+    env:
+      EMAIL: field@example.com
+- runFlow:
+    file: ../subflows/open-route.yaml
+    env:
+      ROUTE: settings/connected-apps
+- extendedWaitUntil:
+    visible:
+      id: "settings-apps-empty"
+    timeout: 30000
+- assertVisible: "You have not connected any apps."
+- assertVisible: "Apps you allowed to act for you.*"

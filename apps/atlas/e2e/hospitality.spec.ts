@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "./engine-test";
+import { expect as baseExpect, test, type Page } from "./engine-test";
 import { expectAccessible } from "./support";
 import { expectAccessibleInBothThemes, ORG, signIn } from "./operations-support";
 
@@ -11,7 +11,8 @@ import { expectAccessibleInBothThemes, ORG, signIn } from "./operations-support"
 
 test.use({ reducedMotion: "reduce" });
 test.setTimeout(240_000);
-expect.configure({ timeout: 20_000 });
+// configure returns a new expect; the file-level timeout applies only through it.
+const expect = baseExpect.configure({ timeout: 20_000 });
 
 async function newFulfillment(page: Page, kind: string, title: string) {
   await page.goto(`/${ORG}/hospitality/fulfillments`);
@@ -111,7 +112,8 @@ test("journey 21: assign lodging and catering, generate a BEO and confirm it", a
   await expect(approving.getByText(/Approved .* by Demo Producer/)).toBeVisible();
   await expectAccessibleInBothThemes(producer);
   await producer.goto(`/${ORG}/hospitality/fulfillments?view=table`);
-  await producer.getByRole("gridcell", { name: `Artist Dinner ${run}` }).dblclick();
+  // The title cell; the row's select box is named "Select Artist Dinner ..." (bulk edit, A121).
+  await producer.getByRole("gridcell", { name: `Artist Dinner ${run}`, exact: true }).dblclick();
   const confirm = producer.getByRole("dialog", { name: `Artist Dinner ${run}` });
   await expect(confirm.getByText("Approved")).toBeVisible();
   await confirm.getByLabel("Move to").selectOption("Active");

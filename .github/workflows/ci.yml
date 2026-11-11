@@ -17,7 +17,8 @@ jobs:
   checks:
     name: Format, guard, lint, typecheck, test, build
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # Every step passed in 19 min 54 s on a loaded runner (PR #5, 2026-10-30) and the job was cancelled at 20.
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
@@ -36,12 +37,14 @@ jobs:
   database:
     name: Migrations and pgTAP
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    # About 14 minutes on a good runner; run 42168681 needed more than 30 with 466 of 485 suites done.
+    # Raised to 75 on 2026-11-08: trains 9 and 10 took pgTAP past 45 minutes while every suite still passed.
+    timeout-minutes: 75
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
+      - uses: supabase/setup-cli@689adcfb80d947100a1eab127289b97d1fb07b13 # v3.2.0
         with:
-          version: 2.120.0
+          version: 3.1.0
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
@@ -94,7 +97,8 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm turbo run build --filter=@xos/atlas --filter=@xos/gateway --filter=@xos/docs --filter=@xos/console
-      # Fails when a key page passes 200 KB gzip, or the ceiling recorded for it in
+      # Fails when a key page's scripts pass 200 KB on the wire as Lighthouse counts them (gzip at the
+      # level next start sends, with each response's headers), or the ceiling recorded for it in
       # packages/testing/bundle-ceilings.json (pages still over budget, ADR 0027).
       - run: pnpm --filter @xos/testing budget:js -- --chunks
 
@@ -140,18 +144,26 @@ jobs:
   # first visit and typing before hydration is the race they guard against. Gateway's external role
   # journeys also drive Atlas, so its job serves both apps.
   e2e:
-    name: Playwright ${{ matrix.suite }} (${{ matrix.app }}) (gates 6, 8)
+    name: Playwright ${{ matrix.suite }} (${{ matrix.app }}${{ matrix.shard && format(', {0}/{1}', matrix.shard, matrix.shards) || '' }}) (gates 6, 8)
     runs-on: ubuntu-24.04
-    # Atlas runs about 150 journeys and page checks, about 40 minutes on a laptop.
-    timeout-minutes: 90
+    # Atlas runs about 270 journeys: 88 minutes on one hosted runner (run 41090896687), and run
+    # 41100622916 was cut off at 150. They run in four shards, each with its own stack and server.
+    # A shard is a run of whole spec files (fullyParallel is off), so state a file builds up never
+    # leaves it. Shards split by test count, not time: the one with crawl.spec.ts (12 minutes in one
+    # file) took about 33 minutes of tests on that run and the others 16 to 20.
+    timeout-minutes: ${{ matrix.timeout || 150 }}
     strategy:
       fail-fast: false
       # Journeys (gate 6) and axe on every signed-in page per role (gate 8) run on separate runners;
       # together they pass the time limit of one.
       matrix:
         include:
-          - { app: atlas, suite: journeys }
-          - { app: atlas, suite: axe }
+          - { app: atlas, suite: journeys, shard: 1, shards: 4, timeout: 90 }
+          - { app: atlas, suite: journeys, shard: 2, shards: 4, timeout: 90 }
+          - { app: atlas, suite: journeys, shard: 3, shards: 4, timeout: 90 }
+          - { app: atlas, suite: journeys, shard: 4, shards: 4, timeout: 90 }
+          - { app: atlas, suite: axe, shard: 1, shards: 2 }
+          - { app: atlas, suite: axe, shard: 2, shards: 2 }
           - { app: gateway, suite: journeys }
           - { app: gateway, suite: axe }
           - { app: docs, suite: journeys }
@@ -164,67 +176,76 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: pnpm
-      - uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
+      - uses: supabase/setup-cli@689adcfb80d947100a1eab127289b97d1fb07b13 # v3.2.0
         with:
-          version: 2.120.0
+          version: 3.1.0
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install --with-deps chromium
         working-directory: apps/${{ matrix.app }}
       # The full stack (Auth, PostgREST, Storage, Mailpit) with migrations and the demo seed.
       # Services no test uses stay off; the images come from GHCR first (infra/ci/README.md).
       - run: infra/ci/supabase-images.sh start
-      - run: supabase start -x studio,imgproxy,logflare,vector,postgres-meta,supavisor
-      - name: Write the app environment from the stack
+      # The file handover secret (A103, ADR 0061): a fresh value for each run, which the file-download function reads
+      # from supabase/functions/.env and Atlas from its environment, so classified PDFs and images download marked.
+      - name: Generate the file handover secret
         run: |
-          ANON=$(supabase status -o env | sed -n 's/^ANON_KEY="\(.*\)"$/\1/p')
-          # XOS_API_HOST: e2e/api-host.spec.ts reaches the API host by sending Host: api.localhost (RRR-119).
-          # STRIPE_*: e2e/billing-checkout.spec.ts pays on its local fake of Stripe (e2e/fake-stripe.ts), never Stripe.
-          printf 'SUPABASE_URL=http://127.0.0.1:55421\nSUPABASE_ANON_KEY=%s\nATLAS_SITE_URL=http://127.0.0.1:3006\nGATEWAY_SITE_URL=http://127.0.0.1:3127\nSUPABASE_INBUCKET_URL=http://127.0.0.1:55424\nXOS_API_HOST=api.localhost\nSTRIPE_SECRET_KEY=sk_test_abcdefghij\nSTRIPE_API_URL=http://127.0.0.1:12111\n' "$ANON" > apps/atlas/.env.local
-          printf 'SUPABASE_URL=http://127.0.0.1:55421\nSUPABASE_ANON_KEY=%s\nGATEWAY_SITE_URL=http://127.0.0.1:3127\nGATEWAY_PLATFORM_HOSTS=127.0.0.1,localhost\n' "$ANON" > apps/gateway/.env.local
-          echo "E2E_ATLAS_URL=http://127.0.0.1:3006" >> "$GITHUB_ENV"
-          echo "E2E_API_HOST=api.localhost" >> "$GITHUB_ENV"
-          echo "E2E_GATEWAY_URL=http://127.0.0.1:3127" >> "$GITHUB_ENV"
-          echo "E2E_SUPABASE_URL=http://127.0.0.1:55421" >> "$GITHUB_ENV"
-          echo "E2E_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:55422/postgres" >> "$GITHUB_ENV"
-          echo "E2E_INBUCKET_URL=http://127.0.0.1:55424" >> "$GITHUB_ENV"
-          # The local stack's well-known development service key; the import and report journeys
-          # run their workers against it.
-          echo "E2E_SUPABASE_SERVICE_KEY=$(supabase status -o env | sed -n 's/^SERVICE_ROLE_KEY="\(.*\)"$/\1/p')" >> "$GITHUB_ENV"
+          SECRET=$(openssl rand -hex 32)
+          echo "::add-mask::$SECRET"
+          echo "XOS_FILE_HANDOVER_SECRET=$SECRET" > supabase/functions/.env
+          echo "XOS_FILE_HANDOVER_SECRET=$SECRET" >> "$GITHUB_ENV"
+      - run: supabase start -x studio,imgproxy,logflare,vector,postgres-meta,supavisor
+      # The .env.local files and E2E_* variables, shared with the nightly engines job (nightly.yml).
+      - name: Write the app environment from the stack
+        run: infra/ci/e2e-env.sh
       - run: pnpm turbo run build --filter=@xos/${{ matrix.app }} ${{ matrix.app == 'gateway' && '--filter=@xos/atlas' || '' }}
       - name: Start the production server
         if: matrix.app != 'docs'
         run: |
           PORT=$([ "${{ matrix.app }}" = atlas ] && echo 3006 || echo 3127)
+          # Journeys open a territory and need the change at once, so the server reads the offering every time.
+          export E2E_OFFERING_FRESH=1
+          echo "E2E_OFFERING_FRESH=1" >> "$GITHUB_ENV"
           (cd apps/${{ matrix.app }} && nohup pnpm exec next start --port "$PORT" > /tmp/app.log 2>&1 &)
           if [ "${{ matrix.app }}" = gateway ]; then (cd apps/atlas && nohup pnpm exec next start --port 3006 > /tmp/atlas.log 2>&1 &); fi
           for i in $(seq 60); do curl -fs -o /dev/null "http://127.0.0.1:$PORT" && break; sleep 2; done
           echo "E2E_BASE_URL=http://127.0.0.1:$PORT" >> "$GITHUB_ENV"
           # Production builds offer no pseudo-locales; the ar-XB journey runs in e2e-pseudo-locales.
           echo "E2E_PRODUCTION_BUILD=1" >> "$GITHUB_ENV"
+      # Gate 10 as Lighthouse counts it: every script a cold load of each key page fetches, the modules a
+      # page loads after hydration included, which the build manifests cannot show (route-js-budget).
+      - name: Route JavaScript of the served key pages
+        if: matrix.suite == 'journeys' && matrix.app != 'docs'
+        run: |
+          SUPABASE_URL="$E2E_SUPABASE_URL" SUPABASE_ANON_KEY="$E2E_SUPABASE_ANON_KEY" \
+            ATLAS_URL="$E2E_ATLAS_URL" GATEWAY_URL="$E2E_GATEWAY_URL" \
+            pnpm --filter @xos/testing budget:js -- --served "${{ matrix.app }}" --chunks
       - name: Journeys
         if: matrix.suite == 'journeys'
-        run: pnpm exec playwright test
+        run: pnpm exec playwright test ${{ matrix.shard && format('--shard={0}/{1}', matrix.shard, matrix.shards) || '' }}
         working-directory: apps/${{ matrix.app }}
       # Gate 8: axe on every signed-in page per role, both themes, desktop and 375 px.
       - name: Axe on every page
         if: matrix.suite == 'axe'
-        run: pnpm test:a11y
+        # Two shards for Atlas: past an hour the saved sessions no longer sign in (run 42069911149).
+        run: pnpm test:a11y ${{ matrix.shard && format('--shard={0}/{1}', matrix.shard, matrix.shards) || '' }}
         working-directory: apps/${{ matrix.app }}
       - if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: e2e-${{ matrix.app }}-${{ matrix.suite }}
+          name: e2e-${{ matrix.app }}-${{ matrix.suite }}${{ matrix.shard && format('-{0}', matrix.shard) || '' }}
           path: |
             apps/${{ matrix.app }}/node_modules/.cache/playwright
             /tmp/*.log
           if-no-files-found: ignore
 
   # Gate 16: pseudo-locales exist only on next dev, which the configs start themselves. Atlas runs the
-  # ar-XB journey, and both apps check en-XA strings and truncation (A53).
+  # ar-XB journey, and both apps check en-XA strings and truncation on the core screens (A53) and on
+  # every route the a11y sweep visits per role; the docs site and the operator console check every
+  # route too (A149). The checks are shared in packages/testing/src/pseudo.ts.
   e2e-pseudo-locales:
     name: Pseudo-locale journeys on next dev (gate 16)
     runs-on: ubuntu-24.04
-    timeout-minutes: 45
+    timeout-minutes: 150
     env:
       E2E_ENGINES: chromium
     steps:
@@ -234,9 +255,9 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: pnpm
-      - uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
+      - uses: supabase/setup-cli@689adcfb80d947100a1eab127289b97d1fb07b13 # v3.2.0
         with:
-          version: 2.120.0
+          version: 3.1.0
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install --with-deps chromium
         working-directory: apps/atlas
@@ -245,12 +266,12 @@ jobs:
       - run: supabase start -x studio,imgproxy,logflare,vector,postgres-meta,supavisor
       - name: Write the app environments from the stack
         run: |
-          ANON=$(supabase status -o env | sed -n 's/^ANON_KEY="\(.*\)"$/\1/p')
+          ANON=$(supabase status -o env | sed -n 's/^PUBLISHABLE_KEY="\(.*\)"$/\1/p')
           printf 'SUPABASE_URL=http://127.0.0.1:55421\nSUPABASE_ANON_KEY=%s\nATLAS_SITE_URL=http://127.0.0.1:3006\nGATEWAY_SITE_URL=http://127.0.0.1:3127\n' "$ANON" > apps/atlas/.env.local
           printf 'SUPABASE_URL=http://127.0.0.1:55421\nSUPABASE_ANON_KEY=%s\nGATEWAY_SITE_URL=http://127.0.0.1:3127\nGATEWAY_PLATFORM_HOSTS=127.0.0.1,localhost\n' "$ANON" > apps/gateway/.env.local
           echo "E2E_SUPABASE_URL=http://127.0.0.1:55421" >> "$GITHUB_ENV"
           echo "E2E_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:55422/postgres" >> "$GITHUB_ENV"
-      - run: pnpm turbo run build --filter=@xos/atlas^... --filter=@xos/gateway^...
+      - run: pnpm turbo run build --filter=@xos/atlas^... --filter=@xos/gateway^... --filter=@xos/docs^... --filter=@xos/console^...
       - name: Atlas (ar-XB journey, en-XA strings, truncation)
         run: pnpm exec playwright test views-help.spec.ts pseudo-locales.spec.ts -g "right to left|en-XA|ar-XB"
         working-directory: apps/atlas
@@ -259,11 +280,76 @@ jobs:
       - name: Gateway (en-XA strings, truncation)
         run: pnpm exec playwright test pseudo-locales.spec.ts
         working-directory: apps/gateway
+      - name: Docs every route (en-XA strings, truncation)
+        run: pnpm exec playwright test pseudo-locales.spec.ts --project=chromium
+        working-directory: apps/docs
+        env:
+          E2E_NEXT_DEV: "1"
+      - name: Console every route (en-XA strings, truncation)
+        run: pnpm exec playwright test pseudo-locales.spec.ts
+        working-directory: apps/console
       - if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: e2e-pseudo-locales
           path: apps/*/node_modules/.cache/playwright
+          if-no-files-found: ignore
+
+  # A149's every-route checks visit each route the a11y sweep visits per role (Atlas) or per person
+  # (Gateway) in both pseudo-locales on next dev, which compiles each route on its first visit; in one
+  # job with the other pseudo-locale checks they ran past 150 minutes (merge train 3, 2026-11-01), so
+  # they run here in shards, each with its own stack and server.
+  e2e-pseudo-locale-routes:
+    name: Pseudo-locale routes (${{ matrix.app }}, ${{ matrix.shard }}/${{ matrix.shards }}) (gate 16)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { app: atlas, shard: 1, shards: 6 }
+          - { app: atlas, shard: 2, shards: 6 }
+          - { app: atlas, shard: 3, shards: 6 }
+          - { app: atlas, shard: 4, shards: 6 }
+          - { app: atlas, shard: 5, shards: 6 }
+          - { app: atlas, shard: 6, shards: 6 }
+          - { app: gateway, shard: 1, shards: 2 }
+          - { app: gateway, shard: 2, shards: 2 }
+    env:
+      E2E_ENGINES: chromium
+      E2E_SKIP_AURORA: "1"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - uses: supabase/setup-cli@689adcfb80d947100a1eab127289b97d1fb07b13 # v3.2.0
+        with:
+          version: 3.1.0
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+        working-directory: apps/${{ matrix.app }}
+      # Services no test uses stay off; the images come from GHCR first (infra/ci/README.md).
+      - run: infra/ci/supabase-images.sh start
+      - run: supabase start -x studio,imgproxy,logflare,vector,postgres-meta,supavisor
+      - name: Write the app environments from the stack
+        run: |
+          ANON=$(supabase status -o env | sed -n 's/^PUBLISHABLE_KEY="\(.*\)"$/\1/p')
+          printf 'SUPABASE_URL=http://127.0.0.1:55421\nSUPABASE_ANON_KEY=%s\nATLAS_SITE_URL=http://127.0.0.1:3006\nGATEWAY_SITE_URL=http://127.0.0.1:3127\n' "$ANON" > apps/atlas/.env.local
+          printf 'SUPABASE_URL=http://127.0.0.1:55421\nSUPABASE_ANON_KEY=%s\nGATEWAY_SITE_URL=http://127.0.0.1:3127\nGATEWAY_PLATFORM_HOSTS=127.0.0.1,localhost\n' "$ANON" > apps/gateway/.env.local
+          echo "E2E_SUPABASE_URL=http://127.0.0.1:55421" >> "$GITHUB_ENV"
+          echo "E2E_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:55422/postgres" >> "$GITHUB_ENV"
+      - run: pnpm turbo run build --filter=@xos/${{ matrix.app }}^...
+      - name: Every route (en-XA strings, truncation)
+        run: pnpm exec playwright test pseudo-locales-routes.spec.ts --workers=2 --shard=${{ matrix.shard }}/${{ matrix.shards }}
+        working-directory: apps/${{ matrix.app }}
+      - if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: e2e-pseudo-routes-${{ matrix.app }}-${{ matrix.shard }}
+          path: apps/${{ matrix.app }}/node_modules/.cache/playwright
           if-no-files-found: ignore
 
   # Gate 19: every Section 11.9 template, both paper sizes and both locales, passes PDF/UA-1.
@@ -359,9 +445,14 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      # The production install runs on Node 22.23.3, not .nvmrc's 22.14.0: pnpm leaves out an optional
+      # package whose engines the running Node misses, so on 22.14.0 the install missed one that Vercel's
+      # 22.x install holds (rollup's @napi-rs/lzma-linux-x64-gnu needs 22.20; infra/runbooks/production.md),
+      # and `pnpm licenses list`, which checks only os, cpu and libc, failed looking for it. An exact
+      # release, so the report does not change with the day it runs.
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version-file: .nvmrc
+          node-version: "22.23.3"
           cache: pnpm
       - name: Actions pinned to the commits of their tags (git ls-remote)
         run: node --experimental-strip-types --no-warnings infra/security/src/cli.ts pins --remote
@@ -429,9 +520,9 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: pnpm
-      - uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
+      - uses: supabase/setup-cli@689adcfb80d947100a1eab127289b97d1fb07b13 # v3.2.0
         with:
-          version: 2.120.0
+          version: 3.1.0
       - run: pnpm install --frozen-lockfile
       - run: docker pull --platform linux/amd64 mcr.microsoft.com/playwright:v1.64.0-noble
       # Services no test uses stay off; the images come from GHCR first (infra/ci/README.md).
@@ -444,7 +535,9 @@ jobs:
         run: packages/testing/ci/visual-clock.sh >> "$GITHUB_ENV"
       - name: Write the app environment from the stack
         run: |
-          ANON=$(supabase status -o env | sed -n 's/^ANON_KEY="\(.*\)"$/\1/p')
+          ANON=$(supabase status -o env | sed -n 's/^PUBLISHABLE_KEY="\(.*\)"$/\1/p')
+          # Without a key the app exits at boot (lib/env.ts) and the failure shows only later.
+          test -n "$ANON" || { echo "::error title=Supabase status::no anon key; is the stack healthy?"; exit 1; }
           printf 'SUPABASE_URL=http://127.0.0.1:55421\nSUPABASE_ANON_KEY=%s\nATLAS_SITE_URL=http://127.0.0.1:3006\nGATEWAY_SITE_URL=http://127.0.0.1:3127\n' "$ANON" > apps/atlas/.env.local
           printf 'SUPABASE_URL=http://127.0.0.1:55421\nSUPABASE_ANON_KEY=%s\nGATEWAY_SITE_URL=http://127.0.0.1:3127\nGATEWAY_PLATFORM_HOSTS=127.0.0.1,localhost\n' "$ANON" > apps/gateway/.env.local
       - run: pnpm turbo run build --filter=@xos/${{ matrix.app }}^...
@@ -454,6 +547,12 @@ jobs:
           CLOCK="--require $GITHUB_WORKSPACE/packages/testing/clock/node-clock.cjs"
           (cd apps/${{ matrix.app }} && NODE_OPTIONS="$CLOCK" nohup pnpm exec next dev --port "$PORT" > /tmp/app.log 2>&1 &)
           for i in $(seq 90); do curl -fs -o /dev/null "http://127.0.0.1:$PORT/auth/sign-in" && break; sleep 2; done
+          # A server that never answers fails here, its last lines in the annotation, rather than
+          # leaving Playwright in the container to start a second one on the port this one holds.
+          if ! curl -fs -o /dev/null "http://127.0.0.1:$PORT/auth/sign-in"; then
+            echo "::error title=next dev did not answer::$(tail -n 20 /tmp/app.log | sed 's/%/%25/g' | awk '{printf "%s%%0A", $0}')"
+            exit 1
+          fi
           echo "E2E_BASE_URL=http://127.0.0.1:$PORT" >> "$GITHUB_ENV"
       - name: Core screens in the pinned Playwright image
         run: packages/testing/ci/visual-in-container.sh ${{ matrix.app }}
@@ -465,3 +564,40 @@ jobs:
             apps/${{ matrix.app }}/node_modules/.cache/playwright-visual
             /tmp/app.log
           if-no-files-found: ignore
+
+  # The one check the main ruleset requires (infra/security/github/main-ruleset.json), so a new job or a new matrix shard
+  # never needs a repository setting changed. A skipped or cancelled job fails it. Add every new job to needs;
+  # infra/security/test/repo-controls.test.ts fails when one is missing. supabase-advisors-staging runs only on a push to
+  # main, after the merge, so it stays out.
+  required:
+    name: CI required checks
+    if: always()
+    needs:
+      - checks
+      - database
+      - secrets
+      - route-js-budget
+      - visual
+      - e2e
+      - e2e-pseudo-locales
+      - e2e-pseudo-locale-routes
+      - verapdf
+      - api-breaking-changes
+      - canon
+      - semgrep
+      - dependency-audit
+      - supply-chain
+      - core-screen-visual
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Every required job passed
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          for result in $RESULTS; do
+            if [ "$result" != "success" ]; then
+              echo "::error title=CI required checks::A required job ended as $result: $RESULTS"
+              exit 1
+            fi
+          done

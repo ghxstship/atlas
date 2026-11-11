@@ -30,9 +30,15 @@ export interface OccupancyCounterScreenLabels extends FrameLabels {
   readonly add: (n: number) => string;
   readonly remove: (n: number) => string;
   readonly count: (count: number, permitted: number) => string;
-  readonly percent: (percent: number) => string;
-  /** The alert banner at 80, 90 and 100 percent of the permitted load. */
-  readonly level: (level: (typeof OCCUPANCY_LEVELS)[number]) => string;
+  /** The share of the load, named for its basis: only a permit makes a load a permitted one. */
+  readonly percent: (percent: number, basis: OccupancyCounter["basis"]) => string;
+  /** The alert banner at 80, 90 and 100 percent of the load, named for its basis. */
+  readonly level: (
+    level: (typeof OCCUPANCY_LEVELS)[number],
+    basis: OccupancyCounter["basis"],
+  ) => string;
+  /** Where the load comes from, shown wherever the figure appears. */
+  readonly basis: (basis: OccupancyCounter["basis"]) => string;
 }
 
 export interface OccupancyCounterScreenProps {
@@ -107,14 +113,20 @@ export function OccupancyCounterScreen({
             <Banner
               tone={level >= 100 ? "danger" : "warning"}
               icon="triangle-alert"
-              message={labels.level(level)}
+              message={labels.level(level, counter.basis)}
             />
           ) : null}
           {alert}
           <Card title={counter.name}>
             <Stack>
               <Text variant="heading32">{labels.count(counter.count, counter.permittedLoad)}</Text>
-              <ProgressBar label={labels.percent(percent)} value={Math.min(percent, 100)} />
+              <Text variant="text13" tone="secondary">
+                {labels.basis(counter.basis)}
+              </Text>
+              <ProgressBar
+                label={labels.percent(percent, counter.basis)}
+                value={Math.min(percent, 100)}
+              />
             </Stack>
           </Card>
           <TextField label={labels.door} value={door} onChangeText={setDoor} />

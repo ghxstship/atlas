@@ -57,3 +57,21 @@ export function expiryFrom(days: string, now: Date = new Date()): string | null 
   if (!(EXPIRY_DAYS as readonly number[]).includes(n)) return null;
   return new Date(now.getTime() + n * 86_400_000).toISOString();
 }
+
+/**
+ * A datetime-local value, checked and passed on as typed. The database reads it in the zone its clocks count in, with the
+ * offset of that very day, so nothing here depends on the browser or on today's offset. Null when it is no real date.
+ */
+export function localDateTime(local: string): string | null {
+  const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::\d{2})?$/.exec(local);
+  if (!match) return null;
+  const [, y, mo, d, h, mi] = match.map(Number) as [number, number, number, number, number, number];
+  const at = new Date(Date.UTC(y, mo - 1, d, h, mi));
+  return at.getUTCFullYear() === y &&
+    at.getUTCMonth() === mo - 1 &&
+    at.getUTCDate() === d &&
+    at.getUTCHours() === h &&
+    at.getUTCMinutes() === mi
+    ? local
+    : null;
+}

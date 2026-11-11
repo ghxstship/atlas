@@ -4,6 +4,7 @@
  * has a route here. Crew screens are for every member; site operations screens show to people who hold
  * the capability their RPC checks on the current project (0806).
  */
+import type { CapabilityCode } from "@xos/schemas/capabilities/codes";
 import { workforceScreens, type WorkforceScreenName } from "@xos/workforce-native";
 
 export interface WorkforceRoute {
@@ -15,7 +16,7 @@ export interface WorkforceRoute {
   /** Shown in the hub; screens reached from another screen (a thread, a survey) are not. */
   readonly listed: boolean;
   /** Capability the site operations screen's writes need on the project. */
-  readonly capability?: string;
+  readonly capability?: CapabilityCode;
 }
 
 export const WORKFORCE_ROUTES: Readonly<Record<WorkforceScreenName, WorkforceRoute>> = {

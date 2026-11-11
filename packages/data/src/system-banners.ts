@@ -1,5 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { fail, ok, toDataError, type DatabaseErrorLike, type Result } from "./result.ts";
+import type { Database } from "./database.types.ts";
+import * as enums from "./enums.generated.ts";
 
 /**
  * System banners (A90, migration 1474; Section 4.10): platform-wide maintenance, incident, plan and other notices
@@ -10,8 +12,8 @@ import { fail, ok, toDataError, type DatabaseErrorLike, type Result } from "./re
  */
 
 export type BannerSurface = "atlas" | "gateway" | "compass";
-export type BannerKind = "Maintenance" | "Incident" | "Plan Notice" | "Notice";
-export type BannerSeverity = "Info" | "Warning" | "Critical";
+export type BannerKind = Database["app"]["Enums"]["system_banner_kind"];
+export type BannerSeverity = Database["app"]["Enums"]["system_banner_severity"];
 
 export interface SystemBanner {
   readonly id: string;
@@ -37,8 +39,8 @@ export const DISMISSED_BANNERS_KEY = "xos.system-banners.dismissed";
 /** The most dismissals kept; older ones fall off, since their banners have long ended. */
 const DISMISSED_LIMIT = 50;
 
-const KINDS: readonly BannerKind[] = ["Maintenance", "Incident", "Plan Notice", "Notice"];
-const SEVERITIES: readonly BannerSeverity[] = ["Info", "Warning", "Critical"];
+const KINDS: readonly BannerKind[] = enums.systemBannerKind;
+const SEVERITIES: readonly BannerSeverity[] = enums.systemBannerSeverity;
 
 /** The client a shell reads banners with: any Supabase client, signed in or not. */
 export type BannerClient = Pick<SupabaseClient, "schema">;

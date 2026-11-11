@@ -1,6 +1,5 @@
 "use client";
 
-import { resolveBreadcrumbs } from "@xos/ia";
 import {
   AppShell,
   Breadcrumbs,
@@ -26,14 +25,14 @@ import {
   type MouseEvent,
   type ReactNode,
 } from "react";
-import { clientSitemap } from "@/ia/sitemap.client.generated";
 import { isBetaLocale } from "@xos/i18n/locales";
 import type { AtlasLocale } from "@/i18n/negotiate";
+import type { CrumbItem } from "@/lib/shell/breadcrumbs";
 import type { CreateItem } from "@/lib/shell/create-order";
+import type { ShellQuickAdd } from "./shell-create";
 import type { NavLinkModel, ShellNav } from "@/lib/shell/nav-model";
 import type { ShellKeys } from "@/lib/shell/shell-keys";
 import { selectOrganization, setLocale, setTheme, setWorkspace } from "@/lib/shell/actions";
-import { toggleFavoriteAction } from "@/lib/settings/favorites-actions";
 import type { Theme } from "@/lib/theme";
 import type { AiFeature } from "@xos/data/ai";
 import { AiFeaturesProvider } from "@/components/aurora/ai-features";
@@ -42,11 +41,14 @@ import { AuroraCenter, openAurora } from "@/components/aurora/aurora-center";
 import { HelpCenter, openHelpArticle } from "@/components/help/help-center";
 import { atlasLiveSource } from "@/components/live/live-source";
 import { UndoCenter } from "@/components/undo/undo-center";
-import { undoStack } from "@/components/undo/undo-stack";
+import { undoStack } from "@xos/ui/undo";
 import { DeferredDropdownMenu, ShellOrgSwitcher } from "./deferred-menus";
+import { holdFirstPress } from "./first-press";
 import { onDemand, useOnDemand } from "./on-demand";
+import { useRecentProjects } from "./recent-projects";
 import { broadcast, SessionWatcher } from "./session-watcher";
 import { ShellKeysContext } from "./shell-keys-context";
+import { SidebarFavorites, type FavoriteLink } from "./sidebar-favorites";
 import type { KeyState } from "./key-dispatch";
 
 /** The command menu (cmdk and the help article index) loads the first time it opens (A24-009). */
@@ -55,13 +57,26 @@ const commandMenu = onDemand(() => import("./shell-command"));
 const createMenu = onDemand(() => import("./shell-create"));
 /** The key handler loads once the shell has hydrated, outside the route's first JavaScript. */
 const keyHandler = onDemand(() => import("./shell-keys"));
+/**
+ * Breadcrumbs and the help panel's page for the pages the shell navigates to, with the client
+ * sitemap: they load with the person's first pointer press, key or focus, ahead of any navigation,
+ * since the server hands over both for the page it rendered (ADR 0027).
+ */
+const routeTrail = onDemand(() => import("./route-trail"));
+const INTERACTIONS = ["pointerdown", "keydown", "focusin"] as const;
 
 export interface ShellFrameProps {
   readonly org: { readonly name: string; readonly slug: string };
+  /** The page the server rendered the shell for, with its breadcrumbs and sitemap node; null on a prefetch. */
+  readonly page: {
+    readonly path: string;
+    readonly crumbs: readonly CrumbItem[];
+    readonly nodeId: string | null;
+  } | null;
   readonly orgs: readonly { readonly name: string; readonly slug: string; readonly role: string }[];
   readonly nav: ShellNav;
-  /** The person's pinned pages and records in this org (app.favorites). */
-  readonly favorites: readonly NavLinkModel[];
+  /** The person's pinned pages and records in this org, in their order (app.favorites). */
+  readonly favorites: readonly FavoriteLink[];
   readonly workspaces: readonly { readonly slug: string; readonly name: string }[];
   readonly workspace: string | null;
   /** The language picker's choices; empty when the org locks its language. */
@@ -83,17 +98,22 @@ export interface ShellFrameProps {
   readonly keys: ShellKeys;
   /** What the person may create, for the Create menu (lib/shell/create-menu.ts). */
   readonly create: readonly CreateItem[];
+  /** Quick add in the Create menu (Section 11.7), for people who may create records. */
+  readonly quickAdd?: ShellQuickAdd | null;
+  /** The role lens under the org switcher (A128), rendered on the server: it adds no JavaScript here. */
+  readonly lens?: ReactNode;
   readonly children: ReactNode;
 }
 
 type Translate = (key: string, values?: Record<string, string>) => string;
 
 /**
- * The Atlas shell on @xos/ui (A05): org switcher, workspace filter, sitemap sidebar with favorites,
- * role-default groups and the person's own layout, the Create menu, breadcrumbs, account menu,
- * command menu, the phone bottom bar, focus mode and the session dialog. Every item comes from the
- * navigation model built from ia/sitemap.yaml on the server, and every shortcut (Cmd or Ctrl+K, `/`,
- * C, `?`, G then a letter, focus mode) from the shortcut registry with the person's own bindings.
+ * The Atlas shell on @xos/ui (A05): org switcher, workspace filter, sitemap sidebar with favorites
+ * (sidebar-favorites.tsx), the recent projects under Projects, role-default groups and the person's
+ * own layout, the Create menu, breadcrumbs, account menu, command menu, the phone bottom bar, focus
+ * mode and the session dialog. Every item comes from the navigation model built from
+ * ia/sitemap.yaml on the server, and every shortcut (Cmd or Ctrl+K, `/`, C, `?`, G then a letter,
+ * focus mode) from the shortcut registry with the person's own bindings.
  */
 export function ShellFrame(props: ShellFrameProps) {
   const { org, nav } = props;
@@ -117,33 +137,46 @@ export function ShellFrame(props: ShellFrameProps) {
     (open: boolean) => setMenuOpenOn(open ? pathname : null),
     [pathname],
   );
-  const [favoriteError, setFavoriteError] = useState<string | null>(null);
   const signOutForm = useRef<HTMLFormElement>(null);
 
   const go = useCallback((href: string) => router.push(href as Route), [router]);
 
-  /** Sidebar items navigate client side; the anchor stays for middle-click and screen readers. */
+  /**
+   * Sidebar items navigate client side; the anchor stays for middle-click and screen readers. The items under one
+   * (the recent projects under Projects) come along.
+   */
   const toItem = useCallback(
-    (l: NavLinkModel): NavItem => ({
-      label: l.label,
-      icon: l.icon,
-      href: l.href,
-      onSelect: ((event: MouseEvent) => {
-        if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return;
-        event.preventDefault();
-        go(l.href);
-      }) as unknown as () => void,
-    }),
+    function toItem(l: NavLinkModel): NavItem {
+      return {
+        label: l.label,
+        icon: l.icon,
+        href: l.href,
+        onSelect: ((event: MouseEvent) => {
+          if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return;
+          event.preventDefault();
+          go(l.href);
+        }) as unknown as () => void,
+        ...(l.children ? { items: l.children.map(toItem), itemsLabel: l.childrenLabel } : {}),
+      };
+    },
     [go],
   );
 
+  // The pinned entries, with the recent projects under Projects kept current as projects open.
+  const pinned = useRecentProjects(nav.pinned);
+
   const active = useMemo(() => {
-    const all = [...nav.top, ...nav.pinned, ...nav.groups.flatMap((g) => g.items), ...nav.footer];
+    const all = [
+      ...nav.top,
+      ...pinned.flatMap((l) => [l, ...(l.children ?? [])]),
+      ...nav.groups.flatMap((g) => g.items),
+      ...nav.footer,
+    ];
     const match = all
       .filter((l) => pathname === l.href || pathname.startsWith(`${l.href}/`))
       .sort((a, b) => b.href.length - a.href.length)[0];
     return match?.label;
-  }, [nav, pathname]);
+  }, [nav, pinned, pathname]);
 
   // What the key handler acts on, kept current as the person's keys change; read once per key.
   const keyState = useRef<KeyState | null>(null);
@@ -171,18 +204,26 @@ export function ShellFrame(props: ShellFrameProps) {
     let live = true;
     let stop: (() => void) | undefined;
     const root = document.documentElement.dataset;
-    keyHandler.load().then(
-      (m) => {
-        if (!live) return;
-        stop = m.installShellKeys(keyState);
-        // Marks the document once the shell's shortcuts work, Aurora's among them.
-        root["shellReady"] = "";
-        root["auroraReady"] = "";
+    // The handler loads with the first key press, which waits for it (first-press.ts).
+    const release = holdFirstPress(
+      () => keyState.current?.keys ?? null,
+      (held) => {
+        keyHandler.load().then(
+          (m) => {
+            if (!live) return;
+            release();
+            stop = m.installShellKeys(keyState, held);
+          },
+          (error: unknown) => console.error("Could not load the keyboard shortcuts", error),
+        );
       },
-      (error: unknown) => console.error("Could not load the keyboard shortcuts", error),
     );
+    // Marks the document once the shell's shortcuts answer, Aurora's among them.
+    root["shellReady"] = "";
+    root["auroraReady"] = "";
     return () => {
       live = false;
+      release();
       stop?.();
       delete root["shellReady"];
       delete root["auroraReady"];
@@ -199,17 +240,25 @@ export function ShellFrame(props: ShellFrameProps) {
     document.cookie = preferencesCookie(preferences, window.location.protocol === "https:");
   }, [preferences, storedPreferences, displayPreferences]);
 
+  // The server's trail for the page it rendered; after a client navigation, the client sitemap's,
+  // which the first interaction has usually loaded by then (the org alone until it arrives).
+  const navigated = pathname !== props.page?.path;
+  const trail = useOnDemand(routeTrail, navigated);
+  useEffect(() => {
+    const wake = () => void routeTrail.load().catch(() => undefined);
+    for (const type of INTERACTIONS)
+      window.addEventListener(type, wake, { once: true, capture: true });
+    return () => {
+      for (const type of INTERACTIONS) window.removeEventListener(type, wake, { capture: true });
+    };
+  }, []);
   const workspaceName = props.workspaces.find((w) => w.slug === props.workspace)?.name;
-  const crumbs = resolveBreadcrumbs(
-    clientSitemap,
-    pathname,
-    workspaceName ? { workspace: workspaceName } : {},
-  ).map((c) => {
-    if (c.kind === "org") return { label: org.name, href: `/${org.slug}/home` };
-    if (c.kind === "workspace") return { label: c.value };
-    if (c.kind === "node") return { label: t(c.label), href: c.href };
-    return { label: c.value, ...(c.href ? { href: c.href } : {}) };
-  });
+  const crumbs: CrumbItem[] = !navigated
+    ? [...(props.page?.crumbs ?? [])]
+    : trail
+      ? trail.trailFor(pathname, { org, workspace: workspaceName }, t)
+      : [{ label: org.name, href: `/${org.slug}/home` }];
+  const nodeId = navigated ? (trail?.nodeIdFor(pathname) ?? null) : (props.page?.nodeId ?? null);
 
   const account = nav.account;
   const accountItems: MenuItem[] = [
@@ -260,6 +309,7 @@ export function ShellFrame(props: ShellFrameProps) {
 
   const sidebar = (
     <>
+      {props.lens}
       <Button
         variant="ghost"
         icon="Search"
@@ -309,48 +359,19 @@ export function ShellFrame(props: ShellFrameProps) {
         {...(active ? { active } : {})}
         groups={[{ items: nav.top.map(toItem) }]}
       />
-      <section aria-labelledby="favorites-heading" className="px-8">
-        <div className="flex items-center justify-between gap-8">
-          <h2 id="favorites-heading" className="m-0 text-text-11 font-medium text-text-secondary">
-            {t("nav.atlas.actions.favorites")}
-          </h2>
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={async () => {
-              const peek = new URLSearchParams(window.location.search).get("peek");
-              const result = await toggleFavoriteAction(org.slug, pathname, peek);
-              setFavoriteError(result.error ? t(`settings.errors.${result.error}`) : null);
-            }}
-          >
-            {props.favorites.some((f) => f.href.split("?")[0] === pathname)
-              ? t("settings.favorites.unpin")
-              : t("settings.favorites.pin")}
-          </Button>
-        </div>
-        {favoriteError ? (
-          <p role="alert" className="m-0 mt-4 text-text-12 text-danger-text">
-            {favoriteError}
-          </p>
-        ) : null}
-        {props.favorites.length === 0 ? (
-          <p className="m-0 mt-4 text-text-12 text-text-tertiary">
-            {t("shell.chrome.favoritesEmpty")}
-          </p>
-        ) : null}
-      </section>
-      {props.favorites.length > 0 ? (
-        <Sidebar
-          label={t("nav.atlas.actions.favorites")}
-          {...(active ? { active } : {})}
-          groups={[{ items: props.favorites.map(toItem) }]}
-        />
-      ) : null}
+      <SidebarFavorites
+        org={org.slug}
+        pathname={pathname}
+        favorites={props.favorites}
+        {...(active ? { active } : {})}
+        go={go}
+        toItem={toItem}
+      />
       <Sidebar
         label={t("shell.chrome.mainNav")}
         {...(active ? { active } : {})}
         groups={[
-          { items: nav.pinned.map(toItem) },
+          { items: pinned.map(toItem) },
           ...nav.groups.map((g) => ({
             label: g.label,
             collapsed: !g.expanded,
@@ -406,7 +427,7 @@ export function ShellFrame(props: ShellFrameProps) {
                 canManage={props.canManageAi}
                 shortcut={props.keys.display["aurora"]}
               />
-              <HelpCenter org={org.slug} shortcut={props.keys.display["help"]} />
+              <HelpCenter org={org.slug} nodeId={nodeId} shortcut={props.keys.display["help"]} />
               <DeferredDropdownMenu
                 label={t("shell.chrome.account")}
                 icon="CircleUserRound"
@@ -463,6 +484,7 @@ export function ShellFrame(props: ShellFrameProps) {
             items={props.create}
             pathname={pathname}
             go={go}
+            quickAdd={props.quickAdd}
           />
         ) : null}
         {pendingKey !== null && keyModule ? (

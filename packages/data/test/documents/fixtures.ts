@@ -2,6 +2,8 @@ import type { DeletionCertificateData } from "../../src/documents/deletion-certi
 import type { DocumentBrand } from "../../src/documents/generate.ts";
 import type { DocumentKind } from "../../src/documents/model.ts";
 import type { DocumentDataMap, DocumentProject } from "../../src/documents/templates.ts";
+import type { SitePlan, SitePlanShape } from "../../src/places.ts";
+import type { Sign } from "../../src/signage.ts";
 
 /**
  * Record data for every Section 11.9 template, shaped like the seeded demo org, with the edge cases
@@ -14,6 +16,66 @@ import type { DocumentDataMap, DocumentProject } from "../../src/documents/templ
 export const LOGO_PNG = Uint8Array.from(
   Buffer.from(
     "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==",
+    "base64",
+  ),
+);
+
+/** A 30 by 40 JPEG and PNG portrait, for the badge photo Figure on every size (P5). */
+export const PHOTO_JPEG = Uint8Array.from(
+  Buffer.from(
+    "/9j/4AAQSkZJRgABAQAASABIAAD/4QBMRXhpZgAATU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKAC" +
+      "AAQAAAABAAAAHqADAAQAAAABAAAAKAAAAAD/7QA4UGhvdG9zaG9wIDMuMAA4QklNBAQAAAAAAAA4QklNBCUAAAAAABDUHYzZ" +
+      "jwCyBOmACZjs+EJ+/8AAEQgAKAAeAwEiAAIRAQMRAf/EAB8AAAEFAQEBAQEBAAAAAAAAAAABAgMEBQYHCAkKC//EALUQAAIB" +
+      "AwMCBAMFBQQEAAABfQECAwAEEQUSITFBBhNRYQcicRQygZGhCCNCscEVUtHwJDNicoIJChYXGBkaJSYnKCkqNDU2Nzg5OkNE" +
+      "RUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6g4SFhoeIiYqSk5SVlpeYmZqio6Slpqeoqaqys7S1tre4ubrCw8TFxsfI" +
+      "ycrS09TV1tfY2drh4uPk5ebn6Onq8fLz9PX29/j5+v/EAB8BAAMBAQEBAQEBAQEAAAAAAAABAgMEBQYHCAkKC//EALURAAIB" +
+      "AgQEAwQHBQQEAAECdwABAgMRBAUhMQYSQVEHYXETIjKBCBRCkaGxwQkjM1LwFWJy0QoWJDThJfEXGBkaJicoKSo1Njc4OTpD" +
+      "REVGR0hJSlNUVVZXWFlaY2RlZmdoaWpzdHV2d3h5eoKDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXG" +
+      "x8jJytLT1NXW19jZ2uLj5OXm5+jp6vLz9PX29/j5+v/bAEMABAQEBAQEBgQEBgkGBgYJDAkJCQkMDwwMDAwMDxIPDw8PDw8S" +
+      "EhISEhISEhUVFRUVFRkZGRkZHBwcHBwcHBwcHP/bAEMBBAUFBwcHDAcHDB0UEBQdHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0d" +
+      "HR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHf/dAAQAAv/aAAwDAQACEQMRAD8A+RrTT+nFdNaaf04rStNP6cV01pp/Tiv0/FY/" +
+      "zKyLM9tTNtNP6cV0ttp/y9K07TT+nFdLbaf8vSvlMTj9dz9+yTM9Nz//0PNrTT+nFdPaaf04rStNP6cV01pp/Tiu/FY/zPzD" +
+      "Isy21M200/pxXSW+n/L0rUtNP6cV0ttp/wAvSvlMTj/M/fskzLTc/9HqLTT+nFdNaaf04qladq6a07V8xiq0+5/NuRV56al6" +
+      "00/pxXSW2n/L0qnadq6W3+7XyuJrS7n79kledtz/2Q==",
+    "base64",
+  ),
+);
+
+export const PHOTO_PNG = Uint8Array.from(
+  Buffer.from(
+    "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" +
+      "F2EAAAAASUVORK5CYII=",
     "base64",
   ),
 );
@@ -37,6 +99,182 @@ const project: DocumentProject = {
 const longText =
   "Supply, install and strike the main stage line array, including rigging points, motors, " +
   "truss, cabling and two technicians for every show day. Łódź crew note: Ωmega cue sheet.";
+
+/** An 8 by 4 and a 4 by 8 PNG: a wide and a tall site plan drawing (B1). */
+export const DRAWING_WIDE = hex(
+  "89504e470d0a1a0a0000000d49484452000000080000000408020000003cafe9a7000000114944415478da6378f6ec3556c4403d0900f87456e10a6a48160000000049454e44ae426082",
+);
+export const DRAWING_TALL = hex(
+  "89504e470d0a1a0a0000000d49484452000000040000000808020000005151c952000000114944415478da6378f6ec351c31d08e0300a64756e1cdeab8580000000049454e44ae426082",
+);
+
+function hex(value: string): Uint8Array {
+  return Uint8Array.from(value.match(/../g) ?? [], (b) => parseInt(b, 16));
+}
+
+/** A Live site plan with a stored 2000 by 1000 px drawing calibrated 50 ft over half its width (B1). */
+export const sitePlan: SitePlan = {
+  id: "00000000-0000-4000-8000-0000000000a1",
+  projectId: project.id,
+  venueId: "v1",
+  venueLevelId: "l1",
+  title: "Ground floor",
+  imageUri: "attachments/org/att/ver/ground.png",
+  planState: "Live",
+  awaitingDrawing: false,
+  drawing: {
+    versionId: "ver1",
+    rasterVersionId: null,
+    page: null,
+    contentType: "image/png",
+    filename: "ground.png",
+    shownVersionId: "ver1",
+    widthPx: 2000,
+    heightPx: 1000,
+    unavailable: null,
+  },
+  calibration: { ax: 0.1, ay: 0.5, bx: 0.6, by: 0.5, feet: 50 },
+  archivedAt: null,
+  updatedAt: "2026-10-18T12:00:00Z",
+  pins: [
+    { id: "pin1", label: "Main gate", x: 0.2, y: 0.3, zoneId: null, recordId: null },
+    { id: "pin2", label: "First aid · Łódź", x: 0.8, y: 0.7, zoneId: null, recordId: null },
+  ],
+};
+
+export const sitePlanShapes: readonly SitePlanShape[] = [
+  {
+    id: "s1",
+    sitePlanId: sitePlan.id,
+    kind: "Route",
+    label: "Egress north",
+    tone: "Info",
+    points: [
+      [0.1, 0.1],
+      [0.1, 0.6],
+    ],
+    lengthFt: 25,
+    areaSqFt: null,
+  },
+  {
+    id: "s2",
+    sitePlanId: sitePlan.id,
+    kind: "Barrier",
+    label: "Crowd fence",
+    tone: "Danger",
+    points: [
+      [0.3, 0.8],
+      [0.7, 0.8],
+    ],
+    lengthFt: 40,
+    areaSqFt: null,
+  },
+  {
+    id: "s3",
+    sitePlanId: sitePlan.id,
+    kind: "Area",
+    label: "Pit",
+    tone: "Accent",
+    points: [
+      [0.1, 0.2],
+      [0.3, 0.2],
+      [0.3, 0.6],
+      [0.1, 0.6],
+    ],
+    lengthFt: 80,
+    areaSqFt: 400,
+  },
+  {
+    id: "s4",
+    sitePlanId: sitePlan.id,
+    kind: "Label",
+    label: "North",
+    tone: "Neutral",
+    points: [[0.5, 0.05]],
+    lengthFt: null,
+    areaSqFt: null,
+  },
+];
+
+const signBase = {
+  projectId: project.id,
+  urid: "4000.05.01",
+  message: null,
+  widthIn: 24,
+  heightIn: 36,
+  substrate: "Coroplast",
+  doubleSided: false,
+  printerVendorId: null,
+  poLineId: null,
+  artworkVersionId: null,
+  neededBy: "2026-10-20",
+  orderedAt: null,
+  printedAt: null,
+  placedAt: null,
+  placedBy: null,
+  updatedAt: "2026-10-18T12:00:00Z",
+  archivedAt: null,
+  orderedViaPo: false,
+  received: false,
+  located: true,
+  overdue: false,
+} as const;
+
+export const signs: readonly Sign[] = [
+  {
+    ...signBase,
+    id: "sign1",
+    key: "NWF26-SGN-1",
+    number: 1,
+    title: "Main entrance arrow",
+    type: "Directional",
+    quantity: 4,
+    sitePlanPinId: "pin1",
+    locationText: null,
+    artworkVersionId: "art1",
+    state: "Printed",
+  },
+  {
+    ...signBase,
+    id: "sign2",
+    key: "NWF26-SGN-2",
+    number: 2,
+    title: "Bar menu",
+    type: "Menu",
+    quantity: 2,
+    sitePlanPinId: null,
+    locationText: "Behind the north bar",
+    state: "Ordered",
+    orderedViaPo: true,
+  },
+  {
+    ...signBase,
+    id: "sign3",
+    key: "NWF26-SGN-3",
+    number: 3,
+    title: "No re-entry · Ωmega",
+    type: "Regulatory",
+    quantity: 6,
+    sitePlanPinId: null,
+    locationText: null,
+    state: "To Order",
+    located: false,
+    widthIn: null,
+    heightIn: null,
+  },
+  {
+    ...signBase,
+    id: "sign4",
+    key: "NWF26-SGN-4",
+    number: 4,
+    title: "Sponsor wall",
+    type: "Sponsor",
+    quantity: 1,
+    sitePlanPinId: "pin2",
+    locationText: null,
+    state: "Placed",
+  },
+];
 
 export const FIXTURES: { readonly [K in DocumentKind]: DocumentDataMap[K] } = {
   "purchase-order": {
@@ -66,6 +304,10 @@ export const FIXTURES: { readonly [K in DocumentKind]: DocumentDataMap[K] } = {
       unitPriceMinor: i === 3 ? null : 125_000,
       extendedMinor: i === 3 ? null : 250_000,
       receivedQuantity: i < 10 ? 2 : 0,
+      acquisitionKind: "Purchase" as const,
+      hireStartsAt: null,
+      hireEndsAt: null,
+      engagementId: null,
     })),
     totals: { unpricedCount: 1, linesTotalMinor: null, approvedChangesMinor: 50_000 },
   },
@@ -90,6 +332,7 @@ export const FIXTURES: { readonly [K in DocumentKind]: DocumentDataMap[K] } = {
       totalMinor: 1_284_000,
       appliedMinor: 500_000,
       createdAt: "2026-09-30T12:00:00Z",
+      updatedAt: "2026-10-01T12:00:00Z",
     },
     lines: [
       {
@@ -186,6 +429,7 @@ export const FIXTURES: { readonly [K in DocumentKind]: DocumentDataMap[K] } = {
         roleCode: "AUD-A1",
         roleTitle: "Audio A1",
         personName: "Ana Ruiz",
+        membershipId: "m1",
       },
       {
         shiftId: "s2",
@@ -194,6 +438,7 @@ export const FIXTURES: { readonly [K in DocumentKind]: DocumentDataMap[K] } = {
         roleCode: null,
         roleTitle: null,
         personName: null,
+        membershipId: null,
       },
     ],
   },
@@ -210,6 +455,7 @@ export const FIXTURES: { readonly [K in DocumentKind]: DocumentDataMap[K] } = {
       showDate: "2026-10-24",
       cueCount: 3,
       calledCount: 1,
+      curfewAt: null,
     },
     cues: [
       {
@@ -221,6 +467,14 @@ export const FIXTURES: { readonly [K in DocumentKind]: DocumentDataMap[K] } = {
         durationSeconds: 30,
         calledAt: "2026-10-24T23:00:12Z",
         calledByName: "Sam Lee",
+        startTbc: false,
+        standbyAt: null,
+        segment: null,
+        description: null,
+        script: null,
+        segmentInstanceId: null,
+        calledViaLink: null,
+        updatedAt: "2026-10-24T22:00:00Z",
       },
       {
         id: "q2",
@@ -231,6 +485,14 @@ export const FIXTURES: { readonly [K in DocumentKind]: DocumentDataMap[K] } = {
         durationSeconds: 5400,
         calledAt: null,
         calledByName: null,
+        startTbc: false,
+        standbyAt: null,
+        segment: null,
+        description: null,
+        script: null,
+        segmentInstanceId: null,
+        calledViaLink: null,
+        updatedAt: "2026-10-24T22:00:00Z",
       },
       {
         id: "q3",
@@ -241,6 +503,14 @@ export const FIXTURES: { readonly [K in DocumentKind]: DocumentDataMap[K] } = {
         durationSeconds: null,
         calledAt: null,
         calledByName: null,
+        startTbc: false,
+        standbyAt: null,
+        segment: null,
+        description: null,
+        script: null,
+        segmentInstanceId: null,
+        calledViaLink: null,
+        updatedAt: "2026-10-24T22:00:00Z",
       },
     ],
   },
@@ -464,7 +734,310 @@ export const FIXTURES: { readonly [K in DocumentKind]: DocumentDataMap[K] } = {
       ],
     },
   },
+  "engagement-document": {
+    project,
+    document: {
+      id: "c0000000-0000-4000-8000-000000000001",
+      title: "Crew agreement for Ana Ruiz",
+      kind: "Agreement",
+      state: "Executed",
+      body: "1. Services. You work the show days.\n\n2. Fees. $990.00 per day.",
+      signedName: "Ana Ruiz",
+      signedAt: "2026-09-20T18:12:00Z",
+      sha256: "3f1d0a4c9b7e2f6a8d5c4b3a2918f7e6d5c4b3a29180f7e6d5c4b3a29180f7e6",
+      createdAt: "2026-09-18T12:00:00Z",
+    },
+  },
+  quote: {
+    project,
+    quote: {
+      key: "NWF26-Q-14",
+      versionNumber: 2,
+      title: "Main stage production",
+      clientName: "Coral Group",
+      currency: "USD",
+      validUntil: "2026-12-01",
+      terms: "Half on signature, half before load-in. Zoë Ångström's crew is included.",
+      state: "Sent",
+      issuedAt: "2026-11-02T15:00:00Z",
+      contentSha256: "a".repeat(64),
+      lines: Array.from({ length: 80 }, (_, i) => ({
+        lineNumber: i + 1,
+        description:
+          i === 3
+            ? "Ångström-grade rigging, 中文字 and emoji 🎸 outside the subset"
+            : `Scope line ${i + 1}`,
+        quantity: 2,
+        unitBasis: "day",
+        unitPriceMinor: 12500,
+        amountMinor: 25000,
+      })),
+      totalMinor: 2000000,
+      acceptedAt: null,
+      acceptedName: null,
+      acceptedEmail: null,
+    },
+  },
+  "radio-handout": {
+    project,
+    lines: [
+      {
+        allocationId: "a1000000-0000-4000-8000-000000000002",
+        rosterEntryId: "re2",
+        personName: "Zoë Ångström",
+        partyName: "Bayside Audio",
+        className: "Two-way radios",
+        quantity: 1,
+        tagsIssued: [],
+        channelNumbers: [2],
+        channelNames: ["Audio"],
+        status: "Approved",
+      },
+      {
+        allocationId: "a1000000-0000-4000-8000-000000000001",
+        rosterEntryId: "re1",
+        personName: "Kai Morgan",
+        partyName: "Bayside Audio",
+        className: "Two-way radios",
+        quantity: 1,
+        tagsIssued: ["R-001"],
+        channelNumbers: [1, 2],
+        channelNames: ["Production", "Audio"],
+        status: "Issued",
+      },
+      {
+        allocationId: "a1000000-0000-4000-8000-000000000003",
+        rosterEntryId: null,
+        personName: "",
+        partyName: "Ivy Marchetti Lighting",
+        className: "Two-way radios",
+        quantity: 4,
+        tagsIssued: ["R-010", "R-011"],
+        channelNumbers: [],
+        channelNames: [],
+        status: "Partly Issued",
+      },
+    ],
+  },
+  "site-plan": {
+    project,
+    plan: sitePlan,
+    venueName: "Northwind Pier Pavilion",
+    levelName: "Ground",
+    shapes: sitePlanShapes,
+    drawing: DRAWING_WIDE,
+    signsAtPins: { pin1: ["NWF26-SGN-1 Main entrance arrow"] },
+  },
+  "signage-build-sheet": {
+    project,
+    signs: signs,
+    plans: [{ plan: sitePlan, drawing: DRAWING_WIDE }],
+    artwork: {
+      sign1: { bytes: PHOTO_PNG, filename: "arrow.png" },
+      sign2: { bytes: null, filename: "menu-board.pdf" },
+    },
+  },
+  "wrap-up-report": {
+    project,
+    debrief: {
+      id: "d0000000-0000-4000-8000-000000000001",
+      projectId: project.id,
+      completedAt: "2026-10-28T21:00:00Z",
+      completedBy: "p1",
+      completedByName: "Ana Ruiz",
+    },
+    items: [
+      {
+        id: "di1",
+        area: "Schedule",
+        kind: "Went Well",
+        body: "Load-in finished an hour ahead of the plan on the pier.",
+        position: 1,
+        ownerMembershipId: null,
+        ownerName: null,
+      },
+      {
+        id: "di2",
+        area: "Audience",
+        kind: "To Improve",
+        body: "The gate queue peaked at 25 minutes before doors; open two more lanes. Señales en español también.",
+        position: 2,
+        ownerMembershipId: null,
+        ownerName: null,
+      },
+      {
+        id: "di3",
+        area: "Safety",
+        kind: "Action",
+        body: "Add a second spotter on the downstage truss for load-out.",
+        position: 3,
+        ownerMembershipId: "m1",
+        ownerName: "Ana Ruiz",
+      },
+    ],
+    summary: {
+      text: "Delivered under the revised budget with 9,800 guests against a target of 9,000; two minor incidents, both closed.",
+      aiDrafted: true,
+      aiRequestId: null,
+      by: "p1",
+      byName: "Ana Ruiz",
+      at: "2026-10-28T20:30:00Z",
+    },
+    budget: {
+      project: { id: project.id, key: project.key, name: project.name, phase: "Closeout" },
+      hasBaseline: true,
+      rows: [],
+      totals: [
+        {
+          accountCode: "",
+          currency: "USD",
+          baselineMinor: 10_000_000,
+          baselineUnpricedCount: 0,
+          approvedChangeMinor: 840_000,
+          revisedMinor: 10_840_000,
+          pricedRevisedMinor: 10_840_000,
+          actualMinor: 10_500_000,
+          varianceMinor: 340_000,
+          budgetLineIds: [],
+        },
+      ],
+    },
+    measurements: {
+      preference: "metric",
+      catalog: {
+        units: [
+          {
+            code: "count",
+            dimension: "Count",
+            factor: 1,
+            system: "Either",
+            isDisplay: true,
+            ordinal: 12,
+          },
+          {
+            code: "kg_co2e",
+            dimension: "Emissions",
+            factor: 1,
+            system: "Either",
+            isDisplay: true,
+            ordinal: 10,
+          },
+          {
+            code: "kwh",
+            dimension: "Energy",
+            factor: 1,
+            system: "Either",
+            isDisplay: true,
+            ordinal: 8,
+          },
+        ],
+        metrics: [
+          ["energy_used", "Sustainability", "Energy", "kwh", 3],
+          ["transport_emissions", "Sustainability", "Emissions", "kg_co2e", 5],
+          ["attendance", "Audience", "Count", "count", 6],
+          ["online_audience", "Audience", "Count", "count", 7],
+        ].map(([code, family, dimension, baseUnit, ordinal]) => ({
+          code: code as string,
+          family: family as "Sustainability" | "Audience",
+          dimension: dimension as "Energy" | "Emissions" | "Count",
+          baseUnit: baseUnit as string,
+          aggregation: "Sum" as const,
+          derived: false,
+          lowerBound: 0,
+          upperBound: null,
+          canon: null,
+          tags: [],
+          ordinal: ordinal as number,
+        })),
+      },
+      rows: [
+        {
+          projectId: project.id,
+          metricCode: "attendance",
+          family: "Audience",
+          dimension: "Count",
+          aggregation: "Sum",
+          objectiveId: "o1",
+          direction: "At Least",
+          targetValue: 9000,
+          targetUnitCode: "count",
+          targetBase: 9000,
+          measuredCount: 3,
+          unmeasuredCount: 0,
+          measuredBase: 9800,
+          lastMeasuredOn: "2026-10-26",
+          outcome: "Met",
+        },
+        {
+          projectId: project.id,
+          metricCode: "transport_emissions",
+          family: "Sustainability",
+          dimension: "Emissions",
+          aggregation: "Sum",
+          objectiveId: null,
+          direction: null,
+          targetValue: null,
+          targetUnitCode: null,
+          targetBase: null,
+          measuredCount: 0,
+          unmeasuredCount: 2,
+          measuredBase: null,
+          lastMeasuredOn: null,
+          outcome: null,
+        },
+      ],
+    },
+    incidents: {
+      rows: [
+        {
+          severityId: "s1",
+          severityLabel: "Minor",
+          state: "Closed",
+          count: 2,
+          incidentIds: ["i1", "i2"],
+        },
+      ],
+      total: 2,
+      open: 0,
+    },
+  },
+  "guest-pass": {
+    project,
+    guest: {
+      id: "90000000-0000-4000-8000-000000000001",
+      projectId: project.id,
+      guestName: "María José Ångström-Delacroix de la Vega",
+      plusOnes: 2,
+      state: "Approved",
+      passCode: "GP-ABCDEFGHIJ",
+      passCategoryCode: "VIP",
+      passCategoryName: "VIP Guest",
+      tableLabel: "Table 4",
+      showName: "Main Stage, Night 1",
+      showDay: "2027-06-04",
+      decidedAt: "2027-05-20T18:00:00Z",
+    },
+  },
 };
+
+/**
+ * A quote accepted through a signing link and one accepted signed in to Gateway: only an Accepted quote
+ * prints the Signature block (S14.5-01), so veraPDF checks it in both wordings.
+ */
+const acceptedQuote = (acceptedEmail: string | null): DocumentDataMap["quote"] => ({
+  ...FIXTURES.quote,
+  quote: {
+    ...FIXTURES.quote.quote,
+    state: "Accepted",
+    acceptedAt: "2026-11-03T15:00:00Z",
+    acceptedName: "Cleo Marsh Ångström",
+    acceptedEmail,
+  },
+});
+export const ACCEPTED_QUOTES = {
+  "quote-accepted-link": acceptedQuote("cleo@coral-group.test"),
+  "quote-accepted-signed-in": acceptedQuote(null),
+} as const;
 
 /**
  * The deletion certificate of an org (A79, Section 14.7), with a long name and characters outside the font's
@@ -485,4 +1058,73 @@ export const DELETION_CERTIFICATE: DeletionCertificateData = {
   storageObjectsDeleted: 112,
   ownerName: "Xavier Dubois",
   timeZone: "America/Los_Angeles",
+};
+
+/**
+ * A badge issued after BADGE_V2_FROM with a CR- number the gates read, and its holder's photo: renders version 2
+ * on every size (P5).
+ */
+export const BADGE_V2: DocumentDataMap["credential-badge"] = {
+  project,
+  credential: {
+    ...FIXTURES["credential-badge"].credential,
+    id: "80000000-0000-4000-8000-000000000002",
+    number: "CR-000042",
+    holderName: "Ana María Ruiz-Delacroix Santiago de Compostela Villanueva",
+    validFrom: "2027-03-01T00:00:00Z",
+    validTo: "2027-03-08T00:00:00Z",
+    createdAt: "2027-02-15T00:00:00Z",
+    updatedAt: "2027-02-15T00:00:00Z",
+  },
+  photo: { bytes: PHOTO_JPEG, source: "Badge" },
+};
+
+/**
+ * A day sheet issued under version 3 (B7, DAY_SHEET_V3_FROM): its day's calls, an open shift, a TBC meeting, a
+ * canceled deadline and one run with department calls, so the veraPDF check renders every version 3 table.
+ */
+export const DAY_SHEET_V3: DocumentDataMap["day-sheet"] = {
+  ...FIXTURES["day-sheet"],
+  sheet: { ...FIXTURES["day-sheet"].sheet, publishedAt: "2027-06-02T12:00:00Z" },
+  schedule: {
+    calls: [
+      ...FIXTURES["call-sheet"].calls,
+      {
+        shiftId: "s3",
+        startsAt: "2026-10-24T14:00:00Z",
+        endsAt: "2026-10-24T22:00:00Z",
+        roleCode: "5000.51.02",
+        roleTitle: null,
+        personName: null,
+        membershipId: null,
+      },
+    ],
+    records: [
+      {
+        id: "r1",
+        kind: "Meeting",
+        title: "Lighting focus with the house electrician, upstage and downstage positions",
+        at: "2026-10-24T18:00:00Z",
+        startTbc: true,
+        state: "Scheduled",
+        recordKey: "NWF26-41",
+      },
+      {
+        id: "r2",
+        kind: "Deadline",
+        title: "Advance due",
+        at: "2026-10-24T20:00:00Z",
+        startTbc: false,
+        state: "Canceled",
+        recordKey: "NWF26-42",
+      },
+    ],
+    runs: [
+      {
+        run: FIXTURES["run-of-show"].run,
+        cues: FIXTURES["run-of-show"].cues,
+        calls: FIXTURES["run-of-show"].calls ?? [],
+      },
+    ],
+  },
 };

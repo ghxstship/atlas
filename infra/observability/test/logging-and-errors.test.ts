@@ -231,6 +231,40 @@ describe("scrubEvent", () => {
     });
   });
 
+  // A69-012: Sentry 11 copies request headers onto spans, and Next's router state header carries
+  // a bearer link's token, percent-encoded.
+  it("drops header attributes outside the kept headers from traces and spans", () => {
+    const token = `xshr_${"0f".repeat(32)}`;
+    const tree = encodeURIComponent(
+      JSON.stringify([
+        "",
+        { children: ["share", { children: [["token", token, "d", null], {}] }] },
+      ]),
+    );
+    const data = {
+      "http.request.header.next-router-state-tree": [tree],
+      "http.request.header.accept": ["text/x-component"],
+      "http.request.header.user-agent": ["UA"],
+      "http.response.header.content-type": ["text/html"],
+      "http.target": `/auth/mfa?next=%2Fshare%2F${token}`,
+      "http.method": "POST",
+    };
+    const out = scrubEvent({
+      contexts: { trace: { trace_id: "t1", data }, device: { ip: "203.0.113.9" } },
+      spans: [{ description: `POST /share/${token}`, data }],
+    });
+    const kept = {
+      "http.request.header.accept": ["text/x-component"],
+      "http.target": "/auth/mfa?next=%2Fshare%2F[token]",
+      "http.method": "POST",
+    };
+    expect(out).toEqual({
+      contexts: { trace: { trace_id: "t1", data: kept }, device: { ip: REDACTED } },
+      spans: [{ description: "POST /share/[token]", data: kept }],
+    });
+    expect(JSON.stringify(out)).not.toContain(token);
+  });
+
   it("drops a user without an id and leaves minimal events alone", () => {
     expect(scrubEvent({ user: { email: "a@b.co" } })).toEqual({ user: {} });
     expect(scrubEvent({ request: { method: "GET" } })).toEqual({ request: { method: "GET" } });

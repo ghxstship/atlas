@@ -1,12 +1,21 @@
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
   CHECKS,
+  CONFIRM_AFTER_FAILS,
+  decideAlerts,
   emptyHistory,
   errorDetail,
   failingRequired,
   formatAlerts,
+  legalQueueHeartbeat,
+  MIN_RUN_GAP_MS,
   parseHistory,
+  postAlerts,
+  publicResults,
   recordRun,
+  REMIND_EVERY_FAILS,
   runChecks,
   type CheckDefinition,
   type CheckResult,
@@ -27,6 +36,8 @@ const ENV = {
   XOS_SYNTHETIC_EMAIL: "synthetic@xos.test",
   XOS_SYNTHETIC_PASSWORD: "pw",
   XOS_POWERSYNC_URL: "https://sync.test",
+  XOS_API_URL: "https://api.test",
+  XOS_DOCS_URL: "https://docs.test",
 };
 
 type Route = (init: RequestInit | undefined) => Response;
@@ -51,12 +62,26 @@ function healthyRoutes(): Record<string, Route> {
   return {
     "https://atlas.test/auth/sign-in": () => html("<html><form method=post></form></html>"),
     "https://ref.supabase.test/auth/v1/token": () => json({ access_token: "jwt-token" }),
-    "https://gateway.test/": () => html("<!doctype html><html lang=en></html>"),
+    "https://gateway.test/auth/sign-in": () => html("<!doctype html><html lang=en></html>"),
     "https://atlas.test/api/v1/openapi.json": () => json({ openapi: "3.1.1" }),
     "https://atlas.test/api/v1/projects": () => json({ data: [] }),
     "https://sync.test/probes/liveness": () => new Response("ok"),
     "https://sync.test/probes/readiness": () => new Response("ok"),
     "https://ref.supabase.test/functions/v1/notification-dispatch": () => json({}, 401),
+    "https://ref.supabase.test/rest/v1/rpc/legal_queue_heartbeat": () =>
+      json({
+        sweep_ok: true,
+        feeds_ok: true,
+        alert_path_ok: true,
+        email_ok: true,
+        recipient_ok: true,
+      }),
+    "https://api.test/v1/canon/departments": () =>
+      new Response("{}", {
+        status: 401,
+        headers: { "content-type": "application/problem+json" },
+      }),
+    "https://docs.test/en-US": () => html("<!doctype html><html lang=en-US></html>"),
   };
 }
 
@@ -118,6 +143,9 @@ describe("runChecks", () => {
       ["realtime.join", "pass"],
       ["sync.liveness", "pass"],
       ["notifications.function", "pass"],
+      ["legal_queue.heartbeat", "pass"],
+      ["api.host_guard", "pass"],
+      ["docs.home", "pass"],
     ]);
     expect(f.calls.filter((c) => c.url.includes("/auth/v1/token"))).toHaveLength(1);
     const read = f.calls.find((c) => c.url.includes("/api/v1/projects"));
@@ -135,6 +163,44 @@ describe("runChecks", () => {
     });
   });
 
+  it("runs only the public checks with the scheduled workflow's settings: no credential, no write", async () => {
+    const f = fakeFetch(healthyRoutes());
+    const results = await runChecks(CHECKS, {
+      env: {
+        XOS_ATLAS_URL: ENV.XOS_ATLAS_URL,
+        XOS_GATEWAY_URL: ENV.XOS_GATEWAY_URL,
+        XOS_API_URL: ENV.XOS_API_URL,
+        XOS_DOCS_URL: ENV.XOS_DOCS_URL,
+      },
+      region: "us-east",
+      fetch: f.impl,
+      now: clock(1),
+    });
+    expect(results.filter((r) => r.status !== "skipped").map((r) => r.id)).toEqual([
+      "atlas.sign_in_page",
+      "gateway.home",
+      "api.openapi",
+      "api.host_guard",
+      "docs.home",
+    ]);
+    expect(results.filter((r) => r.status === "fail")).toEqual([]);
+    expect(f.calls.map((c) => c.init?.method ?? "GET")).toEqual(Array(5).fill("GET"));
+    for (const call of f.calls) {
+      expect(call.init?.headers as Record<string, string>).not.toHaveProperty("authorization");
+    }
+  });
+
+  it("wants a problem document from the API host's refusal", async () => {
+    const routes = healthyRoutes();
+    routes["https://api.test/v1/canon/departments"] = () => json({}, 401);
+    const f = fakeFetch(routes);
+    const results = await runChecks(
+      CHECKS.filter((c) => c.id === "api.host_guard"),
+      { env: ENV, region: "us-east", fetch: f.impl },
+    );
+    expect(results[0]).toMatchObject({ status: "fail", detail: "not_a_problem" });
+  });
+
   it("skips checks whose configuration is missing", async () => {
     const results = await runChecks(CHECKS, { env: {}, region: "us-east" });
     expect(new Set(results.map((r) => r.status))).toEqual(new Set(["skipped"]));
@@ -148,19 +214,57 @@ describe("runChecks", () => {
       env: ENV,
       region: "us-east",
       fetch: f.impl,
-      now: clock(300),
+      now: clock(700),
     });
-    expect(results[0]).toMatchObject({ status: "degraded", detail: "over_budget_250ms" });
+    expect(results[0]).toMatchObject({ status: "degraded", detail: "over_budget_600ms" });
+  });
+
+  it("identifies the real OpenAPI document from its start, without downloading it", async () => {
+    const repo = fileURLToPath(new URL("../../../", import.meta.url));
+    const file = readFileSync(`${repo}packages/api/openapi/v1.json`);
+    // As committed, and compacted as the route serves it through Response.json.
+    for (const document of [file, Buffer.from(JSON.stringify(JSON.parse(file.toString())))]) {
+      let sent = 0;
+      let cancelled = false;
+      const body = new ReadableStream<Uint8Array>({
+        pull(controller) {
+          controller.enqueue(document.subarray(sent, sent + 256));
+          sent += 256;
+        },
+        cancel() {
+          cancelled = true;
+        },
+      });
+      const fetcher = (async () => new Response(body, { status: 200 })) as typeof fetch;
+      const results = await runChecks([check(3)], {
+        env: ENV,
+        region: "us-east",
+        fetch: fetcher,
+      });
+      expect(results[0]?.status).toBe("pass");
+      expect(cancelled).toBe(true);
+      expect(sent).toBeLessThan(2048);
+    }
   });
 
   it("reports wrong answers and errors as failures", async () => {
     const routes = healthyRoutes();
     routes["https://atlas.test/auth/sign-in"] = () => html("<html>no form</html>");
     routes["https://ref.supabase.test/auth/v1/token"] = () => json({ error: "invalid_grant" }, 400);
-    routes["https://gateway.test/"] = () => json({});
+    routes["https://gateway.test/auth/sign-in"] = () => json({});
     routes["https://atlas.test/api/v1/openapi.json"] = () => json({ openapi: "3.0.0" });
     routes["https://sync.test/probes/readiness"] = () => new Response("no", { status: 503 });
     routes["https://ref.supabase.test/functions/v1/notification-dispatch"] = () => json({}, 500);
+    routes["https://ref.supabase.test/rest/v1/rpc/legal_queue_heartbeat"] = () =>
+      json({
+        sweep_ok: false,
+        feeds_ok: true,
+        alert_path_ok: true,
+        email_ok: true,
+        recipient_ok: true,
+      });
+    routes["https://api.test/v1/canon/departments"] = () => json({ data: [] });
+    routes["https://docs.test/en-US"] = () => json({});
     const f = fakeFetch(routes);
     const ws = fakeSocket(
       JSON.stringify({ event: "phx_reply", ref: "1", payload: { status: "error" } }),
@@ -181,17 +285,67 @@ describe("runChecks", () => {
       ["realtime.join", "fail", "join_error"],
       ["sync.liveness", "fail", "readiness_status_503"],
       ["notifications.function", "fail", "status_500"],
+      ["legal_queue.heartbeat", "fail", "status_400"],
+      ["api.host_guard", "fail", "status_200"],
+      ["docs.home", "fail", "not_html"],
     ]);
     expect(failingRequired(CHECKS, results).map((r) => r.id)).not.toContain(
       "notifications.function",
     );
+    // A stopped sweep pages on-call and stays off the public status page, which is about the service Customers use.
+    expect(failingRequired(CHECKS, results).map((r) => r.id)).toContain("legal_queue.heartbeat");
+    expect(formatAlerts(results, "https://github.test/repo").join()).toContain(
+      "legal_queue.heartbeat",
+    );
+    expect(publicResults(CHECKS, results).map((r) => r.id)).not.toContain("legal_queue.heartbeat");
+    expect(publicResults(CHECKS, results)).toHaveLength(results.length - 1);
+  });
+
+  it.each([
+    [
+      { sweep_ok: false, feeds_ok: true, alert_path_ok: true, email_ok: true, recipient_ok: true },
+      "sweep_stale",
+    ],
+    [
+      { sweep_ok: true, feeds_ok: false, alert_path_ok: true, email_ok: true, recipient_ok: true },
+      "feed_failing",
+    ],
+    [
+      { sweep_ok: true, feeds_ok: true, alert_path_ok: false, email_ok: true, recipient_ok: true },
+      "alert_path_failing",
+    ],
+    [
+      { sweep_ok: true, feeds_ok: true, alert_path_ok: true, email_ok: false, recipient_ok: true },
+      "alert_email_stuck_or_failed",
+    ],
+    [
+      { sweep_ok: true, feeds_ok: true, alert_path_ok: true, email_ok: true, recipient_ok: false },
+      "no_alert_recipient",
+    ],
+  ])("says which part of the legal queue's machinery stopped: %j", async (beat, detail) => {
+    const routes = healthyRoutes();
+    routes["https://ref.supabase.test/rest/v1/rpc/legal_queue_heartbeat"] = () => json(beat);
+    const f = fakeFetch(routes);
+    const [result] = await runChecks([legalQueueHeartbeat], {
+      env: ENV,
+      region: "us-east",
+      fetch: f.impl,
+      openWebSocket: fakeSocket(okReply).open,
+      now: clock(1),
+    });
+    expect(result).toMatchObject({ status: "fail", detail });
+    const call = f.calls.find((c) => c.url.includes("legal_queue_heartbeat"));
+    expect(call?.init?.headers as Record<string, string>).toMatchObject({
+      "content-profile": "api_public",
+      authorization: "Bearer jwt-token",
+    });
   });
 
   it("covers the remaining failure shapes", async () => {
     const routes = healthyRoutes();
     routes["https://atlas.test/auth/sign-in"] = () => html("", 503);
     routes["https://ref.supabase.test/auth/v1/token"] = () => json({ access_token: "" });
-    routes["https://gateway.test/"] = () => html("", 500);
+    routes["https://gateway.test/auth/sign-in"] = () => html("", 500);
     routes["https://atlas.test/api/v1/openapi.json"] = () => json({}, 404);
     routes["https://sync.test/probes/liveness"] = () => new Response("", { status: 500 });
     const f = fakeFetch(routes);
@@ -308,6 +462,167 @@ describe("runChecks", () => {
     };
     const results = await runChecks([throwing], { env: {}, region: "us-east" });
     expect(results[0]).toMatchObject({ status: "fail", detail: "error_rangeerror" });
+  });
+});
+
+describe("runbook links", () => {
+  it("point at a section that exists, since every alert carries one", () => {
+    const runbook = readFileSync(
+      fileURLToPath(new URL("../../runbooks/incident-response.md", import.meta.url)),
+      "utf8",
+    );
+    const anchors = [...runbook.matchAll(/^#{2,3} (.+)$/gm)].map((match) =>
+      (match[1] ?? "")
+        .toLowerCase()
+        .replace(/[^a-z0-9 -]/g, "")
+        .replace(/ /g, "-"),
+    );
+    for (const definition of CHECKS) {
+      expect(anchors, definition.id).toContain(definition.runbook.split("#")[1]);
+    }
+  });
+});
+
+describe("alert decisions", () => {
+  const REQUIRED = CHECKS.filter((c) => c.id === "atlas.sign_in_page");
+  const OPTIONAL = CHECKS.filter((c) => c.id === "notifications.function");
+  const run = (
+    id: string,
+    status: CheckResult["status"],
+    detail: string | null = null,
+    at = "2026-11-06T12:00:00.000Z",
+  ) => ({
+    id,
+    component: "atlas" as const,
+    region: "us-east",
+    status,
+    latencyMs: 5,
+    detail,
+    at,
+    runbook: "infra/runbooks/incident-response.md#atlas-or-gateway-unavailable",
+  });
+  const AT = new Date("2026-11-06T12:00:00Z");
+  const REPO = "https://github.test/o/r";
+
+  /** Folds statuses in order, five minutes apart as scheduled, and returns the decision of each run. */
+  function play(checks: readonly CheckDefinition[], statuses: CheckResult["status"][]) {
+    let history = emptyHistory();
+    return statuses.map((status, index) => {
+      const at = new Date(AT.getTime() + index * 300_000).toISOString();
+      const results = [
+        run(checks[0]?.id ?? "", status, status === "fail" ? "status_503" : null, at),
+      ];
+      const after = recordRun(history, results, new Date(at));
+      const decision = decideAlerts(checks, results, history, after, REPO);
+      history = after;
+      return decision;
+    });
+  }
+
+  it("stays quiet on one failed run and alerts on the second", () => {
+    const [first, second] = play(REQUIRED, ["fail", "fail"]);
+    expect(first).toMatchObject({ lines: [], alerted: false, changed: true });
+    expect(first?.failing).toHaveLength(1);
+    expect(second).toMatchObject({ alerted: true, changed: true });
+    expect(second?.lines).toEqual([
+      expect.stringContaining("atlas.sign_in_page (atlas) failed: status_503"),
+    ]);
+    expect(second?.lines[0]).toContain(`${REPO}/blob/main/infra/runbooks/incident-response.md#`);
+    expect(CONFIRM_AFTER_FAILS).toBe(2);
+  });
+
+  it("does not repeat an outage on every run, and reminds at the interval", () => {
+    const decisions = play(REQUIRED, Array(REMIND_EVERY_FAILS * 2).fill("fail"));
+    const alerted = decisions.flatMap((d, index) => (d.alerted ? [index + 1] : []));
+    expect(alerted).toEqual([CONFIRM_AFTER_FAILS, REMIND_EVERY_FAILS, REMIND_EVERY_FAILS * 2]);
+  });
+
+  it("says once that a confirmed outage ended, and nothing after a single blip", () => {
+    const [, , recovered, quiet] = play(REQUIRED, ["fail", "fail", "pass", "pass"]);
+    expect(recovered).toMatchObject({ alerted: false, changed: true });
+    expect(recovered?.lines).toEqual([expect.stringContaining("recovered after 2 failed runs")]);
+    expect(quiet).toMatchObject({ lines: [], changed: false });
+    const [, blip] = play(REQUIRED, ["fail", "pass"]);
+    expect(blip).toMatchObject({ lines: [], alerted: false, changed: false });
+  });
+
+  it("counts a slow answer as working, and leaves the streak alone on a skipped run", () => {
+    const [, , slow] = play(REQUIRED, ["fail", "fail", "degraded"]);
+    expect(slow?.lines).toEqual([expect.stringContaining("recovered")]);
+    const [, skipped, third] = play(REQUIRED, ["fail", "skipped", "fail"]);
+    expect(skipped).toMatchObject({ lines: [], changed: false });
+    expect(third?.alerted).toBe(true);
+  });
+
+  it("does not let two runs seconds apart confirm a failure", () => {
+    const check = REQUIRED[0]?.id ?? "";
+    const at = (minutes: number) => new Date(AT.getTime() + minutes * 60_000).toISOString();
+    const steps: Array<[CheckResult["status"], number]> = [
+      ["fail", 0],
+      ["fail", 0.5], // a delayed run and the next one, almost back to back
+      ["fail", 5],
+    ];
+    let history = emptyHistory();
+    const decisions = steps.map(([status, minutes]) => {
+      const results = [run(check, status, status === "fail" ? "status_503" : null, at(minutes))];
+      const after = recordRun(history, results, new Date(at(minutes)));
+      const decision = decideAlerts(REQUIRED, results, history, after, REPO);
+      history = after;
+      return { decision, entry: after.regions["us-east"]?.[check] };
+    });
+    const [, bunched, later] = decisions;
+    expect(bunched?.decision).toMatchObject({ lines: [], alerted: false, changed: false });
+    expect(bunched?.entry).toMatchObject({ failStreak: 1, days: { "2026-11-06": { fail: 1 } } });
+    expect(later?.decision.alerted).toBe(true);
+    expect(MIN_RUN_GAP_MS).toBe(240_000);
+  });
+
+  it("never alerts for a check that is not required", () => {
+    const decisions = play(OPTIONAL, ["fail", "fail", "fail"]);
+    expect(decisions.every((d) => d.lines.length === 0 && !d.alerted)).toBe(true);
+    expect(decisions[0]?.failing).toEqual([]);
+  });
+
+  it("reads history written before streaks existed", () => {
+    const old = parseHistory(
+      JSON.stringify({
+        version: 1,
+        updatedAt: null,
+        regions: {
+          "us-east": { "atlas.sign_in_page": { component: "atlas", days: {}, last: null } },
+        },
+      }),
+    );
+    const results = [run("atlas.sign_in_page", "fail", "status_503")];
+    const after = recordRun(old, results, AT);
+    expect(after.regions["us-east"]?.["atlas.sign_in_page"]?.failStreak).toBe(1);
+    expect(decideAlerts(REQUIRED, results, old, after, REPO)).toMatchObject({
+      lines: [],
+      changed: false,
+    });
+  });
+
+  it("posts the lines, and turns a failing webhook into a warning", async () => {
+    const calls: Array<{ url: string; body: string }> = [];
+    const okFetch = (async (url: string | URL | Request, init?: RequestInit) => {
+      calls.push({ url: String(url), body: String(init?.body) });
+      return new Response("ok");
+    }) as typeof fetch;
+    expect(await postAlerts("https://hook.test/x", ["a", "b"], okFetch)).toBeNull();
+    expect(calls).toEqual([{ url: "https://hook.test/x", body: '{"text":"a\\nb"}' }]);
+    expect(await postAlerts("https://hook.test/x", [], okFetch)).toBeNull();
+    expect(await postAlerts(undefined, ["a"], okFetch)).toBeNull();
+    expect(calls).toHaveLength(1);
+    const refused = (async () => new Response("no", { status: 410 })) as typeof fetch;
+    expect(await postAlerts("https://hook.test/x", ["a"], refused)).toBe(
+      "Alert webhook answered 410.",
+    );
+    const down = (async () => {
+      throw new TypeError("fetch failed", { cause: { code: "ECONNRESET" } });
+    }) as typeof fetch;
+    expect(await postAlerts("https://hook.test/x", ["a"], down)).toBe(
+      "Alert webhook could not be reached: network_econnreset.",
+    );
   });
 });
 

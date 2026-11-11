@@ -1,9 +1,17 @@
 "use server";
 
-import type { DataError, Result } from "@xos/data";
+import { Constants } from "@xos/data/database.types";
+import type { DataError, Result, XosClient } from "@xos/data";
 import {
   acceptShift,
   acceptSwap,
+  assignRosterShift,
+  getShift,
+  saveRosterShift,
+  unassignRosterShift,
+  verifyRosterTraining,
+  addPerDiems,
+  clearPerDiemPayment,
   awardOpenShift,
   decideShiftClaim,
   withdrawShiftClaim,
@@ -29,6 +37,7 @@ import {
   producePayrollExport,
   publishShifts,
   recordPayRate,
+  removePerDiem,
   removeRateCardLine,
   requestCorrection,
   requestSwap,
@@ -50,6 +59,7 @@ import {
   type ShiftState,
   type TimeOffState,
 } from "@xos/data/crew";
+import { markCommunicated } from "@xos/data/change-tracking";
 import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
 import { z } from "zod";
@@ -60,6 +70,8 @@ import { zonedToIso } from "@/lib/crew/time";
 import { getOrgContext } from "@/lib/shell/context";
 import { getTranslate, type Translate } from "@/lib/shell/translate";
 import { planHasFeature } from "@/lib/crew/plan";
+import * as enums from "@xos/data/enums";
+import { decodeWorker } from "@/lib/crew/workers";
 
 /**
  * Crew server actions. Each resolves the viewer's org context again (404 when it is gone), validates
@@ -120,24 +132,112 @@ function shiftTimes(form: FormData, t: Translate) {
     : { ok: true as const, startsAt: startsAt as string, endsAt: endsAt as string, zone };
 }
 
+/**
+ * The worker a shift form names (R12): a member, an agency slot or a person on the agency's roster. The roster
+ * person is placed in the same transaction that writes their engagement's slot, through app.save_roster_shift.
+ */
+function workerOf(form: FormData) {
+  return decodeWorker(text(form, "membershipId"));
+}
+
+/** The position a shift form names, or null; a refusal about it is said beside the field (B9). */
+function positionOf(form: FormData): string | null {
+  const parsed = uuid.safeParse(form.get("projectPositionId"));
+  return parsed.success ? parsed.data : null;
+}
+
+function positionState(state: State, t: Translate, result: Result<unknown>): State {
+  if (result.ok) return state;
+  const message = errorMessage(t, result.error);
+  return result.error.kind === "refusal" &&
+    (result.error.rule === "shift_held_for_position" ||
+      result.error.rule === "same_project" ||
+      result.error.rule === "shift_claims_waiting")
+    ? { error: message, rule: result.error.rule, fieldErrors: { projectPositionId: message } }
+    : { error: message };
+}
+
+/** The form's Labor budget line, or null for none; the database decides whether the line fits the shift. */
+function budgetLineOf(form: FormData): string | null | "invalid" {
+  const value = text(form, "budgetLineId");
+  if (value === "") return null;
+  return uuid.safeParse(value).success ? value : "invalid";
+}
+
 export async function createShiftAction(_: State, form: FormData): Promise<State> {
   const { ctx, db, t } = await context(form);
   const project = uuid.safeParse(form.get("projectId"));
   if (!project.success) return invalid(t, { projectId: "crew.errors.project" });
   const times = shiftTimes(form, t);
   if (!times.ok) return times.state;
-  const member = text(form, "membershipId");
+  const worker = workerOf(form);
+  if (!worker) return invalid(t, { membershipId: "crew.errors.worker" });
+  const budgetLineId = budgetLineOf(form);
+  if (budgetLineId === "invalid") return invalid(t, { budgetLineId: "crew.errors.budgetLine" });
   const role = text(form, "roleCode");
-  const result = await createShift(db, {
+  const position = positionOf(form);
+  const shift = {
     orgId: ctx.org.id,
     projectId: project.data,
     roleCode: role === "" ? null : role,
     startsAt: times.startsAt,
     endsAt: times.endsAt,
     timeZone: times.zone,
-    membershipId: member === "" ? null : member,
+    budgetLineId,
+  };
+  // Agency staff are placed in the same transaction that writes their slot, so a refusal leaves no slot behind.
+  if (worker.kind === "staff") {
+    // The position is a second write, so what t37 would refuse is said first and no shift is left behind.
+    const misfit =
+      position === null ? null : await positionMisfit(db, position, project.data, worker);
+    if (misfit) return positionState({}, t, misfit);
+    const saved = await saveRosterShift(db, { ...shift, worker });
+    if (!saved.ok || position === null) return done(ctx.org.slug, saved, t);
+    const held = await updateShift(db, saved.data.id, { projectPositionId: position });
+    return positionState(done(ctx.org.slug, held, t), t, held);
+  }
+  // A shift planned on a position with nobody named is its holder's, or its agency's slot; t37 decides everything else.
+  const onSeat =
+    worker.kind === "open" && position !== null ? await seatOfPosition(db, position) : null;
+  const created = await createShift(db, {
+    ...shift,
+    membershipId: worker.kind === "member" ? worker.membershipId : (onSeat?.membership_id ?? null),
+    engagementId: worker.kind === "agency" ? worker.engagementId : (onSeat?.engagement_id ?? null),
+    projectPositionId: position,
   });
-  return done(ctx.org.slug, result, t);
+  return positionState(done(ctx.org.slug, created, t), t, created);
+}
+
+/** t37's refusal for agency staff on this position, read before the shift is written. */
+async function positionMisfit(
+  db: XosClient,
+  positionId: string,
+  projectId: string,
+  worker: { readonly engagementId: string },
+): Promise<Result<never> | null> {
+  const { data } = await db
+    .from("project_positions")
+    .select("project_id, engagement_id")
+    .eq("id", positionId)
+    .maybeSingle();
+  if (!data) return null;
+  const rule =
+    data.project_id !== projectId
+      ? "same_project"
+      : data.engagement_id !== worker.engagementId
+        ? "shift_held_for_position"
+        : null;
+  return rule ? { ok: false, error: { kind: "refusal", rule, message: rule } } : null;
+}
+
+/** A position's agency and member holder, for a shift planned on it with nobody named. */
+async function seatOfPosition(db: XosClient, positionId: string) {
+  const { data } = await db
+    .from("project_positions")
+    .select("engagement_id, membership_id")
+    .eq("id", positionId)
+    .maybeSingle();
+  return data;
 }
 
 export async function updateShiftAction(_: State, form: FormData): Promise<State> {
@@ -146,19 +246,127 @@ export async function updateShiftAction(_: State, form: FormData): Promise<State
   if (!id.success) return failed(t, { kind: "not-found" });
   const times = shiftTimes(form, t);
   if (!times.ok) return times.state;
-  const member = text(form, "membershipId");
   const role = text(form, "roleCode");
-  const result = await updateShift(db, id.data, {
+  const value = text(form, "membershipId");
+  const current = await getShift(db, id.data);
+  if (!current.ok) return failed(t, current.error);
+  const held = current.data.rosterEntryId ?? null;
+  // A roster shift whose person stays (`staff:<entry>`, with or without its engagement): only the times and role move.
+  const unchanged =
+    held !== null && (value === `staff:${held}` || value.startsWith(`staff:${held}:`));
+  const worker = unchanged ? null : workerOf(form);
+  if (!unchanged && !worker) return invalid(t, { membershipId: "crew.errors.worker" });
+  const position = positionOf(form);
+  const positionMoved = position !== (current.data.projectPositionId ?? null);
+  const budgetLineId = budgetLineOf(form);
+  if (budgetLineId === "invalid") return invalid(t, { budgetLineId: "crew.errors.budgetLine" });
+  const times_ = {
     roleCode: role === "" ? null : role,
     startsAt: times.startsAt,
     endsAt: times.endsAt,
     timeZone: times.zone,
-    membershipId: member === "" ? null : member,
+    budgetLineId,
+  };
+  // One write takes the position with the rest, so a refusal leaves the shift as it was.
+  const onPosition = positionMoved ? { projectPositionId: position } : {};
+  if (worker === null) {
+    const saved = await updateShift(db, id.data, { ...times_, ...onPosition });
+    return positionState(done(ctx.org.slug, saved, t), t, saved);
+  }
+  if (worker.kind === "staff" || held !== null) {
+    // Off a position first, so the new worker is not held out; onto one last, once the worker fits it.
+    if (positionMoved && position === null) {
+      const off = await updateShift(db, id.data, { projectPositionId: null });
+      if (!off.ok) return positionState({}, t, off);
+    }
+    // Onto, between or off the agency's roster: the times, the slot and the placement save together
+    // (app.save_roster_shift), so a refused placement leaves the shift and its person as they were.
+    const saved = await saveRosterShift(db, {
+      ...times_,
+      shiftId: id.data,
+      orgId: ctx.org.id,
+      projectId: current.data.projectId,
+      worker,
+      reason: t("crew.agency.unassignReason"),
+    });
+    if (!saved.ok || !positionMoved || position === null) {
+      return positionState(done(ctx.org.slug, saved, t), t, saved);
+    }
+    const onto = await updateShift(db, id.data, onPosition);
+    return positionState(done(ctx.org.slug, onto, t), t, onto);
+  }
+  const onSeat =
+    worker.kind === "open" && position !== null ? await seatOfPosition(db, position) : null;
+  // The holder goes on only when the shift moves onto the position: after a holder declined, nobody is put back unasked.
+  const holder = positionMoved ? (onSeat?.membership_id ?? null) : null;
+  const saved = await updateShift(db, id.data, {
+    ...times_,
+    ...onPosition,
+    membershipId: worker.kind === "member" ? worker.membershipId : holder,
+    engagementId: worker.kind === "agency" ? worker.engagementId : (onSeat?.engagement_id ?? null),
   });
+  return positionState(done(ctx.org.slug, saved, t), t, saved);
+}
+
+/** Places a person from an agency's roster on a shift (R12, the schedule's drag board and the peek). */
+export async function assignRosterShiftAction(_: State, form: FormData): Promise<State> {
+  const { ctx, db, t } = await context(form);
+  const parsed = z
+    .object({ shiftId: uuid, rosterEntryId: uuid })
+    .safeParse({ shiftId: form.get("shiftId"), rosterEntryId: form.get("rosterEntryId") });
+  if (!parsed.success) return invalid(t, { rosterEntryId: "crew.errors.worker" });
+  const result = await assignRosterShift(db, parsed.data.shiftId, parsed.data.rosterEntryId);
+  return result.ok ? done(ctx.org.slug, result, t) : failed(t, result.error);
+}
+
+/** Takes an agency staff member off a shift, which becomes the agency's slot again (R12). */
+export async function unassignRosterShiftAction(_: State, form: FormData): Promise<State> {
+  const { ctx, db, t } = await context(form);
+  const parsed = z.object({ shiftId: uuid, reason }).safeParse({
+    shiftId: form.get("shiftId"),
+    reason: form.get("reason"),
+  });
+  if (!parsed.success) return invalid(t, { reason: "crew.errors.reason" });
+  const result = await unassignRosterShift(db, parsed.data.shiftId, parsed.data.reason);
+  return result.ok ? done(ctx.org.slug, result, t) : failed(t, result.error);
+}
+
+/** The production records whether an agency staff member's training acknowledgment passed (R12). */
+export async function verifyRosterTrainingAction(_: State, form: FormData): Promise<State> {
+  const { ctx, db, t } = await context(form);
+  const parsed = z
+    .object({ recordId: uuid, outcome: z.enum(Constants.app.Enums.verification_outcome) })
+    .safeParse({ recordId: form.get("recordId"), outcome: form.get("outcome") });
+  if (!parsed.success) return invalid(t, { outcome: "crew.errors.reason" });
+  const result = await verifyRosterTraining(db, parsed.data.recordId, parsed.data.outcome);
+  return result.ok ? done(ctx.org.slug, result, t) : failed(t, result.error);
+}
+
+/**
+ * Mark as communicated (B6, G-120): one communication mark per shift for the person on it now, all
+ * or nothing (app.mark_communicated, 5951). The reason field is the note on how they were told.
+ */
+export async function markCommunicatedAction(_: State, form: FormData): Promise<State> {
+  const { ctx, db, t } = await context(form);
+  const ids = text(form, "ids")
+    .split(",")
+    .filter((s) => uuid.safeParse(s).success);
+  const note = text(form, "reason").trim();
+  if (note.length > 300) return invalid(t, { reason: "crew.errors.communication_note_length" });
+  if (ids.length === 0) return { error: t("crew.errors.communication_no_assignee") };
+  const result = await markCommunicated(db, ids, note === "" ? null : note);
+  if (
+    !result.ok &&
+    result.error.kind === "refusal" &&
+    (result.error.rule === "communication_no_assignee" ||
+      result.error.rule === "communication_too_many")
+  ) {
+    return { error: t(`crew.errors.${result.error.rule}`), rule: result.error.rule };
+  }
   return done(ctx.org.slug, result, t);
 }
 
-const SHIFT_STATE = z.enum(["Draft", "Published", "Accepted", "Canceled"]);
+const SHIFT_STATE = z.enum(enums.shiftState);
 
 export async function transitionShiftAction(_: State, form: FormData): Promise<State> {
   const { ctx, db, t } = await context(form);
@@ -253,20 +461,26 @@ export async function requestSwapAction(_: State, form: FormData): Promise<State
     .object({ shiftId: uuid, projectId: uuid, proposedMembershipId: uuid })
     .safeParse(Object.fromEntries(form));
   if (!parsed.success) return invalid(t, { proposedMembershipId: "crew.errors.person" });
-  return done(
-    ctx.org.slug,
-    await requestSwap(db, {
-      orgId: ctx.org.id,
-      projectId: parsed.data.projectId,
-      shiftId: parsed.data.shiftId,
-      requestedByMembershipId: ctx.org.membershipId,
-      proposedMembershipId: parsed.data.proposedMembershipId,
-    }),
-    t,
-  );
+  const requested = await requestSwap(db, {
+    orgId: ctx.org.id,
+    projectId: parsed.data.projectId,
+    shiftId: parsed.data.shiftId,
+    requestedByMembershipId: ctx.org.membershipId,
+    proposedMembershipId: parsed.data.proposedMembershipId,
+    reason: text(form, "reason"),
+  });
+  // scheduling.swap_reason_required (B9) is said beside Reason, and the typed input stays.
+  if (
+    !requested.ok &&
+    requested.error.kind === "refusal" &&
+    requested.error.rule === "swap_reason_required"
+  ) {
+    return invalid(t, { reason: "crew.refusals.swap_reason_required" });
+  }
+  return done(ctx.org.slug, requested, t);
 }
 
-const DECISION = z.enum(["Approved", "Rejected"]);
+const DECISION = z.enum(enums.approvalDecision);
 
 export async function decideSwapAction(_: State, form: FormData): Promise<State> {
   const { ctx, db, t } = await context(form);
@@ -674,7 +888,7 @@ export async function updatePayPeriodAction(_: State, form: FormData): Promise<S
   return done(ctx.org.slug, await updatePayPeriod(db, parsed.data.id, parsed.data), t);
 }
 
-const PERIOD_STATE = z.enum(["Open", "Closed", "Posted"]);
+const PERIOD_STATE = z.enum(enums.payPeriodState);
 
 export async function transitionPayPeriodAction(_: State, form: FormData): Promise<State> {
   const { ctx, db, t } = await context(form);
@@ -724,7 +938,7 @@ export async function approveRunAction(_: State, form: FormData): Promise<State>
     : { ok: true, error: t("crew.payroll.secondApprover") };
 }
 
-const RUN_STATE = z.enum(["Draft", "Calculated", "Approved", "Exported", "Accepted", "Canceled"]);
+const RUN_STATE = z.enum(enums.payrollRunState);
 
 export async function transitionRunAction(_: State, form: FormData): Promise<State> {
   const { ctx, db, t } = await context(form);
@@ -802,7 +1016,7 @@ export async function decideTimeOffAction(_: State, form: FormData): Promise<Sta
   );
 }
 
-const OFF_STATE = z.enum(["Proposed", "Approved", "Rejected", "Canceled"]);
+const OFF_STATE = z.enum(enums.timeOffState);
 
 export async function cancelTimeOffAction(_: State, form: FormData): Promise<State> {
   const { ctx, db, t } = await context(form);
@@ -820,4 +1034,67 @@ export async function cancelTimeOffAction(_: State, form: FormData): Promise<Sta
     ),
     t,
   );
+}
+
+// Per diems ---------------------------------------------------------------------------------------------
+
+/**
+ * Adds one per diem a day for a member (m:<membership id>) or an engaged person (e:<engagement id>)
+ * through app.add_per_diems; the database checks crew.time_entry.write on the project, the range, the
+ * days already taken and the engagement's state.
+ */
+export async function addPerDiemsAction(_: State, form: FormData): Promise<State> {
+  const { db, ctx, t } = await context(form);
+  const parsed = z
+    .object({
+      projectId: uuid,
+      person: z.string().regex(/^[me]:[0-9a-f-]{36}$/),
+      from: isoDate,
+      to: isoDate,
+      currencyCode: z.string().regex(/^[A-Z]{3}$/),
+    })
+    .safeParse(Object.fromEntries(form));
+  if (!parsed.success) {
+    return invalid(t, {
+      person: "crew.errors.person",
+      from: "crew.errors.date",
+      to: "crew.errors.date",
+      currencyCode: "crew.errors.currency",
+    });
+  }
+  const p = parsed.data;
+  if (p.to < p.from) return invalid(t, { to: "crew.errors.endAfterStart" });
+  const amount = toMinor(text(form, "amount"), await exponentOf(form, p.currencyCode));
+  if (amount === null || amount === undefined) {
+    return invalid(t, { amount: "crew.errors.moneyRequired" });
+  }
+  const worker = p.person.slice(2);
+  const result = await addPerDiems(db, {
+    projectId: p.projectId,
+    membershipId: p.person.startsWith("m:") ? worker : null,
+    engagementId: p.person.startsWith("e:") ? worker : null,
+    from: p.from,
+    to: p.to,
+    amountMinor: amount,
+    currencyCode: p.currencyCode,
+  });
+  if (!result.ok) return failed(t, result.error);
+  return done(ctx.org.slug, result, t);
+}
+
+export async function clearPerDiemPaymentAction(_: State, form: FormData): Promise<State> {
+  const { ctx, db, t } = await context(form);
+  const id = uuid.safeParse(form.get("id"));
+  if (!id.success) return { error: t("crew.errors.notFound") };
+  const why = reason.safeParse(form.get("reason"));
+  if (!why.success) return invalid(t, { reason: "crew.errors.reason" });
+  return done(ctx.org.slug, await clearPerDiemPayment(db, { id: id.data, reason: why.data }), t);
+}
+
+/** Removes one per diem (a soft delete under the per diem write policy). */
+export async function removePerDiemAction(_: State, form: FormData): Promise<State> {
+  const { ctx, db, t } = await context(form);
+  const id = uuid.safeParse(form.get("id"));
+  if (!id.success) return { error: t("crew.errors.notFound") };
+  return done(ctx.org.slug, await removePerDiem(db, id.data), t);
 }

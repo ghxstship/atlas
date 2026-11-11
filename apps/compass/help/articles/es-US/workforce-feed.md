@@ -13,3 +13,7 @@ El muro muestra anuncios, novedades, encuestas rápidas y reconocimientos para t
 - Reacciona a una publicación y lee sus comentarios, donde tu organización lo permite.
 
 Las confirmaciones y los votos funcionan sin conexión y se suben al reconectar.
+
+## Denunciar o bloquear
+
+Toca los tres puntos en la publicación de otra persona para denunciarla ante los moderadores de tu organización, que la revisan en 24 horas, o para bloquear a quien la escribió. Una denuncia que no deciden en 24 horas pasa al equipo de Confianza y Seguridad de GHXSTSHIP. No se avisa a nadie de quién denunció. Una publicación con un insulto discriminatorio se rechaza antes de que nadie la vea. Consulta [Personas bloqueadas](help:blocked-people).

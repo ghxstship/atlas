@@ -38,6 +38,7 @@ import { peopleStateIcon } from "@/lib/people/states";
 import { peekRowMissing } from "@/lib/shell/peek-handoff";
 import { nodeHref } from "@/lib/shell/sitemap";
 import { getTranslate } from "@/lib/shell/translate";
+import { LiveList } from "@/components/live/live-list";
 
 const ROLE_TYPES = ["Crew", "Staff", "Contractor", "Artist", "Vendor"] as const;
 
@@ -534,6 +535,7 @@ export default async function Page({
         </>
       }
     >
+      <LiveList org={routeParams.org} tables={["requisitions"]} />
       {body}
     </CrewFrame>
   );

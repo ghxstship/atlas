@@ -13,6 +13,7 @@ import { getCopy } from "@/lib/collection-kit/i18n";
 import { collectionState, withQuery, type SearchParams } from "@/lib/collection-kit/page";
 import type { OrgContext } from "@/lib/shell/context";
 import { orgToday } from "@/lib/shell/time-zone";
+import { CollectionPage } from "@/components/platform/collection-page";
 
 const VIEWS: readonly ViewKind[] = ["table", "list", "gallery"];
 
@@ -44,10 +45,9 @@ export async function CanonElements({
   const title = t("elements.title");
   if (!result.ok) {
     return (
-      <>
-        <PageHeader title={title} />
+      <CollectionPage header={<PageHeader title={title} />}>
         <ErrorPanel what={t("what")} />
-      </>
+      </CollectionPage>
     );
   }
   const { elements, total } = result.data;

@@ -105,10 +105,16 @@ export interface SentryEventLike {
   tags?: Record<string, unknown> | undefined;
   server_name?: string | undefined;
   transaction?: string | undefined;
+  spans?:
+    | Array<{
+        description?: string | undefined;
+        data?: Record<string, unknown> | undefined;
+      }>
+    | undefined;
 }
 
-/** Request headers kept on error events; every other header is dropped. */
-const KEPT_HEADERS = new Set([
+/** Request headers kept on error events and spans; every other header is dropped. */
+export const KEPT_REQUEST_HEADERS: readonly string[] = [
   "accept",
   "content-type",
   "content-length",
@@ -116,7 +122,28 @@ const KEPT_HEADERS = new Set([
   "x-request-id",
   "x-vercel-id",
   "sb-request-id",
-]);
+];
+const KEPT_HEADERS = new Set(KEPT_REQUEST_HEADERS);
+
+/** Span attributes that copy one HTTP header each (`http.request.header.accept`). */
+const HEADER_ATTRIBUTE = /^http\.(request|response)\.header\.(.+)$/i;
+
+/**
+ * A span's attributes with every header outside the kept request headers removed, then redacted.
+ * Next's router state header, for one, carries the page's route parameters, and a bearer link
+ * carries its token there (A69-012).
+ */
+function scrubSpanData(data: Record<string, unknown>): Record<string, unknown> {
+  const kept: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(data)) {
+    const [, direction = "", name = ""] = HEADER_ATTRIBUTE.exec(key) ?? [];
+    const dropped =
+      direction !== "" &&
+      !(direction.toLowerCase() === "request" && KEPT_HEADERS.has(name.toLowerCase()));
+    if (!dropped) kept[key] = value;
+  }
+  return redact(kept) as Record<string, unknown>;
+}
 
 /**
  * Sentry `beforeSend` hook. Returns the same event object with personal data removed, so it can
@@ -155,7 +182,25 @@ export function scrubEvent<E extends SentryEventLike>(event: E): E {
     });
   }
   if (event.extra) event.extra = redact(event.extra) as Record<string, unknown>;
-  if (event.contexts) event.contexts = redact(event.contexts) as Record<string, unknown>;
+  if (event.contexts) {
+    const trace = event.contexts["trace"] as { data?: unknown } | undefined;
+    const contexts = redact(event.contexts) as Record<string, unknown>;
+    if (trace && typeof trace.data === "object" && trace.data !== null) {
+      contexts["trace"] = {
+        ...(contexts["trace"] as Record<string, unknown>),
+        data: scrubSpanData(trace.data as Record<string, unknown>),
+      };
+    }
+    event.contexts = contexts;
+  }
+  if (event.spans) {
+    event.spans = event.spans.map((span) => {
+      const next = { ...span };
+      if (next.description) next.description = redactString(next.description);
+      if (next.data) next.data = scrubSpanData(next.data);
+      return next;
+    });
+  }
   if (event.tags) event.tags = redact(event.tags) as Record<string, unknown>;
   if (event.transaction) event.transaction = redactUrl(event.transaction);
   delete event.server_name;

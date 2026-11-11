@@ -12,7 +12,13 @@
     "chooseVendor": "Choose a vendor",
     "project": "Project",
     "chooseProject": "Choose a project",
-    "description": "Description"
+    "description": "Description",
+    "address": "Mailing address",
+    "country": "Country",
+    "streetAddress": "Street address",
+    "locality": "City",
+    "administrativeArea": "State or province",
+    "postalCode": "Postal code"
   },
   "states": {
     "Prospect": "Prospect",
@@ -69,7 +75,11 @@
     "prequalLine": "Prequalification for {scope}: {decision}",
     "scoreLine": "Period ending {period}: average {average}",
     "products": "Products",
-    "noProducts": "No products recorded for this vendor. Add them from the procurement catalog."
+    "noProducts": "No products recorded for this vendor. Add them from the procurement catalog.",
+    "address": "Mailing address",
+    "noAddress": "No address",
+    "saveAddress": "Save address",
+    "countryHelp": "Two-letter country code, for example US or CA. After you save, the fields follow that country's address format."
   },
   "bank": {
     "title": "Bank accounts",
@@ -77,7 +87,7 @@
     "bankName": "Bank",
     "holder": "Account holder",
     "number": "Account number",
-    "numberHelp": "Stored as Restricted data; only people with banking access see it in full.",
+    "numberHelp": "Encrypted and stored as Restricted data; only people with banking access see it in full.",
     "routing": "Routing number",
     "masked": "Ending {last4}",
     "maskedShort": "Hidden",
@@ -158,7 +168,22 @@
     "delete": "Remove certificate",
     "deleteTitle": "Remove this certificate?",
     "deleteBody": "It leaves the list and the vendor's compliance; the audit log keeps the record.",
-    "back": "Back to insurance certificates"
+    "back": "Back to insurance certificates",
+    "uploads": {
+      "heading": "Vendor uploads with no certificate",
+      "help": "Files vendors uploaded for onboarding items, whether or not they are insurance. Open one, and if it is an insurance certificate, record it. Recording does not verify the onboarding item: review that on the engagement. Passing the review does not record a certificate. A file that is not insurance needs nothing here and leaves when the engagement closes.",
+      "meta": "{item}, uploaded {date}",
+      "waiting": "Waiting for review",
+      "passed": "Passed review, no certificate recorded",
+      "notReady": "Cannot be opened yet: still being scanned, or you do not have access to the file.",
+      "loadError": "Vendor uploads could not be loaded. Refresh to try again.",
+      "more": "Showing {shown} of {total}, those not yet reviewed first.",
+      "open": "Open file",
+      "record": "Record certificate",
+      "review": "Review on engagement",
+      "fromUpload": "From {vendor}: {item}.",
+      "uploadedFile": "Uploaded by the vendor"
+    }
   },
   "scorecards": {
     "title": "Scorecards",
@@ -233,7 +258,8 @@
     "usage": "Where it is used",
     "dueOn": "Needed by",
     "revision": "Revision {revision}",
-    "add": "Add asset"
+    "add": "Add asset",
+    "sponsorSupplied": "Supplied by the sponsor"
   },
   "deliveries": {
     "title": "Deliveries and proof",
@@ -255,12 +281,20 @@
     "prequalification_decide_rpc": "Decide prequalifications with the Approve and Reject buttons.",
     "sod_approval_requester": "Separation of duties: the person who requested this cannot decide it.",
     "bank_account_vendor_immutable": "A bank account stays with its vendor.",
+    "bank_account_details": "Enter the bank and the account holder, each in 200 characters or fewer.",
+    "bank_account_number_format": "An account number has 4 to 34 letters and digits.",
+    "bank_routing_number_format": "A routing number has 34 letters and digits or fewer.",
+    "bank_account_rpc_only": "Add bank details with the bank account form, which encrypts the numbers.",
+    "supplier_diversity_not_shared": "This certification is no longer shared with your organization.",
+    "certificate_reveal_reason": "Write why you need the certificate number, in at least 10 characters.",
+    "certificate_number_missing": "No certificate number is on file for this certification.",
     "sponsor_asset_transition_not_allowed": "That asset move is not allowed from the current state.",
     "entitlement_delivery_immutable": "A delivery keeps its entitlement and the person who recorded it.",
     "review_decide_rpc": "Approve or return assets with the review buttons.",
     "cross_org_reference": "That item belongs to another organization.",
     "insureds_none_required": "The organization requires no additional insureds for this project. Add them under Required insureds first.",
-    "insureds_vendor_only": "Additional insureds are checked for vendors. This party is not a vendor of the organization."
+    "insureds_vendor_only": "Additional insureds are checked for vendors. This party is not a vendor of the organization.",
+    "postal_code_invalid": "That postal code does not fit the country. Check it against the address, or correct the country."
   },
   "insureds": {
     "what": "additional insureds",
@@ -301,7 +335,15 @@
     "certifyingBody": "Certified by",
     "number": "Certificate number",
     "expires": "Expires",
-    "masked": "Masked: needs government identifier access",
+    "masked": "Ending {last4}",
+    "reveal": "Reveal a certificate number",
+    "revealLead": "The whole number needs a reason and your second factor. The certificate's owner sees who revealed it and why in their access log.",
+    "revealWhich": "Certification",
+    "revealOption": "{owner}: {kind}, ending {last4}",
+    "revealReason": "Reason",
+    "revealReasonHelp": "Why you need the whole number, in at least 10 characters.",
+    "revealSubmit": "Reveal number",
+    "revealed": "Certificate number: {number}. It is shown once and not kept on this page.",
     "none": "None",
     "kinds": {
       "minorityOwned": "Minority-owned business",
@@ -313,6 +355,7 @@
       "smallDisadvantagedBusiness": "Small disadvantaged business",
       "hubzone": "HUBZone business",
       "other": "Other certification"
-    }
+    },
+    "restricted": "Restricted: shared certifications are read only by people with restricted data access."
   }
 }

@@ -13,12 +13,14 @@ import {
 } from "react";
 import { useStepUpForm } from "@/components/auth/security/step-up";
 import { keepInputOnSubmit, useKeepInput } from "@/components/collection-kit/keep-input";
+import { ChoiceDisclosure, useCheckedCount } from "../choice-disclosure";
 import type { SurfaceState } from "./state";
 
 /**
  * Client forms of the settings surfaces A86 contributes (RRR-131, finding A65-004). Every label arrives
  * translated from the server, and every outcome comes back from the server action already in words, so these
- * forms carry no catalog of their own. Three shapes:
+ * forms carry no catalog of their own beyond the shared `settings` words (the save bar, and how many boxes a closed
+ * group has chosen). Three shapes:
  *   SurfaceForm     a create form: fields, one submit, an error in words, and for keys and endpoints the secret
  *                   shown once with a copy button
  *   SurfaceButton   a one-click action on a row (revoke, replay, release), optionally confirmed in a dialog
@@ -83,6 +85,11 @@ export type SurfaceField =
       readonly help?: string;
       readonly options: readonly Option[];
       readonly defaultValues?: readonly string[];
+      /**
+       * Closed behind its label and how many are chosen however few boxes it has, for one of several groups on a
+       * form (a department's disciplines). A group with more boxes than a form may show is always closed.
+       */
+      readonly closed?: boolean;
     };
 
 /** The secret a create action returns once, and how to present it. */
@@ -101,6 +108,77 @@ function Hidden({ values }: { values: Readonly<Record<string, string>> }) {
         <input key={name} type="hidden" name={name} value={value} />
       ))}
     </>
+  );
+}
+
+/** The most fields a form shows before the rest go behind progressive disclosure (Section 18 gate 27). */
+const VISIBLE_FIELDS = 7;
+
+type CheckboxesField = Extract<SurfaceField, { kind: "checkboxes" }>;
+
+/**
+ * A group of checkboxes. One with more boxes than a form may show (departments, event types, scopes), or one marked
+ * closed, sits behind its label and how many are chosen, and opens when it has an error to show.
+ */
+function CheckboxGroup({
+  field,
+  id,
+  error,
+}: {
+  field: CheckboxesField;
+  id: string;
+  error: string | undefined;
+}) {
+  const t = useTranslations("settings");
+  const { ref, count, recount } = useCheckedCount<HTMLFieldSetElement>(
+    field.defaultValues?.length ?? 0,
+  );
+  const closed = field.closed === true || field.options.length > VISIBLE_FIELDS;
+  const help = field.help ? (
+    <p className="m-0 text-text-12 text-text-secondary">{field.help}</p>
+  ) : null;
+  const boxes = (
+    <div className="grid grid-cols-[repeat(auto-fill,minmax(12rem,1fr))] gap-x-16 gap-y-8">
+      {field.options.map((o) => (
+        <Checkbox
+          key={o.value}
+          id={`${id}-${o.value}`}
+          name={field.name}
+          value={o.value}
+          label={o.label}
+          defaultChecked={field.defaultValues?.includes(o.value)}
+        />
+      ))}
+    </div>
+  );
+  return (
+    <fieldset ref={ref} onChange={recount} className="m-0 flex min-w-0 flex-col gap-8 border-0 p-0">
+      <legend
+        className={closed ? "sr-only" : "mb-4 p-0 text-text-13 font-medium text-text-primary"}
+      >
+        {field.label}
+      </legend>
+      {closed ? (
+        <ChoiceDisclosure
+          title={field.label}
+          summary={t("chosen", { count, total: field.options.length })}
+          open={Boolean(error)}
+        >
+          {help}
+          {boxes}
+        </ChoiceDisclosure>
+      ) : (
+        <>
+          {help}
+          {boxes}
+        </>
+      )}
+      {error ? (
+        <p role="alert" className="m-0 text-text-12 text-danger-text">
+          {error}
+        </p>
+      ) : null}
+    </fieldset>
   );
 }
 
@@ -158,31 +236,7 @@ function Field({
         </div>
       );
     case "checkboxes":
-      return (
-        <fieldset className="m-0 flex min-w-0 flex-col gap-8 border-0 p-0">
-          <legend className="mb-4 p-0 text-text-13 font-medium text-text-primary">
-            {field.label}
-          </legend>
-          {field.help ? <p className="m-0 text-text-12 text-text-secondary">{field.help}</p> : null}
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(12rem,1fr))] gap-x-16 gap-y-8">
-            {field.options.map((o) => (
-              <Checkbox
-                key={o.value}
-                id={`${id}-${o.value}`}
-                name={field.name}
-                value={o.value}
-                label={o.label}
-                defaultChecked={field.defaultValues?.includes(o.value)}
-              />
-            ))}
-          </div>
-          {error ? (
-            <p role="alert" className="m-0 text-text-12 text-danger-text">
-              {error}
-            </p>
-          ) : null}
-        </fieldset>
-      );
+      return <CheckboxGroup field={field} id={id} error={error} />;
     default:
       return (
         <Input

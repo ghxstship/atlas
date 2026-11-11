@@ -1,0 +1,28 @@
+{
+  "title": "Changes your connected apps proposed",
+  "description": "A connected app such as Claude or ChatGPT never changes anything itself: each change it proposes waits here for you. Confirming runs it with your own access. A proposal expires after 7 days.",
+  "empty": "Nothing is waiting for you.",
+  "from": "From {app}",
+  "action": "Change",
+  "target": "Record",
+  "fields": "Values",
+  "noFields": "No values.",
+  "clear": "(cleared)",
+  "note": "The app's note: {note}",
+  "expires": "Expires {date}",
+  "confirm": "Confirm",
+  "reject": "Reject",
+  "confirmed": "Done. The change was made.",
+  "rejected": "Rejected. Nothing changed.",
+  "refusals": {
+    "ai_suggestion_not_proposed": "This change was already confirmed, rejected or expired.",
+    "ai_suggestion_expired": "This proposal has expired. Ask the app again.",
+    "agent_grant_revoked": "You no longer let this app act for you, so its changes cannot be confirmed.",
+    "agent_outside_grant": "This change is outside what you let the app reach.",
+    "agent_operation_restricted": "A connected app cannot propose a change that reaches Restricted data or the organization's control.",
+    "agent_operation_unknown": "XOS no longer offers this kind of change. Reject it.",
+    "ai_suggestion_needs_person": "A connected app cannot confirm its own change; confirm it here.",
+    "stale": "The record changed after the app read it. Reject this proposal and ask the app again.",
+    "other": "The change was refused: {detail}"
+  }
+}

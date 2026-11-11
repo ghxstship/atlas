@@ -11,7 +11,7 @@ import {
   listPersonalTokens,
 } from "@xos/data/developer";
 import { listAccountMembers } from "@xos/data/gateway";
-import { PARTY_CATEGORIES, PARTY_CHANNELS } from "@xos/data/party-notifications";
+import { PARTY_CATEGORIES, partyChannels } from "@xos/data/party-notifications";
 import { listJurisdictions } from "@xos/data/places";
 import type { ReactNode } from "react";
 import { ActionButton } from "@/components/actions/action-button";
@@ -322,17 +322,18 @@ export async function CompanyNotificationsSurface({ ctx, t, header }: SurfacePro
   return (
     <>
       {header}
-      {PARTY_CATEGORIES.map((category) => (
+      {/* Each category on the channels its kinds reach (A104); the form saves only its own category. */}
+      {PARTY_CATEGORIES.filter((category) => partyChannels(category).length > 0).map((category) => (
         <ChoicesForm
           key={category}
           action={saveCompanyDefaultsAction}
-          hidden={{}}
+          hidden={{ category }}
           legend={t(`gateway.settings.notifications.categories.${category}.label`)}
           help={t(`${P}.gateway.defaultsHelp`)}
           canEdit={admin}
           submit={t(`${P}.gateway.saveDefaults`)}
           saved={t(`${P}.gateway.defaultsSaved`)}
-          rows={PARTY_CHANNELS.map((channel) => ({
+          rows={partyChannels(category).map((channel) => ({
             name: `${category}.${channel}`,
             label: t(`gateway.settings.notifications.channels.${channel}`),
             checked:

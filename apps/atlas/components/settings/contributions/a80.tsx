@@ -5,7 +5,11 @@ import {
   getMySmsStatus,
   getOrgNotificationDefaults,
 } from "@xos/data/notification-settings";
-import { NOTIFICATION_CATEGORIES, NOTIFICATION_CHANNEL_DEFAULTS } from "@xos/schemas/notifications";
+import {
+  NOTIFICATION_CATEGORIES,
+  NOTIFICATION_CHANNEL_DEFAULTS,
+  notificationCategoryChannels,
+} from "@xos/schemas/notifications";
 import { InlineAlert } from "@/components/ui";
 import {
   MyNotificationsForm,
@@ -23,8 +27,16 @@ import type { SettingsContribution, SettingsPanelProps } from "./types";
  *                                      org's defaults and mandatory categories, plus quiet hours (in the
  *                                      member's time zone) and digest frequency (Section 4.5.6 item 8)
  *   Settings, Notifications            the org's defaults and mandatory categories (item 29)
- * Categories and channels come from the notification kind registry (packages/schemas/notification-kinds.yaml).
+ * Categories and channels come from the notification kind registry (packages/schemas/notification-kinds.yaml). A row
+ * holds a cell only for the channels its category's kinds reach (A104): Opportunities are never texted, so they have
+ * no SMS switch.
  */
+
+/** The matrix columns a category's kinds reach. */
+function reachedChannels(category: string) {
+  const reached = notificationCategoryChannels(category);
+  return MATRIX_CHANNELS.filter(({ channel }) => reached.includes(channel));
+}
 
 function timeZoneOptions() {
   return ["UTC", ...Intl.supportedValuesOf("timeZone").filter((z) => z !== "UTC")].map((z) => ({
@@ -47,7 +59,7 @@ async function MyNotificationsPanel({ ctx }: SettingsPanelProps) {
   const rows: MemberRow[] = NOTIFICATION_CATEGORIES.map((c) => ({
     category: c.code,
     urgent: c.urgent,
-    cells: MATRIX_CHANNELS.map(({ channel }) => {
+    cells: reachedChannels(c.code).map(({ channel }) => {
       const cell = matrix.data.find((m) => m.category === c.code && m.channel === channel);
       return { channel, enabled: cell?.enabled ?? false, locked: cell?.locked ?? false };
     }),
@@ -86,7 +98,7 @@ async function OrgDefaultsPanel({ ctx }: SettingsPanelProps) {
     category: c.code,
     urgent: c.urgent,
     mandatory: stored.data.mandatory.includes(c.code),
-    cells: MATRIX_CHANNELS.map(({ channel }) => ({
+    cells: reachedChannels(c.code).map(({ channel }) => ({
       channel,
       enabled:
         stored.data.defaults.find((d) => d.category === c.code && d.channel === channel)?.enabled ??

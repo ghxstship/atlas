@@ -24,8 +24,16 @@ La compuerta 1 contiene los **Objetivos** del proyecto: una meta por cifra, como
 
 La compuerta 8 contiene la **Medición**: registre las cifras de residuos, energía, agua, transporte, asistencia, audiencia en línea y sentimiento, y agregue cada pieza de cobertura en medios ganados con su enlace. La cantidad de piezas y el alcance salen de la cobertura que agregue. Una cifra que nadie midió aparece como Sin medir, nunca como cero. Para cambiar una cifra, elija **Corregir** e indique un motivo; el registro de correcciones guarda la cifra antes y después.
 
+## Casi accidentes en la compuerta 7
+
+La compuerta 7 atestigua que cada incidente, lesión y casi accidente se registró y se resolvió. XOS no tiene un tipo de casi accidente, así que registre un casi accidente como incidente en Level 5 - Advisory, con Qué pasó empezando con las palabras Near miss. Filtre Incidentes por esa severidad para encontrarlos.
+
 ## Definiciones
 
 Pase el puntero o enfoque cualquier chip de compuerta o fase para ver su definición del canon de XOS.
+
+## Documentos y detalles obligatorios
+
+Cuando un proyecto tiene un tipo de evento, sus compuertas también revisan lo que el tipo requiere. Cada tipo de documento Obligatorio para la compuerta necesita un documento del proyecto de ese tipo con al menos una versión, y cada detalle obligatorio necesita un valor. Bajo cada compuerta, **Documentos y detalles obligatorios** muestra lo que está listo y lo que falta, y el botón para pasar nombra lo que falta. Los elementos recomendados aparecen en la lista y en la tarjeta Configuración del Resumen, pero nunca detienen una compuerta. Un proyecto sin tipo de evento pasa sus compuertas igual que antes.
 
 Relacionado: [Glosario](help:glossary).

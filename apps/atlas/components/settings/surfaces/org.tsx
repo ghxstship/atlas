@@ -1,3 +1,4 @@
+import { readSensitiveConsentReport } from "@xos/data/sensitive-consent";
 import { listAuditEvents } from "@xos/data/activity";
 import { listCanonExtensionProposals, listDepartments, listDisciplines } from "@xos/data/canon";
 import {
@@ -102,31 +103,27 @@ export async function DepartmentsPanel({ ctx }: SettingsPanelProps) {
               (x) => x.departmentCode === d.code && !x.isExtension,
             );
             if (own.length === 0) return null;
+            // One closed group per department, so the page shows summaries rather than every discipline (gate 27).
             return (
-              <details key={d.code} className="rounded-card border border-border-subtle px-12 py-8">
-                <summary className="cursor-pointer text-text-13 font-medium">
-                  {f.t(`${P}.departments.disciplinesOf`, { name: d.name, count: own.length })}
-                </summary>
-                <div className="pt-12">
-                  <SaveBarFields
-                    formId={`disciplines-${d.code}`}
-                    fields={[
-                      {
-                        kind: "checkboxes",
-                        name: "disciplines",
-                        label: f.t(`${P}.departments.disciplines`, { name: d.name }),
-                        options: own.map((x) => ({
-                          value: x.code,
-                          label: f.t(`${P}.departments.option`, { name: x.name, code: x.code }),
-                        })),
-                        defaultValues: inUse.data.disciplines.filter((c) =>
-                          own.some((x) => x.code === c),
-                        ),
-                      },
-                    ]}
-                  />
-                </div>
-              </details>
+              <SaveBarFields
+                key={d.code}
+                formId={`disciplines-${d.code}`}
+                fields={[
+                  {
+                    kind: "checkboxes",
+                    name: "disciplines",
+                    label: f.t(`${P}.departments.disciplines`, { name: d.name }),
+                    options: own.map((x) => ({
+                      value: x.code,
+                      label: f.t(`${P}.departments.option`, { name: x.name, code: x.code }),
+                    })),
+                    defaultValues: inUse.data.disciplines.filter((c) =>
+                      own.some((x) => x.code === c),
+                    ),
+                    closed: true,
+                  },
+                ]}
+              />
             );
           })}
         </SaveBarForm>
@@ -342,6 +339,53 @@ export async function DataRequestsPanel({ ctx }: SettingsPanelProps) {
           }))}
         />
       ) : null}
+    </Section>
+  );
+}
+
+/** Consent state per subject and sensitive field (ADR 0164), for holders of data.request.manage: never a value. */
+export async function SensitiveConsentPanel({ ctx }: SettingsPanelProps) {
+  if (!ctx.capabilities.has("data.request.manage")) return null;
+  const [f, report] = await Promise.all([
+    formatters(ctx),
+    readSensitiveConsentReport(ctx.viewer.db, ctx.org.id),
+  ]);
+  if (!report.ok) return <LoadFailed t={f.t} />;
+  const C = "workDetails.consent";
+  return (
+    <Section
+      id="sensitive-consent"
+      title={f.t(`${C}.report.title`)}
+      description={f.t(`${C}.report.description`)}
+    >
+      {report.data.length === 0 ? (
+        <Quiet>{f.t(`${C}.report.none`)}</Quiet>
+      ) : (
+        <Rows
+          label={f.t(`${C}.report.title`)}
+          rows={report.data.map((r) => ({
+            id: `${r.subjectId}-${r.fieldCode}`,
+            title: (
+              <>
+                {r.subjectName ?? f.t(`${C}.report.kinds.${r.subjectKind}`)}
+                <Chip
+                  tone={
+                    r.standing === "Withdrawn" || r.standing === "No Record" ? "warning" : "neutral"
+                  }
+                >
+                  {f.t(`${C}.report.standings.${r.standing}`)}
+                </Chip>
+              </>
+            ),
+            meta: [
+              f.t(`${C}.report.fields.${r.fieldCode}`),
+              r.noticeVersion,
+              r.givenAt ? f.day(r.givenAt) : null,
+              r.givenByName,
+            ],
+          }))}
+        />
+      )}
     </Section>
   );
 }

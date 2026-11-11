@@ -17,7 +17,10 @@ const BASE_MORE = [
   "Incidents",
   "Inspections",
   "Logistics",
+  "Gate",
   "Show",
+  // B5: Drives, the person's ground transport drives by project day.
+  "Drives",
   "Expenses",
   "Reference",
   "Offline Queue",
@@ -71,11 +74,33 @@ describe("compass sitemap", () => {
   });
 
   it.each<[CompassAudience, string[]]>([
-    ["crew", ["Timesheets", "Per Diem", "Travel and Lodging", "Onboarding Items"]],
-    ["staff", ["Timesheets", "Per Diem", "Travel and Lodging", "Onboarding Items"]],
-    ["vendor", ["Purchase Orders", "Deliveries", "Submittals"]],
-    ["contractor", ["Time Entries", "Deliverables"]],
-    ["artist", ["Advance Summary", "Rider", "Settlement"]],
+    // R5: Project Details for the role types a roster names (vendor, contractor, crew, staff, artist). B5: Drives for
+    // the role types that drive (vendor, contractor, crew, staff).
+    [
+      "crew",
+      [
+        "Timesheets",
+        "Per Diem",
+        "Travel and Lodging",
+        "Onboarding Items",
+        "Drives",
+        "Project Details",
+      ],
+    ],
+    [
+      "staff",
+      [
+        "Timesheets",
+        "Per Diem",
+        "Travel and Lodging",
+        "Onboarding Items",
+        "Drives",
+        "Project Details",
+      ],
+    ],
+    ["vendor", ["Purchase Orders", "Deliveries", "Submittals", "Drives", "Project Details"]],
+    ["contractor", ["Time Entries", "Deliverables", "Drives", "Project Details"]],
+    ["artist", ["Advance Summary", "Rider", "Settlement", "Project Details"]],
     ["artist-representative", ["Advance Summary", "Rider", "Settlement"]],
     ["client", ["Run of Show", "Reports"]],
     ["sponsor", ["Proof of Performance"]],

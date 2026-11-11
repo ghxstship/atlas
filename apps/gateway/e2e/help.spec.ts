@@ -19,7 +19,7 @@ test("the ? key opens help for the page, with search, shortcuts and What's New",
   await settle(page);
 
   // Typing a question mark in a field is typing, not a shortcut.
-  const search = page.getByRole("searchbox", { name: "Search opportunities" });
+  const search = page.getByRole("searchbox", { name: "Search Gateway" });
   await search.fill("?");
   await expect(panel(page)).toHaveCount(0);
   await search.fill("");
@@ -45,7 +45,7 @@ test("the ? key opens help for the page, with search, shortcuts and What's New",
 
   await forPage.getByRole("button", { name: /^Home/ }).click();
   await expect(help.getByRole("heading", { name: "Home", exact: true })).toBeVisible();
-  await expect(help.getByText(/the latest steps show here/)).toBeVisible();
+  await expect(help.getByText(/Updates that need nothing from you/)).toBeVisible();
   await help.getByRole("button", { name: "Back to help" }).click();
 
   await help.getByRole("searchbox", { name: "Search help" }).fill("self-billing");

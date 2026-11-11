@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
   acceptShift,
+  addPerDiems,
   addRateCardLine,
   approvePayrollRun,
   byCode,
   calculatePayrollRun,
+  canAddPerDiems,
   cancelSwap,
   cancelTimeOff,
   claimOpenShift,
@@ -42,6 +44,7 @@ import {
   listPayrollExports,
   listPayrollRuns,
   listPendingCorrections,
+  listPerDiems,
   listRateCardLines,
   listRateCards,
   listShifts,
@@ -57,6 +60,7 @@ import {
   publishShifts,
   rateInForce,
   recordPayRate,
+  removePerDiem,
   removeRateCardLine,
   requestCorrection,
   requestSwap,
@@ -106,6 +110,7 @@ const shiftRow = {
   record_id: null,
   scope_node_id: null,
   created_at: "2027-05-01T00:00:00.000Z",
+  updated_at: "2027-05-02T00:00:00.000Z",
   project: { project_key: "NWL", name: "Northwind" },
   membership: member,
   engagement_id: null,
@@ -239,6 +244,8 @@ describe("shifts", () => {
     });
     expect(result.ok && result.data[0]?.member?.name).toBe("Fern Field");
     expect(result.ok && result.data[1]?.member).toBeNull();
+    // The version a bulk change is sent against (migration 6100).
+    expect(result.ok && result.data[0]?.updatedAt).toBe("2027-05-02T00:00:00.000Z");
     expect(calls[0]?.steps).toContainEqual(["in", ["shift_state", ["Published"]]]);
     expect((await listShifts(db, { orgId: "o1" })).ok).toBe(false);
   });
@@ -361,6 +368,7 @@ describe("shifts", () => {
       recordId: null,
       scopeNodeId: null,
       createdAt: start,
+      updatedAt: start,
     });
     const a = mk("a", "2027-06-01T08:00:00Z", "2027-06-01T16:00:00Z", "p1");
     const b = mk("b", "2027-06-01T12:00:00Z", "2027-06-01T18:00:00Z", "p1");
@@ -627,6 +635,10 @@ describe("time entries and timesheets", () => {
       "from:timesheet_hours": [
         okResponse([{ timesheet_id: "t1", worked_minutes: 450, has_open_entry: false }]),
         okResponse([{ timesheet_id: "t1", worked_minutes: 450, has_open_entry: true }]),
+        okResponse({
+          period_starts_at: "2027-06-01T04:00:00+00:00",
+          period_ends_at: "2027-06-08T04:00:00+00:00",
+        }),
       ],
       "from:timesheet_approvals": [
         okResponse([
@@ -1144,5 +1156,111 @@ describe("time off", () => {
     expect((await decideTimeOff(db, "q1", "Approved", "Ok.")).ok).toBe(false);
     expect((await cancelTimeOff(db, "q1", "Approved", "Plans changed.")).ok).toBe(true);
     expect((await cancelTimeOff(db, "q1", "Approved", "Plans changed.")).ok).toBe(false);
+  });
+});
+
+describe("per diems", () => {
+  const perDiemRow = {
+    id: "pd1",
+    project_id: "pr1",
+    membership_id: null,
+    engagement_id: "e1",
+    day: "2027-06-01",
+    amount_minor: 6500,
+    currency_code: "USD",
+    project: { project_key: "NWL" },
+    membership: null,
+    engagement: { id: "e1", person_id: "p9", person: { full_name: "Ivy Marchetti" } },
+  };
+
+  it("lists per diems with the person from the membership or the engagement", async () => {
+    const { db, calls } = client({
+      "from:per_diems": [
+        okResponse([
+          perDiemRow,
+          {
+            ...perDiemRow,
+            id: "pd2",
+            membership_id: "m1",
+            engagement_id: null,
+            membership: member,
+            engagement: null,
+          },
+        ]),
+        errorResponse("XX000", "down"),
+      ],
+    });
+    const list = await listPerDiems(db, { orgId: "o1", projectId: "pr1" });
+    expect(list.ok && list.data.map((d) => [d.personName, d.projectKey])).toEqual([
+      ["Ivy Marchetti", "NWL"],
+      ["Fern Field", "NWL"],
+    ]);
+    expect(list.ok && list.data[0]).toMatchObject({
+      engagementId: "e1",
+      personId: "p9",
+      amountMinor: 6500,
+    });
+    expect(calls[0]?.steps).toContainEqual(["eq", ["project_id", "pr1"]]);
+    expect((await listPerDiems(db, { orgId: "o1" })).ok).toBe(false);
+  });
+
+  it("adds a run of days through add_per_diems and maps refusals", async () => {
+    const { db, calls } = client({
+      "rpc:add_per_diems": [
+        okResponse(3),
+        refused("per_diem_day_taken"),
+        refused("engagement_not_working"),
+        denied(),
+      ],
+    });
+    const input = {
+      projectId: "pr1",
+      membershipId: null,
+      engagementId: "e1",
+      from: "2027-06-01",
+      to: "2027-06-03",
+      amountMinor: 6500,
+      currencyCode: "USD",
+    };
+    expect(await addPerDiems(db, input)).toEqual({ ok: true, data: { count: 3 } });
+    expect(calls[0]?.steps[0]?.[1]).toEqual([
+      {
+        p_project_id: "pr1",
+        p_membership_id: null,
+        p_engagement_id: "e1",
+        p_from: "2027-06-01",
+        p_to: "2027-06-03",
+        p_amount_minor: 6500,
+        p_currency_code: "USD",
+      },
+    ]);
+    const taken = await addPerDiems(db, input);
+    expect(!taken.ok && taken.error.kind === "refusal" && taken.error.rule).toBe(
+      "per_diem_day_taken",
+    );
+    const notWorking = await addPerDiems(db, input);
+    expect(!notWorking.ok && notWorking.error.kind === "refusal" && notWorking.error.rule).toBe(
+      "engagement_not_working",
+    );
+    expect(await addPerDiems(db, input)).toEqual({ ok: false, error: { kind: "not-found" } });
+  });
+
+  it("asks can_add_per_diems whether Add shows on a project", async () => {
+    const { db, calls } = client({
+      "rpc:can_add_per_diems": [okResponse(true), okResponse(false), denied()],
+    });
+    expect(await canAddPerDiems(db, "pr1")).toEqual({ ok: true, data: true });
+    expect(calls[0]?.steps[0]?.[1]).toEqual([{ p_project_id: "pr1" }]);
+    expect(await canAddPerDiems(db, "pr1")).toEqual({ ok: true, data: false });
+    expect((await canAddPerDiems(db, "pr1")).ok).toBe(false);
+  });
+
+  it("removes a per diem with a soft delete", async () => {
+    const { db, calls } = client({
+      "from:per_diems": [okResponse([{ id: "pd1" }]), okResponse([])],
+    });
+    expect(await removePerDiem(db, "pd1")).toEqual({ ok: true, data: null });
+    expect(calls[0]?.steps[0]?.[0]).toBe("update");
+    expect(await removePerDiem(db, "pd1")).toEqual({ ok: false, error: { kind: "not-found" } });
   });
 });

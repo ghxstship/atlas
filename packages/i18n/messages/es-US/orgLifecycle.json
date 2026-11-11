@@ -55,7 +55,7 @@
   },
   "deletion": {
     "title": "Eliminar la organización",
-    "description": "Eliminar es distinto de cancelar. La organización pasa a solo lectura de inmediato y sus datos se eliminan después de 7 días, sin el período de 30 días para exportar. Cualquier Propietario puede recuperarla durante esos 7 días. Usted confirma con su segundo factor.",
+    "description": "Eliminar es distinto de cancelar. Cualquier suscripción de pago termina de inmediato en Stripe, sin más cargos, y el tiempo que ya pagó no se reembolsa, salvo que la ley lo exija. La organización queda en solo lectura de inmediato y sus datos se eliminan después de 7 días, sin el período de exportación de 30 días, una vez que Stripe haya aceptado la cancelación. Cualquier Propietario puede recuperarla durante esos 7 días, en el plan Access. Usted confirma con su segundo factor.",
     "ownerOnly": "Solo el Propietario elimina la organización.",
     "confirm": "Escriba {name} para confirmar la eliminación",
     "reason": "¿Por qué la elimina?",

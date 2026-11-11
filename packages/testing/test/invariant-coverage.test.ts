@@ -79,6 +79,21 @@ const ownRules: Record<string, { refused: string[]; movers: string[] }> = {
   },
   // The phase ledger (app.project_phase_transitions) moves only through app.pass_gate (invariant 9).
   project_phase: { refused: ["gate_criteria_unmet"], movers: ["app.pass_gate"] },
+  // A legal queue item has no org, which private.transition_lifecycle needs (ADR 0167).
+  legal_queue_item: {
+    refused: ["legal_queue_item_transition_not_allowed"],
+    movers: ["app.console_transition_legal_queue_item"],
+  },
+  // A Stripe cancel's rules sit in private.lifecycle_transition_rules, but its own trigger
+  // (private.guard_stripe_cancellation_state, 6810) checks them: the Stripe answers move it, never transition_lifecycle.
+  stripe_cancellation: {
+    refused: ["stripe_cancellation_transition_not_allowed"],
+    movers: [
+      "app.reconcile_stripe_subscription",
+      "app.note_stripe_subscription_terms",
+      "private.accept_stripe_cancellation",
+    ],
+  },
 };
 
 const lifecycles = new Set(
@@ -121,11 +136,13 @@ for (let grew = true; grew;) {
 }
 
 const machines = [
-  ...[...lifecycles].map((name) => ({
-    name,
-    refused: [`${name}_transition_not_allowed`, `${name}_state_conflict`],
-    movers: [...(movers[name] ?? [])],
-  })),
+  ...[...lifecycles]
+    .filter((name) => !(name in ownRules))
+    .map((name) => ({
+      name,
+      refused: [`${name}_transition_not_allowed`, `${name}_state_conflict`],
+      movers: [...(movers[name] ?? [])],
+    })),
   ...Object.entries(ownRules).map(([name, m]) => ({ name, ...m })),
 ].sort((a, b) => a.name.localeCompare(b.name));
 
@@ -176,13 +193,14 @@ describe("state machine transition coverage (gate 4)", () => {
   });
 
   it("exercises an allowed move of every state machine", () => {
+    // Each mover's pattern is built once and the refusals are set aside once: building a pattern per
+    // statement took more than five seconds on a CI runner.
+    const allowed = statements.filter((s) => !s.includes("throws_"));
     const unmoved = machines
-      .filter(
-        (m) =>
-          !statements.some(
-            (s) => !s.includes("throws_") && m.movers.some((fn) => calls(fn).test(s)),
-          ),
-      )
+      .filter((m) => {
+        const patterns = m.movers.map(calls);
+        return !allowed.some((s) => patterns.some((pattern) => pattern.test(s)));
+      })
       .map((m) => m.name);
     expect(unmoved, "state machines no suite moves along an allowed transition").toEqual([]);
   });

@@ -3,12 +3,14 @@ import { join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { loadSitemapFile } from "@xos/ia/node";
 import { parsePlanRegistry as parseValidatedPlans } from "@xos/schemas/plans";
+import { legalTextSource } from "@xos/ui/legal-text";
 import { format, resolveConfig } from "prettier";
 import {
   GENERATED_PREFIX,
   GENERATED_STAMP,
   generateFiles,
   parseAddons,
+  parseLegalFiles,
   parseLegalRegistry,
   parseOffers,
   parsePlanRegistry,
@@ -21,14 +23,24 @@ const repoRoot = fileURLToPath(new URL("../../../", import.meta.url));
 /** The generated files, formatted with the repository Prettier config, keyed by relative path. */
 export async function renderGeneratedFiles(): Promise<Map<string, string>> {
   const sitemap = loadSitemapFile(join(appRoot, "ia/sitemap.yaml"));
-  const legal = parseLegalRegistry(readFileSync(join(repoRoot, "legal/index.yaml"), "utf8"));
+  const legalYaml = readFileSync(join(repoRoot, "legal/index.yaml"), "utf8");
+  const legal = parseLegalRegistry(legalYaml);
   const out = new Map<string, string>();
   const plansYaml = readFileSync(join(repoRoot, "packages/schemas/plans.yaml"), "utf8");
   const plans = parsePlanRegistry(plansYaml);
   const addons = parseAddons(plansYaml);
   const offers = parseOffers(plansYaml);
   const registry = parseValidatedPlans(plansYaml);
-  for (const [path, source] of generateFiles(sitemap, legal, plans, addons, offers, registry)) {
+  const generated = generateFiles(sitemap, legal, plans, addons, offers, registry);
+  generated.set(
+    "lib/legal-text.generated.ts",
+    legalTextSource(
+      GENERATED_STAMP.replace("ia/sitemap.yaml", "legal/index.yaml and its documents"),
+      parseLegalFiles(legalYaml),
+      (file) => readFileSync(join(repoRoot, file), "utf8"),
+    ),
+  );
+  for (const [path, source] of generated) {
     const filepath = join(appRoot, path);
     const options = (await resolveConfig(filepath)) ?? {};
     out.set(path, await format(source, { ...options, filepath }));

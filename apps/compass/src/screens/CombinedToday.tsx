@@ -15,6 +15,7 @@ import { formatCountdown, showsCountdown } from "../domain/show";
 import { useCompass, useRows } from "../runtime/CompassProvider";
 import { Card, ShiftCard, Text, useTheme } from "../ui";
 import { BrandChip } from "./OrgSwitcher";
+import { TodayContacts } from "./TodayContacts";
 import { formatDay, formatTime, useRoleTitle } from "./common";
 
 type LocalShift = ShiftRow & Row;
@@ -22,11 +23,14 @@ type LocalShift = ShiftRow & Row;
 function NextCueCard({
   label,
   plannedAt,
+  tbc,
   zone,
   nowMs,
 }: {
   readonly label: string;
   readonly plannedAt: string;
+  /** The planned time is an estimate to be confirmed: TBC, never a countdown (G-40). */
+  readonly tbc: boolean;
   readonly zone: string;
   readonly nowMs: number;
 }): ReactElement {
@@ -35,7 +39,9 @@ function NextCueCard({
   return (
     <Card title={t("compass.today.nextCue")}>
       <Text variant="heading20">{label}</Text>
-      {showsCountdown(ms) ? (
+      {tbc ? (
+        <Text tone="secondary">{t("compass.show.tbc")}</Text>
+      ) : showsCountdown(ms) ? (
         <Text tone="accent">{formatCountdown(ms)}</Text>
       ) : (
         <Text tone="secondary">
@@ -139,14 +145,22 @@ export function CombinedToday({
             );
           })}
           {g.sheets.map((d) => (
-            <Card key={d.id} title={t("nav.compass.content.daySheet")}>
-              <Text>{d.body}</Text>
-            </Card>
+            <View key={d.id} style={{ gap: theme.space["8"] }}>
+              <Card title={t("nav.compass.content.daySheet")}>
+                <Text>{d.body}</Text>
+              </Card>
+              <TodayContacts
+                testID={`today-contacts-${d.id}`}
+                projectId={d.project_id}
+                today={d.day}
+              />
+            </View>
           ))}
           {g.nextCue?.planned_at ? (
             <NextCueCard
               label={g.nextCue.label}
               plannedAt={g.nextCue.planned_at}
+              tbc={g.nextCue.start_tbc === true}
               zone={zoneOf(g.nextCue.project_id ?? "")}
               nowMs={now}
             />

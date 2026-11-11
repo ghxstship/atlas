@@ -1,6 +1,7 @@
 "use server";
 
 import {
+  addPoInstalment,
   addPoLine,
   approveMatchedInvoice,
   approvePurchaseOrder,
@@ -15,16 +16,21 @@ import {
   decidePoChangeOrder,
   deleteCatalogBinding,
   deleteVendorProduct,
+  getHireWindowWarnings,
   getRfq,
   inviteVendorToRfq,
+  linkPoInstalmentBill,
   listCurrencies,
   listRfqResponses,
   pricePoChangeOrder,
   recordGoodsReceipt,
+  recordGoodsReturn,
   recordRfqResponse,
+  removePoInstalment,
   removePoLine,
   removeRfqInvitation,
   resolveInvoiceMatch,
+  setPoLineEngagement,
   transitionPurchaseOrder,
   transitionRfq,
   transitionSubmittal,
@@ -32,10 +38,13 @@ import {
   updatePoLine,
   updateRfq,
   updateSubmittal,
+  GOODS_RETURN_REASONS,
   PO_STATES,
   REVIEW_STATES,
   RFQ_STATES,
   SUBMITTAL_KINDS,
+  type GoodsReturnReason,
+  type HireWarning,
   type PoLineInput,
   type PoState,
   type ReviewState,
@@ -45,6 +54,10 @@ import {
 import type { XosClient } from "@xos/data";
 import { applySuggestions, suggestionIds } from "@/lib/aurora/suggestions";
 import { actionContext, finish } from "@/lib/collection-kit/actions";
+import { getOrgContext } from "@/lib/shell/context";
+import { localToInstant } from "@/lib/operations/time";
+import { tagsOf } from "@/lib/procurement/hire";
+import { customFieldsOf } from "@/lib/custom-fields/form";
 import {
   all,
   decimal,
@@ -160,6 +173,7 @@ export async function recordResponseAction(_: ActionState, form: FormData): Prom
   const descriptions = form.getAll("lineDescription").map((v) => String(v).trim());
   const quantities = form.getAll("lineQuantity").map((v) => String(v).trim());
   const prices = form.getAll("linePrice").map((v) => String(v));
+  const asked = form.getAll("lineRfqLineId").map((v) => String(v));
   const lines = descriptions.flatMap((description, i) => {
     if (description === "") return [];
     const quantity = Number(quantities[i] ?? "");
@@ -172,7 +186,7 @@ export async function recordResponseAction(_: ActionState, form: FormData): Prom
       errors.add("lines", "money");
       return [];
     }
-    return [{ description, quantity, unitPriceMinor: price }];
+    return [{ description, quantity, unitPriceMinor: price, rfqLineId: asked[i] || null }];
   });
   if (lines.length === 0) errors.add("lines", "lines");
   if (rfqId === null) return { error: "notFound" };
@@ -233,11 +247,15 @@ export async function createPoAction(_: ActionState, form: FormData): Promise<Ac
   const currency = text(form, "currencyCode")?.toUpperCase() ?? null;
   if (currency === null || !/^[A-Z]{3}$/.test(currency)) errors.add("currencyCode", "currency");
   if (errors.any || !projectId || !vendorId || !currency) return errors.state;
-  return finish(
-    await createPurchaseOrder(ctx.viewer.db, { projectId, vendorId, currencyCode: currency }),
-    ctx,
-    MODULE,
-  );
+  const custom = await customFieldsOf(ctx, "app.purchase_orders", form);
+  if (custom.fieldErrors) return { fieldErrors: custom.fieldErrors };
+  const created = await createPurchaseOrder(ctx.viewer.db, {
+    projectId,
+    vendorId,
+    currencyCode: currency,
+  });
+  if (created.ok) await custom.save(created.data.id);
+  return finish(created, ctx, MODULE);
 }
 
 async function lineInput(
@@ -261,6 +279,16 @@ async function lineInput(
   ) {
     return null;
   }
+  // A Rental line hires the item between two local times typed in the project's zone (R7a, 4681).
+  const rental = text(form, "acquisitionKind") === "Rental";
+  const zone = text(form, "timeZone") ?? "UTC";
+  const hireStartsAt = rental ? localToInstant(text(form, "hireFrom"), zone) : null;
+  const hireEndsAt = rental ? localToInstant(text(form, "hireTo"), zone) : null;
+  if (rental && hireStartsAt === null) errors.add("hireFrom", "date");
+  if (rental && hireEndsAt === null) errors.add("hireTo", "date");
+  if (hireStartsAt !== null && hireEndsAt !== null && hireEndsAt <= hireStartsAt)
+    errors.add("hireTo", "hireOrder");
+  if (errors.any) return null;
   return {
     description,
     quantity,
@@ -268,7 +296,34 @@ async function lineInput(
     unitBasis: text(form, "unitBasis"),
     elementId: text(form, "elementId"),
     budgetLineId: uuid(form, "budgetLineId"),
+    acquisitionKind: rental ? "Rental" : "Purchase",
+    hireStartsAt,
+    hireEndsAt,
   };
+}
+
+/**
+ * The delivery and return window warnings a hire would raise on the project (G-99), while the line form is
+ * open: app.hire_window_warnings as the viewer. Null when the hire is incomplete or cannot be checked; the form
+ * never blocks on it.
+ */
+export async function hireWarningsAction(
+  org: string,
+  projectId: string,
+  hireFrom: string,
+  hireTo: string,
+  timeZone: string,
+): Promise<HireWarning[] | null> {
+  const ctx = await getOrgContext(org);
+  const from = localToInstant(hireFrom, timeZone);
+  const to = localToInstant(hireTo, timeZone);
+  if (!ctx || from === null || to === null || to <= from) return null;
+  const result = await getHireWindowWarnings(ctx.viewer.db, {
+    projectId,
+    hireFrom: from,
+    hireTo: to,
+  });
+  return result.ok ? result.data : null;
 }
 
 export async function addPoLineAction(_: ActionState, form: FormData): Promise<ActionState> {
@@ -296,6 +351,58 @@ export async function removePoLineAction(_: ActionState, form: FormData): Promis
   const id = uuid(form, "id");
   if (id === null) return { error: "notFound" };
   return finish(await removePoLine(ctx.viewer.db, id), ctx, MODULE);
+}
+
+export async function addPoInstalmentAction(_: ActionState, form: FormData): Promise<ActionState> {
+  const ctx = await actionContext(form);
+  const purchaseOrderId = uuid(form, "purchaseOrderId");
+  if (purchaseOrderId === null) return { error: "notFound" };
+  const errors = new FieldErrors();
+  const label = errors.need("label", requiredText(form, "label", 120));
+  const dueOn = errors.need("dueOn", isoDate(form, "dueOn"));
+  const amountMinor = moneyToMinor(
+    text(form, "amount"),
+    await exponentOf(ctx.viewer.db, text(form, "currencyCode")),
+  );
+  if (amountMinor === undefined || amountMinor === null || amountMinor <= 0) {
+    errors.add("amount", "money");
+  }
+  if (errors.any || !label || !dueOn || !amountMinor) return errors.state;
+  return finish(
+    await addPoInstalment(ctx.viewer.db, { purchaseOrderId, label, dueOn, amountMinor }),
+    ctx,
+    MODULE,
+  );
+}
+
+export async function removePoInstalmentAction(
+  _: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  const ctx = await actionContext(form);
+  const id = uuid(form, "id");
+  if (id === null) return { error: "notFound" };
+  return finish(await removePoInstalment(ctx.viewer.db, id), ctx, MODULE);
+}
+
+export async function linkPoBillAction(_: ActionState, form: FormData): Promise<ActionState> {
+  const ctx = await actionContext(form);
+  const id = uuid(form, "id");
+  const invoiceId = uuid(form, "invoiceId");
+  if (id === null) return { error: "notFound" };
+  if (invoiceId === null) return { fieldErrors: { invoiceId: "required" } };
+  return finish(await linkPoInstalmentBill(ctx.viewer.db, id, invoiceId), ctx, MODULE);
+}
+
+export async function setPoLineActAction(_: ActionState, form: FormData): Promise<ActionState> {
+  const ctx = await actionContext(form);
+  const id = uuid(form, "id");
+  if (id === null) return { error: "notFound" };
+  return finish(
+    await setPoLineEngagement(ctx.viewer.db, id, uuid(form, "engagementId")),
+    ctx,
+    MODULE,
+  );
 }
 
 export async function approvePoAction(_: ActionState, form: FormData): Promise<ActionState> {
@@ -380,10 +487,16 @@ export async function decideChangeOrderAction(
 
 // Receipts and matching ------------------------------------------------------------------------------------
 
+/**
+ * One receipt event (R7a): the form mints its event id when it opens, so a resubmitted form records nothing twice.
+ * A line with an asset class brings units in by asset tag or a quantity into stock at a venue.
+ */
 export async function recordReceiptAction(_: ActionState, form: FormData): Promise<ActionState> {
   const ctx = await actionContext(form);
   const purchaseOrderId = uuid(form, "purchaseOrderId");
+  const eventId = uuid(form, "eventId");
   if (purchaseOrderId === null) return { fieldErrors: { purchaseOrderId: "required" } };
+  if (eventId === null) return { error: "invalid" };
   const errors = new FieldErrors();
   const lines = all(form, "lineId").flatMap((lineId) => {
     const raw = text(form, `received-${lineId}`);
@@ -393,12 +506,56 @@ export async function recordReceiptAction(_: ActionState, form: FormData): Promi
       errors.add(`received-${lineId}`, "number");
       return [];
     }
-    return quantity > 0 ? [{ poLineId: lineId, quantity }] : [];
+    const assetTags = tagsOf(text(form, `tags-${lineId}`));
+    const venueId = uuid(form, `venue-${lineId}`);
+    return quantity > 0 ? [{ poLineId: lineId, quantity, assetTags, venueId }] : [];
   });
   if (lines.length === 0) errors.add("lines", "lines");
   if (errors.any) return errors.state;
+  const result = await recordGoodsReceipt(ctx.viewer.db, {
+    eventId,
+    purchaseOrderId,
+    note: text(form, "note"),
+    lines,
+  });
   return finish(
-    await recordGoodsReceipt(ctx.viewer.db, { purchaseOrderId, note: text(form, "note"), lines }),
+    result.ok ? { ok: true, data: { id: result.data.goodsReceiptId } } : result,
+    ctx,
+    MODULE,
+  );
+}
+
+/** One return to the vendor against a receipt (R7a): units go Returned, lot quantities leave as a Vendor Return. */
+export async function recordReturnAction(_: ActionState, form: FormData): Promise<ActionState> {
+  const ctx = await actionContext(form);
+  const purchaseOrderId = uuid(form, "purchaseOrderId");
+  const eventId = uuid(form, "eventId");
+  const reason = text(form, "reason") as GoodsReturnReason | null;
+  if (purchaseOrderId === null || eventId === null) return { error: "invalid" };
+  const errors = new FieldErrors();
+  if (reason === null || !GOODS_RETURN_REASONS.includes(reason)) errors.add("reason", "required");
+  const lines = all(form, "receiptLineId").flatMap((receiptLineId) => {
+    const units = all(form, `units-${receiptLineId}`);
+    const raw = text(form, `returned-${receiptLineId}`);
+    const quantity = units.length > 0 ? units.length : raw === null ? 0 : Number(raw);
+    if (!Number.isFinite(quantity) || quantity < 0) {
+      errors.add(`returned-${receiptLineId}`, "number");
+      return [];
+    }
+    const venueId = uuid(form, `venue-${receiptLineId}`);
+    return quantity > 0 ? [{ receiptLineId, quantity, assetUnitIds: units, venueId }] : [];
+  });
+  if (lines.length === 0) errors.add("lines", "lines");
+  if (errors.any || reason === null) return errors.state;
+  const result = await recordGoodsReturn(ctx.viewer.db, {
+    eventId,
+    purchaseOrderId,
+    reason,
+    note: text(form, "note"),
+    lines,
+  });
+  return finish(
+    result.ok ? { ok: true, data: { id: result.data.goodsReturnId } } : result,
     ctx,
     MODULE,
   );

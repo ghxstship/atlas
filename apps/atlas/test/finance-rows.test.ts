@@ -2,7 +2,8 @@
  * The finance kit's table, list and board on a page with no record panel (Year-end, the chart of
  * accounts, the posting-line export): with `activatable={false}` a row opens nothing, so a click,
  * Enter or the row menu never puts the row's id in `?peek`, where the shell's peek would only say it
- * is no record. Rendered with the real components and catalog; the @xos/ui table, row and board
+ * is no record. A table whose records have a peek but no full page (`fullPage={false}`) offers no
+ * Open full page. Rendered with the real components and catalog; the @xos/ui table, row and board
  * record the handlers they are given.
  */
 import { getMessages } from "@xos/i18n";
@@ -129,6 +130,20 @@ describe("finance rows on a page with no record panel", () => {
     expect(seen.menus[0]).not.toHaveProperty("open");
     expect(seen.menus[0]).not.toHaveProperty("href");
     expect(seen.menus[0]?.bulk?.selection).toBeDefined();
+  });
+
+  it("offers Open without Open full page where the record has no full page", () => {
+    // Saved reports open in their peek only (components/reports/saved-view.tsx).
+    render(createElement(CollectionTable, { label: "Reports", columns, rows, fullPage: false }));
+    const [table] = seen.tables;
+    handler(table, "onRowContextMenu")?.(rows[0], 0, null, cell);
+    expect(seen.menus[0]?.open).toBeTypeOf("function");
+    expect(seen.menus[0]).not.toHaveProperty("href");
+    handler(table, "onRowActivate")?.(rows[0], 0);
+    expect(seen.push).toHaveBeenCalledWith(
+      "/demo-productions/finance/chart-of-accounts?view=table&peek=1000",
+      { scroll: false },
+    );
   });
 
   it("offers a list row's Open, and none on a page with no record panel", () => {

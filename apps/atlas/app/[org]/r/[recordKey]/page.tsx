@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { requireModuleNode } from "@/components/work/load";
 import { stateToken } from "@/components/work/format";
+import { recordBulkConfig } from "@/components/work/load";
 import { loadRecordDetail, RecordBody, RecordProperties } from "@/components/work/record-detail";
+import { RecordTitleRow } from "@/components/work/record-title-row";
 import { Breadcrumbs, RecordKindChip, StateChip, TemplateRecord } from "@/components/work/ui";
 import { ContinueOnDevice } from "@/components/handoff/continue-on-device";
 import { LiveRefresh } from "@/components/live/live-refresh";
@@ -47,7 +49,12 @@ export default async function RecordPage({ params }: PageProps<"/[org]/r/[record
               { label: record.key },
             ]}
           />
-          <div className="flex flex-wrap items-center gap-8 text-text-secondary">
+          <RecordTitleRow
+            org={org}
+            recordId={record.id}
+            recordKey={record.key}
+            bulk={detail.canWrite ? recordBulkConfig(org, detail.meta, t) : null}
+          >
             <span className="font-mono text-text-12">{record.key}</span>
             <RecordKindChip
               kind={record.kind as RecordKind}
@@ -74,7 +81,7 @@ export default async function RecordPage({ params }: PageProps<"/[org]/r/[record
                 }}
               />
             </span>
-          </div>
+          </RecordTitleRow>
           <h1 className="m-0 text-heading-24 font-semibold">{record.title}</h1>
         </header>
       }

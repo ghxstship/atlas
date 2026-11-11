@@ -1,6 +1,7 @@
 import { z } from "zod";
 import {
   EmailSendError,
+  type EmailAction,
   RecipientRefusedError,
   isTemplateCode,
   sendEmail,
@@ -23,6 +24,8 @@ export interface ClaimedEmail {
   readonly messageArgs: Readonly<Record<string, unknown>>;
   readonly subjectTable: string | null;
   readonly subjectId: string | null;
+  /** The notification the delivery carries (A127: its one-tap links act on it). */
+  readonly notificationId?: string;
 }
 
 export interface Recipient {
@@ -36,14 +39,29 @@ export type DeliveryOutcome = "Sent" | "Failed" | "Bounced";
 /** What the email dispatcher needs from the database. */
 export interface NotificationStore {
   claimEmail(limit: number): Promise<readonly ClaimedEmail[]>;
-  /** Sender identity of an org: name, postal address, From address, preference and unsubscribe links. */
-  senderFor(orgId: string, recipientPersonId: string): Promise<Sender & { readonly from: string }>;
+  /**
+   * Sender identity of an org: name, postal address, From address, preference and unsubscribe links.
+   * While white label is in force (A138) it also carries the org's brand and its support address as
+   * the reply-to, except for the platform kinds of `kind` (billing and plan notices).
+   */
+  senderFor(
+    orgId: string,
+    recipientPersonId: string,
+    kind?: string,
+  ): Promise<Sender & { readonly from: string; readonly replyTo?: string }>;
   /** The recipient as an org writes to them: their name, its language for them and their time zone. */
   recipient(personId: string, orgId: string): Promise<Recipient>;
   /** Link that opens the notification's subject in the app. */
   linkFor(claim: ClaimedEmail): Promise<string>;
   /** Signed reply address for reply by email, or null when the email takes no replies. */
   replyAddressFor(claim: ClaimedEmail): Promise<string | null>;
+  /** One-tap action links minted for the delivery (A127, ADR 0106); without it an email has no action buttons. */
+  actionLinksFor?(claim: ClaimedEmail): Promise<readonly EmailAction[]>;
+  /**
+   * The access code an approval_link_code email carries, minted now and returned once (P9, app.mint_approval_link_code);
+   * null when its link is no longer ready. Only its hash is stored.
+   */
+  mintApprovalLinkCodeFor?(claim: ClaimedEmail): Promise<string | null>;
   record(
     deliveryId: string,
     outcome: DeliveryOutcome,
@@ -55,16 +73,24 @@ export interface NotificationStore {
 const exportReady = z.object({ exportName: z.string(), expiresAt: z.coerce.date(), url: z.url() });
 const importFinished = z.object({
   importName: z.string(),
+  // 2051 (A104) says whether the import was validated or committed; a notice without it reads as committed.
+  stage: z.enum(["validated", "committed"]).default("committed"),
   written: z.number().int().nonnegative(),
   refused: z.number().int().nonnegative(),
   skipped: z.number().int().nonnegative(),
   url: z.url(),
 });
+const approvalLinkCode = z.object({ orgName: z.string() });
+/** How long an emailed access code works (app.mint_approval_link_code, migration 5861). */
+export const APPROVAL_LINK_CODE_MINUTES = 10;
+
 const reportDelivery = z.object({
   reportName: z.string(),
   periodLabel: z.string(),
   format: z.string(),
-  url: z.url(),
+  url: z.url().optional(),
+  rows: z.number().int().nonnegative().optional(),
+  unpriced: z.number().int().nonnegative().optional(),
 });
 
 function messageArgs(raw: Readonly<Record<string, unknown>>): MessageArgs {
@@ -82,9 +108,22 @@ async function propsFor(
   if (!isTemplateCode(claim.emailTemplateCode))
     throw new Error(`Unknown email template ${claim.emailTemplateCode}`);
   switch (claim.emailTemplateCode) {
-    case "notification":
+    case "notification": {
+      const actions = (await store.actionLinksFor?.(claim)) ?? [];
       return {
         code: "notification",
+        props: {
+          kind: claim.kind,
+          args: messageArgs(claim.messageArgs),
+          url: await store.linkFor(claim),
+          ...(actions.length === 0 ? {} : { actions }),
+        },
+      };
+    }
+    // A billing notice renders as a notification, without one-tap actions, and is transactional (ADR 0161).
+    case "billing_notice":
+      return {
+        code: "billing_notice",
         props: {
           kind: claim.kind,
           args: messageArgs(claim.messageArgs),
@@ -95,8 +134,32 @@ async function propsFor(
       return { code: "export_ready", props: exportReady.parse(claim.messageArgs) };
     case "import_finished":
       return { code: "import_finished", props: importFinished.parse(claim.messageArgs) };
-    case "report_delivery":
-      return { code: "report_delivery", props: reportDelivery.parse(claim.messageArgs) };
+    case "report_delivery": {
+      const { url, rows, unpriced, ...words } = reportDelivery.parse(claim.messageArgs);
+      return {
+        code: "report_delivery",
+        props: {
+          ...words,
+          ...(url === undefined ? {} : { url }),
+          ...(rows === undefined ? {} : { rows }),
+          ...(unpriced === undefined ? {} : { unpriced }),
+        },
+      };
+    }
+    case "approval_link_code": {
+      // P9: the code is minted while the email is rendered, so it exists in clear only in this email.
+      const code = (await store.mintApprovalLinkCodeFor?.(claim)) ?? null;
+      if (code === null || !/^[0-9]{6}$/.test(code))
+        throw new Error("The approval link is no longer ready, so no access code was sent");
+      return {
+        code: "approval_link_code",
+        props: {
+          code,
+          orgName: approvalLinkCode.parse(claim.messageArgs).orgName,
+          expiresInMinutes: APPROVAL_LINK_CODE_MINUTES,
+        },
+      };
+    }
     default:
       throw new Error(`The ${claim.emailTemplateCode} template is not sent for notifications`);
   }
@@ -125,9 +188,10 @@ export async function dispatchEmail(
     try {
       const recipient = await store.recipient(claim.recipientPersonId, claim.orgId);
       const locale: Locale = isLocale(recipient.locale) ? recipient.locale : "en-US";
-      const sender = await store.senderFor(claim.orgId, claim.recipientPersonId);
+      const sender = await store.senderFor(claim.orgId, claim.recipientPersonId, claim.kind);
       const { code, props } = await propsFor(claim, store);
-      const replyTo = await store.replyAddressFor(claim);
+      // A signed reply address threads the reply onto the record; otherwise replies reach the org's support address.
+      const replyTo = (await store.replyAddressFor(claim)) ?? sender.replyTo ?? null;
       const result = await sendEmail({
         transport,
         template: code,

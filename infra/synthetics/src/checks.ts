@@ -7,13 +7,20 @@
 
 import type { CheckContext, CheckDefinition, ProbeOutcome } from "./types.ts";
 
+/** The URL without trailing slashes: a loop, which stays linear where `/\/+$/` backtracks over a run of slashes. */
+function withoutTrailingSlashes(url: string): string {
+  let end = url.length;
+  while (end > 0 && url[end - 1] === "/") end -= 1;
+  return url.slice(0, end);
+}
+
 const RUNBOOK = "infra/runbooks/incident-response.md";
 
 const ok: ProbeOutcome = { ok: true };
 const failed = (detail: string): ProbeOutcome => ({ ok: false, detail });
 
 function base(url: string | undefined): string {
-  return (url ?? "").replace(/\/+$/, "");
+  return withoutTrailingSlashes(url ?? "");
 }
 
 async function request(
@@ -30,6 +37,26 @@ async function request(
     },
     signal: AbortSignal.timeout(context.timeoutMs),
   });
+}
+
+/**
+ * The start of a body, then the rest is cancelled, so a check of a large document downloads almost none
+ * of it. A body that ends sooner is returned whole.
+ */
+async function readStart(response: Response, bytes: number): Promise<string> {
+  const reader = response.body?.getReader();
+  if (!reader) return "";
+  const decoder = new TextDecoder();
+  let text = "";
+  let read = 0;
+  while (read < bytes) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    read += value.byteLength;
+    text += decoder.decode(value, { stream: true });
+  }
+  await reader.cancel();
+  return text;
 }
 
 function expectStatus(response: Response, expected: number): ProbeOutcome | null {
@@ -99,7 +126,8 @@ export const gatewayHome: CheckDefinition = {
   required: true,
   runbook: `${RUNBOOK}#atlas-or-gateway-unavailable`,
   async probe(context) {
-    const response = await request(context, `${base(context.env["XOS_GATEWAY_URL"])}/`);
+    // The root redirects: signed in to /home, everyone else to sign-in. The sign-in page is what a visitor reaches.
+    const response = await request(context, `${base(context.env["XOS_GATEWAY_URL"])}/auth/sign-in`);
     const bad = expectStatus(response, 200);
     if (bad) return bad;
     const html = await response.text();
@@ -107,11 +135,14 @@ export const gatewayHome: CheckDefinition = {
   },
 };
 
+const OPENAPI_PREFIX_BYTES = 1024;
+
 export const apiDocument: CheckDefinition = {
   id: "api.openapi",
   component: "api",
   requires: ["XOS_ATLAS_URL"],
-  budgetMs: 250,
+  // A static file from the CDN, like the sign-in pages' budget, and not the 250 ms of a signed-in read.
+  budgetMs: 600,
   required: true,
   runbook: `${RUNBOOK}#api-errors-or-latency`,
   async probe(context) {
@@ -121,10 +152,50 @@ export const apiDocument: CheckDefinition = {
     );
     const bad = expectStatus(response, 200);
     if (bad) return bad;
-    const body = (await response.json()) as { openapi?: unknown };
-    return typeof body.openapi === "string" && body.openapi.startsWith("3.1")
+    // The document runs to megabytes, and its version is its first key. Reading all of it would measure
+    // this runner's JSON parser against a budget meant for the host, and download it every five minutes.
+    const start = await readStart(response, OPENAPI_PREFIX_BYTES);
+    return /^\s*\{\s*"openapi"\s*:\s*"3\.1/.test(start) ? ok : failed("not_openapi_3_1");
+  },
+};
+
+export const apiHostGuard: CheckDefinition = {
+  id: "api.host_guard",
+  component: "api",
+  requires: ["XOS_API_URL"],
+  budgetMs: 600,
+  required: true,
+  runbook: `${RUNBOOK}#api-errors-or-latency`,
+  async probe(context) {
+    // The public API host, asked for a resource with no credential: refusing proves the host routes to
+    // the API and its credential check answers. It reads nothing and creates nothing.
+    const response = await request(
+      context,
+      `${base(context.env["XOS_API_URL"])}/v1/canon/departments`,
+      { headers: { accept: "application/json" } },
+    );
+    const bad = expectStatus(response, 401);
+    if (bad) return bad;
+    return (response.headers.get("content-type") ?? "").includes("application/problem+json")
       ? ok
-      : failed("not_openapi_3_1");
+      : failed("not_a_problem");
+  },
+};
+
+export const docsHome: CheckDefinition = {
+  id: "docs.home",
+  component: "docs",
+  requires: ["XOS_DOCS_URL"],
+  budgetMs: 800,
+  required: true,
+  runbook: `${RUNBOOK}#documentation-unavailable`,
+  async probe(context) {
+    // The root negotiates a locale and redirects, so this asks for the page a visitor lands on.
+    const response = await request(context, `${base(context.env["XOS_DOCS_URL"])}/en-US`);
+    const bad = expectStatus(response, 200);
+    if (bad) return bad;
+    const html = await response.text();
+    return /<html[\s>]/i.test(html) ? ok : failed("not_html");
   },
 };
 
@@ -252,6 +323,45 @@ export const notificationsReachable: CheckDefinition = {
   },
 };
 
+export const legalQueueHeartbeat: CheckDefinition = {
+  id: "legal_queue.heartbeat",
+  component: "notifications",
+  requires: ["SUPABASE_URL", "SUPABASE_ANON_KEY", "XOS_SYNTHETIC_EMAIL", "XOS_SYNTHETIC_PASSWORD"],
+  budgetMs: 1000,
+  required: true,
+  internal: true,
+  runbook: `${RUNBOOK}#legal-queue-heartbeat-failing`,
+  async probe(context) {
+    // A stopped pg_cron cannot raise an alert about itself, and the queue page warns only someone who opens it. The answer
+    // is booleans about the machinery, and nothing about any item.
+    const token = await accessToken(context);
+    if (typeof token !== "string") return token;
+    const response = await request(
+      context,
+      `${base(context.env["SUPABASE_URL"])}/rest/v1/rpc/legal_queue_heartbeat`,
+      {
+        method: "POST",
+        headers: {
+          apikey: context.env["SUPABASE_ANON_KEY"] ?? "",
+          authorization: `Bearer ${token}`,
+          "content-type": "application/json",
+          "content-profile": "api_public",
+        },
+        body: "{}",
+      },
+    );
+    const bad = expectStatus(response, 200);
+    if (bad) return bad;
+    const beat = (await response.json()) as Record<string, unknown>;
+    if (beat["sweep_ok"] !== true) return failed("sweep_stale");
+    if (beat["feeds_ok"] !== true) return failed("feed_failing");
+    if (beat["alert_path_ok"] !== true) return failed("alert_path_failing");
+    if (beat["email_ok"] !== true) return failed("alert_email_stuck_or_failed");
+    if (beat["recipient_ok"] !== true) return failed("no_alert_recipient");
+    return ok;
+  },
+};
+
 /** Checks in run order: sign-in runs before the API read that reuses its token. */
 export const CHECKS: readonly CheckDefinition[] = [
   atlasSignIn,
@@ -262,4 +372,7 @@ export const CHECKS: readonly CheckDefinition[] = [
   realtimeJoin,
   syncLiveness,
   notificationsReachable,
+  legalQueueHeartbeat,
+  apiHostGuard,
+  docsHome,
 ];

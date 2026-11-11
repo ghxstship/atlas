@@ -1,12 +1,14 @@
 import type { DataError } from "./result.ts";
+import { csvField } from "./csv.ts";
+import type { GuestNeeds } from "./sensitive-consent.ts";
 import {
   ACCESSIBILITY_NEEDS,
   DIETARY_NEEDS,
-  GARMENT_LETTER_SIZES,
   LOYALTY_PROGRAM_KINDS,
-  SEAT_PREFERENCES,
-  WORK_DETAIL_CATEGORIES,
+  SHAREABLE_WORK_DETAIL_CATEGORIES,
   WORK_DETAIL_RULES,
+  type AccessibilityNeed,
+  type DietaryNeed,
   type EmergencyContactInput,
   type LoyaltyProgramInput,
   type WorkDetailCategory,
@@ -62,20 +64,6 @@ function pickAll<T extends string>(allowed: readonly T[], form: FormData, name: 
     .filter((v): v is T => typeof v === "string" && (allowed as readonly string[]).includes(v));
 }
 
-export function parseUniformForm(form: FormData): Parsed<WorkDetailsPatch> {
-  const problems: string[] = [];
-  const value: WorkDetailsPatch = {
-    shirtSize: pick(GARMENT_LETTER_SIZES, form.get("shirtSize")),
-    jacketSize: pick(GARMENT_LETTER_SIZES, form.get("jacketSize")),
-    gloveSize: pick(GARMENT_LETTER_SIZES, form.get("gloveSize")),
-    pantsSize: optional(form, "pantsSize", 20, problems),
-    shoeSize: optional(form, "shoeSize", 20, problems),
-    hatSize: optional(form, "hatSize", 20, problems),
-    uniformNotes: optional(form, "uniformNotes", 500, problems),
-  };
-  return problems.length > 0 ? bad(problems) : good(value);
-}
-
 export function parseDietaryForm(form: FormData): Parsed<WorkDetailsPatch> {
   const problems: string[] = [];
   const value: WorkDetailsPatch = {
@@ -95,17 +83,64 @@ export function parseAccessibilityForm(form: FormData): Parsed<WorkDetailsPatch>
   return problems.length > 0 ? bad(problems) : good(value);
 }
 
-export function parseTravelForm(form: FormData): Parsed<WorkDetailsPatch> {
+/** A guest's needs from the two-step form (ADR 0164): the keeper's two statements, then the optional needs. */
+export function parseGuestNeedsForm(form: FormData): Parsed<{
+  readonly guestListEntryId: string;
+  readonly dietaryNeeds: readonly DietaryNeed[];
+  readonly allergies: string | null;
+  readonly dietaryNotes: string | null;
+  readonly accessibilityNeeds: readonly AccessibilityNeed[];
+  readonly accessibilityNotes: string | null;
+  readonly guestEmail: string | null;
+  readonly clearGuestEmail: boolean;
+  readonly authorityConfirmed: boolean;
+  readonly noticeConfirmed: boolean;
+}> {
   const problems: string[] = [];
-  const meal = optional(form, "mealPreference", 100, problems);
-  const airport = optional(form, "homeAirport", 3, problems)?.toUpperCase() ?? null;
-  if (airport !== null && !/^[A-Z]{3}$/.test(airport)) problems.push("homeAirport");
-  if (problems.length > 0) return bad(problems);
+  const guestListEntryId = parseId(form, "guestId");
+  if (!guestListEntryId) problems.push("guestId");
+  const allergies = optional(form, "allergies", 500, problems);
+  const dietaryNotes = optional(form, "dietaryNotes", 500, problems);
+  const accessibilityNotes = optional(form, "accessibilityNotes", 1000, problems);
+  const guestEmail = optional(form, "guestEmail", 320, problems);
+  if (guestEmail !== null && !EMAIL.test(guestEmail)) problems.push("guestEmail");
+  if (problems.length > 0 || !guestListEntryId) return bad(problems);
   return good({
-    seatPreference: pick(SEAT_PREFERENCES, form.get("seatPreference")),
-    mealPreference: meal,
-    homeAirport: airport,
+    guestListEntryId,
+    dietaryNeeds: pickAll(DIETARY_NEEDS, form, "dietaryNeeds"),
+    allergies,
+    dietaryNotes,
+    accessibilityNeeds: pickAll(ACCESSIBILITY_NEEDS, form, "accessibilityNeeds"),
+    accessibilityNotes,
+    guestEmail,
+    clearGuestEmail: form.get("clearGuestEmail") === "on",
+    authorityConfirmed: form.get("authorityConfirmed") === "true",
+    noticeConfirmed: form.get("noticeConfirmed") === "true",
   });
+}
+
+/** The guests' needs as CSV, for a holder of the medical capability who downloads them. */
+export function guestNeedsCsv(rows: readonly GuestNeeds[]): string {
+  // Whoever keeps the list typed these, and a spreadsheet would run a cell that starts like a formula (csv.ts, A69-005).
+  const lines = [
+    [
+      "guest_name",
+      "dietary_needs",
+      "allergies",
+      "dietary_notes",
+      "accessibility_needs",
+      "accessibility_notes",
+    ],
+    ...rows.map((r) => [
+      r.guestName,
+      r.dietaryNeeds.join("; "),
+      r.allergies ?? "",
+      r.dietaryNotes ?? "",
+      r.accessibilityNeeds.join("; "),
+      r.accessibilityNotes ?? "",
+    ]),
+  ];
+  return lines.map((line) => line.map(csvField).join(",")).join("\r\n");
 }
 
 /** Passport details; `number` is null when the field was left blank (keep the number on file). */
@@ -181,10 +216,19 @@ export function parseShareForm(
   form: FormData,
 ): Parsed<{ readonly engagementId: string; readonly categories: WorkDetailCategory[] }> {
   const engagementId = parseId(form, "engagementId");
-  const categories = pickAll(WORK_DETAIL_CATEGORIES, form, "categories");
+  // Uniform Sizes is retired (R6a): sizes are entered per roster entry, so a share never names it.
+  const categories = pickAll(SHAREABLE_WORK_DETAIL_CATEGORIES, form, "categories");
   if (!engagementId) return bad(["engagementId"]);
   if (categories.length === 0) return bad(["categories"]);
+  // Contact goes with another category (4664): API v1 lists at least one beside it.
+  if (categories.length === 1 && categories[0] === "Contact") return bad(["contactAlone"]);
   return good({ engagementId, categories });
+}
+
+/** The `workDetails.errors.*` key for a share form parseShareForm refused. */
+export function shareFormError(fields: readonly string[]): string {
+  if (fields.includes("contactAlone")) return "work_detail_share_contact_alone";
+  return fields.includes("categories") ? "work_detail_share_categories" : "invalid";
 }
 
 export function parseNamePartsForm(

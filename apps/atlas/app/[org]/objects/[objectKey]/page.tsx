@@ -1,7 +1,10 @@
 import { explainAccess, type AccessPath } from "@xos/data/access";
+import type { Json } from "@xos/data/database.types";
+import { getFieldHistory } from "@xos/data/field-history";
 import {
   boardField,
   calendarField,
+  getObjectRecord,
   getObjectType,
   listObjectRecords,
   type FieldValue,
@@ -13,19 +16,27 @@ import { isNodeVisible } from "@xos/ia";
 import type { RecordState } from "@xos/ui";
 import { notFound } from "next/navigation";
 import { CollectionView } from "@/components/collection-kit/collection-view";
+import { ArchiveControls } from "@/components/archive/archive-controls";
+import { ArchivedFilter } from "@/components/archive/archived-filter";
+import { archivedOf } from "@/lib/archive/param";
 import type {
   KitBoardColumn,
   KitColumn,
   KitRow,
   ViewKind,
 } from "@/components/collection-kit/types";
+import type { HistoryItem } from "@/components/history/field-history-list";
 import { CreateRecordDrawer, RecordPeek, type PeekField } from "@/components/objects/records";
 import { EmptyPanel, ErrorPanel } from "@/components/platform/kit";
 import { PageHeader, TemplateCollection } from "@/components/platform/client/page-header";
 import { ButtonLink } from "@/components/ui";
+import { loadConversation, type Conversation } from "@/components/work/record-sections";
+import { regionRead, type RegionData } from "@/lib/shell/region-data";
+import { historyItems } from "@/lib/history/items";
 import { collectionState } from "@/lib/collection-kit/page";
 import { getFormatters, type Formatters } from "@/lib/platform/format";
 import { getOrgContext, type OrgContext } from "@/lib/shell/context";
+import { getTranslate } from "@/lib/shell/translate";
 import { PageSkeleton } from "@/components/projects/page-skeleton";
 import { Suspense } from "react";
 import { sitemap } from "@/lib/shell/sitemap";
@@ -64,9 +75,49 @@ function show(f: ObjectField, v: FieldValue | undefined, fmt: Formatters): strin
 }
 
 /**
+ * A value as the record's history stores it (2100: a choice or person as its id, money as its minor
+ * units and currency), in words.
+ */
+function historyValue(f: ObjectField | undefined, v: Json, fmt: Formatters): string {
+  if (!f) return typeof v === "string" ? v : JSON.stringify(v);
+  switch (f.dataType) {
+    case "Choice":
+      return f.choices.find((c) => c.id === v)?.label ?? String(v);
+    case "Money": {
+      const m = v as { minor: number | null; currency: string };
+      return fmt.money(m.minor, m.currency);
+    }
+    case "Date":
+      return fmt.date(String(v));
+    case "Timestamp":
+      return fmt.dateTime(String(v));
+    case "Boolean":
+      return fmt.t(v === true ? "common.yes" : "common.no");
+    case "Number":
+      return fmt.number(Number(v));
+    case "Person":
+      return fmt.t("objects.person");
+    default:
+      return String(v);
+  }
+}
+
+/** The key of an object's n-th record by when it was created, OBJECT-n. */
+function keyAt(object: ObjectType, n: number): string {
+  return `${object.key.toUpperCase().replaceAll("_", "-")}-${n}`;
+}
+
+/** Each record's key, OBJECT-n by when it was created among these records. */
+function keysOf(object: ObjectType, records: readonly ObjectRecord[]): Map<string, string> {
+  const ordered = [...records].sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+  return new Map(ordered.map((r, i) => [r.id, keyAt(object, i + 1)]));
+}
+
+/**
  * Records of a custom object (Section 4.6.3): list, board (by its first Choice field), table and
  * calendar (by its first date field) views, only those the object's fields support; a create drawer
- * from the object's typed fields; and a record peek that explains why the viewer can see the record.
+ * from the object's typed fields; and a record peek with the record's activity, comments and files,
+ * that explains why the viewer can see the record.
  */
 export default async function Page({
   params,
@@ -119,7 +170,7 @@ async function ObjectRecords({
     views,
     await orgToday(ctx),
   );
-  const records = await listObjectRecords(ctx.viewer.db, object);
+  const records = await listObjectRecords(ctx.viewer.db, object, archivedOf(query));
   if (!records.ok) {
     return (
       <TemplateCollection header={<PageHeader title={object.label} />}>
@@ -127,10 +178,7 @@ async function ObjectRecords({
       </TemplateCollection>
     );
   }
-  const ordered = [...records.data].sort((a, b) => a.createdAt.localeCompare(b.createdAt));
-  const keyOf = new Map(
-    ordered.map((r, i) => [r.id, `${object.key.toUpperCase().replaceAll("_", "-")}-${i + 1}`]),
-  );
+  const keyOf = keysOf(object, records.data);
   const columns: KitColumn[] = [
     { key: "title", label: t("objects.titleColumn") },
     ...object.fields.map((f) => ({ key: f.id, label: f.label })),
@@ -165,11 +213,49 @@ async function ObjectRecords({
 
   const canWrite =
     ctx.role !== null && ["owner", "admin", "manager", "member", "collaborator"].includes(ctx.role);
-  const peeked = state.peek ? (records.data.find((r) => r.id === state.peek) ?? null) : null;
+  let peeked = state.peek ? (records.data.find((r) => r.id === state.peek) ?? null) : null;
+  if (state.peek && !peeked) {
+    // A link names a record the list leaves out, such as an archived one from a record's Related
+    // links or a Favorite (A124): it is read by its id, keyed as it is among every record of the
+    // object.
+    const found = await getObjectRecord(ctx.viewer.db, object, state.peek);
+    if (found.ok) {
+      peeked = found.data.record;
+      keyOf.set(peeked.id, keyAt(object, found.data.ordinal));
+    }
+  }
   let paths: AccessPath[] | null = null;
+  let conversation: RegionData<Conversation> | null = null;
+  let activity: HistoryItem[] | null = null;
   if (peeked) {
-    const explained = await explainAccess(ctx.viewer.db, "custom_object_records", peeked.id);
+    const [explained, collab, history, t] = await Promise.all([
+      explainAccess(ctx.viewer.db, "custom_object_records", peeked.id),
+      regionRead("object-peek.conversation", () =>
+        loadConversation(ctx, { table: "app.custom_object_records", id: peeked.id }),
+      ),
+      getFieldHistory(ctx.viewer.db, "app.custom_object_records", peeked.id),
+      getTranslate(),
+    ]);
     paths = explained.ok ? explained.data : null;
+    conversation = collab;
+    // Its fields' changes are the record's (2100): each value is keyed values.{field key}.
+    const byKey = new Map(object.fields.map((f) => [`values.${f.key}`, f]));
+    activity = history.ok
+      ? historyItems(history.data, {
+          t,
+          when: fmt.dateTime,
+          label: (field) =>
+            field === "title"
+              ? fmt.t("objects.titleColumn")
+              : field === "deleted_at"
+                ? t("collab.history.trash")
+                : (byKey.get(field)?.label ?? null),
+          value: (field, v) =>
+            field === "deleted_at"
+              ? fmt.dateTime(String(v))
+              : historyValue(byKey.get(field), v, fmt),
+        })
+      : null;
   }
   const base = `/${ctx.org.slug}/objects/${object.key}`;
   const close = state.baseQuery ? `${base}?${state.baseQuery}` : base;
@@ -198,6 +284,7 @@ async function ObjectRecords({
       rows={rows}
       {...(boardColumns ? { board: boardColumns } : {})}
       month={state.month}
+      filters={<ArchivedFilter id="objects-archived" />}
       actions={
         canWrite ? (
           <ButtonLink href={`${base}?create=1`} variant="primary">
@@ -231,7 +318,7 @@ async function ObjectRecords({
           closeHref={close}
         />
       ) : null}
-      {peeked ? (
+      {peeked && conversation ? (
         <RecordPeek
           org={ctx.org.slug}
           objectKey={object.key}
@@ -242,6 +329,18 @@ async function ObjectRecords({
           paths={paths}
           canWrite={canWrite}
           closeHref={close}
+          activity={activity}
+          conversation={conversation}
+          me={ctx.viewer.person?.id ?? null}
+          actions={
+            <ArchiveControls
+              org={ctx.org.slug}
+              entity="custom_object_records"
+              id={peeked.id}
+              archivedAt={peeked.archivedAt}
+              canWrite={canWrite}
+            />
+          }
         />
       ) : null}
     </CollectionView>

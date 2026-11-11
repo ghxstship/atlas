@@ -17,3 +17,5 @@ export * from "./client.ts";
 export * from "./conversation.ts";
 export * from "./embeddings.ts";
 export * from "./entry.ts";
+export * from "./lists.ts";
+export * from "./intake.ts";

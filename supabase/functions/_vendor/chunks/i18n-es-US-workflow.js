@@ -6,6 +6,30 @@ var settings = {
     label: "Los solicitantes pueden retirar sus aprobaciones",
     help: "Si está desactivado, solo quienes editan las políticas de aprobación pueden retirar una aprobación en revisión.",
   },
+  remindersEnabled: {
+    label: "Recordar a los aprobadores automáticamente",
+    help: "Si está activado, una aprobación que espera recuerda a los aprobadores de su paso en cada intervalo, hasta el límite.",
+  },
+  reminderIntervalHours: {
+    label: "Horas entre recordatorios",
+    help: "De 4 a 168. Se cuentan desde la última vez que se notificó a los aprobadores del paso.",
+  },
+  reminderLimit: {
+    label: "Recordatorios por paso",
+    help: "De 1 a 10. Cuentan los recordatorios automáticos y Recordar a los aprobadores.",
+  },
+  quoteChaseEnabled: {
+    label: "Recordar cotizaciones a los proveedores",
+    help: "Si está activado, a los proveedores invitados a una solicitud emitida que no han respondido se les recuerda automáticamente.",
+  },
+  quoteChaseInterval: {
+    label: "Horas entre recordatorios de cotización",
+    help: "Cuánto esperar después de emitir una solicitud y entre recordatorios.",
+  },
+  quoteChaseLimit: {
+    label: "Máximo de recordatorios por proveedor",
+    help: "Los recordatorios terminan en este número, cuando el proveedor responde o cuando la solicitud deja de estar emitida.",
+  },
 };
 var common = {
   errorTitle: "Algo salió mal",
@@ -58,6 +82,36 @@ var refusals = {
   approval_state_conflict: "Otra persona cambió esta aprobación antes. Actualice la página.",
   approval_policy_state_conflict: "Otra persona cambió esta política antes. Actualice la página.",
   sod_approval_requester: "Usted solicitó esta aprobación, así que otra persona la decide.",
+  approval_subject_beneficiary: "Esta aprobación es para usted, así que otra persona la decide.",
+  approval_cancel_reason: "Indique por qué la retira.",
+  approval_rule_no_steps: "Agregue al menos un paso antes de activar la regla.",
+  approval_rule_not_draft:
+    "Solo una regla en Borrador cambia su objeto o filtro. Retírela y agregue una nueva.",
+  approval_rule_step_not_draft:
+    "Los pasos cambian solo mientras la regla está en Borrador. Retírela y agregue una nueva.",
+  approval_rule_active_delete: "Retire una regla Activa antes de eliminarla.",
+  approval_rule_filter_project:
+    "El filtro debe pertenecer a la organización de este proyecto, y una categoría de credencial a este proyecto.",
+  approval_rule_class_no_offering:
+    "Las solicitudes solo llegan para radios y carritos, así que una regla sobre esta clase nunca se aplicaría. Elija una de esas clases.",
+  approval_rule_pending:
+    "Esta solicitud espera su regla de aprobación. Apruébela cuando todos los pasos estén aprobados.",
+  approval_step_engagement:
+    "Elija una contratación de este proyecto que no esté Completa ni Cancelada.",
+  approval_step_no_approver:
+    "Nadie de los que nombra este paso tiene una cuenta de XOS para recibir correos de aprobación. Invítelos primero a Gateway, o nombre a otro aprobador.",
+  approval_reminder_too_soon:
+    "Se notificó a los aprobadores hace menos de 4 horas. Intente más tarde.",
+  approval_reminder_limit: "Ya se enviaron todos los recordatorios que permite este paso.",
+  approval_link_code_too_soon:
+    "Se envió un código hace un momento. Espere un minuto y vuelva a pedirlo.",
+  approval_link_locked: "Demasiados códigos incorrectos. Este enlace está bloqueado.",
+  approval_link_email_off:
+    "Esta persona tiene desactivados los correos de aprobación, así que no se puede enviar un código.",
+  subject_approval_rpc_only: "Las aprobaciones se abren y se cierran por su regla, nunca a mano.",
+  subject_approval_subject:
+    "Una aprobación nombra exactamente un pase, una reserva de muelle o una solicitud de equipo.",
+  timesheet_rejection_reason: "Indique por qué rechaza la hoja de horas.",
   trash_not_restorable: "Los elementos de este tipo no se restauran desde la Papelera.",
   trash_not_deleted: "Este elemento ya no está en la Papelera.",
   trash_restore_expired: "Su período de retención terminó; se purgará pronto y no puede volver.",
@@ -71,6 +125,10 @@ var refusals = {
   state_label_state_immutable: "Borre esta etiqueta y etiquete el otro estado.",
   projects_key_format: "Use de 2 a 5 letras para la clave del proyecto.",
   scope_node_code_format: "Use mayúsculas, dígitos y guiones para el sufijo del código.",
+  sod_document_creator:
+    "Usted creó este documento, y su organización no permite que quien lo creó decida un paso. Otra persona lo decide.",
+  sod_change_order_requester_steps:
+    "Usted solicitó esta orden de cambio, y su organización no permite que quien la solicita decida un paso. Otra persona lo decide.",
 };
 var documentTypes = {
   "Purchase Order": "Orden de compra",
@@ -146,6 +204,9 @@ var approvals = {
     reasonHelp: "Se guarda en el historial de la aprobación.",
     submit: "Retirar aprobación",
     done: "Aprobación retirada.",
+    equipmentHelp:
+      "Se guarda en el historial de la aprobación. También retira la solicitud de equipo, y quien la pidió ve el motivo.",
+    equipmentDone: "Aprobación y solicitud de equipo retiradas.",
   },
   submit: {
     title: "Enviar un documento para aprobación",
@@ -158,6 +219,34 @@ var approvals = {
     done: "Enviado. Se notificó a los aprobadores del primer paso.",
     none: "Ningún documento espera aprobación en este momento.",
     loadError: "No se pudieron cargar los documentos que esperan aprobación. Intente de nuevo.",
+  },
+  reminders: {
+    lastNotified: "Última notificación {when}",
+    count: "Recordatorio {sent} de {limit}",
+    next: "Próximo recordatorio automático {when}",
+    noMore: "No hay más recordatorios automáticos",
+    off: "Los recordatorios automáticos están desactivados",
+  },
+  remind: {
+    label: "Recordar a los aprobadores",
+    button: "Recordar a los aprobadores",
+    done: "Recordatorio enviado a los aprobadores del paso.",
+    nextAllowed: "Puede volver a recordarles el {when}.",
+    limitReached: "Ya se enviaron todos los recordatorios que permite este paso.",
+  },
+  subjects: {
+    Pass: "Pase",
+    Delivery: "Reserva de muelle",
+    Equipment: "Solicitud de equipo",
+    meta: "{project} · solicitada el {when}",
+    open: {
+      Pass: "Abrir el pase",
+      Delivery: "Abrir la reserva de muelle",
+      Equipment: "Abrir la solicitud",
+    },
+    approvers: "espera a {names}",
+    noApprover:
+      "Nadie puede decidir este paso. El solicitante o quien edita la regla puede retirarla.",
   },
 };
 var trash = {
@@ -232,6 +321,7 @@ var templates = {
     project: "Proyecto",
     submit: "Guardar como plantilla",
     done: "Plantilla guardada a partir del proyecto.",
+    keepDates: "Conservar las fechas de vencimiento",
   },
   detail: {
     none: "Cree una plantilla para verla aquí.",
@@ -283,6 +373,8 @@ var templates = {
       "Déjelo en blanco para no tener vencimiento; use un número negativo para antes del inicio.",
     remove: "Quitar",
     removeNamed: "Quitar {name}",
+    requiresReview: "Requiere revisión",
+    reviewed: "requiere revisión",
   },
   draft: {
     title: "Borrador de la versión {version}",
@@ -318,6 +410,8 @@ var templates = {
     open: "Abrir el proyecto",
     needsCapability:
       "Crear proyectos requiere projects.project.create. Pídalo a un Propietario o Administrador.",
+    withoutDates:
+      "Dejar los registros sin fecha (esperan en la lista Sin programar del cronograma)",
   },
   delete: {
     label: "Eliminar esta plantilla",
@@ -352,6 +446,10 @@ var builder = {
     assets: "Activos",
     incidents: "Incidentes",
     custom_object: "Objetos personalizados",
+    crew_hours: "Horas del equipo",
+    crew_responses: "Respuestas del equipo",
+    crew_removals: "Retiros del equipo",
+    crew_ratings: "Calificaciones del equipo",
   },
   fields: {
     records: {
@@ -399,6 +497,40 @@ var builder = {
     custom_object: {
       title: "Título",
       created_at: "Creado",
+    },
+    crew_hours: {
+      shift_id: "Turno",
+      role_code: "Rol",
+      worker_kind: "Tipo de persona",
+      worker_name: "Persona",
+      starts_at: "Empieza",
+      scheduled_hours: "Horas programadas",
+      actual_hours: "Horas reales",
+      variance_hours: "Diferencia de horas",
+      no_show: "Ausencia",
+    },
+    crew_responses: {
+      kind: "Tipo",
+      answer: "Respuesta",
+      asked_at: "Preguntado",
+      answered_at: "Respondido",
+      person_name: "Persona",
+      role_code: "Rol",
+    },
+    crew_removals: {
+      removed_at: "Retirado",
+      from_state: "Estado anterior",
+      person_name: "Persona",
+      role_code: "Rol",
+      engagement_party: "Parte",
+      reason: "Motivo",
+      removed_by_name: "Retirado por",
+    },
+    crew_ratings: {
+      party_name: "Parte",
+      role_type: "Tipo de rol",
+      score: "Puntuación",
+      submitted_at: "Enviado",
     },
   },
   fieldsTitle: "Columnas",
@@ -489,6 +621,16 @@ var builder = {
   savedNone: "Aún no hay informes guardados. Guarde uno arriba.",
   sharedLabel: "Compartido",
   privateLabel: "Privado",
+  standard: {
+    "crew-utilization": "Uso del equipo",
+    "crew-invitation-responses": "Respuestas a invitaciones",
+    "crew-removals": "Retiros del equipo",
+    "crew-ratings": "Calificaciones del equipo",
+    "crew-scheduled-vs-actual": "Horas programadas frente a reales",
+  },
+  standardHelp:
+    "Un informe estándar. Nada se guarda hasta que lo guardes como tu propia copia editable, y la vista previa muestra solo lo que puedes leer.",
+  saveAsMine: "Guardar como mi informe",
 };
 var policies = {
   title: "Políticas de aprobación",

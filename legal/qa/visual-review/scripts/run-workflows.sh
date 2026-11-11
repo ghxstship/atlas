@@ -11,10 +11,10 @@ mkdir -p "$out"
 status_json="$(cd "$root" && supabase status -o json 2>/dev/null)"
 field() { printf '%s' "$status_json" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>process.stdout.write(JSON.parse(s)['$1']??''))"; }
 export E2E_SUPABASE_URL="$(field API_URL)"
-export E2E_SUPABASE_SERVICE_KEY="$(field SERVICE_ROLE_KEY)"
-export E2E_SUPABASE_ANON_KEY="$(field ANON_KEY)"
+export E2E_SUPABASE_SERVICE_KEY="$(field SECRET_KEY)"
+export E2E_SUPABASE_ANON_KEY="$(field PUBLISHABLE_KEY)"
 export E2E_DATABASE_URL="$(field DB_URL)"
-export E2E_INBUCKET_URL="$(field INBUCKET_URL)"
+export E2E_INBUCKET_URL="$(field MAILPIT_URL)"
 export E2E_ENGINES=chromium
 export E2E_SKIP_AURORA=1
 export PLAYWRIGHT_CHROMIUM_EXECUTABLE="${PLAYWRIGHT_CHROMIUM_EXECUTABLE:-$HOME/Library/Caches/ms-playwright/chromium_headless_shell-1243/chrome-headless-shell-mac-arm64/chrome-headless-shell}"

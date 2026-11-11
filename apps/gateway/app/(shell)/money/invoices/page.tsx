@@ -2,12 +2,14 @@ import { readView } from "@xos/data/gateway";
 import { getNode } from "@xos/ia";
 import type { Metadata } from "next";
 import { getLocale } from "next-intl/server";
+import { LiveRefresh } from "@/components/live/live-refresh";
 import { LinkTable } from "@/components/page/collections";
 import { PaymentSteps } from "@/components/engagement/payment-steps";
 import { PageTitle, pickView, RegionError, ViewSwitcher } from "@/components/page/page";
 import { DestinationTabs } from "@/components/page/work-tabs";
 import { EmptyStateLink } from "@/components/ui";
 import { formatDate, formatMoney } from "@/lib/format";
+import { personalChannel } from "@/lib/live/topics";
 import { requireNode, sitemap } from "@/lib/shell/sitemap";
 import { enumLabelKey, getTranslate } from "@/lib/shell/translate";
 
@@ -16,7 +18,10 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t("nav.gateway.money.invoices") };
 }
 
-/** Money, Invoices (Section 4.4.5): every invoice across orgs as a table or payment trackers. */
+/**
+ * Money, Invoices (Section 4.4.5): every invoice across orgs as a table or payment trackers. The
+ * list updates live as orgs approve and pay invoices, through the person's private channel.
+ */
 export default async function InvoicesPage({ searchParams }: PageProps<"/money/invoices">) {
   const ctx = await requireNode("money.invoices");
   const query = await searchParams;
@@ -39,6 +44,7 @@ export default async function InvoicesPage({ searchParams }: PageProps<"/money/i
       : null;
   return (
     <>
+      <LiveRefresh channel={personalChannel(ctx.personId)} />
       <PageTitle
         title={t("nav.gateway.primary.money")}
         action={<ViewSwitcher views={views} current={view} path="/money/invoices" query={query} />}

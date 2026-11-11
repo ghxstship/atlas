@@ -2,13 +2,13 @@
 title: Acceptable Use Policy for Personnel
 version: 1.0.0-draft
 effective_date: The date this version is approved by the Owner
-status: Draft for review by counsel before launch
+status: Draft before launch
 audience: Internal
 ---
 
 # Acceptable Use Policy for Personnel
 
-> **Draft for review by counsel before launch.** This internal policy is a draft. It takes effect when the Owner approves it, and its effective date is that date of approval.
+> **Draft before launch.** This internal policy is a draft. It takes effect when the Owner approves it, and its effective date is that date of approval.
 
 This policy covers how GHXSTSHIP Industries LLC ("GHXSTSHIP") personnel use company systems, devices and information. The customer-facing rules for XOS users are in the separate Acceptable Use Policy published at /legal.
 
@@ -21,7 +21,7 @@ Employees, contractors and anyone else with access to GHXSTSHIP systems, includi
 - Use company systems for GHXSTSHIP business. Limited personal use is allowed if it does not affect security, performance or other people.
 - Follow the Information Security Policy and its supporting policies.
 - Protect information according to the Data Classification Policy.
-- Report suspected incidents, lost devices and phishing immediately through the on-call channel.
+- Report suspected incidents, lost devices and phishing immediately to the person on call, through the on-call channel once it is connected, or otherwise by email to support@ghxstship.pro.
 
 ## 3. Accounts and Credentials
 

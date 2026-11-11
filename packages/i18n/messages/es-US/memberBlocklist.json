@@ -1,0 +1,33 @@
+{
+  "title": "Lista de bloqueo",
+  "description": "Direcciones de correo electrónico y dominios que no pueden unirse a esta organización. Un dominio también bloquea sus subdominios. Los miembros actuales nunca se eliminan: termina sus membresías arriba si lo necesitas.",
+  "blocked": "No puede unirse a esta organización. Pregunte a uno de sus administradores.",
+  "empty": "No hay nada bloqueado.",
+  "kind": "Tipo",
+  "kinds": {
+    "Email": "Dirección de correo electrónico",
+    "Domain": "Dominio"
+  },
+  "value": "Dirección o dominio",
+  "valueHelp": "Por ejemplo nombre@ejemplo.com, o ejemplo.com para bloquear todo el dominio.",
+  "reason": "Motivo (opcional)",
+  "add": "Agregar a la lista de bloqueo",
+  "remove": "Quitar",
+  "removeTitle": "¿Quitar {value} de la lista de bloqueo?",
+  "removeBody": "Las personas de esta dirección o dominio podrán ser invitadas y unirse de nuevo.",
+  "cancel": "Cancelar",
+  "addedBy": "Agregado por {name} el {date}",
+  "addedOn": "Agregado el {date}",
+  "matching": "{count, plural, =0 {Ningún miembro actual coincide} one {# miembro actual coincide} other {# miembros actuales coinciden}}",
+  "added": "Agregado. Se revocaron {invites, plural, one {# invitación} other {# invitaciones}} y se rechazaron {requests, plural, one {# solicitud} other {# solicitudes}} para unirse.",
+  "removed": "Se quitó de la lista de bloqueo.",
+  "errors": {
+    "blocklist_value_invalid": "Escribe una dirección de correo electrónico como nombre@ejemplo.com, o un dominio como ejemplo.com.",
+    "blocklist_own_domain": "Este dominio es, o contiene, uno de los dominios verificados de la organización. Bloquea direcciones individuales allí.",
+    "blocklist_duplicate": "Esta dirección o dominio ya está en la lista de bloqueo.",
+    "blocklist_full": "Una lista de bloqueo tiene como máximo 1.000 entradas. Quita algunas, o bloquea un dominio en lugar de sus direcciones.",
+    "org_read_only": "Esta organización es de solo lectura, así que la lista de bloqueo no puede cambiar ahora.",
+    "denied": "Necesitas permiso para administrar miembros para cambiar la lista de bloqueo.",
+    "unexpected": "Algo salió mal de nuestro lado. Vuelve a intentarlo en un momento."
+  }
+}

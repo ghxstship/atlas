@@ -187,6 +187,8 @@ test("every Schedule, Work and Show page passes axe in the light theme and answe
   page,
   context,
 }) => {
+  // Axe on every page of three modules, and train 7 added some.
+  test.setTimeout(180_000);
   const slug = await newOwnerOrg(page);
   await context.addCookies([
     { name: "xos-theme", value: "light", domain: new URL(page.url()).hostname, path: "/" },
@@ -197,6 +199,10 @@ test("every Schedule, Work and Show page passes axe in the light theme and answe
   await sheet.getByLabel("Due").fill("2027-03-13T10:00");
   await sheet.getByRole("button", { name: "Create record" }).click();
   await page.waitForURL(/peek=SHW-1/);
+  // The peek renders after the URL changes; axe would sample it mid-fade.
+  await expect(
+    page.getByRole("dialog").filter({ has: page.getByRole("heading", { name: "Hang the truss" }) }),
+  ).toBeVisible();
   await expectAccessible(page);
   for (const path of [
     `/${slug}/schedule`,
@@ -213,7 +219,9 @@ test("every Schedule, Work and Show page passes axe in the light theme and answe
     `/${slug}/show`,
     `/${slug}/show/run-of-show`,
     `/${slug}/show/day-sheets`,
+    `/${slug}/show/day-sheets?view=table`,
     `/${slug}/show/call-sheets`,
+    `/${slug}/show/call-sheets?view=table`,
     `/${slug}/r/SHW-1`,
     `/${slug}/p/SHW/schedule`,
     `/${slug}/p/SHW/work`,

@@ -1,0 +1,100 @@
+appId: pro.ghxstship.compass
+# Settings, Preferences in Compass (A111, S4.5.6-44): a member chooses metric units and their own time zone, the
+# server holds both for every shell, and a fresh sign-in (which wipes the phone) shows them again as their own.
+# Named after its file: config.yaml orders flows by name.
+name: settings-preferences
+---
+- runFlow:
+    file: ../subflows/sign-in.yaml
+    env:
+      EMAIL: field@example.com
+- runFlow:
+    file: ../subflows/open-route.yaml
+    env:
+      ROUTE: settings/preferences
+- extendedWaitUntil:
+    visible:
+      id: "setting-locale.units"
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: "setting-locale.units-metric"
+    direction: DOWN
+    timeout: 20000
+- tapOn:
+    id: "setting-locale.units-metric"
+- extendedWaitUntil:
+    visible:
+      id: "setting-locale.units-write-saved"
+    timeout: 30000
+# The time zone from the picker: search a city, choose its zone.
+- scrollUntilVisible:
+    element:
+      id: "setting-locale.time_zone"
+    direction: UP
+    timeout: 20000
+- tapOn:
+    id: "setting-locale.time_zone"
+- tapOn:
+    id: "setting-locale.time_zone-sheet-search"
+- inputText: "Chicago"
+- hideKeyboard
+- tapOn:
+    id: "setting-locale.time_zone-sheet-America/Chicago"
+- extendedWaitUntil:
+    visible:
+      id: "setting-locale.time_zone-write-saved"
+    timeout: 30000
+- assertVisible: "America/Chicago"
+- runScript:
+    file: ../scripts/personal-setting-saved.js
+    env:
+      EMAIL: field@example.com
+      KEY: locale.units
+      EXPECT: metric
+- assertTrue: ${output.setting.status == 200 && output.setting.value == "metric"}
+- runScript:
+    file: ../scripts/personal-setting-saved.js
+    env:
+      EMAIL: field@example.com
+      KEY: locale.time_zone
+      EXPECT: America/Chicago
+- assertTrue: ${output.setting.status == 200 && output.setting.value == "America/Chicago"}
+# A fresh sign-in reads the values from the server again.
+- runFlow:
+    file: ../subflows/sign-in.yaml
+    env:
+      EMAIL: field@example.com
+- runFlow:
+    file: ../subflows/open-route.yaml
+    env:
+      ROUTE: settings/preferences
+- extendedWaitUntil:
+    visible: "America/Chicago"
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: "setting-locale.units-source"
+    direction: DOWN
+    timeout: 20000
+- assertVisible:
+    id: "setting-locale.units-source"
+    text: "Your own setting."
+# Back to the inherited values, so the seed stays as it was.
+- tapOn:
+    id: "setting-locale.units-inherit"
+- extendedWaitUntil:
+    visible:
+      id: "setting-locale.units-write-saved"
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: "setting-locale.time_zone-inherit"
+    direction: UP
+    timeout: 20000
+- tapOn:
+    id: "setting-locale.time_zone-inherit"
+- extendedWaitUntil:
+    visible:
+      id: "setting-locale.time_zone-write-saved"
+    timeout: 30000

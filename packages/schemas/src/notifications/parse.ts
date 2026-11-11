@@ -2,7 +2,6 @@ import { parse } from "yaml";
 import { z } from "zod";
 import {
   NOTIFICATION_CHANNELS,
-  copyKeys,
   type KindDefinition,
   type KindEmission,
   type NotificationKindRegistry,
@@ -174,7 +173,6 @@ function parseRegistryText(text: string): {
                 k.bypasses_quiet_hours === true ? null : k.bypasses_quiet_hours.starts_within_hours,
             },
       channels: NOTIFICATION_CHANNELS.filter((c) => channels.includes(c)),
-      copy: copyKeys(k.kind),
     };
   });
   for (const c of raw.categories) {

@@ -12,11 +12,13 @@ import {
 } from "../src/domain/kiosk";
 import {
   claimRuleOf,
+  COMPASS_SETTING_KEYS,
   compassValuesFromRows,
   formatDistance,
   hapticsOn,
   kioskRules,
   languageOf,
+  keepsPhotoLocation,
   NO_VALUES,
   requiresGeofence,
   scheduleZone,
@@ -78,8 +80,23 @@ describe("resolved settings", () => {
     expect(language("es-US", "Personal")).toBe("es-US");
     // The platform default is nobody's choice: the device's language stands.
     expect(language("en-US", "Default")).toBeNull();
-    // A Beta locale (ADR 0053) someone chose applies; a language XOS does not ship never does.
-    expect(language("fr-FR", "Personal")).toBe("fr-FR");
+    // A Beta locale (ADR 0053) someone chose applies only while its territory is open (ADR 0160), which languageOf is
+    // told; a language XOS does not ship never does.
+    expect(language("fr-FR", "Personal")).toBeNull();
+    expect(
+      languageOf(
+        compassValuesFromRows([
+          {
+            setting_key: "locale.language",
+            value_text: "fr-FR",
+            value_boolean: null,
+            value_integer: null,
+            source: "Personal",
+          },
+        ]),
+        ["en-US", "fr-FR"],
+      ),
+    ).toBe("fr-FR");
     expect(language("nl-NL", "Personal")).toBeNull();
     expect(
       compassValuesFromRows([
@@ -201,6 +218,14 @@ describe("org rules on the device", () => {
     expect(requiresGeofence(NO_VALUES, 1)).toBe(true);
     expect(requiresGeofence(values({ "time.geofence_required": false }), 1)).toBe(false);
     expect(requiresGeofence(NO_VALUES, 0)).toBe(false);
+  });
+
+  it("keeps a photo's location only while the org turns media.keep_photo_location on", () => {
+    expect(keepsPhotoLocation(NO_VALUES)).toBe(false);
+    expect(keepsPhotoLocation(values({ "media.keep_photo_location": false }))).toBe(false);
+    expect(keepsPhotoLocation(values({ "media.keep_photo_location": true }))).toBe(true);
+    // The device keeps the key from the resolve, so the rule reaches it.
+    expect(COMPASS_SETTING_KEYS).toContain("media.keep_photo_location");
   });
 
   it("reads the kiosk rules (time.kiosk_enabled, time.photo_on_punch)", () => {

@@ -11,7 +11,7 @@
 #   --container NAME   a local Supabase stack's database container (supabase_db_xos4 or supabase_db_xos4-*);
 #                      psql runs inside it as the postgres role, the same role a hosted connection uses
 #   --linked           the hosted project `supabase link` points at, reached through the Supabase CLI's own login
-#                      (supabase db query --linked, supabase storage rm --linked): no database password and no
+#                      (supabase db query --remote, supabase storage rm --remote): no database password and no
 #                      service role key. The SQL is this script translated per mode (src/plain-sql.ts).
 #   DATABASE_URL       (environment) a hosted connection string, used only when --container is absent; it is
 #                      never printed. psql comes from PATH, or from the postgres:17 image when PATH has none.

@@ -1,9 +1,10 @@
 import * as Linking from "expo-linking";
 import { hapticsOn, themeOptionsOf } from "../src/domain/settings";
-import { Stack } from "expo-router";
+import { Slot, Stack, usePathname } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useMemo, useState, type ReactElement } from "react";
 import { activeBrand, brandColors } from "../src/domain/brand";
+import { formatCalendarDay } from "../src/domain/dates";
 import { useTranslation } from "react-i18next";
 import { useColorScheme, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -13,9 +14,11 @@ import { HelpScreenTracker } from "../src/runtime/help";
 import { initI18n } from "../src/runtime/i18n";
 import { useUpdateGate } from "../src/runtime/minimumVersion";
 import { useActionableNotifications } from "../src/runtime/notifications";
+import { useOfferActions } from "../src/runtime/offer-actions";
 import { SystemBanners } from "../src/runtime/systemBanners";
 import { BiometricLock } from "../src/screens/BiometricLock";
 import { DeleteAccount } from "../src/screens/DeleteAccount";
+import { LegalGate, QueuedWarning } from "../src/screens/LegalGate";
 import { SecondFactor, SecondFactorRequired } from "../src/screens/SecondFactor";
 import { SignIn } from "../src/screens/SignIn";
 import {
@@ -40,11 +43,28 @@ function NotificationActions(): null {
   return null;
 }
 
+/** Accept, Decline and Reply on shift offers, engagement offers and messages (A127); renders nothing. */
+function OfferActions(): null {
+  useOfferActions();
+  return null;
+}
+
 function Gatekeeper(): ReactElement {
-  const { phase, retryIdentity, settings, client, signOut, startupError, retryStartup } =
-    useCompass();
-  const { t } = useTranslation();
+  const {
+    phase,
+    retryIdentity,
+    settings,
+    client,
+    signOut,
+    startupError,
+    retryStartup,
+    upcomingLegal,
+  } = useCompass();
+  const { t, i18n } = useTranslation();
   const [deleting, setDeleting] = useState(false);
+  // A legal change still in its notice period: the person may review it now or hide the prompt until the next launch.
+  const [reviewingLegal, setReviewingLegal] = useState(false);
+  const [legalPromptHidden, setLegalPromptHidden] = useState(false);
   // The delete screen belongs to this failed sign-in only; the next sign-in starts from the error screen.
   useEffect(() => {
     if (phase.kind !== "identity-failed") setDeleting(false);
@@ -91,9 +111,38 @@ function Gatekeeper(): ReactElement {
   if (phase.kind === "signed-out") return <SignIn />;
   if (phase.kind === "second-factor") return <SecondFactor factors={phase.factors} />;
   if (phase.kind === "factor-required") return <SecondFactorRequired />;
+  if (phase.kind === "legal-connection") {
+    return (
+      <Screen testID="legal-connection">
+        <ErrorState
+          title={t("compass.legalGate.connection.title")}
+          sentence={t("compass.legalGate.connection.sentence")}
+          actionLabel={t("compass.common.retry")}
+          onRetry={retryIdentity}
+        />
+        <QueuedWarning
+          testID="legal-connection-queued"
+          oneKey="compass.legalGate.declined.queuedOne"
+          otherKey="compass.legalGate.declined.queuedOther"
+        />
+        <Button
+          testID="legal-connection-sign-out"
+          variant="secondary"
+          icon="log-out"
+          block
+          label={t("compass.settings.signOut")}
+          onPress={() => void signOut()}
+        />
+      </Screen>
+    );
+  }
+  if (phase.kind === "legal-required") {
+    // Asked again after each answer; what the server still wants starts the steps afresh.
+    return <LegalGate key={JSON.stringify(phase.needs)} needs={phase.needs} />;
+  }
   if (phase.kind === "identity-failed") {
     // A sign-in with no membership or engagement can still sign out or delete itself (SIM-004).
-    if (deleting) return <DeleteAccount />;
+    if (deleting) return <DeleteAccount onBack={() => setDeleting(false)} />;
     return (
       <Screen testID="identity-failed">
         <ErrorState
@@ -127,12 +176,36 @@ function Gatekeeper(): ReactElement {
       </Screen>
     );
   }
+  if (reviewingLegal && upcomingLegal.length > 0) {
+    return (
+      <LegalGate
+        needs={{ age: false, documents: [], changes: upcomingLegal }}
+        onLater={() => setReviewingLegal(false)}
+      />
+    );
+  }
+  const legalChange = legalPromptHidden ? undefined : upcomingLegal[0];
   return (
     <View style={{ flex: 1, backgroundColor: theme.color.bgCanvas }}>
       <StatusBar style={theme.dark ? "light" : "dark"} />
       <NotificationActions />
+      <OfferActions />
       <HelpScreenTracker />
-      <SystemBanners client={client} />
+      <SystemBanners
+        client={client}
+        {...(legalChange
+          ? {
+              legalNotice: {
+                message: t("compass.legalGate.upcoming", {
+                  document: t(`compass.legalGate.documentNames.${legalChange.documentSlug}`),
+                  date: formatCalendarDay(legalChange.effectiveOn, i18n.language),
+                }),
+                onReview: () => setReviewingLegal(true),
+                onHide: () => setLegalPromptHidden(true),
+              },
+            }
+          : {})}
+      />
       <BiometricLock enabled={settings.biometric}>
         <NativeHeaderContext.Provider value={true}>
           <Stack
@@ -192,6 +265,17 @@ function Themed(): ReactElement {
 }
 
 export default function RootLayout(): ReactElement {
+  const pathname = usePathname();
+  // Gallery builds only (EXPO_PUBLIC_XOS_GALLERY=1, A141): the component gallery under app/dev opens without
+  // sign-in, sync or the server, so its snapshots never depend on them. Every other build has no app/dev
+  // (metro.config.js) and never takes this branch.
+  if (process.env["EXPO_PUBLIC_XOS_GALLERY"] === "1" && pathname.startsWith("/dev/")) {
+    return (
+      <SafeAreaProvider>
+        <Slot />
+      </SafeAreaProvider>
+    );
+  }
   return (
     <SafeAreaProvider>
       <CompassProvider>

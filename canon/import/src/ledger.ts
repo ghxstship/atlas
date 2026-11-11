@@ -4,6 +4,7 @@ import { parse } from "yaml";
 import { columnLetter, columnOrdinal } from "./cell.ts";
 import { checksumLines, normalizedRow, sha256, sheetGrid } from "./manifest.ts";
 import type { RepoPaths } from "./paths.ts";
+import { anonymize, LIBRARY_SHEETS } from "./rrr67.ts";
 import type { CellDiff } from "./roundtrip.ts";
 import type { SheetData } from "./workbook.ts";
 
@@ -102,10 +103,12 @@ export function ruledChecksum(sheet: SheetData, ledger: Ledger): string {
     ledger.removed_rows.filter((e) => e.sheet === sheet.name).map((e) => e.row),
   );
   const cells = ledger.cells.filter((e) => e.sheet === sheet.name);
+  const library = (LIBRARY_SHEETS as readonly string[]).includes(sheet.name);
   const rows = grid.dataRows
     .filter((r) => !removed.has(r))
     .map((r) => {
-      const values = normalizedRow(sheet, r, grid.columnCount);
+      // The database holds each value as the importer wrote it, with the RRR-67 anonymization applied.
+      const values = normalizedRow(sheet, r, grid.columnCount).map((v) => anonymize(v, library));
       for (const e of cells) {
         const m = /^([A-Z]+)([0-9]+)$/.exec(e.cell);
         if (m && Number(m[2]) === r) values[columnOrdinal(m[1] ?? "A") - 1] = e.database;

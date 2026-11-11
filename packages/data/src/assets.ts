@@ -1,6 +1,8 @@
-import { Constants, type Database } from "./database.types.ts";
+import type { Database } from "./database.types.ts";
+import { assetState } from "./enums.generated.ts";
 import type { XosClient } from "./client.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
+import * as enums from "./enums.generated.ts";
 
 /**
  * Assets repository (Section 4.2 Assets, Section 3.9 grain, migration 0352): asset classes bound to
@@ -15,8 +17,8 @@ import { fail, ok, toDataError, type Result } from "./result.ts";
 
 export type AssetState = Database["app"]["Enums"]["asset_state"];
 
-/** The nine asset states in lifecycle order, from the generated enum (Section 3.15, rule 3). */
-export const ASSET_STATES: readonly AssetState[] = Constants.app.Enums.asset_state;
+/** The ten asset states in lifecycle order, from the generated enum (Section 3.15, rule 3; Returned is R7a's). */
+export const ASSET_STATES: readonly AssetState[] = assetState;
 
 export function isAssetState(value: string): value is AssetState {
   return (ASSET_STATES as readonly string[]).includes(value);
@@ -117,7 +119,10 @@ export interface VenueOption {
   readonly name: string;
 }
 
-/** Venues of the org by name, for home venues, lot places and check-in places. */
+/**
+ * Live venues of the org by name, for home venues, lot places and check-in places; archived venues
+ * are not offered (A124).
+ */
 export async function listAssetVenues(
   db: XosClient,
   orgId: string,
@@ -127,6 +132,7 @@ export async function listAssetVenues(
     .select("id, name")
     .eq("org_id", orgId)
     .is("deleted_at", null)
+    .is("archived_at", null)
     .order("name", { ascending: true });
   if (error) return fail(toDataError(error));
   return ok(data.map((r) => ({ id: r.id, name: r.name })));
@@ -208,9 +214,11 @@ export interface AssetClass {
   readonly unitCount: number;
   readonly lotCount: number;
   readonly createdAt: string;
+  /** The offering the class answers for, Radios or Carts (R7); null for site assets. Equipment rules gate these. */
+  readonly offering: string | null;
 }
 
-/** Asset classes of the org by name, with their canon element and unit and lot counts. */
+/** Asset classes of the org by name, with their canon element, unit and lot counts and offering. */
 export async function listAssetClasses(
   db: XosClient,
   orgId: string,
@@ -218,7 +226,7 @@ export async function listAssetClasses(
   const { data, error } = await db
     .from("asset_classes")
     .select(
-      "id, name, element_id, created_at, asset_units(id, deleted_at), asset_lots(id, deleted_at)",
+      "id, name, element_id, created_at, offering, asset_units(id, deleted_at), asset_lots(id, deleted_at)",
     )
     .eq("org_id", orgId)
     .is("deleted_at", null)
@@ -241,6 +249,7 @@ export async function listAssetClasses(
         unitCount: r.asset_units.filter((u) => u.deleted_at === null).length,
         lotCount: r.asset_lots.filter((l) => l.deleted_at === null).length,
         createdAt: r.created_at,
+        offering: r.offering ?? null,
       };
     }),
   );
@@ -681,10 +690,12 @@ interface LotMovementRow {
   movement_kind: LotMovementKind;
   delta: number | string;
   custodian_membership_id: string | null;
+  custodian_engagement_id: string | null;
   project_id: string | null;
   note: string | null;
   created_at: string;
   custodian: { person: { full_name: string | null } | null } | null;
+  engagement: { person: { full_name: string | null } | null } | null;
   project: { project_key: string } | null;
 }
 
@@ -705,13 +716,16 @@ async function lotBalances(
   );
 }
 
-export type LotMovementKind = "Count" | "Check Out" | "Check In";
+export type LotMovementKind = Database["app"]["Enums"]["asset_lot_movement_kind"];
 
 export interface LotMovement {
   readonly id: string;
   readonly kind: LotMovementKind;
   readonly delta: number;
   readonly membershipId: string | null;
+  /** Engagement that took or returned the quantity (migration 2602). */
+  readonly engagementId: string | null;
+  /** The member's or the engaged person's name. */
   readonly custodianName: string | null;
   readonly projectId: string | null;
   readonly projectKey: string | null;
@@ -727,7 +741,7 @@ export async function listAssetLotMovements(
   const { data, error } = await db
     .from("asset_lot_movements")
     .select(
-      "id, movement_kind, delta, custodian_membership_id, project_id, note, created_at, custodian:memberships!asset_lot_movements_custodian_membership_id_fkey(person:people!memberships_person_id_fkey(full_name)), project:projects!asset_lot_movements_project_id_fkey(project_key)",
+      "id, movement_kind, delta, custodian_membership_id, custodian_engagement_id, project_id, note, created_at, custodian:memberships!asset_lot_movements_custodian_membership_id_fkey(person:people!memberships_person_id_fkey(full_name)), engagement:engagements!asset_lot_movements_custodian_engagement_id_fkey(person:people!engagements_person_id_fkey(full_name)), project:projects!asset_lot_movements_project_id_fkey(project_key)",
     )
     .eq("asset_lot_id", lotId)
     .order("created_at", { ascending: false });
@@ -738,7 +752,8 @@ export async function listAssetLotMovements(
       kind: r.movement_kind,
       delta: Number(r.delta),
       membershipId: r.custodian_membership_id,
-      custodianName: r.custodian?.person?.full_name ?? null,
+      engagementId: r.custodian_engagement_id ?? null,
+      custodianName: r.custodian?.person?.full_name ?? r.engagement?.person?.full_name ?? null,
       projectId: r.project_id,
       projectKey: r.project?.project_key ?? null,
       note: r.note,
@@ -819,8 +834,6 @@ export async function listAssetCustody(
 }
 
 export interface CustodyInput {
-  /** A device-minted UUID v7 that makes the write idempotent (scans); generated when absent. */
-  readonly id?: string;
   readonly orgId: string;
   readonly unitId: string;
   readonly membershipId: string | null;
@@ -828,9 +841,17 @@ export interface CustodyInput {
   readonly venueId: string | null;
   readonly projectId: string | null;
   readonly note: string | null;
+  /** The person on the custodian engagement's roster who takes the unit (R7). */
+  readonly rosterEntryId?: string | null;
+  /** The hold of an allocation the hand-over is issued against (R7). */
+  readonly reservationId?: string | null;
 }
 
-/** Appends a custody row: hands a unit to a person or place (the ledger is append-only). */
+/**
+ * Records a custody hand-over through app.record_asset_custody (R7, 4692): a check-out or transfer to one
+ * custodian, or a check-in to a place, written by app.apply_asset_scan so the unit's state moves with it and the
+ * holder guards apply. Signed-in users no longer insert custody rows directly.
+ */
 export async function recordAssetCustody(
   db: XosClient,
   input: CustodyInput,
@@ -846,19 +867,18 @@ export async function recordAssetCustody(
     return refuse("asset_custody_somewhere", "A custody move names a person or a place.");
   }
   const note = input.note?.trim() ? input.note.trim() : null;
-  const row: Database["app"]["Tables"]["asset_custody"]["Insert"] = {
-    ...(input.id ? { id: input.id } : {}),
-    org_id: input.orgId,
-    asset_unit_id: input.unitId,
-    custodian_membership_id: input.membershipId,
-    ...(engagementId ? { custodian_engagement_id: engagementId } : {}),
-    venue_id: input.venueId,
-    project_id: input.projectId,
-    note,
-  };
-  const { data, error } = await db.from("asset_custody").insert(row).select("id").single();
+  const { data, error } = await db.rpc("record_asset_custody", {
+    p_asset_unit_id: input.unitId,
+    ...(input.membershipId ? { p_custodian_membership_id: input.membershipId } : {}),
+    ...(engagementId ? { p_custodian_engagement_id: engagementId } : {}),
+    ...(input.venueId ? { p_venue_id: input.venueId } : {}),
+    ...(input.projectId ? { p_project_id: input.projectId } : {}),
+    ...(note ? { p_note: note } : {}),
+    ...(input.rosterEntryId ? { p_roster_entry_id: input.rosterEntryId } : {}),
+    ...(input.reservationId ? { p_reservation_id: input.reservationId } : {}),
+  });
   if (error) return fail(toDataError(error));
-  return ok({ id: data.id });
+  return ok({ id: data });
 }
 
 // Maintenance --------------------------------------------------------------------------------------
@@ -917,6 +937,8 @@ export async function recordAssetMaintenance(
     readonly description: string;
     readonly costMinor: number | null;
     readonly currencyCode: string | null;
+    /** The plan this work fulfils (B11, G-95); it moves the plan's next due date. */
+    readonly maintenancePlanId?: string | null | undefined;
   },
 ): Promise<Result<{ id: string }>> {
   const description = input.description.trim();
@@ -935,6 +957,7 @@ export async function recordAssetMaintenance(
       description,
       cost_minor: input.costMinor,
       currency_code: input.costMinor === null ? null : input.currencyCode,
+      maintenance_plan_id: input.maintenancePlanId ?? null,
     })
     .select("id")
     .single();
@@ -1017,8 +1040,8 @@ export async function reportAssetDamage(
 
 // Scan resolution (the Compass back end) ---------------------------------------------------------
 
-export type ScanAction = "check-out" | "check-in" | "transfer";
-export const SCAN_ACTIONS: readonly ScanAction[] = ["check-out", "check-in", "transfer"];
+export type ScanAction = Database["app"]["Enums"]["asset_scan_action"];
+export const SCAN_ACTIONS: readonly ScanAction[] = enums.assetScanAction;
 
 /** The states each scan action starts from, mirroring app.apply_asset_scan (migration 0975). */
 const SCAN_FROM: Record<ScanAction, readonly AssetState[]> = {
@@ -1157,6 +1180,10 @@ export interface ScanEventInput {
   readonly note?: string | null;
   /** Lots only: how many move. */
   readonly quantity?: number | null;
+  /** The person on the custodian engagement's roster who takes or returns the item (R7). */
+  readonly rosterEntryId?: string | null;
+  /** The allocation hold the hand-over is issued against (R7). */
+  readonly reservationId?: string | null;
 }
 
 export interface ScanEventResult {
@@ -1196,6 +1223,8 @@ export async function applyAssetScanEvent(
     ...(input.quantity !== null && input.quantity !== undefined
       ? { p_quantity: input.quantity }
       : {}),
+    ...(input.rosterEntryId ? { p_roster_entry_id: input.rosterEntryId } : {}),
+    ...(input.reservationId ? { p_reservation_id: input.reservationId } : {}),
   });
   if (error) return fail(toDataError(error));
   const row = (data as unknown as ApplyRow[] | null)?.[0];
@@ -1225,4 +1254,156 @@ export async function countAssetLot(
   if (error) return fail(toDataError(error));
   // A count that matches what is on hand returns null.
   return ok({ movementId: (data as string | null) ?? null });
+}
+
+// Provenance and hire (R7a) ---------------------------------------------------------------------------------
+
+export interface AssetUnitProvenance {
+  readonly receiptLineId: string;
+  readonly goodsReceiptId: string;
+  readonly receivedAt: string;
+  readonly purchaseOrderId: string;
+  readonly poNumber: number;
+  readonly projectId: string;
+  readonly vendorId: string;
+  readonly acquisitionKind: Database["app"]["Enums"]["acquisition_kind"];
+  /** Rental units: when the hire ends and the unit is due back (ISO instant). */
+  readonly hireEndsAt: string | null;
+  readonly unitPriceMinor: number | null;
+  readonly currencyCode: string;
+}
+
+/** The upper bound of a tstzrange as PostgREST returns it, as an ISO instant. */
+function rangeEnd(value: unknown): string | null {
+  const match = typeof value === "string" ? value.match(/,"?([^",)\]]+)"?[)\]]$/) : null;
+  if (!match?.[1]) return null;
+  const at = new Date(match[1].replace(" ", "T").replace(/([+-]\d\d)$/, "$1:00"));
+  return Number.isNaN(at.getTime()) ? null : at.toISOString();
+}
+
+/**
+ * Where a unit came from (app.asset_unit_provenance): its receipt, order, vendor and price. The view runs as the
+ * reader, so a person without procurement.po.read on the order's project gets null and never sees cost.
+ */
+export async function getAssetUnitProvenance(
+  db: XosClient,
+  assetUnitId: string,
+): Promise<Result<AssetUnitProvenance | null>> {
+  const { data, error } = await db
+    .from("asset_unit_provenance")
+    .select(
+      "receipt_line_id, goods_receipt_id, received_at, purchase_order_id, po_number, project_id, vendor_id, acquisition_kind, hire_period, unit_price_minor, currency_code",
+    )
+    .eq("asset_unit_id", assetUnitId)
+    .maybeSingle();
+  if (error) return fail(toDataError(error));
+  if (!data) return ok(null);
+  return ok({
+    receiptLineId: data.receipt_line_id ?? "",
+    goodsReceiptId: data.goods_receipt_id ?? "",
+    receivedAt: data.received_at ?? "",
+    purchaseOrderId: data.purchase_order_id ?? "",
+    poNumber: data.po_number ?? 0,
+    projectId: data.project_id ?? "",
+    vendorId: data.vendor_id ?? "",
+    acquisitionKind: data.acquisition_kind ?? "Purchase",
+    hireEndsAt: rangeEnd(data.hire_period),
+    unitPriceMinor: data.unit_price_minor,
+    currencyCode: data.currency_code ?? "",
+  });
+}
+
+export interface AssetUnitHire {
+  readonly assetUnitId: string;
+  readonly acquisitionKind: Database["app"]["Enums"]["acquisition_kind"];
+  readonly hireEndsAt: string | null;
+  readonly offHireDue: boolean;
+}
+
+/**
+ * Whether each unit of an org is hired in and when it goes back (app.asset_unit_hire, G-96). Readable with
+ * assets.asset.read alone: it carries no vendor, cost or order.
+ */
+export async function listAssetUnitHire(
+  db: XosClient,
+  orgId: string,
+): Promise<Result<AssetUnitHire[]>> {
+  const { data, error } = await db
+    .from("asset_unit_hire")
+    .select("asset_unit_id, acquisition_kind, hire_ends_at, off_hire_due")
+    .eq("org_id", orgId);
+  if (error) return fail(toDataError(error));
+  return ok(
+    (data ?? []).flatMap((r) =>
+      r.asset_unit_id === null
+        ? []
+        : [
+            {
+              assetUnitId: r.asset_unit_id,
+              acquisitionKind: r.acquisition_kind ?? "Purchase",
+              hireEndsAt: r.hire_ends_at,
+              offHireDue: r.off_hire_due ?? false,
+            },
+          ],
+    ),
+  );
+}
+
+export interface ReceiptUnit {
+  readonly id: string;
+  readonly assetTag: string;
+  readonly receiptLineId: string;
+  readonly state: AssetState;
+}
+
+/** The units that arrived on some receipt lines (R7a), by tag, for the receipt page and the return dialog. */
+export async function listReceiptUnits(
+  db: XosClient,
+  receiptLineIds: readonly string[],
+): Promise<Result<ReceiptUnit[]>> {
+  if (receiptLineIds.length === 0) return ok([]);
+  const { data, error } = await db
+    .from("asset_units")
+    .select("id, asset_tag, receipt_line_id, asset_state")
+    .in("receipt_line_id", [...receiptLineIds])
+    .is("deleted_at", null)
+    .order("asset_tag");
+  if (error) return fail(toDataError(error));
+  return ok(
+    (data ?? []).map((u) => ({
+      id: u.id,
+      assetTag: u.asset_tag,
+      receiptLineId: u.receipt_line_id ?? "",
+      state: u.asset_state,
+    })),
+  );
+}
+
+export interface ReceiptStock {
+  readonly receiptLineId: string;
+  readonly venueId: string;
+}
+
+/**
+ * Where some receipt lines brought a quantity into stock (their Receipt movements, R7a), for the return dialog: a
+ * line goes back the way it came in, so a stocked line goes back out of a lot and any other quantity without one.
+ */
+export async function listReceiptStock(
+  db: XosClient,
+  receiptLineIds: readonly string[],
+): Promise<Result<ReceiptStock[]>> {
+  if (receiptLineIds.length === 0) return ok([]);
+  const { data, error } = await db
+    .from("asset_lot_movements")
+    .select("receipt_line_id, lot:asset_lots!asset_lot_movements_asset_lot_id_fkey(venue_id)")
+    .in("receipt_line_id", [...receiptLineIds])
+    .eq("movement_kind", "Receipt");
+  if (error) return fail(toDataError(error));
+  return ok(
+    (data ?? []).flatMap((m) =>
+      m.receipt_line_id === null || !m.lot
+        ? []
+        : [{ receiptLineId: m.receipt_line_id, venueId: m.lot.venue_id }],
+    ),
+  );
 }

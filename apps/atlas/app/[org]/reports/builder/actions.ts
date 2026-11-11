@@ -17,7 +17,9 @@ import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 import { getOrgContext } from "@/lib/shell/context";
-import { fromDataError, type WorkflowActionState } from "@/lib/workflow/state";
+import { type WorkflowActionState } from "@/lib/workflow/state";
+import { fromDataError } from "@/lib/workflow/data-error";
+import * as enums from "@xos/data/enums";
 
 /**
  * Report builder actions (A33 on A18's report definitions, 0550): preview a definition as the
@@ -124,7 +126,7 @@ export async function queueRunAction(
 ): Promise<WorkflowActionState> {
   const ctx = await contextFor(org);
   const parsed = z
-    .object({ id: z.uuid(), format: z.enum(["CSV", "XLSX", "PDF"]) })
+    .object({ id: z.uuid(), format: z.enum(enums.exportFormat) })
     .safeParse({ id, format });
   if (!parsed.success) return { error: "input", at: Date.now() };
   const result = await runReport(ctx.viewer.db, {

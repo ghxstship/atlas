@@ -4,7 +4,6 @@
  * created with dependencies, so no unimplemented operation answers with a stub.
  */
 import { OpenAPIHono } from "@hono/zod-openapi";
-import { loadCapabilityRegistry } from "@xos/schemas/capabilities";
 import { atlasResources } from "./catalog/atlas.ts";
 import { canonResources } from "./catalog/canon.ts";
 import { marketplaceResources } from "./catalog/marketplace.ts";
@@ -162,7 +161,7 @@ export function createApiApp(
       : { getPath: (request: Request) => stripBasePath(new URL(request.url).pathname, bases) }),
   });
   const registry = app.openAPIRegistry;
-  registerSecuritySchemes(registry, loadCapabilityRegistry());
+  registerSecuritySchemes(registry);
   registerHeaders(registry);
   registerProblemResponses(registry);
   const params = registerParameters(registry);

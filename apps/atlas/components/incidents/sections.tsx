@@ -27,6 +27,7 @@ import type { Route } from "next";
 import { getFormatter } from "next-intl/server";
 import type { ReactNode } from "react";
 import { ActionForm } from "@/components/operations/action-form";
+import { alertReach } from "@/lib/incidents/alert-reach";
 import {
   chooseProjectNotice,
   dateTime,
@@ -51,8 +52,15 @@ import {
   type Column,
   type ListItem,
 } from "@/components/operations/kit";
-import { LiveRefresh } from "@/components/operations/peek";
 import { RecordCollab } from "@/components/operations/record-collab";
+import { CustomFieldInputs } from "@/components/custom-fields/inputs";
+import { CustomFieldList } from "@/components/custom-fields/list";
+import { CustomFieldsPanel } from "@/components/custom-fields/custom-fields-panel";
+import { customFieldColumns } from "@/components/custom-fields/columns";
+import { customFieldList } from "@/lib/custom-fields/server";
+import { customConditionsOf } from "@/lib/views/conditions";
+import { LiveRefresh } from "@/components/live/live-refresh";
+import { PresenceFor } from "@/components/presence/presence-for";
 import { EmergencyCodeCard, TemplateSplitView } from "@/components/operations/ui";
 import { MapView } from "@/components/platform/client/map-view";
 import { ButtonLink, EmptyStateLink } from "@/components/ui";
@@ -82,6 +90,7 @@ import { rememberView } from "@/lib/shell/recents";
 import { instantToLocal } from "@/lib/operations/time";
 import { IncidentOshaPanel } from "@/components/compliance/osha-panels";
 import { DocumentActions } from "@/components/documents/document-actions";
+import { CollectionPage } from "@/components/platform/collection-page";
 
 /**
  * Safety incidents (Section 4.2: incidents with dispatch, emergency codes, radio): the incident
@@ -146,18 +155,21 @@ export async function IncidentsSection({ page }: { page: ModulePage }) {
   const format = await getFormatter();
   const stateFilter = param(page.search, "state") as IncidentState | undefined;
   const severityFilter = param(page.search, "severity");
-  const [incidentsResult, severitiesResult] = await Promise.all([
+  const [incidentsResult, severitiesResult, custom] = await Promise.all([
     listIncidents(page.ctx.viewer.db, {
       orgId: page.ctx.org.id,
       ...(page.project ? { projectId: page.project.id } : {}),
       ...(stateFilter && INCIDENT_STATES.includes(stateFilter) ? { states: [stateFilter] } : {}),
     }),
     listIncidentSeverities(page.ctx.viewer.db),
+    customFieldList(page.ctx, "app.incidents", page.search),
   ]);
   const severities = unwrap(severitiesResult, "severities");
   const incidents = unwrap(incidentsResult, "incidents").filter(
-    (i) => !severityFilter || i.severityId === severityFilter,
+    (i) => (!severityFilter || i.severityId === severityFilter) && custom.keep(i.id),
   );
+  const customView = await custom.view(incidents.map((i) => i.id));
+  const customColumns = customFieldColumns(customView);
   const located = incidents.some((i) => i.latitude !== null);
   const declared = chooseView("safety.incidents", param(page.search, "view"));
   // The map view appears only when the data has a location (Section 11.15).
@@ -195,6 +207,11 @@ export async function IncidentsSection({ page }: { page: ModulePage }) {
       primary: true,
       render: (i) => <StateChip page={page} state={i.state} />,
     },
+    ...customColumns.columns.map((c) => ({
+      key: c.key,
+      label: c.label,
+      render: (i: Incident) => customColumns.cells(i.id)[c.key] ?? "",
+    })),
   ];
   const item = (i: Incident): ListItem => ({
     key: i.id,
@@ -209,7 +226,11 @@ export async function IncidentsSection({ page }: { page: ModulePage }) {
     body = (
       <EmptyStateLink
         icon="Siren"
-        sentence={t(stateFilter || severityFilter ? "incidents.emptyFiltered" : "incidents.empty")}
+        sentence={t(
+          stateFilter || severityFilter || customConditionsOf(page.search).length > 0
+            ? "incidents.emptyFiltered"
+            : "incidents.empty",
+        )}
         actionLabel={t("incidents.report")}
         href={sectionHref(page, { create: "1", section })}
       />
@@ -244,65 +265,69 @@ export async function IncidentsSection({ page }: { page: ModulePage }) {
   }
 
   return (
-    <>
-      <Header
-        page={page}
-        section={section}
-        title={title}
-        count={incidents.length}
-        views={views}
-        view={view}
-
-        action={
-          canReport ? (
-            <ButtonLink
-              href={sectionHref(page, { create: "1", peek: undefined, section })}
-              variant="primary"
-            >
-              {t("incidents.report")}
-            </ButtonLink>
-          ) : undefined
+    <CustomFieldList value={customView}>
+      <CollectionPage
+        header={
+          <Header
+            page={page}
+            section={section}
+            title={title}
+            count={incidents.length}
+            views={views}
+            view={view}
+            action={
+              canReport ? (
+                <ButtonLink
+                  href={sectionHref(page, { create: "1", peek: undefined, section })}
+                  variant="primary"
+                >
+                  {t("incidents.report")}
+                </ButtonLink>
+              ) : undefined
+            }
+          />
         }
-      />
-      <ProjectFilter
-        page={page}
-        section={section}
-        extra={[
-          {
-            name: "state",
-            label: t("incidents.state"),
-            value: stateFilter ?? "",
-            options: [
-              { value: "", label: t("incidents.anyState") },
-              ...INCIDENT_STATES.map((s) => ({ value: s, label: t(`incidents.states.${s}`) })),
-            ],
-          },
-          {
-            name: "severity",
-            label: t("incidents.severity"),
-            value: severityFilter ?? "",
-            options: [
-              { value: "", label: t("incidents.anySeverity") },
-              ...severities.map((s) => ({ value: s.id, label: s.label })),
-            ],
-          },
-        ]}
-      />
-      {creating && canReport ? (
-        page.project ? (
-          <ReportForm page={page} project={page.project} severities={severities} />
-        ) : (
-          chooseProjectNotice(page, section, {
-            choose: t("incidents.chooseProject"),
-            none: t("incidents.noProjects"),
-          })
-        )
-      ) : null}
-      {body}
-      {peekId ? (
-        <IncidentRecord page={page} id={peekId} section={section} severities={severities} />
-      ) : null}
-    </>
+      >
+        <ProjectFilter
+          page={page}
+          section={section}
+          extra={[
+            {
+              name: "state",
+              label: t("incidents.state"),
+              value: stateFilter ?? "",
+              options: [
+                { value: "", label: t("incidents.anyState") },
+                ...INCIDENT_STATES.map((s) => ({ value: s, label: t(`incidents.states.${s}`) })),
+              ],
+            },
+            {
+              name: "severity",
+              label: t("incidents.severity"),
+              value: severityFilter ?? "",
+              options: [
+                { value: "", label: t("incidents.anySeverity") },
+                ...severities.map((s) => ({ value: s.id, label: s.label })),
+              ],
+            },
+          ]}
+        />
+        {creating && canReport ? (
+          page.project ? (
+            <ReportForm page={page} project={page.project} severities={severities} />
+          ) : (
+            chooseProjectNotice(page, section, {
+              choose: t("incidents.chooseProject"),
+              none: t("incidents.noProjects"),
+            })
+          )
+        ) : null}
+        {body}
+        {peekId ? (
+          <IncidentRecord page={page} id={peekId} section={section} severities={severities} />
+        ) : null}
+      </CollectionPage>
+    </CustomFieldList>
   );
 }
 
@@ -368,6 +393,7 @@ async function ReportForm({
   );
   return (
     <RecordSection id="report-incident" title={t("incidents.report")}>
+      <p className="m-0 text-text-13 text-text-secondary">{t("incidents.nearMiss")}</p>
       <ActionForm
         action={reportIncidentAction}
         hidden={{ org: page.ctx.org.slug, projectId: project.id, timeZone: project.timeZone }}
@@ -375,6 +401,7 @@ async function ReportForm({
         successKey="incidents.filed"
         layout="inline"
         resetOnSuccess
+        signals={{ submit: "atlas.safety:step1", done: "atlas.safety:done" }}
       >
         <TextField
           id="incident-title"
@@ -401,6 +428,7 @@ async function ReportForm({
           defaultValue={instantToLocal(new Date().toISOString(), project.timeZone)}
           help={t("incidents.timeZoneHelp", { zone: project.timeZone })}
         />
+        <CustomFieldInputs table="app.incidents" />
       </ActionForm>
     </RecordSection>
   );
@@ -524,6 +552,7 @@ async function IncidentRecord({
         />
       }
     >
+      <PresenceFor table="incidents" id={incident.id} />
       <DocumentActions org={page.ctx.org.slug} kind="incident-report" id={incident.id} />
       <IncidentOshaPanel ctx={page.ctx} incidentId={incident.id} members={memberList} />
       {moves.length > 0 && (canDispatch || canWrite) ? (
@@ -855,6 +884,7 @@ async function IncidentRecord({
           <p className="m-0 text-text-13 text-text-secondary">{t("incidents.noHistory")}</p>
         )}
       </RecordSection>
+      <CustomFieldsPanel org={page.ctx.org.slug} table="app.incidents" id={incident.id} />
       <RecordCollab
         page={page}
         table="app.incidents"
@@ -866,6 +896,12 @@ async function IncidentRecord({
 }
 
 // Dispatch board ------------------------------------------------------------------------------------
+
+/**
+ * How fast the dispatch board follows incidents and dispatches (Section 11.11: a new incident visible
+ * to dispatch in under 2 s): a short batch and at most two rereads a second while changes keep coming.
+ */
+const DISPATCH_PACING = { batchMs: 100, minIntervalMs: 500, maxIntervalMs: 4_000 } as const;
 
 export async function DispatchBoardSection({ page }: { page: ModulePage }) {
   const t = page.t;
@@ -906,28 +942,38 @@ export async function DispatchBoardSection({ page }: { page: ModulePage }) {
   });
 
   return (
-    <>
-      <LiveRefresh seconds={2} />
-      <Header
-        page={page}
-        section={section}
-        title={title}
-        count={open.length}
-        views={views}
-        view={view}
+    <CollectionPage
+      header={
+        <Header
+          page={page}
+          section={section}
+          title={title}
+          count={open.length}
+          views={views}
+          view={view}
 
-        action={
-          can(page, "safety.incident.write") ? (
-            <ButtonLink
-              href={
-                `/${page.ctx.org.slug}/safety/incidents?create=1${page.project ? `&project=${page.project.key}` : ""}` as Route
-              }
-              variant="primary"
-            >
-              {t("incidents.report")}
-            </ButtonLink>
-          ) : undefined
-        }
+          action={
+            can(page, "safety.incident.write") ? (
+              <ButtonLink
+                href={
+                  `/${page.ctx.org.slug}/safety/incidents?create=1${page.project ? `&project=${page.project.key}` : ""}` as Route
+                }
+                variant="primary"
+              >
+                {t("incidents.report")}
+              </ButtonLink>
+            ) : undefined
+          }
+        />
+      }
+    >
+      {/* Realtime, not polling: incidents and dispatches of the org stream to the board (0470, ADR 0083). */}
+      <LiveRefresh
+        topics={[
+          { table: "incidents", filter: `org_id=eq.${page.ctx.org.id}` },
+          { table: "dispatch_assignments", filter: `org_id=eq.${page.ctx.org.id}` },
+        ]}
+        pacing={DISPATCH_PACING}
       />
       <ProjectFilter page={page} section={section} />
       <p className="m-0 text-text-12 text-text-secondary" aria-live="polite">
@@ -962,7 +1008,7 @@ export async function DispatchBoardSection({ page }: { page: ModulePage }) {
       {peekId ? (
         <IncidentRecord page={page} id={peekId} section={section} severities={severities} />
       ) : null}
-    </>
+    </CollectionPage>
   );
 }
 
@@ -1023,15 +1069,18 @@ export async function EmergencyCodesSection({ page }: { page: ModulePage }) {
   ];
 
   return (
-    <>
-      <Header
-        page={page}
-        section={section}
-        title={title}
-        count={codes.length}
-        views={views}
-        view={view}
-      />
+    <CollectionPage
+      header={
+        <Header
+          page={page}
+          section={section}
+          title={title}
+          count={codes.length}
+          views={views}
+          view={view}
+        />
+      }
+    >
       <ProjectFilter page={page} section={section} />
       <p className="m-0 text-text-13 text-text-secondary">{t("incidents.codes.explain")}</p>
       {codes.length > 0 && codes.every((c) => c.id === undefined) ? (
@@ -1061,7 +1110,7 @@ export async function EmergencyCodesSection({ page }: { page: ModulePage }) {
         />
       )}
       {peek ? <CodeRecord page={page} code={codes.find((c) => c.code === peek)} /> : null}
-    </>
+    </CollectionPage>
   );
 }
 
@@ -1100,6 +1149,17 @@ function AlertsPanel({
                     time: dateTime(format, a.issuedAt, projectOf(page, a.projectId)?.timeZone),
                   })}
                 </span>
+                {a.peopleTold !== null ? (
+                  <span
+                    className={
+                      a.peopleTold === 0 || (a.peopleNotSent ?? 0) > 0
+                        ? "text-text-13 font-medium text-danger-text"
+                        : "text-text-13 text-text-secondary"
+                    }
+                  >
+                    {alertReach(t, a)}
+                  </span>
+                ) : null}
               </span>
               {canAlert ? (
                 <ActionForm
@@ -1127,6 +1187,9 @@ function AlertsPanel({
             variant="danger"
             resetOnSuccess
           >
+            <p className="m-0 text-text-13 text-text-secondary">
+              {t("incidents.alerts.reachHelp")}
+            </p>
             <SelectField
               id="alert-code"
               name="emergencyCode"
@@ -1164,6 +1227,7 @@ function AlertsPanel({
                     a.projectKey,
                     a.message,
                     dateTime(format, a.issuedAt),
+                    a.peopleTold !== null ? alertReach(t, a) : null,
                   )}
                 </li>
               ))}
@@ -1325,26 +1389,29 @@ export async function RadioChannelsSection({ page }: { page: ModulePage }) {
   ];
 
   return (
-    <>
-      <Header
-        page={page}
-        section={section}
-        title={title}
-        count={channels.length}
-        views={views}
-        view={view}
+    <CollectionPage
+      header={
+        <Header
+          page={page}
+          section={section}
+          title={title}
+          count={channels.length}
+          views={views}
+          view={view}
 
-        action={
-          canWrite ? (
-            <ButtonLink
-              href={sectionHref(page, { create: "1", peek: undefined, section: undefined })}
-              variant="primary"
-            >
-              {t("incidents.radio.new")}
-            </ButtonLink>
-          ) : undefined
-        }
-      />
+          action={
+            canWrite ? (
+              <ButtonLink
+                href={sectionHref(page, { create: "1", peek: undefined, section: undefined })}
+                variant="primary"
+              >
+                {t("incidents.radio.new")}
+              </ButtonLink>
+            ) : undefined
+          }
+        />
+      }
+    >
       <ProjectFilter page={page} section={section} />
       {creating && canWrite ? (
         page.project ? (
@@ -1436,7 +1503,7 @@ export async function RadioChannelsSection({ page }: { page: ModulePage }) {
           canWrite={canWrite}
         />
       ) : null}
-    </>
+    </CollectionPage>
   );
 }
 

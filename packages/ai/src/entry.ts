@@ -12,6 +12,8 @@ export type FeatureAvailability =
   | { readonly kind: "ready"; readonly used: number; readonly allowance: number | null }
   | { readonly kind: "not-in-plan" }
   | { readonly kind: "off" }
+  /** The person turned AI features off for themselves, which no Admin can undo. */
+  | { readonly kind: "declined" }
   | { readonly kind: "limit-reached"; readonly allowance: number };
 
 export function featureAvailability(
@@ -19,6 +21,7 @@ export function featureAvailability(
   feature: AiFeature,
 ): FeatureAvailability {
   if (!status.plan_includes_aurora) return { kind: "not-in-plan" };
+  if (status.declined_by_person === true) return { kind: "declined" };
   if (!status.enabled_features.includes(feature)) return { kind: "off" };
   if (status.allowance !== null && status.used >= status.allowance) {
     return { kind: "limit-reached", allowance: status.allowance };
@@ -33,9 +36,14 @@ export function featureAvailability(
  * - `quota`: the org has used this month's allowance (plan_limit_exceeded, ADR 0020).
  * - `not-in-plan`, `off`: the plan lacks Aurora, or an Admin turned the feature off since the page
  *   loaded.
+ * - `declined`: the person turned AI features off for themselves (ai_declined_by_person), in Compass.
  * - `not-configured`: the deployment has no model provider.
  * - `offline`: the request did not reach the API.
  * - `forbidden`: the person may not do this.
+ * - `list-not-empty`: a drafted run of show or risk assessment found its list no longer empty.
+ * - `itinerary-duplicate`: a line repeats a live travel segment of the same person (B15).
+ * - `fee-restricted`: a fee came from someone who may not read pay (B15).
+ * - `source-unverified`: an advance answer's mail is not verified mail of the project's inbox (B15).
  * - `refused`: the API refused with a rule, named in the detail.
  * - `unexpected`: anything else.
  */
@@ -44,9 +52,14 @@ export type AuroraProblemKind =
   | "quota"
   | "not-in-plan"
   | "off"
+  | "declined"
   | "not-configured"
   | "offline"
   | "forbidden"
+  | "list-not-empty"
+  | "itinerary-duplicate"
+  | "fee-restricted"
+  | "source-unverified"
   | "refused"
   | "unexpected";
 
@@ -60,8 +73,18 @@ export function problemKind(problem: AuroraProblem): AuroraProblemKind {
       return "not-in-plan";
     case "aurora_feature_off":
       return "off";
+    case "ai_declined_by_person":
+      return "declined";
     case "aurora_not_configured":
       return "not-configured";
+    case "aurora_draft_list_not_empty":
+      return "list-not-empty";
+    case "aurora_itinerary_duplicate":
+      return "itinerary-duplicate";
+    case "aurora_fee_restricted":
+      return "fee-restricted";
+    case "aurora_advance_source_unverified":
+      return "source-unverified";
     default:
       break;
   }

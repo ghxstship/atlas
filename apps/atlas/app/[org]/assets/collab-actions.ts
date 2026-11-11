@@ -12,6 +12,7 @@ import { notFound } from "next/navigation";
 import { z } from "zod";
 import { getOrgContext } from "@/lib/shell/context";
 import type { AssetActionState } from "./actions";
+import { observability } from "@/lib/observability";
 
 /**
  * Comments and attachments on asset classes, units, lots, maintenance and damage (Section 19.6)
@@ -49,7 +50,7 @@ function subjectOf(form: FormData) {
 function failed(error: { kind: string }): CollabState {
   if (error.kind === "not-found") return { error: "notFound" };
   if (error.kind === "refusal") return { error: "refused" };
-  console.error("asset collaboration failed", error);
+  observability.logger.error("asset collaboration failed", { error: error });
   return { error: "unexpected" };
 }
 

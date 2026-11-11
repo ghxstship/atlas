@@ -16,6 +16,7 @@ import { WORKSPACE_COOKIE } from "@/lib/shell/workspace";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { THEME_COOKIE } from "@/lib/theme";
 import { consentState, secureCookies } from "./consent";
+import { observability } from "@/lib/observability";
 
 /** The Preferences cookies Atlas sets (legal/cookie-policy.md section 3). */
 const PREFERENCE_COOKIES = [
@@ -47,7 +48,8 @@ export async function saveCookieChoice(form: FormData): Promise<void> {
     gpc: state.gpc,
   };
   const recorded = await recordCookieConsent(await createServerSupabase(), consent);
-  if (!recorded.ok) console.error("cookie consent was not recorded", recorded.error);
+  if (!recorded.ok)
+    observability.logger.error("cookie consent was not recorded", { error: recorded.error });
 
   const store = await cookies();
   const secure = secureCookies();

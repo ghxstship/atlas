@@ -2,19 +2,24 @@
 
 import {
   acceptRepresentation,
+  APP_ENUMS,
   decideApplication,
+  fileRatingDispute,
   rateEngagement,
   replyToRating,
   revokeProfileShare,
   revokeRepresentation,
   sendMessage,
   sendPartyMessage,
+  declineDocument,
+  signDocumentText,
   signEngagementDocument,
   submitOnboardingItem,
   type ApplicationState,
 } from "@xos/data/gateway";
+import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { toAction, type ActionResult } from "@/lib/action-result";
+import { outcomeFor, toAction, type ActionResult } from "@/lib/action-result";
 import { createServerSupabase } from "@/lib/supabase/server";
 
 /**
@@ -124,5 +129,96 @@ export async function replyToRatingAction(
     .safeParse({ ratingId: form.get("ratingId"), body: form.get("body") });
   if (!parsed.success) return { outcome: "invalid" };
   const result = toAction(await replyToRating(await createServerSupabase(), parsed.data));
+  return result.ok ? { done: true } : { outcome: result.outcome };
+}
+
+/** Reading and signing a generated engagement document (B10, 6524): what the form answers. */
+export interface DocumentTextState {
+  readonly done?: boolean;
+  readonly refusal?: string;
+  readonly outcome?: string;
+  readonly at?: number;
+}
+
+function textDocumentAnswer(
+  result: Awaited<ReturnType<typeof signDocumentText>>,
+  path: string,
+): DocumentTextState {
+  if (result.ok) {
+    revalidatePath(path);
+    return { done: true, at: Date.now() };
+  }
+  return result.error.kind === "refusal"
+    ? { refusal: result.error.rule, at: Date.now() }
+    : { outcome: outcomeFor(result.error), at: Date.now() };
+}
+
+export async function signDocumentTextAction(
+  _: DocumentTextState,
+  form: FormData,
+): Promise<DocumentTextState> {
+  const parsed = z
+    .object({
+      documentId: id,
+      signedName: z.string().trim().min(1).max(200),
+      sha256: z.string().regex(/^[0-9a-f]{64}$/),
+      path: z.string().startsWith("/work/"),
+    })
+    .safeParse({
+      documentId: form.get("documentId"),
+      signedName: form.get("signedName"),
+      sha256: form.get("sha256"),
+      path: form.get("path"),
+    });
+  if (!parsed.success) return { refusal: "document_signer_name", at: Date.now() };
+  const result = await signDocumentText(await createServerSupabase(), {
+    documentId: parsed.data.documentId,
+    signedName: parsed.data.signedName,
+    bodySha256: parsed.data.sha256,
+  });
+  return textDocumentAnswer(result, parsed.data.path);
+}
+
+export async function declineDocumentTextAction(
+  _: DocumentTextState,
+  form: FormData,
+): Promise<DocumentTextState> {
+  const parsed = z
+    .object({
+      documentId: id,
+      reason: z.string().trim().min(1).max(450),
+      path: z.string().startsWith("/work/"),
+    })
+    .safeParse({
+      documentId: form.get("documentId"),
+      reason: form.get("reason"),
+      path: form.get("path"),
+    });
+  if (!parsed.success) return { refusal: "document_decline_reason", at: Date.now() };
+  const result = await declineDocument(await createServerSupabase(), {
+    documentId: parsed.data.documentId,
+    reason: parsed.data.reason,
+  });
+  return textDocumentAnswer(result, parsed.data.path);
+}
+
+/** The rated person disputes a rating of them; the database checks it is theirs and released (ADR 0158). */
+export async function fileRatingDisputeAction(
+  _: RatingFormState,
+  form: FormData,
+): Promise<RatingFormState> {
+  const parsed = z
+    .object({
+      ratingId: z.uuid(),
+      ground: z.enum(APP_ENUMS.rating_dispute_ground),
+      details: z.string().trim().min(1).max(4000),
+    })
+    .safeParse({
+      ratingId: form.get("ratingId"),
+      ground: form.get("ground"),
+      details: form.get("details"),
+    });
+  if (!parsed.success) return { outcome: "invalid" };
+  const result = toAction(await fileRatingDispute(await createServerSupabase(), parsed.data));
   return result.ok ? { done: true } : { outcome: result.outcome };
 }

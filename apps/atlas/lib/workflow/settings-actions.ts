@@ -13,7 +13,9 @@ import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 import { getOrgContext } from "@/lib/shell/context";
-import { fromDataError, type WorkflowActionState } from "./state";
+import { fromDataError } from "./data-error";
+import type { WorkflowActionState } from "./state";
+import * as enums from "@xos/data/enums";
 
 /**
  * A33's settings panel actions (ADR 0021 item 7): approval policies and their steps on Settings,
@@ -130,7 +132,7 @@ export async function transitionPolicyAction(
   form: FormData,
 ): Promise<WorkflowActionState> {
   const ctx = await contextFor(form);
-  const state = z.enum(["Draft", "Active", "Retired"]);
+  const state = z.enum(enums.approvalPolicyState);
   const parsed = z
     .object({ id: z.uuid(), from: state, to: state, reason: z.string().min(1).max(500) })
     .safeParse({

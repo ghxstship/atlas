@@ -12,7 +12,7 @@ order: 1
 2. Mark each item **Pass** or **Fail**. A failure needs what is wrong and a photo; then **Save Fail**.
 3. **Submit Inspection** once every item is checked.
 
-When critical items fail, Compass tells you to stop use until they are fixed. Offline, the inspection is saved and uploads later.
+When critical items fail, take the item out of use, tell your supervisor, and name the unit in the inspection. XOS does not block or track the unit itself. Offline, the inspection is saved and uploads later.
 
 ## Sign off
 

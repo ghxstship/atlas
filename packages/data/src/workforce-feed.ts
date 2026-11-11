@@ -22,6 +22,8 @@ import {
   type Audience,
   type Raw,
 } from "./workforce-shared.ts";
+import type { Database } from "./database.types.ts";
+import * as enums from "./enums.generated.ts";
 
 /**
  * The feed, polls, pulse surveys and recognition (Section 4.9; migrations 0801 and 0805), imported
@@ -31,18 +33,13 @@ import {
  * the minimum number of responses is met. Recognition posts to the feed and never carries points.
  */
 
-export type FeedPostKind = "Announcement" | "Update" | "Poll" | "Recognition";
-export type SurveyState = "Draft" | "Open" | "Closed";
-export type SurveyQuestionKind = "Scale" | "Choice" | "Text";
+export type FeedPostKind = Database["app"]["Enums"]["feed_post_kind"];
+export type SurveyState = Database["app"]["Enums"]["survey_state"];
+export type SurveyQuestionKind = Database["app"]["Enums"]["survey_question_kind"];
 
-export const FEED_POST_KINDS: readonly FeedPostKind[] = [
-  "Announcement",
-  "Update",
-  "Poll",
-  "Recognition",
-];
+export const FEED_POST_KINDS: readonly FeedPostKind[] = enums.feedPostKind;
 export const AUTHORED_POST_KINDS: readonly FeedPostKind[] = ["Announcement", "Update", "Poll"];
-export const SURVEY_STATES: readonly SurveyState[] = ["Draft", "Open", "Closed"];
+export const SURVEY_STATES: readonly SurveyState[] = enums.surveyState;
 export const REACTION_CODES = [
   "thumbs_up",
   "heart",

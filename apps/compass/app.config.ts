@@ -84,10 +84,13 @@ export function withUniversalLinks(config: ExpoConfig, hosts: readonly LinkHost[
  *   (src/runtime/voiceRecorder.ts).
  * - EXPO_PUBLIC_XOS_FAKE_NFC (A92) swaps the NFC reader for an on-screen test tag
  *   (src/runtime/nfc.ts), since a simulator has no NFC radio.
+ * - EXPO_PUBLIC_XOS_GALLERY (A141) builds in the component gallery (app/dev/gallery.tsx) that the
+ *   gallery snapshots capture; metro.config.js leaves it out of every other build.
  */
 export const TEST_ONLY_SWITCHES = [
   "EXPO_PUBLIC_XOS_FAKE_RECORDER",
   "EXPO_PUBLIC_XOS_FAKE_NFC",
+  "EXPO_PUBLIC_XOS_GALLERY",
 ] as const;
 
 /**
@@ -123,6 +126,22 @@ export function withGoogleSignIn(config: ExpoConfig, iosClientId: string | undef
       ...(config.plugins ?? []),
       ["@react-native-google-signin/google-signin", { iosUrlScheme }],
     ],
+  };
+}
+
+/**
+ * Sign in with Apple (ADR 0033 decision 58). EXPO_PUBLIC_APPLE_SIGN_IN, a public build value ("1"), turns it on: the
+ * build asks for the Sign in with Apple capability (ios.usesAppleSignIn, which EAS enables on the App ID) and
+ * expo-apple-authentication's config plugin adds the entitlement. Unset, the build has neither, and Compass shows no
+ * Apple button, nor a Google one on iOS (src/domain/appleSignIn.ts).
+ */
+export function withAppleSignIn(config: ExpoConfig, flag: string | undefined): ExpoConfig {
+  const value = flag?.trim().toLowerCase();
+  if (value !== "1" && value !== "true") return config;
+  return {
+    ...config,
+    ios: { ...config.ios, usesAppleSignIn: true },
+    plugins: [...(config.plugins ?? []), "expo-apple-authentication"],
   };
 }
 
@@ -183,8 +202,9 @@ export function releaseConfigProblems(env: Env, iconPresent = true): string[] {
   ]) {
     if (!isHttpsUrl(env[name])) problems.push(`${name} must be an https URL that is not local`);
   }
-  if (!env["EXPO_PUBLIC_SUPABASE_ANON_KEY"])
-    problems.push("EXPO_PUBLIC_SUPABASE_ANON_KEY is not set");
+  // The publishable key, never the legacy JWT-based anon key, which Supabase has turned off (ADR 0168).
+  if (!env["EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY"]?.startsWith("sb_publishable_"))
+    problems.push("EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY must be the project's sb_publishable_ key");
   if (!iconPresent)
     problems.push(`the app icon ${APP_ICON} (1024 x 1024 PNG, no transparency) is missing`);
   return problems.map((p) => `${p} (EAS environment "${profile}")`);
@@ -407,9 +427,12 @@ export default ({ config, projectRoot }: ConfigContext): ExpoConfig => {
   const hosts = tenant
     ? tenant.universalLinkHosts
     : (process.env["XOS_UNIVERSAL_LINK_HOSTS"] ?? PRODUCTION_LINK_HOSTS);
-  const linked = withGoogleSignIn(
-    withUniversalLinks(config as ExpoConfig, universalLinkHosts(hosts)),
-    process.env["EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID"],
+  const linked = withAppleSignIn(
+    withGoogleSignIn(
+      withUniversalLinks(config as ExpoConfig, universalLinkHosts(hosts)),
+      process.env["EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID"],
+    ),
+    process.env["EXPO_PUBLIC_APPLE_SIGN_IN"],
   );
   const branded = tenant ? withTenant(linked, tenant) : linked;
   return withStoreBuild(

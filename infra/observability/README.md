@@ -21,7 +21,8 @@ The modules have no runtime dependencies and import each other with explicit `.t
 - **Values.** Every string is scanned for JWTs, bearer and basic credentials, `xos_live_` and Stripe keys, secrets in query strings, emails, SSNs, card numbers that pass the Luhn check, E.164 and North American phone numbers, and IPv4 and IPv6 addresses.
 - **URLs.** Paths are logged without their query string or fragment.
 - **Kept.** UUIDs (org, person, request ids), route templates, status codes, durations. They are pseudonymous and needed for incident response.
-- **Sentry.** `scrubEvent` keeps only the user id, drops cookies, the query string, the request body, the server name and every header except content negotiation and correlation headers. `sendDefaultPii` is off everywhere. There is no Session Replay anywhere: it records screens that show personal data.
+- **Console.** Server code never logs to the console: the shared lint rule `xos/no-server-console` refuses it outside client modules, so every line goes through the redacting logger (A69-014).
+- **Sentry.** `scrubEvent` keeps only the user id, drops cookies, the query string, the request body, the server name and every header except content negotiation and correlation headers. Sentry 11 no longer reads `sendDefaultPii`, so `sentryInitOptions` sets `dataCollection` to collect no user fields, cookies, bodies, query strings or stack frame variables and only the kept request headers, and `scrubEvent` drops every other header attribute from traces and spans (A69-012). There is no Session Replay anywhere: it records screens that show personal data.
 
 ## Server runtimes (Atlas and Gateway)
 
@@ -56,7 +57,7 @@ export const onRequestError = async (...args) => {
 };
 ```
 
-`sentryInitOptions` sets `dsn`, `environment` (`XOS_ENVIRONMENT`, `VERCEL_ENV` or `NODE_ENV`), `release` (`VERCEL_GIT_COMMIT_SHA`), `tracesSampleRate` from `XOS_TRACES_SAMPLE_RATE` (default 0.05, out-of-range values fall back to it), `sendDefaultPii: false`, and `scrubEvent` as both `beforeSend` and `beforeSendTransaction`. `flushErrors` waits up to 2 seconds for queued events, so a serverless instance frozen after the response loses none.
+`sentryInitOptions` sets `dsn`, `environment` (`XOS_ENVIRONMENT`, `VERCEL_ENV` or `NODE_ENV`), `release` (`VERCEL_GIT_COMMIT_SHA`), `tracesSampleRate` from `XOS_TRACES_SAMPLE_RATE` (default 0.05, out-of-range values fall back to it), `dataCollection` (`SENTRY_DATA_COLLECTION`), and `scrubEvent` as both `beforeSend` and `beforeSendTransaction`. `flushErrors` waits up to 2 seconds for queued events, so a serverless instance frozen after the response loses none.
 
 The public API route handler (`apps/atlas/app/api/v1/[...path]/route.ts`) wraps the Hono fetch handler with `observe` under the route `/api/v1`, and the Hono app's `onError` reports every 500 through `observability.errors` with its request id. Hono middleware can set the precise route template on the span through `c.req.routePath` later.
 

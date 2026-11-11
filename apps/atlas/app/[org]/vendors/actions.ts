@@ -1,5 +1,6 @@
 "use server";
 
+import { revealSharedSupplierDiversityNumber } from "@xos/data/supplier-diversity";
 import {
   addVendorBankAccount,
   createInsuranceCertificate,
@@ -23,6 +24,7 @@ import {
   updateScorecard,
   updateSponsorEntitlement,
   updateVendor,
+  updateVendorAddress,
   updateVendorClass,
   SPONSOR_ASSET_KINDS,
   VENDOR_STATES,
@@ -32,10 +34,13 @@ import {
   type ScorecardInput,
   type VendorState,
 } from "@xos/data/vendors";
+import { ADDRESS_ERROR, readAddress } from "@/lib/address";
 import { actionContext, finish } from "@/lib/collection-kit/actions";
+import { customFieldsOf } from "@/lib/custom-fields/form";
 import {
   all,
   decimal,
+  fromDataError,
   FieldErrors,
   integer,
   isoDate,
@@ -45,6 +50,7 @@ import {
   uuid,
   type ActionState,
 } from "@/lib/collection-kit/forms";
+import * as enums from "@xos/data/enums";
 
 /**
  * Vendor actions (Section 4.2 Vendors). Row level security and the 0330 RPCs decide every write:
@@ -75,6 +81,8 @@ export async function createVendorAction(_: ActionState, form: FormData): Promis
   if (terms === undefined) errors.add("paymentTermsDays", "wholeNumber");
   const code = currency(form, "defaultCurrencyCode", errors);
   if (errors.any) return errors.state;
+  const custom = await customFieldsOf(ctx, "app.vendors", form);
+  if (custom.fieldErrors) return { fieldErrors: custom.fieldErrors };
   const result = await createVendor(ctx.viewer.db, {
     orgId: ctx.org.id,
     counterpartyId,
@@ -83,6 +91,7 @@ export async function createVendorAction(_: ActionState, form: FormData): Promis
     paymentTermsDays: terms ?? null,
     defaultCurrencyCode: code,
   });
+  if (result.ok) await custom.save(result.data.id);
   return finish(result, ctx, MODULE);
 }
 
@@ -104,6 +113,37 @@ export async function updateVendorAction(_: ActionState, form: FormData): Promis
     return finish(await setVendorClasses(ctx.viewer.db, id, all(form, "classIds")), ctx, MODULE);
   }
   return finish(updated, ctx, MODULE);
+}
+
+/**
+ * Records the vendor's mailing address (A139): the fields its country requires, a postal code that
+ * fits the country (written as the country writes it), or every field blank to clear it.
+ */
+export async function updateVendorAddressAction(
+  _: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  const ctx = await actionContext(form);
+  const id = uuid(form, "id");
+  if (id === null) return { error: "notFound" };
+  const errors = new FieldErrors();
+  const typed = text(form, "countryCode")?.toUpperCase() ?? null;
+  const country = typed !== null && /^[A-Z]{2}$/.test(typed) ? typed : null;
+  if (typed !== null && country === null) errors.add("countryCode", "country");
+  const address = readAddress(form, country);
+  if (!address.ok) {
+    for (const [field, problem] of Object.entries(address.problems)) {
+      errors.add(field, ADDRESS_ERROR[problem]);
+    }
+  } else if (typed === null && Object.values(address.value).some((v) => v !== null)) {
+    errors.add("countryCode", "countryNeeded");
+  }
+  if (errors.any || !address.ok) return errors.state;
+  const result = await updateVendorAddress(ctx.viewer.db, id, {
+    countryCode: country,
+    ...address.value,
+  });
+  return finish(result, ctx, MODULE);
 }
 
 export async function transitionVendorAction(_: ActionState, form: FormData): Promise<ActionState> {
@@ -132,8 +172,14 @@ export async function addBankAccountAction(_: ActionState, form: FormData): Prom
   const bankName = errors.need("bankName", requiredText(form, "bankName", 200));
   const accountHolder = errors.need("accountHolder", requiredText(form, "accountHolder", 200));
   const accountNumber = errors.need("accountNumber", requiredText(form, "accountNumber", 64));
-  if (accountNumber !== null && accountNumber.replace(/[^0-9A-Za-z]/g, "").length < 4) {
+  const routingNumber = text(form, "routingNumber");
+  // The database keeps the letters and digits (2010): 4 to 34 for the account, up to 34 for routing.
+  const digits = (value: string) => value.replace(/[^0-9A-Za-z]/g, "").length;
+  if (accountNumber !== null && (digits(accountNumber) < 4 || digits(accountNumber) > 34)) {
     errors.add("accountNumber", "accountNumber");
+  }
+  if (routingNumber !== null && (routingNumber.length > 64 || digits(routingNumber) > 34)) {
+    errors.add("routingNumber", "routingNumber");
   }
   if (vendorId === null) return { error: "notFound" };
   if (errors.any || !bankName || !accountHolder || !accountNumber) return errors.state;
@@ -142,7 +188,7 @@ export async function addBankAccountAction(_: ActionState, form: FormData): Prom
     bankName,
     accountHolder,
     accountNumber,
-    routingNumber: text(form, "routingNumber"),
+    routingNumber,
   });
   return finish(result, ctx, MODULE);
 }
@@ -433,13 +479,7 @@ export async function deleteEntitlementAction(
 
 // Sponsor assets and deliveries (0492) ------------------------------------------------------------------------
 
-const REVIEW_STATES: readonly ReviewState[] = [
-  "Proposed",
-  "Submitted",
-  "Approved",
-  "Returned",
-  "Canceled",
-];
+const REVIEW_STATES: readonly ReviewState[] = enums.reviewState;
 
 export async function createSponsorAssetAction(
   _: ActionState,
@@ -515,4 +555,28 @@ export async function recordDeliveryAction(_: ActionState, form: FormData): Prom
     ctx,
     MODULE,
   );
+}
+
+// Supplier diversity (2011) ---------------------------------------------------------------------------------------
+
+/** What the reveal form gets back: the number once, never stored, or why it was refused. */
+export interface RevealState extends ActionState {
+  readonly revealed?: string;
+}
+
+/**
+ * The audited reveal of a certificate number shared with the org (decision 38). The database asks for
+ * data.restricted.read.government_id and step-up; a `step_up_required` refusal opens the step-up dialog.
+ */
+export async function revealSupplierDiversityNumberAction(
+  _: RevealState,
+  form: FormData,
+): Promise<RevealState> {
+  const ctx = await actionContext(form);
+  const shareId = uuid(form, "shareId");
+  const reason = text(form, "reason") ?? "";
+  if (shareId === null) return { error: "notFound" };
+  if (reason.length < 10 || reason.length > 500) return { rule: "certificate_reveal_reason" };
+  const result = await revealSharedSupplierDiversityNumber(ctx.viewer.db, shareId, reason);
+  return result.ok ? { revealed: result.data } : fromDataError(result.error);
 }

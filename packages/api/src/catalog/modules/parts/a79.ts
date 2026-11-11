@@ -6,12 +6,13 @@
  * listed with their reasons (ADR 0023).
  */
 import { z } from "@hono/zod-openapi";
-import { defineResource, fields } from "@xos/schemas";
+import { defineResource, fields, identity } from "@xos/schemas";
 import type { CapabilityRule } from "../../capabilities.ts";
 import { editDefinition, editShape, orNull } from "../../correct.ts";
 import type { CorrectionInput } from "../../corrections.ts";
 import { collectionAction, itemAction, resource } from "../../define.ts";
 import type { ActionSpec, ResourceSpec } from "../../types.ts";
+import { Constants } from "@xos/data/database.types";
 
 const SINCE = "1.0.0-draft.2";
 
@@ -328,6 +329,32 @@ const dnsRecord = z
     description: "A DNS record the org publishes for a custom domain's provider.",
   });
 
+/** Where the caller states an organization is established (migration 6830). Optional, so v1 stays additive. */
+const countryCode = z
+  .string()
+  .regex(/^[A-Z]{2}$/)
+  .optional()
+  .meta({
+    description:
+      "ISO 3166-1 alpha-2 country the organization is established in, as the caller states it. A country outside the territories XOS is offered in is refused with 422 `territory_not_offered`. Omitted, no country is recorded and the platform team reviews the organization; XOS is offered only to organizations in the offered territories, as the Terms of Service say.",
+    example: "US",
+  });
+
+const CreateOrganizationInCountry = identity.CreateOrganizationRequest.extend({
+  country_code: countryCode,
+}).meta({
+  id: "CreateOrganizationRequest",
+  description: "Creates an organization with the caller as its Owner.",
+});
+
+const CreateClientOrganizationInCountry = identity.CreateClientOrganizationRequest.extend({
+  country_code: countryCode,
+}).meta({
+  id: "CreateClientOrganizationRequest",
+  description:
+    "Creates a client organization under the caller's partner organization (Section 4.6.1).",
+});
+
 export const a79IdentityCorrections: readonly CorrectionInput[] = [
   {
     id: "organization-create-trial",
@@ -350,6 +377,33 @@ export const a79IdentityCorrections: readonly CorrectionInput[] = [
     }),
   },
   {
+    id: "organization-country",
+    since: SINCE,
+    resources: ["organizations"],
+    change:
+      "`organizations.create` and `organizations.createClient` accept an optional `country_code`, and refuse a country outside the offered territories with 422 `territory_not_offered`.",
+    reason:
+      "app.create_organization and app.create_client_organization (6830, ADR 0160) record the country the caller states and start no organization outside the territories XOS is offered in. The field is optional, so an existing caller keeps working; a caller who omits it stated nothing, so none is recorded and the organization is listed for a person to review.",
+    apply: (spec: ResourceSpec): ResourceSpec => ({
+      ...spec,
+      actions: spec.actions.map((a) =>
+        a.verb === "create"
+          ? {
+              ...a,
+              body: CreateOrganizationInCountry,
+              description: `${a.description ?? ""} A country outside the territories XOS is offered in is refused with 422 \`territory_not_offered\`.`,
+            }
+          : a.verb === "createClient"
+            ? {
+                ...a,
+                body: CreateClientOrganizationInCountry,
+                description: `${a.description ?? ""} A country outside the territories XOS is offered in is refused with 422 \`territory_not_offered\`.`,
+              }
+            : a,
+      ),
+    }),
+  },
+  {
     id: "verified-domain-provisioning",
     since: SINCE,
     resources: ["verifiedDomains"],
@@ -361,12 +415,10 @@ export const a79IdentityCorrections: readonly CorrectionInput[] = [
     apply: editShape({
       add: {
         provisioning_status: {
-          schema: z
-            .enum(["Not Started", "Requested", "Pending DNS", "Active", "Failed", "Released"])
-            .meta({
-              description: "Where the domain stands at its provider.",
-              example: "Pending DNS",
-            }),
+          schema: z.enum(Constants.app.Enums.domain_provisioning_status).meta({
+            description: "Where the domain stands at its provider.",
+            example: "Pending DNS",
+          }),
         },
         dns_records: {
           schema: z

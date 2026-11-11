@@ -2,13 +2,13 @@
 title: Encryption Policy
 version: 1.0.0-draft
 effective_date: The date this version is approved by the Owner
-status: Draft for review by counsel before launch
+status: Draft before launch
 audience: Internal
 ---
 
 # Encryption Policy
 
-> **Draft for review by counsel before launch.** This internal policy is a draft. It takes effect when the Owner approves it, and its effective date is that date of approval.
+> **Draft before launch.** This internal policy is a draft. It takes effect when the Owner approves it, and its effective date is that date of approval.
 
 ## 1. Purpose and Scope
 

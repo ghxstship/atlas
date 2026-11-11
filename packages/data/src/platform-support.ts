@@ -2,6 +2,7 @@ import type { XosClient } from "./client.ts";
 import { ok, type Result } from "./result.ts";
 import { rows, rpc, str, strOrNull } from "./platform-common.ts";
 import { untyped } from "./untyped.ts";
+import type { Database } from "./database.types.ts";
 
 /**
  * The org's side of platform support and moderation (A90, migrations 1472 and 1473; Section 8, Digital Services
@@ -65,7 +66,7 @@ export function grantPlatformSupportSession(
   );
 }
 
-export type SupportAccessArea = "Overview" | "Members" | "Projects" | "Settings";
+export type SupportAccessArea = Database["app"]["Enums"]["support_access_area"];
 
 export interface SupportAccess {
   readonly id: string;
@@ -94,7 +95,7 @@ export async function listSupportAccessLog(
 
 // Moderation decisions on the org's listings ------------------------------------------------------------------------
 
-export type ModerationDecisionAction = "Removed" | "Restricted" | "Restored" | "No Action";
+export type ModerationDecisionAction = Database["app"]["Enums"]["moderation_action_kind"];
 
 export interface ModerationDecision {
   readonly id: string;
@@ -108,7 +109,7 @@ export interface ModerationDecision {
   readonly decidedAt: string;
   readonly appeal: {
     readonly id: string;
-    readonly state: "Open" | "Upheld" | "Reversed";
+    readonly state: Database["app"]["Enums"]["moderation_appeal_state"];
     readonly filedAt: string;
     readonly decisionStatement: string | null;
   } | null;
@@ -166,7 +167,9 @@ export async function listModerationDecisions(
         appeal: appeal
           ? {
               id: str(appeal["id"]),
-              state: str(appeal["appeal_state"]) as "Open" | "Upheld" | "Reversed",
+              state: str(
+                appeal["appeal_state"],
+              ) as Database["app"]["Enums"]["moderation_appeal_state"],
               filedAt: str(appeal["filed_at"]),
               decisionStatement: strOrNull(appeal["decision_statement"]),
             }

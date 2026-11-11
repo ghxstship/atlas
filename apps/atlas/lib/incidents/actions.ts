@@ -26,8 +26,10 @@ import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 import { getOrgContext } from "@/lib/shell/context";
+import { customFieldsOf } from "@/lib/custom-fields/form";
 import { failed, type ActionState } from "@/lib/operations/state";
 import { localToInstant } from "@/lib/operations/time";
+import * as enums from "@xos/data/enums";
 
 /**
  * Safety incident actions (Section 4.2): report, edit, dispatch, contain, close with sign-off,
@@ -93,6 +95,8 @@ export async function reportIncidentAction(_: ActionState, form: FormData): Prom
   if (!occurredAt || new Date(occurredAt) > new Date(Date.now() + 5 * 60_000)) {
     return { error: "occurredAt" };
   }
+  const custom = await customFieldsOf(ctx, "app.incidents", form);
+  if (custom.fieldErrors) return { error: "incidentInput" };
   const result = await reportIncident(ctx.viewer.db, {
     orgId: ctx.org.id,
     projectId: parsed.data.projectId,
@@ -102,6 +106,7 @@ export async function reportIncidentAction(_: ActionState, form: FormData): Prom
     zoneId: parsed.data.zoneId ?? null,
   });
   if (!result.ok) return failed(result.error);
+  await custom.save(result.data.id);
   return done(ctx.org.slug, { number: String(result.data.incidentNumber) });
 }
 
@@ -124,7 +129,7 @@ export async function updateIncidentAction(_: ActionState, form: FormData): Prom
   return done(ctx.org.slug);
 }
 
-const States = z.enum(["Reported", "Dispatched", "Contained", "Closed"]);
+const States = z.enum(enums.incidentState);
 
 export async function transitionIncidentAction(
   _: ActionState,
@@ -300,7 +305,13 @@ export async function issueAlertAction(_: ActionState, form: FormData): Promise<
   if (!parsed.success) return { error: "alertInput" };
   const result = await issueCrisisAlert(ctx.viewer.db, { orgId: ctx.org.id, ...parsed.data });
   if (!result.ok) return failed(result.error);
-  return done(ctx.org.slug);
+  return done(ctx.org.slug, {
+    count: String(result.data.peopleTold),
+    onSite: String(result.data.peopleToldOnSite),
+    waiting: String(result.data.peopleWaiting),
+    // An alert that reached nobody, or not everyone yet, is recorded, not a success: the form says so as a warning.
+    ...(result.data.peopleTold === 0 || result.data.peopleWaiting > 0 ? { tone: "warning" } : {}),
+  });
 }
 
 export async function endAlertAction(_: ActionState, form: FormData): Promise<ActionState> {

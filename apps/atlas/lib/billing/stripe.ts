@@ -2,8 +2,13 @@ import "server-only";
 import type { DataError, XosClient } from "@xos/data";
 import {
   beginBillingCheckout,
+  beginSubscriptionPause,
+  beginSubscriptionResume,
   getBillingPortalCustomer,
   recordBillingCheckout,
+  recordRenewalConsent,
+  recordSubscriptionPause,
+  recordSubscriptionResume,
 } from "@xos/data/billing";
 import type { Result } from "@xos/data/result";
 import {
@@ -12,6 +17,7 @@ import {
   readBillingEnv,
   type BillingEnv,
   type CheckoutAccountStore,
+  type PauseAccountStore,
 } from "@xos/platform/billing";
 import { env } from "@/lib/env";
 
@@ -56,7 +62,19 @@ function unwrap<T>(result: Result<T>): T {
 export function checkoutAccountStore(db: XosClient): CheckoutAccountStore {
   return {
     begin: async (input) => unwrap(await beginBillingCheckout(db, input)),
+    recordConsent: async ({ consent, ...input }) =>
+      unwrap(await recordRenewalConsent(db, { ...input, ...consent })),
     record: async (input) => unwrap(await recordBillingCheckout(db, input)),
     portalCustomer: async (input) => unwrap(await getBillingPortalCustomer(db, input)),
+  };
+}
+
+/** The 6051 pause RPCs, called as the signed-in person (B16, ADR 0155 D4). */
+export function pauseAccountStore(db: XosClient): PauseAccountStore {
+  return {
+    begin: async (input) => unwrap(await beginSubscriptionPause(db, input)),
+    record: async (input) => unwrap(await recordSubscriptionPause(db, input)),
+    beginResume: async (input) => unwrap(await beginSubscriptionResume(db, input)),
+    recordResume: async (input) => unwrap(await recordSubscriptionResume(db, input)),
   };
 }

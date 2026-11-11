@@ -282,9 +282,9 @@ var ScannerUnavailableError = class extends Error {
  *
  * - Attachments: the A18 job `attachment.scan` (migration 0590), claimed from the job queue; the
  *   verdict goes to `app.record_attachment_scan`, so a Clean version becomes downloadable.
- * - The field-media, onboarding-uploads, imports, support-screenshots and upload-staging buckets (and
- *   any service-role write to profile-media or org-brand): `app.claim_object_scans` and
- *   `app.record_object_scan` (migrations 1041, 1240, 1265).
+ * - The field-media, onboarding-uploads, party-uploads, imports, support-screenshots and upload-staging
+ *   buckets (and any service-role write to profile-media or org-brand): `app.claim_object_scans` and
+ *   `app.record_object_scan` (migrations 1041, 1240, 1265, 4712).
  * - Files for the public buckets profile-media and org-brand are uploaded to the private upload-staging
  *   bucket as `<bucket>/<name>` (1265). A staged file that scans Clean is published: written to its
  *   public bucket, recorded Clean, and removed from staging. Nothing reaches a public bucket unscanned.
@@ -753,6 +753,9 @@ function clamavScanner(options) {
  *
  * - `XOS_CLAMAV_HOST` set: ClamAV (clamd over TCP, INSTREAM) at that host and `XOS_CLAMAV_PORT`
  *   (default 3310). This is the production scanner: self-hosted `clamav/clamav`, pinned in ADR 0001.
+ *   With `XOS_CLAMAV_TLS_CA`, `XOS_CLAMAV_TLS_CERT` and `XOS_CLAMAV_TLS_KEY` (PEM, all three or none)
+ *   the connection is mutual TLS to a TLS terminator in front of clamd, which has no authentication of
+ *   its own: hosted Edge Functions cannot join a private network (infra/scanning/fly).
  * - No host, local development: a pass-through that marks every file clean and logs a warning on
  *   every file it lets through, so a developer can use uploads without running clamd. Local means
  *   `SUPABASE_URL` names a loopback or Docker-internal host and `XOS_ENVIRONMENT` is not `production`.
@@ -786,6 +789,26 @@ function isLocalDevelopment(env) {
   }
   return LOCAL_HOSTS.has(host) || host.endsWith(".localhost");
 }
+var TLS_VARIABLES = ["XOS_CLAMAV_TLS_CA", "XOS_CLAMAV_TLS_CERT", "XOS_CLAMAV_TLS_KEY"];
+/**
+ * The mutual TLS material for clamd, or null when none is set. A secret set from one line carries its
+ * newlines as `\n`, so those are turned back into line breaks. Throws when only some are set.
+ */
+function clamdTls(env) {
+  const [caCert, cert, key] = TLS_VARIABLES.map((name) =>
+    present(env, name)?.replace(/\\n/g, "\n"),
+  );
+  if (caCert === void 0 && cert === void 0 && key === void 0) return null;
+  if (caCert === void 0 || cert === void 0 || key === void 0)
+    throw new Error(
+      `Set all of ${TLS_VARIABLES.join(", ")} for mutual TLS to clamd, or none of them.`,
+    );
+  return {
+    caCert,
+    cert,
+    key,
+  };
+}
 /** Reads the scanner configuration. Throws on a port that is not a TCP port number. */
 function scannerChoice(env) {
   const host = present(env, "XOS_CLAMAV_HOST");
@@ -794,11 +817,18 @@ function scannerChoice(env) {
     const port = rawPort === void 0 ? CLAMAV_DEFAULT_PORT : Number(rawPort);
     if (!Number.isInteger(port) || port < 1 || port > 65535)
       throw new Error(`XOS_CLAMAV_PORT must be a TCP port number, not ${rawPort ?? ""}.`);
-    return {
-      kind: "clamav",
-      host,
-      port,
-    };
+    return clamdTls(env) === null
+      ? {
+          kind: "clamav",
+          host,
+          port,
+        }
+      : {
+          kind: "clamav",
+          host,
+          port,
+          tls: true,
+        };
   }
   if (isLocalDevelopment(env))
     return {
@@ -829,11 +859,13 @@ function passThroughScanner(warn) {
 function selectVirusScanner(options) {
   const choice = scannerChoice(options.env);
   switch (choice.kind) {
-    case "clamav":
+    case "clamav": {
+      const tls = clamdTls(options.env);
       return {
         choice,
-        scanner: clamavScanner({ connect: () => options.connect(choice.host, choice.port) }),
+        scanner: clamavScanner({ connect: () => options.connect(choice.host, choice.port, tls) }),
       };
+    }
     case "pass-through":
       options.warn(choice.reason);
       return {

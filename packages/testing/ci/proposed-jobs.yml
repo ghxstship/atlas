@@ -32,7 +32,7 @@ e2e:
         cache: pnpm
     - uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
       with:
-        version: 2.120.0
+        version: 3.1.0
     - run: pnpm install --frozen-lockfile
     - run: pnpm exec playwright install --with-deps chromium ${{ matrix.engine }}
       working-directory: apps/${{ matrix.app }}
@@ -41,7 +41,7 @@ e2e:
     - run: supabase start
     - name: Write the app environment from the stack
       run: |
-        ANON=$(supabase status -o env | sed -n 's/^ANON_KEY="\(.*\)"$/\1/p')
+        ANON=$(supabase status -o env | sed -n 's/^PUBLISHABLE_KEY="\(.*\)"$/\1/p')
         printf 'SUPABASE_URL=http://127.0.0.1:55421\nSUPABASE_ANON_KEY=%s\nATLAS_SITE_URL=http://127.0.0.1:3006\nGATEWAY_SITE_URL=http://127.0.0.1:3127\nSUPABASE_INBUCKET_URL=http://127.0.0.1:55424\n' "$ANON" > apps/atlas/.env.local
         printf 'SUPABASE_URL=http://127.0.0.1:55421\nSUPABASE_ANON_KEY=%s\nGATEWAY_SITE_URL=http://127.0.0.1:3127\nGATEWAY_PLATFORM_HOSTS=127.0.0.1,localhost\n' "$ANON" > apps/gateway/.env.local
         echo "E2E_ATLAS_URL=http://127.0.0.1:3006" >> "$GITHUB_ENV"
@@ -55,6 +55,9 @@ e2e:
       if: matrix.app != 'docs'
       run: |
         PORT=$([ "${{ matrix.app }}" = atlas ] && echo 3006 || echo 3127)
+        # Journeys open a territory and need the change at once, so the server reads the offering every time.
+        export E2E_OFFERING_FRESH=1
+        echo "E2E_OFFERING_FRESH=1" >> "$GITHUB_ENV"
         (cd apps/${{ matrix.app }} && pnpm exec next start --port "$PORT" &)
         if [ "${{ matrix.app }}" = gateway ]; then (cd apps/atlas && pnpm exec next start --port 3006 &); fi
         echo "E2E_BASE_URL=http://127.0.0.1:$PORT" >> "$GITHUB_ENV"
@@ -87,7 +90,7 @@ e2e-pseudo-locales:
         cache: pnpm
     - uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
       with:
-        version: 2.120.0
+        version: 3.1.0
     - run: pnpm install --frozen-lockfile
     - run: pnpm exec playwright install --with-deps chromium
       working-directory: apps/atlas
@@ -95,7 +98,7 @@ e2e-pseudo-locales:
     - run: supabase start -x studio,imgproxy,logflare,vector,postgres-meta,supavisor
     - name: Write the app environments from the stack
       run: |
-        ANON=$(supabase status -o env | sed -n 's/^ANON_KEY="\(.*\)"$/\1/p')
+        ANON=$(supabase status -o env | sed -n 's/^PUBLISHABLE_KEY="\(.*\)"$/\1/p')
         printf 'SUPABASE_URL=http://127.0.0.1:55421\nSUPABASE_ANON_KEY=%s\nATLAS_SITE_URL=http://127.0.0.1:3006\nGATEWAY_SITE_URL=http://127.0.0.1:3127\n' "$ANON" > apps/atlas/.env.local
         printf 'SUPABASE_URL=http://127.0.0.1:55421\nSUPABASE_ANON_KEY=%s\nGATEWAY_SITE_URL=http://127.0.0.1:3127\nGATEWAY_PLATFORM_HOSTS=127.0.0.1,localhost\n' "$ANON" > apps/gateway/.env.local
         echo "E2E_SUPABASE_URL=http://127.0.0.1:55421" >> "$GITHUB_ENV"
@@ -140,7 +143,7 @@ core-screen-visual:
         cache: pnpm
     - uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
       with:
-        version: 2.120.0
+        version: 3.1.0
     - run: pnpm install --frozen-lockfile
     - run: docker pull --platform linux/amd64 mcr.microsoft.com/playwright:v1.64.0-noble
     # The full stack with migrations and the demo seed the baselines show.
@@ -152,7 +155,9 @@ core-screen-visual:
       run: packages/testing/ci/visual-clock.sh >> "$GITHUB_ENV"
     - name: Write the app environment from the stack
       run: |
-        ANON=$(supabase status -o env | sed -n 's/^ANON_KEY="\(.*\)"$/\1/p')
+        ANON=$(supabase status -o env | sed -n 's/^PUBLISHABLE_KEY="\(.*\)"$/\1/p')
+        # Without a key the app exits at boot (lib/env.ts) and the failure shows only later.
+        test -n "$ANON" || { echo "::error title=Supabase status::no anon key; is the stack healthy?"; exit 1; }
         printf 'SUPABASE_URL=http://127.0.0.1:55421\nSUPABASE_ANON_KEY=%s\nATLAS_SITE_URL=http://127.0.0.1:3006\nGATEWAY_SITE_URL=http://127.0.0.1:3127\n' "$ANON" > apps/atlas/.env.local
         printf 'SUPABASE_URL=http://127.0.0.1:55421\nSUPABASE_ANON_KEY=%s\nGATEWAY_SITE_URL=http://127.0.0.1:3127\nGATEWAY_PLATFORM_HOSTS=127.0.0.1,localhost\n' "$ANON" > apps/gateway/.env.local
     - run: pnpm turbo run build --filter=@xos/${{ matrix.app }}^...
@@ -162,6 +167,12 @@ core-screen-visual:
         CLOCK="--require $GITHUB_WORKSPACE/packages/testing/clock/node-clock.cjs"
         (cd apps/${{ matrix.app }} && NODE_OPTIONS="$CLOCK" nohup pnpm exec next dev --port "$PORT" > /tmp/app.log 2>&1 &)
         for i in $(seq 90); do curl -fs -o /dev/null "http://127.0.0.1:$PORT/auth/sign-in" && break; sleep 2; done
+        # A server that never answers fails here, its last lines in the annotation, rather than
+        # leaving Playwright in the container to start a second one on the port this one holds.
+        if ! curl -fs -o /dev/null "http://127.0.0.1:$PORT/auth/sign-in"; then
+          echo "::error title=next dev did not answer::$(tail -n 20 /tmp/app.log | sed 's/%/%25/g' | awk '{printf "%s%%0A", $0}')"
+          exit 1
+        fi
         echo "E2E_BASE_URL=http://127.0.0.1:$PORT" >> "$GITHUB_ENV"
     - name: Core screens in the pinned Playwright image
       run: packages/testing/ci/visual-in-container.sh ${{ matrix.app }}
@@ -187,7 +198,7 @@ lighthouse:
         cache: pnpm
     - uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
       with:
-        version: 2.120.0
+        version: 3.1.0
     - run: pnpm install --frozen-lockfile
     - run: pnpm exec playwright install --with-deps chromium
       working-directory: apps/atlas
@@ -195,7 +206,7 @@ lighthouse:
     - run: pnpm turbo run build --filter=@xos/atlas --filter=@xos/gateway --filter=@xos/docs
     - name: Serve the three production builds and run Lighthouse
       run: |
-        ANON=$(supabase status -o env | sed -n 's/^ANON_KEY="\(.*\)"$/\1/p')
+        ANON=$(supabase status -o env | sed -n 's/^PUBLISHABLE_KEY="\(.*\)"$/\1/p')
         export SUPABASE_URL=http://127.0.0.1:55421 SUPABASE_ANON_KEY="$ANON"
         (cd apps/atlas && ATLAS_SITE_URL=http://127.0.0.1:3006 pnpm exec next start --port 3006 &)
         (cd apps/gateway && GATEWAY_SITE_URL=http://127.0.0.1:3127 pnpm exec next start --port 3127 &)
@@ -223,13 +234,13 @@ load-smoke:
         cache: pnpm
     - uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
       with:
-        version: 2.120.0
+        version: 3.1.0
     - run: pnpm install --frozen-lockfile
     - run: supabase start
     - run: pnpm turbo run build --filter=@xos/atlas
     - name: Smoke the three scripts through grafana/k6:2.3.0
       run: |
-        ANON=$(supabase status -o env | sed -n 's/^ANON_KEY="\(.*\)"$/\1/p')
+        ANON=$(supabase status -o env | sed -n 's/^PUBLISHABLE_KEY="\(.*\)"$/\1/p')
         export SUPABASE_ANON_KEY="$ANON"
         (cd apps/atlas && SUPABASE_URL=http://127.0.0.1:55421 ATLAS_SITE_URL=http://127.0.0.1:3006 pnpm exec next start --port 3006 &)
         sleep 10
@@ -252,14 +263,14 @@ maestro-ios:
         cache: pnpm
     - uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
       with:
-        version: 2.120.0
+        version: 3.1.0
     - run: pnpm install --frozen-lockfile
     - run: supabase start
     - name: Build Compass for the simulator against the CI stack
       working-directory: apps/compass
       run: |
         export EXPO_PUBLIC_SUPABASE_URL=http://127.0.0.1:55421
-        export EXPO_PUBLIC_SUPABASE_ANON_KEY=$(supabase status -o env | sed -n 's/^ANON_KEY="\(.*\)"$/\1/p')
+        export EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=$(supabase status -o env | sed -n 's/^PUBLISHABLE_KEY="\(.*\)"$/\1/p')
         pnpm exec expo prebuild --platform ios --no-install
         (cd ios && pod install)
         xcodebuild -workspace ios/*.xcworkspace -scheme Compass -configuration Release \
@@ -290,14 +301,14 @@ maestro-android:
         cache: pnpm
     - uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
       with:
-        version: 2.120.0
+        version: 3.1.0
     - run: pnpm install --frozen-lockfile
     - run: supabase start
     - name: Build the release APK against the CI stack (emulator reaches the host at 10.0.2.2)
       working-directory: apps/compass
       run: |
         export EXPO_PUBLIC_SUPABASE_URL=http://10.0.2.2:55421
-        export EXPO_PUBLIC_SUPABASE_ANON_KEY=$(supabase status -o env | sed -n 's/^ANON_KEY="\(.*\)"$/\1/p')
+        export EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=$(supabase status -o env | sed -n 's/^PUBLISHABLE_KEY="\(.*\)"$/\1/p')
         pnpm exec expo prebuild --platform android --no-install
         (cd android && ./gradlew assembleRelease)
     - name: Run the field flows on an emulator
@@ -331,3 +342,55 @@ route-js-budget:
     # Fails when a key page passes 200 KB gzip, or the ceiling recorded for it in
     # packages/testing/bundle-ceilings.json.
     - run: pnpm --filter @xos/testing budget:js -- --chunks
+
+# A141 (S11.4-01): the Compass component gallery, every @xos/ui-native component in Dark and Light,
+# snapshotted on the iOS simulator and compared with apps/compass/.maestro/gallery/baselines (tolerance in
+# apps/compass/scripts/gallery-compare.ts). It needs no stack, so it runs on GitHub's Apple Silicon image
+# without Docker, in ci.yml or nightly.yml as the owner decides. The baselines are for
+# the simulator and runtime in baselines/manifest.json; on another runtime the comparison stops with a
+# "Not compared" message instead of failing every page, and the baselines are re-recorded on the runner
+# (owner step in apps/compass/.maestro/gallery/README.md). Costs macOS minutes: an owner decision, like
+# the Maestro jobs above.
+compass-gallery-visual:
+  name: Compass component gallery snapshots (gate 9)
+  runs-on: macos-15
+  timeout-minutes: 60
+  env:
+    MAESTRO_VERSION: 2.0.10
+  steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+    - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+    - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      with:
+        node-version-file: .nvmrc
+        cache: pnpm
+    - run: pnpm install --frozen-lockfile
+    - name: Build the gallery build of Compass for the simulator
+      working-directory: apps/compass
+      run: |
+        sudo xcode-select -s /Applications/Xcode_26.5.app
+        # The gallery exists only in a build with this switch (refused in EAS builds, app.config.ts).
+        export EXPO_PUBLIC_XOS_GALLERY=1
+        pnpm exec expo prebuild --platform ios --no-install
+        (cd ios && pod install)
+        xcodebuild -workspace ios/Compass.xcworkspace -scheme Compass -configuration Release \
+          -sdk iphonesimulator -derivedDataPath build ARCHS=arm64 ONLY_ACTIVE_ARCH=YES
+        UDID=$(xcrun simctl create "Gallery" com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro \
+          com.apple.CoreSimulator.SimRuntime.iOS-26-5)
+        echo "UDID=$UDID" >> "$GITHUB_ENV"
+        echo "APP=$PWD/build/Build/Products/Release-iphonesimulator/Compass.app" >> "$GITHUB_ENV"
+    - name: Snapshot the gallery and compare with the baselines
+      run: |
+        curl -fsSL "https://get.maestro.mobile.dev" | bash
+        # GALLERY_UPDATE=1 (a repository variable, for one run) re-records the baselines on this runner.
+        OUT="$PWD/node_modules/.cache/gallery" apps/compass/scripts/gallery-snapshots.sh \
+          ${{ vars.GALLERY_UPDATE == '1' && '--update' || '' }}
+    - if: always()
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      with:
+        name: compass-gallery
+        # The captures and any .diff.png, and the baselines (re-recorded ones after a run with --update).
+        path: |
+          node_modules/.cache/gallery
+          apps/compass/.maestro/gallery/baselines
+        if-no-files-found: ignore

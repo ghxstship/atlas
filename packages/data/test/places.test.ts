@@ -40,7 +40,7 @@ const venueRow = {
   postal_code: "33101",
   created_at: "2026-10-01T00:00:00Z",
   updated_at: "2026-10-02T00:00:00Z",
-  deleted_at: null,
+  archived_at: null,
   latitude: null,
   longitude: null,
   spaces: [{ count: 2 }],
@@ -106,10 +106,13 @@ describe("venues", () => {
       archivedAt: null,
     });
     expect(calls[0]?.steps).toContainEqual(["is", ["deleted_at", null]]);
+    expect(calls[0]?.steps).toContainEqual(["is", ["archived_at", null]]);
     await listVenues(db, "o1", "archived");
-    expect(calls[1]?.steps).toContainEqual(["not", ["deleted_at", "is", null]]);
+    expect(calls[1]?.steps).toContainEqual(["not", ["archived_at", "is", null]]);
     await listVenues(db, "o1", "all");
-    expect(calls[2]?.steps.some(([m]) => m === "is" || m === "not")).toBe(false);
+    expect(
+      calls[2]?.steps.some(([m, a]) => m === "not" || (m === "is" && a[0] === "archived_at")),
+    ).toBe(false);
     expect((await listVenues(db, "o1")).ok).toBe(false);
   });
 
@@ -192,6 +195,23 @@ describe("venues", () => {
     expect(calls[1]?.steps[0]).toEqual(["update", [{ deleted_at: null }]]);
   });
 
+  it("archives and restores a venue through app.archive_row (5180)", async () => {
+    const { db, calls } = fakeClient({
+      "rpc:archive_row": [okResponse("2026-10-14T00:00:00Z"), errorResponse("42501", "no")],
+      "rpc:unarchive_row": [okResponse(null)],
+    });
+    expect(await setPlaceArchived(db, "venues", "v1", true)).toEqual({
+      ok: true,
+      data: { id: "v1" },
+    });
+    expect(calls[0]?.steps[0]).toEqual(["args", [{ p_entity: "venues", p_id: "v1" }]]);
+    expect(await setPlaceArchived(db, "venues", "v1", false)).toEqual({
+      ok: true,
+      data: { id: "v1" },
+    });
+    expect((await setPlaceArchived(db, "venues", "v1", true)).ok).toBe(false);
+  });
+
   it("surfaces an RPC transport failure as unexpected", async () => {
     const { db } = fakeClient({ "rpc:anything": [errorResponse("08006", "connection lost")] });
     expect(await callRpc(db, "anything", {})).toEqual({
@@ -253,7 +273,16 @@ describe("spaces and zones", () => {
     await createSpace(db, { venueId: "v1", name: " Deck ", capacity: 10 });
     expect(calls[0]?.steps[0]).toEqual([
       "insert",
-      [{ venue_id: "v1", name: "Deck", urid: null, area_sq_ft: null, capacity: 10 }],
+      [
+        {
+          venue_id: "v1",
+          name: "Deck",
+          urid: null,
+          area_sq_ft: null,
+          capacity: 10,
+          venue_level_id: null,
+        },
+      ],
     ]);
     await updateSpace(db, "s1", { name: "Deck", urid: "4000.01.01", areaSqFt: 500 });
     await createZone(db, { venueId: "v1", code: " foh ", name: "Front" });
@@ -411,7 +440,15 @@ describe("site plans", () => {
     await createSitePlan(db, { projectId: "pr1", title: " Ground ", imageUri: " a.png " });
     expect(calls[0]?.steps[0]).toEqual([
       "insert",
-      [{ project_id: "pr1", venue_id: null, title: "Ground", image_uri: "a.png" }],
+      [
+        {
+          project_id: "pr1",
+          venue_id: null,
+          venue_level_id: null,
+          title: "Ground",
+          image_uri: "a.png",
+        },
+      ],
     ]);
     await updateSitePlan(db, "p1", { title: "G", imageUri: "b.png", venueId: "v1" });
     await addSitePlanPin(db, { sitePlanId: "p1", label: " Stage ", x: 0.5, y: 0.5 });

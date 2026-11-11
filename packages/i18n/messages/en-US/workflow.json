@@ -3,6 +3,30 @@
     "requesterMayCancel": {
       "label": "Requesters may withdraw their approvals",
       "help": "When off, only people who edit approval policies can withdraw an approval in review."
+    },
+    "remindersEnabled": {
+      "label": "Remind approvers automatically",
+      "help": "When on, an approval that waits reminds the approvers of its step every interval, up to the limit."
+    },
+    "reminderIntervalHours": {
+      "label": "Hours between reminders",
+      "help": "From 4 to 168. Counted from when the step's approvers were last notified."
+    },
+    "reminderLimit": {
+      "label": "Reminders per step",
+      "help": "From 1 to 10. Automatic reminders and Remind approvers both count."
+    },
+    "quoteChaseEnabled": {
+      "label": "Remind vendors about quotes",
+      "help": "When on, vendors invited to an issued RFQ who have not answered are reminded automatically."
+    },
+    "quoteChaseInterval": {
+      "label": "Hours between quote reminders",
+      "help": "How long to wait after an RFQ is issued, and between reminders."
+    },
+    "quoteChaseLimit": {
+      "label": "Most reminders per vendor",
+      "help": "Reminders stop at this number, when the vendor answers, or when the RFQ leaves Issued."
     }
   },
   "common": {
@@ -47,6 +71,25 @@
     "approval_state_conflict": "Someone changed this approval first. Refresh the page.",
     "approval_policy_state_conflict": "Someone changed this policy first. Refresh the page.",
     "sod_approval_requester": "You requested this approval, so someone else decides it.",
+    "approval_subject_beneficiary": "This approval is for you, so someone else decides it.",
+    "approval_cancel_reason": "Say why you are withdrawing it.",
+    "approval_rule_no_steps": "Add at least one step before activating the rule.",
+    "approval_rule_not_draft": "Only a Draft rule changes its subject or filter. Retire it and add a new one.",
+    "approval_rule_step_not_draft": "Steps change only while the rule is a Draft. Retire it and add a new one.",
+    "approval_rule_active_delete": "Retire an Active rule before you delete it.",
+    "approval_rule_filter_project": "The filter must belong to this project's org, and a credential category to this project.",
+    "approval_rule_class_no_offering": "Requests come only for Radios and Carts, so a rule on this class would never apply. Choose one of those classes.",
+    "approval_rule_pending": "This request waits on its approval rule. Approve it once every step is approved.",
+    "approval_step_engagement": "Choose an engagement of this project that is not Complete or Canceled.",
+    "approval_step_no_approver": "Nobody this step names has an XOS account to receive approval emails. Invite them to Gateway first, or name another approver.",
+    "approval_reminder_too_soon": "The approvers were notified less than 4 hours ago. Try again later.",
+    "approval_reminder_limit": "Every reminder this step allows has been sent.",
+    "approval_link_code_too_soon": "A code was sent a moment ago. Wait a minute, then ask again.",
+    "approval_link_locked": "Too many wrong codes. This link is locked.",
+    "approval_link_email_off": "Approval emails are turned off for this person, so no code can be sent.",
+    "subject_approval_rpc_only": "Approvals open and close through their rule, never by hand.",
+    "subject_approval_subject": "An approval names exactly one pass, dock booking or equipment request.",
+    "timesheet_rejection_reason": "Say why you are rejecting the timesheet.",
     "trash_not_restorable": "Rows of this kind aren't restored from Trash.",
     "trash_not_deleted": "This item is no longer in Trash.",
     "trash_restore_expired": "Its retention period has ended; it's about to be purged and can't come back.",
@@ -58,7 +101,9 @@
     "state_label_collides": "That's the name of another record state. Choose a label no state has.",
     "state_label_state_immutable": "Clear this label and label the other state instead.",
     "projects_key_format": "Use 2 to 5 letters for the project key.",
-    "scope_node_code_format": "Use capital letters, digits and hyphens for the code suffix."
+    "scope_node_code_format": "Use capital letters, digits and hyphens for the code suffix.",
+    "sod_document_creator": "You created this document, and your organization does not let its creator decide a step. Someone else decides it.",
+    "sod_change_order_requester_steps": "You requested this change order, and your organization does not let its requester decide a step. Someone else decides it."
   },
   "documentTypes": {
     "Purchase Order": "Purchase order",
@@ -131,7 +176,9 @@
       "reason": "Why withdraw it?",
       "reasonHelp": "Kept in the approval's history.",
       "submit": "Withdraw approval",
-      "done": "Approval withdrawn."
+      "done": "Approval withdrawn.",
+      "equipmentHelp": "Kept in the approval's history. This also withdraws the equipment request, and the requester sees why.",
+      "equipmentDone": "Approval and equipment request withdrawn."
     },
     "submit": {
       "title": "Submit a document for approval",
@@ -143,6 +190,33 @@
       "done": "Submitted. The first step's approvers have been notified.",
       "none": "No document waits for approval right now.",
       "loadError": "Documents waiting for approval couldn't load. Try again."
+    },
+    "reminders": {
+      "lastNotified": "Last notified {when}",
+      "count": "Reminder {sent} of {limit}",
+      "next": "Next automatic reminder {when}",
+      "noMore": "No more automatic reminders",
+      "off": "Automatic reminders are off"
+    },
+    "remind": {
+      "label": "Remind approvers",
+      "button": "Remind approvers",
+      "done": "Reminder sent to the step's approvers.",
+      "nextAllowed": "You can remind them again on {when}.",
+      "limitReached": "Every reminder this step allows has been sent."
+    },
+    "subjects": {
+      "Pass": "Pass",
+      "Delivery": "Dock booking",
+      "Equipment": "Equipment request",
+      "meta": "{project} · requested on {when}",
+      "open": {
+        "Pass": "Open the pass",
+        "Delivery": "Open the dock booking",
+        "Equipment": "Open the request"
+      },
+      "approvers": "waiting on {names}",
+      "noApprover": "No one can decide this step. The requester or a rule editor can withdraw it."
     }
   },
   "trash": {
@@ -210,7 +284,8 @@
       "label": "Save a project as a template",
       "project": "Project",
       "submit": "Save as template",
-      "done": "Template saved from the project."
+      "done": "Template saved from the project.",
+      "keepDates": "Keep due dates"
     },
     "detail": {
       "none": "Create a template to see it here.",
@@ -225,7 +300,7 @@
       "none": "No items yet.",
       "nodeLine": "{kind} scope node, code suffix {suffix}",
       "recordLine": "{kind} record · {phase} · {due}",
-      "phase": "phase {code}",
+      "phase": "Phase",
       "phaseNone": "no phase",
       "noPhase": "No phase",
       "noDue": "no due date",
@@ -255,11 +330,12 @@
         "Y": "Y: process",
         "Z": "Z: timeline"
       },
-      "phase": "Phase",
       "dueOffset": "Due, days after the start",
       "dueOffsetHelp": "Leave blank for no due date; use a negative number for before the start.",
       "remove": "Remove",
-      "removeNamed": "Remove {name}"
+      "removeNamed": "Remove {name}",
+      "requiresReview": "Requires review",
+      "reviewed": "requires review"
     },
     "draft": {
       "title": "Draft version {version}",
@@ -292,7 +368,8 @@
       "submit": "Create project",
       "done": "Project {key} created.",
       "open": "Open the project",
-      "needsCapability": "Creating projects needs projects.project.create. Ask an Owner or Admin."
+      "needsCapability": "Creating projects needs projects.project.create. Ask an Owner or Admin.",
+      "withoutDates": "Leave records undated (they wait in the schedule's Unscheduled list)"
     },
     "delete": {
       "label": "Delete this template",
@@ -324,7 +401,11 @@
       "procurement": "Purchase orders",
       "assets": "Assets",
       "incidents": "Incidents",
-      "custom_object": "Custom objects"
+      "custom_object": "Custom objects",
+      "crew_hours": "Crew hours",
+      "crew_responses": "Crew responses",
+      "crew_removals": "Crew removals",
+      "crew_ratings": "Crew ratings"
     },
     "fields": {
       "records": {
@@ -372,6 +453,40 @@
       "custom_object": {
         "title": "Title",
         "created_at": "Created"
+      },
+      "crew_hours": {
+        "shift_id": "Shift",
+        "role_code": "Role",
+        "worker_kind": "Worker kind",
+        "worker_name": "Worker",
+        "starts_at": "Starts",
+        "scheduled_hours": "Scheduled hours",
+        "actual_hours": "Actual hours",
+        "variance_hours": "Variance hours",
+        "no_show": "No-show"
+      },
+      "crew_responses": {
+        "kind": "Kind",
+        "answer": "Answer",
+        "asked_at": "Asked",
+        "answered_at": "Answered",
+        "person_name": "Person",
+        "role_code": "Role"
+      },
+      "crew_removals": {
+        "removed_at": "Removed",
+        "from_state": "Left state",
+        "person_name": "Person",
+        "role_code": "Role",
+        "engagement_party": "Party",
+        "reason": "Reason",
+        "removed_by_name": "Removed by"
+      },
+      "crew_ratings": {
+        "party_name": "Party",
+        "role_type": "Role type",
+        "score": "Score",
+        "submitted_at": "Submitted"
       }
     },
     "fieldsTitle": "Columns",
@@ -459,7 +574,16 @@
     "savedTitle": "Reports you can open",
     "savedNone": "No saved reports yet. Save one above.",
     "sharedLabel": "Shared",
-    "privateLabel": "Private"
+    "privateLabel": "Private",
+    "standard": {
+      "crew-utilization": "Crew utilization",
+      "crew-invitation-responses": "Invitation responses",
+      "crew-removals": "Crew removals",
+      "crew-ratings": "Crew ratings",
+      "crew-scheduled-vs-actual": "Scheduled against actual hours"
+    },
+    "standardHelp": "A standard report. Nothing is kept until you save it as your own editable copy, and the preview shows only what you may read.",
+    "saveAsMine": "Save as my report"
   },
   "policies": {
     "title": "Approval policies",

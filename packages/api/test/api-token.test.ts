@@ -1,19 +1,27 @@
 /**
  * The api-token Edge Function logic (supabase/functions/api-token/mint.ts): API key exchange for a
- * short-lived JWT acting as the key's service account. Signed with a key generated per test run.
+ * short-lived JWT acting as the key's service account. Signed with an ES256 key generated per test run, as the
+ * project's imported JWT signing key is (ADR 0168).
  */
-import { createHmac, randomBytes } from "node:crypto";
+import { projectTokenSigner } from "@xos/platform/jwt";
 import { describe, expect, it } from "vitest";
 import {
   TOKEN_TTL_SECONDS,
   exchangeResult,
   handleTokenRequest,
-  signJwt,
   tokenClaims,
 } from "../../../supabase/functions/api-token/mint.ts";
 import type { ExchangeResult } from "../../../supabase/functions/api-token/mint.ts";
 
-const signingKey = randomBytes(32).toString("hex");
+const pair = (await crypto.subtle.generateKey({ name: "ECDSA", namedCurve: "P-256" }, true, [
+  "sign",
+  "verify",
+])) as Record<"privateKey" | "publicKey", Awaited<ReturnType<typeof crypto.subtle.importKey>>>;
+const KID = "11111111-2222-4333-8444-555555555555";
+const sign = projectTokenSigner(
+  JSON.stringify({ ...(await crypto.subtle.exportKey("jwk", pair.privateKey)), kid: KID }),
+  { production: true },
+);
 const KEY = `xos_live_${"a".repeat(48)}`;
 const ROW = {
   api_key_id: "k1",
@@ -33,24 +41,29 @@ function request(authorization: string | null, method = "POST") {
 function deps(result: ExchangeResult) {
   return {
     exchange: async () => result,
-    signingKey,
+    sign,
     issuer: "http://127.0.0.1:56021/auth/v1",
     now: () => 1_800_000_000_000,
   };
 }
 
 describe("api-token exchange", () => {
-  it("signs an HS256 token that verifies with the signing key", async () => {
-    const token = await signJwt({ sub: "x" }, signingKey);
-    const [head, payload, signature] = token.split(".");
-    const expected = createHmac("sha256", signingKey)
-      .update(`${head}.${payload}`)
-      .digest("base64url");
-    expect(signature).toBe(expected);
-    expect(JSON.parse(Buffer.from(head as string, "base64url").toString())).toEqual({
-      alg: "HS256",
+  it("signs an ES256 token naming the key, which verifies with its public key", async () => {
+    const res = await handleTokenRequest(request(`Bearer ${KEY}`), deps(ROW));
+    const { access_token: token } = (await res.json()) as { access_token: string };
+    const [head = "", payload = "", signature = ""] = token.split(".");
+    expect(JSON.parse(Buffer.from(head, "base64url").toString())).toEqual({
+      alg: "ES256",
       typ: "JWT",
+      kid: KID,
     });
+    const valid = await crypto.subtle.verify(
+      { name: "ECDSA", hash: "SHA-256" },
+      pair.publicKey,
+      Buffer.from(signature, "base64url"),
+      new TextEncoder().encode(`${head}.${payload}`),
+    );
+    expect(valid).toBe(true);
   });
 
   it("mints a short-lived token for the service account with org and scopes", async () => {

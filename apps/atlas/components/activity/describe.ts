@@ -15,6 +15,12 @@ export interface ActivityDescription {
   readonly action: string;
   /** What the entry acted on: the record's key and title, or the subject's own name (A59-030). */
   readonly target: string;
+  /**
+   * The target in pieces, joined it reads as `target`: each value (a key, a name, a role, a start) apart from the
+   * separators between them, so a line shows each as its own text and the pseudo-locale check (gate 16) can tell
+   * every piece is data. A value may hold a separator itself ("Head Arena / Festival Rigger").
+   */
+  readonly targetParts: readonly string[];
   /** The record the entry opens in the peek, when it acted on a record. */
   readonly recordKey: string | null;
   readonly comment: string | undefined;
@@ -39,20 +45,30 @@ export function useDescribe() {
     const noun = a.has(`subjects.${subject}`) ? a(`subjects.${subject}`) : a("subjects.fallback");
     const named = entry.data["criterion_id"] ?? entry.data["scope_code"];
     const criterion = typeof named === "string" ? named : null;
-    const where = entry.project ? ` · ${entry.project.key}` : "";
-    const target = entry.recordKey
-      ? `${entry.recordKey} ${entry.recordTitle ?? ""}`.trim()
+    const where = entry.project ? [" · ", entry.project.key] : [];
+    const targetParts: string[] = entry.recordKey
+      ? entry.recordTitle
+        ? [entry.recordKey, " ", entry.recordTitle]
+        : [entry.recordKey]
       : subject === "project" && entry.project
-        ? `${entry.project.key} ${entry.project.name}`
+        ? [entry.project.key, " ", entry.project.name]
         : entry.subjectLabel
-          ? `${entry.subjectLabel}${
-              entry.subjectAt
-                ? ` · ${format.dateTime(new Date(entry.subjectAt), { dateStyle: "medium", timeStyle: "short" })}`
-                : ""
-            }${where}`
+          ? [
+              entry.subjectLabel,
+              ...(entry.subjectAt
+                ? [
+                    " · ",
+                    format.dateTime(new Date(entry.subjectAt), {
+                      dateStyle: "medium",
+                      timeStyle: "short",
+                    }),
+                  ]
+                : []),
+              ...where,
+            ]
           : criterion && entry.project
-            ? `${criterion} · ${entry.project.key}`
-            : `${noun}${where}`;
+            ? [criterion, " · ", entry.project.key]
+            : [noun, ...where];
     const d = entry.data;
     const from = d["from_state"] ?? d["from_phase_code"];
     const to = d["to_state"] ?? d["to_phase_code"];
@@ -66,7 +82,8 @@ export function useDescribe() {
     return {
       actor: entry.actor ?? a("feed.system"),
       action,
-      target,
+      target: targetParts.join(""),
+      targetParts,
       recordKey: entry.recordKey,
       comment: parts.length > 0 ? parts.join(" · ") : undefined,
     };

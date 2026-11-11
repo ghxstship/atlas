@@ -6,12 +6,22 @@ import plainLanguageSet from "./datasets/plain_language.json" with { type: "json
 import summariesSet from "./datasets/summaries.json" with { type: "json" };
 import { loadModelConfig, type ModelConfig } from "../src/config.ts";
 import { askAssistant, type PublicApi } from "../src/features/assistant.ts";
-import { draft, type DraftKind } from "../src/features/drafting.ts";
+import {
+  draft,
+  draftAdvanceAnswers,
+  draftList,
+  type ContextRecord,
+  type DraftableSection,
+  type DraftKind,
+  type ListDraft,
+  type VerbiageEntry,
+} from "../src/features/drafting.ts";
 import { extractDocument, type DocumentKind } from "../src/features/extraction.ts";
 import { buildFilter, type FilterCollection } from "../src/features/filters.ts";
 import { suggestCatalogBinding, suggestColumnMappings } from "../src/features/mapping.ts";
 import { summarize, type SummaryKind } from "../src/features/summaries.ts";
 import type { AiFeature, ModelClient } from "../src/model.ts";
+import { checkRunOfShow, isListDraftKind, type ListDraftKind } from "../src/lists.ts";
 import { NeverSendList } from "../src/redact.ts";
 import type { AuroraContext, AuroraResult, AuroraStore, ProposedChange } from "../src/session.ts";
 
@@ -109,8 +119,11 @@ async function extractionCases(client: ModelClient, config: ModelConfig): Promis
       document: { type: "document", mediaType: "text/plain", data: c.document },
       fileName: `${c.id}.txt`,
       subject: null,
+      ...("feeVisible" in c ? { feeVisible: c.feeVisible as boolean } : {}),
     });
-    const header = proposals[0]?.fields ?? [];
+    // An itinerary and a material list (B11) have no header: every proposal is a line.
+    const headerless = c.kind === "itinerary" || c.kind === "material_list";
+    const header = headerless ? [] : (proposals[0]?.fields ?? []);
     const wrong = Object.entries(c.expected).find(
       ([path, value]) =>
         !sameValue(
@@ -122,7 +135,7 @@ async function extractionCases(client: ModelClient, config: ModelConfig): Promis
     const expectedLines =
       "expectedLines" in c ? (c.expectedLines as Record<string, unknown>[]) : [];
     if (!detail && expectedLines.length > 0) {
-      const lines = proposals.slice(1);
+      const lines = headerless ? proposals : proposals.slice(1);
       if (lines.length !== expectedLines.length)
         detail = `expected ${expectedLines.length} lines, got ${lines.length}`;
       expectedLines.forEach((line, i) => {
@@ -201,9 +214,99 @@ async function summariesCases(client: ModelClient, config: ModelConfig): Promise
 
 const MONEY = /(\$|USD)\s?\d/;
 
+/** A drafted-list case of drafting.json (P6). */
+interface ListCase {
+  readonly id: string;
+  readonly kind: ListDraftKind;
+  readonly instructions: string;
+  readonly verbiage: readonly VerbiageEntry[];
+  readonly context: readonly ContextRecord[];
+  readonly runOfShow?: { runOfShowId: string; showDate: string; timeZone: string };
+  readonly risks?: { projectId: string; categories: readonly string[] };
+  readonly minLines: number;
+  readonly chronological?: boolean;
+  readonly expectGap?: boolean;
+  readonly expectUntimed?: boolean;
+  readonly mustContain: readonly string[];
+  readonly mustNotContain: readonly string[];
+  readonly allowMoney: boolean;
+}
+
+/**
+ * Scores a drafted list: enough lines, run of show cues in time order with none dropped for falling
+ * outside the show day, an untimed cue and a gap where the context lacks a time, risks only in the
+ * given categories with ratings from 1 to 5 or none, no price, and the case's words present or absent.
+ */
+export function listChecks(value: ListDraft, c: ListCase): string | null {
+  if (value.items.length < c.minLines) {
+    return `${value.items.length} lines, fewer than ${c.minLines}`;
+  }
+  const lines =
+    value.kind === "run_of_show"
+      ? value.items.map((i) => [i.label, i.segment ?? "", i.description ?? ""].join(" "))
+      : value.items.map((i) => `${i.title} ${i.mitigation}`);
+  const text = `${value.title}\n${lines.join("\n")}`;
+  if (value.kind === "run_of_show") {
+    if (c.chronological) {
+      const flags = checkRunOfShow(
+        value.items.map((i) => ({
+          position: i.position,
+          plannedAt: i.planned_at,
+          durationSeconds: null,
+        })),
+      );
+      if (flags.some((f) => f.type === "out_of_order")) return "cues are out of time order";
+    }
+    if (value.dropped.some((d) => d.reason === "time")) return "a cue fell outside the show window";
+    if (c.expectUntimed && !value.items.some((i) => i.planned_at === null)) {
+      return "invented a time the context does not give";
+    }
+  } else {
+    const allowed = c.risks?.categories ?? [];
+    const bad = value.items.find((i) => !allowed.includes(i.category));
+    if (bad) return `category ${bad.category} is not a canon Risk subtype`;
+    const unrated = (n: number | null) => n === null || (Number.isInteger(n) && n >= 1 && n <= 5);
+    if (value.items.some((i) => !unrated(i.likelihood) || !unrated(i.impact))) {
+      return "a rating is outside 1 to 5";
+    }
+  }
+  if (c.expectGap && value.gaps.length === 0) return "left no [needs: ...] gap";
+  if (!c.allowMoney && MONEY.test(text)) return "states a price the context does not give";
+  return textChecks(text, c.mustContain, c.mustNotContain);
+}
+
+async function listCase(
+  client: ModelClient,
+  config: ModelConfig,
+  c: ListCase,
+): Promise<CaseResult> {
+  const { store } = evalStore();
+  const target =
+    c.kind === "run_of_show"
+      ? { table: "app.run_of_show", id: c.runOfShow?.runOfShowId ?? "" }
+      : { table: "app.projects", id: c.risks?.projectId ?? "" };
+  const result = await draftList(ctxFor(client, config, "2026-10-14", store), {
+    kind: c.kind,
+    instructions: c.instructions,
+    target,
+    context: c.context,
+    verbiage: c.verbiage,
+    neverSend: EVAL_NEVER_SEND,
+    ...(c.runOfShow ? { runOfShow: c.runOfShow } : {}),
+    ...(c.risks ? { risks: c.risks } : {}),
+  });
+  if (result.kind !== "answer") return { id: c.id, pass: false, detail: describeFailure(result) };
+  const problem = listChecks(result.value, c);
+  return { id: c.id, pass: problem === null, detail: problem ?? "ok" };
+}
+
 async function draftingCases(client: ModelClient, config: ModelConfig): Promise<CaseResult[]> {
   const out: CaseResult[] = [];
   for (const c of draftingSet.cases) {
+    if (isListDraftKind(c.kind)) {
+      out.push(await listCase(client, config, c as unknown as ListCase));
+      continue;
+    }
     const { store } = evalStore();
     const result = await draft(ctxFor(client, config, "2026-10-14", store), {
       kind: c.kind as DraftKind,
@@ -222,6 +325,32 @@ async function draftingCases(client: ModelClient, config: ModelConfig): Promise<
     if (!problem && !c.allowMoney && MONEY.test(body))
       problem = "states a price the context does not give";
     out.push({ id: c.id, pass: problem === null, detail: problem ?? "ok" });
+  }
+  for (const c of draftingSet.advanceCases) {
+    const { store } = evalStore();
+    const result = await draftAdvanceAnswers(ctxFor(client, config, "2027-01-04", store), {
+      recipientId: "eval-recipient",
+      sections: c.sections as unknown as DraftableSection[],
+      timeZone: "America/New_York",
+      projectToday: "2027-01-04",
+      source: { kind: "Project Inbox", messageId: "eval-message", body: c.source },
+      verbiage: [],
+      neverSend: EVAL_NEVER_SEND,
+    });
+    if (c.answered.length === 0) {
+      out.push({ id: c.id, pass: result.kind === "no-answer", detail: describeFailure(result) });
+      continue;
+    }
+    if (result.kind !== "answer") {
+      out.push({ id: c.id, pass: false, detail: describeFailure(result) });
+      continue;
+    }
+    const got = result.value.answers.map((a) => a.section_id).sort();
+    const left = result.value.unanswered.map((u) => u.section_id).sort();
+    const pass =
+      JSON.stringify(got) === JSON.stringify([...c.answered].sort()) &&
+      JSON.stringify(left) === JSON.stringify([...c.unanswered].sort());
+    out.push({ id: c.id, pass, detail: pass ? "ok" : `answered ${got.join(", ")}` });
   }
   return out;
 }

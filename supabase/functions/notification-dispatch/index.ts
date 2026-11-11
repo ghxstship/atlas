@@ -14,6 +14,11 @@
 //     XOS_SMS_DELIVER_TO_ANY=true; recorded otherwise. Twilio posts delivery status to sms-webhook. Texts held by
 //     quiet hours go out as one summary per member and org when the quiet hours end (ADR 0033 decision 35).
 // One channel failing never stops the others: its error is logged and reported in the answer.
+//   * Push and SMS go first and keep sending batch after batch while each comes back full, within a time and batch
+//     budget, so a crisis alert to a whole project (6800) reaches phones within minutes; the claim takes the kinds
+//     that bypass quiet hours before any backlog. Email sends one batch a run: rendering is what costs CPU.
+//   * A white-label org's email wears its logo, accent and sender name and replies go to its support address
+//     (A138, migration 3310); billing and plan notices stay platform-branded.
 // React Email, the templates and Resend load only when an email is rendered or sent (A85), so the many runs
 // with nothing due boot without them.
 import {
@@ -26,6 +31,7 @@ import {
   dispatchPush,
   dispatchSms,
   dispatchSmsSummaries,
+  drain,
   notificationStore,
   pushStore,
   readEmailEnv,
@@ -36,7 +42,7 @@ import {
   webPushStore,
 } from "../_vendor/notification-dispatch.js";
 import { createLogger, identityFromEnv } from "../_vendor/core.js";
-import { env, hasBearer, json, serve, serviceDb } from "../_shared/runtime.ts";
+import { env, isServiceRequest, json, serve, serviceDb } from "../_shared/runtime.ts";
 
 const logger = createLogger(identityFromEnv("edge.notification-dispatch", Deno.env.toObject()));
 
@@ -51,13 +57,45 @@ async function channel<T>(name: string, run: () => Promise<T>): Promise<T | { er
 }
 
 serve(async (request) => {
-  if (!hasBearer(request, env("SUPABASE_SERVICE_ROLE_KEY"))) {
+  if (!isServiceRequest(request)) {
     return json(401, { type: "/problems/unauthorized", title: "Unauthorized", status: 401 });
   }
   const source = Deno.env.toObject();
   const db = serviceDb();
   const functionsUrl = `${env("SUPABASE_URL")}/functions/v1`;
   const appUrl = env("XOS_APP_URL");
+
+  // Up to 600 pushes a run: Expo takes 100 a request, and every batch is light on CPU.
+  const push = await channel("push", () => {
+    const client = createPushClient(readPushEnv(source));
+    const web = { store: webPushStore(db), client: createWebPushClient(readWebPushEnv(source)) };
+    return drain((limit) => dispatchPush(pushStore(db), client, { limit, web }), {
+      batch: 100,
+      budgetMs: 20_000,
+      maxBatches: 6,
+    });
+  });
+  const receipts = await channel("push-receipts", () =>
+    checkPushReceipts(pushStore(db), createPushClient(readPushEnv(source))),
+  );
+
+  const smsProvider = () =>
+    createSmsProvider(readSmsEnv(source), {
+      statusCallbackUrl: Deno.env.get("XOS_SMS_WEBHOOK_URL") ?? `${functionsUrl}/sms-webhook`,
+    });
+  // Texts go one request each: up to 200 a run, within 15 seconds.
+  const sms = await channel("sms", () => {
+    const provider = smsProvider();
+    return drain((limit) => dispatchSms(smsStore(db, { appUrl }), provider, limit), {
+      batch: 50,
+      budgetMs: 15_000,
+      maxBatches: 4,
+    });
+  });
+  // Texts held by quiet hours go out as one summary per member and org when the quiet hours end.
+  const smsSummaries = await channel("sms-summaries", () =>
+    dispatchSmsSummaries(smsStore(db, { appUrl }), smsProvider()),
+  );
 
   const email = await channel("email", async () => {
     const emailEnv = readEmailEnv(source);
@@ -76,28 +114,11 @@ serve(async (request) => {
       inboundDomain: Deno.env.get("XOS_INBOUND_DOMAIN") ?? null,
       // External parties' notifications (1131) link to Gateway.
       gatewayUrl: Deno.env.get("XOS_GATEWAY_URL") ?? null,
+      // A white-label org's email shows its logo from the public org-brand bucket (A138).
+      brandAssetUrl: `${env("SUPABASE_URL")}/storage/v1/object/public/org-brand`,
     });
     return dispatchEmail(store, createTransport(emailEnv));
   });
-
-  const push = await channel("push", () =>
-    dispatchPush(pushStore(db), createPushClient(readPushEnv(source)), {
-      web: { store: webPushStore(db), client: createWebPushClient(readWebPushEnv(source)) },
-    }),
-  );
-  const receipts = await channel("push-receipts", () =>
-    checkPushReceipts(pushStore(db), createPushClient(readPushEnv(source))),
-  );
-
-  const smsProvider = () =>
-    createSmsProvider(readSmsEnv(source), {
-      statusCallbackUrl: Deno.env.get("XOS_SMS_WEBHOOK_URL") ?? `${functionsUrl}/sms-webhook`,
-    });
-  const sms = await channel("sms", () => dispatchSms(smsStore(db, { appUrl }), smsProvider()));
-  // Texts held by quiet hours go out as one summary per member and org when the quiet hours end.
-  const smsSummaries = await channel("sms-summaries", () =>
-    dispatchSmsSummaries(smsStore(db, { appUrl }), smsProvider()),
-  );
 
   return json(200, { email, push, receipts, sms, smsSummaries });
 });

@@ -36,7 +36,171 @@
       "sole_account_owner": "Una cuenta de empresa conserva al menos un Propietario. Nombre primero a otra persona Propietario.",
       "notification_channel_outside": "Una empresa solo configura Correo electrónico y Push.",
       "supplier_diversity_no_program": "Esa organización no tiene un programa de diversidad de proveedores, así que no recibe certificaciones de diversidad.",
-      "time_zone_unknown": "No se reconoce esa zona horaria. Elija una de la lista, por ejemplo America/New_York."
+      "time_zone_unknown": "No se reconoce esa zona horaria. Elija una de la lista, por ejemplo America/New_York.",
+      "notification_action_used": "Esto ya se resolvió. No hay nada más que hacer.",
+      "notification_action_expired": "Este enlace venció. Abre el elemento desde Inicio para resolverlo.",
+      "notification_action_not_yours": "Este enlace se envió a otra persona. Cierra sesión e inicia sesión como la persona a quien se envió.",
+      "notification_action_invalid": "Este enlace no funciona. Abre el elemento desde Inicio.",
+      "notification_action_elsewhere": "Este enlace se abre en Atlas. Usa el botón del correo para abrirlo allí.",
+      "shift_no_show_self": "No puedes marcarte como ausente. Avísale a la producción.",
+      "shift_no_show_state": "Marca la ausencia cuando el turno haya empezado y haya alguien asignado.",
+      "shift_no_show_clocked_in": "Esta persona registró su entrada en el turno, así que no está ausente.",
+      "shift_no_show_reason": "Indica qué pasó, para que la producción lo sepa.",
+      "shift_no_show_frozen": "Este turno tiene una ausencia. La producción debe retirarla antes de que otra persona tome el turno.",
+      "no_show_id_conflict": "Esta ausencia ya se registró para otro turno. Vuelve a cargar la página e inténtalo de nuevo.",
+      "shift_held_for_position": "Este turno está reservado para un puesto que cubre otro equipo. Elige un turno de tus propios espacios.",
+      "shift_reconfirm_answered": "Este turno ya empezó o ya respondiste, así que no hay nada más que contestar.",
+      "notification_action_reason": "Di por qué lo rechazas.",
+      "advance_answer_pending": "Esta sección ya tiene respuesta y espera revisión. Responde de nuevo solo si te la devuelven.",
+      "submittal_response": "Este entregable técnico no está esperando tu respuesta. Recarga la página para ver en qué estado está.",
+      "submittal_note_length": "Escribe una nota de 1 a 500 caracteres.",
+      "availability_poll_closed": "Esta encuesta ya cerró. Indique su disponibilidad directamente a la organización.",
+      "availability_poll_answer": "Responda cada día de la encuesta una vez, como Disponible, Provisional o No disponible.",
+      "roster_copy_source": "Reutiliza una lista de la misma empresa o artista con la misma organización.",
+      "approval_link_code_too_soon": "Se envió un código hace un momento. Espera un minuto y vuelve a pedirlo; se envían como máximo cinco por hora.",
+      "approval_link_locked": "Demasiados códigos incorrectos. Este enlace está bloqueado; inicia sesión para decidir.",
+      "approval_link_email_off": "Tienes desactivados los correos de aprobación, así que no se puede enviar un código. Inicia sesión para decidir.",
+      "approval_not_in_review": "Esta aprobación ya se decidió o se retiró.",
+      "approval_not_step_approver": "No eres aprobador del paso que espera esta aprobación.",
+      "approval_one_step_per_approver": "Ya decidiste un paso de esta aprobación. El siguiente paso lo decide otra persona.",
+      "approval_subject_beneficiary": "Esta aprobación es para ti, así que la decide otra persona.",
+      "approval_rejection_reason": "Di por qué la rechazas.",
+      "sod_approval_requester": "Tú pediste esta aprobación, así que la decide otra persona.",
+      "credential_photo_path": "Esa foto no llegó a tu propia carpeta. Súbela de nuevo.",
+      "credential_photo_no_credential": "No tienes una credencial vigente con esta organización, así que no recibe tu foto de credencial.",
+      "credential_photo_notice": "Vuelve a cargar la página para ver el aviso vigente y guarda tu foto de nuevo.",
+      "roster_closed": "Esta contratación está completa o cancelada, así que su lista está cerrada.",
+      "roster_role_type": "Esta contratación no lleva lista de equipo. Solo la llevan las de artistas y las contrataciones de empresa de un proveedor, contratista, agencia de personal o patrocinador.",
+      "roster_person_not_in_team": "Agrega personas que confirmaron su membresía en tu empresa, o artistas que representas. Invita a cualquier otra persona por correo.",
+      "roster_person_is_engaged": "La persona que nombra esta contratación ya está en la lista con su propia entrada.",
+      "roster_person_duplicate": "Esta persona ya está en la lista.",
+      "roster_arrival_window": "Indica un inicio, un fin posterior y una zona horaria para la llegada, o deja los tres vacíos.",
+      "roster_role_unknown": "Elige un puesto de la lista.",
+      "roster_entry_not_editable": "Esta entrada está en revisión o aceptada, así que ya no puede cambiar. Retírala y agrega un reemplazo.",
+      "roster_empty_submit": "Agrega o cambia a alguien en la lista antes de enviarla.",
+      "roster_self_entry_fixed": "La persona que nombra esta contratación permanece en la lista.",
+      "roster_entry_withdrawn": "Esta entrada de la lista fue retirada.",
+      "roster_replacement_invalid": "Un reemplazo nombra una entrada retirada de esta contratación.",
+      "roster_response_not_yours": "Solo la persona de una entrada de la lista la responde.",
+      "roster_entry_not_accepted": "Acepta la entrada de la lista en el Inicio antes de compartir tus datos de trabajo.",
+      "invite_expiry_range": "Una invitación queda abierta entre 1 hora y 30 días.",
+      "invitation_email": "Escribe una sola dirección de correo.",
+      "invitation_not_yours": "Esta invitación se envió a otra dirección. Inicia sesión con la dirección a la que se envió.",
+      "invitation_closed": "Esta invitación ya se respondió, se revocó o venció. Pide una nueva.",
+      "account_membership_not_yours": "Solo la persona que nombra una membresía puede confirmarla.",
+      "account_membership_unconfirmed": "Este miembro aún no confirmó su membresía, así que no se le puede asignar.",
+      "assignment_account_mismatch": "Asigna miembros de la empresa que suministra esta contratación.",
+      "roster_locked": "Los nombres están cerrados en esta contratación. Pide a la organización productora que cambie la lista.",
+      "roster_lock_engagement_closed": "Esta contratación está cerrada, así que su cierre de nombres ya no cambia.",
+      "allocation_not_your_engagement": "Solo quienes responden por esta contratación piden y reparten lo que necesita. Pídeselo a quien sea Propietario, Administrador o Responsable de avance de tu cuenta.",
+      "allocation_entry_not_on_engagement": "Esa persona no está en la lista de esta contratación. Elige a alguien que sí esté.",
+      "allocation_not_requestable": "Este proyecto no permite pedir ese artículo. Elige otro.",
+      "allocation_item_kind": "Elige una credencial, equipo, catering, una habitación, viaje o viáticos.",
+      "offering_not_offered": "La organización no ofrece esto en esta contratación. Escríbele si lo necesitas.",
+      "offering_not_provided": "La organización no lo proporciona; se reembolsa o se paga como compensación fija.",
+      "allocation_cap_engagement": "Esto supera lo que tu empresa puede tener. Pide menos.",
+      "allocation_cap_person": "Esto supera lo que una persona puede tener. Pide menos.",
+      "allocation_engagement_closed": "Esta contratación está completa o cancelada, así que ya no se pide nada en ella.",
+      "allocation_entry_not_live": "Esa persona fue retirada de la lista o la rechazó.",
+      "allocation_entry_not_accepted": "Esa persona aún no está aceptada en la lista, por la organización y por sí misma.",
+      "allocation_issued": "Parte de esto ya se entregó. Devuélvelo primero en el mostrador.",
+      "allocation_state_conflict": "Esto cambió hace un momento. Recarga para ver cómo está.",
+      "allocation_not_pool": "Solo se reparte un fondo común aprobado. Espera a que la organización lo apruebe.",
+      "allocation_not_split": "Solo una parte aprobada de un fondo común vuelve a él.",
+      "allocation_split_exceeds": "Al fondo común no le quedan tantos. Asigna una parte menor.",
+      "allocation_split_parts": "Da a cada persona una cantidad entera de al menos uno.",
+      "allocation_window": "El fin de la necesidad debe ser posterior a su inicio.",
+      "allocation_quantity_positive": "Escribe una cantidad mayor que cero.",
+      "allocation_quantity_whole": "Este artículo se da en números enteros.",
+      "advance_section_derived": "La sección de lista de personal se lee de tu pestaña Personal, así que no lleva respuesta. Actualiza la lista allí.",
+      "advance_section_role": "Las listas de invitados no forman parte del avance de un contratista o patrocinador.",
+      "advance_section_open": "Esta sección ya no está abierta. Vuelve a cargar la página para ver el paquete como está ahora.",
+      "advance_recipient_engagement": "Esta sección se responde bajo tu contratación y el paquete todavía no está vinculado a ella. Pide a la organización que lo vincule.",
+      "advance_line_limit": "Esta sección admite menos líneas. Quita algunas y vuelve a enviar.",
+      "advance_line_kind": "Una de las líneas no corresponde a esta sección. Elige uno de los artículos de la lista y una cantidad.",
+      "advance_line_person": "Revisa para quién es cada línea: esta sección pide una persona en cada línea, o en ninguna.",
+      "advance_line_window": "Una franja termina después de empezar. Revisa las horas y vuelve a enviar.",
+      "advance_line_roster_entry": "Una de las personas ya no está en la lista de personal de esta contratación. Elige a alguien de la lista.",
+      "advance_file_document": "Adjunta los archivos de nuevo: cada archivo va en una sola respuesta, hasta el número que permite la sección.",
+      "advance_answer_length": "Escribe una respuesta de hasta 20.000 caracteres.",
+      "advance_typed_answer_rpc": "Envía la respuesta de esta sección con su propio formulario.",
+      "party_upload_missing": "El archivo no terminó de subirse. Elígelo de nuevo y envía.",
+      "party_upload_checksum": "No se pudo verificar el archivo. Elígelo de nuevo y envía.",
+      "guest_list_cap": "Tu lista de invitados está llena, acompañantes incluidos. Quita un invitado o pide más lugares a la organización.",
+      "sponsor_asset_files_required": "Adjunta entre 1 y 10 archivos.",
+      "sponsor_asset_files_invalid": "Adjunta los archivos de nuevo: cada archivo va en un solo recurso.",
+      "sponsor_asset_source": "La organización aprueba los recursos que envías. Para cambiar uno que te devolvió, reenvíalo con archivos nuevos.",
+      "credential_names_closed": "Ya pasó la fecha límite para asignar nombres a los pases. Contacta a la organización para cambiar quién los tiene.",
+      "delivery_window_full": "Esta franja está completa. Elige otra franja.",
+      "delivery_window_closed": "Esta franja ya no admite reservas.",
+      "delivery_booking_locked": "Esta reserva ya empezó o registró su llegada, así que ya no puede cambiar.",
+      "delivery_booking_shipment": "Elige un envío que transporte tu empresa.",
+      "booking_event_reused": "Esta reserva ya se usó para otra franja o empresa. Vuelve a cargar e inténtalo de nuevo.",
+      "advance_token_invalid": "Este enlace de avance no es válido. Usa el enlace más reciente que envió la organización.",
+      "advance_token_locked": "Demasiados códigos incorrectos. El enlace está bloqueado; pide uno nuevo a la organización.",
+      "advance_link_ended": "Este enlace ha terminado.",
+      "document_link_ended": "Este enlace ha terminado.",
+      "advance_token_expired": "Este enlace de avance venció. Pide a la organización que envíe uno nuevo.",
+      "advance_access_code": "Ese código de acceso no coincide. Abre el enlace de nuevo y escribe los seis dígitos de tu mensaje.",
+      "token_invalid": "Este enlace no es válido. Usa el enlace más reciente que envió la organización.",
+      "advance_upload_type": "Ese tipo de archivo no se acepta. Sube un archivo PDF, JPEG, PNG, HEIC, WebP, CSV, XLSX o DOCX.",
+      "advance_upload_size": "Ese archivo pesa más de 25 MB. Sube uno más pequeño.",
+      "advance_upload_limit": "Esta sección ya tiene en camino todos los archivos que admite. Envía menos archivos o vuelve a intentarlo en 15 minutos.",
+      "advance_upload_rate": "Demasiadas subidas con este enlace en la última hora. Espera un rato e inténtalo de nuevo.",
+      "advance_upload_ticket": "Esa subida ya no está abierta. Elige el archivo de nuevo y envíalo.",
+      "advance_guest_rate": "Demasiadas solicitudes de invitados con este enlace hoy. Inténtalo mañana o escribe a la organización.",
+      "advance_roster_rate": "Demasiadas invitaciones con este enlace hoy. Inténtalo mañana o escribe a la organización.",
+      "guest_list_closed": "La lista de invitados se abre cuando la organización confirma tu contratación. Vuelve más tarde.",
+      "guest_name_length": "Escribe el nombre del invitado, de hasta 200 caracteres.",
+      "guest_plus_ones": "Los acompañantes van de 0 a 20.",
+      "guest_note_length": "La nota puede tener hasta 500 caracteres.",
+      "payout_reference_bank_number": "Un número simple de 6 o más dígitos parece una cuenta bancaria. Usa la referencia con sus letras o prefijo.",
+      "payout_reference_length": "Escribe una referencia de hasta 200 caracteres.",
+      "vendor_intake_account": "Elige una cuenta de empresa en la que seas Propietario o Administrador de cuenta.",
+      "vendor_intake_tax_form": "Da tu propio formulario fiscal para esta organización: W-9 o W-8BEN para ti, W-9 o W-8BEN-E para una empresa.",
+      "vendor_intake_payout": "Da tu propia referencia de pago para esta organización.",
+      "vendor_intake_signature": "Escribe tu nombre para firmar el acuerdo.",
+      "vendor_intake_invoice_draft": "Revisa la primera factura: un número, fechas, una moneda y de 1 a 50 líneas.",
+      "vendor_intake_invoice_not_collected": "Este enlace de alta no recibe una primera factura.",
+      "vendor_intake_rate_limited": "Enviaste 3 solicitudes por este enlace hoy. Inténtalo mañana.",
+      "vendor_intake_pending": "Ya tienes una solicitud en espera en este enlace.",
+      "vendor_intake_not_pending": "Esta solicitud ya se decidió o se retiró.",
+      "intake_link_full": "Este enlace ya recibió todas las solicitudes que puede. Pide uno nuevo a la organización.",
+      "intake_link_invalid": "Este enlace ya no está disponible. Pide uno nuevo a la organización.",
+      "intake_link_expired": "Este enlace venció. Pide a la organización que te envíe uno nuevo.",
+      "intake_link_ended": "Este enlace ha terminado.",
+      "intake_link_rate_limited": "Demasiados intentos desde esta dirección. Espera unos minutos e inténtalo de nuevo.",
+      "intake_grant": "Abre el enlace de nuevo y escribe su código de acceso.",
+      "intake_invoice_used": "La primera factura de esta solicitud ya se envió.",
+      "intake_invoice_none": "Esta solicitud no tiene una primera factura en espera.",
+      "guest_email_format": "Escribe una dirección de correo para el invitado, o déjala vacía.",
+      "roster_shift_not_agency_slot": "Solo un puesto de agencia, o un turno que ya tiene tu equipo, admite personal de la agencia. Elige otro turno.",
+      "roster_entry_other_engagement": "Este turno pertenece al equipo de otra contratación. Asigna a alguien de ese equipo.",
+      "roster_training_incomplete": "Esta persona tiene formación por confirmar, o la producción aún debe verificarla. Asígnala cuando termine su formación.",
+      "roster_shift_overlap": "Esta persona ya tiene un turno que se superpone con este. Elige a otra persona o quítala del otro turno.",
+      "roster_shift_closed": "Este turno está cancelado o ya terminó.",
+      "roster_shift_not_assigned": "Nadie de tu equipo tiene este turno.",
+      "roster_entry_not_working": "Esta entrada del equipo está retirada o su contratación no está activa, así que no admite tiempo nuevo.",
+      "roster_training_not_due": "Esta formación no está pendiente en tu entrada del equipo.",
+      "sod_roster_training": "Una persona no puede verificar su propia formación. La verifica otra persona de la producción.",
+      "content_objectionable": "Esto contiene lenguaje que no se permite aquí. Cambia la redacción e inténtalo de nuevo.",
+      "guest_note_sensitive": "No incluyas necesidades de dieta ni de acceso en la nota. Usa el paso de necesidades del invitado, que registra el consentimiento.",
+      "sensitive_consent_required": "Acepta el texto antes de guardar esto. Nada más del formulario lo necesita.",
+      "sensitive_attestation_required": "Confirma ambas declaraciones para continuar.",
+      "sensitive_person_only": "Solo esta persona puede introducir esto.",
+      "travel_note_sensitive": "No incluyas necesidades de dieta ni de acceso en las notas de viaje. Añade una preferencia de comida o usa Datos de trabajo, que registran el consentimiento.",
+      "sensitive_notice_version": "Este texto cambió. Recarga la página y lee la versión actual.",
+      "rating_dispute_ground": "Elige por qué impugnas esta calificación.",
+      "rating_dispute_details": "Di qué está mal en esta calificación, en un máximo de 4,000 caracteres.",
+      "rating_dispute_exists": "Ya impugnaste esta calificación. Puedes ver cómo va debajo de la calificación.",
+      "rating_sharing_notice": "Vuelve a cargar la página y elige de nuevo para que registremos el aviso que viste.",
+      "quote_expired": "Esta cotización venció y ya no se puede aceptar. Pide una versión nueva.",
+      "quote_not_sent": "Esta versión de la cotización ya no espera una firma.",
+      "quote_client_engagement": "La contratación del cliente de esta cotización está cerrada, así que ya no se puede aceptar.",
+      "document_text_sign_with_hash": "Lee este documento en Gateway y fírmalo allí con tu nombre escrito.",
+      "registration_not_withdrawable": "Este registro ya se rechazó o se retiró.",
+      "intake_account_country": "Elige el país donde está establecida la empresa.",
+      "territory_not_offered": "XOS no se ofrece en el país de tu empresa, así que no creamos esta cuenta de empresa. Si la organización que te envió este enlace trabaja contigo, no la necesitas: pídele que te configure."
     }
   },
   "common": {
@@ -75,7 +239,8 @@
     },
     "mapAlternative": "Las ubicaciones en el mapa aún no están disponibles, así que los lugares se listan abajo por fecha.",
     "orgFilter": "Mostrando solo {org}",
-    "clearFilter": "Mostrar todas las organizaciones"
+    "clearFilter": "Mostrar todas las organizaciones",
+    "tbc": "Por confirmar"
   },
   "engagement": {
     "tabs": "Secciones de la contratación",
@@ -110,6 +275,8 @@
         "closeOut": "Cierre"
       },
       "blocked": "Esta contratación está bloqueada hasta que pasen todos los pasos obligatorios de incorporación. Abre Incorporación para ver lo pendiente.",
+      "blockedCompliance": "Esta contratación está bloqueada hasta que pasen todos los pasos obligatorios. Abre Cumplimiento para ver lo pendiente.",
+      "blockedHere": "Esta contratación está bloqueada hasta que pasen todos los pasos obligatorios. Lo pendiente aparece en esta página.",
       "rate": "Tu tarifa",
       "rateHidden": "Se muestra mientras el área de pagos esté abierta",
       "payBasis": "Base de pago",
@@ -117,12 +284,20 @@
       "approvalsCount": "{n, plural, =0 {Ninguna} other {#}}",
       "entitlements": "Beneficios",
       "entitlementsCount": "{done} de {total} entregados",
-      "rated": "Gracias. Ambas calificaciones aparecen cuando la organización también califique, o después de 14 días."
+      "rated": "Gracias. Ambas calificaciones aparecen cuando la organización también califique, o después de 14 días.",
+      "uploads": "Documentos por subir"
     },
     "documents": {
       "empty": "Aún no hay documentos. Los contratos y formularios que comparta la organización aparecen aquí.",
       "emptyKind": "Aún no se compartió nada de este tipo. Pregunta a la organización si lo esperabas.",
-      "expires": "Vence {date}"
+      "expires": "Vence {date}",
+      "quote": {
+        "confirmTitle": "Aceptar esta cotización",
+        "consent": "Al elegir Aceptar la cotización, aceptas usar registros y firmas electrónicos para esta cotización y aceptas sus líneas, su total y sus términos.",
+        "accept": "Aceptar la cotización",
+        "total": "Total",
+        "validUntil": "Válida hasta"
+      }
     },
     "onboarding": {
       "empty": "No hay pasos de incorporación. La organización agrega los que necesite antes de que empieces.",
@@ -157,7 +332,9 @@
       "accept": "Aceptar turno"
     },
     "positions": {
-      "empty": "Aún no tienes puestos asignados. Llegan cuando termines la capacitación."
+      "empty": "Aún no tienes puestos asignados. Llegan cuando termines la capacitación.",
+      "records": "Registros de {position}",
+      "due": "Vence el {date}"
     },
     "timesheets": {
       "empty": "Aún no hay hojas de horas. Tus turnos registrados se reúnen aquí.",
@@ -214,19 +391,103 @@
     "deliveries": {
       "empty": "Aún no hay entregas ni turnos de muelle. Tus horarios aparecen aquí al reservarse.",
       "docks": "Turnos de muelle",
-      "shipments": "Envíos"
+      "shipments": "Envíos",
+      "approval": {
+        "waiting": "En espera de aprobación",
+        "approved": "Aprobado",
+        "rejected": "Rechazado"
+      },
+      "reference": "Referencia {code}",
+      "book": {
+        "title": "Reservar una entrega",
+        "window": "Franja de entrega",
+        "windowLine": "{gate}, {when}, quedan {places}",
+        "plate": "Placa o remolque",
+        "plateHelp": "Déjalo en blanco si aún no lo sabes. Puedes agregarlo después.",
+        "shipment": "Envío",
+        "noShipment": "Sin envío",
+        "submit": "Reservar entrega",
+        "done": "Entrega reservada. Indica su código de referencia en la puerta.",
+        "savePlate": "Guardar placa",
+        "changePlate": "Cambiar placa",
+        "cancel": "Cancelar reserva"
+      }
     },
     "submittals": {
-      "empty": "Aún no hay entregables técnicos solicitados. Las solicitudes de planos y especificaciones aparecen aquí."
+      "empty": "Aún no se han solicitado entregables técnicos.",
+      "revision": "Revisión {n}",
+      "returned": "Devuelto: {reason}",
+      "awaiting": "Enviado. La organización lo está revisando.",
+      "note": "Nota",
+      "noteHelp": "Indica qué envías y dónde están los archivos, en hasta 500 caracteres.",
+      "submit": "Enviar",
+      "resubmit": "Volver a enviar",
+      "done": "Enviado para revisión.",
+      "files": {
+        "title": "Archivos",
+        "version": "Versión {n}",
+        "approved": "Aprobado",
+        "changesRequested": "Cambios solicitados",
+        "unreviewed": "Aún sin revisar",
+        "current": "Versión actual",
+        "reviewedOn": "Revisado el {date}:"
+      }
     },
     "advance": {
       "empty": "Aún no hay paquete de avance. Cuando la organización envíe uno, responde cada sección aquí.",
-      "awaitingReview": "En espera de revisión"
+      "awaitingReview": "En espera de revisión",
+      "kinds": {
+        "text": "Respuesta de texto",
+        "file": "Archivos",
+        "scheduleWindow": "Franja horaria",
+        "itemRequest": "Solicitud de artículos",
+        "crewRoster": "Lista de personal",
+        "guestList": "Lista de invitados",
+        "credentialRequest": "Solicitud de credenciales"
+      },
+      "namesDue": {
+        "open": "Asigna nombres a tus pases antes del {date}.",
+        "closed": "Los nombres se cerraron el {date}. Contacta a {org} para cambiarlos."
+      },
+      "guestsConfirmed": "Confirmaste la lista de invitados.",
+      "filesLabel": "Archivos que enviaste",
+      "linesLabel": "Lo que solicitaste",
+      "window": "{from} a {to}",
+      "lineTitle": "{n} × {item}",
+      "scan": {
+        "scanning": "Buscando virus",
+        "clean": "Listo",
+        "infected": "Bloqueado: se encontró un virus",
+        "scanFailed": "No se pudo revisar"
+      },
+      "rosterEmpty": "Todavía no hay nadie en la lista de personal.",
+      "rosterCount": "{n} {state}",
+      "rosterLink": "Abrir la pestaña Personal",
+      "noGuestList": "Las listas de invitados no forman parte del avance de un contratista o patrocinador.",
+      "guestsUsed": "{n} lugares en la lista de invitados, acompañantes incluidos.",
+      "guestsCap": "{n} de {cap} lugares usados, acompañantes incluidos.",
+      "recordedBy": "{org} lo registró a partir de tu mensaje. Pídele que lo devuelva si necesita cambios.",
+      "tracks": {
+        "label": "Área {track}",
+        "states": {
+          "notStarted": "Sin empezar",
+          "inProgress": "En curso",
+          "readyForSignOff": "Listo para aprobar",
+          "signedOff": "Aprobado",
+          "reopened": "Reabierto"
+        },
+        "signedOffOn": "Aprobado el {date}",
+        "progress": "{done} de {total} secciones listas",
+        "summary": "Áreas"
+      }
     },
     "compliance": {
       "empty": "Aún no hay elementos de cumplimiento. Los seguros y la precalificación aparecen aquí.",
       "insurance": "Certificados de seguro",
-      "noInsurance": "No hay certificado de seguro registrado. Súbelo en Incorporación.",
+      "noInsurance": "No hay certificado de seguro registrado. Cuando la organización lo pida, súbelo en Pasos de cumplimiento en esta página.",
+      "noInsuranceYet": "Aún no hay certificado de seguro registrado.",
+      "uploadWaiting": "{names}: recibido y en espera de revisión. Si es tu certificado de seguro, la organización lo registra aquí después de revisarlo.",
+      "uploadPassed": "{names}: revisado y aprobado. Si es tu certificado de seguro, la organización todavía tiene que registrarlo aquí.",
       "current": "Vigente",
       "expired": "Vencido",
       "prequalification": "Precalificación",
@@ -263,7 +524,11 @@
     "runOfShow": {
       "empty": "Aún no se comparte el guion del show. Aparece aquí cuando la organización lo comparta.",
       "called": "Llamado {time}",
-      "mySet": "Tu presentación"
+      "mySet": "Tu presentación",
+      "fields": "Detalles del cue",
+      "yes": "Sí",
+      "no": "No",
+      "fieldValue": "{label}: {value}"
     },
     "scope": {
       "statement": "Declaración de trabajo",
@@ -306,7 +571,26 @@
     "roster": {
       "empty": "Aún no representas a ningún artista. Propón una representación desde Configuración de empresa.",
       "action": "Configuración de representación",
-      "noEngagements": "Aún no hay contrataciones para este artista."
+      "noEngagements": "Aún no hay contrataciones para este artista.",
+      "copy": {
+        "title": "Reutilizar una lista de un evento anterior",
+        "lead": "Agrega a las personas de un evento anterior de esta organización. Llegan como borradores que cada persona acepta de nuevo; tú todavía envías la lista.",
+        "source": "Evento anterior",
+        "sourceLine": "{project}, {date}",
+        "preview": "Vista previa",
+        "addedPeople": "{n, plural, one {# persona agregada} other {# personas agregadas}}",
+        "invitedAddresses": "{n, plural, one {# dirección invitada de nuevo} other {# direcciones invitadas de nuevo}}",
+        "skippedPeople": "{n, plural, one {# omitida} other {# omitidas}}",
+        "commit": "Agregar a la lista",
+        "added": "Se agregaron como borradores. Revísalos y envía la lista.",
+        "reasons": {
+          "roster_person_is_engaged": "está en esta contratación con su propia entrada",
+          "already_on_roster": "ya está en la lista",
+          "not_in_team": "ya no está en tu equipo; invítalo por correo",
+          "already_invited": "ya está invitado",
+          "window_dropped": "sin llegada: un proyecto no tiene fechas del evento"
+        }
+      }
     },
     "forms": {
       "errors": {
@@ -326,7 +610,25 @@
         "plusOnes": "Los acompañantes van de 0 a 20.",
         "settlementReason": "Escribe una nota o un motivo breve antes de responder.",
         "asset": "Elija aprobar, devolver o volver a enviar.",
-        "assetReason": "Indique qué cambiar para que la organización pueda revisar el recurso."
+        "assetReason": "Indique qué cambiar para que la organización pueda revisar el recurso.",
+        "submittalNote": "Escribe una nota de hasta 500 caracteres antes de enviar.",
+        "rosterPerson": "Elige a quién agregar.",
+        "rosterArrival": "Indica un inicio, un fin posterior y una zona horaria para la llegada, o deja los tres vacíos.",
+        "rosterEmail": "Escribe una sola dirección de correo.",
+        "assignMember": "Elige un miembro y una función.",
+        "inviteEmail": "Escribe una sola dirección de correo y elige un rol.",
+        "allocationItem": "Elige para quién es y qué necesitas.",
+        "allocationQuantity": "Escribe una cantidad mayor que cero.",
+        "allocationWindow": "Indica un inicio, un fin posterior y una zona horaria.",
+        "advanceLine": "Revisa cada línea: elige un artículo y una cantidad entera de 1 o más.",
+        "sponsorAsset": "Elige el beneficio y el tipo, y adjunta los archivos.",
+        "title": "Di qué es el recurso, en hasta 200 caracteres.",
+        "deliveryWindow": "Elige una franja de entrega.",
+        "deliveryPlate": "Escribe una placa o remolque de hasta 40 caracteres.",
+        "guestEmail": "Escribe una dirección de correo, o déjala vacía.",
+        "rosterAssignee": "Elige a quién asignar al turno.",
+        "noShowReason": "Indica qué pasó, en hasta 500 caracteres.",
+        "stillComing": "Abre el turno desde tus notificaciones y vuelve a intentarlo."
       },
       "advance": {
         "answer": "Tu respuesta",
@@ -398,7 +700,7 @@
         "done": "Calificación enviada. Aparece cuando la organización también califique, o después de 14 días."
       },
       "reply": {
-        "label": "Respuesta pública",
+        "label": "Tu respuesta",
         "submit": "Responder",
         "done": "Respuesta publicada."
       },
@@ -406,9 +708,11 @@
         "title": "Agregar un invitado",
         "name": "Nombre del invitado",
         "plusOnes": "Acompañantes",
-        "note": "Nota para la producción (opcional)",
+        "note": "Nota para la producción (opcional). No incluyas necesidades de dieta ni de acceso.",
         "submit": "Agregar invitado",
-        "done": "Invitado agregado. La producción lo confirma antes del show."
+        "done": "Invitado agregado. La producción lo confirma antes del show.",
+        "email": "Correo (opcional)",
+        "emailHelp": "Aquí le enviamos su pase."
       },
       "settlement": {
         "decision": "Tu respuesta",
@@ -426,6 +730,121 @@
         "reason": "Qué cambiar",
         "note": "Nota para la organización",
         "done": "Respuesta enviada."
+      },
+      "roster": {
+        "role": "Puesto",
+        "roleHint": "Buscar puestos",
+        "roleNoMatch": "Ningún puesto coincide.",
+        "arrivalStarts": "Llega desde",
+        "arrivalEnds": "Llega antes de",
+        "timeZone": "Zona horaria",
+        "timeZoneHelp": "La zona horaria del proyecto, salvo que la cambies.",
+        "person": "Persona",
+        "personHint": "Elige a alguien de tu equipo",
+        "add": "Agregar a la lista",
+        "added": "Agregada. Se le pide que acepte en el Inicio de Gateway.",
+        "addTitle": "Agregar a alguien de tu equipo",
+        "email": "Correo",
+        "emailHelp": "Enviamos un correo pidiéndole que inicie sesión en Gateway con esta dirección.",
+        "invite": "Enviar invitación",
+        "invited": "Invitación enviada.",
+        "inviteTitle": "Invitar a alguien por correo",
+        "save": "Guardar",
+        "saved": "Guardado.",
+        "editTitle": "Editar puesto y llegada",
+        "viewProfile": "Ver perfil",
+        "viewProfileOf": "Ver el perfil de {name}",
+        "profile": {
+          "title": "{name}",
+          "sentence": "Lo que esta persona comparte con tu empresa. Cada vez que lo abres, la persona puede ver que lo hiciste.",
+          "close": "Cerrar",
+          "none": "Sin indicar",
+          "nothing": "Todavía no se comparte nada contigo.",
+          "dietary": "Necesidades alimentarias",
+          "allergies": "Alergias",
+          "onFile": "Registradas",
+          "accessibility": "Necesidades de accesibilidad",
+          "emergency": "Contactos de emergencia",
+          "contact": "Contacto",
+          "travel": "Programas de lealtad",
+          "passport": "Pasaporte",
+          "passportMasked": "Número terminado en {last4}"
+        }
+      },
+      "accountTeam": {
+        "assign": "Asignar",
+        "assigned": "Asignado.",
+        "assignTitle": "Asignar un miembro a esta contratación",
+        "member": "Miembro",
+        "memberHint": "Elige un miembro confirmado",
+        "duty": "Función",
+        "dutyMember": "Miembro",
+        "dutyLead": "Responsable de avance"
+      },
+      "teamInvite": {
+        "title": "Invitar a alguien a tu empresa",
+        "email": "Correo",
+        "emailHelp": "Enviamos un correo. Inicia sesión en Gateway con esta dirección y acepta en el Inicio.",
+        "role": "Rol",
+        "roleOwner": "Propietario de la cuenta",
+        "roleAdmin": "Administrador de la cuenta",
+        "roleFinance": "Finanzas de la cuenta",
+        "roleMember": "Miembro de la cuenta",
+        "submit": "Enviar invitación",
+        "done": "Invitación enviada. Queda abierta 14 días."
+      },
+      "advanceTyped": {
+        "uploadSubmit": "Enviar archivos",
+        "done": "Enviado. La organización revisa tu respuesta.",
+        "files": "Archivos",
+        "filesHelp": "PDF, imagen, CSV, Excel o Word, hasta 25 MB cada uno, máximo {n}.",
+        "note": "Nota",
+        "windowN": "Franja {n}",
+        "lineN": "Línea {n}",
+        "from": "Inicio",
+        "to": "Fin",
+        "item": "Artículo",
+        "credential": "Pase",
+        "quantity": "Cantidad",
+        "person": "Persona",
+        "personHint": "Elige una persona",
+        "forPool": "Para todo el equipo",
+        "neededFrom": "Se necesita desde",
+        "neededTo": "Se necesita hasta",
+        "lineNote": "Nota de esta línea",
+        "addWindow": "Agregar franja",
+        "addLine": "Agregar línea",
+        "timeZone": "Zona horaria",
+        "timeZoneHelp": "Las horas están en esta zona; se completa la del proyecto.",
+        "submit": "Enviar respuesta",
+        "confirmGuests": "Confirmar lista de invitados",
+        "confirmGuestsHelp": "Confirma cuando todas las personas que traes estén en la lista."
+      },
+      "sponsorSupply": {
+        "title": "Enviar un recurso",
+        "submit": "Enviar para aprobación",
+        "done": "Enviado. La organización lo revisa.",
+        "entitlement": "Beneficio",
+        "kind": "Tipo",
+        "assetTitle": "Qué es",
+        "files": "Archivos",
+        "filesHelp": "PDF o imagen, hasta 25 MB cada uno, máximo 10.",
+        "usageNote": "Dónde y cómo se usa",
+        "dueOn": "Se necesita antes del",
+        "resubmit": "Reenviar con archivos nuevos",
+        "resubmitted": "Reenviado. La organización revisa la nueva revisión.",
+        "reason": "Qué cambió"
+      },
+      "staffing": {
+        "assign": "Asignar",
+        "assigned": "Asignado.",
+        "assignTitle": "Asigna a alguien de tu equipo",
+        "person": "Persona",
+        "personHint": "Elige a alguien de tu equipo",
+        "noShow": "Marcar ausencia",
+        "noShowDone": "Ausencia registrada.",
+        "noShowTitle": "Marcar a esta persona como ausente",
+        "noShowReason": "Qué pasó"
       }
     },
     "settlement": {
@@ -441,7 +860,195 @@
       "empty": "Aún no hay recursos de marca para revisar. La organización envía aquí pancartas, arte y textos para su aprobación.",
       "due": "Se necesita el {date}",
       "revision": "Revisión {n}",
-      "awaiting": "Espera su aprobación"
+      "awaiting": "Espera su aprobación",
+      "suppliedTitle": "Recursos que envías",
+      "suppliedEmpty": "Todavía no has enviado recursos. Envía un logotipo o una pieza gráfica abajo para que la organización lo apruebe.",
+      "toApproveTitle": "Recursos por aprobar",
+      "files": "Archivos: {files}"
+    },
+    "crew": {
+      "sentence": "Quién trabaja en esta contratación por ti. Agrega personas de tu equipo o invítalas por correo y luego envía la lista. Cada persona acepta su propia entrada antes de que se comparta algo sobre ella.",
+      "submit": "{n, plural, one {Enviar lista (# entrada)} other {Enviar lista (# entradas)}}",
+      "submitted": "Lista enviada para revisión.",
+      "empty": "Todavía no hay nadie en esta lista. Agrega a alguien de tu equipo o invítalo por correo.",
+      "emptyAction": "Agregar a alguien",
+      "listLabel": "Lista del equipo",
+      "invitedSomeone": "Persona invitada",
+      "self": "Persona contratada",
+      "representedArtist": "{name} (artista representado)",
+      "arrival": "Llega de {start} a {end}",
+      "noArrival": "Llegada sin definir",
+      "invitation": "Invitada, abierta hasta {date}",
+      "sharing": "{n, plural, one {Comparte # categoría} other {Comparte # categorías}}",
+      "notSharing": "Aún no comparte datos de trabajo",
+      "returned": "Devuelta: {reason}",
+      "reissue": "Enviar de nuevo",
+      "reissued": "Invitación enviada de nuevo.",
+      "withdraw": "Retirar",
+      "withdrawTitle": "¿Retirar a {name}?",
+      "withdrawSentence": "Sale de esta lista. Se revoca la invitación pendiente y deja de compartirse lo que comparte en esta entrada. No se puede deshacer; agrégalo de nuevo si lo necesitas.",
+      "withdrawConfirm": "Retirar",
+      "edit": "Editar puesto y llegada",
+      "addTitle": "Agregar de tu equipo",
+      "noTalent": "Todo tu equipo ya está en esta lista, o nadie ha confirmado su membresía. Invita personas por correo abajo.",
+      "inviteTitle": "Invitar por correo",
+      "locksOn": "Los nombres se cierran el {date}",
+      "lockedOn": "Nombres cerrados el {date}. Pide a {orgName} que cambie la lista.",
+      "factsTitle": "Datos del proyecto",
+      "items": {
+        "title": "Artículos",
+        "line": "{item} ({n})",
+        "declined": "Rechazado: {reason}",
+        "withdraw": "Retirar",
+        "withdrawn": "Retirado.",
+        "giveBack": "Devolver al fondo común",
+        "givenBack": "Devuelto al fondo común.",
+        "kind": {
+          "credential": "Credencial",
+          "parkingPass": "Pase de estacionamiento",
+          "asset": "Equipo",
+          "catering": "Catering",
+          "lodging": "Hospedaje",
+          "travel": "Viaje",
+          "perDiem": "Viáticos"
+        },
+        "status": {
+          "requested": "Solicitado",
+          "approved": "Aprobado",
+          "reserved": "Reservado",
+          "received": "Recibido",
+          "confirmed": "Confirmado",
+          "onOrder": "Pedido",
+          "awaitingOrder": "Esperando pedido",
+          "partlyIssued": "Entregado en parte",
+          "issued": "Entregado",
+          "revoked": "Revocado",
+          "returned": "Devuelto",
+          "declined": "Rechazado",
+          "withdrawn": "Retirado"
+        }
+      },
+      "pool": {
+        "title": "Fondo común",
+        "sentence": "Lo que la organización aprobó para tu empresa en conjunto. Repártelo entre las personas de tu lista; luego cada una recoge lo suyo.",
+        "empty": "Todavía no hay nada en tu fondo común. Solicita abajo un artículo para todo el equipo.",
+        "left": "Quedan {n} por repartir",
+        "asked": "{n} solicitados",
+        "assignFrom": "Asignar de",
+        "sharePerPerson": "Parte por persona",
+        "sharePerPersonHelp": "Quedan {n} en el fondo común. Una parte menor devuelve la diferencia.",
+        "selectPeople": "Personas a las que asignar",
+        "personShare": "{name}, tiene {n}",
+        "personNotAccepted": "{name}, aún sin aceptar"
+      },
+      "request": {
+        "title": "Solicitar un artículo",
+        "submit": "Enviar solicitud",
+        "done": "Solicitud enviada. La organización la revisa.",
+        "for": "Para",
+        "forPool": "Tu fondo común",
+        "item": "Artículo",
+        "itemHint": "Elige lo que necesitas",
+        "itemCapped": "{name}, hasta {n} por persona",
+        "quantity": "Cantidad",
+        "from": "Se necesita desde",
+        "to": "Se necesita hasta",
+        "note": "Nota",
+        "noteHelp": "Para qué es, hasta 1,000 caracteres.",
+        "timeZone": "Zona horaria",
+        "timeZoneHelp": "La zona horaria del proyecto, salvo que la cambies.",
+        "nothing": "La organización todavía no ofrece nada para solicitar en esta contratación. Escríbele si necesitas algo."
+      }
+    },
+    "accountTeam": {
+      "title": "Equipo de la cuenta",
+      "sentence": "Los miembros de la cuenta solo acceden a las contrataciones que les asignas. Un responsable de avance también gestiona la lista del equipo.",
+      "remove": "Quitar",
+      "none": "Todavía no hay nadie de tu cuenta asignado."
+    },
+    "rosterMember": {
+      "sentence": "Trabajas en esta contratación para {org} en {project}. Aquí ves tu propia credencial, viaje, hospedaje, viáticos y equipo, nunca los de un colega.",
+      "upNext": "Lo siguiente",
+      "when": "Llegada",
+      "window": "De {start} a {end}",
+      "noArrival": "Tu llegada aún no está definida.",
+      "call": "Hora de citación",
+      "where": "Dónde",
+      "parking": "Estacionamiento",
+      "contact": "Contacto",
+      "bring": "Qué traer y recoger",
+      "message": "Mensaje",
+      "assigned": "Asignado a ti",
+      "assignedEmpty": "Todavía no tienes nada asignado.",
+      "projectDetails": "Actualiza tus datos del proyecto",
+      "party": "Contratado como",
+      "documentsEmpty": "Tus documentos y certificaciones aparecen aquí cuando los agregas a tu perfil."
+    },
+    "itinerary": {
+      "changed": "Cambió desde tu última visita: {fields}",
+      "checkIn": "Entrada al hotel",
+      "checkOut": "Salida del hotel",
+      "day": "{date}",
+      "fields": {
+        "arrives_at": "Llegada",
+        "arrives_at_place": "Lugar de llegada",
+        "arrives_time_zone": "Zona horaria de llegada",
+        "check_in_on": "Entrada",
+        "check_out_on": "Salida del hotel",
+        "confirmation_identifier": "Confirmación",
+        "departs_at": "Salida",
+        "departs_from": "Lugar de salida",
+        "departs_time_zone": "Zona horaria de salida",
+        "duration": "Duración",
+        "hotel": "Hotel",
+        "label": "Nombre",
+        "operator_name": "Operador",
+        "planned_at": "Hora",
+        "service_identifier": "Número de vuelo o servicio",
+        "travel_mode": "Medio"
+      },
+      "firstVisit": "A partir de tu próxima visita, los cambios en tu estadía se marcan aquí.",
+      "markAllSeen": "Marcar todo como visto",
+      "new": "Nuevo desde tu última visita",
+      "removedKind": {
+        "lodging": "Habitación eliminada",
+        "set": "Horario de presentación eliminado",
+        "travel": "Viaje eliminado"
+      },
+      "removedTitle": "Eliminado desde tu última visita",
+      "set": "Presentación",
+      "title": "Tu estadía"
+    },
+    "ground": {
+      "title": "Transporte terrestre",
+      "pickup": "Recogida {time}",
+      "dropoff": "Llegada {time}",
+      "driver": "Conductor {name}",
+      "vehicle": "{label}, {type}",
+      "meets": "Recibe el vuelo {flight}, aterriza {time}",
+      "passengers": "Pasajeros: {names}"
+    },
+    "localContacts": {
+      "title": "Contactos locales",
+      "day": "Para el {day}",
+      "everyDay": "Todos los días",
+      "line": "{role}: {name}"
+    },
+    "rooms": {
+      "title": "Tus salas",
+      "window": "{in} a {out}",
+      "set": "Para {set}"
+    },
+    "staffing": {
+      "openSlot": "Puesto de agencia libre",
+      "unassign": "Quitar del turno",
+      "unassignReason": "La agencia la quitó del turno.",
+      "trainingDue": "{n} formaciones pendientes",
+      "overlaps": "se superpone con otro turno",
+      "trainingEmpty": "No tienes formación pendiente antes de tu primer turno.",
+      "awaitingVerification": "Pendiente de verificación",
+      "acknowledge": "Lo he leído y lo confirmo",
+      "noShowTag": "Ausencia"
     }
   },
   "enums": {
@@ -474,7 +1081,8 @@
       "lienWaiver": "Renuncia de gravamen",
       "settlement": "Liquidación",
       "proofOfPerformance": "Prueba de cumplimiento",
-      "contentConsent": "Consentimiento de contenido"
+      "contentConsent": "Consentimiento de contenido",
+      "quote": "Cotización"
     },
     "engagementDocumentState": {
       "proposed": "Borrador",
@@ -785,6 +1393,115 @@
       "smallDisadvantagedBusiness": "Pequeña empresa en desventaja",
       "hubzone": "Empresa HUBZone",
       "other": "Otra certificación"
+    },
+    "submittalKind": {
+      "shopDrawing": "Plano de taller",
+      "productData": "Datos de producto",
+      "sample": "Muestra",
+      "methodStatement": "Procedimiento de trabajo",
+      "certificate": "Certificado",
+      "other": "Otro"
+    },
+    "rosterEntryState": {
+      "draft": "Borrador",
+      "submitted": "Enviada",
+      "accepted": "Aceptada",
+      "returned": "Devuelta",
+      "withdrawn": "Retirada"
+    },
+    "rosterPersonResponse": {
+      "pending": "Aún sin respuesta",
+      "accepted": "Aceptada por la persona",
+      "declined": "Rechazada por la persona"
+    },
+    "accountEngagementDuty": {
+      "advancingLead": "Responsable de avance",
+      "member": "Miembro"
+    },
+    "registrationPageState": {
+      "draft": "Borrador",
+      "open": "Abierta",
+      "closed": "Cerrada"
+    },
+    "crewRegistrationState": {
+      "submitted": "Enviado",
+      "approved": "Aprobado",
+      "declined": "Rechazado",
+      "withdrawn": "Retirado"
+    },
+    "advanceSectionKind": {
+      "text": "Texto",
+      "file": "Archivo",
+      "scheduleWindow": "Franja horaria",
+      "itemRequest": "Solicitud de artículos",
+      "crewRoster": "Lista de personal",
+      "guestList": "Lista de invitados",
+      "credentialRequest": "Solicitud de credenciales"
+    },
+    "advanceWindowKind": {
+      "loadIn": "Carga",
+      "loadOut": "Descarga",
+      "arrival": "Llegada",
+      "soundcheck": "Prueba de sonido",
+      "activationSetup": "Montaje de activación",
+      "activationStrike": "Desmontaje de activación"
+    },
+    "sponsorAssetSource": {
+      "orgSupplied": "Enviado por la organización",
+      "sponsorSupplied": "Enviado por ti"
+    },
+    "advanceTrack": {
+      "finance": "Finanzas",
+      "technical": "Técnica",
+      "hospitality": "Hospitalidad",
+      "catering": "Catering",
+      "travel": "Viajes",
+      "logistics": "Logística",
+      "general": "General"
+    },
+    "vehicleType": {
+      "sedan": "Sedán",
+      "suv": "SUV",
+      "van": "Van",
+      "sprinter": "Sprinter",
+      "minibus": "Minibús",
+      "coach": "Autobús",
+      "other": "Otro"
+    },
+    "transferStatus": {
+      "unassigned": "Sin asignar",
+      "assigned": "Asignado",
+      "underway": "En curso",
+      "done": "Terminado"
+    },
+    "localContactRole": {
+      "promoter": "Promotor",
+      "venue": "Recinto",
+      "production": "Producción",
+      "security": "Seguridad",
+      "transport": "Transporte",
+      "hospitality": "Hospitalidad",
+      "medical": "Atención médica",
+      "other": "Otro"
+    },
+    "spaceBookingPurpose": {
+      "greenRoom": "Sala de espera",
+      "dressingRoom": "Camerino",
+      "productionOffice": "Oficina de producción",
+      "hospitalitySuite": "Suite de hospitalidad",
+      "other": "Otro"
+    },
+    "ratingDisputeGround": {
+      "wrongPerson": "No se refiere a mí",
+      "falseStatement": "Dice algo falso",
+      "abusiveContent": "Es ofensiva",
+      "personalData": "Muestra datos personales",
+      "other": "Otra cosa"
+    },
+    "ratingDisputeState": {
+      "open": "Abierta",
+      "upheld": "Aceptada",
+      "notUpheld": "No aceptada"
     }
   },
   "explore": {
@@ -1026,12 +1743,14 @@
       "removed": "Se quitó {title}.",
       "undo": "Deshacer",
       "failed": "No se completó. Vuelva a cargar la página e inténtelo de nuevo."
+    },
+    "clientHidden": {
+      "tag": "Cliente confidencial",
+      "notice": "El cliente y el evento se comparten cuando te contratan."
     }
   },
   "home": {
     "greeting": "Hola, {name}",
-    "searchLabel": "Buscar oportunidades",
-    "searchHint": "Busca roles, habilidades u organizaciones",
     "upNext": {
       "title": "A continuación",
       "empty": "Aún no tienes nada programado. Encuentra una oportunidad para llenar tu calendario.",
@@ -1042,7 +1761,18 @@
       "project": "Proyecto",
       "when": "Cuándo",
       "kind": "Qué",
-      "state": "Estado"
+      "state": "Estado",
+      "callKind": {
+        "shift": "Turno",
+        "dockSlot": "Horario de muelle",
+        "set": "Presentación"
+      },
+      "where": "Dónde",
+      "contact": "Contacto",
+      "message": "Mensaje",
+      "bring": "Qué llevar",
+      "bringMore": "Y {n} más",
+      "parking": "Estacionamiento"
     },
     "needsYou": {
       "title": "Te necesita",
@@ -1058,7 +1788,42 @@
       "representationAction": "Aceptar",
       "interview": "Entrevista para {title}",
       "rate": "Califica tu trabajo con {org}",
-      "rateAction": "Calificar"
+      "rateAction": "Calificar",
+      "readAndSign": "Leer y firmar",
+      "reviewQuote": "Revisar la cotización",
+      "stillComing": "¿Sigues yendo a {title}?",
+      "stillComingYes": "Voy a ir",
+      "stillComingNo": "No puedo ir",
+      "stillComingReason": "Motivo (opcional)",
+      "stillComingDeclined": "Gracias por avisar.",
+      "stillComingConfirmed": "Quedaste confirmado. Gracias por avisar."
+    },
+    "fyi": {
+      "title": "Para tu información",
+      "empty": "Nada nuevo. Aquí aparecen las novedades de las organizaciones con las que trabajas.",
+      "done": "Listo",
+      "snooze": "Posponer",
+      "doneLabel": "Marcar {text} como listo",
+      "snoozeLabel": "Posponer {text} un día",
+      "keys": "Selecciona un elemento y presiona E para Listo o H para posponerlo un día. J y K pasan de un elemento a otro.",
+      "new": "Nuevo",
+      "kinds": {
+        "offerSent": "{orgName} te envió una oferta para {title}",
+        "shiftAssigned": "Nuevo turno: {title}",
+        "shiftChanged": "Turno modificado: {title}",
+        "messageReceived": "Mensaje nuevo",
+        "crisisAlert": "Alerta de crisis en {project}: {title}. {message}",
+        "crisisAllClear": "Fin de alerta en {project}: {title}",
+        "advanceReminder": "{reminder, select, overdue {Vencido: {title}} other {Recordatorio: {title}}} para {projectName}",
+        "advanceReturned": "Se devolvió tu respuesta a {title}",
+        "submittalReturned": "Entregable devuelto: {title}",
+        "rosterRemoved": "Ya no estás en el equipo de {partyName} para {projectName}",
+        "rosterFactsRequested": "{projectName} necesita tus {kind, select, uniform {tallas de uniforme} travel {datos de viaje} vehicle {datos del vehículo} other {datos del proyecto}}",
+        "credentialRevoked": "Se revocó tu credencial {title} para {projectName}",
+        "other": "{title}",
+        "untitled": "Novedad",
+        "shiftNoShow": "Marcado como ausente: {title}"
+      }
     },
     "recommended": {
       "title": "Recomendadas para ti",
@@ -1067,8 +1832,6 @@
       "emptyAction": "Crear alerta"
     },
     "updates": {
-      "title": "Novedades",
-      "new": "Nuevo",
       "kinds": {
         "invoiceSubmitted": "{orgName} recibió la factura {title}",
         "invoiceApproved": "{orgName} aprobó la factura {title}",
@@ -1077,8 +1840,52 @@
         "opportunityMatched": "Nueva coincidencia para {searchName}: {title}",
         "onboardingExpiring": "{title} para {orgName} vence el {expiresOn}",
         "certificationExpiring": "Su certificación {title} vence el {expiresOn}",
-        "documentExpiring": "{kind, select, passport {Su pasaporte} insurance {Su certificado de seguro {title}} other {{title}}} vence el {expiresOn}"
+        "documentExpiring": "{kind, select, passport {Su pasaporte} insurance {Su certificado de seguro {title}} other {{title}}} vence el {expiresOn}",
+        "availabilityRequested": "{orgName} le pide su disponibilidad: {title}",
+        "badgePhotoRequested": "{orgName} te pide tu foto de credencial",
+        "projectFactsEntered": "{actorName} agregó tus {kind, select, travel {datos de viaje} uniform {tallas de uniforme} vehicle {datos del vehículo} other {datos del proyecto}} para {projectName}. Revísalos y corrige lo que esté mal."
       }
+    },
+    "feed": {
+      "invitation": {
+        "account": "{account} te invita a su cuenta de empresa",
+        "roster": "{party} te invita a su equipo para {project}",
+        "consent": "Al aceptar, la empresa puede ver tu perfil y los datos del proyecto",
+        "from": "De {name}",
+        "expires": "Abierta hasta {date}",
+        "accept": "Aceptar",
+        "decline": "Rechazar",
+        "pool": "{org} te invita a unirte a su lista de equipo"
+      },
+      "membership": {
+        "title": "Confirma tu membresía en {account}",
+        "meta": "Hasta que confirmes, no se te incluye en listas ni se te asignan contrataciones",
+        "confirm": "Confirmar",
+        "leave": "Salir",
+        "leaveTitle": "¿Salir de {account}?",
+        "leaveSentence": "Pierdes el acceso a las contrataciones de la empresa de inmediato. Solo un propietario o administrador de la cuenta puede volver a agregarte.",
+        "leaveConfirm": "Salir de la empresa"
+      },
+      "roster": {
+        "title": "{party} te incluyó en su equipo para {project}",
+        "consent": "Al aceptar, la empresa puede ver tu perfil y los datos del proyecto",
+        "accept": "Aceptar",
+        "decline": "Rechazar",
+        "share": "Compartir datos de trabajo"
+      }
+    },
+    "intake": {
+      "title": "Solicitudes que enviaste",
+      "sentOn": "Enviada {date}",
+      "states": {
+        "Pending": "En espera",
+        "Approved": "Aprobada",
+        "Declined": "Rechazada",
+        "Withdrawn": "Retirada"
+      },
+      "withdraw": "Retirar",
+      "submitInvoice": "Envía la factura de tu alta",
+      "invoiceWaits": "Tu primera factura está guardada. Podrás enviarla cuando esta contratación se abra para facturas."
     }
   },
   "messages": {
@@ -1216,7 +2023,20 @@
     },
     "ratings": {
       "title": "Calificaciones",
-      "empty": "Aún no hay calificaciones. Aparecen tras contrataciones completas, cuando ambas partes califican."
+      "empty": "Aún no hay calificaciones. Aparecen tras contrataciones completas, cuando ambas partes califican.",
+      "who": "Solo tú y la organización que la dio pueden leer una calificación sobre ti, salvo que decidas mostrar tus calificaciones en tu perfil. La calificación de una empresa de la que eres el contacto la puede leer cualquiera con sesión iniciada.",
+      "whoAction": "Elige si quieres mostrarlas en tu perfil.",
+      "dispute": {
+        "open": "Impugnar esta calificación",
+        "help": "Cuéntanos qué está mal. La organización puede responder y nuestro equipo decide. Una calificación se retira solo si se refiere a otra persona, es falsa, ofensiva o muestra datos personales, nunca por ser baja. Hasta entonces sigue en su lugar.",
+        "ground": "Por qué la impugnas",
+        "details": "Qué está mal",
+        "submit": "Enviar impugnación",
+        "standing": "Tu impugnación: {state}. {ground}.",
+        "removed": "Se retiró una calificación de {org} en {project} tras tu impugnación.",
+        "orgResponse": "La organización respondió: {response}",
+        "decision": "Decisión: {statement}"
+      }
     },
     "representation": {
       "title": "Representación",
@@ -1263,7 +2083,11 @@
       "organizations": "Ha trabajado con",
       "links": "Enlaces",
       "ownerNote": "Así ven otros tu perfil. Visibilidad: {visibility}.",
-      "ownerAction": "Configuración de privacidad"
+      "ownerAction": "Configuración de privacidad",
+      "ratingsShared": "Se muestran porque esta persona lo decidió. Aquí está cada calificación publicada, salvo las que nuestro equipo de la plataforma retiró tras una impugnación. No sirven para decidir a quién contratar o reservar.",
+      "ratingsOwnerShared": "Las personas con sesión iniciada pueden leerlas aquí, salvo quienes tengan acceso de contratación, reserva o asignación de personal en XOS. Alguien que contrate fuera de XOS aún podría leerlas. Puedes cambiarlo en tu configuración de privacidad.",
+      "ratingsOwnerPrivate": "Solo tú y la organización que te calificó pueden leerlas. Nadie más las ve aquí.",
+      "disputed": "Impugnada por esta persona"
     },
     "errors": {
       "handle": "Usa de 1 a 40 letras minúsculas, números y guiones en tu usuario.",
@@ -1277,9 +2101,28 @@
       "availability": "Elige una fecha de inicio y una de fin igual o posterior.",
       "name": "Escribe tu nombre, hasta 200 caracteres.",
       "account": "Escribe el nombre de la empresa y una dirección web de 2 a 48 letras minúsculas, números y guiones.",
+      "accountCountry": "Elige el país donde está establecida la empresa.",
+      "territory_not_offered": "XOS no se ofrece en el país de tu empresa ({country}), así que no creamos esta cuenta de empresa. XOS se ofrece a organizaciones en {territories}. Si una organización te invitó a trabajar con ella, no necesitas una cuenta de empresa: abre tu invitación. Si tu empresa tiene un contrato firmado, pide a la organización o a tu contacto en GHXSTSHIP que la configure.",
       "company": "Revisa el usuario y la visibilidad.",
       "website": "Escribe una dirección web completa que empiece con https://.",
-      "email": "Escribe un correo como equipo@empresa.com."
+      "email": "Escribe un correo como equipo@empresa.com.",
+      "availabilityAnswer": "Elija Disponible, Provisional o No disponible para al menos un día."
+    },
+    "availabilityRequests": {
+      "title": "Solicitudes de disponibilidad",
+      "shared": "Sus respuestas se guardan en su disponibilidad para esa organización y se comparten con sus planificadores.",
+      "closes": "Responda antes del {when}",
+      "locked": "{day}: {answer}, bloqueado por el período de aviso",
+      "formLabel": "Responder {title}",
+      "choose": "Elegir",
+      "save": "Enviar respuestas",
+      "saved": "Respuestas guardadas.",
+      "kinds": {
+        "Available": "Disponible",
+        "Tentative": "Provisional",
+        "Unavailable": "No disponible",
+        "Unstated": "Sin indicar"
+      }
     }
   },
   "documents": {
@@ -1292,7 +2135,22 @@
     "expires": "Vence",
     "signedByLink": "Firmados por enlace",
     "signedOn": "Firmado el {date} por {name}",
-    "tax": "Formularios fiscales"
+    "tax": "Formularios fiscales",
+    "readAndSign": {
+      "textLabel": "Texto de {title}",
+      "formLabel": "Firmar {title}",
+      "name": "Escribe tu nombre completo para firmar",
+      "nameHelp": "Tu nombre escrito es tu firma sobre este texto exacto.",
+      "sign": "Firmar",
+      "masked": "Este texto contiene una tarifa que tu representación no cubre."
+    },
+    "decline": {
+      "open": "Rechazar",
+      "formLabel": "Rechazar {title}",
+      "reason": "Por qué rechazas",
+      "reasonHelp": "Hasta 450 caracteres. La organización lo lee.",
+      "submit": "Rechazar documento"
+    }
   },
   "tokens": {
     "code": "Código de acceso",
@@ -1309,7 +2167,28 @@
       "section": "{n}. {title}",
       "submit": "Enviar respuesta",
       "sent": "Respuesta enviada. La organización la revisa después.",
-      "done": "Tu avance está completo"
+      "done": "Tu avance está completo",
+      "returned": "La organización devolvió esta respuesta: {reason}",
+      "kindAndPrompt": "{kind} · {prompt}",
+      "accepted": "Aceptada. No hay nada más que hacer aquí.",
+      "waiting": "Esperando a que la organización revise esta respuesta.",
+      "uploadHelp": "Los archivos se suben al enviarlos. Mantén esta página abierta hasta que veas que se enviaron.",
+      "guestsTitle": "Pedir invitados",
+      "rosterTitle": "Tu equipo",
+      "rosterHelp": "Invita a cada persona por correo. Cada una acepta su lugar después de iniciar sesión en Gateway con esa dirección, y su nombre aparece aquí cuando lo hace.",
+      "rosterUnnamed": "Sin nombre todavía",
+      "rosterEntry": "{name} · {state}",
+      "rosterSubmit": "Enviar equipo",
+      "rosterSubmitted": "Enviado a la organización para revisión.",
+      "rosterSubmitHelp": "Al enviar, todas las personas que aceptaron pasan a la organización. Quienes aún no aceptan se quedan aquí hasta que lo hagan.",
+      "invitation": {
+        "pending": "Invitación enviada",
+        "accepted": "Aceptada",
+        "declined": "Rechazada",
+        "revoked": "Invitación reemplazada",
+        "expired": "Invitación vencida"
+      },
+      "recordedBy": "{org} lo registró a partir de tu mensaje. Pídele que lo devuelva si necesita cambios."
     },
     "sign": {
       "eyebrow": "Enlace de firma",
@@ -1320,10 +2199,30 @@
       "nameHelp": "Escribir tu nombre es tu firma electrónica. Un documento firmado no se puede retirar.",
       "submit": "Firmar",
       "signed": "Firmado por {name}. La organización firma después.",
-      "done": "Firmaste el documento"
+      "done": "Firmaste el documento",
+      "quote": {
+        "lines": "Líneas de la cotización",
+        "description": "Descripción",
+        "quantity": "Cantidad",
+        "unitPrice": "Precio unitario",
+        "amount": "Importe",
+        "total": "Total",
+        "unpriced": "Sin precio",
+        "validUntil": "Válida hasta el {date}",
+        "tax": "Los precios no incluyen impuestos, que se agregan en la factura cuando corresponda.",
+        "fingerprint": "Huella del contenido (SHA-256)",
+        "downloadPdf": "Descargar PDF",
+        "downloadPdfA4": "PDF (A4)",
+        "consent": "Al escribir tu nombre y elegir Aceptar la cotización, aceptas usar registros y firmas electrónicos para esta cotización y aceptas sus líneas, su total y sus términos.",
+        "submit": "Aceptar la cotización",
+        "signed": "Aceptada por {name}.",
+        "done": "Aceptaste la cotización"
+      }
     },
     "refusals": {
       "advance_access_code": "Ese código de acceso no coincide. Revisa los seis dígitos de tu mensaje e inténtalo de nuevo.",
+      "advance_link_ended": "Este enlace ha terminado.",
+      "document_link_ended": "Este enlace ha terminado.",
       "advance_token_expired": "Este enlace de avance venció. Pide a la organización que envíe uno nuevo.",
       "advance_token_invalid": "Este enlace de avance no es válido. Usa el enlace más reciente que envió la organización.",
       "advance_token_locked": "Demasiados códigos incorrectos. El enlace está bloqueado; pide uno nuevo a la organización.",
@@ -1338,7 +2237,116 @@
       "document_token_validity": "Este enlace de firma ya no es válido. Pide uno nuevo a la organización.",
       "document_not_awaiting_signature": "Este documento ya no espera una firma.",
       "document_signer_name": "Escribe tu nombre completo, de al menos dos caracteres.",
-      "token_invalid": "Este enlace no es válido. Usa el enlace más reciente que envió la organización."
+      "token_invalid": "Este enlace no es válido. Usa el enlace más reciente que envió la organización.",
+      "advance_answer_pending": "Esta sección ya tiene respuesta y espera revisión. Responde de nuevo solo si te la devuelven.",
+      "quote_expired": "Esta cotización venció y ya no se puede aceptar. Pide una versión nueva.",
+      "quote_not_sent": "Esta versión de la cotización ya no está a la espera de una firma.",
+      "quote_not_found": "Este enlace no abre una cotización.",
+      "quote_client_engagement": "La contratación del cliente de esta cotización se cerró, así que ya no se puede aceptar.",
+      "crew_access_token_invalid": "Este enlace ya no funciona. Pide uno nuevo a tu jefe de equipo.",
+      "crew_access_token_expired": "Este enlace venció. Pide uno nuevo a tu jefe de equipo.",
+      "crew_access_link_ended": "Este enlace ha terminado.",
+      "crew_access_token_locked": "Demasiados códigos incorrectos. El enlace está bloqueado; pide uno nuevo a tu jefe de equipo.",
+      "crew_access_access_code": "Ese código no coincide. Revisa los seis dígitos que te dieron e inténtalo de nuevo.",
+      "crew_access_not_working": "Este enlace ya no funciona porque el trabajo terminó. Avisa a tu jefe de equipo si es un error.",
+      "crew_access_read_only": "Esta organización es de solo lectura por ahora, así que aquí no se pueden aceptar turnos. Avisa a tu jefe de equipo.",
+      "crew_access_shift_not_yours": "Ese turno no está en este enlace. Recarga la página.",
+      "crew_access_shift_state": "Ese turno ya no se puede aceptar. Recarga la página para ver su estado.",
+      "registration_page_closed": "Esta página de registro no está abierta.",
+      "registration_rate_limited": "Demasiados registros en la última hora. Inténtalo más tarde.",
+      "registration_age_unconfirmed": "Confirma la edad mínima para registrarte. Si aún no confirmaste tu edad, hazlo primero en tu cuenta.",
+      "registration_answer_required": "Responde todas las preguntas obligatorias.",
+      "registration_answer_unknown": "Esta página cambió. Recárgala y responde de nuevo.",
+      "registration_answer_length": "Limita cada respuesta a 4,000 caracteres.",
+      "registration_duplicate": "Ya estás registrado en esta página.",
+      "profile_share_not_yours": "Ese perfil compartido no es tuyo. Recarga e inténtalo de nuevo.",
+      "registration_not_withdrawable": "Este registro ya se rechazó o se retiró.",
+      "registration_phone": "Ese no es un número de teléfono. Incluye el código de país, por ejemplo +13105550100.",
+      "document_text_missing": "Este documento no tiene texto para firmar aquí. Fírmalo como se envió.",
+      "document_text_masked": "Este texto contiene una tarifa que tu representación no cubre, así que solo la persona contratada puede responder.",
+      "document_text_hash": "El texto cambió desde que lo abriste. Léelo de nuevo y luego firma.",
+      "document_decline_reason": "Di por qué rechazas, en un máximo de 450 caracteres.",
+      "document_text_sign_with_hash": "Lee este documento en Gateway y fírmalo allí con tu nombre escrito.",
+      "document_text_signed": "Este texto ya se firmó.",
+      "advance_upload_type": "Ese tipo de archivo no se acepta. Sube un archivo PDF, JPEG, PNG, HEIC, WebP, CSV, XLSX o DOCX.",
+      "advance_upload_size": "Ese archivo pesa más de 25 MB. Sube uno más pequeño.",
+      "advance_upload_limit": "Esta sección ya tiene en camino todos los archivos que admite. Envía menos archivos o vuelve a intentarlo en 15 minutos.",
+      "advance_upload_rate": "Demasiadas subidas con este enlace en la última hora. Espera un rato e inténtalo de nuevo.",
+      "advance_upload_ticket": "Esa subida ya no está abierta. Elige el archivo de nuevo y envíalo.",
+      "advance_guest_rate": "Demasiadas solicitudes de invitados con este enlace hoy. Inténtalo mañana o escribe a la organización.",
+      "advance_roster_rate": "Demasiadas invitaciones con este enlace hoy. Inténtalo mañana o escribe a la organización.",
+      "guest_list_closed": "La lista de invitados se abre cuando la organización confirma tu contratación. Vuelve más tarde.",
+      "guest_name_length": "Escribe el nombre del invitado, de hasta 200 caracteres.",
+      "guest_plus_ones": "Los acompañantes van de 0 a 20.",
+      "guest_note_length": "La nota puede tener hasta 500 caracteres.",
+      "advance_section_derived": "La sección de lista de personal se lee de tu pestaña Personal, así que no lleva respuesta. Actualiza la lista allí.",
+      "advance_recipient_engagement": "Esta sección se responde bajo tu contratación y el paquete todavía no está vinculado a ella. Pide a la organización que lo vincule.",
+      "advance_section_role": "Las listas de invitados no forman parte del avance de un contratista o patrocinador.",
+      "advance_line_limit": "Esta sección admite menos líneas. Quita algunas y vuelve a enviar.",
+      "advance_line_kind": "Una de las líneas no corresponde a esta sección. Elige uno de los artículos de la lista y una cantidad.",
+      "advance_line_person": "Revisa para quién es cada línea: esta sección pide una persona en cada línea, o en ninguna.",
+      "advance_line_window": "Una franja termina después de empezar. Revisa las horas y vuelve a enviar.",
+      "advance_line_roster_entry": "Una de las personas ya no está en la lista de personal de esta contratación. Elige a alguien de la lista.",
+      "advance_file_document": "Adjunta los archivos de nuevo: cada archivo va en una sola respuesta, hasta el número que permite la sección.",
+      "party_upload_missing": "El archivo no terminó de subirse. Elígelo de nuevo y envía.",
+      "party_upload_checksum": "No se pudo verificar el archivo. Elígelo de nuevo y envía.",
+      "guest_list_cap": "Tu lista de invitados está llena, acompañantes incluidos. Quita un invitado o pide más lugares a la organización.",
+      "offering_not_offered": "La organización no ofrece esto en esta contratación. Escríbele si lo necesitas.",
+      "credential_names_closed": "Ya pasó la fecha límite para asignar nombres a los pases. Contacta a la organización para cambiar quién los tiene.",
+      "roster_closed": "Esta contratación está completa o cancelada, así que su lista está cerrada.",
+      "roster_role_type": "Esta contratación no lleva lista de equipo. Solo la llevan las de artistas y las contrataciones de empresa de un proveedor, contratista, agencia de personal o patrocinador.",
+      "roster_locked": "Los nombres están cerrados en esta contratación. Pide a la organización productora que cambie la lista.",
+      "roster_empty_submit": "Agrega o cambia a alguien en la lista antes de enviarla.",
+      "roster_person_duplicate": "Esta persona ya está en la lista.",
+      "invitation_email": "Escribe una sola dirección de correo.",
+      "roster_arrival_window": "Indica un inicio, un fin posterior y una zona horaria para la llegada, o deja los tres vacíos.",
+      "time_zone_unknown": "No se reconoce esa zona horaria. Elija una de la lista, por ejemplo America/New_York.",
+      "intake_link_invalid": "Este enlace ya no está disponible. Pide uno nuevo a la organización.",
+      "intake_link_rate_limited": "Demasiados intentos desde esta dirección. Espera unos minutos e inténtalo de nuevo.",
+      "intake_link_expired": "Este enlace venció. Pide a la organización que te envíe uno nuevo.",
+      "intake_link_ended": "Este enlace ha terminado.",
+      "intake_link_full": "Este enlace ya recibió todas las solicitudes que puede. Pide uno nuevo a la organización.",
+      "intake_link_locked": "Demasiados códigos incorrectos. Pide un enlace nuevo a la organización.",
+      "intake_access_code_required": "Escribe tu código de acceso.",
+      "intake_access_code": "Ese código no coincide. Revísalo e inténtalo de nuevo.",
+      "intake_grant": "Escribe tu código de acceso de nuevo.",
+      "intake_agreement_unavailable": "El acuerdo no está disponible en este momento. Pregunta a la organización.",
+      "form_link_invalid": "Este enlace ya no está disponible. Pide uno nuevo a la organización.",
+      "form_link_rate_limited": "Demasiadas respuestas en este momento. Inténtalo más tarde.",
+      "form_link_expired": "Este enlace venció. Pide a la organización que te envíe uno nuevo.",
+      "form_link_ended": "Este enlace ha terminado.",
+      "form_link_locked": "Demasiados códigos incorrectos. Pide un enlace nuevo a la organización.",
+      "form_link_access_code_required": "Escribe tu código de acceso.",
+      "form_link_access_code": "Ese código no coincide. Revísalo e inténtalo de nuevo.",
+      "form_link_grant": "Escribe tu código de acceso de nuevo.",
+      "form_link_too_fast": "Fue muy rápido. Revisa tus respuestas y envía de nuevo.",
+      "form_link_already_answered": "Este correo ya respondió este formulario.",
+      "form_answers_too_large": "Tus respuestas son demasiado largas. Acórtalas y envía de nuevo.",
+      "form_not_published": "Este formulario ya no recibe respuestas.",
+      "form_respondent_name": "Escribe tu nombre.",
+      "form_respondent_email": "Escribe un correo válido.",
+      "form_answers": "No se pudieron leer tus respuestas. Recarga la página.",
+      "form_answer_hidden": "Una respuesta ya no aplica. Vuelve y bórrala.",
+      "form_answer_required": "Responde todas las preguntas obligatorias.",
+      "form_answer_type": "Una respuesta tiene un tipo de valor incorrecto. Revísala y envía de nuevo.",
+      "form_answer_choice": "Elige una de las opciones de la lista.",
+      "form_answer_date": "Escribe las fechas como fecha.",
+      "form_answer_length": "Una respuesta es demasiado larga. Acórtala y envía de nuevo.",
+      "org_read_only": "Esta organización no recibe respuestas nuevas en este momento.",
+      "guest_email_format": "Escribe una dirección de correo para el invitado, o déjala vacía.",
+      "form_link_sign_in": "Inicia sesión o crea una cuenta para responder este formulario."
+    },
+    "crewShifts": {
+      "title": "Mis turnos",
+      "codeLabel": "Abre tus turnos",
+      "codeHelp": "El código de seis dígitos que te dieron con este enlace.",
+      "intro": "{name}, estos son tus turnos en {project}.",
+      "empty": "No hay turnos en los próximos 14 días.",
+      "accept": "Aceptar turno",
+      "accepted": "Turno aceptado. Tu jefe de equipo ya lo ve.",
+      "noRole": "Equipo",
+      "forget": "Olvidar este código",
+      "signIn": "Inicia sesión para ver todo tu trabajo"
     }
   },
   "settings": {
@@ -1423,6 +2431,12 @@
         "references": "Referencias",
         "links": "Enlaces",
         "organizations": "Organizaciones"
+      },
+      "ratings": {
+        "title": "Calificaciones sobre ti",
+        "body": "La calificación que te da una organización solo pueden leerla esa organización y tú. Si activas esta opción, las personas con sesión iniciada podrán leer todas tus calificaciones en tu perfil, incluidas las bajas. No puedes elegir cuáles. Quienes tengan acceso de contratación, reserva o asignación de personal en XOS seguirán sin verlas, y nunca aparecen en una solicitud, en una búsqueda ni en una pantalla de equipo. No podemos saber quién contrata fuera de XOS, así que alguien así con una cuenta gratuita podría leerlas. Desactívala cuando quieras y dejarán de mostrarse al instante. Solo tú puedes cambiar esto, desde tu propia sesión; una aplicación conectada no puede.",
+        "choice": "Mostrar todas mis calificaciones en mi perfil",
+        "save": "Guardar esta elección"
       }
     },
     "account": {
@@ -1440,9 +2454,12 @@
       "leave": "Salir",
       "create": "Crear una cuenta de empresa",
       "createBody": "Proveedores, agencias, firmas contratistas y patrocinadores ofertan y facturan como empresa. Serás su propietario.",
+      "availability": "XOS se ofrece a organizaciones en {territories}. Si una organización te invitó a trabajar con ella, no necesitas una cuenta de empresa: abre tu invitación.",
       "name": "Nombre de la empresa",
       "slug": "Dirección web",
       "slugHelp": "De 2 a 48 letras minúsculas, números y guiones.",
+      "country": "País donde está establecida la empresa",
+      "countryChoose": "Elige un país",
       "createSubmit": "Crear cuenta",
       "created": "Cuenta de empresa creada. Actúa como ella desde el menú de cuenta."
     },
@@ -1457,11 +2474,16 @@
       "email": "Correo de contacto",
       "profileUnavailable": "El perfil de la empresa lo administran los administradores de Atlas de la organización. Pide a un propietario de la cuenta que lo configure.",
       "remove": "Quitar",
-      "inviteNote": "Para agregar a alguien al equipo, pídele que cree una cuenta de Gateway; luego un propietario o administrador lo agrega por su cuenta.",
-      "noInsurance": "No hay certificados de seguro registrados. Las organizaciones los piden durante la incorporación; súbelos ahí.",
+      "inviteNote": "La persona invitada inicia sesión en Gateway con la dirección que invitaste y acepta en Inicio. Hasta entonces no figura en ninguna lista del equipo ni tiene contrataciones asignadas, y no se comparte nada sobre ella.",
+      "noInsurance": "No hay certificados de seguro registrados. Las organizaciones los piden en una contratación; abre la contratación y súbelos en su pestaña Cumplimiento.",
       "toEngagements": "Ver contrataciones",
       "noRepresentation": "Tu agencia aún no representa a ningún artista.",
-      "proposeNote": "Para representar a un artista, pídele que comparta su perfil de Gateway con tu agencia; luego propones la representación y la acepta en Gateway."
+      "proposeNote": "Para representar a un artista, pídele que comparta su perfil de Gateway con tu agencia; luego propones la representación y la acepta en Gateway.",
+      "notConfirmed": "Sin confirmar",
+      "invitations": "Invitaciones pendientes",
+      "invitationExpires": "Abierta hasta {date}",
+      "invited": "Invitado",
+      "revokeInvitation": "Revocar"
     },
     "notes": {
       "connectedApps": "No hay aplicaciones conectadas a tu cuenta. Las organizaciones conectan sus herramientas en Atlas.",
@@ -1533,10 +2555,27 @@
       "copied": "Enlace copiado.",
       "openInCalendar": "Abrir en mi aplicación de calendario",
       "subscribe": "Suscribirse en una aplicación de calendario",
+      "nameLabel": "Nombre",
+      "nameHelp": "Hasta 80 caracteres. Su aplicación de calendario lo muestra con este nombre.",
+      "contentLabel": "Muestra",
+      "sources": {
+        "shifts": "Turnos",
+        "meetings": "Reuniones",
+        "milestones": "Hitos",
+        "deadlines": "Fechas límite",
+        "cues": "Cues"
+      },
+      "filterSummary": "Muestra {sources}",
+      "edit": "Editar",
+      "editLabel": "Editar el calendario que termina en {hint}",
+      "editTitle": "Editar calendario",
+      "save": "Guardar",
       "errors": {
         "calendar_feed_limit": "Tiene 20 calendarios. Revoque uno antes de agregar otro.",
         "denied": "Ese calendario no está disponible para usted.",
-        "unexpected": "Algo salió mal. Inténtelo de nuevo."
+        "unexpected": "Algo salió mal. Inténtelo de nuevo.",
+        "calendar_feed_name": "Dé al calendario un nombre de 1 a 80 caracteres que no use ninguno de sus otros calendarios.",
+        "calendar_feed_sources": "Elija al menos una cosa para que el calendario la muestre."
       }
     },
     "surfaces": {
@@ -1567,7 +2606,6 @@
   "shell": {
     "skip": "Saltar al contenido",
     "search": "Buscar",
-    "searchHint": "Busca páginas, contrataciones y oportunidades",
     "commandGroup": "Ir a",
     "openAccount": "Abrir el menú de la cuenta de {name}",
     "account": "Cuenta",
@@ -1600,6 +2638,12 @@
       "body": "Elige la organización en la que quieres enfocarte. Todas las organizaciones con las que trabajas siguen en Trabajo y Mensajes.",
       "all": "Todas las organizaciones",
       "empty": "Aún no trabajas con ninguna organización. Explora oportunidades para empezar."
+    },
+    "roleLens": {
+      "title": "Rol",
+      "hint": "Limita Inicio, Trabajo y la navegación a uno de tus roles. Tu acceso no cambia.",
+      "all": "Todos los roles",
+      "failed": "No se pudo elegir ese rol. Vuelve a cargar la página e inténtalo de nuevo."
     }
   },
   "system": {
@@ -1632,7 +2676,9 @@
       "email": "Correo electrónico",
       "password": "Contraseña",
       "passwordHelp": "Al menos 12 caracteres, con letras y números. Evita tu nombre, tu correo y los nombres de productos.",
-      "age": "Tengo 16 años o más."
+      "age": "Tengo 18 años o más",
+      "ageUnder": "Tengo menos de 18 años",
+      "ageLegend": "Tu edad"
     },
     "or": "o",
     "usePassword": "Usar contraseña",
@@ -1656,7 +2702,9 @@
     "terms": {
       "title": "Acepta los Términos para trabajadores",
       "lead": "Tu cuenta de Gateway se creó al iniciar sesión. Acepta los Términos para trabajadores para terminar de configurarla.",
-      "submit": "Continuar"
+      "submit": "Continuar",
+      "deleteInstead": "No tienes que aceptarlos para eliminar tu cuenta.",
+      "deleteLink": "Eliminar mi cuenta"
     },
     "providers": {
       "continueWith": "Continuar con {provider}",
@@ -1682,7 +2730,87 @@
       "submit": "Reclamar envíos",
       "done": "Listo: {advance, plural, one {# respuesta de avance} other {# respuestas de avance}} y {documents, plural, one {# documento firmado} other {# documentos firmados}} ya están en tu cuenta.",
       "nothing": "No había envíos pendientes para {email}. Todo lo que completes desde ahora se guarda en esta cuenta.",
-      "home": "Ir al inicio"
+      "home": "Ir al inicio",
+      "invitations": "Invitaciones para esta dirección",
+      "invitationAccount": "{account} te invita a su cuenta de empresa",
+      "invitationRoster": "{party} te invita a su equipo para {project}",
+      "accept": "Aceptar",
+      "decline": "Rechazar",
+      "invitationPool": "{org} te invita a unirte a su lista de equipo"
+    },
+    "actionLink": {
+      "title": "Confirmar desde el correo",
+      "heading": {
+        "approve": "¿Aprobar {title}?",
+        "reject": "¿Rechazar {title}?",
+        "accept": "¿Aceptar {title}?",
+        "confirmComing": "¿Sigues yendo a {title}?",
+        "rosterAccept": "¿Aceptas tu lugar en este equipo?"
+      },
+      "untitled": "este elemento",
+      "org": "De {org}. No pasa nada hasta que confirmes.",
+      "signedInAs": "Sesión iniciada como {email}.",
+      "confirm": {
+        "approve": "Aprobar",
+        "reject": "Rechazar",
+        "accept": "Aceptar",
+        "confirmComing": "Confirma que vas"
+      },
+      "reason": "¿Por qué lo rechazas?",
+      "done": {
+        "approve": "Aprobado. No hay nada más que hacer.",
+        "reject": "Rechazado con tu motivo.",
+        "accept": "Aceptado. La organización se encarga desde aquí."
+      },
+      "home": "Ir al inicio",
+      "state": {
+        "used": "Esto ya se resolvió. No hay nada más que hacer.",
+        "expired": "Este enlace venció. Abre el elemento desde Inicio para resolverlo.",
+        "not_yours": "Este enlace se envió a otra persona. Cierra sesión e inicia sesión como la persona a quien se envió.",
+        "elsewhere": "Este enlace se abre en Atlas, donde se aplican los ajustes de seguridad de tu organización. Usa el botón del correo para abrirlo allí.",
+        "invalid": "Este enlace no funciona. Abre el elemento desde Inicio."
+      },
+      "signedOut": {
+        "heading": {
+          "approve": "Aprueba esta solicitud desde tu correo",
+          "reject": "Rechaza esta solicitud desde tu correo"
+        },
+        "codeGoesTo": "Enviamos un código de 6 dígitos a {email}.",
+        "signInInstead": "Iniciar sesión para decidir",
+        "state": {
+          "ended": "Este enlace ha terminado.",
+          "used": "Esto ya se resolvió. No hay nada más que hacer.",
+          "expired": "Este enlace venció. Inicia sesión para decidir o pide a la organización que lo envíe de nuevo.",
+          "locked": "Demasiados códigos incorrectos. Este enlace está bloqueado; inicia sesión para decidir."
+        },
+        "codeIntro": "Para que esta decisión sea tuya, primero te enviamos un código por correo. La solicitud aparece cuando lo ingresas.",
+        "emailMeACode": "Enviarme un código",
+        "codeSent": "Código enviado. Funciona durante 10 minutos.",
+        "codeLabel": "Código de tu correo",
+        "codeHelp": "Los 6 dígitos del correo que acabamos de enviarte.",
+        "showRequest": "Ver la solicitud",
+        "sendAgain": "Enviar un código nuevo",
+        "untitled": "Esta solicitud",
+        "step": "Paso: {step}",
+        "reason": "¿Por qué la rechazas?",
+        "confirm": {
+          "approve": "Aprobar",
+          "reject": "Rechazar"
+        },
+        "done": {
+          "approve": "Aprobado. No hay nada más que hacer.",
+          "reject": "Rechazado con tu motivo."
+        },
+        "outcome": {
+          "approval_link_ended": "Este enlace ha terminado.",
+          "approval_link_code_wrong": "Ese código es incorrecto o venció. {attemptsLeft, plural, one {Te queda # intento} other {Te quedan # intentos}} antes de que el enlace se bloquee.",
+          "approval_link_locked": "Demasiados códigos incorrectos. Este enlace está bloqueado; inicia sesión para decidir.",
+          "notification_action_used": "Esto ya se resolvió. No hay nada más que hacer.",
+          "notification_action_expired": "Este enlace venció. Inicia sesión para decidir o pide a la organización que lo envíe de nuevo.",
+          "notification_action_invalid": "Este enlace no funciona. Inicia sesión para decidir.",
+          "notification_action_reason": "Di por qué la rechazas."
+        }
+      }
     },
     "errors": {
       "invalid_credentials": "El correo y la contraseña no coinciden. Revisa ambos o usa un enlace de acceso.",
@@ -1704,7 +2832,27 @@
       "password": "Escribe una contraseña de al menos 12 caracteres con letras y números.",
       "passwordContext": "Elige una contraseña que no contenga tu nombre, tu correo ni un nombre de producto como Gateway.",
       "terms": "Acepta los Términos para trabajadores para crear tu cuenta: marca la casilla sobre el botón.",
-      "age": "Confirma que tienes 16 años o más. Las cuentas de XOS son para personas de 16 años en adelante."
+      "age": "Elige la respuesta que sea cierta para ti."
+    },
+    "ageRefused": {
+      "title": "Las cuentas de XOS son para personas de 18 años en adelante",
+      "sentence": "Nos dijiste que tienes menos de 18 años, así que no creamos una cuenta. No guardamos lo que escribiste.",
+      "closed": "Nos dijiste que tienes menos de 18 años, así que tu cuenta está cerrada. Eliminamos tu inicio de sesión, tu perfil y sus archivos, tus fotos de credencial, tu configuración, lo que enviaste a nuestro equipo de soporte y las respuestas y los acuerdos personales que diste a XOS. Cualquier organización con la que hayas trabajado conserva los registros que exige la ley, como las horas que trabajaste, y una nota con tu correo electrónico que indica que tu cuenta se eliminó, y XOS conserva un registro de esa eliminación con los identificadores de tu cuenta, sin tu nombre. XOS también conserva un recuento mensual de las personas menores de 18 años que rechazó, que no te identifica. Los datos eliminados permanecen en las copias de seguridad hasta que caducan.",
+      "held": "Nos dijiste que tienes menos de 18 años, pero tu cuenta aún no se puede eliminar: lo impide una retención legal, un turno abierto o ser el único propietario de una organización. Cerramos tu sesión en todos los dispositivos, no puedes usar esta cuenta y te lo volveremos a preguntar cuando inicies sesión. Contáctanos y terminaremos de cerrarla.",
+      "minors": "Si trabajas o asistes a un evento, el adulto o la organización responsable de ti puede guardar tus datos en sus propios registros. No necesitas una cuenta para eso.",
+      "contact": "Contáctanos"
+    },
+    "ageQuestion": {
+      "title": "Confirma tu edad",
+      "lead": "XOS se lo pregunta a todas las personas que aún no han respondido.",
+      "submit": "Continuar",
+      "under": {
+        "title": "Confirma tu respuesta",
+        "sentence": "Las cuentas de XOS son para personas de 18 años o más. Si tienes menos de 18 años, cerramos esta cuenta.",
+        "consequences": "Al cerrarla, terminan tus membresías, se cancela el trabajo en curso y se elimina tu inicio de sesión, tu perfil y sus archivos, tus fotos de credencial, tu configuración, lo que enviaste a nuestro equipo de soporte y las respuestas y los acuerdos personales que diste a XOS. No se puede deshacer. Cualquier organización con la que hayas trabajado conserva los registros que exige la ley, como las horas que trabajaste, y una nota con tu correo electrónico que indica que tu cuenta se eliminó, y XOS conserva un registro de esa eliminación con los identificadores de tu cuenta, sin tu nombre. XOS también conserva un recuento mensual de las personas menores de 18 años que rechazó, que no te identifica. Los datos eliminados permanecen en las copias de seguridad hasta que caducan.",
+        "confirm": "Tengo menos de 18 años. Cerrar mi cuenta",
+        "back": "Volver"
+      }
     }
   },
   "work": {
@@ -1773,10 +2921,31 @@
           "dates": "El último día debe ser igual o posterior al primero."
         }
       }
+    },
+    "quoteRequests": {
+      "empty": "Ninguna empresa te ha pedido una cotización por ahora.",
+      "from": "{org}, {project}",
+      "due": "Cotizar antes de {when}",
+      "noDue": "Sin fecha límite",
+      "line": "{quantity} {description}",
+      "hireLine": "{quantity} {description}, en alquiler del {from} al {to}",
+      "sendTo": "Envía tu cotización a {name}.",
+      "sendToOrg": "Envía tu cotización a tu contacto en {org}."
     }
   },
   "legal": {
-    "inReview": "La versión {version} está en revisión y aún no está vigente. El texto publicado aparecerá aquí cuando entre en vigor.",
+    "draftTitle": "Borrador, aún no vigente",
+    "draftNotice": "La versión {version} de este documento es un borrador. No está vigente y nadie puede basarse en ella.",
+    "inEffect": "Versión {version}, vigente desde el {date}",
+    "upcomingTitle": "Aún no vigente",
+    "upcomingNotice": "La versión {version} de este documento entra en vigor el {date}. Se muestra aquí antes de ese día y no está vigente antes de él.",
+    "upcomingEarlier": "Hasta entonces, la versión {version} sigue vigente, y la página de contacto indica dónde pedir una copia de su texto.",
+    "history": "Historial de versiones",
+    "versionDraft": "Versión {version}: borrador, aún no vigente",
+    "versionInEffect": "Versión {version}: vigente desde el {date}",
+    "versionUpcoming": "Versión {version}: entra en vigor el {date}",
+    "contents": "En esta página",
+    "englishOnly": "Este documento se publica solo en inglés.",
     "back": "Ir a Gateway"
   },
   "diversity": {
@@ -1801,16 +2970,227 @@
     "certifyingBody": "Certificada por",
     "certifyingBodyHelp": "Por ejemplo, un programa DBE estatal o la SBA. Escriba Autodeclarada si nadie la certificó.",
     "number": "Número de certificado",
-    "numberHelp": "Opcional. Se guarda como dato restringido: aquí solo se muestran sus últimos cuatro caracteres.",
+    "numberHelp": "Opcional. Se cifra y se guarda como dato restringido: aquí solo se muestran sus últimos cuatro caracteres, y una organización con la que lo comparta solo ve el número completo después de indicar un motivo.",
     "issuedOn": "Emitida",
     "expiresOn": "Vence",
     "errors": {
       "kind": "Elija el tipo de certificación.",
       "certifyingBody": "Indique quién la certificó, o Autodeclarada.",
-      "certificateNumber": "El número de certificado debe tener menos de 100 caracteres.",
+      "certificateNumber": "Escriba el número de certificado en 100 caracteres o menos, con al menos una letra o un dígito.",
       "issuedOn": "Escriba la fecha de emisión como una fecha.",
       "expiresOn": "Elija una fecha de vencimiento igual o posterior a la de emisión.",
       "orgId": "Elija la organización con la que compartirá."
     }
+  },
+  "collections": {
+    "actions": {
+      "sign": {
+        "one": "Firmar",
+        "bulk": "{count, plural, =0 {Firmar} one {Firmar # documento} other {Firmar # documentos}}",
+        "title": "{count, plural, =0 {Firmar documentos} one {Firmar # documento} other {Firmar # documentos}}",
+        "apply": "{count, plural, one {Firmar # documento} other {Firmar # documentos}}",
+        "willChange": "{count, plural, one {Se firmará # documento a tu nombre.} other {Se firmarán # documentos a tu nombre.}}",
+        "unchanged": "{count, plural, one {# documento ya está firmado.} other {# documentos ya están firmados.}}",
+        "nothing": "Todos los documentos seleccionados ya están firmados.",
+        "none": "Ninguno de los documentos seleccionados espera tu firma.",
+        "skipped": "{count, plural, one {# documento seleccionado no espera tu firma, así que queda fuera.} other {# documentos seleccionados no esperan tu firma, así que quedan fuera.}}",
+        "final": "Una firma es definitiva y no se puede deshacer. Abre y lee cada documento antes de firmar.",
+        "done": "{count, plural, one {Firmaste # documento.} other {Firmaste # documentos.}}"
+      },
+      "submit": {
+        "one": "Enviar",
+        "bulk": "{count, plural, =0 {Enviar} one {Enviar # hoja de horas} other {Enviar # hojas de horas}}",
+        "title": "{count, plural, =0 {Enviar hojas de horas} one {Enviar # hoja de horas} other {Enviar # hojas de horas}}",
+        "apply": "{count, plural, one {Enviar # hoja de horas} other {Enviar # hojas de horas}}",
+        "willChange": "{count, plural, one {Se enviará # hoja de horas para aprobación.} other {Se enviarán # hojas de horas para aprobación.}}",
+        "unchanged": "{count, plural, one {# hoja de horas ya está enviada.} other {# hojas de horas ya están enviadas.}}",
+        "nothing": "Todas las hojas de horas seleccionadas ya están enviadas.",
+        "none": "Ninguna de las hojas de horas seleccionadas es un borrador o una rechazada tuya para enviar.",
+        "skipped": "{count, plural, one {# hoja de horas seleccionada no es tuya para enviar ahora, así que queda fuera.} other {# hojas de horas seleccionadas no son tuyas para enviar ahora, así que quedan fuera.}}",
+        "undoable": "Hasta que alguien las apruebe o rechace, Deshacer o Cmd o Ctrl+Z devuelve las hojas de horas a borrador.",
+        "done": "{count, plural, one {Enviaste # hoja de horas.} other {Enviaste # hojas de horas.}}"
+      },
+      "withdraw": {
+        "one": "Retirar",
+        "bulk": "{count, plural, =0 {Retirar} one {Retirar # postulación} other {Retirar # postulaciones}}",
+        "title": "{count, plural, =0 {Retirar postulaciones} one {Retirar # postulación} other {Retirar # postulaciones}}",
+        "apply": "{count, plural, one {Retirar # postulación} other {Retirar # postulaciones}}",
+        "willChange": "{count, plural, one {Se retirará # postulación.} other {Se retirarán # postulaciones.}}",
+        "unchanged": "{count, plural, one {# postulación ya está retirada.} other {# postulaciones ya están retiradas.}}",
+        "nothing": "Todas las postulaciones seleccionadas ya están retiradas.",
+        "none": "Ninguna de las postulaciones seleccionadas está abierta para retirarla. Responde cada oferta por separado.",
+        "skipped": "{count, plural, one {# postulación seleccionada está cerrada o tiene una oferta, así que queda fuera.} other {# postulaciones seleccionadas están cerradas o tienen una oferta, así que quedan fuera.}}",
+        "final": "Retirar es definitivo. Para que te consideren de nuevo, vuelve a postular mientras la oportunidad esté abierta.",
+        "done": "{count, plural, one {Retiraste # postulación.} other {Retiraste # postulaciones.}}"
+      },
+      "assign": {
+        "one": "Asignar del fondo común",
+        "bulk": "{count, plural, =0 {Asignar} one {Asignar a # persona} other {Asignar a # personas}}",
+        "title": "{count, plural, =0 {Asignar del fondo común} one {Asignar a # persona} other {Asignar a # personas}}",
+        "apply": "{count, plural, one {Asignar a # persona} other {Asignar a # personas}}",
+        "willChange": "{count, plural, one {Cambiará la parte de # persona.} other {Cambiarán las partes de # personas.}}",
+        "unchanged": "{count, plural, one {# persona ya tiene esa parte.} other {# personas ya tienen esa parte.}}",
+        "nothing": "Todas las personas seleccionadas ya tienen esa parte.",
+        "none": "Ninguna de las personas seleccionadas está aceptada en la lista todavía.",
+        "skipped": "{count, plural, one {# persona seleccionada aún no está aceptada en la lista, así que queda fuera.} other {# personas seleccionadas aún no están aceptadas en la lista, así que quedan fuera.}}",
+        "undoable": "Deshacer o Cmd o Ctrl+Z devuelve las partes al fondo común mientras nadie las haya recogido.",
+        "done": "{count, plural, one {Asignado a # persona.} other {Asignado a # personas.}}"
+      }
+    },
+    "cancel": "Cancelar",
+    "checking": "Revisando las filas seleccionadas…",
+    "refusedTitle": "{count, plural, one {# fila no admite esta acción} other {# filas no admiten esta acción}}",
+    "refusedBody": "Nada cambia hasta que todas las filas puedan. Quita estas filas de la selección o resuelve lo que necesita cada una.",
+    "refusedRow": "{row}: {message}",
+    "failed": "No se pudo guardar. Inténtalo de nuevo.",
+    "refusals": {
+      "bulk_stale": "Alguien lo cambió después de que cargaste la página. Recarga para ver el cambio.",
+      "bulk_row_not_found": "Ya no está disponible para ti. Recarga la página para ver lo vigente.",
+      "bulk_field_not_editable": "Esta acción no se aplica a este elemento.",
+      "not_allowed": "Tu rol no permite hacer esto aquí.",
+      "timesheet_open_entry": "Primero registra la salida de cada registro de tiempo de su periodo.",
+      "timesheet_recall_not_submitter": "Solo quien la envió puede retirarla.",
+      "document_not_awaiting_signature": "No espera tu firma.",
+      "application_offered": "Tiene una oferta. Acéptala, recházala o haz una contraoferta por separado.",
+      "lifecycle_transition": "Ese paso no es posible desde el estado actual. Recarga para ver su estado actual.",
+      "lifecycle_conflict": "Alguien lo cambió hace un momento. Recarga para ver lo más reciente.",
+      "refused": "Las reglas de la organización no lo permiten para este elemento.",
+      "allocation_not_pool": "Solo se reparte un fondo común aprobado.",
+      "allocation_split_exceeds": "Al fondo común no le quedan tantos. Asigna una parte menor.",
+      "allocation_cap_person": "Esa parte supera lo que una persona puede tener.",
+      "allocation_entry_not_accepted": "Esta persona aún no está aceptada en la lista.",
+      "allocation_issued": "Parte de esta asignación ya se entregó, así que se queda."
+    },
+    "menu": {
+      "label": "Acciones de {row}",
+      "open": "Abrir",
+      "copyLink": "Copiar enlace",
+      "select": "Seleccionar",
+      "deselect": "Quitar de la selección"
+    },
+    "undo": {
+      "notifications": "Avisos de deshacer",
+      "undone": "Deshecho: {label}",
+      "redone": "Rehecho: {label}",
+      "failed": "No se pudo deshacer ni rehacer: {message}",
+      "failedPlain": "No se pudo deshacer ni rehacer. Inténtalo de nuevo.",
+      "nothingToUndo": "No hay nada que deshacer.",
+      "nothingToRedo": "No hay nada que rehacer.",
+      "dismiss": "Descartar"
+    }
+  },
+  "registration": {
+    "metaTitle": "Registro de equipo",
+    "closed": "Esta página de registro no está abierta.",
+    "minimumAge": "Debes tener {age} años o más.",
+    "signedOut": "Regístrate o inicia sesión para continuar. Tu cuenta sigue siendo tuya.",
+    "signUp": "Crear cuenta",
+    "signIn": "Ya tengo una cuenta",
+    "formLabel": "Registrarse",
+    "stepQuestions": "Preguntas {n}",
+    "stepConfirm": "Confirmar",
+    "phone": "Teléfono de trabajo",
+    "phoneHelp": "Con el código de país, o un número de tu país. Se guarda en tu configuración.",
+    "ageConfirm": "Tengo {age} años o más",
+    "share": "Compartir de tu perfil",
+    "shareHelp": "Opcional. Solo las secciones que elijas, solo con esta organización.",
+    "back": "Atrás",
+    "next": "Siguiente",
+    "submit": "Registrarme",
+    "refused": "No se pudo guardar tu registro. Revísalo e inténtalo de nuevo.",
+    "answerRequired": "Responde todas las preguntas obligatorias de este paso.",
+    "withdraw": "Retirar",
+    "state": {
+      "Submitted": "Te registraste. La organización lo revisa a continuación.",
+      "Approved": "Te aprobaron. Revisa Explorar para ver trabajo de esta organización."
+    },
+    "states": {
+      "Submitted": "Enviado",
+      "Approved": "Aprobado"
+    },
+    "sections": {
+      "headline": "Titular",
+      "bio": "Biografía",
+      "pronouns": "Pronombres",
+      "location": "Ubicación",
+      "skills": "Habilidades",
+      "certifications": "Certificaciones",
+      "rates": "Tarifas",
+      "languages": "Idiomas",
+      "links": "Enlaces"
+    }
+  },
+  "publicForm": {
+    "title": "Formulario",
+    "codeIntro": "Escribe el código de acceso de la persona que te envió este enlace.",
+    "poweredBy": "Con tecnología de XOS",
+    "website": "Deja esto vacío",
+    "choose": "Elegir",
+    "yes": "Sí",
+    "no": "No",
+    "window": "Página {current} de {total}",
+    "back": "Atrás",
+    "next": "Siguiente",
+    "submit": "Enviar",
+    "thanks": "Gracias. Tus respuestas se enviaron.",
+    "unexpected": "No se pudo completar. Inténtalo de nuevo.",
+    "unanswered": "Responde estas preguntas antes de continuar: {fields}",
+    "required": "Responde esta pregunta.",
+    "answeringAs": "Respondes como {who}. La organización ve tu nombre y tu correo junto con tus respuestas.",
+    "signIn": "Inicia sesión o crea una cuenta para responder este formulario.",
+    "signUpAction": "Crear una cuenta",
+    "signInAction": "Iniciar sesión"
+  },
+  "badgePhotos": {
+    "title": "Fotos de credencial",
+    "lead": "La foto que cada organización imprime en tu credencial.",
+    "none": "Ninguna organización tiene una credencial vigente para ti, así que ninguna te pide foto.",
+    "notice": "El personal de credenciales de {org} ve esta foto, y también cualquiera que vea tu credencial: se imprime en ella. Elige Quitar cuando quieras para retirarla; la organización imprime entonces tu credencial sin foto.",
+    "noticeVersion": "Aviso {version}",
+    "stateLabel": "Foto",
+    "states": {
+      "Provided": "En tu credencial",
+      "Scanning": "En revisión",
+      "Refused": "No aceptada",
+      "Profile": "Tu foto de perfil",
+      "Requested": "Solicitada",
+      "Missing": "Aún no hay"
+    },
+    "stateHelp": {
+      "Provided": "Tu foto se imprime en esta credencial.",
+      "Scanning": "Tu foto se está revisando y se imprime en unos minutos.",
+      "Refused": "Tu foto no pasó la revisión antivirus. Sube otra.",
+      "Profile": "No entregaste foto de credencial, así que se imprime tu foto de perfil.",
+      "Requested": "La organización te pidió tu foto.",
+      "Missing": "Tu credencial se imprime sin foto."
+    },
+    "providedOn": "Entregada el {date}",
+    "thumbnailAlt": "Tu foto de credencial para {org}",
+    "upload": "Subir o tomar foto",
+    "choose": "Elegir una foto",
+    "cropHelp": "Arrastra la foto para elegir lo que se ve. La credencial imprime un retrato de 3 por 4.",
+    "cropLabel": "Recortar la foto",
+    "save": "Guardar foto",
+    "cancel": "Cancelar",
+    "saved": "Foto guardada. Se imprime cuando termine la revisión, en unos minutos.",
+    "useProfile": "Usar mi foto de perfil",
+    "remove": "Quitar",
+    "removed": "Foto quitada y tu consentimiento retirado.",
+    "lapsed": "Ya no tienes una credencial vigente con {org}, así que tus credenciales ahí no imprimen foto. La organización guarda esta foto hasta que la quites.",
+    "fileType": "Elige una foto JPEG o PNG.",
+    "fileSize": "Esa foto es demasiado grande. Elige una de menos de 25 MB.",
+    "section": "Fotos de credencial",
+    "sectionLead": "Da a las organizaciones con las que trabajas una foto para tu credencial.",
+    "open": "Abrir fotos de credencial"
+  },
+  "unsubscribe": {
+    "title": "Dejar de recibir correos",
+    "question": "¿Dejar de recibir correos de {org} en esta dirección?",
+    "questionUnknown": "¿Dejar de recibir correos de esta organización en esta dirección?",
+    "body": "Recibiste este enlace en un correo de una lista de invitados. Nada cambia hasta que confirmes.",
+    "confirm": "Dejar de recibir correos",
+    "done": "No volverás a recibir correos de {org} en esta dirección.",
+    "doneUnknown": "Si el enlace era válido, no volverás a recibir correos de esa organización en esta dirección.",
+    "failed": "No se pudo guardar. Inténtalo de nuevo en un momento."
   }
 }

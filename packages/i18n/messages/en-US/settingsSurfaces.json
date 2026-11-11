@@ -174,7 +174,28 @@
     "title": "Rules every organization keeps",
     "description": "Separation of duties: one person never does both halves of these acts. The database enforces each rule, for every organization.",
     "enforcedOn": "Checked on {where}",
-    "tighten": "No rule can be loosened. Approval policies add more approvers where you need them."
+    "tighten": "No rule can be switched off. Approval policies add more approvers where you need them, and the stricter options below add checks.",
+    "alwaysOn": "Always on",
+    "options": {
+      "title": "Stricter options",
+      "description": "Your organization can make separation of duties stricter, never looser. Each option you turn on adds a check on top of the rules every organization keeps.",
+      "on": "On",
+      "off": "Off",
+      "turnOn": "Turn on",
+      "turnOff": "Turn off",
+      "tightens": "Tightens {rule}",
+      "readOnly": "Only someone who can tighten separation of duties turns these options on or off.",
+      "offConfirm": {
+        "title": "Turn off this option?",
+        "body": "{option} The rules every organization keeps stay on.",
+        "confirm": "Turn off"
+      },
+      "names": {
+        "sod_change_order_requester_steps": "The requester of a change order cannot decide any step of its approval.",
+        "sod_document_creator": "Whoever created a purchase order, change order, invoice, requisition, expense, payroll run or settlement cannot approve it or decide a step of its approval.",
+        "sod_receiver_po_approver": "Goods are received by someone other than a person who approved the purchase order or a change to it."
+      }
+    }
   },
   "customFields": {
     "title": "Custom fields",
@@ -225,7 +246,36 @@
       "asset_units": "Asset units",
       "purchase_orders": "Purchase orders",
       "invoices": "Invoices",
-      "incidents": "Incidents"
+      "incidents": "Incidents",
+      "cues": "Cues",
+      "spaces": "Spaces",
+      "signs": "Signs",
+      "budget_lines": "Budget lines"
+    },
+    "colors": {
+      "none": "No color",
+      "cat-1": "Orange",
+      "cat-2": "Sky blue",
+      "cat-3": "Green",
+      "cat-4": "Yellow",
+      "cat-5": "Blue",
+      "cat-6": "Vermillion",
+      "cat-7": "Purple"
+    },
+    "choiceColor": "Color",
+    "choiceColorHelp": "Optional. The label always shows beside the color.",
+    "choiceWithColor": "{label} ({color})",
+    "audienceList": "For: {audiences}",
+    "audiencesFor": "Who {label} is for",
+    "audiencesLabel": "Shown to",
+    "audiencesHelp": "Crew sees it in Atlas. Showcaller shows it on showcaller links. Client shows it in Gateway.",
+    "audiencesCrewOnly": "Person, Money and Email fields stay with the crew: showcaller links and Clients never see them.",
+    "audiencesSave": "Save audiences",
+    "audiences": {
+      "Crew": "Crew",
+      "Showcaller": "Showcaller",
+      "Client": "Client",
+      "none": "nobody yet"
     }
   },
   "canon": {
@@ -275,7 +325,6 @@
     "chosen": "{departments, plural, one {# department} other {# departments}} and {disciplines, plural, one {# discipline} other {# disciplines}} in use.",
     "departments": "Departments",
     "departmentsHelp": "Clearing a department also clears its disciplines.",
-    "disciplinesOf": "{name}: {count, plural, one {# discipline} other {# disciplines}}",
     "disciplines": "Disciplines in {name}",
     "option": "{name} · {code}",
     "extensionsTitle": "Your discipline extensions",
@@ -410,13 +459,7 @@
     "description": "Apps you allowed to act for you. Each can do only what you can, in the areas you approved.",
     "none": "You have not connected any apps.",
     "registeredBy": "Registered by {org}",
-    "granted": "Allowed {date}",
-    "revokeConfirm": {
-      "title": "Disconnect {app}?",
-      "body": "The app can no longer act for you. Connect it again to give it access.",
-      "confirm": "Disconnect"
-    },
-    "toIntegrations": "Your organization's integrations"
+    "granted": "Allowed {date}"
   },
   "payout": {
     "title": "Payout details",
@@ -486,11 +529,13 @@
     "legal_hold_table_unknown": "Choose data that has a retention period.",
     "legal_hold_released": "This hold is already released.",
     "legal_hold_immutable": "A hold is never edited, only released.",
+    "legal_hold_queue": "GHXSTSHIP placed this hold while it returns data your export left out. It is released when the return is done. To withdraw the request, write to support@ghxstship.pro with Return of Data in the subject line.",
     "department_unknown": "One of the departments is not in the canon.",
     "discipline_unknown": "One of the disciplines is not in the canon.",
     "discipline_department_not_in_use": "Choose a discipline's department too.",
     "jurisdiction_unknown": "Choose a jurisdiction from the canon.",
-    "time_zone_unknown": "Choose a time zone from the list."
+    "time_zone_unknown": "Choose a time zone from the list.",
+    "separation_option_unknown": "Only a stricter option can be turned on or off. The rules every organization keeps are always on."
   },
   "fieldErrors": {
     "name": "Enter a name of up to 200 characters.",

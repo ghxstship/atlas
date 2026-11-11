@@ -6,10 +6,13 @@ var file = {
   subtitle:
     "Run {date}. Rows: {rows}. Rows with an unpriced amount, left out of their total: {unpriced}.",
   truncated: "This file stops at the row limit. Narrow the report's filters to see every row.",
+  watermark: "Prepared for {email} on {time}",
 };
-var email = {
-  subject: "{report} from {org}",
-  body: "Your scheduled report {report} from {org} is attached. It has {rows} rows; {unpriced} carry an unpriced amount, left out of their totals. It ran with your own access, so it shows only what you may see.",
+var exportFile = {
+  subtitle: "Exported {date}. Rows: {rows}.",
+  truncated:
+    "This file holds the first {limit} rows. Narrow the filters of the collection to export every row.",
+  watermark: "Exported by {email} on {time}",
 };
 var dashboards = {
   count: "{count, plural, =0 {No dashboards} one {# dashboard} other {# dashboards}}",
@@ -110,11 +113,11 @@ var errors = {
 };
 var reporting_default = {
   file,
-  email,
+  exportFile,
   dashboards,
   tile,
   schedule,
   errors,
 };
 //#endregion
-export { dashboards, reporting_default as default, email, errors, file, schedule, tile };
+export { dashboards, reporting_default as default, errors, exportFile, file, schedule, tile };

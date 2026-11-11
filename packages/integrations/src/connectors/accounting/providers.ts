@@ -10,6 +10,7 @@ import type {
   PushResult,
 } from "./connector.ts";
 import type { AccountingSource, ProviderPayment } from "./source.ts";
+import type { Database } from "@xos/data/database.types";
 
 /**
  * Provider clients for the four accounting connectors. Each talks to its provider only through the
@@ -286,7 +287,10 @@ export function quickBooksProvider(
       );
       const payments: ProviderPayment[] = [];
       let latest = since;
-      const add = async (rows: QboPayment[] | undefined, direction: "Payable" | "Receivable") => {
+      const add = async (
+        rows: QboPayment[] | undefined,
+        direction: Database["app"]["Enums"]["money_direction"],
+      ) => {
         for (const p of rows ?? []) {
           const counterparty =
             direction === "Receivable" ? p.CustomerRef?.value : p.VendorRef?.value;

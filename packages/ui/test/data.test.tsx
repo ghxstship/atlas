@@ -45,6 +45,9 @@ const rows = [
   { code: "5000.03", name: "Delay Towers", qty: 4, rate: 0, state: "bad", notes: "Ground" },
 ];
 
+/** How long a test waits for a lazily loaded engine (TanStack Virtual, the resize engine) to import the first time. */
+const ENGINE_LOAD = 10_000;
+
 describe("DataTable", () => {
   it("becomes stacked cards with three fields below md, a name as the title (A59-013)", async () => {
     const matchMedia = vi.spyOn(window, "matchMedia").mockImplementation(
@@ -94,6 +97,17 @@ describe("DataTable", () => {
     await expectAccessible(container);
   });
 
+  // Pseudo-locale gate 16: a longer translation never hides text. Every cell that can be cut off
+  // carries its value as a title, a wrap column's too, which still keeps to one line.
+  it("gives each text cell, a wrap column's included, its value as a title", () => {
+    render(<DataTable caption="Audio" columns={columns} rows={rows} />);
+    const grid = screen.getByRole("grid");
+    const cell = (text: string) => within(grid).getByText(text).closest("td") as HTMLElement;
+    expect(cell("Flown").getAttribute("title")).toBe("Flown");
+    expect(cell("Line Array Package").getAttribute("title")).toBe("Line Array Package");
+    expect(cell("2").getAttribute("title")).toBeNull();
+  });
+
   it("moves through cells with the keyboard and activates a row with Enter", async () => {
     const onRowActivate = vi.fn();
     render(
@@ -135,7 +149,10 @@ describe("DataTable", () => {
     const handle = screen.getByRole("separator", { name: /Code/ });
     // The press arrives before the engine has loaded; the drag starts from it once it is ready.
     fireEvent.mouseDown(handle, { clientX: 100 });
-    await waitFor(() => expect(handle.className.split(" ")).toContain("bg-accent"));
+    // The engine's first import can take more than waitFor's 1 s default on a busy CI runner (PR #88).
+    await waitFor(() => expect(handle.className.split(" ")).toContain("bg-accent"), {
+      timeout: ENGINE_LOAD,
+    });
     fireEvent.mouseMove(document, { clientX: 140 });
     fireEvent.mouseUp(document, { clientX: 140 });
     await waitFor(() => expect(handle.getAttribute("aria-valuenow")).toBe("168"));
@@ -173,6 +190,55 @@ describe("DataTable", () => {
     await expectAccessible(container);
     oh.mockRestore();
     ow.mockRestore();
+  });
+
+  it("shows a long table's first screen without the engine, which then moves the same window", async () => {
+    const oh = vi.spyOn(HTMLElement.prototype, "offsetHeight", "get").mockReturnValue(360);
+    const ow = vi.spyOn(HTMLElement.prototype, "offsetWidth", "get").mockReturnValue(800);
+    const many = Array.from({ length: 500 }, (_, i) => ({ code: `R-${i}`, name: `Row ${i}` }));
+    const { container } = render(
+      <DataTable label="Many" columns={columns.slice(0, 2)} rows={many} resizable={false} />,
+    );
+    const shown = () =>
+      [...container.querySelectorAll("tbody tr[aria-rowindex]")].map((r) =>
+        Number(r.getAttribute("aria-rowindex")),
+      );
+    // 360 px holds ten 36 px rows, and ten more render below them.
+    const firstScreen = shown();
+    expect(firstScreen).toEqual(Array.from({ length: 20 }, (_, i) => i + 2));
+
+    const region = screen.getByRole("region", { name: "Many" });
+    region.scrollTop = 3600;
+    fireEvent.scroll(region);
+    // Row 100 starts at 3,600 px: the engine reads where the region is once it has loaded.
+    await waitFor(() => expect(shown()).toContain(102), { timeout: ENGINE_LOAD });
+    expect(shown()).not.toContain(2);
+    oh.mockRestore();
+    ow.mockRestore();
+  });
+
+  it("takes a key press made before the engine has loaded", async () => {
+    const oh = vi.spyOn(HTMLElement.prototype, "offsetHeight", "get").mockReturnValue(360);
+    const ow = vi.spyOn(HTMLElement.prototype, "offsetWidth", "get").mockReturnValue(800);
+    const sh = vi.spyOn(Element.prototype, "scrollHeight", "get").mockReturnValue(18000);
+    const many = Array.from({ length: 500 }, (_, i) => ({ code: `R-${i}`, name: `Row ${i}` }));
+    render(<DataTable label="Many" columns={columns.slice(0, 2)} rows={many} resizable={false} />);
+    const region = screen.getByRole("region", { name: "Many" });
+    region.scrollTo = ((options: ScrollToOptions) => {
+      region.scrollTop = options.top ?? 0;
+      // A browser fires the scroll event later, not during the call.
+      setTimeout(() => fireEvent.scroll(region), 0);
+    }) as typeof region.scrollTo;
+    act(() => screen.getAllByRole("gridcell")[0]?.focus());
+    await userEvent.keyboard("{Control>}{End}{/Control}");
+    await waitFor(
+      () =>
+        expect(document.activeElement?.closest("tr")?.getAttribute("aria-rowindex")).toBe("501"),
+      { timeout: ENGINE_LOAD },
+    );
+    oh.mockRestore();
+    ow.mockRestore();
+    sh.mockRestore();
   });
 
   it("mirrors horizontal keys in right-to-left", async () => {
@@ -222,6 +288,12 @@ describe("RecordRow and RecordList", () => {
         .getAllByRole("columnheader")
         .map((h) => h.textContent),
     ).toEqual(["State", "Key", "Record", "Labels", "Next date", "Owner", "Action"]);
+    // A record's name truncates, so it carries its whole text as a title (gate 16).
+    expect(
+      within(rowsEls[1] as HTMLElement)
+        .getByText("Load-in")
+        .getAttribute("title"),
+    ).toBe("Load-in");
     act(() => grid.focus());
     expect(document.activeElement).toBe(rowsEls[0]);
     await userEvent.keyboard("x");

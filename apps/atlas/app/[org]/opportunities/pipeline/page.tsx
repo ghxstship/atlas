@@ -12,6 +12,7 @@ import {
 import type { Route } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { RecordHistory } from "@/components/history/record-history";
 import { ActionForm, type FieldSpec } from "@/components/opportunities/action-form";
 import { SharedProfile } from "@/components/opportunities/shared-profile";
 import {
@@ -43,6 +44,7 @@ import {
   transitionApplicationAction,
   withdrawOfferAction,
 } from "../actions";
+import * as enums from "@xos/data/enums";
 
 /**
  * Pipeline (Section 4.5.5: board by application state; Section 4.4.4 stages 3 to 5). Applications, bids and agency
@@ -436,7 +438,7 @@ async function ApplicationRecord({
                 label: t("fields.kind"),
                 kind: "select",
                 defaultValue: a.roleType === "Artist" ? "Audition" : "Interview",
-                options: (["Interview", "Audition"] as const).map((k) => ({
+                options: enums.interviewKind.map((k) => ({
                   value: k,
                   label: t(`interviewKinds.${enumKey(k)}`),
                 })),
@@ -562,6 +564,7 @@ async function ApplicationRecord({
           )}
         </Section>
       ) : null}
+      <RecordHistory db={db} table="app.applications" id={a.id} />
     </TemplateRecord>
   );
 }

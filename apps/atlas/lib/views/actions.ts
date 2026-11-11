@@ -19,6 +19,9 @@ import {
 import { SAVED_VIEW_TYPES } from "@xos/schemas/views";
 import { z } from "zod";
 import { getOrgContext } from "@/lib/shell/context";
+import type { Database } from "@xos/data/database.types";
+import * as enums from "@xos/data/enums";
+import { CONDITION_OPERATORS, type ConditionOperator } from "./conditions";
 
 /**
  * Server actions behind the saved views menu of every collection (Section 11.15). Each reads and
@@ -37,8 +40,11 @@ export interface ViewDraft {
   readonly viewType: SavedViewInput["viewType"];
   readonly searchText: string | null;
   readonly groupByField: string | null;
-  readonly filters: readonly { field: string; operator: "eq"; value: string }[];
-  readonly sorts: readonly { field: string; direction: "Ascending" | "Descending" }[];
+  readonly filters: readonly { field: string; operator: ConditionOperator; value: string }[];
+  readonly sorts: readonly {
+    field: string;
+    direction: Database["app"]["Enums"]["sort_direction"];
+  }[];
 }
 
 const queryShape: z.ZodType<ViewDraft> = z.object({
@@ -47,11 +53,15 @@ const queryShape: z.ZodType<ViewDraft> = z.object({
   searchText: z.string().max(200).nullable(),
   groupByField: FIELD.nullable(),
   filters: z
-    .array(z.object({ field: FIELD, operator: z.literal("eq"), value: z.string().max(1000) }))
+    .array(
+      z.object({
+        field: FIELD,
+        operator: z.enum(CONDITION_OPERATORS),
+        value: z.string().max(1000),
+      }),
+    )
     .max(50),
-  sorts: z
-    .array(z.object({ field: FIELD, direction: z.enum(["Ascending", "Descending"]) }))
-    .max(10),
+  sorts: z.array(z.object({ field: FIELD, direction: z.enum(enums.sortDirection) })).max(10),
 });
 
 function errorOf(error: DataError): ViewsError {

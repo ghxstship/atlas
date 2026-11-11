@@ -242,7 +242,7 @@ export function Avatar({ name, size = "md", testID }: AvatarProps): ReactElement
 }
 
 /** Determinate progress, 0 to 100. */
-export function ProgressBar({ label, value, testID }: ProgressBarProps): ReactElement {
+export function ProgressBar({ label, value, valueLabel, testID }: ProgressBarProps): ReactElement {
   const theme = useTheme();
   const percent = Math.max(0, Math.min(100, Math.round(value)));
   return (
@@ -251,7 +251,10 @@ export function ProgressBar({ label, value, testID }: ProgressBarProps): ReactEl
         <Text variant="text14" tone="secondary">
           {label}
         </Text>
-        <Text variant="text14" tone="secondary">{`${percent}%`}</Text>
+        <Text variant="text14" tone="secondary">
+          {valueLabel ??
+            new Intl.NumberFormat(undefined, { style: "percent" }).format(percent / 100)}
+        </Text>
       </View>
       <View
         role="progressbar"

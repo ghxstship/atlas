@@ -34,7 +34,9 @@ const AT = "2027-06-01T12:00:00Z";
 /** Sample arguments for the label functions that take something other than names, counts and times. */
 const SAMPLES: Readonly<Record<string, readonly unknown[]>> = {
   reaction: ["thumbs_up", 2, true],
-  level: [90],
+  level: [90, "Occupant Load Factor"],
+  percent: [80, "Permit"],
+  basis: ["Space Capacity"],
   courseMeta: ["2027-06-10", 30],
   score: [7, 10, 6],
   plusOnes: [1, 2],
@@ -200,5 +202,19 @@ describe("Workforce reads and refusals", () => {
       ["c1", "2027-06-10", ["c1-l1"], null],
       ["c2", null, [], "passed"],
     ]);
+  });
+});
+
+describe("Occupancy load wording", () => {
+  it.each(locales)("says permitted only when a permit set the load in %s", async (locale) => {
+    const t = await translator(locale);
+    const occupancy = labels.occupancyLabels(t);
+    const permitted = t("workforce.compass.occupancy.loadName.Permit");
+    expect(occupancy.level(90, "Permit")).toContain(permitted);
+    for (const basis of ["Occupant Load Factor", "Space Capacity"] as const) {
+      expect(occupancy.level(90, basis)).not.toContain(permitted);
+      expect(occupancy.percent(80, basis)).not.toContain(permitted);
+      expect(occupancy.basis(basis)).not.toContain(permitted);
+    }
   });
 });

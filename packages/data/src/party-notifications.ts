@@ -1,3 +1,4 @@
+import { notificationCategoryChannels } from "@xos/schemas/notifications";
 import type { XosClient } from "./client.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 
@@ -16,6 +17,15 @@ export type PartyCategory = (typeof PARTY_CATEGORIES)[number];
 export const PARTY_CHANNELS = ["Email", "Push"] as const;
 export type PartyChannel = (typeof PARTY_CHANNELS)[number];
 
+/**
+ * The party channels a category's kinds reach (A104): the only ones a person or a company is offered a switch for.
+ * A channel no kind of the category is delivered on could never send anything.
+ */
+export function partyChannels(category: PartyCategory): PartyChannel[] {
+  const reached = notificationCategoryChannels(category);
+  return PARTY_CHANNELS.filter((channel) => reached.includes(channel));
+}
+
 export interface PartyNotification {
   readonly id: string;
   readonly kind: string;
@@ -23,6 +33,8 @@ export interface PartyNotification {
   readonly read: boolean;
   /** Display values for the kind's catalog message (title, orgName, projectName, gatewayPath). */
   readonly args: Readonly<Record<string, string>>;
+  /** The record the notification is about (its table and id), when it names one; Gateway opens some in place (R5). */
+  readonly subject: { readonly table: string; readonly id: string } | null;
 }
 
 function stringArgs(value: unknown): Record<string, string> {
@@ -41,7 +53,7 @@ export async function listMyNotifications(
 ): Promise<Result<PartyNotification[]>> {
   const { data, error } = await db
     .from("notifications")
-    .select("id, kind, created_at, read_at, message_args, archived_at")
+    .select("id, kind, created_at, read_at, message_args, archived_at, subject_table, subject_id")
     .is("archived_at", null)
     .order("created_at", { ascending: false })
     .limit(limit);
@@ -53,6 +65,10 @@ export async function listMyNotifications(
       createdAt: row.created_at,
       read: row.read_at !== null,
       args: stringArgs(row.message_args),
+      subject:
+        row.subject_table !== null && row.subject_id !== null
+          ? { table: row.subject_table, id: row.subject_id }
+          : null,
     })),
   );
 }
@@ -67,8 +83,9 @@ export interface PartyPreference {
 const DEFAULT_ON: Readonly<Record<PartyChannel, boolean>> = { Email: true, Push: true };
 
 /**
- * Every party category and channel with the person's choice, else the defaults of their company accounts (on
- * when any has it on, as private.person_channel_enabled resolves them since 1434), else the channel default.
+ * Every party category on each channel it reaches (partyChannels) with the person's choice, else the defaults of
+ * their company accounts (on when any has it on, as private.person_channel_enabled resolves them since 1434), else
+ * the channel default.
  */
 export async function listMyNotificationPreferences(
   db: XosClient,
@@ -86,7 +103,7 @@ export async function listMyNotificationPreferences(
   };
   return ok(
     PARTY_CATEGORIES.flatMap((category) =>
-      PARTY_CHANNELS.map((channel) => ({
+      partyChannels(category).map((channel) => ({
         category,
         channel,
         enabled:

@@ -26,6 +26,7 @@ import { nodeHref } from "@/lib/shell/sitemap";
 import type { OrgContext } from "@/lib/shell/context";
 import { orgToday } from "@/lib/shell/time-zone";
 import { REFUSALS, memberOptions, orgPickers, workforceCopy } from "./shared";
+import { CollectionPage } from "@/components/platform/collection-page";
 
 const VIEWS: readonly ViewKind[] = ["list", "table"];
 
@@ -58,10 +59,9 @@ export async function GroupsSection({
   const title = t("groups.title");
   if (!groups.ok) {
     return (
-      <>
-        <PageHeader title={title} />
+      <CollectionPage header={<PageHeader title={title} />}>
         <ErrorPanel what={t("groups.what")} />
-      </>
+      </CollectionPage>
     );
   }
   const canManage = ctx.capabilities.has("org.communication.write");

@@ -1,6 +1,7 @@
 "use client";
 
-import { Input, Select, Textarea } from "@xos/ui";
+import { emitWorkflow, workflowMarker } from "@xos/data/workflow-signal";
+import { Checkbox, Input, Select, Textarea } from "@xos/ui";
 import type { Route } from "next";
 import Link from "next/link";
 import { useState } from "react";
@@ -17,6 +18,7 @@ import {
 } from "@/app/[org]/projects/templates/actions";
 import type { WorkflowActionState } from "@/lib/workflow/state";
 import { ActionForm, useWorkflowT } from "./kit";
+import type { Database } from "@xos/data/database.types";
 
 export interface Choice {
   readonly value: string;
@@ -131,6 +133,7 @@ export function SaveProjectForm({ org, projects }: { org: string; projects: read
         onChange={(e) => setProject(e.target.value)}
       />
       <Input name="name" label={t("templates.fields.name")} maxLength={200} required width="100%" />
+      <Checkbox name="keepDates" label={t("templates.fromProject.keepDates")} defaultChecked />
     </ActionForm>
   );
 }
@@ -151,12 +154,17 @@ export function ApplyTemplateForm({
   const [created, setCreated] = useState<string | null>(null);
   return (
     <div className="flex flex-col gap-8">
+      <span hidden {...workflowMarker("atlas.projects_gates:step1")} />
       <ActionForm
         action={applyTemplateAction}
         hidden={{ org, templateId, timeZone: zone }}
         label={t("templates.apply.label")}
         submitLabel={t("templates.apply.submit")}
-        onDone={(state: WorkflowActionState) => setCreated(state.id ?? null)}
+        onDone={(state: WorkflowActionState) => {
+          // A project created from a template completes the Projects and gates funnel (A146).
+          emitWorkflow("atlas.projects_gates:done");
+          setCreated(state.id ?? null);
+        }}
       >
         <div className="grid grid-cols-2 gap-8 max-md:grid-cols-1">
           <Input
@@ -202,6 +210,7 @@ export function ApplyTemplateForm({
             onChange={(e) => setZone(e.target.value)}
           />
         </div>
+        <Checkbox name="withoutDates" label={t("templates.apply.withoutDates")} />
       </ActionForm>
       {created ? (
         <p role="status" className="m-0 text-text-13">
@@ -270,7 +279,7 @@ export function AddItemForm({
   phases: readonly Choice[];
 }) {
   const t = useWorkflowT();
-  const [kind, setKind] = useState<"Record" | "Scope Node">("Record");
+  const [kind, setKind] = useState<Database["app"]["Enums"]["template_item_kind"]>("Record");
   const [scopeKind, setScopeKind] = useState("Show");
   const [recordKind, setRecordKind] = useState(recordKinds[0]?.value ?? "");
   const [xyz, setXyz] = useState("Y");
@@ -291,7 +300,7 @@ export function AddItemForm({
           { value: "Record", label: t("templates.items.kinds.Record") },
           { value: "Scope Node", label: t("templates.items.kinds.Scope Node") },
         ]}
-        onChange={(e) => setKind(e.target.value as "Record" | "Scope Node")}
+        onChange={(e) => setKind(e.target.value as Database["app"]["Enums"]["template_item_kind"])}
       />
       <Input
         name="name"
@@ -357,6 +366,10 @@ export function AddItemForm({
             help={t("templates.items.dueOffsetHelp")}
             width="100%"
           />
+          {/* An Approval record is decided, not reviewed (template_items_review_not_approval). */}
+          {recordKind === "Approval" ? null : (
+            <Checkbox name="requiresReview" label={t("templates.items.requiresReview")} />
+          )}
         </div>
       )}
     </ActionForm>

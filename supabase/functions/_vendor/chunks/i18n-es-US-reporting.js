@@ -7,10 +7,13 @@ var file = {
     "Ejecutado el {date}. Filas: {rows}. Filas con un importe sin precio, fuera de su total: {unpriced}.",
   truncated:
     "Este archivo llega hasta el límite de filas. Ajusta los filtros del informe para ver todas las filas.",
+  watermark: "Preparado para {email} el {time}",
 };
-var email = {
-  subject: "{report} de {org}",
-  body: "Adjuntamos tu informe programado {report} de {org}. Tiene {rows} filas; {unpriced} tienen un importe sin precio, fuera de sus totales. Se ejecutó con tu propio acceso, así que solo muestra lo que puedes ver.",
+var exportFile = {
+  subtitle: "Exportado el {date}. Filas: {rows}.",
+  truncated:
+    "Este archivo contiene las primeras {limit} filas. Ajusta los filtros de la colección para exportar todas las filas.",
+  watermark: "Exportado por {email} el {time}",
 };
 var dashboards = {
   count: "{count, plural, =0 {Sin tableros} one {# tablero} other {# tableros}}",
@@ -112,11 +115,11 @@ var errors = {
 };
 var reporting_default = {
   file,
-  email,
+  exportFile,
   dashboards,
   tile,
   schedule,
   errors,
 };
 //#endregion
-export { dashboards, reporting_default as default, email, errors, file, schedule, tile };
+export { dashboards, reporting_default as default, errors, exportFile, file, schedule, tile };

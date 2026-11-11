@@ -6,17 +6,25 @@ import {
   DOCUMENT_KINDS,
   isDocumentKind,
   isPaper,
+  isPrintSizeFor,
+  printSizesFor,
   type DocumentKind,
+  type PrintSize,
 } from "../../src/documents/model.ts";
 import {
+  BADGE_V2_FROM,
+  badgeScanPayload,
   DESCRIBE,
+  guestPassScanPayload,
   TEMPLATES,
   keyOf,
   templateFor,
   type TemplateRegistry,
   type TemplateVersion,
 } from "../../src/documents/templates.ts";
-import { BRAND, FIXTURES, NOW } from "./fixtures.ts";
+import { renderDocumentPdf } from "../../src/documents/render.ts";
+import { ACCEPTED_QUOTES, BADGE_V2, BRAND, FIXTURES, NOW, PHOTO_JPEG } from "./fixtures.ts";
+import { pdfText } from "./pdf-text.ts";
 
 const messages = (locale: string): unknown =>
   JSON.parse(
@@ -112,7 +120,18 @@ describe("template versions", () => {
   });
 
   it("ships at least version 1 of every Section 11.9 document", () => {
-    expect(DOCUMENT_KINDS).toHaveLength(12);
+    // The twelve of Section 11.9, R7's radio hand-out, B1's site plan and signage build sheet, B7's wrap-up report, B8's guest pass B10's generated agreement and B13's client quote.
+    expect(DOCUMENT_KINDS).toHaveLength(19);
+    expect(DOCUMENT_KINDS).toEqual(
+      expect.arrayContaining([
+        "purchase-order",
+        "agreement-certificate",
+        "radio-handout",
+        "site-plan",
+        "signage-build-sheet",
+        "wrap-up-report",
+      ]),
+    );
     for (const kind of DOCUMENT_KINDS) {
       expect(TEMPLATES[kind].map((v) => v.version)).toContain(1);
       const numbers = TEMPLATES[kind].map((v) => v.version);
@@ -140,7 +159,7 @@ describe("every template", () => {
     expect(model.facts.labels.qrAlt).toContain(model.facts.recordKey);
     for (const s of strings(model)) {
       expect(s, `${kind} ${locale}`).not.toMatch(
-        /^(common|facts|purchaseOrder|invoice|changeOrder|daySheet|callSheet|runOfShow|beo|credentialBadge|inspectionReport|incidentReport|finalCostReport|agreementCertificate)\./,
+        /^(common|facts|purchaseOrder|invoice|changeOrder|daySheet|callSheet|runOfShow|beo|credentialBadge|inspectionReport|incidentReport|finalCostReport|agreementCertificate|radioHandout|quote)\./,
       );
     }
   });
@@ -167,6 +186,12 @@ describe("data mapping", () => {
     expect(d("incident-report").recordKey).toBe("NWF26-4");
     expect(d("final-cost-report")).toEqual({ recordKey: "NWF26-FCR", issuedAt: NOW.toISOString() });
     expect(d("agreement-certificate").issuedAt).toBe("2026-09-20T18:12:00Z");
+    expect(d("radio-handout")).toEqual({ recordKey: "NWF26-RADIOS", issuedAt: NOW.toISOString() });
+    expect(d("guest-pass")).toEqual({
+      recordKey: "GP-ABCDEFGHIJ",
+      issuedAt: "2027-05-20T18:00:00Z",
+    });
+    expect(d("quote")).toEqual({ recordKey: "NWF26-Q-14-v2", issuedAt: "2026-11-02T15:00:00Z" });
   });
 
   it("falls back for unnumbered invoices and drafts", () => {
@@ -238,6 +263,46 @@ describe("data mapping", () => {
     });
   });
 
+  it("lists radios by party then person, with blank signature and returned columns", () => {
+    const table = build("radio-handout").blocks.find((b) => b.kind === "table");
+    if (table?.kind !== "table") throw new Error("no hand-out");
+    expect(table.columns.map((c) => c.label)).toEqual([
+      "Person",
+      "Party",
+      "Radio",
+      "Tags issued",
+      "Channels",
+      "Status",
+      "Signature",
+      "Returned",
+    ]);
+    expect(table.rows).toEqual([
+      [
+        "Kai Morgan",
+        "Bayside Audio",
+        "Two-way radios",
+        "R-001",
+        "1 Production, 2 Audio",
+        "Issued",
+        "",
+        "",
+      ],
+      ["Zoë Ångström", "Bayside Audio", "Two-way radios", "None", "2 Audio", "Approved", "", ""],
+      [
+        "Ivy Marchetti Lighting",
+        "Ivy Marchetti Lighting",
+        "Two-way radios × 4",
+        "R-010, R-011",
+        "None",
+        "Partly issued",
+        "",
+        "",
+      ],
+    ]);
+    const es = build("radio-handout", "es-US").blocks.find((b) => b.kind === "table");
+    expect(es?.kind === "table" && es.rows[2]?.[5]).toBe("Entregada en parte");
+  });
+
   it("reports call sheet gaps and cue progress", () => {
     const calls = build("call-sheet").blocks.find((b) => b.kind === "table");
     if (calls?.kind !== "table") throw new Error("no calls");
@@ -246,6 +311,84 @@ describe("data mapping", () => {
     expect(strings(build("run-of-show"))).toContain("1 of 3 cues called");
     expect(strings(build("day-sheet"))).not.toContain("Draft, not published");
     expect(strings(build("call-sheet"))).toContain("Draft, not published");
+  });
+});
+
+describe("run of show version 2 (ADR 0131)", () => {
+  const v2Data = {
+    ...FIXTURES["run-of-show"],
+    run: {
+      ...FIXTURES["run-of-show"].run,
+      showDate: "2026-11-07",
+      curfewAt: "2026-11-08T02:00:00Z" as string | null,
+    },
+    cues: FIXTURES["run-of-show"].cues.map((c) => (c.id === "q2" ? { ...c, startTbc: true } : c)),
+    calls: [
+      { id: "k2", cueId: "q2", kind: "Stage" as const, instruction: "Riser lock checked" },
+      { id: "k1", cueId: "q2", kind: "Lighting" as const, instruction: "LX 14 GO" },
+    ],
+  };
+  const render = (locale: string, data = v2Data) =>
+    buildDocumentModel("run-of-show", data, {
+      locale,
+      messages: locale === "en-US" ? EN : ES,
+      brand: BRAND,
+      recordUrl: "u",
+      now: NOW,
+    });
+
+  it("shows TBC planned times, a Department calls column and the curfew for a show on or after it", () => {
+    const model = render("en-US");
+    expect(model.facts.templateVersion).toBe(2);
+    const table = model.blocks.find((b) => b.kind === "table");
+    if (table?.kind !== "table") throw new Error("no cues");
+    expect(table.columns.map((c) => c.label)).toContain("Department calls");
+    expect(table.rows[1]?.[2]).toBe("TBC");
+    expect(table.rows[1]?.[4]).toBe("Lighting: LX 14 GO\nStage: Riser lock checked");
+    expect(table.rows[0]?.[4]).toBe("");
+    expect(strings(model)).toContain("Curfew");
+    const es = render("es-US");
+    expect(strings(es)).toContain("Por confirmar");
+    expect(strings(es)).toContain("Iluminación: LX 14 GO\nEscenario: Riser lock checked");
+    for (const text of [...strings(model), ...strings(es)])
+      expect(text).not.toMatch(/^runOfShow\./);
+  });
+
+  it("names a showcaller link's caller for a cue called through the link (ADR 0142)", () => {
+    const data = {
+      ...v2Data,
+      cues: v2Data.cues.map((c) =>
+        c.id === "q2"
+          ? {
+              ...c,
+              calledAt: "2026-11-08T00:10:00Z",
+              calledByName: null,
+              calledViaLink: "Sam Okafor",
+            }
+          : c,
+      ),
+    };
+    const rows = (model: ReturnType<typeof render>) => {
+      const table = model.blocks.find((b) => b.kind === "table");
+      if (table?.kind !== "table") throw new Error("no cues");
+      return table.rows;
+    };
+    const en = rows(render("en-US", data));
+    expect(en[1]?.[6]).toBe("Sam Okafor (showcaller link)");
+    expect(en[0]?.[6]).toBe("Sam Lee");
+    expect(rows(render("es-US", data))[1]?.[6]).toBe("Sam Okafor (enlace de llamado)");
+  });
+
+  it("leaves the curfew out when none is set", () => {
+    const model = render("en-US", { ...v2Data, run: { ...v2Data.run, curfewAt: null } });
+    expect(strings(model)).not.toContain("Curfew");
+  });
+
+  it("re-renders an earlier show with version 1 unchanged", () => {
+    const model = render("en-US", { ...v2Data, run: { ...v2Data.run, showDate: "2026-10-24" } });
+    expect(model.facts.templateVersion).toBe(1);
+    expect(strings(model)).not.toContain("Department calls");
+    expect(strings(model)).not.toContain("TBC");
   });
 });
 
@@ -288,4 +431,317 @@ describe("helpers", () => {
     expect(sp(f.money(150, "JPY"))).toBe("JPY 150");
     expect(f.money(150, "ZZ")).toBe("1.50 ZZ");
   });
+});
+
+describe("the credential badge on four sizes (P5)", () => {
+  const badge = (data: (typeof FIXTURES)["credential-badge"], paper: PrintSize, locale = "en-US") =>
+    buildDocumentModel("credential-badge", data, {
+      locale,
+      messages: locale === "en-US" ? EN : ES,
+      brand: BRAND,
+      recordUrl: "https://atlas.example.test/r",
+      now: NOW,
+      paper,
+    });
+  const before = {
+    ...FIXTURES["credential-badge"],
+    credential: {
+      ...FIXTURES["credential-badge"].credential,
+      createdAt: new Date(Date.parse(BADGE_V2_FROM) - 1000).toISOString(),
+    },
+  };
+  const after = {
+    ...FIXTURES["credential-badge"],
+    credential: { ...FIXTURES["credential-badge"].credential, createdAt: BADGE_V2_FROM },
+  };
+
+  it("prints the badge on Letter, A4, A6 and CR80, and every other kind on Letter and A4 only", () => {
+    expect(printSizesFor("credential-badge")).toEqual(["letter", "a4", "a6", "cr80"]);
+    expect(printSizesFor("invoice")).toEqual(["letter", "a4"]);
+    expect(printSizesFor("guest-pass")).toEqual(["a6", "cr80", "letter", "a4"]);
+    expect(isPrintSizeFor("credential-badge", "cr80")).toBe(true);
+    expect(isPrintSizeFor("guest-pass", "a6")).toBe(true);
+    expect(isPrintSizeFor("invoice", "cr80")).toBe(false);
+    expect(isPaper("cr80")).toBe(false);
+  });
+
+  it("keeps version 1 on Letter and A4 for a credential issued before version 2, and version 2 on the cards", () => {
+    for (const paper of ["letter", "a4"] as const) {
+      const old = badge(before, paper);
+      expect(old.facts.templateVersion).toBe(1);
+      expect(old.blocks.some((b) => b.kind === "portrait")).toBe(false);
+    }
+    for (const paper of ["a6", "cr80"] as const) {
+      expect(badge(before, paper).facts.templateVersion).toBe(2);
+    }
+  });
+
+  it("renders version 2 on every size for a credential issued from version 2 on", () => {
+    for (const paper of ["letter", "a4", "a6", "cr80"] as const) {
+      expect(badge(after, paper).facts.templateVersion).toBe(2);
+    }
+  });
+
+  it("chooses among the versions that print on the paper", () => {
+    const versions = TEMPLATES["credential-badge"];
+    expect(templateFor(versions, "2020-01-01T00:00:00Z", "cr80").version).toBe(2);
+    expect(templateFor(versions, "2020-01-01T00:00:00Z", "letter").version).toBe(1);
+    expect(() => templateFor([versions[0] as never], "2026-01-01T00:00:00Z", "cr80")).toThrow(
+      /No template version prints on cr80/,
+    );
+  });
+
+  it("puts the portrait, the name, the gate code and the details on Letter and A4", () => {
+    const model = badge(BADGE_V2, "letter");
+    expect(model.blocks.map((b) => b.kind)).toEqual([
+      "portrait",
+      "paragraph",
+      "scan-code",
+      "fields",
+      "paragraph",
+    ]);
+    const portrait = model.blocks[0];
+    expect(portrait).toMatchObject({
+      kind: "portrait",
+      bytes: PHOTO_JPEG,
+      alt: `Photo of ${BADGE_V2.credential.holderName}, the credential holder`,
+      emptyText: "No photo on file",
+    });
+    expect(model.blocks[2]).toMatchObject({
+      kind: "scan-code",
+      payload: "XOSCR1:CR-000042",
+      alt: "Entry code for credential CR-000042",
+    });
+    // The record link QR stays in the header on Letter and A4 (Section 11.9).
+    expect(model.facts.recordUrl).toBe("https://atlas.example.test/r");
+  });
+
+  it("builds the cards in card order, with the fields table on A6 only", () => {
+    expect(badge(BADGE_V2, "cr80").blocks.map((b) => b.kind)).toEqual([
+      "portrait",
+      "heading",
+      "scan-code",
+      "paragraph",
+      "paragraph",
+      "paragraph",
+    ]);
+    expect(badge(BADGE_V2, "a6").blocks.map((b) => b.kind)).toEqual([
+      "portrait",
+      "heading",
+      "scan-code",
+      "paragraph",
+      "paragraph",
+      "paragraph",
+      "fields",
+    ]);
+    const card = badge(BADGE_V2, "cr80");
+    expect(card.blocks[1]).toEqual({ kind: "heading", text: BADGE_V2.credential.holderName });
+    expect(card.title).toBe(badge(BADGE_V2, "letter").title);
+  });
+
+  it("prints the empty photo frame when the holder has no photo, in both languages", () => {
+    const none = { ...BADGE_V2, photo: null };
+    expect(badge(none, "cr80").blocks[0]).toMatchObject({
+      bytes: null,
+      emptyText: "No photo on file",
+    });
+    expect(badge(none, "cr80", "es-US").blocks[0]).toMatchObject({
+      bytes: null,
+      emptyText: "No hay foto registrada",
+    });
+  });
+
+  it("encodes the gate code as the wallet pass form Compass reads", () => {
+    expect(badgeScanPayload("CR-000123")).toBe("XOSCR1:CR-000123");
+  });
+
+  it("names the badge files by size", () => {
+    expect(documentFileName("credential-badge", "CR-000042", "cr80")).toBe(
+      "credential-badge-CR-000042-cr80.pdf",
+    );
+  });
+});
+
+describe("the guest pass (B8)", () => {
+  const pass = (paper: PrintSize, locale = "en-US", data = FIXTURES["guest-pass"]) =>
+    buildDocumentModel("guest-pass", data, {
+      locale,
+      messages: locale === "es-US" ? ES : EN,
+      brand: BRAND,
+      recordUrl: "https://atlas.example.test/r",
+      now: NOW,
+      paper,
+    });
+
+  it("encodes the door code as XOSGP1 with the pass code", () => {
+    expect(guestPassScanPayload("GP-ABCDEFGHIJ")).toBe("XOSGP1:GP-ABCDEFGHIJ");
+  });
+
+  it("builds the card in card order with no portrait: name, code, pass type, show, plus-ones, table, code", () => {
+    for (const paper of ["a6", "cr80"] as const) {
+      const model = pass(paper);
+      expect(model.blocks.map((b) => b.kind)).toEqual([
+        "heading",
+        "scan-code",
+        "paragraph",
+        "paragraph",
+        "paragraph",
+        "paragraph",
+        "paragraph",
+      ]);
+      expect(model.blocks[0]).toEqual({
+        kind: "heading",
+        text: FIXTURES["guest-pass"].guest.guestName,
+      });
+      expect(model.blocks[1]).toMatchObject({
+        kind: "scan-code",
+        payload: "XOSGP1:GP-ABCDEFGHIJ",
+        alt: "Door code for guest pass GP-ABCDEFGHIJ",
+      });
+      const text = model.blocks.flatMap((b) => (b.kind === "paragraph" ? [b.text] : []));
+      expect(text).toEqual([
+        "VIP Guest (VIP)",
+        "Main Stage, Night 1, June 4, 2027",
+        "Admits 2 more",
+        "Table: Table 4",
+        "GP-ABCDEFGHIJ",
+      ]);
+      expect(model.title).toBe(`Guest pass: ${FIXTURES["guest-pass"].guest.guestName}`);
+    }
+  });
+
+  it("leaves out plus-ones and the table when there are none, and names the project without a show", () => {
+    const bare = {
+      ...FIXTURES["guest-pass"],
+      guest: {
+        ...FIXTURES["guest-pass"].guest,
+        plusOnes: 0,
+        tableLabel: null,
+        showName: null,
+        passCategoryName: null,
+        passCategoryCode: null,
+      },
+    };
+    const text = pass("a6", "en-US", bare).blocks.flatMap((b) =>
+      b.kind === "paragraph" ? [b.text] : [],
+    );
+    expect(text).toEqual([
+      "Guest",
+      `${FIXTURES["guest-pass"].project.name}, June 4, 2027`,
+      "GP-ABCDEFGHIJ",
+    ]);
+  });
+
+  it("reads in Spanish", () => {
+    const text = pass("a6", "es-US").blocks.flatMap((b) =>
+      b.kind === "paragraph" ? [b.text] : [],
+    );
+    expect(text).toContain("Admite 2 personas más");
+    expect(text).toContain("Mesa: Table 4");
+  });
+
+  it("adds the door note on Letter and A4 only", () => {
+    expect(pass("letter").blocks.at(-1)).toMatchObject({ kind: "paragraph" });
+    expect(pass("letter").blocks).toHaveLength(pass("a6").blocks.length + 1);
+  });
+
+  it("names the pass file by its code and size", () => {
+    expect(documentFileName("guest-pass", "GP-ABCDEFGHIJ", "a6")).toBe(
+      "guest-pass-GP-ABCDEFGHIJ-a6.pdf",
+    );
+  });
+});
+
+describe("the client quote (B13)", () => {
+  const quoteOf = (over: Partial<(typeof FIXTURES)["quote"]["quote"]>) =>
+    ({ ...FIXTURES.quote, quote: { ...FIXTURES.quote.quote, ...over } }) as never;
+  const text = (kindData: never, locale = "en-US") =>
+    strings(
+      buildDocumentModel("quote", kindData, {
+        locale,
+        messages: locale === "en-US" ? EN : ES,
+        brand: { name: "Northwind", legalEntity: null, accentHex: null, logo: null },
+        recordUrl: "https://example.test/q",
+        now: NOW,
+      }),
+    ).join("\n");
+
+  it("prints the fingerprint and tax sentence from Sent, and no signature block", () => {
+    const shown = text(quoteOf({}));
+    expect(shown).toContain("Content fingerprint (SHA-256)");
+    expect(shown).toContain("Prices exclude tax");
+    expect(shown).not.toContain("Name as signed");
+  });
+
+  it("says a Draft is not sent and prints no fingerprint", () => {
+    const shown = text(quoteOf({ state: "Draft", contentSha256: null }));
+    expect(shown).toContain("Draft: not sent");
+    expect(shown).not.toContain("Content fingerprint");
+  });
+
+  it("prints who signed through a link", () => {
+    const shown = text(
+      quoteOf({
+        state: "Accepted",
+        acceptedAt: "2026-11-03T15:00:00Z",
+        acceptedName: "Cleo Marsh",
+        acceptedEmail: "cleo@coral-group.test",
+      }),
+    );
+    expect(shown).toContain("Cleo Marsh");
+    expect(shown).toContain("Signing link with access code, sent to cleo@coral-group.test");
+    expect(shown).toContain("any change to the content changes the fingerprint");
+  });
+
+  it("prints who signed in, in Spanish too", () => {
+    const signed = quoteOf({
+      state: "Accepted",
+      acceptedAt: "2026-11-03T15:00:00Z",
+      acceptedName: "Cleo Marsh",
+      acceptedEmail: null,
+    });
+    expect(text(signed)).toContain("Signed in to Gateway");
+    expect(text(signed, "es-US")).toContain("Con sesión iniciada en Gateway");
+  });
+
+  const INTERNAL = ["cost", "markup", "margin", "urid", "5000."];
+
+  it.each([
+    ["Sent", FIXTURES.quote],
+    ["accepted by link", ACCEPTED_QUOTES["quote-accepted-link"]],
+    ["accepted signed in", ACCEPTED_QUOTES["quote-accepted-signed-in"]],
+  ])(
+    "prints no cost, markup, margin or URID on a %s quote, read from the PDF itself",
+    async (_name, data) => {
+      const model = buildDocumentModel("quote", data, {
+        locale: "en-US",
+        messages: EN,
+        brand: { name: "Northwind", legalEntity: null, accentHex: null, logo: null },
+        recordUrl: "https://example.test/q",
+        now: NOW,
+      });
+      const extracted = await pdfText(await renderDocumentPdf(model, { paper: "letter" }));
+      // The reader is reading: the client content is there, so an absence below means something.
+      expect(extracted).toContain("Main stage production");
+      expect(extracted).toContain("Scope line 80");
+      expect(extracted).toContain("Prices exclude tax");
+      expect(extracted).toContain("a".repeat(16));
+      const lower = extracted.toLowerCase();
+      for (const word of INTERNAL) expect(lower).not.toContain(word);
+    },
+    60_000,
+  );
+
+  it("prints the Signature block in the PDF once accepted", async () => {
+    const model = buildDocumentModel("quote", ACCEPTED_QUOTES["quote-accepted-link"], {
+      locale: "en-US",
+      messages: EN,
+      brand: { name: "Northwind", legalEntity: null, accentHex: null, logo: null },
+      recordUrl: "https://example.test/q",
+      now: NOW,
+    });
+    const extracted = await pdfText(await renderDocumentPdf(model, { paper: "letter" }));
+    expect(extracted).toContain("Cleo Marsh");
+    expect(extracted).toContain("cleo@coral-group.test");
+  }, 60_000);
 });

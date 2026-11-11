@@ -1,13 +1,66 @@
-import { getPublicPersonProfile, listRatingsAbout } from "@xos/data/gateway";
+import {
+  getPublicPersonProfile,
+  getRatingSharing,
+  listRatingsAbout,
+  listSharedRatings,
+} from "@xos/data/gateway";
 import type { Metadata, Route } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
 import { getLocale } from "next-intl/server";
 import { cache } from "react";
-import { PublicPersonProfile } from "@/components/profile/public-profile";
+import { PublicPersonProfile, type ProfileRating } from "@/components/profile/public-profile";
 import { ButtonLink } from "@/components/ui";
 import { getGatewayContext } from "@/lib/shell/context";
 import { getTranslate } from "@/lib/shell/translate";
 import { createServerSupabase } from "@/lib/supabase/server";
+
+/**
+ * The ratings this viewer may read on the profile (ADR 0158): the owner reads theirs; someone signed in reads them only
+ * while the person's opt-in stands and only if they decide no hiring in any org, which the database checks. Nobody signed
+ * out reads any.
+ */
+async function ratingsFor(
+  ctx: Awaited<ReturnType<typeof getGatewayContext>>,
+  handle: string,
+  owner: boolean,
+): Promise<{ ratings: readonly ProfileRating[]; shared: boolean }> {
+  if (!ctx) return { ratings: [], shared: false };
+  if (owner) {
+    const [own, sharing] = await Promise.all([
+      listRatingsAbout(ctx.db, { personId: ctx.personId }),
+      getRatingSharing(ctx.db),
+    ]);
+    return {
+      ratings: own.ok
+        ? own.data
+            .filter((r) => r.ofIndividual)
+            .map((r) => ({
+              id: r.id,
+              score: r.score,
+              comment: r.comment,
+              submittedAt: r.submittedAt,
+              reply: r.reply,
+              disputed: false,
+            }))
+        : [],
+      shared: sharing.ok && sharing.data,
+    };
+  }
+  const shared = await listSharedRatings(ctx.db, handle);
+  return {
+    ratings: shared.ok
+      ? shared.data.map((r) => ({
+          id: r.rating_id,
+          score: r.score,
+          comment: r.comment,
+          submittedAt: r.submitted_at,
+          reply: r.reply,
+          disputed: r.disputed,
+        }))
+      : [],
+    shared: true,
+  };
+}
 
 const load = cache(async (handle: string) => {
   const result = await getPublicPersonProfile(await createServerSupabase(), handle);
@@ -40,10 +93,7 @@ export default async function PersonProfilePage({ params }: PageProps<"/u/[handl
   if (!data) notFound();
   if (data.profile.redirected) permanentRedirect(`/u/${data.profile.handle}` as Route);
   const [t, locale, ctx] = await Promise.all([getTranslate(), getLocale(), getGatewayContext()]);
-  const ratings =
-    ctx && data.profile.viewer_is_owner
-      ? await listRatingsAbout(ctx.db, { personId: ctx.personId })
-      : null;
+  const { ratings, shared } = await ratingsFor(ctx, handle, data.profile.viewer_is_owner);
   return (
     <>
       {data.profile.viewer_is_owner ? (
@@ -62,7 +112,14 @@ export default async function PersonProfilePage({ params }: PageProps<"/u/[handl
       ) : null}
       <PublicPersonProfile
         data={data}
-        ratings={ratings?.ok ? ratings.data : []}
+        ratings={ratings}
+        ratingsNote={t(
+          data.profile.viewer_is_owner
+            ? shared
+              ? "gateway.profile.public.ratingsOwnerShared"
+              : "gateway.profile.public.ratingsOwnerPrivate"
+            : "gateway.profile.public.ratingsShared",
+        )}
         locale={locale}
         t={t}
       />

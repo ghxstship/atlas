@@ -15,13 +15,14 @@ import {
 import {
   AuditLogPanel,
   DataRequestsPanel,
+  SensitiveConsentPanel,
   DepartmentsPanel,
   ExportsAndRetentionPanel,
   LegalHoldsPanel,
   LocationDefaultsPanel,
   MeteredUsagePanel,
 } from "../surfaces/org";
-import { ConnectedAppsPanel, PayoutTaxPanel } from "../surfaces/personal";
+import { PayoutTaxPanel } from "../surfaces/personal";
 import type { SettingsContribution } from "./types";
 
 /**
@@ -47,11 +48,12 @@ export const contributions: readonly SettingsContribution[] = [
   // A61's usage against the plan comes first; the metered usage by billing month follows it.
   { node: "settings.usage", order: 20, Panel: MeteredUsagePanel },
   { node: "settings.data-and-privacy", order: 10, Panel: DataRequestsPanel },
+  { node: "settings.data-and-privacy", order: 15, Panel: SensitiveConsentPanel },
   { node: "settings.data-and-privacy", order: 20, Panel: LegalHoldsPanel },
   { node: "settings.data-and-privacy", order: 30, Panel: ExportsAndRetentionPanel },
   { node: "settings.audit-log", order: 10, Panel: AuditLogPanel },
-  // Personal settings, items 11, 13 and 15.
+  // Personal settings, items 11 and 15; Connected Apps (item 13) is A99's panel, with last use and a revoke that
+  // ends the app's sessions at once.
   { node: "me.payout-and-tax", order: 10, Panel: PayoutTaxPanel },
-  { node: "me.connected-apps", order: 10, Panel: ConnectedAppsPanel },
   { node: "me.developer", order: 10, Panel: MyTokensPanel },
 ];

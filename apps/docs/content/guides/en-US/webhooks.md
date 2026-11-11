@@ -30,7 +30,7 @@ Answer with any 2xx status within 10 seconds. Anything else is retried with expo
 The signature is HMAC-SHA256 of `{timestamp}.{body}` under the endpoint's signing secret. Verify it on the raw body, before parsing, and reject timestamps older than five minutes to stop replays.
 
 ```ts
-import { verifyWebhookSignature } from "@xos/sdk/webhooks";
+import { verifyWebhookSignature } from "@ghxstship/xos-sdk/webhooks";
 
 const result = await verifyWebhookSignature({
   payload: rawBody,

@@ -56,6 +56,7 @@ const ranked = {
   certifications_met: 0,
   is_saved: false,
   is_passed: false,
+  client_hidden: false,
 };
 
 describe("ranked marketplace search (A89, 1460)", () => {
@@ -115,6 +116,34 @@ describe("ranked marketplace search (A89, 1460)", () => {
     expect((await searchMarketplace(db)).ok).toBe(false);
   });
 
+  it("maps a hidden client's listing (3871): no venue name, the rounded point, whole kilometers", async () => {
+    const { db } = fakeClient({
+      "rpc:search_marketplace": [
+        okResponse([
+          {
+            ...ranked,
+            venue_name: null,
+            venue_latitude: 25.8,
+            venue_longitude: -80.2,
+            distance_km: "3",
+            client_hidden: true,
+          },
+          { ...ranked, id: "0192f3a4-b5c6-7d8e-9f0a-1b2c3d4e5f62", client_hidden: null },
+        ]),
+      ],
+    });
+    const result = await searchMarketplace(db);
+    expect(result.ok && result.data[0]).toMatchObject({
+      clientHidden: true,
+      venueName: null,
+      venueLocality: "Miami",
+      venueLatitude: 25.8,
+      venueLongitude: -80.2,
+      distanceKm: 3,
+    });
+    expect(result.ok && result.data[1]?.clientHidden).toBe(false);
+  });
+
   it("asks for the best match with no filters by default", async () => {
     const { db, calls } = fakeClient({ "rpc:search_marketplace": [okResponse(null)] });
     expect(await searchMarketplace(db)).toEqual({ ok: true, data: [] });
@@ -126,6 +155,14 @@ describe("ranked marketplace search (A89, 1460)", () => {
 
   it("publishes weights that add up to 100", () => {
     expect(Object.values(RECOMMENDATION_WEIGHTS).reduce((a, b) => a + b, 0)).toBe(100);
+  });
+
+  it("ranks by the person's own profile and never by ratings of people (ADR 0158)", () => {
+    // Atlas and Gateway list these keys as the ranking factors, so a ratings factor here would tell hiring admins
+    // that ratings decide who gets work.
+    expect(Object.keys(RECOMMENDATION_WEIGHTS).sort()).toEqual(
+      ["availability", "certifications", "location", "skills"].sort(),
+    );
   });
 });
 

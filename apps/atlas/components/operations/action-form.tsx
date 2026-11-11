@@ -1,5 +1,7 @@
 "use client";
 
+import type { WorkflowSignal } from "@xos/data/product-workflows";
+import { emitWorkflow } from "@xos/data/workflow-signal";
 import { Button, InlineAlert } from "@xos/ui";
 import { useTranslations } from "next-intl";
 import { startTransition, useActionState, useEffect, useRef, type ReactNode } from "react";
@@ -28,6 +30,7 @@ export function ActionForm({
   variant = "primary",
   layout = "stack",
   resetOnSuccess = false,
+  signals,
   children,
 }: {
   action: FormAction;
@@ -38,6 +41,8 @@ export function ActionForm({
   variant?: "primary" | "secondary" | "danger" | "ghost";
   layout?: "stack" | "inline";
   resetOnSuccess?: boolean;
+  /** Workflow funnel signals (A146): when the form is submitted, and when the action succeeds. */
+  signals?: { readonly submit?: WorkflowSignal; readonly done?: WorkflowSignal };
   children?: ReactNode;
 }) {
   const [state, run, pending] = useActionState(action, {});
@@ -48,19 +53,31 @@ export function ActionForm({
   useEffect(() => {
     if (state.ok && resetOnSuccess) form.current?.reset();
   }, [state, resetOnSuccess]);
+  // The form stays on the page with its result, so the result's own effect sends the funnel signal (A146).
+  const done = signals?.done;
+  const signaled = useRef(state);
+  useEffect(() => {
+    if (!state.ok || signaled.current === state) return;
+    signaled.current = state;
+    if (done) emitWorkflow(done);
+  }, [state, done]);
 
   return (
     <form
       ref={form}
+      // Only for a submit before the page hydrates, which would otherwise load the page with the fields in its URL.
+      action={run}
       onSubmit={(event) => {
         // Submitting through a transition instead of the form action keeps what the person typed
-        // when the action is refused; React resets a form after a form action.
+        // when the action is refused; React resets a form after a form action. `action` stays on the
+        // form for a click before hydration, which would otherwise be a native GET.
         event.preventDefault();
         const data = new FormData(event.currentTarget);
         startTransition(() => run(data));
       }}
       noValidate
       className={layout === "inline" ? "flex flex-wrap items-end gap-8" : "flex flex-col gap-12"}
+      data-workflow={signals?.submit}
     >
       {Object.entries(hidden).map(([name, value]) => (
         <input key={name} type="hidden" name={name} value={value} />
@@ -75,7 +92,14 @@ export function ActionForm({
         <Button type="submit" variant={variant} loading={pending}>
           {submitLabel}
         </Button>
-        <p role="status" className="m-0 text-text-13 text-success-text">
+        <p
+          role="status"
+          className={`m-0 text-text-13 ${
+            state.result?.["tone"] === "warning"
+              ? "font-medium text-danger-text"
+              : "text-success-text"
+          }`}
+        >
           {state.ok && successKey ? root(successKey, messageValues(state.result)) : null}
         </p>
       </div>
@@ -84,7 +108,7 @@ export function ActionForm({
 }
 
 /** Action results travel as strings; counts become numbers again so ICU plurals select by them. */
-function messageValues(
+export function messageValues(
   result: Readonly<Record<string, string>> | undefined,
 ): Record<string, string | number> {
   const values: Record<string, string | number> = {};

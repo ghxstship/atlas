@@ -141,7 +141,11 @@ export function ShiftCard({
       footer={actions}
     >
       <View style={{ gap: theme.space["4"] }}>
-        <Text tone="secondary">{`${date} · ${time}`}</Text>
+        <Text tone="secondary">
+          {date}
+          {" · "}
+          {time}
+        </Text>
         <Text variant="text14" tone="tertiary">
           {place}
         </Text>
@@ -222,7 +226,9 @@ export function ScanSheet({
         ) : null}
         <View style={{ flexDirection: "row", alignItems: "center", gap: theme.space["12"] }}>
           <View style={{ flex: 1 }}>
-            <Text variant="heading20" {...tid(testID, "count")}>{`${count} ${countLabel}`}</Text>
+            <Text variant="heading20" {...tid(testID, "count")}>
+              {count} {countLabel}
+            </Text>
           </View>
           <Button label={doneLabel} onPress={onDone} {...tid(testID, "done")} />
         </View>
@@ -397,15 +403,20 @@ export function RunOfShowLive({
   showMode,
   nextLabel,
   countdownLabel,
+  next: nextIndex,
+  countdownText,
   testID,
 }: RunOfShowLiveProps): ReactElement {
   const theme = useTheme();
-  const next = cues[current + 1];
+  const after = nextIndex ?? current + 1;
+  const next = cues[after];
   const now = cues[current];
   const big = showMode ? "heading32" : "heading24";
   const minutes = Math.floor(Math.abs(nextInSeconds) / 60);
   const seconds = Math.abs(nextInSeconds) % 60;
-  const countdown = `${nextInSeconds < 0 ? "+" : ""}${minutes}:${seconds.toString().padStart(2, "0")}`;
+  const countdown =
+    countdownText ??
+    `${nextInSeconds < 0 ? "+" : ""}${minutes}:${seconds.toString().padStart(2, "0")}`;
   return (
     <View testID={testID} style={{ gap: theme.space["16"] }}>
       {now ? (
@@ -431,7 +442,7 @@ export function RunOfShowLive({
           <View accessible accessibilityLabel={countdownLabel ?? countdown}>
             <Text
               variant="heading32"
-              tone={nextInSeconds < 0 ? "danger" : "primary"}
+              tone={countdownText === undefined && nextInSeconds < 0 ? "danger" : "primary"}
               testID="next-cue-countdown"
             >
               {countdown}
@@ -439,7 +450,7 @@ export function RunOfShowLive({
           </View>
         </View>
       ) : null}
-      {cues.slice(current + 2, current + 5).map((cue) => (
+      {cues.slice(after + 1, after + 4).map((cue) => (
         <View key={cue.number} style={{ flexDirection: "row", gap: theme.space["12"] }}>
           <Text variant="mono13" tone="tertiary">
             {cue.time}
@@ -571,9 +582,11 @@ export function CredentialBadge({
         <NativeText style={[typography(theme, "heading24"), { color: theme.color.paperInk }]}>
           {name}
         </NativeText>
-        <NativeText
-          style={[typography(theme, "text14"), { color: theme.color.paperInk }]}
-        >{`${role} · ${category}`}</NativeText>
+        <NativeText style={[typography(theme, "text14"), { color: theme.color.paperInk }]}>
+          {role}
+          {" · "}
+          {category}
+        </NativeText>
         <QRCode value={payload} label={credentialKey} />
         <NativeText style={[typography(theme, "mono13"), { color: theme.color.paperInk }]}>
           {credentialKey}
@@ -586,9 +599,9 @@ export function CredentialBadge({
         >
           {zones.join(" · ")}
         </NativeText>
-        <NativeText
-          style={[typography(theme, "text12"), { color: theme.color.paperInk }]}
-        >{`${validFrom} – ${validTo}`}</NativeText>
+        <NativeText style={[typography(theme, "text12"), { color: theme.color.paperInk }]}>
+          {[validFrom, validTo].filter(Boolean).join(" – ")}
+        </NativeText>
       </View>
     </View>
   );

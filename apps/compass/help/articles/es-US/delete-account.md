@@ -19,3 +19,5 @@ Los registros de tiempo y pago, los formularios fiscales y los registros de cont
 ## Confirmar
 
 Escribe tu correo de acceso, confirma que eres tú y mantén presionado **Eliminar mi cuenta** durante 2 segundos.
+
+Si inicias sesión con Apple, Compass muestra otra vez la hoja de Apple para dejar de usar tu Cuenta de Apple. Si no puede, tu cuenta se elimina de todos modos, y Compass te indica que la quites de Iniciar sesión con Apple en la configuración de tu Cuenta de Apple.

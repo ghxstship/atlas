@@ -20,6 +20,8 @@
 
 export interface ServiceWorkerConfig {
   /** App name shown when a push carries no title. */
+  // The apps with a service worker, which equal app.shortcut_shell by coincidence; not that enum.
+  // eslint-disable-next-line xos/no-restated-enums
   readonly app: "Atlas" | "Gateway";
   /** Build release: a new value retires the previous build files' cache. */
   readonly version: string;
@@ -40,7 +42,7 @@ const SAVED_AT = "x-xos-saved-at";
 const MAX_PAGES = 30;
 const MAX_STATIC = 400;
 const FRESH_MS = 30 * 60 * 1000;
-const NEVER = /^\/(auth|api|advance|sign|ical|\.well-known|__xos)(\/|$)|^\/(sw\.js|manifest\.webmanifest)$/;
+const NEVER = /^\/(auth|api|advance|sign|shifts|onboard|forms|share|ical|\.well-known|__xos)(\/|$)|^\/(sw\.js|manifest\.webmanifest)$/;
 
 function sameOrigin(url) {
   return url.origin === self.location.origin;

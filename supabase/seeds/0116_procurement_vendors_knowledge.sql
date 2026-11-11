@@ -93,8 +93,7 @@ begin
   perform app.transition_vendor(v_staging, 'Onboarded', 'Active', 'Approved for the 2027 season.');
   perform app.transition_vendor(v_audio, 'Prospect', 'Onboarded', 'Onboarding packet complete.');
 
-  insert into app.vendor_bank_accounts (vendor_id, bank_name, account_holder, account_last4, account_number, routing_number)
-  values (v_staging, 'Example Community Bank', 'Demo Staging Supply', '4321', '000123454321', '000000000');
+  perform app.set_vendor_bank_account(v_staging, 'Example Community Bank', 'Demo Staging Supply', '000123454321', '000000000');
 
   if v_admin_role is not null and not exists (
     select 1 from app.spend_authorities a where a.org_id = c_org and a.role_id = v_admin_role and a.deleted_at is null

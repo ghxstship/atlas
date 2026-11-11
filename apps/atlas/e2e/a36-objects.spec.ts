@@ -5,8 +5,8 @@ import { uniqueId } from "./support";
 
 /**
  * Journey 28 (Section 20.2, Section 4.6.3): define a custom object with a Choice field in Settings, add
- * records, view them as a board, move one, and read them through the API. Journey 32's "Why can I see
- * this" is checked on the record peek.
+ * records, view them as a board, move one, see the move in the record's history, comment on it, and
+ * read them through the API. Journey 32's "Why can I see this" is checked on the record peek.
  */
 test("journey 28: define a custom object, add records, view the board and read the API", async ({
   page,
@@ -79,6 +79,19 @@ test("journey 28: define a custom object, add records, view the board and read t
       .getByText("Built")
       .first(),
   ).toBeVisible();
+
+  // Activity, comments and files (Section 4.6.3): the move is in the record's field history, named
+  // by its field, and a comment posted from the peek shows there.
+  const history = peek.getByRole("region", { name: "Field history" });
+  await expect(history).toContainText("Status");
+  await expect(history).toContainText("Requested");
+  await expect(history).toContainText("Built");
+  await expect(peek.getByRole("region", { name: "Attachments" })).toBeVisible();
+  await peek.getByLabel("Write a comment").fill("Blade needs a softer edge.");
+  await peek.getByRole("button", { name: "Post comment" }).click();
+  await expect(peek.getByRole("region", { name: "Comments" })).toContainText(
+    "Blade needs a softer edge.",
+  );
   await page.keyboard.press("Escape");
   await expect(page.getByRole("region", { name: "Built" })).toContainText("Prop sword");
 

@@ -1,5 +1,6 @@
 import type { Database, XosClient } from "./client.ts";
 import { fail, ok, toDataError, type DatabaseErrorLike, type Result } from "./result.ts";
+import * as enums from "./enums.generated.ts";
 
 /**
  * Logistics repository (Section 4.2, RRR-23): shipments and their lines, dock slots, the gate
@@ -19,7 +20,7 @@ type GateQueueInsert = Derived<Tables["gate_queue"]["Insert"]>;
 type MarshallingInsert = Derived<Tables["marshalling_log"]["Insert"]>;
 
 export type ShipmentDirection = Database["app"]["Enums"]["shipment_direction"];
-export const SHIPMENT_DIRECTIONS: readonly ShipmentDirection[] = ["Inbound", "Outbound"];
+export const SHIPMENT_DIRECTIONS: readonly ShipmentDirection[] = enums.shipmentDirection;
 
 /**
  * Where a shipment stands, derived from its dock slots and gate queue entries, never stored
@@ -290,6 +291,40 @@ export interface DockSlot {
   readonly endsAt: string;
   readonly checkedInAt: string | null;
   readonly checkedInByName: string | null;
+  /** The delivery window the slot holds a place in (B11, ADR 0150); null for a slot booked directly. */
+  readonly deliveryWindowId: string | null;
+  readonly referenceCode: string | null;
+  readonly vehicleIdentifier: string | null;
+}
+
+/** A bump window's bounds as ISO instants (B14, 6263); a null bound is open. */
+export interface SiteWindowBounds {
+  readonly startsAt: string | null;
+  readonly endsAt: string | null;
+}
+
+/**
+ * True when a dock slot lies outside both the bump-in and the bump-out windows (B14, G-262): it overlaps neither. A
+ * project without either window raises nothing, and the warning never refuses a slot, as R7a's hire warnings never
+ * refuse a line. Windows are half open, [start, end).
+ */
+export function slotOutsideSiteWindows(
+  slot: { readonly startsAt: string; readonly endsAt: string },
+  windows: { readonly bumpIn: SiteWindowBounds | null; readonly bumpOut: SiteWindowBounds | null },
+): boolean {
+  const present = [windows.bumpIn, windows.bumpOut].filter(
+    (w): w is SiteWindowBounds => w !== null,
+  );
+  if (present.length === 0) return false;
+  const from = Date.parse(slot.startsAt);
+  const to = Date.parse(slot.endsAt);
+  if (Number.isNaN(from) || Number.isNaN(to)) return false;
+  const overlaps = (w: SiteWindowBounds) => {
+    const lower = w.startsAt === null ? -Infinity : Date.parse(w.startsAt);
+    const upper = w.endsAt === null ? Infinity : Date.parse(w.endsAt);
+    return from < upper && to > lower;
+  };
+  return !present.some(overlaps);
 }
 
 export interface GateEntry {
@@ -556,7 +591,7 @@ export interface DockScope extends OperationsScope {
 }
 
 const DOCK_COLUMNS =
-  "id, project_id, zone_id, shipment_id, engagement_id, starts_at, ends_at, checked_in_at, " +
+  "id, project_id, zone_id, shipment_id, engagement_id, starts_at, ends_at, checked_in_at, delivery_window_id, reference_code, vehicle_identifier, " +
   "project:projects!dock_slots_project_id_fkey(project_key, time_zone), zone:zones!dock_slots_zone_id_fkey(code, name), " +
   "checker:people!dock_slots_checked_in_by_fkey(full_name)";
 
@@ -569,6 +604,9 @@ interface DockRow {
   starts_at: string;
   ends_at: string;
   checked_in_at: string | null;
+  delivery_window_id: string | null;
+  reference_code: string | null;
+  vehicle_identifier: string | null;
   project: { project_key: string; time_zone: string } | null;
   zone: { code: string; name: string } | null;
   checker: { full_name: string | null } | null;
@@ -589,6 +627,9 @@ function toDockSlot(row: DockRow): DockSlot {
     endsAt: row.ends_at,
     checkedInAt: row.checked_in_at,
     checkedInByName: row.checker?.full_name ?? null,
+    deliveryWindowId: row.delivery_window_id,
+    referenceCode: row.reference_code,
+    vehicleIdentifier: row.vehicle_identifier,
   };
 }
 
@@ -648,7 +689,10 @@ export async function bookDockSlot(
   return one(data);
 }
 
-/** Moves or reassigns a dock slot; the same overlap rule applies. */
+/**
+ * Moves or reassigns a dock slot; the same overlap rule applies. The vendor engagement changes only
+ * when the input names it: undefined keeps it, null clears it.
+ */
 export async function updateDockSlot(
   db: XosClient,
   id: string,
@@ -659,7 +703,7 @@ export async function updateDockSlot(
     .update({
       zone_id: input.zoneId,
       shipment_id: input.shipmentId,
-      engagement_id: input.engagementId ?? null,
+      ...(input.engagementId !== undefined ? { engagement_id: input.engagementId } : {}),
       starts_at: input.startsAt,
       ends_at: input.endsAt,
     })
@@ -858,14 +902,16 @@ export async function addMarshallingEntry(
 
 // Display key lookup --------------------------------------------------------------------------------
 
-/** Tables whose rows carry a display number from the project record sequence (migration 0440). */
-export type NumberedTable = "shipments" | "fulfillments" | "beos" | "accommodation_blocks";
+/** Tables whose rows carry a display number from the project record sequence (migrations 0440 and 5941). */
+export type NumberedTable =
+  "shipments" | "fulfillments" | "beos" | "accommodation_blocks" | "transfers";
 
 const NUMBER_COLUMN = {
   shipments: "shipment_number",
   fulfillments: "fulfillment_number",
   beos: "beo_number",
   accommodation_blocks: "block_number",
+  transfers: "transfer_number",
 } as const satisfies Record<NumberedTable, string>;
 
 interface KeyQuery {

@@ -10,9 +10,11 @@ import { Button, Drawer, InlineAlert, Input, Select, Textarea, type ButtonProps 
 import { useTranslations } from "next-intl";
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
-import { useId, useState, useTransition, type FormEvent } from "react";
+import { useEffect, useId, useState, useTransition, type FormEvent } from "react";
+import { undoStack } from "@/components/undo/undo-stack";
 import type { ActionState } from "@/lib/logistics-hospitality/actions-kit";
 import { UndoNotice } from "./client";
+import { usePushTrash } from "./undo";
 
 type Translate = (key: string, values?: Record<string, string | number>) => string;
 
@@ -26,7 +28,7 @@ export type FormAction = (state: ActionState, form: FormData) => Promise<ActionS
 export interface FieldSpec {
   readonly name: string;
   readonly label: string;
-  readonly kind: "text" | "textarea" | "select" | "datetime" | "date" | "number" | "money";
+  readonly kind: "text" | "textarea" | "select" | "datetime" | "date" | "time" | "number" | "money";
   readonly options?: readonly { value: string; label: string }[];
   readonly required?: boolean;
   readonly help?: string;
@@ -117,11 +119,13 @@ function Fields({
         const type =
           f.kind === "datetime"
             ? "datetime-local"
-            : f.kind === "date"
-              ? "date"
-              : f.kind === "number"
-                ? "number"
-                : "text";
+            : f.kind === "time"
+              ? "time"
+              : f.kind === "date"
+                ? "date"
+                : f.kind === "number"
+                  ? "number"
+                  : "text";
         return (
           <Input
             key={f.name}
@@ -250,7 +254,9 @@ export function InlineForm({
 
 /**
  * One action on a record, such as Check in, Release or Approve. With `undo`, a success shows an
- * Undo toast for 8 seconds instead of asking for confirmation (Section 11.7).
+ * Undo toast for 8 seconds instead of asking for confirmation, and goes on the session's undo stack,
+ * so Cmd or Ctrl+Z restores the row too (Section 11.7). An action that leaves the page (`doneHref`,
+ * a delete from the peek) hands its toast to the shell, which outlives the closed peek.
  */
 export function ActionButton({
   label,
@@ -270,9 +276,18 @@ export function ActionButton({
 }) {
   const router = useRouter();
   const tc = useCopy("logistics.common");
+  const pushTrash = usePushTrash();
   const [state, setState] = useState<ActionState>({});
-  const [undoable, setUndoable] = useState(false);
+  // The undo stack entry this button's own toast shows, while the button stays on the page.
+  const [entry, setEntry] = useState<number | null>(null);
   const [pending, startTransition] = useTransition();
+  useEffect(
+    () =>
+      undoStack.subscribe((event) => {
+        if (event.kind === "undone" && event.entry.id === entry) setEntry(null);
+      }),
+    [entry],
+  );
   return (
     <span className="inline-flex flex-col gap-4">
       <Button
@@ -280,12 +295,20 @@ export function ActionButton({
         variant={variant}
         loading={pending}
         {...(icon ? { icon } : {})}
+        // A record's own delete, which goes to Trash and leaves the page, is its Move to Trash target.
+        {...(undo && doneHref ? { "data-shortcut": "record.trash" } : {})}
         onClick={() =>
           startTransition(async () => {
             const next = await run();
             setState(next);
             if (next.ok) {
-              if (undo) setUndoable(true);
+              if (undo) {
+                const pushed = pushTrash(
+                  { message: undo.message, run, restore: undo.restore },
+                  doneHref ? {} : { toast: false },
+                );
+                if (!doneHref) setEntry(pushed.id);
+              }
               if (doneHref) router.push(doneHref as Route, { scroll: false });
               else router.refresh();
             }
@@ -297,22 +320,19 @@ export function ActionButton({
       <ActionAlert state={state} />
       <UndoNotice
         region={tc("undoRegion")}
-        message={undo && undoable ? undo.message : null}
-        onUndo={() =>
-          startTransition(async () => {
-            if (!undo) return;
-            const restored = await undo.restore();
-            setState(restored);
-            setUndoable(false);
-            router.refresh();
-          })
-        }
+        message={undo && entry !== null ? undo.message : null}
+        onUndo={() => {
+          if (entry !== null) void undoStack.undo(entry);
+        }}
       />
     </span>
   );
 }
 
-/** A state move with its required reason, offering only the moves the lifecycle allows. */
+/**
+ * A state move with its required reason, offering only the moves the lifecycle allows. The form is
+ * the record's Change state shortcut target (data-shortcut="record.state"): the key opens the moves.
+ */
 export function TransitionForm({
   formLabel,
   label,
@@ -339,6 +359,7 @@ export function TransitionForm({
   return (
     <form
       aria-label={formLabel}
+      data-shortcut="record.state"
       className="flex flex-col gap-8"
       noValidate
       onSubmit={(e) => {

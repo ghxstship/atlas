@@ -1,5 +1,6 @@
 import type { Findings } from "./doctrine.ts";
 import { guardRules } from "./doctrine.ts";
+import { anonymize, isLibraryLocation } from "./rrr67.ts";
 import type { ColumnSpec, ColumnType, TableSpec } from "./schema/types.ts";
 import { SQL_TYPES, seededColumns } from "./schema/types.ts";
 
@@ -21,11 +22,13 @@ export function quoteText(value: string): string {
 }
 
 /**
- * A text literal, always written verbatim and readable. A canon value the finish
+ * A text literal, written verbatim and readable apart from the RRR-67 anonymization. A canon value the finish
  * guard would read as unfinished work is recorded as a finding for an owner
  * decision; the guard applies only its em dash rule to importer-generated files.
  */
-export function textLiteral(value: string, location: string, findings: Findings): string {
+export function textLiteral(raw: string, location: string, findings: Findings): string {
+  // RRR-67: the client of the CSMIA26 activation is never written into the canon seed.
+  const value = anonymize(raw, isLibraryLocation(location));
   const rules = guardRules(value);
   if (rules.length > 0) {
     findings.add(

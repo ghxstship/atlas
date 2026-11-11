@@ -4,6 +4,7 @@ import type { Route } from "next";
 import { notFound, redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { EmptyStateLink, PageHeader } from "@/components/ui";
+import { TemplateCollection } from "@/components/platform/client/template-collection";
 import { getOrgContext } from "@/lib/shell/context";
 import { sitemap } from "@/lib/shell/sitemap";
 import { savedViewTarget } from "@/lib/views/target";
@@ -40,14 +41,13 @@ export default async function SavedViewPage({ params }: PageProps<"/[org]/views/
   if (target.kind === "page") redirect(target.href as Route);
   const t = await getTranslations("views.open");
   return (
-    <>
-      <PageHeader title={view.data.name} />
+    <TemplateCollection header={<PageHeader title={view.data.name} />}>
       <EmptyStateLink
         icon="FolderKanban"
         sentence={t("projectSentence")}
         actionLabel={t("projectAction")}
         href={`/${ctx.org.slug}/projects`}
       />
-    </>
+    </TemplateCollection>
   );
 }

@@ -10,9 +10,15 @@ order: 32
 
 Cualquier persona en el sitio puede informar un incidente desde Compass, incluso sin conexión, con fotos y su ubicación. Se registra una sola vez cuando el dispositivo se reconecta. Un incidente crítico no se puede cerrar sin una aprobación.
 
+XOS no tiene un tipo de casi accidente. Informe algo que pudo lastimar a alguien o causar daños pero no lo hizo como incidente en Level 5 - Advisory, con Qué pasó empezando con las palabras Near miss. Filtre Incidentes por esa severidad para encontrarlos después.
+
 ## Tablero de despacho
 
 Muestra los incidentes abiertos por estado y en el mapa. Asigne personal de respuesta y lleve cada incidente hasta su cierre. La vista de tabla los muestra para el teclado y los lectores de pantalla.
+
+## Alertas de crisis
+
+Anunciar una alerta de crisis en la página de Códigos de emergencia avisa a quienes tienen entrada marcada en el proyecto o están asignados a él y a sus despachadores, por su Bandeja de entrada, notificaciones push, correo y, para quienes lo activaron, mensajes de texto, y la alerta muestra a cuántas personas se avisó. La Bandeja de entrada la recibe al instante; las notificaciones push y los mensajes de texto llegan a los teléfonos en minutos, y el correo puede tardar más en una alerta grande. También les envía el fin de la alerta. XOS no contacta a los servicios de emergencia: en una emergencia, llame a su número local de emergencias.
 
 ## Códigos de emergencia y canales de radio
 

@@ -8,7 +8,9 @@ import { defineConfig, devices, type Project } from "@playwright/test";
  *
  * Section 18, gate 6: the journeys run in Chromium, Firefox and WebKit, plus a phone viewport.
  * E2E_ENGINES narrows the desktop engines (for example `E2E_ENGINES=chromium`); all three run by
- * default. PLAYWRIGHT_CHROMIUM_EXECUTABLE, PLAYWRIGHT_FIREFOX_EXECUTABLE and
+ * default. With WebKit, `ios-safari` (an iPhone) and `ipados-safari` (an iPad) stand for Safari on
+ * iOS and iPadOS (Section 4.10, ADR 0027): the phone journeys and the tablet journeys in WebKit's
+ * mobile emulation. PLAYWRIGHT_CHROMIUM_EXECUTABLE, PLAYWRIGHT_FIREFOX_EXECUTABLE and
  * PLAYWRIGHT_WEBKIT_EXECUTABLE point at locally installed browsers when the pinned builds are not
  * installed; CI installs the pinned builds with `playwright install chromium firefox webkit`.
  */
@@ -27,11 +29,35 @@ const engines = new Set(
   (process.env["E2E_ENGINES"] ?? "chromium,firefox,webkit").split(",").map((e) => e.trim()),
 );
 
+/**
+ * A production build offers no pseudo-locales, so their specs would only skip there. They stay out of such a run, since
+ * Playwright shards by test count: pseudo-locales-routes.spec.ts alone has about 800 tests, which left two of the four
+ * journey shards with nothing to run and one with most of the journeys, past its time limit.
+ */
+const desktopIgnore =
+  process.env["E2E_PRODUCTION_BUILD"] === "1"
+    ? /(mobile|tablet|pseudo-locales|pseudo-locales-routes)\.spec\.ts/
+    : /(mobile|tablet)\.spec\.ts/;
+
 /** Launch options naming a locally installed browser, when the variable is set. */
 function launch(variable: string) {
   const executablePath = process.env[variable];
   return executablePath ? { launchOptions: { executablePath } } : {};
 }
+
+/** Safari on iOS and iPadOS, run with the WebKit engine. */
+const webkitMobile: Project[] = [
+  {
+    name: "ios-safari",
+    use: { ...devices["iPhone 17"], ...launch("PLAYWRIGHT_WEBKIT_EXECUTABLE") },
+    testMatch: /mobile\.spec\.ts/,
+  },
+  {
+    name: "ipados-safari",
+    use: { ...devices["iPad Pro 11"], ...launch("PLAYWRIGHT_WEBKIT_EXECUTABLE") },
+    testMatch: /tablet\.spec\.ts/,
+  },
+];
 
 const desktop: Project[] = [
   {
@@ -73,12 +99,13 @@ export default defineConfig({
   projects: [
     ...desktop
       .filter((p) => engines.has(p.name ?? ""))
-      .map((p) => ({ ...p, testIgnore: /mobile\.spec\.ts/ })),
+      .map((p) => ({ ...p, testIgnore: desktopIgnore })),
     {
       name: "mobile",
       use: { ...devices["Pixel 7"], ...launch("PLAYWRIGHT_CHROMIUM_EXECUTABLE") },
       testMatch: /mobile\.spec\.ts/,
     },
+    ...(engines.has("webkit") ? webkitMobile : []),
   ],
   webServer: [
     {

@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "./engine-test";
+import { expect as baseExpect, test, type Page } from "./engine-test";
 import { expectAccessibleInBothThemes, ORG, settled, signIn } from "./operations-support";
 
 /**
@@ -12,7 +12,8 @@ import { expectAccessibleInBothThemes, ORG, settled, signIn } from "./operations
 
 test.use({ reducedMotion: "reduce" });
 test.setTimeout(240_000);
-expect.configure({ timeout: 20_000 });
+// configure returns a new expect; the file-level timeout applies only through it.
+const expect = baseExpect.configure({ timeout: 20_000 });
 
 async function viewSwitcher(page: Page, name: RegExp) {
   return page.getByRole("radiogroup", { name });
@@ -155,10 +156,16 @@ test("journey 69: a gate chip shows its canon definition on hover and on focus",
 }) => {
   await signIn(page, "producer@example.com");
   await page.goto(`/${ORG}/p/NWS/gates`);
+  await page.locator("html[data-shell-ready]").waitFor({ state: "attached" });
   const chip = page.locator("h2 span[tabindex='0']").first();
-  await chip.hover();
   const card = page.locator("[data-radix-popper-content-wrapper]").first();
-  await expect(card).toBeVisible();
+  // The gate list can hydrate after the shell's ready mark, and a hover that lands before it opens
+  // nothing while the pointer never enters again: hover anew until the card opens.
+  await expect(async () => {
+    await page.mouse.move(0, 0);
+    await chip.hover();
+    await expect(card).toBeVisible({ timeout: 2_000 });
+  }).toPass({ timeout: 20_000 });
   await expect(card.locator("p").nth(1)).not.toBeEmpty();
   await settled(page);
   await page.mouse.move(0, 0);

@@ -70,7 +70,12 @@ const workforceEvents = tableResource("workforceEvents", {
 const eventRsvps = tableResource("eventRsvps");
 const eventCheckIns = tableResource("eventCheckIns");
 const formTemplates = tableResource("formTemplates");
-const formSubmissions = tableResource("formSubmissions", { verbs: ["list", "get"] });
+// Members' submissions only: the frozen FormSubmission schema requires a member submitter, so a public link response
+// (B2, ADR 0141) is formLinkResponses, never here.
+const formSubmissions = tableResource("formSubmissions", {
+  verbs: ["list", "get"],
+  scope: (q) => q.is("form_link_id", null),
+});
 const trainingCourses = tableResource("trainingCourses");
 const trainingLessons = tableResource("trainingLessons");
 const trainingQuizQuestions = tableResource("trainingQuizQuestions");
@@ -93,6 +98,10 @@ const weatherThresholds = tableResource("weatherThresholds");
 const weatherAlertRoles = tableResource("weatherAlertRoles");
 const weatherReadings = tableResource("weatherReadings", { verbs: ["list", "get"] });
 const weatherAlerts = tableResource("weatherAlerts");
+// B8 (6256, 6257): the official feed, its warnings, and holds, which only the hold functions write.
+const weatherFeeds = tableResource("weatherFeeds");
+const weatherWarnings = tableResource("weatherWarnings");
+const weatherHolds = tableResource("weatherHolds", { verbs: ["list", "get"] });
 const guestCheckIns = tableResource("guestCheckIns", { verbs: ["list", "get"] });
 const lostFoundItems = tableResource("lostFoundItems", { verbs: ["list", "get", "update"] });
 const lostFoundClaims = tableResource("lostFoundClaims");
@@ -128,6 +137,9 @@ export const handlers = defineHandlers("Workforce", {
   ...handlersFor("Workforce", weatherAlertRoles),
   ...handlersFor("Workforce", weatherReadings),
   ...handlersFor("Workforce", weatherAlerts),
+  ...handlersFor("Workforce", weatherFeeds),
+  ...handlersFor("Workforce", weatherWarnings),
+  ...handlersFor("Workforce", weatherHolds),
   ...handlersFor("Workforce", guestCheckIns),
   ...handlersFor("Workforce", lostFoundItems),
   ...handlersFor("Workforce", lostFoundClaims),
@@ -141,6 +153,27 @@ export const handlers = defineHandlers("Workforce", {
         .eq("id", params.id),
     );
     return ok((await groups.read(context, params.id)) as never);
+  },
+  // A project's show channel (6242, ADR 0142): the RPCs decide who may open, join or read it.
+  "workforceGroups.openShowChannel": async ({ body }, context) => {
+    const id = await call<string>(context, "open_show_channel", {
+      p_project_id: body.project_id,
+      p_name_prefix: body.name_prefix ?? null,
+      p_description: body.description ?? null,
+    });
+    return ok({ conversation_id: String(id) } as never);
+  },
+  "workforceGroups.joinShowChannel": async ({ body }, context) => {
+    const id = await call<string>(context, "join_show_channel", { p_project_id: body.project_id });
+    return ok({ conversation_id: String(id) } as never);
+  },
+  "workforceGroups.showChannelStatus": async ({ query }, context) => {
+    const rows = await call<Row[] | null>(context, "show_channel_status", {
+      p_project_id: query.project_id,
+    });
+    const row = rows?.[0];
+    if (row === undefined) throw notFound("No project with this identifier is visible to you.");
+    return ok(row as never);
   },
   "conversations.startDirect": async ({ body }, context) => {
     const id = await call(context, "start_direct_conversation", {
@@ -395,6 +428,8 @@ export const handlers = defineHandlers("Workforce", {
     return created((await back(formSubmissions, context, id)) as never);
   },
   "formSubmissions.decide": async ({ params, body }, context) => {
+    // Reads first, so a link response answers 404 rather than being decided and then missing.
+    await formSubmissions.read(context, params.id, ["id"]);
     await call(context, "decide_form_submission", {
       p_submission_id: params.id,
       p_approve: body.approve,
@@ -547,6 +582,25 @@ export const handlers = defineHandlers("Workforce", {
       p_observed_at: body.observed_at,
     });
     return created((await back(weatherReadings, context, id)) as never);
+  },
+  // Atlas and the API send no device time: a hold called here is never late (app.call_weather_hold, 6257).
+  "weatherHolds.create": async ({ body }, context) => {
+    const id = await call(context, "call_weather_hold", {
+      p_project_id: body.project_id,
+      p_message: body.message,
+      p_hazard: body.hazard ?? undefined,
+      p_weather_alert_id: body.weather_alert_id ?? undefined,
+      p_weather_warning_id: body.weather_warning_id ?? undefined,
+    });
+    return created((await back(weatherHolds, context, id)) as never);
+  },
+  "weatherHolds.allClear": async ({ params, body }, context) => {
+    await weatherHolds.read(context, params.id, ["id"]);
+    await call(context, "give_weather_all_clear", {
+      p_hold_id: params.id,
+      p_message: body.message,
+    });
+    return ok((await weatherHolds.read(context, params.id)) as never);
   },
   "guestCheckIns.create": async ({ body }, context) => {
     const id = await call(context, "check_in_guest", {

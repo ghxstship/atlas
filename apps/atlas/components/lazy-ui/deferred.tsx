@@ -9,7 +9,21 @@ import {
   type ReactElement,
   type ReactNode,
 } from "react";
-import { Dialog, Drawer } from "./index";
+import { Dialog } from "./dialog";
+import { Drawer } from "./drawer";
+
+/*
+ * lazy-ui holds the @xos/ui components a page renders only in some states: the collection views
+ * a person switches to (board, calendar, gallery, list, table, timeline, tree, chart), the bulk bar
+ * a selection shows, and overlays that open on an action or a query parameter (Drawer, Dialog; this
+ * file keeps an overlay's trigger with the page). Through next/dynamic their code loads when they
+ * first render, not with every route that might show them (ADR 0027, A24-009). A component a route
+ * renders in its default state is imported from @xos/ui directly, so the route budget counts it.
+ *
+ * Each wrapper is its own module (`./board`, `./dialog`, ...), so a page carries the loaders of
+ * only the components it imports, and each wrapper loads a `./targets` module that re-exports one
+ * component from @xos/ui, so a chunk holds only that component.
+ */
 
 interface Control {
   open?: boolean;

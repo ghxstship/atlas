@@ -7,6 +7,7 @@
     "title": "Add an expense"
   },
   "aurora": {
+    "declined": "AI features are off, as you chose. Enter the details yourself. You can change this in Settings.",
     "failed": "Aurora could not read this receipt. Enter the details yourself.",
     "fieldMissing": "Not on the receipt. Enter it yourself.",
     "fieldRead": "Read by Aurora, {percent}% sure. Check it.",
@@ -35,12 +36,15 @@
     "lineChosen": "{number}. {line} ({budget})",
     "photo": "The receipt photo",
     "retake": "Retake the photo",
-    "save": "Save expense"
+    "save": "Save expense",
+    "paidMyself": "I paid this myself",
+    "paidMyselfHelp": "Turn this on if it came out of your own pocket, so finance can reimburse you."
   },
   "list": {
     "empty": "No expenses yet. Add one from a receipt.",
     "title": "Your expenses",
-    "waiting": "Waiting to upload"
+    "waiting": "Waiting to upload",
+    "credit": "Credit"
   },
   "problem": {
     "amount": "Enter an amount above zero.",
@@ -56,5 +60,11 @@
     "paid": "Paid",
     "proposed": "Submitted",
     "rejected": "Rejected"
+  },
+  "reimbursement": {
+    "recorded": "Recorded",
+    "owed": "Owed to you",
+    "paid": "Paid to you",
+    "notOwed": "Not owed"
   }
 }

@@ -34,6 +34,7 @@ import {
   integrationCorrections,
 } from "./parts/settings-integrations.ts";
 import { a79SettingsCorrections } from "./parts/a79.ts";
+import { Constants } from "@xos/data/database.types";
 
 const label = (values: readonly [string, ...string[]], description: string) =>
   z.enum(values).meta({ description, example: values[0] });
@@ -62,7 +63,7 @@ const brandPath = (description: string) =>
     orNull(fields.text(description, "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f/logo-light.svg", 1024)),
   );
 
-const SCOPE_KINDS = ["organization", "workspace", "team", "project", "record"] as const;
+const SCOPE_KINDS = Constants.app.Enums.grant_target_kind;
 
 /** The create verb as a collection action at the same path, answering `response` with 201. */
 const createAnswering =
@@ -118,7 +119,7 @@ export const additions = defineAdditions("Settings", {
         add: {
           subscription_state: {
             schema: label(
-              ["trialing", "active", "past_due", "read_only", "canceled"],
+              Constants.app.Enums.subscription_state,
               "Subscription status as Stripe reports it; read_only after the grace period.",
             ),
           },
@@ -233,7 +234,7 @@ export const additions = defineAdditions("Settings", {
               ),
             ),
             radius_scale: optional(
-              label(["Compact", "Default", "Rounded"], "Corner radius scale."),
+              label(Constants.app.Enums.brand_radius_scale, "Corner radius scale."),
             ),
             email_sender_name: optional(
               orNull(fields.text("Sender name on emails sent for the org.", "Northwind Live")),
@@ -304,7 +305,7 @@ export const additions = defineAdditions("Settings", {
         add: {
           reach: {
             schema: label(
-              ["own", "assigned", "organization"],
+              Constants.app.Enums.capability_reach,
               "Own rows, assigned scopes or the whole org.",
             ),
             create: "required",
@@ -452,15 +453,7 @@ export const additions = defineAdditions("Settings", {
           add: {
             document_type: {
               schema: label(
-                [
-                  "Purchase Order",
-                  "Change Order",
-                  "Expense",
-                  "Invoice Approval",
-                  "Contract",
-                  "Payroll Run",
-                  "Requisition",
-                ],
+                Constants.app.Enums.spend_document_type,
                 "Document type the limit applies to.",
               ),
               create: "required",
@@ -551,7 +544,7 @@ export const additions = defineAdditions("Settings", {
         add: {
           capability_class: {
             schema: label(
-              ["read", "write", "approve", "manage", "export"],
+              Constants.app.Enums.capability_class,
               "Kind of act the capability authorizes.",
             ),
           },
@@ -698,7 +691,7 @@ export const additions = defineAdditions("Settings", {
       apply: editShape({
         remove: ["actor_urn", "subject_urn", "capacity", "occurred_at"],
         add: {
-          actor_kind: { schema: label(["Person", "Service", "System"], "Who acted.") },
+          actor_kind: { schema: label(Constants.app.Enums.actor_kind, "Who acted.") },
           actor_person_id: { schema: orNull(fields.ref("person who acted, when a person acted")) },
           subject_table: { schema: fields.text("Table of the row acted on.", "purchase_orders") },
           subject_id: { schema: orNull(fields.ref("row acted on")) },
@@ -748,10 +741,7 @@ export const additions = defineAdditions("Settings", {
             create: "required",
           },
           source: {
-            schema: label(
-              ["Web", "Mobile", "Email", "SMS", "Import", "Support"],
-              "Where consent was captured.",
-            ),
+            schema: label(Constants.app.Enums.consent_source, "Where consent was captured."),
             create: "required",
           },
           captured_at: { schema: fields.instant("When consent was given, set by the database.") },
@@ -787,18 +777,7 @@ export const additions = defineAdditions("Settings", {
             create: "required",
           },
           request_type: {
-            schema: label(
-              [
-                "Access",
-                "Rectification",
-                "Erasure",
-                "Restriction",
-                "Portability",
-                "Objection",
-                "Opt Out of Sale",
-              ],
-              "What the requester exercises.",
-            ),
+            schema: label(Constants.app.Enums.dsar_request_type, "What the requester exercises."),
             create: "required",
           },
           details: optional(
@@ -828,7 +807,9 @@ export const additions = defineAdditions("Settings", {
         remove: ["retention_days"],
         add: {
           basis: {
-            schema: orNull(label(["Soft Deleted", "Age"], "What starts the retention clock.")),
+            schema: orNull(
+              label(Constants.app.Enums.retention_basis, "What starts the retention clock."),
+            ),
           },
           time_column: {
             schema: orNull(fields.text("Column that starts the clock.", "deleted_at")),
@@ -837,9 +818,7 @@ export const additions = defineAdditions("Settings", {
             schema: orNull(fields.text("How long rows are kept, as an interval.", "7 years")),
           },
           purge_method: {
-            schema: orNull(
-              label(["Delete", "Drop Partition", "Account Lifecycle"], "How expired rows leave."),
-            ),
+            schema: orNull(label(Constants.app.Enums.purge_method, "How expired rows leave.")),
           },
           redact_personal_data_after: {
             schema: orNull(

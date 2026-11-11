@@ -23,6 +23,7 @@ import {
   RecoverOrganizationForm,
   StandingGrantForm,
 } from "@/components/lifecycle/forms";
+import { StripeCancellationNotice } from "@/components/settings/stripe-cancellation-notice";
 import { getFormatters } from "@/lib/platform/format";
 import { getOrgTimeZone, orgToday } from "@/lib/shell/time-zone";
 import type { SettingsContribution, SettingsPanelProps } from "./types";
@@ -101,6 +102,7 @@ async function DeletionPanel({ ctx }: SettingsPanelProps) {
               date: date(windowLastDay(request.data.recoverUntil, zone)),
             })}
           </InlineAlert>
+          <StripeCancellationNotice ctx={ctx} />
           {owner ? <RecoverOrganizationForm org={ctx.org.slug} /> : null}
         </div>
       ) : owner ? (

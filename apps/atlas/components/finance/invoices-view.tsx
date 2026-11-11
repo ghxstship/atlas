@@ -22,12 +22,18 @@ import { saveInvoiceLineAction } from "@/app/[org]/finance/actions";
 import { FinanceCollection, type RecordDetail } from "./collection";
 import { Section, SimpleTable } from "./figures";
 import { InvoiceForm } from "./forms-invoice-form";
+import { CustomFieldList } from "@/components/custom-fields/list";
+import { CustomFieldsPanel } from "@/components/custom-fields/custom-fields-panel";
+import { customFieldList } from "@/lib/custom-fields/server";
+import { getInvoiceTieOut, listInvoiceLineProposals } from "@xos/data/ai";
+import { InlineAlert } from "@/components/ui";
+import { InvoiceLinesEntry } from "@/components/aurora/entry/intake-entry";
 import { InvoiceLineForm } from "./forms-invoice-line-form";
 import { RecordPaymentForm } from "./forms-record-payment-form";
 import { SelfBillForm } from "./forms-self-bill-form";
 import { EditButton } from "./kit-edit-button";
 import { FormSheet } from "./kit-form-sheet";
-import { InlineActionButton } from "./kit-inline-action-button";
+import { LineDeleteButton } from "./kit-line-delete-button";
 import { TransitionBar } from "./kit-transition-bar";
 import { type Row } from "./kit.types";
 import { RecordActivity, RecordCollab } from "./record";
@@ -70,9 +76,10 @@ export async function InvoicesView({ page }: { page: FinancePage }) {
   }
   const db = ctx.viewer.db;
   const scope = { orgId: ctx.org.id, projectId: page.project?.id ?? null };
-  const [invoices, counterparties] = await Promise.all([
+  const [invoices, counterparties, custom] = await Promise.all([
     listInvoices(db, scope),
     listCounterparties(db, ctx.org.id),
+    customFieldList(ctx, "app.invoices", query.extra),
   ]);
   if (!invoices.ok || !counterparties.ok) {
     return (
@@ -103,6 +110,7 @@ export async function InvoicesView({ page }: { page: FinancePage }) {
   const today = overdue === null ? null : await orgToday(ctx);
   const shown = invoices.data.filter(
     (i) =>
+      custom.keep(i.id) &&
       (!query.state || i.state === query.state) &&
       (!direction || i.direction === direction) &&
       (today === null || isOverdue(i, today) === (overdue === "true")) &&
@@ -114,6 +122,7 @@ export async function InvoicesView({ page }: { page: FinancePage }) {
   const rows: Row[] = shown.map((i) => ({
     id: i.id,
     label: keyOf(i),
+    version: i.updatedAt,
     number: i.number ?? "",
     direction: t(`finance.invoices.directionShort.${i.direction}`),
     party: payee(i),
@@ -145,11 +154,18 @@ export async function InvoicesView({ page }: { page: FinancePage }) {
   const peek = query.peek ? invoices.data.find((i) => i.id === query.peek) : undefined;
   let detail: RecordDetail | null = null;
   if (peek) {
-    const [lines, ledger, budgetLines] = await Promise.all([
+    const [lines, ledger, budgetLines, tieOut, openLines] = await Promise.all([
       listInvoiceLines(db, peek.id),
       listTransitions(db, "invoice_state_transitions", peek.id),
       listBudgetLineRefs(db, { orgId: ctx.org.id, projectId: peek.projectId }),
+      getInvoiceTieOut(db, peek.id),
+      // B15: the asker's open lines of this invoice, while it can still take them.
+      peek.state === "Proposed" && canWrite && ctx.viewer.person
+        ? listInvoiceLineProposals(db, peek.id, ctx.viewer.person.id)
+        : Promise.resolve(null),
     ]);
+    const tieOutRow = tieOut.ok ? tieOut.data : null;
+    const hasOpenLines = openLines?.ok === true && openLines.data.length > 0;
     const editable = peek.state === "Proposed" && canWrite;
     detail = {
       kindLabel: t(`finance.invoices.kind.${peek.direction}`),
@@ -205,6 +221,17 @@ export async function InvoicesView({ page }: { page: FinancePage }) {
                 : "finance.invoices.postsWhenApproved",
             )}
           </p>
+          {tieOutRow?.residual_minor ? (
+            <div data-testid="invoice-residual">
+              <InlineAlert tone="warning">
+                {t("finance.invoices.residual", {
+                  printed: c.money(tieOutRow.printed_total_minor, peek.currency),
+                  computed: c.money(tieOutRow.computed_total_minor, peek.currency),
+                  residual: c.money(tieOutRow.residual_minor, peek.currency),
+                })}
+              </InlineAlert>
+            </div>
+          ) : null}
           <Section id="invoice-lines" title={t("finance.invoices.lines")}>
             {lines.ok && lines.data.length > 0 ? (
               <SimpleTable
@@ -224,12 +251,13 @@ export async function InvoicesView({ page }: { page: FinancePage }) {
                   c.money(l.extendedMinor, peek.currency),
                   ...(editable
                     ? [
-                        <InlineActionButton
+                        <LineDeleteButton
                           key="d"
                           action={saveInvoiceLineAction}
-                          fields={{ org: ctx.org.slug, id: l.id, delete: "1" }}
+                          org={ctx.org.slug}
+                          id={l.id}
+                          description={l.description}
                           label={t("finance.common.remove")}
-                          icon="Trash2"
                         />,
                       ]
                     : []),
@@ -240,6 +268,25 @@ export async function InvoicesView({ page }: { page: FinancePage }) {
                 {editable ? t("finance.invoices.noLines") : t("finance.invoices.noLinesRead")}
               </p>
             )}
+            {editable && budgetLines.ok && hasOpenLines ? (
+              <InvoiceLinesEntry
+                invoiceId={peek.id}
+                currencyCode={peek.currency}
+                printedTotalMinor={tieOutRow?.printed_total_minor ?? null}
+                existingLines={
+                  lines.ok
+                    ? lines.data.map((l) => ({
+                        quantity: l.quantity,
+                        unitPriceMinor: l.unitPriceMinor,
+                      }))
+                    : []
+                }
+                budgetLines={budgetLines.data.map((l) => ({
+                  value: l.id,
+                  label: `${l.budgetName} · ${l.lineNumber} ${l.description}`,
+                }))}
+              />
+            ) : null}
             {editable && budgetLines.ok ? (
               <InvoiceLineForm
                 org={ctx.org.slug}
@@ -259,6 +306,7 @@ export async function InvoicesView({ page }: { page: FinancePage }) {
             t={t}
             format={c.dateTime}
           />
+          <CustomFieldsPanel org={ctx.org.slug} table="app.invoices" id={peek.id} />
           <RecordCollab ctx={ctx} table="app.invoices" id={peek.id} canUpload={canWrite} />
         </>
       ),
@@ -324,7 +372,7 @@ export async function InvoicesView({ page }: { page: FinancePage }) {
     );
   }
 
-  return (
+  const collection = (
     <FinanceCollection
       {...base}
       canCreate={canWrite}
@@ -424,5 +472,10 @@ export async function InvoicesView({ page }: { page: FinancePage }) {
       sheet={sheet}
       ask={invoiceAsk(page, c)}
     />
+  );
+  return (
+    <CustomFieldList value={await custom.view(shown.map((i) => i.id))}>
+      {collection}
+    </CustomFieldList>
   );
 }

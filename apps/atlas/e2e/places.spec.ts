@@ -199,7 +199,7 @@ test("site plans: add a plan to the demo project and place a pin by keyboard", a
   await drawer.getByRole("button", { name: "Add site plan" }).click();
   const peek = page.getByRole("dialog", { name: "Site plan" });
   await expect(peek.getByRole("heading", { name: title })).toBeVisible();
-  await peek.getByLabel("Label").fill("FOH Mix");
+  await peek.getByLabel("Label", { exact: true }).fill("FOH Mix");
   await peek.getByLabel("Across (%)").fill("50");
   await peek.getByLabel("Down (%)").fill("62.5");
   await peek.getByRole("button", { name: "Place pin" }).click();
@@ -209,6 +209,8 @@ test("site plans: add a plan to the demo project and place a pin by keyboard", a
   await page.goto(`/${ORG}/places/site-plans`);
   await expectAccessibleInBothThemes(page);
   await page.getByRole("radio", { name: "Site plan" }).click();
+  // Switching views streams the new title in: an empty one here is a moment, one that stays fails this wait.
+  await expect(page).toHaveTitle(/\S/);
   await expectAccessible(page);
 });
 

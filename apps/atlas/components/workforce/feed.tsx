@@ -56,6 +56,7 @@ import {
   workforceCopy,
   type OrgPickers,
 } from "./shared";
+import { CollectionPage } from "@/components/platform/collection-page";
 
 const VIEWS: readonly ViewKind[] = ["list", "table"];
 
@@ -138,10 +139,9 @@ async function PostsSection({
   const title = t("feed.title");
   if (!feed.ok) {
     return (
-      <>
-        <PageHeader title={title} />
+      <CollectionPage header={<PageHeader title={title} />}>
         <ErrorPanel what={t("feed.what")} />
-      </>
+      </CollectionPage>
     );
   }
   const canPost = ctx.capabilities.has("knowledge.document.write");
@@ -482,18 +482,21 @@ async function PostsSection({
   if (feedView) {
     const cards = await Promise.all(feed.data.map(card));
     return (
-      <div className="flex flex-col gap-16">
-        <PageHeader
-          title={title}
-          count={feed.data.length}
-          views={
-            <div className="flex flex-wrap gap-8">
-              {tabs}
-              {viewSwitch}
-            </div>
-          }
-          actions={createButton}
-        />
+      <CollectionPage
+        header={
+          <PageHeader
+            title={title}
+            count={feed.data.length}
+            views={
+              <div className="flex flex-wrap gap-8">
+                {tabs}
+                {viewSwitch}
+              </div>
+            }
+            actions={createButton}
+          />
+        }
+      >
         {feed.data.length === 0 ? (
           empty
         ) : (
@@ -502,7 +505,7 @@ async function PostsSection({
           </div>
         )}
         {drawer}
-      </div>
+      </CollectionPage>
     );
   }
 
@@ -589,10 +592,9 @@ async function SurveysSection({
   const title = t("surveys.title");
   if (!surveys.ok) {
     return (
-      <>
-        <PageHeader title={title} />
+      <CollectionPage header={<PageHeader title={title} />}>
         <ErrorPanel what={t("surveys.what")} />
-      </>
+      </CollectionPage>
     );
   }
   const canWrite = ctx.capabilities.has("knowledge.sop.publish");

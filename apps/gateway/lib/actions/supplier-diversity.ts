@@ -31,7 +31,12 @@ export async function addSupplierDiversityAction(
     .object({
       kind: z.enum(SUPPLIER_DIVERSITY_KINDS),
       certifyingBody: z.string().trim().min(1).max(200),
-      certificateNumber: z.string().trim().max(100),
+      // The database keeps the letters and digits (2011), so a number needs at least one.
+      certificateNumber: z
+        .string()
+        .trim()
+        .max(100)
+        .refine((v) => v === "" || /[0-9A-Za-z]/.test(v)),
       issuedOn: optionalDate,
       expiresOn: optionalDate,
     })

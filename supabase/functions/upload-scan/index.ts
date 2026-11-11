@@ -1,6 +1,7 @@
 // Upload scan worker (A22-011, owner decision 10, ADR 0034): claims due attachment.scan jobs and object
 // scans, checks each file's bytes against its declared type, scans it with self-hosted ClamAV (clamd over
-// TCP at XOS_CLAMAV_HOST and XOS_CLAMAV_PORT) and records the verdict, so files leave quarantine only
+// TCP at XOS_CLAMAV_HOST and XOS_CLAMAV_PORT, over mutual TLS when XOS_CLAMAV_TLS_CA, _CERT and _KEY are
+// set: infra/scanning/fly) and records the verdict, so files leave quarantine only
 // once Clean. Files for the public buckets profile-media and org-brand wait in the private upload-staging
 // bucket; one that scans Clean is published to its public bucket and removed from staging, one that does
 // not is removed and never published (migration 1265, ADR 0034 amendment). Called on a schedule with the
@@ -15,13 +16,30 @@ import {
   selectVirusScanner,
   supabaseStorage,
   type ClamdConnection,
+  type ClamdTls,
 } from "../_vendor/upload-scan.js";
 import { createLogger, identityFromEnv } from "../_vendor/core.js";
-import { env, hasBearer, json, serve, serviceDb } from "../_shared/runtime.ts";
+import { isServiceRequest, json, env, secretKey, serve, serviceDb } from "../_shared/runtime.ts";
 
-/** A clamd connection over Deno TCP that reads until the NUL byte that ends clamd's reply. */
-async function connectClamd(hostname: string, port: number): Promise<ClamdConnection> {
-  const conn = await Deno.connect({ hostname, port });
+/**
+ * A clamd connection over Deno TCP, or mutual TLS to clamd's TLS terminator, that reads until the NUL
+ * byte that ends clamd's reply.
+ */
+async function connectClamd(
+  hostname: string,
+  port: number,
+  tls: ClamdTls | null,
+): Promise<ClamdConnection> {
+  const conn =
+    tls === null
+      ? await Deno.connect({ hostname, port })
+      : await Deno.connectTls({
+          hostname,
+          port,
+          caCerts: [tls.caCert],
+          cert: tls.cert,
+          key: tls.key,
+        });
   let closed = false;
   return {
     async write(bytes) {
@@ -56,7 +74,7 @@ async function connectClamd(hostname: string, port: number): Promise<ClamdConnec
 }
 
 serve(async (request) => {
-  if (!hasBearer(request, env("SUPABASE_SERVICE_ROLE_KEY"))) {
+  if (!isServiceRequest(request)) {
     return json(401, { type: "/problems/unauthorized", title: "Unauthorized", status: 401 });
   }
   const logger = createLogger(identityFromEnv("edge.upload-scan", Deno.env.toObject()));
@@ -74,7 +92,7 @@ serve(async (request) => {
       detail: choice.reason,
     });
   }
-  const client = createClient(env("SUPABASE_URL"), env("SUPABASE_SERVICE_ROLE_KEY"), {
+  const client = createClient(env("SUPABASE_URL"), secretKey(), {
     auth: { persistSession: false, autoRefreshToken: false },
   });
   const outcomes = await runUploadScans({

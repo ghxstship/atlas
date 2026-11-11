@@ -33,6 +33,7 @@ import {
   updateScorecard,
   updateSponsorEntitlement,
   updateVendor,
+  updateVendorAddress,
   updateVendorClass,
 } from "../src/vendors.ts";
 import { nextStates } from "../src/commercial-common.ts";
@@ -44,6 +45,11 @@ const vendorRow = (id: string, name: string | null, classes: string[] = []) => (
   vendor_state: "Prospect",
   payment_terms_days: 30,
   default_currency_code: "USD",
+  country_code: "CA",
+  street_address: "1 Front Street W",
+  locality: "Toronto",
+  administrative_area: "ON",
+  postal_code: "M5J 2X5",
   created_at: "2026-10-01T00:00:00Z",
   created_by: "p1",
   counterparty: { counterparty_name: name, counterparty_type: "Audio Supply" },
@@ -80,6 +86,51 @@ describe("vendors", () => {
     expect(await getVendor(db, "v9")).toEqual({ ok: false, error: { kind: "not-found" } });
     const found = await getVendor(db, "v1");
     expect(found.ok && found.data.name).toBeNull();
+    expect(found.ok && found.data.address).toEqual({
+      countryCode: "CA",
+      streetAddress: "1 Front Street W",
+      locality: "Toronto",
+      administrativeArea: "ON",
+      postalCode: "M5J 2X5",
+    });
+  });
+
+  it("records a mailing address, blank fields cleared, and surfaces the postal code refusal", async () => {
+    const { db, calls } = commercialClient({
+      "from:vendors": [
+        okResponse([{ id: "v1" }]),
+        errorResponse(
+          "XR001",
+          "postal_code_invalid: 3313 is not a postal code in US.",
+          "postal_code_invalid",
+        ),
+      ],
+    });
+    const address = {
+      countryCode: "US",
+      streetAddress: " 548 Market St ",
+      locality: "San Francisco",
+      administrativeArea: " ",
+      postalCode: "94104",
+    };
+    expect(await updateVendorAddress(db, "v1", address)).toEqual({ ok: true, data: null });
+    expect(calls[0]?.steps[0]).toEqual([
+      "update",
+      [
+        {
+          country_code: "US",
+          street_address: "548 Market St",
+          locality: "San Francisco",
+          administrative_area: null,
+          postal_code: "94104",
+        },
+      ],
+    ]);
+    const refused = await updateVendorAddress(db, "v1", { ...address, postalCode: "3313" });
+    expect(refused.ok === false && refused.error).toMatchObject({
+      kind: "refusal",
+      rule: "postal_code_invalid",
+    });
   });
 
   it("creates a new company as a counterparty, then the vendor facet", async () => {
@@ -632,39 +683,53 @@ describe("bank accounts", () => {
     expect(calls[0]?.target).toBe("from:vendor_bank_accounts_masked");
   });
 
-  it("derives the last four and refuses a number too short to have them", async () => {
+  it("adds through the encrypting RPC and refuses numbers the database would", async () => {
     const { db, calls } = commercialClient({
-      "from:vendor_bank_accounts": [okResponse({ id: "b1" })],
+      "rpc:set_vendor_bank_account": [
+        okResponse("b1"),
+        okResponse("b2"),
+        errorResponse("XR001", "bank_account_details: No.", "bank_account_details"),
+      ],
     });
-    expect(
-      (
-        await addVendorBankAccount(db, {
-          vendorId: "v1",
-          bankName: "Gulf",
-          accountHolder: "Atlas",
-          accountNumber: "0001-2345-6789",
-          routingNumber: "",
-        })
-      ).ok,
-    ).toBe(true);
-    expect(calls[0]?.steps[0]?.[1]).toEqual([
-      {
-        vendor_id: "v1",
-        bank_name: "Gulf",
-        account_holder: "Atlas",
-        account_number: "0001-2345-6789",
-        account_last4: "6789",
-        routing_number: null,
-      },
+    const input = {
+      vendorId: "v1",
+      bankName: " Gulf ",
+      accountHolder: "Atlas",
+      accountNumber: "0001-2345-6789",
+      routingNumber: "",
+    };
+    expect(await addVendorBankAccount(db, input)).toEqual({ ok: true, data: { id: "b1" } });
+    expect(calls[0]?.steps[0]).toEqual([
+      "args",
+      [
+        {
+          p_vendor_id: "v1",
+          p_bank_name: "Gulf",
+          p_account_holder: "Atlas",
+          p_account_number: "0001-2345-6789",
+        },
+      ],
     ]);
-    expect(
-      await addVendorBankAccount(db, {
-        vendorId: "v1",
-        bankName: "G",
-        accountHolder: "A",
-        accountNumber: "12-",
-        routingNumber: null,
-      }),
-    ).toEqual({ ok: false, error: { kind: "invalid", message: "account_number" } });
+    expect(await addVendorBankAccount(db, { ...input, routingNumber: " 063100277 " })).toEqual({
+      ok: true,
+      data: { id: "b2" },
+    });
+    expect((calls[1]?.steps[0]?.[1] as Record<string, unknown>[])[0]).toMatchObject({
+      p_routing_number: "063100277",
+    });
+    expect((await addVendorBankAccount(db, input)).ok).toBe(false);
+    expect(await addVendorBankAccount(db, { ...input, accountNumber: "12-" })).toEqual({
+      ok: false,
+      error: { kind: "invalid", message: "account_number" },
+    });
+    expect(await addVendorBankAccount(db, { ...input, accountNumber: "1".repeat(35) })).toEqual({
+      ok: false,
+      error: { kind: "invalid", message: "account_number" },
+    });
+    expect(await addVendorBankAccount(db, { ...input, routingNumber: "9".repeat(35) })).toEqual({
+      ok: false,
+      error: { kind: "invalid", message: "routing_number" },
+    });
+    expect(calls).toHaveLength(3);
   });
 });

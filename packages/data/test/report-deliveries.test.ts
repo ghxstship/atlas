@@ -1,11 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
   attachmentName,
+  mailboxOf,
   mailpitMailer,
   resendMailer,
   runReportDeliveries,
   toBase64,
-  type DeliveryCopy,
+  type ComposeReportEmail,
   type ReportDelivery,
   type ReportDeliveryStore,
   type ReportEmail,
@@ -14,6 +15,8 @@ import {
 
 const delivery: ReportDelivery = {
   deliveryId: "d-1",
+  orgId: "org-1",
+  orgSlug: "demo-productions",
   orgName: "Demo Productions",
   reportName: "Spend by Account",
   exportFormat: "PDF",
@@ -24,12 +27,21 @@ const delivery: ReportDelivery = {
   recipientName: "Demo Producer",
   status: "Queued",
   scheduledFor: "2026-10-19T13:00:00Z",
+  recipientPersonId: "p-1",
+  reportDefinitionId: "def-1",
+  suppressed: false,
 };
 
-const copy: DeliveryCopy = {
-  subject: ({ report, org }) => `${report} from ${org}`,
-  body: ({ report, rows, unpriced }) => `${report}: ${rows} rows, ${unpriced} unpriced.`,
-};
+/** A stand-in for report-run's branded composer (packages/platform edge/report-email.ts, tested there). */
+const compose: ComposeReportEmail = async (d, attachment) => ({
+  to: d.recipientEmail ?? "",
+  toName: d.recipientName,
+  subject: `${d.reportName} from ${d.orgName}`,
+  text: `${d.reportName}: ${d.rowCount} rows, ${d.unpricedCount} unpriced.`,
+  html: "<p>report</p>",
+  fromName: d.orgName,
+  attachment,
+});
 
 function fakeStore(found: ReportDelivery | null, jobStatusOnFailure = "Queued") {
   const calls = {
@@ -62,7 +74,7 @@ describe("the report.deliver worker", () => {
   it("emails the run's file to the recipient and records it sent (A38-004)", async () => {
     const { store, calls } = fakeStore(delivery);
     const mailer = recordingMailer();
-    const results = await runReportDeliveries({ store, files, mailer, copy, worker: "t" });
+    const results = await runReportDeliveries({ store, files, mailer, compose, worker: "t" });
     expect(results).toEqual([{ jobId: "job-1", deliveryId: "d-1", status: "Sent" }]);
     expect(mailer.sent[0]).toMatchObject({
       to: "producer@example.com",
@@ -81,23 +93,48 @@ describe("the report.deliver worker", () => {
       },
     };
     const retry = fakeStore(delivery);
-    const first = await runReportDeliveries({ ...retry, files, mailer: broken, copy, worker: "t" });
+    const first = await runReportDeliveries({
+      ...retry,
+      files,
+      mailer: broken,
+      compose,
+      worker: "t",
+    });
     expect(first[0]).toMatchObject({ status: "Queued", error: "connection refused" });
     expect(retry.calls.finished).toEqual([]);
     const last = fakeStore(delivery, "Failed");
-    const final = await runReportDeliveries({ ...last, files, mailer: broken, copy, worker: "t" });
+    const final = await runReportDeliveries({
+      ...last,
+      files,
+      mailer: broken,
+      compose,
+      worker: "t",
+    });
     expect(final[0]?.status).toBe("Failed");
     expect(last.calls.finished[0]?.outcome).toEqual({ sent: false, error: "connection refused" });
+  });
+
+  it("never mails a recipient the org's suppression list stops, and does not retry", async () => {
+    const stopped = fakeStore({ ...delivery, suppressed: true });
+    const mailer = recordingMailer();
+    const out = await runReportDeliveries({ ...stopped, files, mailer, compose, worker: "t" });
+    expect(out[0]).toMatchObject({
+      status: "Skipped",
+      error: expect.stringMatching(/stopped scheduled report emails/),
+    });
+    expect(mailer.sent).toEqual([]);
+    expect(stopped.calls.finished[0]?.outcome).toMatchObject({ sent: false });
+    expect(stopped.calls.jobs).toEqual([{ jobId: "job-1", succeeded: true, error: null }]);
   });
 
   it("skips a finished delivery and fails one with no address", async () => {
     const done = fakeStore({ ...delivery, status: "Sent" });
     const mailer = recordingMailer();
     expect(
-      (await runReportDeliveries({ ...done, files, mailer, copy, worker: "t" }))[0]?.status,
+      (await runReportDeliveries({ ...done, files, mailer, compose, worker: "t" }))[0]?.status,
     ).toBe("Skipped");
     const noMail = fakeStore({ ...delivery, recipientEmail: null }, "Failed");
-    const out = await runReportDeliveries({ ...noMail, files, mailer, copy, worker: "t" });
+    const out = await runReportDeliveries({ ...noMail, files, mailer, compose, worker: "t" });
     expect(out[0]?.error).toBe("The recipient has no email address on file.");
     expect(mailer.sent).toEqual([]);
   });
@@ -127,6 +164,21 @@ describe("the report.deliver worker", () => {
     });
     expect(sent.messageId).toBe("abc");
     expect(requests[0]?.url).toBe("http://127.0.0.1:58224/api/v1/send");
+    expect(requests[0]?.body["From"]).toEqual({ Email: "reports@xos.test", Name: "XOS" });
+    await mailer.send({
+      to: "producer@example.com",
+      toName: null,
+      subject: "S",
+      text: "T",
+      html: "T",
+      fromName: "Northwind Crew Desk",
+      replyTo: "crew@northwind.test",
+    });
+    expect(requests[1]?.body["From"]).toEqual({
+      Email: "reports@xos.test",
+      Name: "Northwind Crew Desk",
+    });
+    expect(requests[1]?.body["ReplyTo"]).toEqual([{ Email: "crew@northwind.test", Name: "" }]);
     expect(requests[0]?.body["Attachments"]).toEqual([
       { Content: "AQI=", Filename: "r.pdf", ContentType: "application/pdf" },
     ]);
@@ -154,6 +206,25 @@ describe("the report.deliver worker", () => {
     await expect(mailer.send(email)).rejects.toThrow(/allow-list/);
     expect(payloads).toEqual([]);
     expect((await mailer.send({ ...email, to: "ok@xos.test" })).messageId).toBe("re-1");
+    expect(payloads[0]).toMatchObject({ from: "XOS <reports@xos.test>" });
+    expect(payloads[0]).not.toHaveProperty("replyTo");
+    await mailer.send({
+      ...email,
+      to: "ok@xos.test",
+      fromName: "Northwind, Crew Desk",
+      replyTo: "crew@northwind.test",
+    });
+    expect(payloads[1]).toMatchObject({
+      from: '"Northwind, Crew Desk" <reports@xos.test>',
+      replyTo: "crew@northwind.test",
+    });
+  });
+
+  it("quotes a From name RFC 5322 reserves characters in, and drops control characters", () => {
+    expect(mailboxOf("Northwind Live", "r@xos.test")).toBe("Northwind Live <r@xos.test>");
+    expect(mailboxOf('Crew "Desk"\r\nBcc: x@evil.test', "r@xos.test")).toBe(
+      '"Crew \\"Desk\\"  Bcc: x@evil.test" <r@xos.test>',
+    );
   });
 
   it("names attachments and encodes bytes portably", () => {

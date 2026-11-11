@@ -38,10 +38,16 @@ The response is one page of rows and a cursor to the next page:
 
 ## Use an SDK or the CLI
 
-The SDKs and the CLI are generated from the same OpenAPI document as this reference, so every operation is available in each.
+The SDKs and the CLI are generated from the same OpenAPI document as this reference, so every operation is available in each. Install the one you need:
+
+```bash
+npm install @ghxstship/xos-sdk               # TypeScript
+pip install xos-sdk                          # Python
+npm install --global @ghxstship/xos-cli      # the xos CLI
+```
 
 ```ts
-import { XosClient } from "@xos/sdk";
+import { XosClient } from "@ghxstship/xos-sdk";
 
 const xos = new XosClient({ baseUrl: process.env.XOS_BASE_URL, apiKey: process.env.XOS_API_KEY });
 const page = await xos.projects.list({ limit: 5 });

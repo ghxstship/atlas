@@ -2,9 +2,11 @@ import ExcelJS from "exceljs";
 import { describe, expect, it } from "vitest";
 import {
   drainImportJobs,
+  importReviewUrl,
   ImportWriteError,
   readSheet,
   runImportJobs,
+  supabaseImportStore,
   UnreadableUploadError,
   validateRow,
   type DetectedSheet,
@@ -13,6 +15,8 @@ import {
   type TargetLookups,
 } from "../src/import-worker.ts";
 import type { SheetsFetch } from "../src/import-sheets.ts";
+import { okResponse } from "./fake-client.ts";
+import { moduleClient, stepsOf } from "./module-client.ts";
 
 type Row = Record<string, unknown>;
 
@@ -49,6 +53,11 @@ function lookups(writes: Row[]): TargetLookups {
     counterpartyTypeExists: async (t) => t === "Sponsor",
     jurisdictionExists: async (id) => id === "US-FL-MIAMI-DADE",
     vendorIdByName: async (_o, n) => (n === "Harborline" ? "ven1" : null),
+    uridExists: async () => false,
+    uridXyz: async () => null,
+    costCenterId: async () => null,
+    budgetDestination: async () => null,
+    budgetLineTag: async () => null,
     elementExists: async (id) => id === "0000.01.01-XOS-001",
     assetClassId: async (_o, v) => (v === "Truss" ? "ac1" : null),
     venueId: async (_o, v) => (v === "Pier 9" ? "v9" : null),
@@ -62,6 +71,31 @@ function lookups(writes: Row[]): TargetLookups {
       writes.push({ op: "update", target, id, ...values });
       return { id };
     },
+    // Cue and guest list lookups (P3); the org-wide targets here never reach them.
+    runOfShow: async () => null,
+    spaceId: async () => null,
+    scopeNodeId: async () => null,
+    counterpartyIdByName: async () => null,
+    destinationKeyMatch: async () => null,
+    nextCuePosition: async () => 1,
+    talentPoolIdByName: async () => null,
+    roleCode: async () => null,
+    poolInvitationContext: async () => ({
+      talentPoolId: null,
+      numberFormat: "comma-dot",
+      canWriteRates: false,
+      language: null,
+      baseCurrency: null,
+      exponents: new Map(),
+    }),
+    poolInvitation: async () => null,
+    cueCalled: async () => false,
+    canonCodeExists: async () => true,
+    unitExists: async () => true,
+    materialMatch: async () => null,
+    projectTimeZone: async () => "UTC",
+    purchaseOrderState: async () => "Proposed",
+    nextPoLineNumber: async () => 1,
   };
 }
 
@@ -121,10 +155,13 @@ function memoryStore(csv: string | Uint8Array, targetCode = "counterparties", so
   }[] = [];
   const issues: { rowId: string; issue: string }[] = [];
   const finished: { jobId: string; ok: boolean }[] = [];
+  const notices: { jobId: string; batchId: string | null; url: string }[] = [];
+  const notice = { error: null as string | null, slug: "northwind-live" as string | null };
   let batchDone = false;
   const scan = { status: "Clean" as string | null, downloads: 0 };
   const store: ImportStore = {
     lookups: lookups(writes),
+    recordMaterialMatch: async () => {},
     async claim(kind) {
       const mine = queue.filter((q) => q.kind === kind);
       for (const m of mine) queue.splice(queue.indexOf(m), 1);
@@ -156,7 +193,9 @@ function memoryStore(csv: string | Uint8Array, targetCode = "counterparties", so
           fieldName: null,
         }),
       );
+      return cols.map((_c, i) => `col${i}`);
     },
+    async recordColumnSamples() {},
     async insertSheets(_id, list) {
       sheets.push(...list);
     },
@@ -209,6 +248,8 @@ function memoryStore(csv: string | Uint8Array, targetCode = "counterparties", so
       const r = rows.find((x) => x.id === input.rowId);
       if (r) r.written = { action: input.action, target: input.targetId, before: input.before };
     },
+    async skipRow() {},
+    async noteRow() {},
     async refuseRow(rowId, reason) {
       const r = rows.find((x) => x.id === rowId);
       if (r) {
@@ -220,9 +261,16 @@ function memoryStore(csv: string | Uint8Array, targetCode = "counterparties", so
       batchDone = true;
       job.status = "Committed";
     },
+    orgSlug: async (orgId) => (orgId === job.orgId ? notice.slug : null),
+    async notifyFinished(input) {
+      if (notice.error) throw new Error(notice.error);
+      notices.push(input);
+    },
   };
   return {
     store,
+    notices,
+    notice,
     scan,
     job,
     sheets,
@@ -481,6 +529,73 @@ describe("import worker", () => {
   });
 });
 
+describe("import.finished (A104)", () => {
+  const appUrl = "https://atlas.example";
+  const review = "https://atlas.example/northwind-live/import?import=j1";
+
+  it("links to the import in the Atlas import wizard", () => {
+    expect(importReviewUrl(appUrl, "northwind-live", "j1")).toBe(review);
+    expect(importReviewUrl("https://atlas.example/", "acme & co", "j 2")).toBe(
+      "https://atlas.example/acme%20%26%20co/import?import=j+2",
+    );
+  });
+
+  it("tells the person once when validation finishes and once when the commit finishes", async () => {
+    const s = memoryStore("Company\nBayfront Catering\n,\n");
+    await runImportJobs(s.store, "w", 10, { appUrl });
+    expect(s.notices).toEqual([]);
+    s.confirm({});
+    await runImportJobs(s.store, "w", 10, { appUrl });
+    expect(s.job.status).toBe("Validated");
+    expect(s.notices).toEqual([{ jobId: "j1", batchId: null, url: review }]);
+    s.commit();
+    const results = await drainImportJobs(s.store, "w", 5, { appUrl });
+    expect(results.map((r) => r.status)).toEqual(["Succeeded"]);
+    expect(s.notices).toEqual([
+      { jobId: "j1", batchId: null, url: review },
+      { jobId: "j1", batchId: "b1", url: review },
+    ]);
+  });
+
+  it("tells nobody when the worker has no Atlas address, or a step has nothing to do", async () => {
+    const s = memoryStore("Company\nBayfront Catering\n");
+    await runImportJobs(s.store, "w");
+    s.confirm({});
+    await runImportJobs(s.store, "w");
+    expect(s.job.status).toBe("Validated");
+    expect(s.notices).toEqual([]);
+    s.queue.push({ kind: "import.validate", jobId: "q4", subjectId: "j1", attempts: 0 });
+    await runImportJobs(s.store, "w", 10, { appUrl });
+    expect(s.notices).toEqual([]);
+  });
+
+  it("keeps a finished step when the notice cannot be sent, and says why", async () => {
+    const s = memoryStore("Company\nBayfront Catering\n");
+    await runImportJobs(s.store, "w", 10, { appUrl });
+    s.confirm({});
+    s.notice.error = "notify_import_finished: permission denied";
+    const results = await runImportJobs(s.store, "w", 10, { appUrl });
+    expect(results).toEqual([
+      expect.objectContaining({
+        kind: "import.validate",
+        status: "Succeeded",
+        noticeError: "notify_import_finished: permission denied",
+      }),
+    ]);
+    expect(s.job.status).toBe("Validated");
+    expect(s.finished.at(-1)).toEqual({ jobId: "q2", ok: true });
+    s.notice.error = null;
+    s.notice.slug = null;
+    s.commit();
+    const committed = await runImportJobs(s.store, "w", 10, { appUrl });
+    expect(committed[0]).toMatchObject({
+      status: "Succeeded",
+      noticeError: "The org of import j1 has no slug.",
+    });
+    expect(s.notices).toEqual([]);
+  });
+});
+
 describe("spreadsheet files", () => {
   it("reads the first sheet of an .xlsx workbook", async () => {
     const workbook = new ExcelJS.Workbook();
@@ -700,5 +815,19 @@ describe("Google Sheets links (A65-025)", () => {
     expect((await runImportJobs(noReader.store, "w"))[0]?.error).toContain(
       "no Google Sheets reader",
     );
+  });
+});
+
+describe("the database import store (A124)", () => {
+  it("binds a venue by name to a live venue, never to an archived one sharing the name", async () => {
+    const { db, calls } = moduleClient({ "app:from:venues": [okResponse([{ id: "v9" }])] });
+    const store = supabaseImportStore(db as unknown as Parameters<typeof supabaseImportStore>[0]);
+    expect(await store.lookups.venueId("o1", "Pier 9")).toBe("v9");
+    const call = calls.find((c) => c.target === "app:from:venues");
+    expect(stepsOf(call, "is")).toEqual([
+      ["deleted_at", null],
+      ["archived_at", null],
+    ]);
+    expect(stepsOf(call, "ilike")).toEqual([["name", "Pier 9"]]);
   });
 });

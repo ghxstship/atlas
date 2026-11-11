@@ -67,7 +67,7 @@ create temp table demo_email_domains (domain text primary key);
 create temp table demo_seed_tables (table_name text primary key);
 
 -- BEGIN GENERATED SEED MARKERS (infra/production/src/cli.ts generate)
--- Derived from 30 seed files: 244 fixed ids, 3 email domain(s), 243 seeded tables.
+-- Derived from 39 seed files: 263 fixed ids, 3 email domain(s), 255 seeded tables.
 insert into pg_temp.demo_seed_ids (id) values
   ('01920000-0000-7000-8000-000000000001'::uuid),
   ('01920000-0000-7000-8000-000000000101'::uuid),
@@ -122,6 +122,12 @@ insert into pg_temp.demo_seed_ids (id) values
   ('01920000-0000-7000-8000-000000022542'::uuid),
   ('01920000-0000-7000-8000-000000022543'::uuid),
   ('01920000-0000-7000-8000-000000022544'::uuid),
+  ('01920000-0000-7000-8000-0000000b7001'::uuid),
+  ('01920000-0000-7000-8000-0000000b7101'::uuid),
+  ('01920000-0000-7000-8000-0000000b7102'::uuid),
+  ('01920000-0000-7000-8000-0000000b7201'::uuid),
+  ('01920000-0000-7000-8000-0000000b7202'::uuid),
+  ('01920000-0000-7000-8000-0000000b7301'::uuid),
   ('01920000-0000-7000-8000-000000111001'::uuid),
   ('01920000-0000-7000-8000-000000111011'::uuid),
   ('01920000-0000-7000-8000-000000111012'::uuid),
@@ -221,6 +227,9 @@ insert into pg_temp.demo_seed_ids (id) values
   ('01920000-0000-7000-8000-000000228701'::uuid),
   ('01920000-0000-7000-8000-000000228702'::uuid),
   ('01920000-0000-7000-8000-000000228801'::uuid),
+  ('01920000-0000-7000-8000-000000300001'::uuid),
+  ('01920000-0000-7000-8000-000000300002'::uuid),
+  ('01920000-0000-7000-8000-000000300003'::uuid),
   ('01920000-0000-7000-8000-000001340001'::uuid),
   ('01920000-0000-7000-8000-000001340002'::uuid),
   ('01920000-0000-7000-8000-000001340101'::uuid),
@@ -312,7 +321,17 @@ insert into pg_temp.demo_seed_ids (id) values
   ('01920000-0000-7000-8000-000014900812'::uuid),
   ('01920000-0000-7000-8000-000014900813'::uuid),
   ('01920000-0000-7000-8000-000014900821'::uuid),
-  ('01920000-0000-7000-8000-000014900822'::uuid);
+  ('01920000-0000-7000-8000-000014900822'::uuid),
+  ('01920000-0000-7000-8000-000023320101'::uuid),
+  ('01920000-0000-7000-8000-000023320201'::uuid),
+  ('01920000-0000-7000-8000-000023320301'::uuid),
+  ('01920000-0000-7000-8000-000023320401'::uuid),
+  ('01920000-0000-7000-8000-000023320701'::uuid),
+  ('01920000-0000-7000-8000-000023320901'::uuid),
+  ('01920000-0000-7000-8000-000029300101'::uuid),
+  ('01920000-0000-7000-8000-000029300201'::uuid),
+  ('01920000-0000-7000-8000-000029300202'::uuid),
+  ('01920000-0000-7000-8000-000029300301'::uuid);
 insert into pg_temp.demo_email_domains (domain) values
   ('example.com'),
   ('group.calendar.example.com'),
@@ -351,6 +370,7 @@ insert into pg_temp.demo_seed_tables (table_name) values
   ('app.beos'),
   ('app.budget_lines'),
   ('app.budgets'),
+  ('app.calendar_feeds'),
   ('app.call_sheets'),
   ('app.canon_extension_proposals'),
   ('app.capability_documents'),
@@ -367,6 +387,7 @@ insert into pg_temp.demo_seed_tables (table_name) values
   ('app.credential_categories'),
   ('app.credentials'),
   ('app.crisis_alerts'),
+  ('app.cue_calls'),
   ('app.cues'),
   ('app.custom_object_field_choices'),
   ('app.custom_object_fields'),
@@ -374,10 +395,14 @@ insert into pg_temp.demo_seed_tables (table_name) values
   ('app.custom_object_types'),
   ('app.custom_object_values'),
   ('app.day_sheets'),
+  ('app.delivery_windows'),
   ('app.dock_slots'),
+  ('app.document_book_sections'),
+  ('app.document_books'),
   ('app.document_versions'),
   ('app.documents'),
   ('app.earning_codes'),
+  ('app.engagement_cues'),
   ('app.engagement_documents'),
   ('app.engagement_messages'),
   ('app.engagement_threads'),
@@ -443,6 +468,7 @@ insert into pg_temp.demo_seed_tables (table_name) values
   ('app.payment_applications'),
   ('app.payments'),
   ('app.payroll_runs'),
+  ('app.people'),
   ('app.per_diems'),
   ('app.person_certifications'),
   ('app.person_emergency_contacts'),
@@ -458,6 +484,9 @@ insert into pg_temp.demo_seed_tables (table_name) values
   ('app.portfolio_items'),
   ('app.prequalifications'),
   ('app.profile_section_visibility'),
+  ('app.project_days'),
+  ('app.project_debrief_items'),
+  ('app.project_debriefs'),
   ('app.project_members'),
   ('app.projects'),
   ('app.purchase_orders'),
@@ -506,6 +535,7 @@ insert into pg_temp.demo_seed_tables (table_name) values
   ('app.saved_views'),
   ('app.schedule_baselines'),
   ('app.scope_nodes'),
+  ('app.sensitive_data_consents'),
   ('app.setting_values'),
   ('app.settlement_lines'),
   ('app.settlements'),
@@ -543,7 +573,6 @@ insert into pg_temp.demo_seed_tables (table_name) values
   ('app.training_quiz_keys'),
   ('app.training_quiz_questions'),
   ('app.travel_segments'),
-  ('app.vendor_bank_accounts'),
   ('app.vendor_class_assignments'),
   ('app.vendor_classes'),
   ('app.vendor_products'),
@@ -560,7 +589,9 @@ insert into pg_temp.demo_seed_tables (table_name) values
   ('app.workspaces'),
   ('app.zones'),
   ('auth.identities'),
-  ('auth.users');
+  ('auth.users'),
+  ('private.age_confirmations'),
+  ('private.partner_client_grants');
 -- END GENERATED SEED MARKERS
 
 -- Scope -----------------------------------------------------------------------------------------------------

@@ -5,7 +5,7 @@
  * shell history and process listings.
  */
 import { parseArgs } from "node:util";
-import type { Me } from "@xos/sdk";
+import type { Me } from "@ghxstship/xos-sdk";
 import type { Config } from "../config.ts";
 import { assertProfileName, writeConfig } from "../config.ts";
 import type { Context } from "../context.ts";

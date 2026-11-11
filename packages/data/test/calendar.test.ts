@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   addCalendarDays,
   dateIn,
+  instantOfLocalIn,
   isTimeZone,
   startOfDayIn,
   todayIn,
@@ -39,6 +40,21 @@ describe("calendar dates in a place's time zone (A71)", () => {
     expect(startOfDayIn("2027-03-15", "America/New_York")).toBe("2027-03-15T04:00:00.000Z");
     expect(startOfDayIn("2026-10-19", "Asia/Tokyo")).toBe("2026-10-18T15:00:00.000Z");
     expect(startOfDayIn("2026-10-19", "Nowhere/Zone")).toBe("2026-10-19T00:00:00.000Z");
+  });
+
+  it("reads a wall-clock time in a zone, across daylight saving changes (A117)", () => {
+    expect(instantOfLocalIn("2026-10-19T09:30", "America/New_York")).toBe(
+      "2026-10-19T13:30:00.000Z",
+    );
+    expect(instantOfLocalIn("2026-11-02T09:30", "America/New_York")).toBe(
+      "2026-11-02T14:30:00.000Z",
+    );
+    expect(instantOfLocalIn("2027-03-14T12:00:00", "America/New_York")).toBe(
+      "2027-03-14T16:00:00.000Z",
+    );
+    expect(instantOfLocalIn("2026-10-19T09:30", null)).toBe("2026-10-19T09:30:00.000Z");
+    expect(instantOfLocalIn("2026-10-19", "America/New_York")).toBeNull();
+    expect(instantOfLocalIn("2026-13-45T99:99", "America/New_York")).toBeNull();
   });
 
   it("adds calendar days", () => {

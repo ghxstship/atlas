@@ -118,16 +118,17 @@ select is((select count(*)::int from app.representation_scopes), 0, 'nor their s
 select pg_temp.as_platform();
 
 -- Engagement areas by relationship (Section 8.7) ------------------------------------------------------------------
-select is(pg_temp.scope_of('sam', 'eng_vendor_a'), 'documents,engagement,onboarding', 'own engagement while Onboarding: no operational access yet');
-select is(pg_temp.scope_of('victor', 'eng_vendor_a'), 'documents,engagement,onboarding', 'account engagement: the Account Owner');
+-- R4 (2632) adds the roster area, open from Onboarding to Closing.
+select is(pg_temp.scope_of('sam', 'eng_vendor_a'), 'documents,engagement,onboarding,roster', 'own engagement while Onboarding: no operational access yet');
+select is(pg_temp.scope_of('victor', 'eng_vendor_a'), 'documents,engagement,onboarding,roster', 'account engagement: the Account Owner');
 select is(pg_temp.scope_of('fiona', 'eng_vendor_a'), 'documents,engagement', 'account engagement: Account Finance');
-select is(pg_temp.scope_of('rita', 'eng_art_a'), 'documents,engagement,onboarding', 'representation: Advance and Documents scopes');
+select is(pg_temp.scope_of('rita', 'eng_art_a'), 'documents,engagement,onboarding,roster', 'representation: Advance and Documents scopes');
 select is(pg_temp.scope_of('quinn', 'eng_vendor_a'), '', 'denial for another party''s engagement');
 select is(pg_temp.scope_of('ivy', 'eng_quinn_b'), '', 'denial for another freelancer''s engagement in an org the person also works for');
 select is(pg_temp.scope_of('rita', 'eng_ivy_a'), '', 'a representative reaches only the represented artist''s engagements');
 select is(pg_temp.scope_of('dave', 'eng_ivy_a'), '', 'internal members have no external scope');
 select pg_temp.move_engagement('eng_vendor_a', 'Onboarding', 'Active');
-select is(pg_temp.scope_of('sam', 'eng_vendor_a'), 'documents,engagement,money,onboarding,operational', 'operational access opens at Active');
+select is(pg_temp.scope_of('sam', 'eng_vendor_a'), 'documents,engagement,money,onboarding,operational,roster', 'operational access opens at Active');
 select is(pg_temp.scope_of('fiona', 'eng_vendor_a'), 'documents,engagement,money', 'Finance reaches money once Active');
 select pg_temp.claims('sam');
 select ok(private.is_engaged_party(pg_temp.id('prj_a')), 'is_engaged_party is true for an Active engagement on the project');

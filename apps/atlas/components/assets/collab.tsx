@@ -2,6 +2,7 @@ import type { XosClient } from "@xos/data";
 import { listAttachments } from "@xos/data/attachments";
 import { listThreads } from "@xos/data/comments";
 import { listPeopleNames } from "@xos/data/safety-permits";
+import { RecordHistory } from "@/components/history/record-history";
 import { AssetCollabPanel } from "./collab-panel";
 
 export type AssetSubjectTable =
@@ -12,7 +13,7 @@ export type AssetSubjectTable =
   | "app.asset_damage";
 
 /**
- * Loads and renders the comments and attachments of one asset row. Reads follow the subject's own
+ * Loads and renders the field history (A131), comments and attachments of one asset row. Reads follow the subject's own
  * read policy through A18's private.can_read_subject; a failed read throws to the segment's error
  * boundary rather than showing an empty thread.
  */
@@ -42,14 +43,17 @@ export async function AssetCollab({
   const names = await listPeopleNames(db, authors);
   if (!names.ok) throw new Error(`Cannot read names: ${JSON.stringify(names.error)}`);
   return (
-    <AssetCollabPanel
-      org={org}
-      table={table}
-      id={id}
-      threads={threads.data}
-      attachments={attachments.data}
-      names={Object.fromEntries(names.data)}
-      me={me}
-    />
+    <>
+      <RecordHistory db={db} table={table} id={id} />
+      <AssetCollabPanel
+        org={org}
+        table={table}
+        id={id}
+        threads={threads.data}
+        attachments={attachments.data}
+        names={Object.fromEntries(names.data)}
+        me={me}
+      />
+    </>
   );
 }

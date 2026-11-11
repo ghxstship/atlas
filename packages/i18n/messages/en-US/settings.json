@@ -11,6 +11,7 @@
   "lockValue": "Lock value",
   "discard": "Discard",
   "unsaved": "{count, plural, one {# unsaved change} other {# unsaved changes}}",
+  "chosen": "{count, number} of {total, number} chosen",
   "loadFailed": "These settings could not be loaded. Reload the page to try again.",
   "registryHeading": "Settings on this page",
   "personalSections": "Personal settings sections",
@@ -29,7 +30,10 @@
     "workspaceWorkspace": "Set for this workspace.",
     "workspaceTeam": "Set for a team.",
     "workspaceProject": "Set for a project.",
-    "workspaceDefault": "Platform default. Saving overrides it for this workspace."
+    "workspaceDefault": "Platform default. Saving overrides it for this workspace.",
+    "projectProject": "Set for this project.",
+    "projectOrganization": "Inherited from the organization. Saving overrides it for this project.",
+    "projectDefault": "Platform default. Saving overrides it for this project."
   },
   "errors": {
     "setting_locked": "Your organization locked this setting. Ask an Admin to unlock it first.",
@@ -41,6 +45,7 @@
     "setting_scope_org": "That workspace, team or project belongs to another organization. Reload the page.",
     "setting_not_lockable": "This setting cannot be locked. Save it without the lock.",
     "setting_unknown": "This setting no longer exists. Reload the page.",
+    "content_objectionable": "This contains language that is not allowed here. Change the wording and try again.",
     "not_member": "You no longer belong to this organization. Switch to another one.",
     "plan_feature_required": "Your plan does not include this. Compare plans in Billing and Plan.",
     "favorites_limit": "Favorites hold 50 items. Unpin one, then pin this page.",
@@ -71,7 +76,9 @@
     "ip_allowlist_self_lockout": "Your current address is outside every listed network. Add it first, or you would lose access.",
     "ip_allowlist_empty": "Add at least one network before turning the allow-list on.",
     "plan_feature_ip_allowlist": "The IP allow-list is part of the Team and Enterprise plans. Compare plans in Billing and Plan.",
-    "setting_fixed": "This setting is fixed and cannot be changed."
+    "setting_fixed": "This setting is fixed and cannot be changed.",
+    "phone": "Enter a phone number with its area code. Add the country code, such as +44, for a number outside your country.",
+    "work_phone_e164": "Enter the work phone with its country code, for example +1 305 555 0199."
   },
   "fields": {
     "legalName": {
@@ -180,7 +187,7 @@
     },
     "ratingsEnabled": {
       "label": "Prompt members to rate parties",
-      "help": "Members see completed engagements waiting for their rating, and Rate the party as the next step. Ratings are always on: turning prompts off never hides or removes a rating, and rated parties and marketplace viewers see the same ratings either way. Moderation follows policy only (abuse, personal data), whatever the score."
+      "help": "Members see completed engagements waiting for their rating, and Rate the party as the next step. Ratings are always on: turning prompts off never hides or removes a rating, and rated parties and anyone else who may read a rating see the same ratings either way. Moderation follows policy only (abuse, personal data, a wrong or false statement), whatever the score."
     },
     "messageRetention": {
       "label": "Message retention in days",
@@ -204,7 +211,7 @@
     },
     "language": {
       "label": "Language",
-      "help": "The language of menus, emails and documents. Beta languages are machine translated; anything not translated yet shows in English."
+      "help": "The language of menus, emails and documents. Anything not translated yet shows in English."
     },
     "timeZone": {
       "label": "Time zone",
@@ -267,7 +274,7 @@
     },
     "shortcutsEnabled": {
       "label": "Keyboard shortcuts",
-      "help": "Single-key shortcuts such as J, K and ? on desktop."
+      "help": "Single character-key shortcuts such as J, K and ? on desktop. Function keys F13 to F20, such as Stream Deck keys, always work."
     },
     "messageTranslation": {
       "label": "Translate chat messages",
@@ -284,6 +291,142 @@
     "supplierDiversityProgram": {
       "label": "Supplier diversity program",
       "help": "Lets vendors and freelancers share their supplier diversity certifications with your organization. Each shares by separate consent and can revoke it at any time. Turned off, nothing can be shared and shared certifications are hidden."
+    },
+    "keepPhotoLocation": {
+      "label": "Keep photo location",
+      "help": "Keep where a Compass photo was taken in the photo's file. When off, Compass removes the location as it resizes the photo."
+    },
+    "availabilityRequired": {
+      "label": "Members state their availability",
+      "help": "Members state when they can work for the days ahead, and their availability inside the notice period is locked so planners can rely on it."
+    },
+    "availabilityNoticeDays": {
+      "label": "Availability notice (days)",
+      "help": "While availability is required, nobody can change a member's availability for this many days ahead. Availability stays the member's own: planners read it and reassign shifts, but cannot edit it."
+    },
+    "availabilityHorizonDays": {
+      "label": "Availability horizon (days)",
+      "help": "How many days ahead members state their availability. Planners see who has not stated it for a shift inside this window."
+    },
+    "offeringsTravel": {
+      "label": "Travel",
+      "help": "Flights and ground transport for the people you engage. Offered, the Travel and lodging and Hospitality tabs appear on their Gateway engagements."
+    },
+    "offeringsLodging": {
+      "label": "Lodging",
+      "help": "Hotel rooms for the people you engage. Offered, the Travel and lodging and Hospitality tabs appear on their Gateway engagements."
+    },
+    "offeringsCatering": {
+      "label": "Catering",
+      "help": "Meals for the people you engage. Offered, the Hospitality tab appears on artist engagements in Gateway."
+    },
+    "offeringsParking": {
+      "label": "Parking",
+      "help": "Parking passes for the people you engage."
+    },
+    "offeringsUniforms": {
+      "label": "Uniforms",
+      "help": "Uniforms for the people you engage."
+    },
+    "offeringsPerDiem": {
+      "label": "Per diem",
+      "help": "Daily allowances for the people you engage. Offered, the Per diem tab appears on crew engagements in Gateway, and per diems can be added for them."
+    },
+    "offeringsRadios": {
+      "label": "Radios",
+      "help": "Radios issued to the people you engage."
+    },
+    "offeringsCarts": {
+      "label": "Carts",
+      "help": "Carts issued to the people you engage."
+    },
+    "offeringsGuestList": {
+      "label": "Guest list",
+      "help": "Guest list places for the people you engage. Offered, the Guest list tab appears on artist engagements in Gateway."
+    },
+    "homeLayout": {
+      "label": "Home layout",
+      "help": "Widen or narrow a Home tile by dragging its edge, or with the arrow keys on its handle. Reset puts every tile back to its default width."
+    },
+    "partnerLayout": {
+      "label": "Partner console layout",
+      "help": "Widen or narrow a partner console tile by dragging its edge, or with the arrow keys on its handle. Reset puts every tile back to its default width."
+    },
+    "projectFactsKeepDays": {
+      "label": "Keep project details for (days)",
+      "help": "How long the travel, uniform and vehicle details people enter on a roster entry stay after the engagement is complete or canceled. 30 to 365 days."
+    },
+    "companyMaySubmitProjectFacts": {
+      "label": "Companies may enter project details for their people",
+      "help": "When on, the company that rosters someone may enter their travel, uniform and vehicle details for them. The person is notified and can correct anything they did not enter themselves."
+    },
+    "workloadDayHours": {
+      "label": "Workload day (hours)",
+      "help": "On Schedule, Workload, a person's day reads as over above this many hours of shifts and estimated tasks. It changes what the view shows and stores nothing."
+    },
+    "changeoverMinutes": {
+      "label": "Minimum changeover (minutes)",
+      "help": "On Schedule, Clashes, a gap between two artists' sets under this many minutes is a warning; sets that overlap are always a clash."
+    },
+    "travelBufferMinutes": {
+      "label": "Travel buffer (minutes)",
+      "help": "On Schedule, Clashes, a flight or ride that lands within this many minutes of a person's first call, or leaves this soon after their last, is a warning; one that lands after the call or leaves before it ends is a clash."
+    },
+    "advancingAllowanceOverflow": {
+      "label": "Requests beyond the allowance",
+      "help": "Refuse turns away a request above an offering's cap. Review lets it in as requested; approving it, or assigning above the cap, then needs a reason that is kept with the allocation."
+    },
+    "reconfirmShifts": {
+      "label": "Ask crew if they are still coming",
+      "help": "Before a shift starts, ask its worker once whether they are still coming. Off until you turn it on."
+    },
+    "reconfirmLeadHours": {
+      "label": "Hours before a shift to ask",
+      "help": "How long before the shift starts the question goes out, from 2 to 72 hours."
+    },
+    "reconfirmReopen": {
+      "label": "Reopen a shift when someone can't make it",
+      "help": "When on, the shift goes back to open shifts, or to its agency's slot. When off, the worker stays on it and it shows on Crew, Shortages."
+    },
+    "swapReasonRequired": {
+      "label": "Require a reason for a shift swap",
+      "help": "Crew say why when they ask to hand over a shift."
+    },
+    "minRestHours": {
+      "label": "Minimum rest between shifts (hours)",
+      "help": "An organization scheduling warning shown before someone is assigned, never a refusal, pay rule or state overtime rule. 0 turns it off."
+    },
+    "maxDailyHours": {
+      "label": "Maximum scheduled hours in a day",
+      "help": "An organization scheduling warning shown before someone is assigned, never a pay or state overtime rule. It counts scheduled shift minutes and differs from the workload threshold. 0 turns it off."
+    },
+    "maxWeeklyHours": {
+      "label": "Maximum scheduled hours in a week",
+      "help": "An organization scheduling warning shown before someone is assigned, never a pay or state overtime rule. The week starts on your payroll week start. 0 turns it off."
+    },
+    "advancingReminders": {
+      "label": "Send advance reminders",
+      "help": "Remind the people answering an advance packet before it is due and while it is overdue. Reminders reach the person, the company's Owners and Admins and its assigned Advancing Leads."
+    },
+    "advancingReminderDaysBefore": {
+      "label": "First reminder, days before the due date",
+      "help": "How many days before a packet is due the first reminder goes out, from 1 to 30. People on a crew roster are also asked for missing project details this many days before they arrive, and again the day before."
+    },
+    "advancingOverdueEvery": {
+      "label": "Overdue reminders, every so many days",
+      "help": "How often an overdue packet is reminded again, from 0 to 14 days, at most five times. 0 sends no overdue reminders."
+    },
+    "todayLayout": {
+      "help": "Widen or narrow a tile of Home > Today by dragging its edge, or with the arrow keys on its handle. Reset puts every tile back to its default width.",
+      "label": "Today layout"
+    },
+    "showDayLayout": {
+      "help": "Widen or narrow a tile of Show > Show day by dragging its edge, or with the arrow keys on its handle. Reset puts every tile back to its default width.",
+      "label": "Show day layout"
+    },
+    "transferTurnaroundMinutes": {
+      "label": "Transfer turnaround (minutes)",
+      "help": "Time a driver needs between a drop-off and the next pickup. Transfers warn Tight turnaround when it is shorter. 0 turns the warning off."
     }
   },
   "choices": {
@@ -374,6 +517,64 @@
       "system": "Match the device",
       "reduce": "Reduce motion",
       "full": "Full motion"
+    },
+    "offerings_travel": {
+      "not-offered": "Not offered",
+      "provided": "Provided",
+      "reimbursed": "Reimbursed",
+      "buyout": "Buyout"
+    },
+    "offerings_lodging": {
+      "not-offered": "Not offered",
+      "provided": "Provided",
+      "reimbursed": "Reimbursed",
+      "buyout": "Buyout"
+    },
+    "offerings_catering": {
+      "not-offered": "Not offered",
+      "provided": "Provided",
+      "reimbursed": "Reimbursed",
+      "buyout": "Buyout"
+    },
+    "offerings_parking": {
+      "not-offered": "Not offered",
+      "provided": "Provided",
+      "reimbursed": "Reimbursed",
+      "buyout": "Buyout"
+    },
+    "offerings_uniforms": {
+      "not-offered": "Not offered",
+      "provided": "Provided",
+      "reimbursed": "Reimbursed",
+      "buyout": "Buyout"
+    },
+    "offerings_per_diem": {
+      "not-offered": "Not offered",
+      "provided": "Provided",
+      "reimbursed": "Reimbursed",
+      "buyout": "Buyout"
+    },
+    "offerings_radios": {
+      "not-offered": "Not offered",
+      "provided": "Provided",
+      "reimbursed": "Reimbursed",
+      "buyout": "Buyout"
+    },
+    "offerings_carts": {
+      "not-offered": "Not offered",
+      "provided": "Provided",
+      "reimbursed": "Reimbursed",
+      "buyout": "Buyout"
+    },
+    "offerings_guest_list": {
+      "not-offered": "Not offered",
+      "provided": "Provided",
+      "reimbursed": "Reimbursed",
+      "buyout": "Buyout"
+    },
+    "advancing_allowance_overflow": {
+      "refuse": "Refuse",
+      "review": "Send to review"
     }
   },
   "brand": {
@@ -381,11 +582,19 @@
     "displayName": "Brand name",
     "displayNameHelp": "Shown instead of the organization name on branded pages. Leave empty to use the organization name.",
     "accent": "Brand accent",
-    "accentHelp": "A six-digit hex color, for example #5B63E8.",
-    "invalidColor": "Enter a six-digit hex color, for example #5B63E8.",
-    "passes": "Passes WCAG 2.2 AA in every theme.",
-    "fails": "Fails WCAG 2.2 AA in {count, plural, one {# pair} other {# pairs}}. Choose a darker or more saturated accent.",
-    "failure": "{rule}, {theme} theme: {ratio}:1, needs {min}:1",
+    "accentHelp": "A hex color, for example #5B63E8. It can be saved once every pair below passes.",
+    "check": "{theme}: {pair}",
+    "themeDark": "Dark theme",
+    "themeLight": "Light theme",
+    "themeSunlight": "Sunlight theme",
+    "pairLabel": "label on accent",
+    "pairLabelHover": "label on accent, hovered",
+    "pairLabelPressed": "label on accent, pressed",
+    "pairCanvas": "accent on the page",
+    "pairSurface": "accent on a surface",
+    "pairRaised": "accent on a raised surface",
+    "pairHover": "accent on a hovered row",
+    "pairOther": "{rule}, {token}",
     "preview": "Preview",
     "previewAction": "Primary action",
     "neutralTint": "Neutral tint",
@@ -502,7 +711,10 @@
     "fieldErrors": {
       "invalid": "Check this value and try again.",
       "cidr": "Enter an address or a network like 203.0.113.0/24.",
-      "reason": "Write why you need emergency access, in at least 20 characters."
+      "reason": "Write why you need emergency access, in at least 20 characters.",
+      "addressRequired": "Addresses in this country need this. Fill it in, or clear the whole address.",
+      "postalCode": "That is not a postal code in this country. Check it against the address.",
+      "addressTooLong": "Shorten this part of the address."
     },
     "errors": {
       "legal_entity_primary": "Mark another legal entity primary first. The organization always keeps one primary entity.",
@@ -532,7 +744,8 @@
       "project_member_ended": "This person is no longer on the project.",
       "sod_self_grant": "You cannot give yourself a role.",
       "project_share_own_org": "A project is shared with another organization, never your own.",
-      "project_share_deleted_project": "A deleted project cannot be shared."
+      "project_share_deleted_project": "A deleted project cannot be shared.",
+      "postal_code_invalid": "That postal code does not fit the entity's country. Check it against the address."
     },
     "legalEntities": {
       "title": "Legal entities",
@@ -555,7 +768,16 @@
       "makePrimary": "Make primary",
       "makePrimaryNamed": "Make {name} the primary legal entity",
       "remove": "Remove",
-      "removeNamed": "Remove {name}"
+      "removeNamed": "Remove {name}",
+      "addressNone": "No registered address",
+      "addAddress": "Add registered address",
+      "editAddress": "Edit registered address",
+      "addressLabel": "Registered address of {name}",
+      "streetAddress": "Street address",
+      "locality": "City",
+      "administrativeArea": "State or province",
+      "postalCode": "Postal code",
+      "saveAddress": "Save address"
     },
     "network": {
       "title": "Allowed networks",
@@ -684,8 +906,10 @@
     "resetOne": "{action} uses its default keys again.",
     "resetAll": "Reset all shortcuts",
     "resetAllDone": "Every shortcut uses its default keys again.",
-    "singleKeysOff": "Single-key shortcuts are off, so shortcuts without Ctrl, Cmd or Alt do nothing. Turn on Keyboard shortcuts above to use them.",
+    "singleKeysOff": "Single-key shortcuts are off, so character keys without Ctrl, Cmd or Alt do nothing. Function keys F13 to F20 still work. Turn on Keyboard shortcuts above to use them.",
     "fixed": "Esc, Enter and the list keys J, K and X belong to every list and dialog, so they stay as they are. Help lists every shortcut.",
+    "dropped": "Some of your shortcuts use their default keys again, because the keys you chose now belong to other shortcuts or are no longer allowed: {actions}.",
+    "inGroup": "{action} ({group})",
     "problems": {
       "conflict": "{keys} already does {action}. Change that shortcut first, or choose other keys.",
       "browser": "{keys} belongs to your browser or computer. Choose other keys.",
@@ -716,7 +940,6 @@
     "failed": "The sidebar was not saved. Try again."
   },
   "notifications": {
-    "category": "Category",
     "channels": {
       "inApp": "In app",
       "email": "Email",
@@ -724,6 +947,7 @@
       "push": "Push"
     },
     "cellLabel": "{category} by {channel}",
+    "noChannels": "No channels",
     "urgent": "Urgent: never waits for the email digest.",
     "save": "Save notification settings",
     "saved": "Notification settings saved.",
@@ -1054,5 +1278,7 @@
       "vendor_entitlements": "Vendor Entitlements",
       "verbiage": "Verbiage Library"
     }
-  }
+  },
+  "layoutCustom": "You arranged this dashboard. Reset puts its tiles back to their default widths.",
+  "layoutDefault": "Default layout. Arrange the tiles on the dashboard itself."
 }

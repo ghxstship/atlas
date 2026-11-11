@@ -1,12 +1,26 @@
-import type { XosClient } from "./client.ts";
+import type { Database, XosClient } from "./client.ts";
+import { CUE_CALL_KINDS, type CueCallKind } from "./cue-calls.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
+import { cueProgress as progressOf, type CueProgress } from "./show-timing.ts";
 import { untyped } from "./untyped.ts";
+
+export type { CueProgress } from "./show-timing.ts";
+export {
+  callLines,
+  CUE_CALL_KINDS,
+  CUE_CALL_SLUGS,
+  cueCallKindOf,
+  isCueCallKind,
+  type CueCallKind,
+  type CueCallLine,
+} from "./cue-calls.ts";
 
 /**
  * Show repository (Section 4.2 Show): running orders and their cues, day sheets and call sheets.
  * Calling a cue goes through app.call_cue, which stamps the database time and the caller once.
  * Live progression (current cue, time to the next one) is derived from the cues, never stored, so
- * Atlas and Compass (A17, Section 4.3 item 9) compute the same answer from the same rows.
+ * Atlas and Compass (A17, Section 4.3 item 9) compute the same answer from the same rows (show-timing.ts).
+ * Standby, moves, nudges and department calls go through definer RPCs, one transaction each (ADR 0131).
  */
 
 // Running orders ---------------------------------------------------------------------------------------
@@ -22,6 +36,8 @@ export interface RunOfShow {
   readonly showDate: string;
   readonly cueCount: number;
   readonly calledCount: number;
+  /** Hard stop of the show (the noise curfew); the console weighs the projected end against it. */
+  readonly curfewAt: string | null;
 }
 
 interface RunRow {
@@ -30,6 +46,7 @@ interface RunRow {
   scope_node_id: string | null;
   name: string;
   show_date: string;
+  curfew_at: string | null;
   project: { project_key: string; name: string; time_zone: string } | null;
   cues: { called_at: string | null; deleted_at: string | null }[] | null;
 }
@@ -47,11 +64,12 @@ function toRun(row: RunRow): RunOfShow {
     showDate: row.show_date,
     cueCount: live.length,
     calledCount: live.filter((c) => c.called_at !== null).length,
+    curfewAt: row.curfew_at,
   };
 }
 
 const RUN_COLUMNS =
-  "id, project_id, scope_node_id, name, show_date, project:projects!inner(project_key, name, time_zone), cues(called_at, deleted_at)";
+  "id, project_id, scope_node_id, name, show_date, curfew_at, project:projects!inner(project_key, name, time_zone), cues(called_at, deleted_at)";
 
 /** Running orders of the org or a project, by show date then name. */
 export async function listRunsOfShow(
@@ -124,12 +142,19 @@ export async function updateRunOfShow(
     readonly name?: string;
     readonly showDate?: string;
     readonly scopeNodeId?: string | null;
+    readonly curfewAt?: string | null;
   },
 ): Promise<Result<null>> {
-  const row: { name?: string; show_date?: string; scope_node_id?: string | null } = {};
+  const row: {
+    name?: string;
+    show_date?: string;
+    scope_node_id?: string | null;
+    curfew_at?: string | null;
+  } = {};
   if (patch.name !== undefined) row.name = patch.name.trim();
   if (patch.showDate !== undefined) row.show_date = patch.showDate;
   if (patch.scopeNodeId !== undefined) row.scope_node_id = patch.scopeNodeId;
+  if (patch.curfewAt !== undefined) row.curfew_at = patch.curfewAt;
   const { data, error } = await db.from("run_of_show").update(row).eq("id", id).select("id");
   if (error) return fail(toDataError(error));
   return data.length === 1 ? ok(null) : fail({ kind: "not-found" });
@@ -157,6 +182,25 @@ export interface Cue {
   readonly durationSeconds: number | null;
   readonly calledAt: string | null;
   readonly calledByName: string | null;
+  /** True while the planned time is an estimate to be confirmed (shown as TBC). */
+  readonly startTbc: boolean;
+  /** When the caller put the cue on standby; NULL when it is not on standby. */
+  readonly standbyAt: string | null;
+  /** Show segment the cue belongs to, as written (1180). */
+  readonly segment: string | null;
+  /** What happens on the cue. */
+  readonly description: string | null;
+  /** What is said on the cue, up to 20,000 characters (ADR 0142). */
+  readonly script: string | null;
+  /** The library segment copy the cue came from (app.run_segment_instances), or null. */
+  readonly segmentInstanceId: string | null;
+  /**
+   * The showcaller link's caller name when the cue was called through a showcaller link; then
+   * calledByName is null (ADR 0142).
+   */
+  readonly calledViaLink: string | null;
+  /** When the cue last changed, for the showcaller portal's stale-edit check. */
+  readonly updatedAt: string;
 }
 
 /** Postgres interval text (HH:MM:SS, with optional days) in seconds. */
@@ -171,18 +215,40 @@ export function intervalSeconds(interval: string | null): number | null {
   );
 }
 
+interface CueRow {
+  id: string;
+  run_of_show_id: string;
+  position: number;
+  label: string;
+  planned_at: string | null;
+  duration: string | null;
+  called_at: string | null;
+  start_tbc: boolean;
+  standby_at: string | null;
+  segment: string | null;
+  description: string | null;
+  script: string | null;
+  segment_instance_id: string | null;
+  updated_at: string;
+  caller: { full_name: string | null } | null;
+  link: { caller_name: string } | null;
+}
+
+/**
+ * The live cues of a running order, in order.
+ */
 export async function listCues(db: XosClient, runOfShowId: string): Promise<Result<Cue[]>> {
   const { data, error } = await db
     .from("cues")
     .select(
-      "id, run_of_show_id, position, label, planned_at, duration, called_at, caller:people!cues_called_by_fkey(full_name)",
+      "id, run_of_show_id, position, label, planned_at, duration, called_at, start_tbc, standby_at, segment, description, script, segment_instance_id, updated_at, caller:people!cues_called_by_fkey(full_name), link:showcaller_links!cues_called_via_link_id_fkey(caller_name)",
     )
     .eq("run_of_show_id", runOfShowId)
     .is("deleted_at", null)
     .order("position");
   if (error) return fail(toDataError(error));
   return ok(
-    data.map((c) => ({
+    (data as unknown as CueRow[]).map((c) => ({
       id: c.id,
       runOfShowId: c.run_of_show_id,
       position: c.position,
@@ -191,6 +257,14 @@ export async function listCues(db: XosClient, runOfShowId: string): Promise<Resu
       durationSeconds: intervalSeconds(c.duration === null ? null : String(c.duration)),
       calledAt: c.called_at,
       calledByName: c.caller?.full_name ?? null,
+      startTbc: c.start_tbc,
+      standbyAt: c.standby_at,
+      segment: c.segment,
+      description: c.description,
+      script: c.script,
+      segmentInstanceId: c.segment_instance_id,
+      calledViaLink: c.link?.caller_name ?? null,
+      updatedAt: c.updated_at,
     })),
   );
 }
@@ -206,6 +280,7 @@ export async function addCue(
     readonly label: string;
     readonly plannedAt?: string | null;
     readonly durationSeconds?: number | null;
+    readonly startTbc?: boolean;
   },
 ): Promise<Result<{ id: string }>> {
   const current = await listCues(db, input.runOfShowId);
@@ -220,6 +295,7 @@ export async function addCue(
       position,
       label: input.label.trim(),
       planned_at: input.plannedAt ?? null,
+      start_tbc: input.startTbc ?? false,
       duration:
         input.durationSeconds === null || input.durationSeconds === undefined
           ? null
@@ -238,17 +314,38 @@ export async function updateCue(
     readonly label?: string;
     readonly plannedAt?: string | null;
     readonly durationSeconds?: number | null;
+    readonly startTbc?: boolean;
+    readonly segment?: string | null;
+    readonly description?: string | null;
+    readonly script?: string | null;
   },
 ): Promise<Result<null>> {
-  const row: { label?: string; planned_at?: string | null; duration?: string | null } = {};
+  const row: {
+    label?: string;
+    planned_at?: string | null;
+    duration?: string | null;
+    start_tbc?: boolean;
+    segment?: string | null;
+    description?: string | null;
+    script?: string | null;
+  } = {};
   if (patch.label !== undefined) row.label = patch.label.trim();
+  if (patch.segment !== undefined) row.segment = blankToNull(patch.segment);
+  if (patch.description !== undefined) row.description = blankToNull(patch.description);
+  if (patch.script !== undefined) row.script = patch.script === "" ? null : patch.script;
   if (patch.plannedAt !== undefined) row.planned_at = patch.plannedAt;
+  if (patch.startTbc !== undefined) row.start_tbc = patch.startTbc;
   if (patch.durationSeconds !== undefined) {
     row.duration = patch.durationSeconds === null ? null : `${patch.durationSeconds} seconds`;
   }
   const { data, error } = await db.from("cues").update(row).eq("id", id).select("id");
   if (error) return fail(toDataError(error));
-  return data.length === 1 ? ok(null) : fail({ kind: "not-found" });
+  return (data ?? []).length === 1 ? ok(null) : fail({ kind: "not-found" });
+}
+
+function blankToNull(value: string | null): string | null {
+  const trimmed = value?.trim() ?? "";
+  return trimmed === "" ? null : trimmed;
 }
 
 export async function removeCue(db: XosClient, id: string): Promise<Result<null>> {
@@ -262,8 +359,8 @@ export async function removeCue(db: XosClient, id: string): Promise<Result<null>
 }
 
 /**
- * Swaps a cue with its neighbor (keyboard reordering). Positions are unique per running order, so
- * the move parks the cue past the end first.
+ * Moves a cue up or down one place (keyboard reordering) through app.move_cue, one transaction that
+ * renumbers the running order densely.
  */
 export async function moveCue(
   db: XosClient,
@@ -274,19 +371,63 @@ export async function moveCue(
   const cues = await listCues(db, runOfShowId);
   if (!cues.ok) return cues;
   const index = cues.data.findIndex((c) => c.id === cueId);
-  const other = cues.data[direction === "up" ? index - 1 : index + 1];
-  const cue = cues.data[index];
-  if (!cue || !other) return ok(null);
-  const park = Math.max(...cues.data.map((c) => c.position)) + 1;
-  for (const [id, position] of [
-    [cue.id, park],
-    [other.id, cue.position],
-    [cue.id, other.position],
-  ] as const) {
-    const { error } = await db.from("cues").update({ position }).eq("id", id);
-    if (error) return fail(toDataError(error));
-  }
+  if (index < 0) return fail({ kind: "not-found" });
+  const target = direction === "up" ? index : index + 2;
+  if (target < 1 || target > cues.data.length) return ok(null);
+  const moved = await moveCueTo(db, cueId, target);
+  return moved.ok ? ok(null) : moved;
+}
+
+/**
+ * Moves a cue to a 1-based place among its running order's live cues (app.move_cue): one transaction,
+ * dense renumbering. The database refuses a called cue (cue_move_called) and a place at or before the
+ * last called cue (cue_move_before_called). Returns the cue's new position.
+ */
+export async function moveCueTo(
+  db: XosClient,
+  cueId: string,
+  position: number,
+): Promise<Result<{ position: number }>> {
+  const { data, error } = await untyped(db).rpc("move_cue", {
+    p_cue_id: cueId,
+    p_to_position: position,
+  });
+  if (error) return fail(toDataError(error));
+  return ok({ position: Number(data) });
+}
+
+/**
+ * Puts a cue on standby (app.standby_cue), clearing any other standby of the running order, or clears
+ * the standby when `cueId` is null. Needs show.cue.call; a called cue is refused (cue_standby_called).
+ */
+export async function standbyCue(
+  db: XosClient,
+  runOfShowId: string,
+  cueId: string | null,
+): Promise<Result<null>> {
+  const { error } = await untyped(db).rpc("standby_cue", {
+    p_run_of_show_id: runOfShowId,
+    p_cue_id: cueId,
+  });
+  if (error) return fail(toDataError(error));
   return ok(null);
+}
+
+/**
+ * Nudges the planned time of every uncalled, planned cue of a running order (app.shift_cue_plan) by
+ * `seconds`, between -3600 and 3600 and not 0 (cue_shift_range). Returns how many cues moved.
+ */
+export async function shiftCuePlan(
+  db: XosClient,
+  runOfShowId: string,
+  seconds: number,
+): Promise<Result<{ count: number }>> {
+  const { data, error } = await untyped(db).rpc("shift_cue_plan", {
+    p_run_of_show_id: runOfShowId,
+    p_seconds: seconds,
+  });
+  if (error) return fail(toDataError(error));
+  return ok({ count: Number(data) });
 }
 
 /** Calls a cue now (app.call_cue): the database stamps the time and the caller, once. */
@@ -296,39 +437,234 @@ export async function callCue(db: XosClient, cueId: string): Promise<Result<{ ca
   return ok({ calledAt: String(data) });
 }
 
-export interface CueProgress {
-  /** Index of the last called cue, or -1 before the first call. */
-  readonly current: number;
-  /** Index of the next cue to call, or -1 when every cue is called. */
-  readonly next: number;
-  /** Seconds until the next cue's planned time, negative when it is late; NULL without a plan. */
-  readonly nextInSeconds: number | null;
-  /** Seconds the current cue has run. */
-  readonly elapsedSeconds: number | null;
-  readonly complete: boolean;
+// Set times: cues linked to artist engagements (migration 0760) ------------------------------------------
+
+/** A cue marked as an artist's set time (app.engagement_cues). */
+export interface CueEngagement {
+  readonly id: string;
+  readonly cueId: string;
+  readonly engagementId: string;
+  /** The artist's name; null when the person row is hidden. */
+  readonly personName: string | null;
 }
 
-/** Where a running order stands at `now`: current and next cue and time to the next one. */
-export function cueProgress(cues: readonly Cue[], now: Date = new Date()): CueProgress {
-  let current = -1;
-  cues.forEach((c, i) => {
-    if (c.calledAt !== null) current = i;
+/** The set times of one running order's cues. */
+export async function listCueEngagements(
+  db: XosClient,
+  runOfShowId: string,
+): Promise<Result<CueEngagement[]>> {
+  const { data, error } = await db
+    .from("engagement_cues")
+    .select(
+      "id, cue_id, engagement_id, cue:cues!engagement_cues_cue_id_fkey!inner(run_of_show_id), engagement:engagements!engagement_cues_engagement_id_fkey(person:people!engagements_person_id_fkey(full_name))",
+    )
+    .eq("cue.run_of_show_id", runOfShowId)
+    .is("deleted_at", null);
+  if (error) return fail(toDataError(error));
+  return ok(
+    (data as unknown as CueEngagementRow[]).map((r) => ({
+      id: r.id,
+      cueId: r.cue_id,
+      engagementId: r.engagement_id,
+      personName: r.engagement?.person?.full_name ?? null,
+    })),
+  );
+}
+
+/** org_id comes from the engagement (ADR 0002 tenant guards). */
+type EngagementCueInsert = Database["app"]["Tables"]["engagement_cues"]["Insert"];
+
+interface CueEngagementRow {
+  id: string;
+  cue_id: string;
+  engagement_id: string;
+  engagement: { person: { full_name: string | null } | null } | null;
+}
+
+/**
+ * Marks a cue as an artist's set time. Only (engagement_id, cue_id) are written, as the column grant
+ * allows; the database refuses engagement_cue_artist_only and engagement_cue_project_mismatch, and a
+ * cue already linked to the engagement comes back as a conflict.
+ */
+export async function linkCueToEngagement(
+  db: XosClient,
+  input: { readonly cueId: string; readonly engagementId: string },
+): Promise<Result<{ id: string }>> {
+  const { data, error } = await db
+    .from("engagement_cues")
+    .insert({ engagement_id: input.engagementId, cue_id: input.cueId } as EngagementCueInsert)
+    .select("id")
+    .single();
+  if (error) return fail(toDataError(error));
+  return ok({ id: data.id });
+}
+
+/** Removes a set time (soft delete). */
+export async function unlinkCueEngagement(db: XosClient, id: string): Promise<Result<null>> {
+  const { data, error } = await db
+    .from("engagement_cues")
+    .update({ deleted_at: new Date().toISOString() })
+    .eq("id", id)
+    .select("id");
+  if (error) return fail(toDataError(error));
+  return data.length === 1 ? ok(null) : fail({ kind: "not-found" });
+}
+
+/**
+ * Where a running order stands at `now` (show-timing.ts, shared with Compass): current, next and standby
+ * cue, skipped cues and the time to the next one. Indices refer to the cues in position order. A display screen's
+ * cues (live-links.ts) carry only their times and arrive in order.
+ */
+export function cueProgress(
+  cues: readonly (Pick<Cue, "calledAt" | "plannedAt"> & Partial<Cue>)[],
+  now: Date = new Date(),
+): CueProgress {
+  return progressOf(
+    cues.map((c, i) => ({ position: i, durationSeconds: null, ...c })),
+    now,
+  );
+}
+
+/**
+ * Cue calls a device heard before a server read showed them (ADR 0119): cue id to `called_at`, from the cue's
+ * Realtime row or from the caller's own answer.
+ */
+export type HeardCalls = Readonly<Record<string, string>>;
+
+/**
+ * The served cues with the calls heard since: a heard call fills a cue the read still shows uncalled. `called_at`
+ * is set once (app.call_cue refuses a second call) and never cleared, so a read that started before a call and
+ * lands after it cannot take the call back. Returns `served` itself when no heard call changes it.
+ */
+export function withHeardCalls(served: readonly Cue[], heard: HeardCalls): readonly Cue[] {
+  let changed = false;
+  const cues = served.map((c) => {
+    const at = heard[c.id];
+    if (at === undefined || c.calledAt !== null) return c;
+    changed = true;
+    return { ...c, calledAt: at };
   });
-  const next = cues.findIndex((c, i) => i > current && c.calledAt === null);
-  const nextCue = next >= 0 ? cues[next] : undefined;
-  const currentCue = current >= 0 ? cues[current] : undefined;
-  const nowMs = now.getTime();
-  return {
-    current,
-    next,
-    nextInSeconds: nextCue?.plannedAt
-      ? Math.round((Date.parse(nextCue.plannedAt) - nowMs) / 1000)
-      : null,
-    elapsedSeconds: currentCue?.calledAt
-      ? Math.round((nowMs - Date.parse(currentCue.calledAt)) / 1000)
-      : null,
-    complete: cues.length > 0 && next === -1,
-  };
+  return changed ? cues : served;
+}
+
+/**
+ * The heard calls a read does not show yet. Once a read carries a cue's call, that read is its source and the heard
+ * call is dropped; a read without it, however late it lands, keeps the heard call.
+ */
+export function unconfirmedCalls(heard: HeardCalls, served: readonly Cue[]): HeardCalls {
+  const confirmed = new Set(served.filter((c) => c.calledAt !== null).map((c) => c.id));
+  return Object.fromEntries(Object.entries(heard).filter(([id]) => !confirmed.has(id)));
+}
+
+// Department calls (app.cue_calls) ---------------------------------------------------------------------
+
+/** A department's instruction on a cue. */
+export interface CueCall {
+  readonly id: string;
+  readonly cueId: string;
+  readonly kind: CueCallKind;
+  readonly instruction: string;
+}
+
+/** The live department calls of a running order's live cues, in enum order per cue. */
+export async function listCueCalls(db: XosClient, runOfShowId: string): Promise<Result<CueCall[]>> {
+  const { data, error } = await db
+    .from("cue_calls")
+    .select(
+      "id, cue_id, call_kind, instruction, cue:cues!cue_calls_cue_id_fkey!inner(run_of_show_id, deleted_at)",
+    )
+    .eq("cue.run_of_show_id", runOfShowId)
+    .is("cue.deleted_at", null)
+    .is("deleted_at", null);
+  if (error) return fail(toDataError(error));
+  const order = (k: CueCallKind) => CUE_CALL_KINDS.indexOf(k);
+  return ok(
+    (
+      data as unknown as {
+        id: string;
+        cue_id: string;
+        call_kind: CueCallKind;
+        instruction: string;
+      }[]
+    )
+      .map((r) => ({ id: r.id, cueId: r.cue_id, kind: r.call_kind, instruction: r.instruction }))
+      .sort((a, b) => a.cueId.localeCompare(b.cueId) || order(a.kind) - order(b.kind)),
+  );
+}
+
+/**
+ * Saves a cue's department calls in one call (app.save_cue_calls): a text value is upserted as the
+ * department's call, null or blank clears it, and departments left out are untouched.
+ */
+export async function saveCueCalls(
+  db: XosClient,
+  cueId: string,
+  calls: Partial<Record<CueCallKind, string | null>>,
+): Promise<Result<null>> {
+  const { error } = await untyped(db).rpc("save_cue_calls", { p_cue_id: cueId, p_calls: calls });
+  if (error) return fail(toDataError(error));
+  return ok(null);
+}
+
+// Segment colors (app.run_segment_colors, ADR 0142) ---------------------------------------------------
+
+/** The seven themed categorical colors a segment or a choice may take (color.viz.cat-1..7). */
+export const SEGMENT_COLORS = [
+  "cat-1",
+  "cat-2",
+  "cat-3",
+  "cat-4",
+  "cat-5",
+  "cat-6",
+  "cat-7",
+] as const;
+export type SegmentColor = (typeof SEGMENT_COLORS)[number];
+
+export function isSegmentColor(value: unknown): value is SegmentColor {
+  return typeof value === "string" && (SEGMENT_COLORS as readonly string[]).includes(value);
+}
+
+/** A segment name as the database matches it: case and outer spaces ignored. */
+export function segmentKey(segment: string | null | undefined): string {
+  return (segment ?? "").trim().toLowerCase();
+}
+
+/** The running order's segment colors, keyed by segmentKey(name). */
+export async function listSegmentColors(
+  db: XosClient,
+  runOfShowId: string,
+): Promise<Result<ReadonlyMap<string, SegmentColor>>> {
+  const { data, error } = await db
+    .from("run_segment_colors")
+    .select("segment, color_key")
+    .eq("run_of_show_id", runOfShowId)
+    .is("deleted_at", null);
+  if (error) return fail(toDataError(error));
+  const colors = new Map<string, SegmentColor>();
+  for (const r of (data ?? []) as { segment: string; color_key: string }[]) {
+    if (isSegmentColor(r.color_key)) colors.set(segmentKey(r.segment), r.color_key);
+  }
+  return ok(colors);
+}
+
+/**
+ * Sets or clears (null) the color of a segment of a running order (app.set_segment_color), in one
+ * statement: every cue whose segment text matches shows it.
+ */
+export async function setSegmentColor(
+  db: XosClient,
+  runOfShowId: string,
+  segment: string,
+  color: SegmentColor | null,
+): Promise<Result<null>> {
+  const { error } = await db.rpc("set_segment_color", {
+    p_run_of_show_id: runOfShowId,
+    p_segment: segment,
+    // Left out, the argument's default clears the color.
+    ...(color === null ? {} : { p_color_key: color }),
+  });
+  if (error) return fail(toDataError(error));
+  return ok(null);
 }
 
 // Day sheets -----------------------------------------------------------------------------------------
@@ -361,6 +697,8 @@ export async function listDaySheets(
     readonly from?: string;
     readonly to?: string;
     readonly id?: string;
+    /** Only published sheets (B7 books). */
+    readonly publishedOnly?: boolean;
   },
 ): Promise<Result<DaySheet[]>> {
   let q = untyped(db)
@@ -374,6 +712,7 @@ export async function listDaySheets(
   if (query.from) q = q.gte("day", query.from);
   if (query.to) q = q.lte("day", query.to);
   if (query.id) q = q.eq("id", query.id);
+  if (query.publishedOnly) q = q.not("published_at", "is", null);
   const { data, error } = await q.order("day").limit(500);
   if (error) return fail(toDataError(error));
   return ok(
@@ -438,6 +777,7 @@ export async function publishSheet(
   return (data as unknown[]).length === 1 ? ok(null) : fail({ kind: "not-found" });
 }
 
+/** Moves a day sheet or call sheet to Trash (a soft delete, restorable for its retention period). */
 export async function deleteSheet(
   db: XosClient,
   table: "day_sheets" | "call_sheets",
@@ -447,6 +787,25 @@ export async function deleteSheet(
     .from(table)
     .update({ deleted_at: new Date().toISOString() })
     .eq("id", id)
+    .select("id");
+  if (error) return fail(toDataError(error));
+  return data.length === 1 ? ok(null) : fail({ kind: "not-found" });
+}
+
+/**
+ * Restores a sheet from Trash: the Undo of deleteSheet (Section 11.7). A live sheet for the same
+ * project day, saved since, is refused by the one-sheet-a-day index as a conflict.
+ */
+export async function restoreSheet(
+  db: XosClient,
+  table: "day_sheets" | "call_sheets",
+  id: string,
+): Promise<Result<null>> {
+  const { data, error } = await db
+    .from(table)
+    .update({ deleted_at: null })
+    .eq("id", id)
+    .not("deleted_at", "is", null)
     .select("id");
   if (error) return fail(toDataError(error));
   return data.length === 1 ? ok(null) : fail({ kind: "not-found" });
@@ -471,6 +830,8 @@ export async function listCallSheets(
     readonly from?: string;
     readonly to?: string;
     readonly id?: string;
+    /** Only published sheets (B7 books). */
+    readonly publishedOnly?: boolean;
   },
 ): Promise<Result<CallSheet[]>> {
   let q = db
@@ -482,6 +843,7 @@ export async function listCallSheets(
   if (query.from) q = q.gte("day", query.from);
   if (query.to) q = q.lte("day", query.to);
   if (query.id) q = q.eq("id", query.id);
+  if (query.publishedOnly) q = q.not("published_at", "is", null);
   const { data, error } = await q.order("day").limit(500);
   if (error) return fail(toDataError(error));
   return ok(
@@ -516,6 +878,8 @@ export interface Call {
   readonly roleCode: string | null;
   readonly roleTitle: string | null;
   readonly personName: string | null;
+  /** Null for an open shift. */
+  readonly membershipId: string | null;
 }
 
 /**
@@ -531,7 +895,7 @@ export async function listCalls(
   const { data, error } = await db
     .from("shifts")
     .select(
-      "id, starts_at, ends_at, role_code, membership:memberships(person:people!memberships_person_id_fkey(full_name))",
+      "id, starts_at, ends_at, role_code, membership_id, membership:memberships(person:people!memberships_person_id_fkey(full_name))",
     )
     .eq("project_id", input.projectId)
     .gte("starts_at", start)
@@ -544,6 +908,7 @@ export async function listCalls(
     starts_at: string;
     ends_at: string;
     role_code: string | null;
+    membership_id: string | null;
     membership: { person: { full_name: string | null } | null } | null;
   }[];
   const codes = [...new Set(rows.flatMap((r) => (r.role_code ? [r.role_code] : [])))];
@@ -565,8 +930,118 @@ export async function listCalls(
       roleCode: r.role_code,
       roleTitle: r.role_code ? (titles.get(r.role_code) ?? null) : null,
       personName: r.membership?.person?.full_name ?? null,
+      membershipId: r.membership_id,
     })),
   );
+}
+
+// Day schedules (B7, ADR 0146 decisions 2 and 3) ------------------------------------------------------------
+
+export type DayRecordKind = "Meeting" | "Milestone" | "Deadline";
+
+/** A meeting, milestone or deadline of a project day, as a day sheet lists it. */
+export interface DayRecord {
+  readonly id: string;
+  readonly kind: DayRecordKind;
+  readonly title: string;
+  /** The start, else the due time. */
+  readonly at: string;
+  readonly startTbc: boolean;
+  readonly state: string;
+  readonly recordKey: string;
+}
+
+/**
+ * The project's Meeting, Milestone and Deadline records that start, or without a start are due, on a local day of
+ * the project's zone, read as the caller.
+ */
+export async function listDayRecords(
+  db: XosClient,
+  input: { readonly projectId: string; readonly day: string; readonly timeZone: string },
+): Promise<Result<DayRecord[]>> {
+  const start = zonedMidnight(input.day, input.timeZone);
+  const end = zonedMidnight(nextDay(input.day), input.timeZone);
+  const { data, error } = await db
+    .from("records")
+    .select(
+      "id, record_kind, title, starts_at, due_at, start_tbc, record_state, record_number, project:projects!records_project_id_fkey(project_key)",
+    )
+    .eq("project_id", input.projectId)
+    .in("record_kind", ["Meeting", "Milestone", "Deadline"])
+    .is("deleted_at", null)
+    .or(
+      `and(starts_at.gte.${start},starts_at.lt.${end}),and(starts_at.is.null,due_at.gte.${start},due_at.lt.${end})`,
+    )
+    .limit(500);
+  if (error) return fail(toDataError(error));
+  const rows = data as unknown as {
+    id: string;
+    record_kind: DayRecordKind;
+    title: string;
+    starts_at: string | null;
+    due_at: string | null;
+    start_tbc: boolean;
+    record_state: string;
+    record_number: number;
+    project: { project_key: string } | null;
+  }[];
+  return ok(
+    rows
+      .map((r) => ({
+        id: r.id,
+        kind: r.record_kind,
+        title: r.title,
+        at: (r.starts_at ?? r.due_at) as string,
+        startTbc: r.start_tbc && r.starts_at !== null,
+        state: r.record_state,
+        recordKey: r.project
+          ? `${r.project.project_key}-${r.record_number}`
+          : String(r.record_number),
+      }))
+      .sort((a, b) => a.at.localeCompare(b.at) || a.id.localeCompare(b.id)),
+  );
+}
+
+/** A day sheet's audience: one team or one canon department (app.day_sheet_schedule). */
+export type DaySheetAudienceInput =
+  | { readonly teamId: string; readonly departmentCode?: undefined }
+  | { readonly departmentCode: string; readonly teamId?: undefined };
+
+/** What a day sheet's audience may print: its name and the ids of its shifts and records that day. */
+export interface DaySheetAudienceSchedule {
+  readonly audienceName: string;
+  readonly shiftIds: readonly string[];
+  readonly recordIds: readonly string[];
+}
+
+/**
+ * The audience's part of a day sheet's day, through app.day_sheet_schedule: the audience rule lives in SQL alone,
+ * shared with calendar feeds. A team of another org, or a sheet the caller cannot read, is not found; two audiences
+ * or an unknown department are refused (day_sheet_audience).
+ */
+export async function readDaySheetSchedule(
+  db: XosClient,
+  daySheetId: string,
+  audience: DaySheetAudienceInput,
+): Promise<Result<DaySheetAudienceSchedule>> {
+  const { data, error } = await untyped(db).rpc("day_sheet_schedule", {
+    p_day_sheet_id: daySheetId,
+    p_team_id: audience.teamId ?? null,
+    p_department_code: audience.departmentCode ?? null,
+  });
+  if (error) return fail(toDataError(error));
+  const doc = (data ?? {}) as {
+    audience_name?: unknown;
+    shift_ids?: unknown;
+    record_ids?: unknown;
+  };
+  const ids = (v: unknown) =>
+    Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : [];
+  return ok({
+    audienceName: typeof doc.audience_name === "string" ? doc.audience_name : "",
+    shiftIds: ids(doc.shift_ids),
+    recordIds: ids(doc.record_ids),
+  });
 }
 
 function nextDay(day: string): string {

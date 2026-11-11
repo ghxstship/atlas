@@ -10,6 +10,7 @@ import {
   Button,
   Calendar,
   DataTable,
+  InlineAlert,
   PropertyChip,
   RecordList,
   RecordRow,
@@ -22,9 +23,15 @@ import {
   type RecordState,
 } from "@xos/ui";
 import type { Route } from "next";
+import { useTranslations } from "next-intl";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useState, type ReactNode } from "react";
+import { useMemo, useState, type ReactNode } from "react";
+import type { BulkConfig } from "@/components/bulk/types";
+import { useBulk } from "@/components/bulk/use-bulk";
+import { useRowMenu } from "@/components/menus/use-row-menu";
 import { CollectionViews } from "@/components/views/collection-views";
+import type { ActionState } from "@/lib/logistics-hospitality/actions-kit";
+import { usePushTrash } from "./undo";
 
 /** The URL of the current page with some query parameters replaced or removed. */
 export function useHrefWith(): (changes: Record<string, string | null>) => string {
@@ -140,31 +147,123 @@ export function OperationsList({
   );
 }
 
-/** Table view: Enter on a cell or a double click opens the row. */
+/** A table row: its cells, the peek it opens and what its menu and the selection need. */
+export type OperationsRow = Record<string, unknown> & {
+  readonly href: string;
+  /** The row's id, which the selection, bulk edit and its menu use. */
+  readonly id?: string;
+  /** The row's name in its menu and in a bulk refusal, such as its key. */
+  readonly label?: string;
+  /** The row's full page, for Open as a full page and Copy link. */
+  readonly fullHref?: string;
+  /** Set when the viewer may move the row to Trash: the Undo toast's sentence. */
+  readonly trashMessage?: string;
+};
+
+/** Moving a row to Trash from its menu, the same server actions its peek's Delete runs. */
+export interface OperationsTrash {
+  readonly org: string;
+  /** The menu item, such as Move to Trash or Cancel slot. */
+  readonly label: string;
+  readonly run: (org: string, id: string) => Promise<ActionState>;
+  readonly restore: (org: string, id: string) => Promise<ActionState>;
+}
+
+/**
+ * Table view: Enter on a cell or a double click opens the row. With `bulk`, rows select by click,
+ * Cmd or Ctrl+click, Shift+click, X and Cmd or Ctrl+A, and the bulk bar changes a property across
+ * the selection; right-click, Shift+F10 or the Context Menu key opens a row's menu with the actions
+ * its peek and the bar offer, Move to Trash among them where `trash` allows (Section 11.7).
+ */
 export function OperationsTable({
   caption,
   columns,
   rows,
   totals,
   totalsLabel,
+  bulk,
+  trash,
 }: {
   caption: string;
   columns: DataTableColumn[];
-  rows: (Record<string, unknown> & { readonly href: string })[];
+  rows: OperationsRow[];
   totals?: Record<string, unknown>;
   totalsLabel?: string;
+  /** Bulk edit of a selection, for people who may change the rows; every row needs an id. */
+  bulk?: BulkConfig | null;
+  trash?: OperationsTrash;
 }) {
   const router = useRouter();
+  const te = useTranslations("logistics.common.errors") as unknown as (key: string) => string;
+  const refs = useMemo(
+    () => rows.flatMap((r) => (r.id ? [{ id: r.id, label: r.label ?? r.id }] : [])),
+    [rows],
+  );
+  const selection = useBulk(bulk, refs);
+  const rowMenu = useRowMenu();
+  const pushTrash = usePushTrash();
+  const [trashError, setTrashError] = useState<string | null>(null);
+  const open = (row: OperationsRow) => router.push(row.href as Route, { scroll: false });
+  const trashItem = (row: OperationsRow, id: string) => {
+    const message = row.trashMessage;
+    if (!trash || !message) return [];
+    const run = () => trash.run(trash.org, id);
+    const restore = () => trash.restore(trash.org, id);
+    return [
+      {
+        label: trash.label,
+        icon: "Trash2" as const,
+        danger: true,
+        onSelect: () => {
+          setTrashError(null);
+          void run().then((state) => {
+            if (!state.ok) {
+              setTrashError(te(state.error ?? "unexpected"));
+              return;
+            }
+            pushTrash({ message, run, restore });
+            router.refresh();
+          });
+        },
+      },
+    ];
+  };
   return (
-    <DataTable
-      caption={caption}
-      columns={columns}
-      rows={rows}
-      pinStart={[columns[0]?.key ?? "key"]}
-      {...(totals ? { totals } : {})}
-      {...(totalsLabel ? { totalsLabel } : {})}
-      onRowActivate={(row) => router.push(String(row["href"]) as Route, { scroll: false })}
-    />
+    <>
+      {trashError ? (
+        <InlineAlert tone="danger" title={trashError}>
+          {null}
+        </InlineAlert>
+      ) : null}
+      <DataTable
+        caption={caption}
+        columns={columns}
+        rows={rows}
+        pinStart={[columns[0]?.key ?? "key"]}
+        {...(totals ? { totals } : {})}
+        {...(totalsLabel ? { totalsLabel } : {})}
+        onRowActivate={(row) => open(row as OperationsRow)}
+        onRowContextMenu={(raw, _index, at, cell) => {
+          const row = raw as OperationsRow;
+          const id = row.id ?? row.href;
+          rowMenu.open(
+            {
+              id,
+              label: row.label ?? String(row[columns[0]?.key ?? "key"] ?? ""),
+              open: () => open(row),
+              ...(row.fullHref ? { href: row.fullHref } : {}),
+              bulk: selection,
+              ...(row.id ? { more: trashItem(row, row.id) } : {}),
+            },
+            at,
+            cell,
+          );
+        }}
+        {...(selection.selection ? { selection: selection.selection } : {})}
+      />
+      {selection.bar}
+      {rowMenu.menu}
+    </>
   );
 }
 

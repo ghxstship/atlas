@@ -7,14 +7,10 @@ import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { askStripeToStopNow } from "@/lib/billing/stop-stripe";
 import { env } from "@/lib/env";
-import {
-  done,
-  field,
-  fromDataError,
-  inputError,
-  type PlatformActionState,
-} from "@/lib/platform/state";
+import { done, field, inputError, type PlatformActionState } from "@/lib/platform/state";
+import { fromDataError } from "@/lib/platform/data-error";
 import { contextFor } from "@/lib/platform/action-context";
 
 /**
@@ -77,6 +73,8 @@ export async function cancelOrganizationAction(
     reason: parsed.data.reason,
   });
   if (!result.ok) return fromDataError(result.error);
+  // The cancellation has already queued the Stripe cancel; this asks now for the person waiting (ADR 0161).
+  await askStripeToStopNow(ctx.viewer.db, ctx.org.id);
   revalidatePath(`/${ctx.org.slug}`, "layout");
   return done(result.data);
 }

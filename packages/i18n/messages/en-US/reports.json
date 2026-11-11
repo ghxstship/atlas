@@ -67,6 +67,8 @@
     "actualIn": "Actual in {currency}",
     "budget": "Original budget",
     "changes": "Approved changes",
+    "committed": "Committed",
+    "committedWithheld": "Committed is hidden on some rows: you cannot read those projects' purchase orders",
     "chartSubtitle": "Revised budget against approved and paid spend.",
     "chartTitle": "Budget versus actual in {currency}",
     "dimensions": {
@@ -92,7 +94,9 @@
       "project": "No project"
     },
     "variance": "Variance",
-    "varianceIn": "Variance in {currency}"
+    "varianceIn": "Variance in {currency}",
+    "withheld": "Withheld",
+    "efc": "Estimated final cost"
   },
   "labor": {
     "budget": "Labor budget",
@@ -108,7 +112,23 @@
     "open": "Open time entries",
     "payrollRuns": "Payroll runs",
     "run": "Run",
-    "timesheets": "Timesheets"
+    "timesheets": "Timesheets",
+    "postedByTeam": "Posted to budget by team",
+    "team": "Team",
+    "cost": "Cost",
+    "unpricedHours": "Unpriced hours",
+    "offBudget": "Hours not on a budget line",
+    "person": "Person",
+    "date": "Date",
+    "shift": "Shift",
+    "openShift": "Open the shift",
+    "noShift": "No shift",
+    "teams": {
+      "OwnTeam": "Own team",
+      "Agency": "Agency",
+      "Engaged": "Engaged individuals"
+    },
+    "offBudgetMore": "Showing the latest {count} postings; more exist."
   },
   "po": {
     "caption": "Open commitment by purchase order",
@@ -193,7 +213,11 @@
       "procurement": "Procurement",
       "assets": "Assets",
       "incidents": "Incidents",
-      "custom_object": "Custom object"
+      "custom_object": "Custom object",
+      "crew_hours": "Crew hours",
+      "crew_responses": "Crew responses",
+      "crew_removals": "Crew removals",
+      "crew_ratings": "Crew ratings"
     },
     "status": {
       "Queued": "Queued",
@@ -203,6 +227,78 @@
     },
     "visibility": "Visibility",
     "when": "Started",
-    "you": "You"
+    "you": "You",
+    "standard": {
+      "title": "Standard crew reports",
+      "help": "Ready-made reports over your crew's shifts, answers, removals and ratings. Open one to preview it, and save your own copy to change it.",
+      "open": "Open",
+      "openNamed": "Open {name}",
+      "names": {
+        "crew-utilization": "Crew utilization",
+        "crew-invitation-responses": "Invitation responses",
+        "crew-removals": "Crew removals",
+        "crew-ratings": "Crew ratings",
+        "crew-scheduled-vs-actual": "Scheduled against actual hours"
+      }
+    }
+  },
+  "wrapUp": {
+    "title": "Wrap-up",
+    "description": "The debrief and the management summary of the project, printed with budget against actuals, attendance, carbon and incidents as the wrap-up report.",
+    "debrief": "Debrief",
+    "states": {
+      "notStarted": "Not started",
+      "open": "Open",
+      "completed": "Completed"
+    },
+    "completed": "Completed by {name} on {date}",
+    "aiReviewed": "Drafted with Aurora and reviewed by {name} on {date}",
+    "writtenBy": "Written by {name} on {date}",
+    "summaryNotIncluded": "Not included: the management summary is drafted from budget, ledger, gate and incident facts you cannot read.",
+    "summaryLabel": "Management summary",
+    "summaryHelp": "Up to 4000 characters. Nothing is saved until you choose Save summary.",
+    "saveSummary": "Save summary",
+    "summarySaved": "Summary saved.",
+    "useSummary": "Use as management summary",
+    "aiPending": "Drafted with Aurora. Review it, then save it under your name.",
+    "points": "Debrief points",
+    "areaLabel": "Area",
+    "kindLabel": "Kind",
+    "point": "Point",
+    "owner": "Owner",
+    "noOwner": "No owner",
+    "addPoint": "Add a point",
+    "savePoint": "Save point",
+    "edit": "Edit",
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "trashed": "Debrief point moved to Trash.",
+    "noPoints": "No debrief points yet.",
+    "complete": "Complete debrief",
+    "reopen": "Reopen debrief",
+    "area": {
+      "schedule": "Schedule",
+      "budget": "Budget",
+      "safety": "Safety",
+      "audience": "Audience",
+      "sustainability": "Sustainability",
+      "crew": "Crew",
+      "vendors": "Vendors",
+      "other": "Other"
+    },
+    "kind": {
+      "wentWell": "Went well",
+      "toImprove": "To improve",
+      "action": "Action"
+    },
+    "errors": {
+      "debrief_completed": "This debrief is completed. Reopen it to change its points or summary.",
+      "debrief_ai_request": "That draft is not your own Aurora summary of this project. Draft it again, then save it.",
+      "debrief_summary": "Write a management summary of up to 4000 characters.",
+      "refused": "This change was refused.",
+      "notFound": "That debrief or point is not available to you.",
+      "invalid": "Check the fields and try again.",
+      "unexpected": "Something went wrong. Try again."
+    }
   }
 }

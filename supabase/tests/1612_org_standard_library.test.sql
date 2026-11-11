@@ -1,8 +1,9 @@
 -- pgTAP: migration 1612, finding A65-027 (Section 7.2). A new org receives an editable copy of the XOS Standard
 -- Library, each row naming its standard source; an existing org adopts it with the "Adopt Standard Library" action;
 -- adopting again changes nothing and never overwrites an org's edits. Emergency codes are org data in numeric order.
--- Standard SOPs and documents naming the real CSMIA26 activation stay in canon and reach no org until the owner decides
--- RRR-67. Standard labor rates go only on a current card.
+-- The SOPs and documents written from the real CSMIA26 activation were generalized and released (RRR-67, migrations 2001
+-- and 2002): every org receives all 34 of each, and no canon row or copy names the activation. Standard labor rates go
+-- only on a current card.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
@@ -38,15 +39,15 @@ select is(
   (select string_agg(code, ', ' order by sort_order, code) from (select code, sort_order from app.emergency_codes
     where org_id = pg_temp.id('new_org') and deleted_at is null order by sort_order limit 3) c),
   'CODE_RED, CODE_ORANGE, CODE_YELLOW', 'emergency codes keep the canon order as numbers');
-select is((select count(*)::int from app.sops where org_id = pg_temp.id('new_org') and std_sop_id is not null and published_at is null), 20,
-  'the 20 SOPs not withheld arrive as drafts naming their standard SOP');
+select is((select count(*)::int from app.sops where org_id = pg_temp.id('new_org') and std_sop_id is not null and published_at is null), 34,
+  'the 34 standard SOPs arrive as drafts naming their standard SOP');
 select is((select count(*)::int from app.sops s join xpms.std_sop x on x.sop_id = s.std_sop_id
-  where s.org_id = pg_temp.id('new_org') and s.title = x.title and strpos(s.body, x.procedure_step_1) > 0), 20,
+  where s.org_id = pg_temp.id('new_org') and s.title = x.title and strpos(s.body, x.procedure_step_1) > 0), 34,
   'each SOP carries its title and procedure steps');
 select is((select count(*)::int from app.verbiage_terms where org_id = pg_temp.id('new_org') and std_verbiage_id is not null and definition like '%.'), 213,
   'the 213 verbiage terms are copied with sentence definitions');
-select is((select count(*)::int from app.documents where org_id = pg_temp.id('new_org') and std_document_id is not null and project_id is null), 23,
-  'the 23 library documents not withheld are org documents naming their source');
+select is((select count(*)::int from app.documents where org_id = pg_temp.id('new_org') and std_document_id is not null and project_id is null), 34,
+  'the 34 library documents are org documents naming their source');
 select is((select count(*)::int from app.vendor_class_entitlements e join app.vendor_classes c on c.id = e.vendor_class_id
   where c.org_id = pg_temp.id('new_org') and c.std_vendor_class_id is not null), 59, 'the 59 vendor entitlements hang off the org''s vendor class copies');
 select is((select count(distinct rate_card_id)::int from app.rate_card_lines where org_id = pg_temp.id('new_org') and canon_rate_card_id is not null), 1,
@@ -55,18 +56,18 @@ select is((select count(*)::int from app.radio_channel_plan where org_id = pg_te
 select is((select count(*)::int from app.enumerations where org_id = pg_temp.id('new_org')), 91, 'the 91 enumeration values are copied');
 select is((select count(*)::int from app.role_library where org_id = pg_temp.id('new_org')), 35, 'the 35 Roles Library roles are copied');
 
--- Rows naming the real CSMIA26 activation stay in canon and reach no org (RRR-67) -----------------------------------
+-- Nothing names the real CSMIA26 activation, and nothing is withheld (RRR-67) ------------------------------------
 select is(
   (select string_agg(library || '=' || standard_count, ', ' order by library) from pg_temp.status(pg_temp.id('new_org'))
     where library in ('sops', 'document_library')),
-  'document_library=23, sops=20', 'the status counts only the SOPs and documents an org can adopt');
+  'document_library=34, sops=34', 'the status counts every standard SOP and document');
 select pg_temp.as_platform();
 select is(pg_temp.activation_copies(pg_temp.id('new_org')), null,
-  'a new org receives none of the withheld SOPs and documents, and no copy names the activation');
+  'no copy a new org receives names the activation');
 select is(
   (select count(*)::int from xpms.std_sop where sop_id = any (private.standard_library_withheld('sops'))) || ' SOPs, '
     || (select count(*)::int from xpms.std_document_library where record_id = any (private.standard_library_withheld('document_library'))) || ' documents',
-  '14 SOPs, 11 documents', 'canon keeps the 14 withheld SOPs and 11 withheld documents');
+  '0 SOPs, 0 documents', 'nothing is withheld any more');
 select is(
   (select string_agg(id, ', ' order by id) from (
     select s.sop_id as id from xpms.std_sop s
@@ -74,7 +75,7 @@ select is(
     union all
     select d.record_id from xpms.std_document_library d
     where pg_temp.names_activation(to_jsonb(d)::text) and d.record_id <> all (private.standard_library_withheld('document_library'))) x),
-  null, 'every canon SOP and document naming the activation is on the withheld list');
+  null, 'no canon SOP or document names the activation');
 select is(
   (select count(*)::int from (
     select to_jsonb(x)::text as t from xpms.std_verbiage x union all select to_jsonb(x)::text from xpms.std_enumeration x
@@ -134,11 +135,11 @@ select is((select count(*)::int from app.rate_card_lines l join app.rate_cards c
   where c.org_id = pg_temp.id('demo') and c.currency_code = 'USD' and l.canon_rate_card_id is not null),
   (select count(*)::int from xpms.rate_card) - 6, 'the rest go on a card in US dollars');
 select is((select count(*)::int from app.sops where org_id = pg_temp.id('demo') and std_sop_id is null), 4, 'the org''s own SOPs stay as they were');
-select is((select count(*)::int from app.sops where org_id = pg_temp.id('demo') and std_sop_id is not null), 20,
-  'every standard SOP not withheld is copied, a used code taking the next free one');
+select is((select count(*)::int from app.sops where org_id = pg_temp.id('demo') and std_sop_id is not null), 34,
+  'every standard SOP is copied, a used code taking the next free one');
 select pg_temp.as_platform();
 select is(pg_temp.activation_copies(pg_temp.id('demo')), null,
-  'an adopting org receives none of the withheld SOPs and documents either');
+  'no copy an adopting org receives names the activation either');
 select pg_temp.as_user('demo_owner');
 select is((select count(*)::int from app.sops where org_id = pg_temp.id('demo') and deleted_at is null)
   - (select count(distinct code)::int from app.sops where org_id = pg_temp.id('demo') and deleted_at is null), 0, 'no SOP code is used twice');

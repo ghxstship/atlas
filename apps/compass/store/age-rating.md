@@ -9,7 +9,7 @@ Prepared by A68 (RRR-113). Compass is a workplace app for crews and staff of liv
 | Question (App Store Connect)                                                            | Answer                   | Why                                                                                              |
 | --------------------------------------------------------------------------------------- | ------------------------ | ------------------------------------------------------------------------------------------------ |
 | Parental controls                                                                       | No                       | Not a family app                                                                                 |
-| Age assurance                                                                           | No                       | Accounts come from an employer's invitation; Compass does not check ages itself                  |
+| Age assurance                                                                           | No                       | Compass asks the person's age and records the answer (ADR 0156); it does not verify it           |
 | Unrestricted web access                                                                 | No                       | No in-app browser; links open Atlas or Gateway pages in the system browser                       |
 | User-generated content                                                                  | Yes                      | Feed reactions and comments, lost and found posts, incident reports, all inside one organization |
 | Messaging and chat                                                                      | Yes                      | Chat between members of the same organization                                                    |
@@ -25,9 +25,9 @@ Prepared by A68 (RRR-113). Compass is a workplace app for crews and staff of liv
 | Guns or other weapons                                                                   | None                     |                                                                                                  |
 | Simulated gambling; gambling; contests; loot boxes                                      | None / No                |                                                                                                  |
 | Made for Kids                                                                           | No (`kidsAgeBand` empty) |                                                                                                  |
-| Age rating override                                                                     | None                     | Accept the rating App Store Connect calculates                                                   |
+| Age rating override                                                                     | 18+                      | Every XOS account is 18 or older (ADR 0156), so the store rating should say what the app asks    |
 
-Expected result: the lowest rating App Store Connect allows for an app with messaging and user-generated content. Accept what the calculator shows; do not override it. If it shows anything above 13+, tell engineering, since nothing in Compass is mature content.
+Expected result: App Store Connect calculates a rating from the content answers, the lowest it allows for an app with messaging and user-generated content, and the override sets 18+. The override is the owner's to enter in App Store Connect; see "Answers that changed" below.
 
 ## Google Play (IARC questionnaire)
 
@@ -44,9 +44,22 @@ Play Console, App content, Content rating. Category: **"All other app types"** (
 | Is the app a web browser or search engine?                                           | No              |                                                                                                                                                                                                 |
 | Is the app primarily a news or educational product?                                  | No              |                                                                                                                                                                                                 |
 
-Expected result: IARC 3+ / PEGI 3 / ESRB Everyone with the interactive elements "Users Interact" (and "Shares Location" if question 4 is answered Yes). Target audience is set separately to 18 and over (`store/google-play/data-safety.md`).
+Expected result: IARC 3+ / PEGI 3 / ESRB Everyone with the interactive elements "Users Interact" (and "Shares Location" if question 4 is answered Yes). Target audience is set separately to 18 and over (`store/google-play/data-safety.md`), which now matches what Compass asks at first sign-in.
+
+## Answers that changed for the 18 minimum (ADR 0156)
+
+The owner enters these; nothing here reaches a store until then.
+
+| Store                                     | Field                            | Was                                    | Now                                                                                                            |
+| ----------------------------------------- | -------------------------------- | -------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| App Store Connect, Age Rating             | Age rating override              | None                                   | 18+ (`ageRatingOverrideV2: EIGHTEEN_PLUS`, uploaded by `eas metadata:push`). Check it after the push           |
+| App Store Connect, Age Rating             | Age assurance                    | No, "Compass does not check ages"      | Still No: Compass asks and records an age, which is not verification                                           |
+| App Store Connect, App Privacy            | User Content, Other User Content | Aurora prompts                         | Add "receipt photos, when the person allows AI features"; see `store/ios/app-privacy.md`                       |
+| Google Play, App content, Target audience | Target age groups                | 18 and over                            | Unchanged, and now true of the app                                                                             |
+| Google Play, Data safety                  | Other in-app messages, Photos    | See `store/google-play/data-safety.md` | Add that AI features share prompts and receipt photos with the AI provider as a service provider, when allowed |
+| App Review notes                          | Sign-in                          | No first-sign-in step                  | Updated in `store/review-notes.md`, and in `apple.review.notes` when the owner pushes the metadata             |
 
 ## Open questions for the owner
 
 1. **Location sharing (IARC).** Supervisors see where a punch happened. Answer No as the default reading; the owner may prefer Yes, which only adds the "Shares Location" element.
-2. **Moderation (App Review guideline 1.2).** Apple asks apps with user-generated content to filter objectionable material, let people report content and block abusive users, and publish contact information. Compass chat and feed have no report or block control today: organization admins manage members and feed posts in Atlas, and a chat message can be deleted only by its author. App Review may accept that for a workplace app limited to one organization, or may ask for report and block. Decided on 2026-10-23 (ADR 0033 decision 57): a minimal report and block for chat and the feed is built before the App Store submission, in migrations 1630 to 1639; TestFlight and Play internal testing do not wait for it.
+2. **Moderation (App Review guideline 1.2), decided.** The owner chose report and block (ADR 0033 decision 57), and Compass has both: the three dots on a post, message or shout-out by someone else report it to the organization's moderators, who decide within 24 hours in Atlas, or block its author; Settings, Blocked People lifts a block (ADR 0026, amendment of 2026-10-23). The contact information is the Contact page at /legal/contact. The review notes (`store/review-notes.md`) tell App Review where to find them.

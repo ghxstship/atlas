@@ -4,7 +4,6 @@ import {
   Board,
   Calendar,
   Card,
-  Chart,
   DataTable,
   EmptyState,
   Gallery,
@@ -15,21 +14,32 @@ import {
   StateChip,
   TemplateCollection,
   TreeView,
+  rememberOverlayOpener,
   type TreeNode,
   type RecordState,
   type LiveTopic,
 } from "@xos/ui";
 import type { Route } from "next";
+import { useTranslations } from "next-intl";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState, type ReactNode } from "react";
 import { useCopy } from "./use-copy";
 import type { KitBoardColumn, KitChart, KitColumn, KitRow, KitTreeNode, ViewKind } from "./types";
 import { CollectionViews } from "@/components/views/collection-views";
+// The chart view loads only when someone picks it: a collection opens on its table (ADR 0027).
+import { Chart } from "@/components/lazy-ui/chart";
 import { useLiveRefresh } from "@/components/live/live-refresh";
 import type { BulkConfig } from "@/components/bulk/types";
 import { useBulk } from "@/components/bulk/use-bulk";
+import { useHoverCards } from "@/components/hover/use-hover-cards";
 import { useRowMenu } from "@/components/menus/use-row-menu";
 import { collectionPeek } from "@/components/shell/collection-peek";
+import { useCustomFieldColumns } from "@/components/custom-fields/list";
+import type { CustomFieldListView } from "@/lib/custom-fields/types";
+import { conditionParam, conditionsOf, fieldParamKey, matchesShown } from "@/lib/views/conditions";
+
+/** Views whose rows select, open a menu and preview the same way (Section 11.7). */
+const ITEM_VIEWS = new Set<ViewKind>(["table", "list", "board", "calendar"]);
 
 /**
  * The Collection template (Section 11.6) for every A16 list: page header with the view switcher
@@ -54,6 +64,7 @@ export function CollectionView({
   filters,
   live,
   bulk,
+  customFields = null,
   children,
 }: {
   title: string;
@@ -77,19 +88,28 @@ export function CollectionView({
    * changes, so the list updates live (Section 11.7, ADR 0044).
    */
   live?: readonly LiveTopic[];
-  /** Bulk edit of the table view's selection (Section 11.7), for resources with a bulk RPC. */
+  /**
+   * Bulk edit of a selection (Section 11.7) in the table, list, board and calendar, for resources
+   * with a bulk RPC.
+   */
   bulk?: BulkConfig | null;
+  /**
+   * The table's filterable custom fields and their values (A117, `customFieldList(...).view(ids)`): table
+   * columns, and fields the Add filter control offers. The loader applies their conditions.
+   */
+  customFields?: CustomFieldListView | null;
   /** The peek or create drawer, rendered after the body. */
   children?: ReactNode;
 }) {
   const t = useCopy("procurement.kit");
+  const tv = useTranslations("views");
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
   const [query, setQuery] = useState(params.get("q") ?? "");
   useLiveRefresh(live ?? null);
-  const bulkRows = useMemo(() => rows.map((r) => ({ id: r.id, label: r.key })), [rows]);
-  const bulkKit = useBulk(view === "table" ? bulk : null, bulkRows);
+  const bulkRows = useMemo(() => rows.map((r) => ({ id: r.id, label: r.label ?? r.key })), [rows]);
+  const bulkKit = useBulk(ITEM_VIEWS.has(view) ? bulk : null, bulkRows);
   const { selection, bar } = bulkKit;
   const rowMenu = useRowMenu();
 
@@ -102,23 +122,65 @@ export function CollectionView({
     const qs = next.toString();
     return (qs ? `${pathname}?${qs}` : pathname) as Route;
   };
-  const open = (id: string) => router.push(href({ peek: id, full: null, create: null }));
+  // The page renders the peek after the section's loading state, which can take focus from the row;
+  // the peek hands it back to the control remembered here.
+  const open = (id: string) => {
+    rememberOverlayOpener();
+    router.push(href({ peek: id, full: null, create: null }));
+  };
+  const byId = new Map(rows.map((r) => [r.id, r]));
+  // A row's menu and hover card, the same in every view (Section 11.7).
+  const menuFor = (id: string, at: { x: number; y: number } | null, element: HTMLElement) =>
+    rowMenu.open(
+      {
+        id,
+        label: byId.get(id)?.label ?? byId.get(id)?.key ?? id,
+        open: () => open(id),
+        href: href({ peek: id, full: "1", create: null }),
+        bulk: bulkKit,
+      },
+      at,
+      element,
+    );
+  const hover = useHoverCards((id, column) => {
+    const r = byId.get(id);
+    if (!r || (column !== "key" && column !== "title")) return null;
+    return {
+      kind: "record",
+      recordKey: r.key,
+      title: r.title,
+      ...(r.state ? { state: r.state.state, stateLabel: r.state.label } : {}),
+      ...(r.meta ? { detail: r.meta } : {}),
+    };
+  });
   // The page renders the peek for `?peek` as children. With none (a stale link, a key from elsewhere)
   // the key goes to the shell's peek, which opens the record it names or says it cannot.
   const peek = collectionPeek(params.get("peek"), children);
 
   const needle = query.trim().toLowerCase();
+  const custom = useCustomFieldColumns(customFields);
+  // The Add filter control offers the columns (A117); their `f.*` conditions match on the shown text.
+  const declared = useMemo(() => declaredFields(columns, rows), [columns, rows]);
+  const conditions = useMemo(() => conditionsOf(params), [params]);
+  const fieldConditions = useMemo(
+    () => conditions.filter((c) => c.scope === "field"),
+    [conditions],
+  );
   const visible = useMemo(
     () =>
-      needle === ""
-        ? rows
-        : rows.filter((r) =>
+      rows.filter(
+        (r) =>
+          (needle === "" ||
             [r.key, r.title, r.meta ?? "", ...Object.values(r.cells).map(cellText)]
               .join(" ")
               .toLowerCase()
-              .includes(needle),
-          ),
-    [rows, needle],
+              .includes(needle)) &&
+          fieldConditions.every((c) => {
+            const column = columns.find((col) => fieldParamKey(col.key) === c.key);
+            return column ? matchesShown(cellText(r.cells[column.key]), c) : true;
+          }),
+      ),
+    [rows, needle, fieldConditions, columns],
   );
 
   const switcher =
@@ -128,6 +190,8 @@ export function CollectionView({
         value={view}
         options={views.map((v) => ({ value: v, label: t(`view.${v}`) }))}
         onChange={(next) => router.replace(href({ view: next }), { scroll: false })}
+        fields={declared}
+        customFields={customFields}
       />
     ) : null;
 
@@ -150,26 +214,30 @@ export function CollectionView({
     ) : null;
 
   let body: ReactNode;
-  if (rows.length === 0) {
+  if (rows.length === 0 && conditions.length === 0) {
     body = empty;
   } else if (visible.length === 0) {
+    // Filters may have left no row (A117): clearing takes away the search and every condition.
+    const filtersOnly = needle === "" && conditions.length > 0;
     body = (
       <EmptyState
         icon="SearchX"
-        sentence={t("noMatches")}
-        actionLabel={t("clearSearch")}
+        sentence={filtersOnly ? tv("filter.noMatches") : t("noMatches")}
+        actionLabel={filtersOnly ? tv("filter.clear") : t("clearSearch")}
         onAction={() => {
           setQuery("");
-          router.replace(href({ q: null }), { scroll: false });
+          const cleared = Object.fromEntries(conditions.map((c) => [conditionParam(c)[0], null]));
+          router.replace(href({ q: null, ...cleared }), { scroll: false });
         }}
       />
     );
   } else if (view === "list") {
     body = (
-      <RecordList label={title}>
+      <RecordList label={title} onItemContextMenu={menuFor} {...(selection ? { selection } : {})}>
         {visible.map((r) => (
           <RecordRow
             key={r.id}
+            id={r.id}
             state={r.state?.state ?? "proposed"}
             stateLabel={r.state?.label ?? ""}
             recordKey={r.key}
@@ -197,6 +265,8 @@ export function CollectionView({
               ...(r.meta ? { meta: r.meta } : {}),
             })),
         }))}
+        onItemContextMenu={menuFor}
+        {...(selection ? { selection } : {})}
         onOpen={open}
       />
     );
@@ -230,14 +300,16 @@ export function CollectionView({
       <Calendar
         month={month}
         events={dated.map((r) => ({
+          id: r.id,
           date: r.date as string,
           label: `${r.key} ${r.title}`,
           state: (r.state?.state ?? "scheduled") as RecordState,
         }))}
         onEventSelect={(e) => {
-          const row = dated.find((r) => `${r.key} ${r.title}` === e.label && r.date === e.date);
-          if (row) open(row.id);
+          if (e.id) open(e.id);
         }}
+        onItemContextMenu={menuFor}
+        {...(selection ? { selection } : {})}
       />
     );
   } else if (view === "tree" && tree) {
@@ -270,28 +342,15 @@ export function CollectionView({
       />
     );
   } else {
-    const tableRows = visible.map((r) => ({ id: r.id, ...r.cells }));
+    const tableRows = visible.map((r) => ({ id: r.id, ...r.cells, ...custom.cells(r.id) }));
     body = (
       <DataTable
         caption={title}
         label={title}
-        columns={columns.map((c) => ({ ...c }))}
+        columns={[...columns, ...custom.columns].map((c) => ({ ...c }))}
         rows={tableRows}
         onRowActivate={(row) => open(String(row["id"]))}
-        onRowContextMenu={(row, _index, at, cell) => {
-          const id = String(row["id"]);
-          rowMenu.open(
-            {
-              id,
-              label: rows.find((r) => r.id === id)?.key ?? id,
-              open: () => open(id),
-              href: href({ peek: id, full: "1", create: null }),
-              bulk: bulkKit,
-            },
-            at,
-            cell,
-          );
-        }}
+        onRowContextMenu={(row, _index, at, cell) => menuFor(String(row["id"]), at, cell)}
         {...(selection ? { selection } : {})}
       />
     );
@@ -315,11 +374,26 @@ export function CollectionView({
       }
       peek={peek}
     >
-      {body}
+      {ITEM_VIEWS.has(view) && visible.length > 0 ? <div {...hover.hoverProps}>{body}</div> : body}
       {bar}
       {rowMenu.menu}
+      {hover.card}
     </TemplateCollection>
   );
+}
+
+/** Columns as filter fields, each with its shown values to pick from when there are few. */
+function declaredFields(columns: readonly KitColumn[], rows: readonly KitRow[]) {
+  return columns.map((c) => {
+    const shown = [...new Set(rows.map((r) => cellText(r.cells[c.key])).filter(Boolean))].sort();
+    return {
+      key: fieldParamKey(c.key),
+      label: c.label,
+      ...(shown.length > 0 && shown.length <= 30
+        ? { options: shown.map((v) => ({ value: v, label: v })) }
+        : {}),
+    };
+  });
 }
 
 function cellText(cell: unknown): string {

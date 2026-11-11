@@ -7,6 +7,7 @@ import { getLocale } from "next-intl/server";
 import { gatewayRecordPath } from "@/lib/documents/links";
 import { env } from "@/lib/env";
 import { getGatewayContext } from "@/lib/shell/context";
+import { observability } from "@/lib/observability";
 
 /**
  * A generated document for an external party as tagged PDF/UA-1 (Section 11.9, ADR 0031). The record
@@ -39,7 +40,7 @@ export async function GET(
   });
   if (!result.ok) {
     if (result.error.kind === "not-found") return new Response(null, { status: 404 });
-    console.error("document generation failed", kind, result.error);
+    observability.logger.error("document generation failed", { kind, error: result.error });
     return new Response(null, { status: 500 });
   }
   return new Response(result.data.bytes as unknown as BodyInit, {

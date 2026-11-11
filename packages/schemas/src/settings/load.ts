@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parse } from "yaml";
 import { z } from "zod";
+import type { CapabilityCode } from "../capabilities/codes.generated.ts";
 import { allCapabilities } from "../capabilities/grants.ts";
 import { loadCapabilityRegistry } from "../capabilities/load.ts";
 import {
@@ -148,7 +149,8 @@ function toDefinition(contributor: string, raw: RawSetting): SettingDefinition {
     contributor,
     type: raw.type,
     scopes: [...raw.scopes].sort((a, b) => SETTING_SCOPES.indexOf(a) - SETTING_SCOPES.indexOf(b)),
-    capability: raw.capability,
+    // validateSetting refuses a capability the registry lacks.
+    capability: raw.capability as CapabilityCode,
     lockable: raw.lockable ?? false,
     default: raw.default ?? null,
     choices: raw.choices ?? [],

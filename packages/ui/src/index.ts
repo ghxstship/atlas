@@ -94,6 +94,7 @@ export {
   type RecordKindChipProps,
   type PropertyChipProps,
   type TagProps,
+  type TagSwatch,
   type BadgeProps,
 } from "./Chips/Chips.tsx";
 export {
@@ -141,6 +142,9 @@ export {
   Toast,
   UndoToast,
   ToastRegion,
+  RegionBoundary,
+  RegionError,
+  type RegionBoundaryProps,
   type EmptyStateProps,
   type ErrorStateProps,
   type RefusalNoticeProps,
@@ -151,7 +155,13 @@ export {
 } from "./Feedback/Feedback.tsx";
 
 /* Overlays and navigation */
-export { useControllable, useHotkey, rovingIndex, type HotkeyOptions } from "./lib/hooks.ts";
+export {
+  useControllable,
+  useHotkey,
+  rovingIndex,
+  rememberOverlayOpener,
+  type HotkeyOptions,
+} from "./lib/hooks.ts";
 export { BrandMark, monogram, type BrandMarkProps } from "./BrandMark/BrandMark.tsx";
 export {
   Dialog,
@@ -197,6 +207,8 @@ export {
   Breadcrumbs,
   Pagination,
   Sidebar,
+  sidebarClass,
+  sidebarItemClass,
   TopNav,
   TabBar,
   type NavItem,
@@ -230,6 +242,8 @@ export {
   TemplateRecord,
   TemplateSplitView,
   TemplateDashboard,
+  clampSpan,
+  spansOf,
   TemplateSettings,
   TemplateWizard,
   TemplateGridEditor,
@@ -237,10 +251,14 @@ export {
   TemplateAuth,
   TemplateGatewayShell,
   TemplateSystem,
+  TemplateSystemLink,
   type TemplateCollectionProps,
   type TemplateRecordProps,
   type TemplateSplitViewProps,
   type TemplateDashboardProps,
+  type DashboardTile,
+  type DashboardSpans,
+  type DashboardResize,
   type TemplateSettingsProps,
   type TemplateWizardProps,
   type TemplateGridEditorProps,
@@ -248,6 +266,7 @@ export {
   type TemplateAuthProps,
   type TemplateGatewayShellProps,
   type TemplateSystemProps,
+  type TemplateSystemLinkProps,
 } from "./Templates/Templates.tsx";
 
 /* Data components */
@@ -257,6 +276,7 @@ export {
   type DataTableColumn,
   type DataTableSelection,
 } from "./DataTable/DataTable.tsx";
+export { useItemSelection, type ItemSelection, type ItemSelect } from "./lib/selection.ts";
 export {
   RecordRow,
   RecordList,
@@ -267,6 +287,7 @@ export {
   StatTile,
   type RecordRowProps,
   type RecordListProps,
+  type ItemContextMenu,
   type BoardProps,
   type TreeNode,
   type TreeViewProps,
@@ -287,6 +308,7 @@ export {
   RunOfShowLive,
   CoordinateMatrix,
   AccessGridMatrix,
+  StatusHeatmap,
   resolveStep,
   type GateReadinessPanelProps,
   type ProvenanceBadgeProps,
@@ -298,6 +320,11 @@ export {
   type RunOfShowLiveProps,
   type CoordinateMatrixProps,
   type AccessGridMatrixProps,
+  type StatusHeatmapProps,
+  type StatusHeatmapRow,
+  type StatusHeatmapCol,
+  type StatusHeatmapCell,
+  type StatusHeatmapLegendItem,
 } from "./XOS/XOS.tsx";
 export type { EmergencyAuthority, GLAccount, GridColumn, BudgetLine } from "./types/reference";
 
@@ -417,16 +444,24 @@ export {
   Gallery,
   Calendar,
   Timeline,
+  dayAtPointer,
+  RECORD_MIME,
   ResourceSchedule,
   OrgChart,
   type GalleryProps,
   type CalendarProps,
   type TimelineProps,
+  type TimelineChange,
+  type TimelineLink,
+  type TimelinePreview,
+  type TimelineCategory,
+  type TimelineSegment,
   type ResourceScheduleProps,
   type OrgChartProps,
 } from "./Charts/Charts.tsx";
 export { Chart, foldSeries, type ChartProps } from "./Charts/Chart.tsx";
 export { Sparkline, type SparklineProps } from "./Charts/Sparkline.tsx";
+export { Heatmap, type HeatmapProps } from "./Charts/Heatmap.tsx";
 
 /* Editing */
 export {
@@ -435,13 +470,31 @@ export {
   ColorPicker,
   DiffViewer,
   parseQuickAdd,
+  finalizeQuickAdd,
+  quickAddKey,
+  zonedInstant,
+  useQuickAdd,
+  loadQuickAddParser,
+  QuickAddChips,
   contrastRatio,
   type FilterBuilderProps,
   type QuickAddProps,
   type ColorPickerProps,
+  type ColorCheck,
   type DiffViewerProps,
   type QuickAddResult,
   type QuickAddToken,
+  type QuickAddCandidate,
+  type QuickAddChipsProps,
+  type QuickAddCopy,
+  type QuickAddController,
+  type QuickAddOptions,
+  type QuickAddParse,
+  type QuickAddResolution,
+  type QuickAddResolver,
+  type QuickAddSpan,
+  type QuickAddTokenType,
+  type UseQuickAddOptions,
 } from "./Editing/Editing.tsx";
 
 /* Grids */

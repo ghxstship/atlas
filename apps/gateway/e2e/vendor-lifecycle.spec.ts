@@ -4,9 +4,11 @@ import {
   ACCOUNTS,
   asPerson,
   codeAndApproveInvoice,
+  demoVendorId,
   invoiceByNumber,
   payInvoice,
   PEOPLE,
+  PROJECT,
   requiredInsured,
   requirements,
   sentDocument,
@@ -14,10 +16,9 @@ import {
   suffix,
   transition,
   vendorCertificate,
-  vendorDockSlot,
   vendorEngagement,
 } from "./role-fixtures";
-import { expectAccessible, expectAccessibleInBothThemes, signIn, sql } from "./support";
+import { DEMO, expectAccessible, expectAccessibleInBothThemes, signIn, sql } from "./support";
 
 /**
  * The vendor journeys across Atlas and Gateway (Section 20.2):
@@ -181,8 +182,43 @@ async function vendorOnboardingToClose(
       .getByText(`${INSURED}, Additional Insured`),
   ).toBeVisible();
 
-  // Dock: the slot shows on the vendor's Deliveries tab; the dock checks the truck in (Compass).
-  const slot = await vendorDockSlot(engagement.id);
+  // Dock: the Producer books the vendor's slot in Atlas Logistics > Dock with the Vendor select (R1);
+  // it shows on the vendor's Deliveries tab and the dock checks the truck in (Compass).
+  // An hour after the dock's last slot, in the project's time zone: slots at one dock never overlap.
+  const [free] = await sql<{ starts: string; ends: string }>(
+    `select to_char(w.at at time zone p.time_zone, 'YYYY-MM-DD"T"HH24:00') as starts,
+            to_char((w.at + interval '2 hours') at time zone p.time_zone, 'YYYY-MM-DD"T"HH24:00') as ends
+       from app.projects p,
+            (select date_trunc('hour', greatest(coalesce(max(ends_at), now()), now())) + interval '2 hours' as at
+               from app.dock_slots where zone_id = '01920000-0000-7000-8000-000000010923' and deleted_at is null) w
+      where p.id = $1`,
+    [DEMO.project],
+  );
+  const booking = await atlasAs(browser, "producer@example.com");
+  await booking.page.goto(`/${ORG}/logistics/dock-schedule?project=${DEMO.project}&create=1`);
+  const drawer = booking.page.getByRole("dialog", { name: "Book dock slot" });
+  await drawer.getByLabel("Dock").selectOption({ label: "DOCK-1 Loading Dock" });
+  await drawer.getByLabel("Vendor").selectOption(engagement.id);
+  await drawer.getByLabel("Starts").fill(free?.starts ?? "");
+  await drawer.getByLabel("Ends").fill(free?.ends ?? "");
+  await drawer.getByRole("button", { name: "Book dock slot" }).click();
+  await expect
+    .poll(
+      async () =>
+        (
+          await sql<{ id: string }>(
+            `select id from app.dock_slots where engagement_id = $1 and deleted_at is null`,
+            [engagement.id],
+          )
+        ).length,
+    )
+    .toBe(1);
+  const [slot] = await sql<{ id: string }>(
+    `select id from app.dock_slots where engagement_id = $1 and deleted_at is null`,
+    [engagement.id],
+  );
+  await booking.context.close();
+  if (!slot) throw new Error("The dock slot was not booked.");
   await page.goto(`/work/engagements/${engagement.key}/deliveries`);
   await expect(page.getByRole("heading", { name: "Dock slots" })).toBeVisible();
   await expectAccessible(page);
@@ -272,3 +308,134 @@ async function vendorOnboardingToClose(
   );
   expect(closed?.state).toBe("Complete");
 }
+
+/** A Proposed submittal the org asks of the demo vendor on the demo project, created by the Owner. */
+async function proposedSubmittal(title: string): Promise<{ id: string }> {
+  const vendor = await demoVendorId();
+  const [row] = await sql<{ id: string }>(
+    `insert into app.submittals (project_id, vendor_id, submittal_kind, title, spec_reference, due_on)
+     values ($1, $2, 'Shop Drawing', $3, 'S-201', '2027-05-20') returning id`,
+    [PROJECT, vendor, title],
+    PEOPLE.owner,
+  );
+  return { id: row?.id as string };
+}
+
+test("R2: the vendor submits, reads the return reason and resubmits a submittal", async ({
+  page,
+}) => {
+  const engagement = await vendorEngagement();
+  await transition("engagement", engagement.id, "Onboarding", "Active", "Vendor onboarded.");
+  const title = `Delay tower rigging plan ${suffix()}`;
+  const submittal = await proposedSubmittal(title);
+
+  await signIn(page, "vendor@example.com", `/work/engagements/${engagement.key}/submittals`);
+  const row = page.getByRole("listitem").filter({ hasText: title });
+  await expect(row).toBeVisible();
+  await expect(row).toContainText("Revision 0");
+  await expectAccessibleInBothThemes(page);
+  const form = row.getByRole("form", { name: title });
+  await form.getByLabel("Note").fill("Rigging plan attached, rev A.");
+  await form.getByRole("button", { name: "Submit" }).click();
+  await expect(row.getByText("Sent for review.")).toBeVisible();
+
+  // The producer returns it in Atlas: the Owner created it, so sod_approval_requester lets them.
+  await asPerson(
+    PEOPLE.producer,
+    `select app.transition_submittal($1, 'Submitted', 'Returned', $2)`,
+    [submittal.id, "Show the bridle points."],
+  );
+  await page.reload();
+  await expect(row.getByText("Returned: Show the bridle points.")).toBeVisible();
+  await row.getByRole("form", { name: title }).getByLabel("Note").fill("Bridle points on sheet 2.");
+  await row.getByRole("button", { name: "Resubmit" }).click();
+  await expect(row.getByText("Sent for review.")).toBeVisible();
+  await page.reload();
+  await expect(row).toContainText("Revision 1");
+  await expect(row.getByText("Submitted. The organization is reviewing it.")).toBeVisible();
+  const [stored] = await sql<{ revision: number; state: string }>(
+    `select revision, submittal_state::text as state from app.submittals where id = $1`,
+    [submittal.id],
+  );
+  expect(stored).toEqual({ revision: 1, state: "Submitted" });
+});
+
+test("R2: the vendor Owner's Credentials tab shows the badges of everyone the account supplies", async ({
+  page,
+}) => {
+  const engagement = await vendorEngagement();
+  await transition("engagement", engagement.id, "Onboarding", "Active", "Vendor onboarded.");
+  // A second person the account supplies on the project, on an engagement of their own: the tab
+  // reads the badges of every engagement the account holds, not only the one it is opened from.
+  const [supplied] = await sql<{ id: string }>(
+    `insert into app.engagements (project_id, person_id, counterparty_id, role_type, role_code, worker_classification,
+       pay_basis, arrangement, start_date, end_date)
+     select $1, $2, e.counterparty_id, 'Vendor', '9000.50.02', 'VENDOR_SUPPLIED', 'Day Rate', 'Per Engagement',
+       '2027-06-04', '2027-06-06'
+     from app.engagements e where e.id = $3
+     returning id`,
+    [PROJECT, PEOPLE.crew, DEMO.vendorEngagement],
+    PEOPLE.owner,
+  );
+  const suppliedId = supplied?.id as string;
+  await transition("engagement", suppliedId, "Onboarding", "Active", "Supplied crew onboarded.");
+  const code = `VEN${suffix()}`;
+  const category = async (name: string) => {
+    const [row] = await sql<{ id: string }>(
+      `insert into app.credential_categories (project_id, code, name) values ($1, $2, $3) returning id`,
+      [PROJECT, `${code}${name.slice(0, 1)}`, `${name} ${code}`],
+      PEOPLE.owner,
+    );
+    return row?.id as string;
+  };
+  const [crewBadge, walkUp] = [await category("Vendor Crew"), await category("Walk-up")];
+  await sql(
+    `insert into app.credentials (credential_category_id, holder_person_id, engagement_id) values ($1, $2, $3)`,
+    [crewBadge, PEOPLE.crew, suppliedId],
+    PEOPLE.owner,
+  );
+  // The same person's badge issued under no engagement of the account stays off the account's tab,
+  // although the Owner may read it (api_external.credentials opens the person's badges to them).
+  await sql(
+    `insert into app.credentials (credential_category_id, holder_person_id) values ($1, $2)`,
+    [walkUp, PEOPLE.crew],
+    PEOPLE.owner,
+  );
+  try {
+    await signIn(page, "vendor@example.com", `/work/engagements/${engagement.key}/credentials`);
+    await expect(
+      page.getByRole("listitem").filter({ hasText: `Vendor Crew ${code}` }),
+    ).toBeVisible();
+    await expect(page.getByRole("listitem").filter({ hasText: `Walk-up ${code}` })).toHaveCount(0);
+    await expectAccessible(page);
+  } finally {
+    await transition("engagement", suppliedId, "Active", "Canceled", "Journey finished.");
+  }
+});
+
+test("R2: the vendor uploads an open document from Compliance and it moves to review", async ({
+  page,
+}) => {
+  const name = `Rigging certificate ${suffix()}`;
+  const packet = await requirements("Vendor", [{ name, kind: "Document Upload" }]);
+  try {
+    const engagement = await vendorEngagement();
+    await signIn(page, "vendor@example.com", `/work/engagements/${engagement.key}/compliance`);
+    const form = page.getByRole("form", { name });
+    await expect(form).toBeVisible();
+    await expectAccessibleInBothThemes(page);
+    await form.getByLabel("File or photo").setInputFiles({
+      name: "certificate.pdf",
+      mimeType: "application/pdf",
+      buffer: Buffer.from(
+        "%PDF-1.4\n1 0 obj << /Type /Catalog >> endobj\ntrailer << /Root 1 0 R >>\n%%EOF\n",
+      ),
+    });
+    await form.getByRole("button", { name: "Upload" }).click();
+    await expect(page.getByText("Uploaded. The organization verifies it next.")).toBeVisible();
+    await page.reload();
+    await expect(page.getByRole("form", { name })).toHaveCount(0);
+  } finally {
+    await packet.retire();
+  }
+});

@@ -4,7 +4,7 @@
 // app.record_fx_reference_rates (idempotent: a rerun for the same date changes nothing), and records every
 // failure with app.record_fx_feed_failure so finance pages can say the rates are stale. It uses only the shared
 // core (the PostgREST seam), so it loads no npm package at boot (A85).
-import { env, hasBearer, json, serve, serviceDb } from "../_shared/runtime.ts";
+import { env, isServiceRequest, json, serve, serviceDb } from "../_shared/runtime.ts";
 import { runEcbFeed, type FxFeedStore } from "./ecb.ts";
 
 function store(): FxFeedStore {
@@ -23,7 +23,7 @@ function store(): FxFeedStore {
 }
 
 serve(async (request) => {
-  if (!hasBearer(request, env("SUPABASE_SERVICE_ROLE_KEY"))) {
+  if (!isServiceRequest(request)) {
     return json(401, { type: "/problems/unauthorized", title: "Unauthorized", status: 401 });
   }
   const outcome = await runEcbFeed({ fetch, store: store() });

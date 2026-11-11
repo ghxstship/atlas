@@ -232,8 +232,24 @@ describe("XOS cards", () => {
           nextInSeconds={70}
           nextLabel="Next"
         />
+        <RunOfShowLive
+          cues={[
+            { number: "Q4", time: "9:10", title: "Host welcome" },
+            { number: "Q5", time: "9:12", title: "Award one" },
+            { number: "Q6", time: "9:20", title: "Headliner" },
+          ]}
+          current={0}
+          next={2}
+          nextInSeconds={300}
+          countdownText="TBC"
+          nextLabel="Standby"
+        />
       </div>,
     );
+    // After a standby or a jump the next cue is the one named, not the one after the current cue (ADR 0131),
+    // and a cue to be confirmed shows TBC in place of the countdown.
+    expect(screen.getByText("Standby: Headliner")).toBeTruthy();
+    expect(screen.getByText("TBC")).toBeTruthy();
     const items = screen.getAllByRole("listitem");
     expect(items[0]?.getAttribute("aria-label")).toContain("Zone 1");
     expect(screen.getByText("Next: Lights up")).toBeTruthy();

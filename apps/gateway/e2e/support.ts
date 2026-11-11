@@ -89,6 +89,11 @@ async function restingState(page: Page): Promise<void> {
 /** axe-core on the current page at rest: zero serious or critical findings (Section 18, gate 8). */
 export async function expectAccessible(page: Page): Promise<void> {
   await restingState(page);
+  // Next streams the page's metadata, so the title can land after the body on a loaded runner; a page
+  // with no title still fails once this wait gives up.
+  await page
+    .waitForFunction(() => document.title.trim() !== "", undefined, { timeout: 10_000 })
+    .catch(() => undefined);
   const results = await new AxeBuilder({ page })
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
     .analyze();

@@ -1,11 +1,17 @@
 ---
 title: Datos laborales
-summary: De dónde vienen los datos sobre cómo trabajas.
+summary: Tus contactos de emergencia, necesidades alimentarias y de accesibilidad, programas de lealtad y pasaporte, y quién los ve.
 kind: page
 nodes: [settings.work-details]
 order: 1
 ---
 
-Tus datos laborales vienen de tu perfil: tus habilidades, certificaciones, tarifas y disponibilidad. Las organizaciones los ven cuando postulas o compartes tu perfil.
+Configuración, Datos laborales reúne lo que las organizaciones necesitan para alimentarte, reservar tus viajes y cuidarte: contactos de emergencia, necesidades alimentarias y de accesibilidad, programas de lealtad y los datos de tu pasaporte.
 
-Elige **Editar perfil** para cambiarlos en [Configuración del perfil](help:settings-profile). Marca las fechas en que estás disponible o no en tu [perfil](help:profile).
+Las tallas de uniforme y tu asiento, comida y aeropuerto de origen ya no se guardan aquí. Cada producción te los pide en el proyecto en cuya lista estás y los guarda solo para ese proyecto: abre la contratación y elige **Datos del proyecto**.
+
+Una organización ve una categoría solo mientras la compartes con esa contratación. Tus alergias están restringidas: solo el responsable de catering y el personal médico en el lugar del proyecto, el Propietario de la organización y cualquier otra persona a quien la organización dé acceso a datos médicos pueden leerlas, y cada vez que lo hacen aparece en tu registro de acceso. Contacto, tu correo y teléfono de inicio de sesión, se comparte junto con al menos otra categoría.
+
+Tus habilidades, certificaciones, tarifas y disponibilidad están en [Configuración del perfil](help:settings-profile).
+
+Los datos de dieta, alergias y accesibilidad son opcionales. Antes de añadir alguno, lees qué recopilamos, por qué, quién lo ve y cómo retirar el consentimiento, y aceptas. Retíralo desde el mismo lugar en cualquier momento: dejamos de usar los datos de inmediato y los eliminamos. Si otra persona introdujo datos por ti, aparecen aquí para que puedas eliminarlos: quien los introdujo no podrá volver a introducirlos por ti, con tu cuenta o tu correo, en ninguna parte de esa organización, hasta que lo aceptes tú. Si una entrada de la lista de invitados es de otra persona, elige No soy yo: tu nombre y tu correo se quitan de ella, y las necesidades del invitado siguen con quien lleva la lista.

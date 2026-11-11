@@ -68,6 +68,14 @@ begin
   values (t_sheet, c_project, e_crew, '2027-06-04', '2027-06-06')
   on conflict (id) do nothing;
 
+  -- Per diem is an offering since R3 (2625), and seeds load in file order, so the project offers it here before the
+  -- per diems below; supabase/seeds/2620_r3_offerings.sql keeps this value.
+  insert into app.setting_values (org_id, setting_key, scope_kind, scope_id, value_text, locked)
+  select c_org, 'offerings.per_diem', 'Project', c_project, 'provided', false
+  where not exists (
+    select 1 from app.setting_values v
+    where v.setting_key = 'offerings.per_diem' and v.scope_kind = 'Project' and v.scope_id = c_project and v.deleted_at is null);
+
   insert into app.per_diems (id, project_id, engagement_id, day, amount_minor, currency_code)
   values
     ('01920000-0000-7000-8000-000014900811', c_project, e_crew, '2027-06-04', 6000, 'USD'),

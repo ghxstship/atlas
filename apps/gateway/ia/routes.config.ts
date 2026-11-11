@@ -6,14 +6,23 @@
  */
 export const SHELL_ROUTES: Readonly<Record<string, string>> = {
   "/": "Entry: sends a signed-in person to Home, everyone else to sign in.",
+  "/sign/{token}/quote":
+    "Route handler: a quote's PDF for a signing link; the access code arrives in the form body (B13, POST only).",
   "/auth/sign-in": "Auth template: magic link, OAuth and password sign-in.",
   "/auth/sign-up": "Auth template: account creation.",
   "/auth/check-email": "Auth template: magic link and confirmation sent.",
+  "/auth/age": "Auth template: the age question for anyone who has not answered at 18 (ADR 0156).",
+  "/auth/age-refused":
+    "Auth template: what someone who answered under 18 is told, with no account left (ADR 0156).",
   "/auth/callback": "Route handler: OAuth and PKCE code exchange.",
   "/auth/confirm": "Route handler: email link token verification.",
   "/auth/sign-out": "Route handler: ends the session (POST only).",
   "/auth/session": "Route handler: session expiry for the re-authentication dialog.",
+  "/auth/realtime":
+    "Route handler: the short-lived access token live updates authorize with (A122).",
   "/auth/claim": "Auth template: claim token submissions into the signed-in account.",
+  "/auth/act/{token}":
+    "Auth template: confirm a one-tap action from a notification email; opening it never acts (A127, ADR 0106).",
   "/auth/mfa": "Auth template: the second factor after the first, when the person holds one (A77).",
   "/auth/terms": "Auth template: the Worker Terms for an account a sign-in provider created.",
   "/auth/offline":
@@ -30,10 +39,17 @@ export const SHELL_ROUTES: Readonly<Record<string, string>> = {
     "Route handler: a generated document as tagged PDF/UA for an external party (ADR 0031).",
   "/api/client-errors": "Route handler: browser error reports, forwarded to Sentry (ADR 0025).",
   "/api/system-banners": "Route handler: the live platform system banners, cached a minute (A90).",
+  "/onboard/{token}/open":
+    "Route handler: opens a vendor intake link with its access code and sets the grant (B2, ADR 0141).",
+  "/onboard/{token}/agreement":
+    "Route handler: downloads an intake link's pinned agreement by a single-use ticket (B2, ADR 0141).",
+  "/forms/{token}/open":
+    "Route handler: opens a public form link with its access code and sets the grant (B2, ADR 0141).",
   "/ical/{feedFile}":
     "Route handler: a calendar subscription feed, <token>.ics only (Section 4.5.8, Section 4.6.5, ADR 0040).",
   "/.well-known/apple-app-site-association":
     "Route handler: universal links to Compass for Continue on another device (ADR 0030).",
   "/.well-known/assetlinks.json":
     "Route handler: Android App Links to Compass for Continue on another device (ADR 0030).",
+  "/.well-known/security.txt": "The vulnerability disclosure contact (RFC 9116), not a screen",
 };

@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "./engine-test";
+import { expect as baseExpect, settle, test, type Page } from "./engine-test";
 import { expectAccessibleInBothThemes, ORG, settled, signIn } from "./operations-support";
 
 /**
@@ -11,7 +11,8 @@ import { expectAccessibleInBothThemes, ORG, settled, signIn } from "./operations
 
 test.use({ reducedMotion: "reduce" });
 test.setTimeout(300_000);
-expect.configure({ timeout: 20_000 });
+// configure returns a new expect; the file-level timeout applies only through it.
+const expect = baseExpect.configure({ timeout: 20_000 });
 
 const PAGES: [string, string, string[]][] = [
   ["asset-classes", "Catalog of Asset Classes", ["table", "list", "gallery"]],
@@ -49,8 +50,9 @@ test("every Assets page renders in every view it offers", async ({ page }) => {
   }
   // A filter survives a view switch (Section 11.15).
   await page.goto(`/${ORG}/assets/units?view=table&filter=Deployed`);
+  await settle(page);
   await page.getByRole("radio", { name: "List" }).click();
-  await expect(page).toHaveURL(/filter=Deployed/);
+  await expect(page).toHaveURL(/view=list.*filter=Deployed|filter=Deployed.*view=list/);
   await expect(page.getByText("MH-002 · Spot Fixture")).toBeVisible();
   await expect(page.getByText("MH-001 · Spot Fixture")).toBeHidden();
 });
@@ -63,6 +65,7 @@ test("journey 19: check out and return a unit by scan and see the custody ledger
 
   // Register a unit; it starts Proposed and opens in the peek.
   await page.goto(`/${ORG}/assets/units`);
+  await settle(page);
   await page.getByRole("button", { name: "Register unit" }).first().click();
   const register = page.getByRole("dialog", { name: "Register unit" });
   await register.getByLabel("Asset class").selectOption({ label: "Digital Two-Way Radio" });
@@ -98,7 +101,7 @@ test("journey 19: check out and return a unit by scan and see the custody ledger
   await expect(page.getByText("It is Available now.")).toBeVisible();
   await page.getByRole("button", { name: "Check out" }).click();
   const out = page.getByRole("dialog", { name: `Check out ${tag}` });
-  await out.getByLabel("Member who takes it").selectOption({ label: "Demo Field Lead" });
+  await out.getByLabel("Held by").selectOption({ label: "Demo Field Lead" });
   await out.getByLabel("Project").selectOption({ label: "NWS · Northwind Summer Series" });
   await out.getByLabel("Note").fill("Stage left radio.");
   await settled(page);
@@ -128,6 +131,20 @@ test("journey 19: check out and return a unit by scan and see the custody ledger
   await expect(page.getByText("Checked out by scan.")).toBeVisible();
   await expect(page.getByText("Checked in by scan.")).toBeVisible();
   await expectAccessibleInBothThemes(page);
+
+  // External crew hold gear through their engagement (R1): the Held by select offers the chosen
+  // project's engagements next to the members.
+  await page.goto(`/${ORG}/assets/custody-ledger`);
+  await lookUp(page, tag);
+  await page.getByRole("button", { name: "Check out" }).click();
+  const toCrew = page.getByRole("dialog", { name: `Check out ${tag}` });
+  await toCrew.getByLabel("Project").selectOption({ label: "NWS · Northwind Summer Series" });
+  await toCrew.getByLabel("Held by").selectOption({ label: "NWS Demo Crew Member" });
+  await toCrew.getByRole("button", { name: "Check out" }).click();
+  await expect(toCrew).toBeHidden();
+  await expect(page.getByRole("row", { name: new RegExp(tag) }).first()).toContainText(
+    "Demo Crew Member",
+  );
 });
 
 test("journey 23: a damaged unit is written off by an approver, with a comment", async ({
@@ -143,6 +160,7 @@ test("journey 23: a damaged unit is written off by an approver, with a comment",
   // A unit of this run's own goes out, comes back damaged and is reported.
   const tag = `MH-E2E-${suffix()}`;
   await page.goto(`/${ORG}/assets/units`);
+  await settle(page);
   await page.getByRole("button", { name: "Register unit" }).first().click();
   const register = page.getByRole("dialog", { name: "Register unit" });
   await register.getByLabel("Asset class").selectOption({ label: "Spot Fixture" });

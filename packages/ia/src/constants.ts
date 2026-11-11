@@ -20,5 +20,7 @@ export const PARAM_TYPES = {
   handle: /^[a-z0-9](?:[a-z0-9-]{0,38}[a-z0-9])?$/,
   uuid: /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
   token: /^[A-Za-z0-9_-]{16,128}$/,
+  /** A guest email's unsubscribe token (B8, migration 6255): the email's id and its signature. */
+  "guest-email-token": /^xgue_[0-9a-f]{32}\.[0-9a-f]{32}$/,
 } as const;
 export type ParamType = keyof typeof PARAM_TYPES;

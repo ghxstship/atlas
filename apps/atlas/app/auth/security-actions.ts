@@ -36,6 +36,7 @@ import { relyingPartyFrom } from "@/lib/auth/assurance";
 import { safeNext, siteUrl } from "@/lib/auth/redirect";
 import { env } from "@/lib/env";
 import { createServerSupabase } from "@/lib/supabase/server";
+import { observability } from "@/lib/observability";
 
 /**
  * Second factors, passkeys, step-up and single sign-on (Section 9, A77). Every action runs with the caller's
@@ -71,7 +72,8 @@ function errorKey(error: DataError): string {
   if (error.kind === "refusal") return KNOWN.has(error.rule) ? error.rule : "unexpected";
   if (error.kind === "not-found") return "denied";
   if (error.kind === "invalid") return "invalid";
-  if (error.kind === "unexpected") console.error("security action failed", error);
+  if (error.kind === "unexpected")
+    observability.logger.error("security action failed", { error: error });
   return "unexpected";
 }
 

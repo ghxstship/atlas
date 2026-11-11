@@ -5,7 +5,7 @@ import { loadPlanRegistry } from "@xos/schemas/plans";
 import {
   BillingNotConfiguredError,
   NotSelfServeError,
-  PORTAL_CONFIGURATION_KEY,
+  PORTAL_CONFIGURATION_KEYS,
   PriceNotFoundError,
   StripeSignatureError,
   addonForLookupKey,
@@ -70,7 +70,8 @@ function fakeStripe(prices: Record<string, string>) {
           return {
             data: [
               { id: "bpc_default", metadata: {} },
-              { id: "bpc_xos", metadata: { xos_portal: PORTAL_CONFIGURATION_KEY } },
+              { id: "bpc_xos", metadata: { xos_portal: PORTAL_CONFIGURATION_KEYS.Monthly } },
+              { id: "bpc_year", metadata: { xos_portal: PORTAL_CONFIGURATION_KEYS.Annual } },
             ],
           };
         },
@@ -100,6 +101,10 @@ function memoryStore(
     failSync?: boolean;
     /** Checkout sessions Atlas opened, which finishCheckout knows. */
     opened?: string[];
+    /** What reconciliation answers; proceed unless a test says otherwise. */
+    reconcile?: string;
+    failReconcile?: boolean;
+    failCharge?: boolean;
   } = {},
 ) {
   const events = new Map<
@@ -109,7 +114,24 @@ function memoryStore(
   const syncs: Parameters<BillingStore["syncSubscription"]>[0][] = [];
   const purchases: Parameters<BillingStore["recordAddonPurchase"]>[0][] = [];
   const finished: { sessionId: string; state: string }[] = [];
+  const reconciled: Parameters<BillingStore["reconcileSubscription"]>[0][] = [];
+  const terms: Parameters<BillingStore["noteSubscriptionTerms"]>[0][] = [];
+  const charges: Parameters<BillingStore["noteCharge"]>[0][] = [];
   const store: BillingStore = {
+    async reconcileSubscription(input) {
+      if (options.failReconcile) throw new Error("reconcile failed");
+      reconciled.push(input);
+      return options.reconcile ?? "proceed";
+    },
+    async noteSubscriptionTerms(input) {
+      terms.push(input);
+      return true;
+    },
+    async noteCharge(input) {
+      if (options.failCharge) throw new Error("charge failed");
+      charges.push(input);
+      return input.amountMinor > 0;
+    },
     async finishCheckout(sessionId, state) {
       finished.push({ sessionId, state });
       return (options.opened ?? []).includes(sessionId);
@@ -151,7 +173,7 @@ function memoryStore(
       return input.status === "past_due" ? "past_due" : "active";
     },
   };
-  return { store, events, syncs, purchases, finished };
+  return { store, events, syncs, purchases, finished, reconciled, terms, charges };
 }
 
 function subscriptionEvent(
@@ -163,6 +185,7 @@ function subscriptionEvent(
     livemode?: boolean;
     id?: string;
     extraItems?: { lookupKey: string; quantity: number }[];
+    pauseCollection?: { behavior: string; resumes_at: number | null } | null;
   } = {},
 ) {
   return {
@@ -178,6 +201,7 @@ function subscriptionEvent(
         object: "subscription",
         customer: "cus_test_1",
         status: overrides.status ?? "active",
+        pause_collection: overrides.pauseCollection ?? null,
         metadata: overrides.orgId === null ? {} : { org_id: overrides.orgId ?? "org-1" },
         items: {
           data: [
@@ -379,8 +403,9 @@ describe("checkout", () => {
 
   it("finds the portal configuration stripe:setup created and opens the portal with it", async () => {
     const { client, calls } = fakeStripe({});
-    const configuration = await findPortalConfiguration(client);
+    const configuration = await findPortalConfiguration(client, "Monthly");
     expect(configuration).toBe("bpc_xos");
+    expect(await findPortalConfiguration(client, "Annual")).toBe("bpc_year");
     await createPortalSession(client, "cus_1", "https://a.test/billing", configuration);
     expect(calls.at(-1)?.params).toEqual({
       customer: "cus_1",
@@ -455,6 +480,45 @@ describe("Stripe webhook", () => {
     expect(syncs).toHaveLength(1);
   });
 
+  it("passes Stripe's pause through with the event's created time (B16)", async () => {
+    const { store, syncs } = memoryStore();
+    const send = (event: unknown) =>
+      handleStripeWebhook({
+        ...signed(event),
+        webhookSecret: secret,
+        livemode: false,
+        registry,
+        store,
+      });
+    await send(subscriptionEvent());
+    expect(syncs[0]).toMatchObject({
+      pauseCollection: null,
+      eventCreatedAt: new Date(1_790_000_000 * 1000),
+    });
+    await send(
+      subscriptionEvent({
+        id: "evt_pause",
+        pauseCollection: { behavior: "void", resumes_at: 1_795_000_000 },
+      }),
+    );
+    expect(syncs[1]?.pauseCollection).toEqual({ resumesAt: new Date(1_795_000_000 * 1000) });
+    await send(
+      subscriptionEvent({
+        id: "evt_open",
+        pauseCollection: { behavior: "void", resumes_at: null },
+      }),
+    );
+    expect(syncs[2]?.pauseCollection).toEqual({ resumesAt: null });
+    await send(
+      subscriptionEvent({
+        id: "evt_paused",
+        type: "customer.subscription.paused",
+        status: "paused",
+      }),
+    );
+    expect(syncs[3]).toMatchObject({ status: "paused", pauseCollection: null });
+  });
+
   it("treats a deleted subscription as canceled and resolves the org from the customer", async () => {
     const { store, syncs } = memoryStore({ orgForCustomer: "org-9" });
     const event = subscriptionEvent({
@@ -476,7 +540,7 @@ describe("Stripe webhook", () => {
     const cases = [
       { event: subscriptionEvent({ id: "evt_live", livemode: true }), reason: /mode/ },
       {
-        event: { ...subscriptionEvent({ id: "evt_inv" }), type: "invoice.paid" },
+        event: { ...subscriptionEvent({ id: "evt_inv" }), type: "invoice.created" },
         reason: /No action/,
       },
       { event: subscriptionEvent({ id: "evt_noorg", orgId: null }), reason: /no org/ },
@@ -547,6 +611,26 @@ describe("seats and add-ons (ADR 0035)", () => {
       NotSelfServeError,
     );
     expect(() => extraSeatLookupKeyFor(registry, "access", "Monthly")).toThrow(/free/);
+  });
+
+  it("names the currency and turns adaptive pricing off, so Stripe never picks one from where the buyer seems to be (ADR 0160)", async () => {
+    const plan = lookupKeyFor(registry, "pro", "Monthly");
+    const { client, calls } = fakeStripe({ [plan]: "price_pro" });
+    const request = {
+      orgId: "org-1",
+      planCode: "pro",
+      interval: "Monthly" as const,
+      successUrl: "https://a.test/ok",
+      cancelUrl: "https://a.test/no",
+    };
+    await createCheckoutSession(client, registry, request);
+    expect(calls.at(-1)?.params).toMatchObject({
+      currency: "usd",
+      adaptive_pricing: { enabled: false },
+    });
+    // An open territory's organization pays in the currency the database names.
+    await createCheckoutSession(client, registry, { ...request, currency: "GBP" });
+    expect(calls.at(-1)?.params).toMatchObject({ currency: "gbp" });
   });
 
   it("buys extra seats at checkout as the quantity of the plan's seat price, and accepts promotion codes", async () => {

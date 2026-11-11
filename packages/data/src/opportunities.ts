@@ -1,5 +1,7 @@
 import type { Database, XosClient } from "./client.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
+import { readRatingDisputeSubjects, type RatingDisputeSubject } from "./rating-dispute-subjects.ts";
+import * as enums from "./enums.generated.ts";
 
 /**
  * Opportunities repository (Section 4.2 Opportunities, Section 4.4.3 and 4.4.4): the org side of the engagement
@@ -32,77 +34,17 @@ export type DeliverableState = Enums["deliverable_state"];
 export type ApprovalDecision = Enums["approval_decision"];
 
 /** Every opportunity state in lifecycle order (Section 4.4.4). */
-export const OPPORTUNITY_STATES: readonly OpportunityState[] = [
-  "Draft",
-  "Pending Approval",
-  "Published",
-  "Paused",
-  "Filled",
-  "Closed",
-  "Canceled",
-];
+export const OPPORTUNITY_STATES: readonly OpportunityState[] = enums.opportunityState;
 /** Every application state in pipeline order: the columns of the Pipeline board. */
-export const APPLICATION_STATES: readonly ApplicationState[] = [
-  "Submitted",
-  "In Review",
-  "Shortlisted",
-  "Offered",
-  "Accepted",
-  "Declined",
-  "Withdrawn",
-  "Not Selected",
-];
-export const ENGAGEMENT_STATES: readonly EngagementState[] = [
-  "Onboarding",
-  "Blocked",
-  "Active",
-  "Closing",
-  "Complete",
-  "Canceled",
-];
-export const ROLE_TYPES: readonly ExternalRoleType[] = [
-  "Client",
-  "Vendor",
-  "Contractor",
-  "Crew",
-  "Staff",
-  "Artist",
-  "Artist Representative",
-  "Sponsor",
-];
+export const APPLICATION_STATES: readonly ApplicationState[] = enums.applicationState;
+export const ENGAGEMENT_STATES: readonly EngagementState[] = enums.engagementState;
+export const ROLE_TYPES: readonly ExternalRoleType[] = enums.externalRoleType;
 /** Role types that publish only from an Approved requisition (migration 0774). */
 export const REQUISITION_ROLE_TYPES: readonly ExternalRoleType[] = ["Contractor", "Crew", "Staff"];
-export const VISIBILITIES: readonly OpportunityVisibility[] = [
-  "Invited",
-  "Pool",
-  "Network",
-  "Public",
-];
-export const RATE_TYPES: readonly RateType[] = ["Hourly", "Day", "Flat", "Milestone", "Bid"];
-export const DOCUMENT_KINDS: readonly EngagementDocumentKind[] = [
-  "Offer",
-  "Agreement",
-  "Statement of Work",
-  "Non-Disclosure Agreement",
-  "Rider",
-  "Advance Packet",
-  "Insurance Certificate",
-  "Lien Waiver",
-  "Settlement",
-  "Proof of Performance",
-  "Content Consent",
-];
-export const ONBOARDING_ITEM_KINDS: readonly OnboardingItemKind[] = [
-  "Document Upload",
-  "Electronic Signature",
-  "Form",
-  "Certification",
-  "Training",
-  "Acknowledgment",
-  "Background Check",
-  "Tax Form",
-  "Payout Details",
-];
+export const VISIBILITIES: readonly OpportunityVisibility[] = enums.opportunityVisibility;
+export const RATE_TYPES: readonly RateType[] = enums.rateType;
+export const DOCUMENT_KINDS: readonly EngagementDocumentKind[] = enums.engagementDocumentKind;
+export const ONBOARDING_ITEM_KINDS: readonly OnboardingItemKind[] = enums.onboardingItemKind;
 
 /**
  * The moves each lifecycle allows from a state, mirroring private.lifecycle_transition_rules. The database still
@@ -199,6 +141,8 @@ export interface OpportunitySummary {
   readonly deadlineAt: string | null;
   readonly state: OpportunityState;
   readonly requisitionId: string | null;
+  /** The client and event stay hidden from crew until they are booked (3870). */
+  readonly hideClientUntilBooked: boolean;
   readonly positionCount: number;
   readonly applicationCount: number;
   readonly updatedAt: string;
@@ -264,6 +208,11 @@ export interface OpportunityInput {
   readonly minimumAge?: number | null;
   /** Remote work follows the pay transparency rules that cover remote roles (1125). */
   readonly isRemote?: boolean;
+  /**
+   * Crew see the org, the city, the dates and the pay until they are booked; the venue stays hidden and the title and
+   * description cannot name the project, its client or the venue (3870). Turned on only before publishing.
+   */
+  readonly hideClientUntilBooked?: boolean;
 }
 
 export type OpportunityPatch = Partial<Omit<OpportunityInput, "projectId" | "roleType">>;
@@ -571,7 +520,7 @@ export async function jobTitles(
 // Postings ---------------------------------------------------------------------------------------------------------------
 
 const OPPORTUNITY_COLUMNS =
-  "id, project_id, title, role_type, role_code, visibility, rate_type, pay_min_minor, pay_max_minor, currency_code, starts_on, ends_on, deadline_at, opportunity_state, requisition_id, updated_at, description, scope_node_id, venue_id, jurisdiction_id, minimum_age, project:projects(project_key, name), positions:opportunity_positions(id, label, call_at, ends_at, deleted_at), applications(id, deleted_at)";
+  "id, project_id, title, role_type, role_code, visibility, rate_type, pay_min_minor, pay_max_minor, currency_code, starts_on, ends_on, deadline_at, opportunity_state, requisition_id, hide_client_until_booked, updated_at, description, scope_node_id, venue_id, jurisdiction_id, minimum_age, project:projects(project_key, name), positions:opportunity_positions(id, label, call_at, ends_at, deleted_at), applications(id, deleted_at)";
 
 interface OpportunityRow {
   id: string;
@@ -589,6 +538,7 @@ interface OpportunityRow {
   deadline_at: string | null;
   opportunity_state: OpportunityState;
   requisition_id: string | null;
+  hide_client_until_booked: boolean;
   updated_at: string;
   description: string | null;
   scope_node_id: string | null;
@@ -627,6 +577,7 @@ function toSummary(r: OpportunityRow): OpportunitySummary {
     deadlineAt: r.deadline_at,
     state: r.opportunity_state,
     requisitionId: r.requisition_id,
+    hideClientUntilBooked: r.hide_client_until_booked,
     positionCount: (r.positions ?? []).filter((p) => p.deleted_at === null).length,
     applicationCount: (r.applications ?? []).filter((a) => a.deleted_at === null).length,
     updatedAt: r.updated_at,
@@ -738,6 +689,7 @@ function opportunityColumns(input: OpportunityPatch) {
     ["deadlineAt", "deadline_at"],
     ["minimumAge", "minimum_age"],
     ["isRemote", "is_remote"],
+    ["hideClientUntilBooked", "hide_client_until_booked"],
   ];
   for (const [key, column] of map) if (input[key] !== undefined) row[column] = input[key];
   return row;
@@ -1563,6 +1515,73 @@ export async function listRatings(db: XosClient, orgId: string): Promise<Result<
   );
 }
 
+export type RatingDisputeState = Enums["rating_dispute_state"];
+export type RatingDisputeGround = Enums["rating_dispute_ground"];
+
+export interface RatingDispute {
+  readonly id: string;
+  readonly ratingId: string;
+  readonly ground: RatingDisputeGround;
+  readonly details: string;
+  readonly state: RatingDisputeState;
+  readonly filedAt: string;
+  readonly orgResponse: string | null;
+  readonly decisionStatement: string | null;
+  readonly decidedAt: string | null;
+  /** What the dispute is about, so the org knows what it is answering; null only if the read failed to match. */
+  readonly subject: RatingDisputeSubject | null;
+}
+
+/** Disputes of the ratings this org gave people, open ones first in filing order (ADR 0158). */
+export async function listRatingDisputes(
+  db: XosClient,
+  orgId: string,
+): Promise<Result<RatingDispute[]>> {
+  const [{ data, error }, subjects] = await Promise.all([
+    db
+      .from("rating_disputes")
+      .select(
+        "id, rating_id, dispute_ground, dispute_details, dispute_state, filed_at, org_response, decision_statement, decided_at",
+      )
+      .eq("org_id", orgId)
+      .is("deleted_at", null)
+      .order("filed_at", { ascending: false }),
+    readRatingDisputeSubjects(db),
+  ]);
+  if (error) return fail(toDataError(error));
+  if (!subjects.ok) return subjects;
+  return ok(
+    data
+      .map((row) => ({
+        id: row.id,
+        ratingId: row.rating_id,
+        ground: row.dispute_ground,
+        details: row.dispute_details,
+        state: row.dispute_state,
+        filedAt: row.filed_at,
+        orgResponse: row.org_response,
+        decisionStatement: row.decision_statement,
+        decidedAt: row.decided_at,
+        subject: subjects.data.get(row.id) ?? null,
+      }))
+      .sort((a, b) => Number(b.state === "Open") - Number(a.state === "Open")),
+  );
+}
+
+/** The org that gave a rating answers a dispute of it once while it is open. A platform operator decides (ADR 0158). */
+export async function respondToRatingDispute(
+  db: XosClient,
+  disputeId: string,
+  response: string,
+): Promise<Result<null>> {
+  const { error } = await db.rpc("respond_to_rating_dispute", {
+    p_dispute_id: disputeId,
+    p_response: response,
+  });
+  if (error) return fail(toDataError(error));
+  return ok(null);
+}
+
 /** The org rates the party of a completed engagement; both ratings release together (ADR 0019 item 6). */
 export async function rateParty(
   db: XosClient,
@@ -1578,7 +1597,7 @@ export async function rateParty(
   return ok(null);
 }
 
-/** The org replies once, publicly, to the party's released rating. */
+/** The org replies once to the party's released rating. */
 export async function replyToRating(
   db: XosClient,
   ratingId: string,
@@ -1690,8 +1709,9 @@ export async function createPool(
 }
 
 /**
- * Members of a pool with names. Person names come from the engagement board, so only people the org has engaged or
- * received an application from are named; pool rows themselves never leave the org (Section 4.4.3).
+ * Members of a pool with names, from app.pool_member_names (B10), so a person who joined by registration or by claiming an
+ * invitation is named as well. A company member's name is its account's. Pool rows themselves never leave the org
+ * (Section 4.4.3); a blank name reads as unnamed.
  */
 export async function listPoolMembers(
   db: XosClient,
@@ -1704,25 +1724,34 @@ export async function listPoolMembers(
     .is("deleted_at", null);
   if (error) return fail(toDataError(error));
   const rows = data ?? [];
-  const personIds = rows.flatMap((r) => (r.person_id ? [r.person_id] : []));
-  const orgIds = rows.flatMap((r) => (r.organization_id ? [r.organization_id] : []));
   const names = new Map<string, string>();
-  if (personIds.length > 0 || orgIds.length > 0) {
+  const named = await db
+    .from("pool_member_names")
+    .select("pool_member_id, full_name")
+    .eq("talent_pool_id", poolId);
+  if (named.error) return fail(toDataError(named.error));
+  for (const n of named.data ?? []) {
+    if (n.pool_member_id && n.full_name) names.set(n.pool_member_id, n.full_name);
+  }
+  const orgIds = rows.flatMap((r) => (r.organization_id ? [r.organization_id] : []));
+  const accounts = new Map<string, string>();
+  if (orgIds.length > 0) {
     const [engaged, applied] = await Promise.all([
-      db.from("engagement_board").select("person_id, account_id, party_name, account_name"),
-      db
-        .from("application_board")
-        .select("applicant_person_id, applicant_organization_id, applicant_name"),
+      db.from("engagement_board").select("account_id, account_name"),
+      db.from("application_board").select("applicant_organization_id, applicant_name"),
     ]);
     if (engaged.error) return fail(toDataError(engaged.error));
     if (applied.error) return fail(toDataError(applied.error));
     for (const e of engaged.data ?? []) {
-      if (e.person_id && e.party_name) names.set(e.person_id, e.party_name);
-      if (e.account_id && e.account_name) names.set(e.account_id, e.account_name);
+      if (e.account_id && e.account_name) accounts.set(e.account_id, e.account_name);
     }
     for (const a of applied.data ?? []) {
-      const key = a.applicant_person_id ?? a.applicant_organization_id;
-      if (key && a.applicant_name && !names.has(key)) names.set(key, a.applicant_name);
+      if (
+        a.applicant_organization_id &&
+        a.applicant_name &&
+        !accounts.has(a.applicant_organization_id)
+      )
+        accounts.set(a.applicant_organization_id, a.applicant_name);
     }
   }
   return ok(
@@ -1731,7 +1760,7 @@ export async function listPoolMembers(
       poolId: r.talent_pool_id,
       personId: r.person_id,
       organizationId: r.organization_id,
-      name: names.get(r.person_id ?? r.organization_id ?? "") ?? null,
+      name: names.get(r.id) ?? accounts.get(r.organization_id ?? "") ?? null,
       standing: r.standing,
       reason: r.reason,
       reviewOn: r.review_on,

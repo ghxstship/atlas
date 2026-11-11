@@ -3,6 +3,7 @@ import pg from "pg";
 import { columnLetter } from "./cell.ts";
 import { normalizedRow, sheetGrid } from "./manifest.ts";
 import { normalizeCell } from "./normalize.ts";
+import { anonymize, LIBRARY_SHEETS } from "./rrr67.ts";
 import { sheetKey } from "./playbook/layout.ts";
 import { getCell, readWorkbook, sheetByName } from "./workbook.ts";
 import type { WorkbookData } from "./workbook.ts";
@@ -101,7 +102,9 @@ export function compareWorkbooks(
     }
     const rows = new Set<number>([...grid.dataRows, ...exportedRows]);
     for (const r of [...rows].sort((a, b) => a - b)) {
-      const want = normalizedRow(src, r, grid.columnCount);
+      // A source value the RRR-67 ruling anonymizes is expected in its anonymized form.
+      const library = (LIBRARY_SHEETS as readonly string[]).includes(name);
+      const want = normalizedRow(src, r, grid.columnCount).map((v) => anonymize(v, library));
       for (let c = 1; c <= grid.columnCount; c++) {
         const got = normalizeCell(getCell(out, r, c));
         const expected = want[c - 1] ?? "";

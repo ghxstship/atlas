@@ -1,4 +1,5 @@
 import type { Database, XosClient } from "./client.ts";
+import { parseTstzRange, type InstantRange } from "./ranges.ts";
 import {
   blankToNull,
   deletedNow,
@@ -10,6 +11,7 @@ import {
   type Transition,
 } from "./commercial-common.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
+import * as enums from "./enums.generated.ts";
 
 /**
  * Procurement repository (Section 4.2 Procurement, Section 7.4, invariants 10 and 17): RFQs with
@@ -23,15 +25,14 @@ export type RfqState = Database["app"]["Enums"]["rfq_state"];
 export type PoState = Database["app"]["Enums"]["po_state"];
 export type PoChangeOrderState = Database["app"]["Enums"]["po_change_order_state"];
 export type ApprovalDecision = Database["app"]["Enums"]["approval_decision"];
+export type AcquisitionKind = Database["app"]["Enums"]["acquisition_kind"];
+export type GoodsReturnReason = Database["app"]["Enums"]["goods_return_reason"];
 
-export const RFQ_STATES: readonly RfqState[] = [
-  "Proposed",
-  "Issued",
-  "Closed",
-  "Awarded",
-  "Canceled",
-];
-export const PO_STATES: readonly PoState[] = ["Proposed", "Approved", "Sent", "Closed", "Canceled"];
+export const ACQUISITION_KINDS: readonly AcquisitionKind[] = enums.acquisitionKind;
+export const GOODS_RETURN_REASONS: readonly GoodsReturnReason[] = enums.goodsReturnReason;
+
+export const RFQ_STATES: readonly RfqState[] = enums.rfqState;
+export const PO_STATES: readonly PoState[] = enums.poState;
 
 /** A project as procurement pickers and display keys need it. */
 export interface ProjectOption {
@@ -226,6 +227,12 @@ export interface RfqResponseLine {
   /** Null when the vendor did not quote the line. */
   readonly unitPriceMinor: number | null;
   readonly currencyCode: string;
+  /** From the request line it answers (B11, G-97): a sub-hire's order line stays a rental for its need. */
+  readonly unitBasis: string | null;
+  readonly acquisitionKind: AcquisitionKind;
+  /** As PostgREST returns a tstzrange; null unless Rental. */
+  readonly hirePeriod: string | null;
+  readonly procurementNeedId: string | null;
 }
 
 export interface RfqResponse {
@@ -252,6 +259,15 @@ export function nullAwareTotal(amounts: readonly (number | null)[]): number | nu
   return (amounts as number[]).reduce((a, b) => a + b, 0);
 }
 
+/** The facts a quoted line takes from the request line it answers (B11, G-97). */
+interface RfqLineFacts {
+  element_id: string | null;
+  unit_basis: string | null;
+  acquisition_kind: AcquisitionKind;
+  hire_period: unknown;
+  procurement_need_id: string | null;
+}
+
 /**
  * Responses to an RFQ. Responses are sealed: row level security returns none until the RFQ is
  * Closed or Awarded, so an empty list on an Issued RFQ means sealed, not absent.
@@ -264,7 +280,7 @@ export async function listRfqResponses(
     db
       .from("rfq_responses")
       .select(
-        "id, vendor_id, submitted_at, valid_until, vendor:vendors(counterparty:counterparties(counterparty_name)), rfq_response_lines(id, description, element_id, quantity, unit_price_minor, currency_code, deleted_at)",
+        "id, vendor_id, submitted_at, valid_until, vendor:vendors(counterparty:counterparties(counterparty_name)), rfq_response_lines(id, description, element_id, quantity, unit_price_minor, currency_code, deleted_at, rfq_line:rfq_lines(element_id, unit_basis, acquisition_kind, hire_period, procurement_need_id))",
       )
       .eq("rfq_id", rfqId)
       .is("deleted_at", null)
@@ -272,14 +288,21 @@ export async function listRfqResponses(
     (row) => {
       const lines = (row.rfq_response_lines ?? [])
         .filter((l) => l.deleted_at === null)
-        .map((l) => ({
-          id: l.id,
-          description: l.description,
-          elementId: l.element_id,
-          quantity: l.quantity,
-          unitPriceMinor: l.unit_price_minor,
-          currencyCode: l.currency_code,
-        }));
+        .map((l) => {
+          const asked = (l as unknown as { rfq_line: RfqLineFacts | null }).rfq_line;
+          return {
+            id: l.id,
+            description: l.description,
+            elementId: l.element_id ?? asked?.element_id ?? null,
+            quantity: l.quantity,
+            unitPriceMinor: l.unit_price_minor,
+            currencyCode: l.currency_code,
+            acquisitionKind: asked?.acquisition_kind ?? ("Purchase" as AcquisitionKind),
+            hirePeriod: (asked?.hire_period as string | null | undefined) ?? null,
+            procurementNeedId: asked?.procurement_need_id ?? null,
+            unitBasis: asked?.unit_basis ?? null,
+          };
+        });
       return {
         id: row.id,
         vendorId: row.vendor_id,
@@ -294,6 +317,8 @@ export async function listRfqResponses(
 }
 
 export interface ResponseLineInput {
+  /** The request line this quoted line answers, when it answers one (B11, G-97). */
+  readonly rfqLineId?: string | null;
   readonly description: string;
   readonly quantity: number;
   readonly unitPriceMinor: number | null;
@@ -328,6 +353,7 @@ export async function recordRfqResponse(
         element_id: blankToNull(l.elementId),
         quantity: l.quantity,
         unit_price_minor: l.unitPriceMinor,
+        rfq_line_id: blankToNull(l.rfqLineId),
       })),
     }),
   );
@@ -448,6 +474,25 @@ export interface PoLine {
   readonly unitPriceMinor: number | null;
   readonly extendedMinor: number | null;
   readonly receivedQuantity: number;
+  readonly acquisitionKind: AcquisitionKind;
+  /** Rental lines only: when the hire starts and ends (ISO instants). */
+  readonly hireStartsAt: string | null;
+  readonly hireEndsAt: string | null;
+  /** The act's engagement the line is bought for (6547). */
+  readonly engagementId: string | null;
+}
+
+/** A tstzrange as PostgREST returns it (`["2027-06-01 12:00:00+00","2027-06-05 12:00:00+00")`), split into its bounds. */
+export const parseHirePeriod: (value: string | null | undefined) => InstantRange = parseTstzRange;
+
+/** A hire period as a tstzrange literal, start included and end excluded; null unless both bounds are given. */
+export function hirePeriodLiteral(
+  startsAt: string | null | undefined,
+  endsAt: string | null | undefined,
+): string | null {
+  const from = blankToNull(startsAt);
+  const to = blankToNull(endsAt);
+  return from && to ? `[${from},${to})` : null;
 }
 
 /** Lines of a purchase order in line order, with what has been received against each. */
@@ -459,7 +504,7 @@ export async function listPoLines(
     db
       .from("po_lines")
       .select(
-        "id, line_number, description, element_id, budget_line_id, quantity, unit_basis, unit_price_minor, receipt_lines(quantity_received, deleted_at)",
+        "id, line_number, description, element_id, budget_line_id, quantity, unit_basis, unit_price_minor, acquisition_kind, hire_period, engagement_id, receipt_lines(quantity_received, deleted_at)",
       )
       .eq("purchase_order_id", purchaseOrderId)
       .is("deleted_at", null)
@@ -470,6 +515,7 @@ export async function listPoLines(
       description: row.description,
       elementId: row.element_id,
       budgetLineId: row.budget_line_id,
+      engagementId: row.engagement_id,
       quantity: row.quantity,
       unitBasis: row.unit_basis,
       unitPriceMinor: row.unit_price_minor,
@@ -477,6 +523,9 @@ export async function listPoLines(
       receivedQuantity: (row.receipt_lines ?? [])
         .filter((r) => r.deleted_at === null)
         .reduce((sum, r) => sum + r.quantity_received, 0),
+      acquisitionKind: row.acquisition_kind,
+      hireStartsAt: parseHirePeriod(row.hire_period as string | null).startsAt,
+      hireEndsAt: parseHirePeriod(row.hire_period as string | null).endsAt,
     }),
   );
 }
@@ -526,9 +575,14 @@ export interface PoLineInput {
   readonly unitBasis?: string | null;
   readonly elementId?: string | null;
   readonly budgetLineId?: string | null;
+  /** Purchase unless given; a Rental line needs both hire bounds (po_lines_hire_period_kind). */
+  readonly acquisitionKind?: AcquisitionKind;
+  readonly hireStartsAt?: string | null;
+  readonly hireEndsAt?: string | null;
 }
 
 function poLineRow(input: PoLineInput) {
+  const acquisitionKind = input.acquisitionKind ?? "Purchase";
   return {
     description: input.description.trim(),
     quantity: input.quantity,
@@ -536,6 +590,9 @@ function poLineRow(input: PoLineInput) {
     unit_basis: blankToNull(input.unitBasis),
     element_id: blankToNull(input.elementId),
     budget_line_id: blankToNull(input.budgetLineId),
+    acquisition_kind: acquisitionKind,
+    hire_period:
+      acquisitionKind === "Rental" ? hirePeriodLiteral(input.hireStartsAt, input.hireEndsAt) : null,
   };
 }
 
@@ -574,6 +631,205 @@ export async function updatePoLine(
 
 export async function removePoLine(db: XosClient, id: string): Promise<Result<null>> {
   return touched(db.from("po_lines").update(deletedNow()).eq("id", id).select("id"));
+}
+
+/** Names the act a line is bought for; an Approved or Sent order's line may change this and nothing else (6547). */
+export async function setPoLineEngagement(
+  db: XosClient,
+  id: string,
+  engagementId: string | null,
+): Promise<Result<null>> {
+  return touched(
+    db.from("po_lines").update({ engagement_id: engagementId }).eq("id", id).select("id"),
+  );
+}
+
+// Payment schedule (B12, 6543) ----------------------------------------------------------------------------------
+
+export type PoInstalmentStatus = "Scheduled" | "Invoiced" | "Part paid" | "Paid";
+
+/**
+ * One instalment of an order's payment schedule (app.po_instalment_schedule). A Canceled or soft-deleted bill is no
+ * bill. Withheld columns are null with their flag: never partial.
+ */
+export interface PoInstalment {
+  readonly id: string;
+  readonly number: number;
+  readonly label: string;
+  readonly dueOn: string;
+  readonly amountMinor: number;
+  readonly currencyCode: string;
+  readonly invoiceId: string | null;
+  readonly invoiceNumber: string | null;
+  readonly invoiceTotalMinor: number | null;
+  readonly paidMinor: number | null;
+  readonly scheduledMinor: number | null;
+  readonly status: PoInstalmentStatus;
+  readonly isInvoiceWithheld: boolean;
+  readonly isPaymentWithheld: boolean;
+  readonly scheduleTotalMinor: number;
+  /** Lines, approved change orders, tax and shipping; null while a line is unpriced. */
+  readonly orderTotalMinor: number | null;
+}
+
+export async function listPoInstalments(
+  db: XosClient,
+  purchaseOrderId: string,
+): Promise<Result<PoInstalment[]>> {
+  return readRows(
+    db.rpc("po_instalment_schedule", { p_purchase_order_id: purchaseOrderId }),
+    (row) => ({
+      id: row.instalment_id,
+      number: row.instalment_number,
+      label: row.label,
+      dueOn: row.due_on,
+      amountMinor: row.amount_minor,
+      currencyCode: row.currency_code.trim(),
+      invoiceId: row.invoice_id,
+      invoiceNumber: row.invoice_number,
+      invoiceTotalMinor: row.invoice_total_minor,
+      paidMinor: row.paid_minor,
+      scheduledMinor: row.scheduled_minor,
+      status: row.status as PoInstalmentStatus,
+      isInvoiceWithheld: row.is_invoice_withheld,
+      isPaymentWithheld: row.is_payment_withheld,
+      scheduleTotalMinor: row.schedule_total_minor,
+      orderTotalMinor: row.order_total_minor,
+    }),
+  );
+}
+
+/** Adds an instalment at the next number of the live schedule. */
+export async function addPoInstalment(
+  db: XosClient,
+  input: {
+    readonly purchaseOrderId: string;
+    readonly label: string;
+    readonly dueOn: string;
+    readonly amountMinor: number;
+  },
+): Promise<Result<{ id: string }>> {
+  const last = await db
+    .from("po_payment_instalments")
+    .select("instalment_number")
+    .eq("purchase_order_id", input.purchaseOrderId)
+    .is("deleted_at", null)
+    .order("instalment_number", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (last.error) return fail(toDataError(last.error));
+  return insertedId(
+    db
+      .from("po_payment_instalments")
+      .insert({
+        purchase_order_id: input.purchaseOrderId,
+        instalment_number: (last.data?.instalment_number ?? 0) + 1,
+        label: input.label.trim(),
+        due_on: input.dueOn,
+        amount_minor: input.amountMinor,
+      } as Tables["po_payment_instalments"]["Insert"])
+      .select("id")
+      .single(),
+  );
+}
+
+export async function removePoInstalment(db: XosClient, id: string): Promise<Result<null>> {
+  return touched(db.from("po_payment_instalments").update(deletedNow()).eq("id", id).select("id"));
+}
+
+/** Links a vendor bill to an unbilled instalment; the guard refuses a bill it does not accept (po_instalment_invoice). */
+export async function linkPoInstalmentBill(
+  db: XosClient,
+  id: string,
+  invoiceId: string,
+): Promise<Result<null>> {
+  return touched(
+    db.from("po_payment_instalments").update({ invoice_id: invoiceId }).eq("id", id).select("id"),
+  );
+}
+
+export interface LinkableBill {
+  readonly id: string;
+  readonly number: string | null;
+}
+
+/**
+ * The bills an order's instalment can link, exactly as the guard accepts them: live, non-Canceled payables of the
+ * order's project, vendor and currency, not matched to another order and linked to no live instalment. A reader without
+ * finance.invoice.read gets none, and the select stays hidden.
+ */
+export async function listLinkableBills(
+  db: XosClient,
+  order: {
+    readonly id: string;
+    readonly projectId: string;
+    readonly vendorId: string;
+    readonly currencyCode: string;
+  },
+): Promise<Result<LinkableBill[]>> {
+  const vendor = await db
+    .from("vendors")
+    .select("counterparty_id")
+    .eq("id", order.vendorId)
+    .maybeSingle();
+  if (vendor.error) return fail(toDataError(vendor.error));
+  if (!vendor.data?.counterparty_id) return ok([]);
+  const bills = await db
+    .from("invoices")
+    .select("id, invoice_number")
+    .eq("project_id", order.projectId)
+    .eq("direction", "Payable")
+    .eq("counterparty_id", vendor.data.counterparty_id)
+    .eq("currency_code", order.currencyCode)
+    .neq("invoice_state", "Canceled")
+    .is("deleted_at", null);
+  if (bills.error) return fail(toDataError(bills.error));
+  const ids = bills.data.map((b) => b.id);
+  if (ids.length === 0) return ok([]);
+  const [matches, linked] = await Promise.all([
+    db
+      .from("invoice_matches")
+      .select("invoice_id")
+      .in("invoice_id", ids)
+      .neq("purchase_order_id", order.id)
+      .is("deleted_at", null),
+    db
+      .from("po_payment_instalments")
+      .select("invoice_id")
+      .in("invoice_id", ids)
+      .is("deleted_at", null),
+  ]);
+  if (matches.error) return fail(toDataError(matches.error));
+  if (linked.error) return fail(toDataError(linked.error));
+  const taken = new Set(
+    [...matches.data, ...linked.data].flatMap((r) => (r.invoice_id ? [r.invoice_id] : [])),
+  );
+  return ok(
+    bills.data.filter((b) => !taken.has(b.id)).map((b) => ({ id: b.id, number: b.invoice_number })),
+  );
+}
+
+/** A look-alike of an order (6546): a warning, never a refusal. */
+export interface PurchaseOrderDuplicate {
+  readonly candidateId: string;
+  readonly sameVendor: boolean;
+  readonly totalDeltaMinor: number;
+  readonly dayGap: number;
+}
+
+export async function listPurchaseOrderDuplicates(
+  db: XosClient,
+  purchaseOrderId: string,
+): Promise<Result<PurchaseOrderDuplicate[]>> {
+  return readRows(
+    db.rpc("purchase_order_duplicate_candidates", { p_purchase_order_ids: [purchaseOrderId] }),
+    (row) => ({
+      candidateId: row.candidate_id,
+      sameVendor: row.same_vendor,
+      totalDeltaMinor: row.total_delta_minor,
+      dayGap: row.day_gap,
+    }),
+  );
 }
 
 /**
@@ -633,6 +889,11 @@ export async function createPurchaseOrderFromResponse(
         element_id: l.elementId,
         quantity: l.quantity,
         unit_price_minor: l.unitPriceMinor,
+        // B11 (G-97): a sub-hire stays a rental at its hire period, and serves its need once approved.
+        unit_basis: l.unitBasis,
+        acquisition_kind: l.acquisitionKind,
+        hire_period: l.hirePeriod,
+        procurement_need_id: l.procurementNeedId,
       }) as Tables["po_lines"]["Insert"],
   );
   const inserted = await readRows(db.from("po_lines").insert(lines).select("id"), (r) => r);
@@ -735,12 +996,12 @@ export interface GoodsReceipt {
   readonly receivedBy: string | null;
   readonly receiverName: string | null;
   readonly note: string | null;
-  readonly lines: readonly { poLineId: string; quantityReceived: number }[];
+  readonly lines: readonly { id: string; poLineId: string; quantityReceived: number }[];
   readonly matched: boolean;
 }
 
 const RECEIPT_COLUMNS =
-  "id, purchase_order_id, received_at, received_by, note, receiver:people!goods_receipts_received_by_fkey(full_name), purchase_order:purchase_orders!inner(po_number, project:projects(project_key, name), vendor:vendors(counterparty:counterparties(counterparty_name))), receipt_lines(po_line_id, quantity_received, deleted_at), invoice_matches(id, deleted_at)" as const;
+  "id, purchase_order_id, received_at, received_by, note, receiver:people!goods_receipts_received_by_fkey(full_name), purchase_order:purchase_orders!inner(po_number, project:projects(project_key, name), vendor:vendors(counterparty:counterparties(counterparty_name))), receipt_lines(id, po_line_id, quantity_received, deleted_at), invoice_matches(id, deleted_at)" as const;
 
 interface ReceiptRow {
   id: string;
@@ -751,7 +1012,8 @@ interface ReceiptRow {
   receiver: { full_name: string | null } | null;
   purchase_order: (ProjectEmbed & VendorEmbed & { po_number: number }) | null;
   receipt_lines:
-    { po_line_id: string; quantity_received: number; deleted_at: string | null }[] | null;
+    | { id: string; po_line_id: string; quantity_received: number; deleted_at: string | null }[]
+    | null;
   invoice_matches: { id: string; deleted_at: string | null }[] | null;
 }
 
@@ -770,7 +1032,7 @@ function toReceipt(row: ReceiptRow): GoodsReceipt {
     note: row.note,
     lines: (row.receipt_lines ?? [])
       .filter((l) => l.deleted_at === null)
-      .map((l) => ({ poLineId: l.po_line_id, quantityReceived: l.quantity_received })),
+      .map((l) => ({ id: l.id, poLineId: l.po_line_id, quantityReceived: l.quantity_received })),
     matched: (row.invoice_matches ?? []).some((m) => m.deleted_at === null),
   };
 }
@@ -801,46 +1063,278 @@ export async function getGoodsReceipt(db: XosClient, id: string): Promise<Result
   );
 }
 
+export interface ReceiptLineInput {
+  readonly poLineId: string;
+  readonly quantity: number;
+  /** One tag per unit received, for an element with an asset class: the units come in Received. */
+  readonly assetTags?: readonly string[];
+  /** A venue to take the quantity into stock at, for an element whose class is kept as lots. */
+  readonly venueId?: string | null;
+  readonly conditionEnumId?: string | null;
+}
+
+export interface ReceiptOutcome {
+  readonly outcome: "applied" | "duplicate";
+  readonly goodsReceiptId: string;
+  readonly receiptLineIds: readonly string[];
+  readonly assetUnitIds: readonly string[];
+  readonly lotMovementIds: readonly string[];
+}
+
+interface ReceiptOutcomeRow {
+  outcome: "applied" | "duplicate";
+  goods_receipt_id: string;
+  receipt_line_ids: string[] | null;
+  asset_unit_ids: string[] | null;
+  lot_movement_ids: string[] | null;
+}
+
 /**
- * Records goods received against an approved or sent order. Lines with no quantity are skipped;
- * the database refuses receipts beyond the quantity ordered.
+ * Records one receipt event against an approved or sent order through app.receive_goods (R7a): the receipt,
+ * its lines and, per line, units by asset tag or a quantity into a lot, all in one transaction. The event id is
+ * minted when the form opens, so a resubmitted form or a replayed queue entry returns outcome duplicate and
+ * records nothing twice. Lines with no quantity are skipped; the database refuses receipts beyond the order.
  */
 export async function recordGoodsReceipt(
   db: XosClient,
   input: {
+    readonly eventId: string;
     readonly purchaseOrderId: string;
     readonly note: string | null;
-    readonly lines: readonly { readonly poLineId: string; readonly quantity: number }[];
+    readonly lines: readonly ReceiptLineInput[];
   },
-): Promise<Result<{ id: string }>> {
+): Promise<Result<ReceiptOutcome>> {
   const lines = input.lines.filter((l) => l.quantity > 0);
   if (lines.length === 0) return fail({ kind: "invalid", message: "lines" });
-  const receipt = await insertedId(
+  const result = await rpcValue(
+    db.rpc("receive_goods", {
+      p_event_id: input.eventId,
+      p_purchase_order_id: input.purchaseOrderId,
+      p_lines: lines.map((l) => {
+        const tags = (l.assetTags ?? []).map((t) => t.trim()).filter((t) => t.length > 0);
+        return {
+          po_line_id: l.poLineId,
+          quantity: l.quantity,
+          ...(tags.length > 0 ? { asset_tags: tags } : {}),
+          ...(blankToNull(l.venueId) ? { venue_id: blankToNull(l.venueId) } : {}),
+          ...(blankToNull(l.conditionEnumId)
+            ? { condition_enum_id: blankToNull(l.conditionEnumId) }
+            : {}),
+        };
+      }),
+      ...(blankToNull(input.note) ? { p_note: blankToNull(input.note) as string } : {}),
+    }),
+  );
+  if (!result.ok) return result;
+  const row = result.data as unknown as ReceiptOutcomeRow;
+  return ok({
+    outcome: row.outcome,
+    goodsReceiptId: row.goods_receipt_id,
+    receiptLineIds: row.receipt_line_ids ?? [],
+    assetUnitIds: row.asset_unit_ids ?? [],
+    lotMovementIds: row.lot_movement_ids ?? [],
+  });
+}
+
+// Goods returns (R7a) ---------------------------------------------------------------------------------------
+
+export interface ReturnLineInput {
+  readonly receiptLineId: string;
+  readonly quantity: number;
+  /** The units going back, one per unit, each received on that receipt line. */
+  readonly assetUnitIds?: readonly string[];
+  /** The venue whose lot the quantity leaves, for goods taken into stock. */
+  readonly venueId?: string | null;
+}
+
+export interface ReturnOutcome {
+  readonly outcome: "applied" | "duplicate";
+  readonly goodsReturnId: string;
+  readonly returnLineIds: readonly string[];
+}
+
+/**
+ * Records one return event through app.return_goods: goods back to the vendor against the receipt lines that
+ * brought them in, units moving to Returned and lot quantities leaving as a Vendor Return. Off Hire applies only
+ * to rental lines. Replaying the event id returns outcome duplicate.
+ */
+export async function recordGoodsReturn(
+  db: XosClient,
+  input: {
+    readonly eventId: string;
+    readonly purchaseOrderId: string;
+    readonly reason: GoodsReturnReason;
+    readonly note: string | null;
+    readonly lines: readonly ReturnLineInput[];
+  },
+): Promise<Result<ReturnOutcome>> {
+  const lines = input.lines.filter((l) => l.quantity > 0);
+  if (lines.length === 0) return fail({ kind: "invalid", message: "lines" });
+  const result = await rpcValue(
+    db.rpc("return_goods", {
+      p_event_id: input.eventId,
+      p_purchase_order_id: input.purchaseOrderId,
+      p_reason: input.reason,
+      p_lines: lines.map((l) => ({
+        receipt_line_id: l.receiptLineId,
+        quantity: l.quantity,
+        ...((l.assetUnitIds ?? []).length > 0
+          ? { asset_unit_ids: [...(l.assetUnitIds ?? [])] }
+          : {}),
+        ...(blankToNull(l.venueId) ? { venue_id: blankToNull(l.venueId) } : {}),
+      })),
+      ...(blankToNull(input.note) ? { p_note: blankToNull(input.note) as string } : {}),
+    }),
+  );
+  if (!result.ok) return result;
+  const row = result.data as unknown as {
+    outcome: "applied" | "duplicate";
+    goods_return_id: string;
+    return_line_ids: string[] | null;
+  };
+  return ok({
+    outcome: row.outcome,
+    goodsReturnId: row.goods_return_id,
+    returnLineIds: row.return_line_ids ?? [],
+  });
+}
+
+export interface GoodsReturn {
+  readonly id: string;
+  readonly purchaseOrderId: string;
+  readonly returnedAt: string;
+  readonly returnerName: string | null;
+  readonly reason: GoodsReturnReason;
+  readonly note: string | null;
+  readonly lines: readonly {
+    readonly receiptLineId: string;
+    readonly assetUnitId: string | null;
+    readonly quantityReturned: number;
+  }[];
+}
+
+/** Returns of an org, or of one order, newest first. */
+export async function listGoodsReturns(
+  db: XosClient,
+  orgId: string,
+  purchaseOrderId?: string,
+): Promise<Result<GoodsReturn[]>> {
+  let query = db
+    .from("goods_returns")
+    .select(
+      "id, purchase_order_id, returned_at, return_reason, note, returner:people!goods_returns_returned_by_fkey(full_name), return_lines(receipt_line_id, asset_unit_id, quantity_returned, deleted_at)",
+    )
+    .eq("org_id", orgId)
+    .is("deleted_at", null);
+  if (purchaseOrderId) query = query.eq("purchase_order_id", purchaseOrderId);
+  return readRows(query.order("returned_at", { ascending: false }), (row) => ({
+    id: row.id,
+    purchaseOrderId: row.purchase_order_id,
+    returnedAt: row.returned_at,
+    returnerName: row.returner?.full_name ?? null,
+    reason: row.return_reason,
+    note: row.note,
+    lines: (row.return_lines ?? [])
+      .filter((l) => l.deleted_at === null)
+      .map((l) => ({
+        receiptLineId: l.receipt_line_id,
+        assetUnitId: l.asset_unit_id,
+        quantityReturned: l.quantity_returned,
+      })),
+  }));
+}
+
+export interface PoLineSupply {
+  readonly poLineId: string;
+  readonly acquisitionKind: AcquisitionKind;
+  readonly hireStartsAt: string | null;
+  readonly hireEndsAt: string | null;
+  readonly quantityOrdered: number;
+  readonly acknowledged: boolean;
+  readonly quantityReceived: number;
+  readonly quantityReturned: number;
+  readonly unitsReceived: number;
+  readonly offHireDue: boolean;
+}
+
+/** Supply progress of each line of an order (app.po_line_supply): ordered, acknowledged, received, returned. */
+export async function getPoLineSupply(
+  db: XosClient,
+  purchaseOrderId: string,
+): Promise<Result<PoLineSupply[]>> {
+  return readRows(
     db
-      .from("goods_receipts")
-      .insert({
-        purchase_order_id: input.purchaseOrderId,
-        note: blankToNull(input.note),
-      } as Tables["goods_receipts"]["Insert"])
-      .select("id")
-      .single(),
+      .from("po_line_supply")
+      .select(
+        "po_line_id, acquisition_kind, hire_period, quantity_ordered, acknowledged, quantity_received, quantity_returned, units_received, off_hire_due",
+      )
+      .eq("purchase_order_id", purchaseOrderId),
+    (row) => {
+      const hire = parseHirePeriod(row.hire_period as string | null);
+      return {
+        poLineId: row.po_line_id ?? "",
+        acquisitionKind: row.acquisition_kind ?? "Purchase",
+        hireStartsAt: hire.startsAt,
+        hireEndsAt: hire.endsAt,
+        quantityOrdered: row.quantity_ordered ?? 0,
+        acknowledged: row.acknowledged ?? false,
+        quantityReceived: row.quantity_received ?? 0,
+        quantityReturned: row.quantity_returned ?? 0,
+        unitsReceived: row.units_received ?? 0,
+        offHireDue: row.off_hire_due ?? false,
+      };
+    },
   );
-  if (!receipt.ok) return receipt;
-  const rows = lines.map(
-    (l) =>
-      ({
-        goods_receipt_id: receipt.data.id,
-        po_line_id: l.poLineId,
-        quantity_received: l.quantity,
-      }) as Tables["receipt_lines"]["Insert"],
+}
+
+/** The delivery and return window warnings a hire raises (G-99); warnings never refuse a line. */
+export const HIRE_WARNINGS = [
+  "Delivery After Load In",
+  "Return Before Load Out",
+  "Hire Beyond Site Window",
+  "Delivery Docks Full",
+  "Return Docks Full",
+] as const;
+export type HireWarning = (typeof HIRE_WARNINGS)[number];
+
+export interface PoLineHireWarning {
+  readonly poLineId: string;
+  readonly purchaseOrderId: string;
+  readonly warning: HireWarning;
+}
+
+/** Window warnings of saved rental lines (app.po_line_hire_warnings), of one order or of the org. */
+export async function listPoLineHireWarnings(
+  db: XosClient,
+  orgId: string,
+  purchaseOrderId?: string,
+): Promise<Result<PoLineHireWarning[]>> {
+  let query = db
+    .from("po_line_hire_warnings")
+    .select("po_line_id, purchase_order_id, warning")
+    .eq("org_id", orgId);
+  if (purchaseOrderId) query = query.eq("purchase_order_id", purchaseOrderId);
+  return readRows(query, (row) => ({
+    poLineId: row.po_line_id ?? "",
+    purchaseOrderId: row.purchase_order_id ?? "",
+    warning: row.warning as HireWarning,
+  }));
+}
+
+/** Window warnings of a hire not yet saved (app.hire_window_warnings); the database refuses a hire that ends first. */
+export async function getHireWindowWarnings(
+  db: XosClient,
+  input: { readonly projectId: string; readonly hireFrom: string; readonly hireTo: string },
+): Promise<Result<HireWarning[]>> {
+  const result = await rpcValue(
+    db.rpc("hire_window_warnings", {
+      p_project_id: input.projectId,
+      p_hire_from: input.hireFrom,
+      p_hire_to: input.hireTo,
+    }),
   );
-  const inserted = await readRows(db.from("receipt_lines").insert(rows).select("id"), (r) => r);
-  if (!inserted.ok) {
-    // The receipt header is withdrawn so a refused receipt leaves nothing half recorded.
-    await db.from("goods_receipts").update(deletedNow()).eq("id", receipt.data.id);
-    return inserted;
-  }
-  return receipt;
+  if (!result.ok) return result;
+  return ok(((result.data as unknown as string[] | null) ?? []) as HireWarning[]);
 }
 
 // Three-way match (invariant 17) --------------------------------------------------------------------------
@@ -1183,21 +1677,8 @@ export async function getPoAcknowledgment(
 export type SubmittalKind = Database["app"]["Enums"]["submittal_kind"];
 export type ReviewState = Database["app"]["Enums"]["review_state"];
 
-export const SUBMITTAL_KINDS: readonly SubmittalKind[] = [
-  "Shop Drawing",
-  "Product Data",
-  "Sample",
-  "Method Statement",
-  "Certificate",
-  "Other",
-];
-export const REVIEW_STATES: readonly ReviewState[] = [
-  "Proposed",
-  "Submitted",
-  "Approved",
-  "Returned",
-  "Canceled",
-];
+export const SUBMITTAL_KINDS: readonly SubmittalKind[] = enums.submittalKind;
+export const REVIEW_STATES: readonly ReviewState[] = enums.reviewState;
 
 export interface Submittal {
   readonly id: string;
@@ -1306,4 +1787,13 @@ export async function transitionSubmittal(
     }),
   );
   return result.ok ? ok(null) : result;
+}
+
+/**
+ * The IANA time zone a project's local times are typed in (app.projects.time_zone), so a hire typed as
+ * `datetime-local` becomes an instant in the project's zone; UTC when the project is not readable.
+ */
+export async function getProjectTimeZone(db: XosClient, projectId: string): Promise<string> {
+  const { data } = await db.from("projects").select("time_zone").eq("id", projectId).maybeSingle();
+  return data?.time_zone ?? "UTC";
 }

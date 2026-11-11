@@ -21,6 +21,7 @@ import {
   uploadAttachmentAction,
 } from "./collab-actions";
 import { useCopy } from "./use-copy";
+import { AttachmentPreview } from "@/components/files/file-preview";
 
 interface SubjectProps {
   readonly org: string;
@@ -44,7 +45,7 @@ function useSubmit(action: Action) {
     const data = new FormData(event.currentTarget);
     startTransition(() => run(data));
   };
-  return { state, pending, onSubmit, key: state.seq ?? 0 };
+  return { state, pending, onSubmit, action: run, key: state.seq ?? 0 };
 }
 
 function Hidden({ values }: { values: Readonly<Record<string, string>> }) {
@@ -64,9 +65,9 @@ function ErrorLine({ state }: { state: AdvancingState }) {
 
 function DeleteComment({ hidden }: { hidden: Readonly<Record<string, string>> }) {
   const t = useCopy("advancing.collab");
-  const { state, pending, onSubmit } = useSubmit(deleteCommentAction);
+  const { state, pending, onSubmit, action } = useSubmit(deleteCommentAction);
   return (
-    <form onSubmit={onSubmit} className="flex flex-col gap-4">
+    <form action={action} onSubmit={onSubmit} className="flex flex-col gap-4">
       <Hidden values={hidden} />
       <div>
         <Button type="submit" variant="ghost" size="sm" loading={pending}>
@@ -94,7 +95,7 @@ export function CommentsPanel({
   const t = useCopy("advancing.collab");
   const format = useFormatter();
   const id = useId();
-  const { state, pending, onSubmit, key } = useSubmit(postCommentAction);
+  const { state, pending, onSubmit, action, key } = useSubmit(postCommentAction);
   const hidden = { org, subjectTable, subjectId };
   const comments = threads.flatMap((th) => th.comments).filter((c) => !c.deletedAt);
   return (
@@ -127,7 +128,13 @@ export function CommentsPanel({
           ))}
         </ol>
       )}
-      <form key={key} onSubmit={onSubmit} className="flex flex-col gap-8" noValidate>
+      <form
+        key={key}
+        action={action}
+        onSubmit={onSubmit}
+        className="flex flex-col gap-8"
+        noValidate
+      >
         <Hidden values={hidden} />
         <ErrorLine state={state} />
         <Textarea
@@ -152,9 +159,9 @@ export function CommentsPanel({
 
 function RemoveAttachment({ hidden }: { hidden: Readonly<Record<string, string>> }) {
   const t = useCopy("advancing.collab");
-  const { state, pending, onSubmit } = useSubmit(removeAttachmentAction);
+  const { state, pending, onSubmit, action } = useSubmit(removeAttachmentAction);
   return (
-    <form onSubmit={onSubmit} className="flex flex-col gap-4">
+    <form action={action} onSubmit={onSubmit} className="flex flex-col gap-4">
       <Hidden values={hidden} />
       <Button type="submit" variant="ghost" size="sm" loading={pending}>
         {t("remove")}
@@ -176,7 +183,7 @@ export function AttachmentsPanel({
   const id = useId();
   const [opening, start] = useTransition();
   const [problem, setProblem] = useState(false);
-  const { state, pending, onSubmit, key } = useSubmit(uploadAttachmentAction);
+  const { state, pending, onSubmit, action, key } = useSubmit(uploadAttachmentAction);
   const hidden = { org, subjectTable, subjectId };
   const open = (attachmentId: string) =>
     start(async () => {
@@ -209,6 +216,7 @@ export function AttachmentsPanel({
                 </span>
               </span>
               <span className="flex items-center gap-8">
+                <AttachmentPreview attachment={a} />
                 <Button
                   variant="secondary"
                   size="sm"
@@ -224,7 +232,13 @@ export function AttachmentsPanel({
         </ul>
       )}
       {canUpload ? (
-        <form key={key} onSubmit={onSubmit} className="flex flex-wrap items-end gap-8" noValidate>
+        <form
+          key={key}
+          action={action}
+          onSubmit={onSubmit}
+          className="flex flex-wrap items-end gap-8"
+          noValidate
+        >
           <Hidden values={hidden} />
           <div className="flex flex-col gap-4">
             <label htmlFor={`${id}-file`} className="text-text-12 font-medium text-text-secondary">

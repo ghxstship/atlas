@@ -8,7 +8,8 @@
     "inMaintenance": "In Maintenance",
     "damaged": "Damaged",
     "lost": "Lost",
-    "retired": "Retired"
+    "retired": "Retired",
+    "returned": "Returned"
   },
   "actions": {
     "checkOut": "Check out",
@@ -21,7 +22,12 @@
     "board": "Board",
     "gallery": "Gallery",
     "calendar": "Calendar",
-    "resource-schedule": "Schedule"
+    "resource-schedule": "Schedule",
+    "builtIn": {
+      "damaged": "Damaged",
+      "hiredIn": "Hired in",
+      "unavailable": "Unavailable"
+    }
   },
   "collection": {
     "view": "View",
@@ -87,7 +93,9 @@
     "eventId": "Scan event",
     "action": "Action",
     "comment": "Comment",
-    "file": "File"
+    "file": "File",
+    "everyCount": "Repeat every",
+    "everyUnit": "Unit"
   },
   "errors": {
     "field": "Check {field}.",
@@ -110,13 +118,29 @@
     "transition_reason_required": "Every state change carries a reason. Say why the asset moves.",
     "asset_code_unknown": "No asset or lot in this organization carries that code. Check the label and scan again.",
     "asset_code_ambiguous": "More than one asset carries that identifier, so it cannot be told apart. Scan the asset tag instead.",
-    "asset_scan_custodian_required": "Choose the one member who takes the asset.",
+    "asset_scan_custodian_required": "Choose the one member or engagement that takes it.",
     "asset_scan_lot_transfer": "A lot quantity is not passed hand to hand. Check it in, then out to the next person.",
     "asset_scan_place_required": "This asset has no home venue. Choose the place it comes back to.",
     "asset_scan_quantity_required": "Enter how many of the lot move.",
     "asset_scan_state_conflict": "Someone moved this asset since you looked it up. Look it up again to see where it is now.",
     "asset_scan_unavailable": "This asset is not in service, so it cannot be checked out or in. Move it back to Available first.",
-    "asset_scan_event_reused": "That scan was already used for another item. Close this window and scan again."
+    "asset_scan_event_reused": "That scan was already used for another item. Close this window and scan again.",
+    "asset_scan_engagement_closed": "That engagement is Complete or Canceled. Gear goes to an engagement that is still open.",
+    "asset_scan_engagement_project": "That engagement belongs to another project. Choose its project, or keep the current one.",
+    "asset_returned_through_goods_return": "A unit goes back to its vendor through a return on its purchase order, not by changing its state.",
+    "unit_receipt_element": "The unit’s class is not the item that receipt line ordered.",
+    "unit_receipt_exceeds": "That receipt line already brought in as many units as it received.",
+    "unit_receipt_immutable": "A unit keeps the receipt line it arrived on.",
+    "asset_reserved_for_other": "This unit is held for someone else now. Check it out against their allocation.",
+    "asset_class_held_for_reservations": "The units left are held for others now. Check it out against an allocation.",
+    "custody_not_reserved_holder": "That allocation is held by someone else.",
+    "custody_reservation_exhausted": "Everything that allocation covers is already out.",
+    "custody_reservation_window": "That allocation's dates have ended.",
+    "custody_roster_engagement": "The person is not on that engagement's roster.",
+    "custody_roster_entry_not_live": "Gear goes to a roster entry accepted by the reviewer and by the person.",
+    "lot_held_for_reservations": "What is left of this lot is held for others now.",
+    "lot_reservation_mismatch": "That hold is of another lot.",
+    "maintenance_plan_unit": "This plan does not cover this unit. Choose a unit it applies to."
   },
   "load": {
     "loading": "Loading assets",
@@ -332,5 +356,78 @@
     "unitsTitle": "Assets on {project}",
     "empty": "No gear is checked out to {project} yet. Check units out to this project from the custody ledger.",
     "emptyAction": "Open the custody ledger"
+  },
+  "hire": {
+    "endsAt": "Hire ends",
+    "offHire": "Off-hire",
+    "offHireDue": "Off-hire due",
+    "acquisition": "Acquisition",
+    "purchase": "Bought",
+    "rental": "Hired in"
+  },
+  "provenance": {
+    "title": "Provenance",
+    "order": "Purchase order",
+    "rental": "Rental",
+    "vendor": "Vendor",
+    "receivedAt": "Received",
+    "hireEnds": "Hire ends"
+  },
+  "availability": {
+    "line": "Available {available} of {total} {unit} for these dates",
+    "loading": "Checking availability.",
+    "failed": "Availability could not be checked."
+  },
+  "reservations": {
+    "title": "Reservations",
+    "empty": "No holds on this unit or its class.",
+    "pinned": "Held for an allocation",
+    "classStock": "Class stock hold",
+    "window": "{from} to {to}",
+    "conflict": "In conflict: {conflict}",
+    "allocation": "Allocation",
+    "noAllocation": "No allocation",
+    "allocationHelp": "Approved allocations of this class with holds left. The unit goes to the hold's person."
+  },
+  "schedule": {
+    "sections": "Maintenance sections",
+    "schedule": "Schedule",
+    "log": "Log",
+    "title": "Maintenance schedule",
+    "all": "All",
+    "filterLabel": "Filter by status",
+    "statuses": {
+      "pending": "Pending",
+      "overdue": "Overdue",
+      "completed": "Completed"
+    },
+    "empty": "Nothing scheduled here. Add a plan so work comes due on its own.",
+    "line": "{status}. Due {due}. Last done {last}.",
+    "noDate": "not set",
+    "everyUnitOf": "Every unit of {name}",
+    "nextDue": "{title} is next due {date}.",
+    "intervals": {
+      "Day": "Days",
+      "Week": "Weeks",
+      "Month": "Months",
+      "Year": "Years"
+    },
+    "complete": "Complete",
+    "completeLabel": "Complete {title} on {unit}",
+    "create": {
+      "open": "Add plan",
+      "title": "Add a maintenance plan",
+      "description": "Say what is due, when first, and how often. Leave the interval blank for work done once.",
+      "submit": "Add plan",
+      "appliesTo": "Applies to",
+      "planTitle": "What is to be done",
+      "firstDue": "First due",
+      "every": "Every",
+      "everyHelp": "How many of the unit below between doing it.",
+      "unit": "Unit",
+      "once": "Once only",
+      "instructions": "Instructions"
+    },
+    "rowTitle": "{title} · {tag}"
   }
 }

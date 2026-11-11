@@ -5,10 +5,24 @@
  * through the same repository functions Atlas uses, whose refusals come back as 422 with the rule.
  * See packages/api/README.md and ADR 0023 (the Advancing corrections in catalog/modules/advancing.ts).
  */
-import { checkInGuest, decideGuest, reviewSubmission, sendPacket } from "@xos/data/advancing";
+import {
+  bindRecipientEngagement,
+  checkInGuest,
+  configureSection,
+  decideGuest,
+  queueGuestEmails,
+  reviewSubmission,
+  sectionConfig,
+  sendPacket,
+  setRecipientNamesDue,
+} from "@xos/data/advancing";
+import { badRequest } from "../problem.ts";
 import { requirePerson } from "../runtime/context.ts";
-import { defineHandlers, ok } from "../runtime/handler.ts";
-import { handlersFor, tableResource, unwrap } from "./support/table.ts";
+import { accepted, defineHandlers, ok } from "../runtime/handler.ts";
+import { advanceTrackHandlers } from "./parts/advance-tracks.ts";
+import { allocationHandlers } from "./parts/allocations.ts";
+import { rosterEntryHandlers } from "./parts/roster-project-facts.ts";
+import { handlersFor, rpc, run, tableResource, unwrap } from "./support/table.ts";
 
 const packets = tableResource("advancePackets");
 const sections = tableResource("advanceSections");
@@ -22,6 +36,12 @@ const promotions = tableResource("advancePromotions", { softDelete: false });
 const riders = tableResource("riders");
 const riderLines = tableResource("riderLines");
 const guests = tableResource("guestListEntries");
+// B8 (6255): bulk guest emails, read-only; app.queue_guest_emails writes them.
+const guestEmailSends = tableResource("guestEmailSends", { verbs: ["list", "get"] });
+// R9: section choices, and the lines and files of typed answers.
+const choices = tableResource("advanceSectionChoices");
+const answerLines = tableResource("advanceSubmissionLines");
+const answerFiles = tableResource("advanceSubmissionFiles");
 
 export const handlers = defineHandlers("Advancing", {
   ...handlersFor("Advancing", packets),
@@ -32,11 +52,46 @@ export const handlers = defineHandlers("Advancing", {
   ...handlersFor("Advancing", riders),
   ...handlersFor("Advancing", riderLines),
   ...handlersFor("Advancing", guests),
+  ...handlersFor("Advancing", guestEmailSends),
+  ...handlersFor("Advancing", choices),
+  ...handlersFor("Advancing", answerLines),
+  ...handlersFor("Advancing", answerFiles),
+  // Roster entries and their project facts (R5): see ./parts/roster-project-facts.ts.
+  ...rosterEntryHandlers,
+  // Advance allocations (R7): see ./parts/allocations.ts.
+  ...allocationHandlers,
+  // Advance tracks and their sign-off (R11): see ./parts/advance-tracks.ts.
+  ...advanceTrackHandlers,
 
   "advancePackets.send": async ({ params }, context) => {
     await packets.read(context, params.id, ["id"]);
     unwrap(await sendPacket(context.db, params.id));
     return ok((await packets.read(context, params.id)) as never);
+  },
+
+  "advanceSections.configure": async ({ params, body }, context) => {
+    await sections.read(context, params.id, ["id"]);
+    const config = sectionConfig({
+      kind: body.section_kind,
+      windowKind: body.window_kind ?? null,
+      maxLines: body.max_lines ?? null,
+      perPerson: body.per_person ?? false,
+    });
+    if (config === null) throw badRequest("The configuration does not fit the section kind.");
+    unwrap(await configureSection(context.db, params.id, config));
+    return ok((await sections.read(context, params.id)) as never);
+  },
+
+  "advanceRecipients.bindEngagement": async ({ params, body }, context) => {
+    await recipients.read(context, params.id, ["id"]);
+    unwrap(await bindRecipientEngagement(context.db, params.id, body.engagement_id));
+    return ok((await recipients.read(context, params.id)) as never);
+  },
+
+  "advanceRecipients.setNamesDue": async ({ params, body }, context) => {
+    await recipients.read(context, params.id, ["id"]);
+    unwrap(await setRecipientNamesDue(context.db, params.id, body.names_due_at));
+    return ok((await recipients.read(context, params.id)) as never);
   },
 
   "advanceSubmissions.review": async ({ params, body }, context) => {
@@ -58,9 +113,61 @@ export const handlers = defineHandlers("Advancing", {
     return ok((await guests.read(context, params.id)) as never);
   },
 
+  // ADR 0164: a guest's needs, under the caller's attestation; the database refuses it without both statements.
+  "guestListEntries.setNeeds": async ({ params, body }, context) => {
+    await guests.read(context, params.id, ["id"]);
+    const b = body as Record<string, unknown>;
+    await run(
+      rpc(context.db, "set_guest_care_needs", {
+        p_guest_list_entry_id: params.id,
+        p_dietary_needs: b["dietary_needs"] ?? [],
+        p_allergies: b["allergies"] ?? null,
+        p_dietary_notes: b["dietary_notes"] ?? null,
+        p_accessibility_needs: b["accessibility_needs"] ?? [],
+        p_accessibility_notes: b["accessibility_notes"] ?? null,
+        p_guest_email: b["guest_email"] ?? null,
+        p_clear_guest_email: b["clear_guest_email"] === true,
+        p_authority_confirmed: b["authority_confirmed"] === true,
+        p_notice_confirmed: b["notice_confirmed"] === true,
+        p_dietary_notice_version: b["dietary_notice_version"] ?? null,
+        p_accessibility_notice_version: b["accessibility_notice_version"] ?? null,
+        p_locale: b["locale"],
+        p_surface: "API",
+      }),
+    );
+    return ok((await guests.read(context, params.id)) as never);
+  },
+
+  "guestListEntries.clearNeeds": async ({ params }, context) => {
+    await guests.read(context, params.id, ["id"]);
+    await run(rpc(context.db, "clear_guest_care_needs", { p_guest_list_entry_id: params.id }));
+    return ok((await guests.read(context, params.id)) as never);
+  },
+
+  "guestListEntries.needs": async ({ query }, context) => {
+    const rows = await run<Record<string, unknown>[]>(
+      rpc(context.db, "read_guest_care_needs", { p_project_id: query.project_id }),
+    );
+    return ok({ data: rows, next_cursor: null } as never);
+  },
+
   "guestListEntries.checkIn": async ({ params }, context) => {
     await guests.read(context, params.id, ["id"]);
     unwrap(await checkInGuest(context.db, params.id));
     return ok((await guests.read(context, params.id)) as never);
+  },
+
+  "guestListEntries.sendEmail": async ({ body }, context) => {
+    const queued = unwrap(
+      await queueGuestEmails(context.db, {
+        projectId: body.project_id,
+        guestIds: body.guest_list_entry_ids,
+        kind: body.email_kind,
+        subject: body.subject ?? null,
+        body: body.body ?? null,
+        locale: body.locale ?? "en-US",
+      }),
+    );
+    return accepted({ send_id: queued.sendId });
   },
 });

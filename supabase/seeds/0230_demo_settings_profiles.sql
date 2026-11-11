@@ -73,7 +73,7 @@ begin
 
   -- Legal acceptances recorded when the Owner created the org.
   insert into app.legal_acceptances (org_id, person_id, user_id, document_slug, document_version, ip)
-  select v_org, v_owner, v_owner, d.slug, '1.0.0-draft', '203.0.113.10'
+  select v_org, v_owner, v_owner, d.slug, '1.0.0', '203.0.113.10'
   from (values ('terms-of-service'), ('data-processing-agreement')) as d (slug)
   where not exists (select 1 from app.legal_acceptances a where a.org_id = v_org and a.document_slug = d.slug);
 

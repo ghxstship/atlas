@@ -1,5 +1,12 @@
 import { expect, test, type Page } from "./engine-test";
-import { createOrganization, expectAccessible, signUp, testEmail, uniqueId } from "./support";
+import {
+  createOrganization,
+  endTrial,
+  expectAccessible,
+  signUp,
+  testEmail,
+  uniqueId,
+} from "./support";
 
 /**
  * A07 journeys (Section 20.2): 1 (create a project with its jurisdiction, then generate its permit
@@ -115,8 +122,10 @@ test("journey 1: create a project with jurisdiction US-FL-MIAMI-DADE", async ({ 
   await page.goto(`/${slug}/projects/portfolio-timeline`);
   await expect(page.getByRole("figure", { name: "Portfolio timeline" })).toBeVisible();
   await expectAccessible(page);
-  // A new org's plan includes one active project (ADR 0018): a second is refused with words that
-  // name the next step, and the typed input stays (the refusal state).
+  // The Access plan includes one active project (ADR 0018): once the new org's Pro trial ends (A79),
+  // a second is refused with words that name the next step, and the typed input stays (the refusal
+  // state).
+  await endTrial(slug);
   await page.goto(`/${slug}/projects/all?create=1`);
   const dialog = page.getByRole("dialog", { name: "New project" });
   await dialog.getByLabel("Project key").fill("NWM");
@@ -156,7 +165,8 @@ test("journey 2: a gate is refused with the named criterion, then passes on evid
   await expect(page.getByText("passed a gate on").first()).toBeVisible();
   await expectAccessible(page);
   await page.goto(`/${slug}/home/gate-readiness`);
-  await expect(page.getByText("Gate Trial Expo")).toBeVisible();
+  // In the page, not the sidebar, which lists the project among the recent ones too.
+  await expect(page.getByRole("main").getByText("Gate Trial Expo")).toBeVisible();
   await expectAccessible(page);
 });
 
@@ -194,6 +204,8 @@ test("journeys 22 and 23: uncleared rights block gate 8, then the project closes
 });
 
 test("Projects, Home and Activity pages pass axe in the light theme", async ({ page, context }) => {
+  // Fourteen pages, each waiting for its animations and a settled title before axe: more than the 60 s default.
+  test.setTimeout(180_000);
   const slug = await newOwnerOrg(page);
   await createProject(page, slug, "LTE", "Light Theme Evening");
   await context.addCookies([

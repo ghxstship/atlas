@@ -197,6 +197,8 @@ export interface ProgressBarProps extends NativeBaseProps {
   label: string;
   /** 0 to 100. */
   value: number;
+  /** The value as the app's catalog writes it, such as "40%"; the device locale formats it otherwise. */
+  valueLabel?: string;
 }
 
 export interface SkeletonProps extends NativeBaseProps {
@@ -263,6 +265,7 @@ export interface ErrorStateProps extends NativeBaseProps {
 }
 
 export interface RefusalNoticeProps extends NativeBaseProps {
+  // eslint-disable-next-line xos/no-restated-enums -- below @xos/data; test/database-enums.test.ts holds it equal
   outcome: "NO_ANSWER" | "UNRATIFIED" | "REFUSE";
   title: string;
   reason: string;
@@ -345,6 +348,8 @@ export interface EmergencyCodeCardProps extends NativeBaseProps {
   authorities?: EmergencyAuthority[];
   /** Labels for the authority services, already translated. */
   serviceLabels?: Partial<Record<EmergencyAuthority["service"], string>>;
+  /** The marker before step `n`, from the app's catalog (such as "1."); the bare number otherwise. */
+  stepLabel?: (n: number) => string;
 }
 
 export interface RadioChannelTableProps extends NativeBaseProps {
@@ -371,6 +376,13 @@ export interface RunOfShowLiveProps extends NativeBaseProps {
   nextLabel: string;
   /** What a screen reader says for the countdown, such as "2 min 10 s to Doors" (A23-009). */
   countdownLabel?: string;
+  /**
+   * Index of the next cue when it is not the one after `current`: the cue the caller put on standby, or the cue
+   * after a jump (ADR 0131). Defaults to `current + 1`.
+   */
+  next?: number;
+  /** Shown in place of the countdown, such as "TBC" while the next cue's time is to be confirmed. */
+  countdownText?: string;
 }
 
 export interface CredentialBadgeProps extends NativeBaseProps {

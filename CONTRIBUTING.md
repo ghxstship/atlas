@@ -10,7 +10,7 @@ Every commit must be signed off under the Developer Certificate of Origin 1.1 (t
 Signed-off-by: Your Name <you@example.com>
 ```
 
-`git commit -s` adds it for you. Pull requests with unsigned commits cannot merge.
+`git commit -s` adds it for you. No automated check enforces the trailer yet.
 
 ## Workflow
 

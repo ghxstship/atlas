@@ -11,3 +11,5 @@ Submittals is for vendors. When the organization asks for drawings, specificatio
 Send what is asked in [Messages](help:engagement-messages), and the organization reviews it.
 
 This tab opens when the engagement becomes Active, after onboarding, and closes when it completes or is canceled.
+
+Each submittal lists its files, version by version, with the organization's decision: **Approved** or **Changes requested**, with what to change. A new version starts unreviewed.

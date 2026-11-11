@@ -1,5 +1,3 @@
-import type { DataError } from "@xos/data";
-
 /**
  * Outcomes of A36's server actions (partner console, import wizard, custom objects, View as role,
  * org cancellation and Inbox). Forms show catalog copy under `platform.refusals` and
@@ -16,23 +14,6 @@ export interface PlatformActionState {
 }
 
 export const INITIAL_PLATFORM_STATE: PlatformActionState = {};
-
-export function fromDataError(error: DataError): PlatformActionState {
-  const at = Date.now();
-  switch (error.kind) {
-    case "refusal":
-      return { rule: error.rule, at };
-    case "not-found":
-      return { error: "notFound", at };
-    case "conflict":
-      return { error: "conflict", at };
-    case "invalid":
-      return { error: "invalid", at };
-    case "unexpected":
-      console.error("platform action failed", error);
-      return { error: "unexpected", at };
-  }
-}
 
 export const inputError = (): PlatformActionState => ({ error: "input", at: Date.now() });
 export const done = (id?: string, value?: string): PlatformActionState => ({

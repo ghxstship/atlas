@@ -1,18 +1,18 @@
-import { isInternal } from "@xos/sync";
-import * as Linking from "expo-linking";
 import type { ReactElement } from "react";
 import { useTranslation } from "react-i18next";
-import { certificationsUrl } from "../src/domain/access";
 import { useCompass } from "../src/runtime/CompassProvider";
+import { ProfileCredentialsCards } from "../src/screens/ProfileCredentialsCards";
 import { WorkDetailsCards } from "../src/screens/WorkDetailsCards";
-import { Button, Card, ListRow, Screen, Text } from "../src/ui";
+import { Card, ListRow, Screen, Text } from "../src/ui";
 
-/** The person, their role in Compass and, for external users, their engagements across orgs. */
+/**
+ * The person, their role in Compass, their engagements across orgs, their certifications and documents (offline too)
+ * and their Work Details.
+ */
 export default function ProfileScreen(): ReactElement {
   const { t } = useTranslation();
-  const { resolved, config } = useCompass();
+  const { resolved } = useCompass();
   const identity = resolved?.identity;
-  const internal = identity ? isInternal(identity.audience) : false;
   return (
     <Screen testID="profile" title={t("compass.profile.title")}>
       <Text variant="heading24" heading>
@@ -35,25 +35,8 @@ export default function ProfileScreen(): ReactElement {
           ))}
         </Card>
       ) : null}
+      <ProfileCredentialsCards />
       <WorkDetailsCards />
-      {identity ? (
-        <Card title={t("compass.profile.certificationsTitle")}>
-          <Text tone="secondary">
-            {t(
-              internal
-                ? "compass.profile.certificationsAtlas"
-                : "compass.profile.certificationsGateway",
-            )}
-          </Text>
-          <Button
-            testID="profile-certifications"
-            variant="secondary"
-            icon="external-link"
-            label={t(internal ? "compass.common.openAtlas" : "compass.common.openGateway")}
-            onPress={() => void Linking.openURL(certificationsUrl(identity.audience, config))}
-          />
-        </Card>
-      ) : null}
     </Screen>
   );
 }

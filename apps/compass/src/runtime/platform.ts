@@ -13,18 +13,19 @@ import { openLocalStore, STORAGE_NOTICE, type OpenedStore } from "../data/localD
 
 export interface CompassConfig {
   readonly supabaseUrl: string;
-  readonly supabaseAnonKey: string;
+  /** The project's publishable key (sb_publishable_...; ADR 0168). */
+  readonly supabasePublishableKey: string;
   readonly gatewayUrl: string;
   readonly atlasUrl: string;
   /** The docs site origin, for the help center link; null hides the link. */
   readonly docsUrl: string | null;
 }
 
-/** Public build-time configuration (Expo inlines EXPO_PUBLIC_*); the anon key is public by design. */
+/** Public build-time configuration (Expo inlines EXPO_PUBLIC_*); the publishable key is public by design. */
 export function readConfig(): CompassConfig {
   return {
     supabaseUrl: process.env["EXPO_PUBLIC_SUPABASE_URL"] ?? "http://127.0.0.1:56021",
-    supabaseAnonKey: process.env["EXPO_PUBLIC_SUPABASE_ANON_KEY"] ?? "",
+    supabasePublishableKey: process.env["EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY"] ?? "",
     gatewayUrl: process.env["EXPO_PUBLIC_GATEWAY_URL"] ?? "http://localhost:3001",
     atlasUrl: process.env["EXPO_PUBLIC_ATLAS_URL"] ?? "http://localhost:3000",
     docsUrl: process.env["EXPO_PUBLIC_DOCS_URL"] || null,
@@ -43,7 +44,7 @@ const secureStorage = {
  * Compass reads untyped rows into the local store, so the client is typed without the generated schema.
  */
 export function createSupabase(config: CompassConfig): SupabaseClient {
-  const client = createClient(config.supabaseUrl, config.supabaseAnonKey, {
+  const client = createClient(config.supabaseUrl, config.supabasePublishableKey, {
     db: { schema: "app" },
     auth: {
       storage: secureStorage,

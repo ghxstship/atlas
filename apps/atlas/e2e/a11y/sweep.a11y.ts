@@ -1,7 +1,4 @@
 import { expect, test } from "@playwright/test";
-import { fillRoute, flattenRoutes, isNodeVisible } from "@xos/ia";
-import { DELEGATED } from "../../ia/routes.config";
-import { sitemap } from "../../ia/sitemap.generated";
 import {
   axeProblems,
   cognitiveLoadProblems,
@@ -12,49 +9,29 @@ import {
   type Theme,
 } from "./checks";
 import { triage } from "./known";
-import { activeRoles, DEMO_ORG, storageStatePath } from "./roles";
+import { activeRoles, storageStatePath } from "./roles";
+import { noAccess, sweepRoutesFor, visibleOnPhone } from "./routes";
 
 /**
- * Every Atlas sitemap route each demo role may open (Section 4.5.9 visibility), checked with axe in
- * both themes, focus indicators, icon-only control names and tooltips, and at 375 px horizontal
- * overflow. Seeded rows fill the data params: project NWS and its record NWS-1, and the Manager's
- * saved view. Custom objects have no seeded type, so `/{org}/objects/{objectKey}` is left to the
- * manual audit.
+ * Every Atlas sitemap route each demo role may open (Section 4.5.9 visibility; the list is in
+ * routes.ts), checked with axe in both themes, focus indicators, icon-only control names and
+ * tooltips, and at 375 px horizontal overflow.
  */
-const PARAMS: Readonly<Record<string, string>> = {
-  org: DEMO_ORG,
-  projectKey: "NWS",
-  recordKey: "NWS-1",
-  viewId: "01920000-0000-7000-8000-000002310003",
-};
-
 const THEMES: readonly Theme[] = ["dark", "light"];
-
-const routes = flattenRoutes(sitemap).filter(
-  (r) =>
-    r.auth === "session" &&
-    r.servedBy === undefined &&
-    !(r.id in DELEGATED) &&
-    r.params.every((p) => p in PARAMS),
-);
 
 for (const { role } of activeRoles()) {
   test.describe(`${role}`, () => {
     test.use({ storageState: storageStatePath(role) });
-    const ctx = { role, conditions: ["desktop" as const] };
-    const visible = routes.filter((r) => isNodeVisible(sitemap, r.id, ctx));
-    for (const route of visible) {
-      const path = fillRoute(route.route, PARAMS);
+    for (const { route, path } of sweepRoutesFor(role)) {
       test(`${route.id} ${path}`, async ({ page }, info) => {
         const phone = info.project.name === "phone-375";
         // Desktop-only nodes (conditions: [desktop]) answer 404 on a phone by design.
-        if (phone && !isNodeVisible(sitemap, route.id, { role })) test.skip();
+        if (phone && !visibleOnPhone(route, role)) test.skip();
         const problems: string[] = [];
         const response = await page.goto(path);
         const status = response?.status() ?? 0;
-        if (status === 404 && route.params.some((p) => p !== "org")) {
-          // The role cannot see the seeded row (the Manager's private view, projects outside a
-          // Viewer's reach): data access, not page access, so the route has nothing to audit here.
+        if (noAccess(route, status)) {
+          // The role cannot see the seeded row: data access, not page access (routes.ts).
           info.annotations.push({ type: "no-access", description: `${path} answered 404` });
           test.skip();
         }
@@ -63,6 +40,11 @@ for (const { role } of activeRoles()) {
         const h1 = page.getByRole("heading", { level: 1 }).first();
         await h1.waitFor({ state: "visible", timeout: 10_000 }).catch(() => undefined);
         if (!(await h1.isVisible())) problems.push("structure: the page has no visible h1");
+        // Next streams a page's metadata after its body, so wait for the title before axe reads it;
+        // a page that never gets one still fails document-title below.
+        await page
+          .waitForFunction(() => document.title.trim() !== "", undefined, { timeout: 10_000 })
+          .catch(() => undefined);
         for (const theme of THEMES) {
           await setTheme(page, theme);
           problems.push(...(await axeProblems(page)).map((p) => `${theme}: ${p}`));

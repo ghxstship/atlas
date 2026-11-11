@@ -566,12 +566,226 @@ describe("budgets", () => {
           { budget_line_id: "l1", extended_minor: null, account_code: "5500", actual_minor: 0 },
         ]),
       ],
+      "from:budget_line_commitments": [okResponse([])],
+      "from:budget_line_prices": [okResponse([])],
+      "from:budget_line_forecasts": [okResponse([])],
+      "from:budget_forecast_totals": [okResponse([])],
     });
     const result = await finance.getBudget(db, "o1", "b1");
     expect(result.ok && result.data.lines[0]).toMatchObject({
       extendedMinor: null,
       accountCode: "5500",
     });
+  });
+
+  it("reads each line's forecast and the budget's forecast totals", async () => {
+    const { db } = fakeClient({
+      "from:budgets": [okResponse({ id: "b1", project_id: "p1" }), okResponse([budgetRow])],
+      "from:budget_revised_totals": [okResponse([totalRow])],
+      "from:budget_lines": [okResponse([lineRow, { ...lineRow, id: "l2", line_number: 2 }])],
+      "from:budget_line_amounts": [
+        okResponse([
+          {
+            budget_line_id: "l1",
+            actual_minor: 300,
+            labor_actual_minor: 100,
+            labor_unpriced_minutes: 90,
+            labor_other_currency_count: 2,
+          },
+        ]),
+      ],
+      "from:budget_line_commitments": [okResponse([])],
+      "from:budget_line_prices": [okResponse([])],
+      "from:budget_line_forecasts": [
+        okResponse([
+          {
+            budget_line_id: "l1",
+            current_budget_minor: 1000,
+            remaining_commitment_minor: 500,
+            etc_minor: 200,
+            etc_source: "Derived",
+            efc_minor: 1000,
+            forward_exposure_minor: 700,
+            variance_at_completion_minor: 0,
+            is_withheld: false,
+          },
+          {
+            budget_line_id: "l2",
+            current_budget_minor: null,
+            remaining_commitment_minor: null,
+            etc_minor: null,
+            etc_source: "Derived",
+            efc_minor: null,
+            forward_exposure_minor: null,
+            variance_at_completion_minor: null,
+            is_withheld: true,
+          },
+        ]),
+      ],
+      "from:budget_forecast_totals": [
+        okResponse([
+          {
+            efc_minor: 1250,
+            forward_exposure_minor: 950,
+            unallocated_change_minor: 250,
+            is_withheld: false,
+          },
+        ]),
+      ],
+    });
+    const result = await finance.getBudget(db, "o1", "b1");
+    if (!result.ok) throw new Error("the budget did not load");
+    expect(result.data.lines[0]).toMatchObject({
+      remainingCommitmentMinor: 500,
+      forecastEtcMinor: 200,
+      efcMinor: 1000,
+      forwardExposureMinor: 700,
+      forecastWithheld: false,
+      laborUnpricedMinutes: 90,
+      laborOtherCurrencyCount: 2,
+    });
+    expect(result.data.lines[1]).toMatchObject({ efcMinor: null, forecastWithheld: true });
+    // The totals come from the view, so approved changes on no line count.
+    expect(result.data.forecast).toEqual({
+      efcMinor: 1250,
+      forwardExposureMinor: 950,
+      unallocatedChangeMinor: 250,
+      isWithheld: false,
+    });
+  });
+
+  it("reads each line's committed amount, or that it is withheld", async () => {
+    const { db } = fakeClient({
+      "from:budgets": [okResponse({ id: "b1", project_id: "p1" }), okResponse([budgetRow])],
+      "from:budget_revised_totals": [okResponse([totalRow])],
+      "from:budget_lines": [okResponse([lineRow, { ...lineRow, id: "l2", line_number: 2 }])],
+      "from:budget_line_amounts": [okResponse([])],
+      "from:budget_line_prices": [okResponse([])],
+      "from:budget_line_forecasts": [okResponse([])],
+      "from:budget_forecast_totals": [okResponse([])],
+      "from:budget_line_commitments": [
+        okResponse([
+          {
+            budget_line_id: "l1",
+            committed_minor: 53000,
+            po_line_count: 3,
+            other_currency_po_line_count: 1,
+            is_committed_withheld: false,
+          },
+          {
+            budget_line_id: "l2",
+            committed_minor: null,
+            po_line_count: 0,
+            other_currency_po_line_count: 0,
+            is_committed_withheld: true,
+          },
+        ]),
+      ],
+    });
+    const result = await finance.getBudget(db, "o1", "b1");
+    expect(result.ok && result.data.lines).toEqual([
+      expect.objectContaining({
+        id: "l1",
+        committedMinor: 53000,
+        poLineCount: 3,
+        otherCurrencyPoLineCount: 1,
+        committedWithheld: false,
+      }),
+      expect.objectContaining({ id: "l2", committedMinor: null, committedWithheld: true }),
+    ]);
+  });
+
+  it("merges a saved line onto the line it replaces, keeping the derived amounts", () => {
+    const previous: finance.BudgetLine = {
+      id: "l1",
+      budgetId: "b1",
+      lineNumber: 1,
+      description: "Sound",
+      lineType: "Cost",
+      urid: "5000.01",
+      costCenterId: null,
+      gradeCode: null,
+      elementId: null,
+      quantity: 1,
+      unitBasis: null,
+      unitPriceMinor: 1000,
+      xyz: "X",
+      xyzBasis: "Declared",
+      extendedMinor: 1000,
+      accountCode: "5500",
+      actualMinor: 400,
+      drawnInMinor: 0,
+      drawnOutMinor: 0,
+      committedMinor: 900,
+      committedWithheld: false,
+      poLineCount: 1,
+      otherCurrencyPoLineCount: 0,
+      markupBp: null,
+      clientUnitPriceMinor: null,
+      excludedFromQuote: false,
+      etcMinor: null,
+      effectiveMarkupBp: null,
+      effectiveClientUnitPriceMinor: null,
+      clientExtendedMinor: null,
+      marginMinor: null,
+      currentBudgetMinor: 1000,
+      remainingCommitmentMinor: 500,
+      forecastEtcMinor: 100,
+      etcSource: "Derived",
+      efcMinor: 1000,
+      forwardExposureMinor: 600,
+      varianceAtCompletionMinor: 0,
+      forecastWithheld: false,
+      laborActualMinor: 0,
+      laborUnpricedMinutes: 0,
+      laborOtherCurrencyCount: 0,
+      updatedAt: "2027-01-01T00:00:00Z",
+    };
+    const saved = {
+      ...previous,
+      description: "Sound package",
+      quantity: 2,
+      accountCode: null,
+      actualMinor: 0,
+      committedMinor: null,
+      poLineCount: 0,
+      extendedMinor: null,
+      updatedAt: "2027-01-02T00:00:00Z",
+    };
+    expect(finance.mergeSavedLine(previous, saved)).toEqual({
+      ...previous,
+      description: "Sound package",
+      quantity: 2,
+      extendedMinor: 2000,
+      updatedAt: "2027-01-02T00:00:00Z",
+    });
+  });
+
+  it("totals committed by the silence rule", () => {
+    const line = (committedMinor: number | null, over: Partial<finance.BudgetLine> = {}) =>
+      ({
+        committedMinor,
+        committedWithheld: false,
+        poLineCount: committedMinor ? 1 : 0,
+        otherCurrencyPoLineCount: 0,
+        ...over,
+      }) as finance.BudgetLine;
+    expect(finance.budgetCommittedTotal([])).toEqual({
+      totalMinor: 0,
+      committedLineCount: 0,
+      otherCurrencyLineCount: 0,
+    });
+    expect(
+      finance.budgetCommittedTotal([
+        line(500),
+        line(0, { otherCurrencyPoLineCount: 2 }),
+        line(250),
+      ]),
+    ).toEqual({ totalMinor: 750, committedLineCount: 2, otherCurrencyLineCount: 2 });
+    expect(
+      finance.budgetCommittedTotal([line(500), line(null, { committedWithheld: true })]),
+    ).toBeNull();
+    expect(finance.budgetCommittedTotal([line(500), line(null)])).toBeNull();
   });
 
   it("answers not-found for a missing budget", async () => {
@@ -709,9 +923,26 @@ describe("expenses", () => {
   };
 
   it("lists and filters by project", async () => {
-    const { db } = fakeClient({ "from:expenses": [okResponse([row]), okResponse([row])] });
+    const { db } = fakeClient({
+      "from:expenses": [okResponse([row]), okResponse([row])],
+      "from:expense_balances": [
+        okResponse([
+          {
+            expense_id: "e1",
+            is_balance_withheld: false,
+            credited_minor: 500,
+            pending_credit_minor: 0,
+            net_minor: 3500,
+            creditable_minor: 3500,
+            reimbursement_status: null,
+            owed_minor: 0,
+          },
+        ]),
+      ],
+    });
     const all = await finance.listExpenses(db, { orgId: "o1" });
     expect(all.ok && all.data[0]?.projectId).toBe("p1");
+    expect(all.ok && all.data[0]?.balance?.netMinor).toBe(3500);
     const other = await finance.listExpenses(db, { orgId: "o1", projectId: "p2" });
     expect(other).toEqual({ ok: true, data: [] });
   });
@@ -893,6 +1124,7 @@ describe("invoices", () => {
             currency_code: "USD",
             invoice_state: "Proposed",
             created_at: "x",
+            updated_at: "2027-06-01T00:00:00Z",
           },
           {
             id: "i2",
@@ -930,6 +1162,7 @@ describe("invoices", () => {
     });
     const result = await finance.listInvoices(db, { orgId: "o1", projectId: "p1" });
     expect(result.ok && result.data.map((i) => i.totalMinor)).toEqual([null, 1070]);
+    expect(result.ok && result.data[0]?.updatedAt).toBe("2027-06-01T00:00:00Z");
     expect(await finance.listInvoices(db, { orgId: "o1" })).toEqual({ ok: true, data: [] });
   });
 
@@ -1301,6 +1534,10 @@ describe("errors on reads", () => {
       "from:budgets": [okResponse({ id: "b1", project_id: "p1" }), okResponse([])],
       "from:budget_lines": [okResponse([])],
       "from:budget_line_amounts": [okResponse([])],
+      "from:budget_line_commitments": [okResponse([])],
+      "from:budget_line_prices": [okResponse([])],
+      "from:budget_line_forecasts": [okResponse([])],
+      "from:budget_forecast_totals": [okResponse([])],
     });
     expect(await finance.getBudget(db, "o1", "b1")).toEqual({
       ok: false,
@@ -1314,5 +1551,282 @@ describe("lifecycle tables", () => {
     expect(finance.NEXT_STATES.change_order.Priced).toContain("Approved");
     expect(finance.NEXT_STATES.accounting_period.Open).toEqual(["In Period"]);
     expect(finance.PERIOD_STATES).toHaveLength(6);
+  });
+});
+
+describe("expense balances (6541)", () => {
+  it("never makes partial figures out of a withheld balance", () => {
+    expect(
+      finance.toExpenseBalance({
+        is_balance_withheld: true,
+        credited_minor: null,
+        pending_credit_minor: null,
+        net_minor: null,
+        creditable_minor: null,
+        reimbursement_status: "Owed",
+        owed_minor: null,
+      }),
+    ).toEqual({
+      withheld: true,
+      creditedMinor: null,
+      pendingCreditMinor: null,
+      netMinor: null,
+      creditableMinor: null,
+      reimbursementStatus: "Owed",
+      owedMinor: null,
+    });
+  });
+
+  it("writes a credit on its original's line and currency, with a positive amount", () => {
+    expect(
+      finance.expenseCreditRow(
+        "o1",
+        { budgetLineId: "l1", currency: "USD" },
+        { originalId: "e1", amountMinor: 400, incurredOn: "2027-06-20", description: " Refund " },
+      ),
+    ).toEqual({
+      org_id: "o1",
+      budget_line_id: "l1",
+      credit_of_expense_id: "e1",
+      description: "Refund",
+      incurred_on: "2027-06-20",
+      amount_minor: 400,
+      currency_code: "USD",
+    });
+  });
+
+  it("never sends the reimbursable flag or an act when editing a credit", async () => {
+    const { db, calls } = fakeClient({ "from:expenses": [okResponse(null)] });
+    await finance.updateExpenseCredit(db, "c1", {
+      amountMinor: 300,
+      incurredOn: "2027-06-21",
+      description: "Refund",
+    });
+    const update = calls[0]?.steps.find(([name]) => name === "update")?.[1][0];
+    expect(update).toEqual({ amount_minor: 300, incurred_on: "2027-06-21", description: "Refund" });
+  });
+});
+
+describe("payments due (6545)", () => {
+  it("reads past the row cap, so a subtotal is never over a cut-short answer", async () => {
+    const row = {
+      kind: "per_diem",
+      source_id: "s",
+      project_id: "p",
+      project_key: "NWS",
+      project_today: "2027-06-01",
+      due_on: "2027-06-02",
+      currency_code: "USD",
+      amount_minor: 100,
+      scheduled_minor: 0,
+      source_state: "Approved",
+    };
+    const { db, calls } = fakeClient({
+      "rpc:payments_due": [
+        okResponse(Array.from({ length: 1000 }, () => row)),
+        okResponse(Array.from({ length: 3 }, () => row)),
+      ],
+    });
+    const result = await finance.listPaymentsDue(db, { orgId: "o1" });
+    expect(result.ok && result.data.length).toBe(1003);
+    expect(calls.flatMap((c) => c.steps.filter(([step]) => step === "range"))).toEqual([
+      ["range", [0, 999]],
+      ["range", [1000, 1999]],
+    ]);
+  });
+
+  it("gives no partial ledger when a later page fails", async () => {
+    const { db } = fakeClient({
+      "rpc:payments_due": [
+        okResponse(Array.from({ length: 1000 }, () => ({ kind: "invoice", source_id: "s" }))),
+        errorResponse("08006", "down"),
+      ],
+    });
+    const result = await finance.listPaymentsDue(db, { orgId: "o1" });
+    expect(result.ok).toBe(false);
+  });
+
+  const due = (over: Partial<finance.PaymentDue>): finance.PaymentDue => ({
+    kind: "invoice",
+    sourceId: "s",
+    purchaseOrderId: null,
+    projectId: "p1",
+    projectKey: "NWS",
+    projectToday: "2027-06-09",
+    counterpartyId: null,
+    counterpartyName: null,
+    payeePersonId: null,
+    payeeName: null,
+    label: null,
+    dueOn: "2027-06-09",
+    currency: "USD",
+    amountMinor: 100,
+    scheduledMinor: 0,
+    billedOffsetMinor: 0,
+    sourceState: "Approved",
+    ...over,
+  });
+
+  it("ends the week by the org's first day", () => {
+    // 2027-06-09 is a Wednesday.
+    expect(finance.endOfWeek("2027-06-09", 0)).toBe("2027-06-12");
+    expect(finance.endOfWeek("2027-06-09", 1)).toBe("2027-06-13");
+    // On the week's first day the week runs six days on; on its last it ends today.
+    expect(finance.endOfWeek("2027-06-06", 0)).toBe("2027-06-12");
+    expect(finance.endOfWeek("2027-06-12", 0)).toBe("2027-06-12");
+  });
+
+  it("buckets a row by its own project's day, never an org-wide one", () => {
+    const groups = finance.groupPaymentsDue(
+      [
+        // The same due date is overdue in a zone already past it and still this week in one that is not.
+        due({ sourceId: "east", dueOn: "2027-06-09", projectToday: "2027-06-10" }),
+        due({ sourceId: "west", dueOn: "2027-06-09", projectToday: "2027-06-09" }),
+        due({ sourceId: "later", dueOn: "2027-06-20" }),
+        due({ sourceId: "undated", dueOn: null }),
+      ],
+      0,
+    );
+    expect(groups.map((g) => [g.bucket, g.rows.map((r) => r.sourceId)])).toEqual([
+      ["overdue", ["east"]],
+      ["thisWeek", ["west"]],
+      ["later", ["later"]],
+      ["undated", ["undated"]],
+    ]);
+  });
+
+  it("reads the org's week start for what falls in this week", () => {
+    const row = due({ dueOn: "2027-06-13" });
+    expect(finance.groupPaymentsDue([row], 0)[2]?.rows).toHaveLength(1);
+    expect(finance.groupPaymentsDue([row], 1)[1]?.rows).toHaveLength(1);
+  });
+
+  it("keeps subtotals NULL-aware, per currency, and never turns a blank into zero", () => {
+    const [overdue] = finance.groupPaymentsDue(
+      [
+        due({ dueOn: "2027-06-01", amountMinor: 100, scheduledMinor: 30 }),
+        due({ dueOn: "2027-06-01", amountMinor: null }),
+        due({ dueOn: "2027-06-01", amountMinor: 900, currency: "EUR" }),
+      ],
+      0,
+    );
+    expect(overdue?.subtotals).toEqual([
+      { currency: "EUR", total: 900, priced: 900, unpricedCount: 0, scheduled: 0 },
+      { currency: "USD", total: null, priced: 100, unpricedCount: 1, scheduled: 30 },
+    ]);
+  });
+
+  it("fills payee names through app.person_names, and a hidden person keeps the id", async () => {
+    const row = {
+      kind: "reimbursement",
+      source_id: "e1",
+      purchase_order_id: null,
+      project_id: "p1",
+      project_key: "NWS",
+      project_today: "2027-06-09",
+      counterparty_id: null,
+      counterparty_name: null,
+      payee_person_id: "carol",
+      label: "Tape",
+      due_on: "2027-06-09",
+      currency_code: "USD",
+      amount_minor: 100,
+      scheduled_minor: 0,
+      billed_offset_minor: 0,
+      source_state: "Approved",
+    };
+    const { db } = fakeClient({
+      "rpc:payments_due": [
+        okResponse([row, { ...row, source_id: "e2", payee_person_id: "hidden" }]),
+      ],
+      "rpc:person_names": [okResponse([{ person_id: "carol", full_name: "Carol Ng" }])],
+    });
+    const result = await finance.listPaymentsDue(db, { orgId: "o1" });
+    expect(result.ok && result.data.map((d) => [d.payeePersonId, d.payeeName])).toEqual([
+      ["carol", "Carol Ng"],
+      ["hidden", null],
+    ]);
+  });
+
+  it("gates on the database's check, not on any reach of one capability", async () => {
+    const { db } = fakeClient({
+      "rpc:can_read_payments_due": [okResponse(true), okResponse(false)],
+      "rpc:can_read_reimbursements": [errorResponse("42501", "denied")],
+    });
+    expect(await finance.canReadPaymentsDue(db, "o1")).toBe(true);
+    expect(await finance.canReadPaymentsDue(db, "o1")).toBe(false);
+    expect(await finance.canReadReimbursements(db, "o1")).toBe(false);
+  });
+});
+
+describe("reimbursements (6542)", () => {
+  it("sorts by what is owed, then by name, after names are filled", async () => {
+    const balance = (payee: string, owed: number) => ({
+      payee_person_id: payee,
+      currency_code: "USD",
+      recorded_count: 0,
+      recorded_minor: 0,
+      owed_count: 1,
+      owed_minor: owed,
+      paid_minor: 0,
+      last_paid_on: null,
+    });
+    const { db } = fakeClient({
+      "rpc:reimbursement_balances": [
+        okResponse([balance("zed", 500), balance("ann", 100), balance("bea", 100)]),
+      ],
+      "rpc:person_names": [
+        okResponse([
+          { person_id: "zed", full_name: "Zed" },
+          { person_id: "ann", full_name: "Zoe" },
+          { person_id: "bea", full_name: "Ann" },
+        ]),
+      ],
+    });
+    const result = await finance.listReimbursementBalances(db, { orgId: "o1" });
+    expect(result.ok && result.data.map((b) => b.payeeName)).toEqual(["Zed", "Ann", "Zoe"]);
+  });
+
+  it("reads what a charge waits on, for the sheet's note", async () => {
+    const { db, calls } = fakeClient({
+      "rpc:owed_reimbursable_expenses": [
+        okResponse([
+          {
+            expense_id: "e1",
+            project_key: "NWS",
+            description: "Tape",
+            incurred_on: "2027-06-01",
+            currency_code: "USD",
+            net_minor: 100,
+            pending_credit_minor: 25,
+          },
+        ]),
+      ],
+    });
+    const result = await finance.listOwedExpenses(db, {
+      orgId: "o1",
+      payeePersonId: "carol",
+      projectId: "p1",
+    });
+    expect(result.ok && result.data[0]?.pendingCreditMinor).toBe(25);
+    expect(calls[0]?.steps[0]?.[1][0]).toMatchObject({ p_project_id: "p1" });
+  });
+
+  it("comes back with the refusal the database names", async () => {
+    const { db } = fakeClient({
+      "rpc:record_expense_reimbursement": [
+        refusal("sod_reimbursement_payee", "A person cannot record a reimbursement to themselves."),
+      ],
+    });
+    const result = await finance.recordExpenseReimbursement(db, {
+      payeePersonId: "carol",
+      expenseIds: ["e1"],
+      paidOn: "2027-06-01",
+      reference: null,
+    });
+    expect(result.ok === false && result.error).toMatchObject({
+      kind: "refusal",
+      rule: "sod_reimbursement_payee",
+    });
   });
 });

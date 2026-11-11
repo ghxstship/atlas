@@ -9,6 +9,7 @@ import { findIdByKey, instantToLocal } from "@xos/data/logistics";
 import type { RecordState } from "@xos/ui";
 import type { Route } from "next";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { getTranslations } from "next-intl/server";
 import type { ReactNode } from "react";
 import {
@@ -44,6 +45,9 @@ import {
 import { RecordView } from "./record";
 import { InlineAlert, PageHeader, RefusalNotice, TemplateCollection } from "./ui";
 import { DocumentActions } from "@/components/documents/document-actions";
+
+// Roster counts (R7) load with the record that shows them, and read only when asked for (each read is logged).
+const BeoRosterCounts = dynamic(() => import("./roster-counts").then((m) => m.BeoRosterCounts));
 
 /**
  * Hospitality > BEOs (Section 4.5.5; journey 21): banquet event orders generated from catering
@@ -214,6 +218,14 @@ export async function BeosSection({
               },
               { label: t("beos.fields.eventAt"), value: format.dateTime(b.eventAt, b.timeZone) },
               { label: t("beos.fields.guestCount"), value: b.guestCount ?? tc("notSet") },
+              ...(b.fulfillmentId
+                ? [
+                    {
+                      label: t("beos.rosterCounts.title"),
+                      value: <BeoRosterCounts org={org} fulfillmentId={b.fulfillmentId} />,
+                    },
+                  ]
+                : []),
               {
                 label: t("beos.fields.approval"),
                 value: b.approvedAt
@@ -429,8 +441,36 @@ export async function BeosSection({
                 b.total.currencyCode,
                 exponents.get(b.total.currencyCode ?? "") ?? 2,
               ) ?? tc("unpriced")),
+          id: b.id,
+          label: b.key,
           href: peekHref(b.key),
+          fullHref: hrefWith(base, search, { peek: b.key, full: "1", edit: null }),
+          ...(!b.approvedAt && scope.access.can(b.projectId, "hospitality.beo.write")
+            ? { trashMessage: tc("deleted", { key: b.key }) }
+            : {}),
         }))}
+        bulk={
+          writableProjects(scope, "hospitality.beo.approve").length > 0
+            ? {
+                org: scope.ctx.org.slug,
+                resource: "beos",
+                // Approval is stamped once: the database refuses the author and any undo.
+                fields: [
+                  {
+                    key: "approved_at",
+                    label: t("beos.bulk.approval"),
+                    options: [{ value: true, label: t("beos.state.approved") }],
+                  },
+                ],
+              }
+            : null
+        }
+        trash={{
+          org: scope.ctx.org.slug,
+          label: tc("delete"),
+          run: deleteBeoAction,
+          restore: restoreBeoAction,
+        }}
       />
     );
   } else if (view === "calendar") {

@@ -1,4 +1,5 @@
-import { expect, test } from "./engine-test";
+import pg from "pg";
+import { expect as baseExpect, settle, settledGoto, test } from "./engine-test";
 import { expectAccessible } from "./support";
 import { expectAccessibleInBothThemes, ORG, signIn } from "./operations-support";
 
@@ -13,7 +14,8 @@ import { expectAccessibleInBothThemes, ORG, signIn } from "./operations-support"
 
 test.use({ reducedMotion: "reduce" });
 test.setTimeout(300_000);
-expect.configure({ timeout: 20_000 });
+// configure returns a new expect; the file-level timeout applies only through it.
+const expect = baseExpect.configure({ timeout: 20_000 });
 
 test("every Advancing page and view renders accessibly", async ({ page }) => {
   await signIn(page, "producer@example.com");
@@ -35,7 +37,14 @@ test("every Advancing page and view renders accessibly", async ({ page }) => {
     await expect(page.getByRole("heading", { level: 1, name: "Reconciliation" })).toBeVisible();
     await expectAccessibleInBothThemes(page);
   }
-  for (const section of ["packets", "submissions", "riders", "reconciliation", "guests"]) {
+  for (const section of [
+    "progress",
+    "packets",
+    "submissions",
+    "riders",
+    "reconciliation",
+    "guests",
+  ]) {
     await page.goto(`/${ORG}/p/NWS/advancing?section=${section}`);
     await expect(page.getByRole("navigation", { name: "Advancing sections" })).toBeVisible();
     await expectAccessibleInBothThemes(page);
@@ -192,4 +201,337 @@ test("guest list: a requested guest is approved by another person and checked in
   await page.getByRole("link", { name: "Riley Chen" }).click();
   await expect(page.getByRole("dialog", { name: "Riley Chen" })).toBeVisible();
   await expectAccessibleInBothThemes(page);
+});
+
+const DEMO_ORG_ID = "01920000-0000-7000-8000-000000000001";
+const DEMO_OWNER = "01920000-0000-7000-8000-000000000101";
+const DEMO_PROJECT_ID = "01920000-0000-7000-8000-000000001001";
+
+/** One statement against the local stack only, under the demo Owner's claims. */
+async function asOwner<T extends Record<string, unknown>>(
+  text: string,
+  args: unknown[] = [],
+): Promise<T[]> {
+  const url =
+    process.env["E2E_DATABASE_URL"] ?? "postgresql://postgres:postgres@127.0.0.1:55422/postgres";
+  if (!/@(127\.0\.0\.1|localhost):/.test(url)) throw new Error("Only a local stack is changed.");
+  const client = new pg.Client({ connectionString: url });
+  await client.connect();
+  try {
+    await client.query("begin");
+    await client.query("select set_config('request.jwt.claims', $1, true)", [
+      JSON.stringify({ sub: DEMO_OWNER, role: "authenticated" }),
+    ]);
+    await client.query("set local role authenticated");
+    const result = await client.query(text, args);
+    await client.query("commit");
+    return result.rows as T[];
+  } catch (error) {
+    await client.query("rollback");
+    throw error;
+  } finally {
+    await client.end();
+  }
+}
+
+/**
+ * R9 (RRR-189): a packet takes every section kind, each held to its kind. Reviewing a typed answer,
+ * booking its Load In window as a dock slot and reading "Named 2 of 4" need the party's answer from
+ * Gateway, so they run in the cross-app journey of apps/gateway/e2e/vendor.spec.ts, which drives these
+ * same Atlas screens.
+ */
+test("R9: a packet takes typed sections, each held to its kind", async ({ page }) => {
+  const stamp = Date.now().toString(36);
+  // What request sections offer: the org's radio class and a crew pass of the project.
+  // In two statements: a class this call creates is not visible to the statement that created it.
+  await asOwner("select app.ensure_offering_asset_class($1, 'Radios')", [DEMO_ORG_ID]);
+  const [radios] = await asOwner<{ name: string }>(
+    "select name from app.asset_classes where org_id = $1 and offering = 'Radios' and deleted_at is null",
+    [DEMO_ORG_ID],
+  );
+  const radioName = radios?.name as string;
+  const passName = `Crew Pass ${stamp}`;
+  await asOwner(
+    "insert into app.credential_categories (project_id, code, name) values ($1, $2, $3)",
+    [DEMO_PROJECT_ID, `CP${stamp}`.slice(0, 12).toUpperCase(), passName],
+  );
+  const title = `Vendor Typed Advance ${stamp}`;
+  await signIn(page, "producer@example.com");
+  await page.goto(`/${ORG}/advancing/packets?create=1`);
+  const create = page.getByRole("dialog", { name: "New advance packet" });
+  await create.getByLabel("Project").selectOption({ label: "NWS · Northwind Summer Series" });
+  await create.getByLabel("Packet name").fill(title);
+  await create.getByRole("button", { name: "Create packet" }).click();
+  await page.waitForURL(/full=1/);
+  await expect(page.getByRole("heading", { level: 1, name: title })).toBeVisible();
+
+  // Each kind that offers no catalog item: a text answer, files, a Load In window, the crew roster and the guest list.
+  const add = async (name: string, kind: string) => {
+    await page.getByLabel("New section").fill(name);
+    await page.getByLabel("Kind", { exact: true }).selectOption({ label: kind });
+    await page.getByRole("button", { name: "Add section" }).click();
+    await expect(page.getByText(new RegExp(`\\d+\\. ${name}`))).toBeVisible();
+  };
+  await add("Arrival notes", "Text");
+  await add("Stage plot", "File");
+  await add("Load in", "Schedule window");
+  await add("Crew", "Crew roster");
+  await add("Guests", "Guest list");
+
+  // A request section offers at least one item before it is added.
+  await page.getByLabel("New section").fill("Radios");
+  await page.getByLabel("Kind", { exact: true }).selectOption({ label: "Item request" });
+  await page.getByRole("button", { name: "Add section" }).click();
+  await expect(page.getByText("Choose at least one item or pass to offer.")).toBeVisible();
+  await expectAccessibleInBothThemes(page);
+
+  // With a choice it goes in: radios per person, and crew passes for the whole team.
+  const pick = async (label: string, name: string) => {
+    const box = page.getByRole("combobox", { name: label });
+    await box.click();
+    await box.fill(name);
+    await page.getByRole("option", { name }).click();
+    await box.press("Escape");
+  };
+  await page.getByLabel("New section").fill("Radios");
+  await page.getByLabel("Kind", { exact: true }).selectOption({ label: "Item request" });
+  await page.getByLabel("Each line names a person on the crew roster").check();
+  await pick("Items offered", radioName);
+  await page.getByRole("button", { name: "Add section" }).click();
+  await expect(page.getByText(/\d+\. Radios$/)).toBeVisible();
+  await page.getByLabel("New section").fill("Crew passes");
+  await page.getByLabel("Kind", { exact: true }).selectOption({ label: "Credential request" });
+  await pick("Passes offered", passName);
+  await page.getByRole("button", { name: "Add section" }).click();
+  await expect(page.getByText(/\d+\. Crew passes$/)).toBeVisible();
+  await expect(page.getByRole("list", { name: "Items offered" })).toContainText(radioName);
+  await expect(page.getByRole("list", { name: "Passes offered" })).toContainText(passName);
+  await expectAccessible(page);
+
+  // The recipient answers under its engagement, with a naming deadline once one is chosen.
+  await expect(page.getByLabel("Names due")).toBeDisabled();
+});
+
+/**
+ * R11 (RRR-192): Advancing > Progress, every outstanding item on one screen. A packet with a Hospitality and a
+ * Technical section goes to two recipients and one answers. The heatmap shows Awaiting review and Missing, and the tiles
+ * count them. The Missing recipient is reminded in bulk, once a day, a pick does not outlive its packet, and the grid
+ * is walked from the keyboard to the answer. Once the Hospitality answer is accepted the Tracks pane offers its sign-off and an Accepted cell opens its
+ * own answer; a newer answer that is then returned leaves the track Reopened. Checked in both themes and at 375 px.
+ * What the vendor sees of this in Gateway is the R11 journey of apps/gateway/e2e/vendor.spec.ts.
+ */
+test("advancing progress", async ({ page, browser }) => {
+  const stamp = Date.now().toString(36);
+  const title = `Progress Advance ${stamp}`;
+  const answered = "Bayline Audio Rentals";
+  const missing = "Demo Activation Brand";
+  await signIn(page, "producer@example.com");
+  await page.goto(`/${ORG}/advancing/packets?create=1`);
+  const create = page.getByRole("dialog", { name: "New advance packet" });
+  await create.getByLabel("Project").selectOption({ label: "NWS · Northwind Summer Series" });
+  await create.getByLabel("Packet name").fill(title);
+  await create.getByRole("button", { name: "Create packet" }).click();
+  await page.waitForURL(/full=1/);
+  const packetUrl = page.url();
+  const packetId = new URL(packetUrl).searchParams.get("peek");
+  expect(packetId, "the packet's id").toBeTruthy();
+
+  const add = async (name: string, track: string) => {
+    await page.getByLabel("New section").fill(name);
+    await page.getByLabel("Track", { exact: true }).selectOption({ label: track });
+    await page.getByRole("button", { name: "Add section" }).click();
+    await expect(page.getByText(new RegExp(`\\d+\\. ${name}$`))).toBeVisible();
+  };
+  await add("Hotel", "Hospitality");
+  await add("Power", "Technical");
+  for (const party of [missing, answered]) {
+    await page.getByLabel("Add a recipient").selectOption({ label: `${party} · Organization` });
+    await page.getByRole("button", { name: "Add recipient" }).click();
+    await expect(page.getByRole("button", { name: `Remove ${party}` })).toBeVisible();
+  }
+  await page.getByRole("button", { name: "Send packet" }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Send packet" }).click();
+  await expect(page.getByText("Awaiting answers").first()).toBeVisible();
+
+  // The heatmap: nothing answered yet. The packet is named in the address, not picked from the filter, since a
+  // packet with no due date sorts after the rest of the project's and a pick before hydration is lost.
+  const progress = `/${ORG}/p/NWS/advancing?section=progress&packet=${packetId}`;
+  await page.goto(progress);
+  const grid = page.getByRole("grid", { name: `${title}: answers by recipient and section` });
+  const cell = (party: string, section: string, state: string) =>
+    grid.getByRole("gridcell", { name: `${party}, ${section}: ${state}` });
+  await expect(cell(answered, "Hotel", "Missing")).toBeVisible();
+  await expect(cell(missing, "Power", "Missing")).toBeVisible();
+  await expectAccessibleInBothThemes(page);
+
+  // One recipient answers by phone; the heatmap and the tiles follow.
+  const recordAnswer = async (body: string, section = "Hotel") => {
+    await page.goto(packetUrl);
+    await page.getByText("Record an answer given by phone or email").click();
+    await page.getByLabel("Section", { exact: true }).selectOption({ label: section });
+    await page.getByLabel("Recipient", { exact: true }).selectOption({ label: answered });
+    await page.getByLabel("Answer", { exact: true }).fill(body);
+    await page.getByRole("button", { name: "Record answer" }).click();
+    await expect(page.getByText(body)).toBeVisible();
+  };
+  const firstAnswer = `Twelve rooms, three nights ${stamp}.`;
+  await recordAnswer(firstAnswer);
+  await page.goto(progress);
+  const hotel = cell(answered, "Hotel", "Awaiting review");
+  await expect(hotel).toBeVisible();
+  await expect(cell(missing, "Hotel", "Missing")).toBeVisible();
+  const tile = (name: string) => page.getByRole("listitem").filter({ hasText: name });
+  await expect(tile("Answers to review")).toContainText(/[1-9]/);
+  await expect(tile("Sections missing or returned")).toContainText(/[1-9]/);
+  await settle(page);
+
+  // Remind the recipient with everything outstanding; a second reminder today is skipped.
+  const remind = async (done: string) => {
+    await expect(async () => {
+      await page.getByRole("checkbox", { name: `Select ${missing}` }).check({ timeout: 2_000 });
+      await expect(page.getByRole("button", { name: "Send reminder" })).toBeVisible({
+        timeout: 2_000,
+      });
+    }).toPass();
+    await page.getByRole("button", { name: "Send reminder" }).click();
+    await expect(page.getByText(done, { exact: true })).toBeVisible();
+  };
+  await remind("Reminded 1; 0 skipped: reminded today already, or nothing to answer");
+  await remind("Reminded 0; 1 skipped: reminded today already, or nothing to answer");
+
+  // A pick belongs to its packet: another packet starts with nothing picked and no reminder on offer.
+  await page.getByRole("checkbox", { name: `Select ${missing}` }).check();
+  await expect(page.getByRole("button", { name: "Send reminder" })).toBeVisible();
+  await page.getByLabel("Packet", { exact: true }).selectOption({ index: 0 });
+  await expect(grid).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Send reminder" })).toHaveCount(0);
+  await expect(page.locator("table[role=grid] input[type=checkbox]:checked")).toHaveCount(0);
+  await page.goto(progress);
+  await expect(hotel).toBeVisible();
+  await settle(page);
+
+  // From the keyboard: the grid moves cell by cell, and Enter opens the answer.
+  await cell(answered, "Power", "Missing").focus();
+  await page.keyboard.press("ArrowLeft");
+  await expect(hotel).toBeFocused();
+  await page.keyboard.press("Enter");
+  await page.waitForURL(/section=submissions/);
+  await expect(page.getByText(firstAnswer)).toBeVisible();
+
+  // The Owner accepts it; the Hospitality track is ready, and the Owner signs it off.
+  const ownerContext = await browser.newContext({ reducedMotion: "reduce" });
+  const owner = settledGoto(await ownerContext.newPage());
+  await signIn(owner, "owner@example.com");
+  await owner.goto(`/${ORG}/advancing/submissions`);
+  await owner
+    .getByRole("link", { name: new RegExp(`Hotel.*${answered}`) })
+    .filter({ hasText: title })
+    .click();
+  await owner.getByRole("button", { name: "Accept" }).click();
+  await expect(owner.getByText(firstAnswer)).toHaveCount(0);
+
+  // A reviewed cell opens its own answer, not the first one left in the review queue.
+  await owner.goto(progress);
+  const ownerGrid = owner.getByRole("grid", { name: `${title}: answers by recipient and section` });
+  await expect(async () => {
+    await ownerGrid
+      .getByRole("gridcell", { name: `${answered}, Hotel: Accepted` })
+      .click({ timeout: 2_000 });
+    await expect(owner).toHaveURL(/section=submissions/, { timeout: 3_000 });
+  }).toPass();
+  await expect(owner.getByText(firstAnswer)).toBeVisible();
+
+  await owner.goto(`${progress}&pane=tracks`);
+  const tracks = owner.getByRole("grid", { name: `${title}: tracks by recipient` });
+  const track = (party: string, name: string, state: string) =>
+    tracks.getByRole("gridcell", { name: new RegExp(`^${party}, ${name}: ${state}`) });
+  const hospitality = track(answered, "Hospitality", "Ready for sign-off");
+  await expect(hospitality).toBeVisible();
+  await expect(track(missing, "Hospitality", "Not started")).toBeVisible();
+  await expectAccessibleInBothThemes(owner);
+  const signOff = owner.getByRole("dialog", {
+    name: `Sign off Hospitality for ${answered}`,
+  });
+  await expect(async () => {
+    await hospitality.click({ timeout: 2_000 });
+    await expect(signOff).toBeVisible({ timeout: 2_000 });
+  }).toPass();
+  await signOff.getByRole("button", { name: "Sign off" }).click();
+  await expect(track(answered, "Hospitality", "Signed off")).toBeVisible();
+
+  // An accepted section takes no new answer (R9), so Power moves onto the signed-off track, which reopens it; answering
+  // Power and having it returned leaves the track reopened.
+  await page.goto(packetUrl);
+  await settle(page);
+  await page.getByRole("button", { name: "Edit Power" }).click();
+  await page.getByLabel("Track", { exact: true }).selectOption({ label: "Hospitality" });
+  await page
+    .locator("form")
+    .filter({ has: page.getByLabel("Track", { exact: true }) })
+    .getByRole("button", { name: "Save", exact: true })
+    .click();
+  await expect(page.getByLabel("Track", { exact: true })).toHaveCount(0);
+  await owner.goto(`${progress}&pane=tracks`);
+  await expect(track(answered, "Hospitality", "Reopened")).toBeVisible();
+  const secondAnswer = `Two 63 A feeds ${stamp}.`;
+  await recordAnswer(secondAnswer, "Power");
+  await owner.goto(`${progress}&pane=tracks`);
+  await expect(track(answered, "Hospitality", "Reopened")).toBeVisible();
+  await owner.goto(`/${ORG}/advancing/submissions`);
+  await owner
+    .getByRole("link", { name: new RegExp(`Power.*${answered}`) })
+    .filter({ hasText: title })
+    .click();
+  await expect(owner.getByText(secondAnswer)).toBeVisible();
+  // A click before the answer page hydrates is lost (A71, A77); clicking only while the reason is absent keeps it open.
+  const reason = owner.getByLabel("Why it is returned");
+  await expect(async () => {
+    if (!(await reason.isVisible())) {
+      await owner.getByRole("button", { name: "Return", exact: true }).click({ timeout: 2_000 });
+    }
+    await expect(reason).toBeVisible({ timeout: 2_000 });
+  }).toPass();
+  await reason.fill("The main stage needs a third feed.");
+  await owner.getByRole("button", { name: "Return to recipient" }).click();
+  await expect(owner.getByText(secondAnswer)).toHaveCount(0);
+  await owner.goto(`${progress}&pane=tracks`);
+  await expect(track(answered, "Hospitality", "Reopened")).toBeVisible();
+  await owner.goto(progress);
+  await expect(
+    ownerGrid.getByRole("gridcell", { name: `${answered}, Power: Returned` }),
+  ).toBeVisible();
+
+  // A section's track can change after the packet is sent.
+  await page.goto(packetUrl);
+  // A click before the page hydrates is lost (A71, A77); clicking only while the field is absent never closes it.
+  const trackField = page.getByLabel("Track", { exact: true });
+  await expect(async () => {
+    if (!(await trackField.isVisible())) {
+      await page.getByRole("button", { name: "Edit Power" }).click({ timeout: 2_000 });
+    }
+    await expect(trackField).toBeVisible({ timeout: 2_000 });
+  }).toPass();
+  await trackField.selectOption({ label: "Finance" });
+  await page
+    .locator("form")
+    .filter({ has: page.getByLabel("Track", { exact: true }) })
+    .getByRole("button", { name: "Save", exact: true })
+    .click();
+  // The form closes once the track is saved; reading before then can find the old one.
+  await expect(trackField).toHaveCount(0);
+  await owner.goto(`${progress}&pane=tracks`);
+  await expect(track(answered, "Finance", "In progress")).toBeVisible();
+  await ownerContext.close();
+
+  // At 375 px the panes scroll inside their region, never the page.
+  await page.setViewportSize({ width: 375, height: 812 });
+  for (const pane of ["packets", "crew", "allocations", "tracks"]) {
+    await page.goto(`${progress}&pane=${pane}`);
+    await expect(page.locator("h1").first()).toBeVisible();
+    const overflow = await page.evaluate(
+      () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    );
+    expect(overflow, pane).toBeLessThanOrEqual(0);
+    await expectAccessible(page);
+  }
 });

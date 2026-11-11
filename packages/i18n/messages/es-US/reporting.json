@@ -2,11 +2,13 @@
   "file": {
     "unpriced": "Filas sin precio",
     "subtitle": "Ejecutado el {date}. Filas: {rows}. Filas con un importe sin precio, fuera de su total: {unpriced}.",
-    "truncated": "Este archivo llega hasta el límite de filas. Ajusta los filtros del informe para ver todas las filas."
+    "truncated": "Este archivo llega hasta el límite de filas. Ajusta los filtros del informe para ver todas las filas.",
+    "watermark": "Preparado para {email} el {time}"
   },
-  "email": {
-    "subject": "{report} de {org}",
-    "body": "Adjuntamos tu informe programado {report} de {org}. Tiene {rows} filas; {unpriced} tienen un importe sin precio, fuera de sus totales. Se ejecutó con tu propio acceso, así que solo muestra lo que puedes ver."
+  "exportFile": {
+    "subtitle": "Exportado el {date}. Filas: {rows}.",
+    "truncated": "Este archivo contiene las primeras {limit} filas. Ajusta los filtros de la colección para exportar todas las filas.",
+    "watermark": "Exportado por {email} el {time}"
   },
   "dashboards": {
     "count": "{count, plural, =0 {Sin tableros} one {# tablero} other {# tableros}}",

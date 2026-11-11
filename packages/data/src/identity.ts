@@ -1,3 +1,4 @@
+import type { CapabilityCode } from "@xos/schemas/capabilities/codes";
 import type { Database, XosClient } from "./client.ts";
 
 /** An insert whose org_id the database derives from its parent row (ADR 0002 tenant guards). */
@@ -154,11 +155,17 @@ export async function updateMyName(
 /** Creates an org on the Access plan with the signed-in person as Owner (app.create_organization). */
 export async function createOrganization(
   db: XosClient,
-  input: { readonly name: string; readonly slug: string },
+  input: {
+    readonly name: string;
+    readonly slug: string;
+    /** The country the creator states it is established in (ADR 0160). Omitted, none is recorded. */
+    readonly countryCode?: string;
+  },
 ): Promise<Result<{ orgId: string }>> {
   const { data, error } = await db.rpc("create_organization", {
     p_name: input.name,
     p_slug: input.slug,
+    ...(input.countryCode === undefined ? {} : { p_country_code: input.countryCode }),
   });
   if (error) return fail(toDataError(error));
   return ok({ orgId: data });
@@ -180,8 +187,12 @@ export async function listSubscribableAccounts(
 export async function subscribeExternalAccount(
   db: XosClient,
   accountId: string,
+  countryCode?: string,
 ): Promise<Result<{ orgId: string }>> {
-  const { data, error } = await db.rpc("subscribe_external_account", { p_account_id: accountId });
+  const { data, error } = await db.rpc("subscribe_external_account", {
+    p_account_id: accountId,
+    ...(countryCode === undefined ? {} : { p_country_code: countryCode }),
+  });
   if (error) return fail(toDataError(error));
   return ok({ orgId: data });
 }
@@ -279,7 +290,7 @@ export async function renameOrganization(
 export async function listRoleCapabilities(
   db: XosClient,
   roleIds: readonly string[],
-): Promise<Result<Map<string, "own" | "assigned" | "organization">>> {
+): Promise<Result<Map<CapabilityCode, Database["app"]["Enums"]["capability_reach"]>>> {
   if (roleIds.length === 0) return ok(new Map());
   const { data, error } = await db
     .from("role_capabilities")
@@ -288,11 +299,13 @@ export async function listRoleCapabilities(
     .is("deleted_at", null);
   if (error) return fail(toDataError(error));
   const order = { own: 0, assigned: 1, organization: 2 } as const;
-  const reach = new Map<string, "own" | "assigned" | "organization">();
+  const reach = new Map<CapabilityCode, Database["app"]["Enums"]["capability_reach"]>();
   for (const row of data) {
-    const current = reach.get(row.capability_code);
+    // capability_code references app.capabilities, which migration 0203 seeds from the registry.
+    const code = row.capability_code as CapabilityCode;
+    const current = reach.get(code);
     if (current === undefined || order[row.reach] > order[current]) {
-      reach.set(row.capability_code, row.reach);
+      reach.set(code, row.reach);
     }
   }
   return ok(reach);

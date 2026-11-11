@@ -21,6 +21,8 @@ params:
   handle: { type: handle }
   companyHandle: { type: handle }
   token: { type: token }
+  orgSlug: { type: slug }
+  pageSlug: { type: slug }
 audience:
   dimension: account-role
   roles: [individual, account-owner, account-admin, account-finance, account-member]
@@ -51,6 +53,8 @@ engagementTabs:
         - engagement.deliveries
         - engagement.submittals
         - engagement.advance
+        - engagement.crew
+        - engagement.credentials
         - engagement.invoices
         - engagement.compliance
         - engagement.documents
@@ -60,6 +64,8 @@ engagementTabs:
         - engagement.overview
         - engagement.scope
         - engagement.deliverables
+        - engagement.advance
+        - engagement.crew
         - engagement.time
         - engagement.invoices
         - engagement.documents
@@ -69,6 +75,7 @@ engagementTabs:
         - engagement.overview
         - engagement.offer
         - engagement.onboarding
+        - engagement.project-details
         - engagement.shifts
         - engagement.timesheets
         - engagement.invoices
@@ -82,6 +89,8 @@ engagementTabs:
         - engagement.overview
         - engagement.offer
         - engagement.onboarding
+        - engagement.project-details
+        - engagement.crew
         - engagement.training
         - engagement.positions
         - engagement.shifts
@@ -95,10 +104,13 @@ engagementTabs:
         - engagement.overview
         - engagement.offer
         - engagement.advance
+        - engagement.crew
+        - engagement.project-details
         - engagement.rider
         - engagement.set-times
         - engagement.hospitality
         - engagement.guest-list
+        - engagement.credentials
         - engagement.settlement
         - engagement.documents
         - engagement.messages
@@ -110,10 +122,13 @@ engagementTabs:
         offers: [engagement.offer]
         advance:
           - engagement.advance
+          - engagement.crew
+          - engagement.project-details
           - engagement.rider
           - engagement.set-times
           - engagement.hospitality
           - engagement.guest-list
+          - engagement.credentials
         settlement: [engagement.settlement]
         documents: [engagement.documents]
     sponsor:
@@ -122,8 +137,37 @@ engagementTabs:
         - engagement.entitlements
         - engagement.asset-approvals
         - engagement.activation-schedule
+        - engagement.advance
+        - engagement.crew
         - engagement.proof-of-performance
         - engagement.invoices
+        - engagement.documents
+        - engagement.messages
+    # A person who reaches an engagement only through an Accepted roster entry (R8, ADR 0100): their own
+    # badge, travel, lodging and per diem, never a colleague's.
+    roster-member:
+      tabs:
+        - engagement.overview
+        - engagement.project-details
+        - engagement.credentials
+        - engagement.travel-and-lodging
+        - engagement.per-diem
+        - engagement.documents
+        - engagement.messages
+    # A person on a staffing agency's roster (R12, ADR 0100 amendment): the Roster Member tabs, with the training they
+    # acknowledge before their first shift, the positions they hold with their records (B9, ADR 0148), the shifts the
+    # agency placed them on and their own timesheets.
+    roster-staff:
+      tabs:
+        - engagement.overview
+        - engagement.project-details
+        - engagement.training
+        - engagement.positions
+        - engagement.shifts
+        - engagement.timesheets
+        - engagement.credentials
+        - engagement.travel-and-lodging
+        - engagement.per-diem
         - engagement.documents
         - engagement.messages
 nodes:
@@ -195,6 +239,21 @@ nodes:
             label: nav.gateway.work.applications
             route: /work/applications
             list: { views: [list, table, board], default: list }
+          # B11 (G-196): where a quote reminder lands. The Owner and Admin of the invited vendor's account read the RFQs
+          # that ask for a quote and send the quote to the named contact; the buyer records it.
+          - id: work.quote-requests
+            kind: page
+            label: nav.gateway.work.quoteRequests
+            route: /work/quote-requests
+            list: { views: [list], default: list }
+            # An account's page: only the person acting for the vendor's account reads its quote requests.
+            conditions: [company-account]
+            visibility:
+              individual: hidden
+              account-owner: full
+              account-admin: full
+              account-finance: hidden
+              account-member: hidden
           - id: engagement
             kind: record
             label: nav.gateway.work.engagement
@@ -230,6 +289,11 @@ nodes:
                 kind: tab
                 label: nav.gateway.engagementTabs.onboarding
                 route: "/work/engagements/{engagementKey}/onboarding"
+              - id: engagement.project-details
+                kind: tab
+                label: nav.gateway.engagementTabs.projectDetails
+                route: "/work/engagements/{engagementKey}/project-details"
+                conditions: [offered-project-facts]
               - id: engagement.training
                 kind: tab
                 label: nav.gateway.engagementTabs.training
@@ -304,14 +368,22 @@ nodes:
                 kind: tab
                 label: nav.gateway.engagementTabs.travelAndLodging
                 route: "/work/engagements/{engagementKey}/travel-and-lodging"
+                conditions: [offered-travel-or-lodging]
               - id: engagement.per-diem
                 kind: tab
                 label: nav.gateway.engagementTabs.perDiem
                 route: "/work/engagements/{engagementKey}/per-diem"
+                conditions: [offered-per-diem]
               - id: engagement.advance
                 kind: tab
                 label: nav.gateway.engagementTabs.advance
                 route: "/work/engagements/{engagementKey}/advance"
+              - id: engagement.crew
+                kind: tab
+                label: nav.gateway.engagementTabs.crew
+                route: "/work/engagements/{engagementKey}/crew"
+                conditions: [roster-manager]
+                list: { views: [list], default: list }
               - id: engagement.rider
                 kind: tab
                 label: nav.gateway.engagementTabs.rider
@@ -325,10 +397,12 @@ nodes:
                 kind: tab
                 label: nav.gateway.engagementTabs.hospitality
                 route: "/work/engagements/{engagementKey}/hospitality"
+                conditions: [offered-hospitality]
               - id: engagement.guest-list
                 kind: tab
                 label: nav.gateway.engagementTabs.guestList
                 route: "/work/engagements/{engagementKey}/guest-list"
+                conditions: [offered-guest-list]
                 list: { views: [table, list], default: table }
               - id: engagement.activation-schedule
                 kind: tab
@@ -441,6 +515,11 @@ nodes:
           account-admin: full
           account-finance: full
           account-member: full
+        children:
+          - id: profile.badge-photos
+            kind: page
+            label: nav.gateway.profile.badgePhotos
+            route: /profile/badge-photos
       - id: documents
         kind: item
         label: nav.gateway.avatar.documents
@@ -619,3 +698,28 @@ nodes:
         label: nav.gateway.public.agreementSigning
         route: "/sign/{token}"
         auth: token
+      - id: guest-unsubscribe
+        kind: page
+        label: nav.gateway.public.guestUnsubscribe
+        route: "/unsubscribe/{token}"
+        auth: token
+      - id: vendor-intake
+        kind: page
+        label: nav.gateway.public.vendorIntake
+        route: "/onboard/{token}"
+        auth: token
+      - id: public-form
+        kind: page
+        label: nav.gateway.public.publicForm
+        route: "/forms/{token}"
+        auth: token
+      - id: crew-shifts
+        kind: page
+        label: nav.gateway.public.crewShifts
+        route: "/shifts/{token}"
+        auth: token
+      - id: registration
+        kind: page
+        label: nav.gateway.public.registration
+        route: "/join/{orgSlug}/{pageSlug}"
+        auth: public

@@ -1,4 +1,4 @@
-import type { XosClient } from "./client.ts";
+import type { Database, XosClient } from "./client.ts";
 import {
   derivedRow,
   external,
@@ -24,6 +24,8 @@ import {
 } from "./gateway-external.ts";
 import { toDisplayKey } from "./gateway-keys.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
+import { readRatingDisputeSubjects, type RatingDisputeSubject } from "./rating-dispute-subjects.ts";
+import * as enums from "./enums.generated.ts";
 
 export type { Database, XosClient } from "./client.ts";
 export { getCurrentPerson } from "./identity.ts";
@@ -34,6 +36,8 @@ export * from "./gateway-marketplace.ts";
 export * from "./gateway-operations.ts";
 export * from "./gateway-conversations.ts";
 export * from "./gateway-public.ts";
+export * from "./gateway-search.ts";
+export * from "./gateway-allocations.ts";
 
 /**
  * Gateway repository (Section 4.4, Section 4.5.8): the external party's engagements, documents,
@@ -69,10 +73,12 @@ export interface Engagement {
   readonly areas: readonly EngagementArea[];
   /** IANA time zone of the project: the calendar the engagement's dates follow (1390). */
   readonly projectTimeZone: string;
+  /** Names lock (R5, 4656): after this instant the company side names no new crew; null means no lock. */
+  readonly rosterLocksAt: string | null;
 }
 
 const ENGAGEMENT_COLUMNS =
-  "id, org_id, org_name, project_id, project_name, role_type, role_code, job_title, person_id, account_id, pay_basis, arrangement, rate_minor, rate_currency_code, start_date, end_date, engagement_state, areas, project_time_zone";
+  "id, org_id, org_name, project_id, project_name, role_type, role_code, job_title, person_id, account_id, pay_basis, arrangement, rate_minor, rate_currency_code, start_date, end_date, engagement_state, areas, project_time_zone, roster_locks_at";
 
 function toEngagement(row: ExternalRow<"engagements">): Engagement {
   const id = req(row.id, "engagements.id");
@@ -97,6 +103,7 @@ function toEngagement(row: ExternalRow<"engagements">): Engagement {
     state: req(row.engagement_state, "engagements.engagement_state"),
     areas: (row.areas ?? []) as EngagementArea[],
     projectTimeZone: req(row.project_time_zone, "engagements.project_time_zone"),
+    rosterLocksAt: row.roster_locks_at,
   };
 }
 
@@ -158,9 +165,14 @@ export interface EngagementDocument {
   readonly documentId: string | null;
   readonly expiresOn: string | null;
   readonly state: EngagementDocumentState;
+  /** Generated from a template (B10): read in full and signed with the hash of the text, never with one button. */
+  readonly generated: boolean;
 }
 
-function toDocument(row: ExternalRow<"engagement_documents">): EngagementDocument {
+function toDocument(
+  row: ExternalRow<"engagement_documents">,
+  generated: ReadonlySet<string>,
+): EngagementDocument {
   return {
     id: req(row.id, "engagement_documents.id"),
     engagementId: req(row.engagement_id, "engagement_documents.engagement_id"),
@@ -169,6 +181,7 @@ function toDocument(row: ExternalRow<"engagement_documents">): EngagementDocumen
     documentId: row.document_id,
     expiresOn: row.expires_on,
     state: req(row.engagement_document_state, "engagement_documents.engagement_document_state"),
+    generated: generated.has(row.id ?? ""),
   };
 }
 
@@ -182,10 +195,48 @@ export async function listEngagementDocuments(
     .select(
       "id, engagement_id, document_kind, title, document_id, expires_on, engagement_document_state",
     );
-  if (engagementId !== undefined) query = query.eq("engagement_id", engagementId);
-  const { data, error } = await query.order("title", { ascending: true });
+  let texts = external(db).from("engagement_document_texts").select("id");
+  if (engagementId !== undefined) {
+    query = query.eq("engagement_id", engagementId);
+    texts = texts.eq("engagement_id", engagementId);
+  }
+  const [{ data, error }, generated] = await Promise.all([
+    query.order("title", { ascending: true }),
+    texts,
+  ]);
   if (error) return fail(toDataError(error));
-  return ok(data.map(toDocument));
+  if (generated.error) return fail(toDataError(generated.error));
+  const textIds = new Set(generated.data.flatMap((t) => (t.id ? [t.id] : [])));
+  return ok(data.map((row) => toDocument(row, textIds)));
+}
+
+export interface EngagementQuoteVersion {
+  readonly id: string;
+  readonly engagementDocumentId: string;
+  readonly totalMinor: number | null;
+  readonly currency: string;
+  readonly validUntil: string;
+}
+
+/** The quote versions behind Quote documents the caller can read (api_external.quote_versions). */
+export async function listEngagementQuoteVersions(
+  db: XosClient,
+  documentIds: readonly string[],
+): Promise<Result<EngagementQuoteVersion[]>> {
+  const { data, error } = await external(db)
+    .from("quote_versions")
+    .select("id, engagement_document_id, total_minor, currency_code, valid_until")
+    .in("engagement_document_id", [...documentIds]);
+  if (error) return fail(toDataError(error));
+  return ok(
+    data.map((r) => ({
+      id: req(r.id, "quote_versions.id"),
+      engagementDocumentId: req(r.engagement_document_id, "quote_versions.engagement_document_id"),
+      totalMinor: r.total_minor,
+      currency: r.currency_code ?? "USD",
+      validUntil: r.valid_until ?? "",
+    })),
+  );
 }
 
 /** The party signs a Sent document (Sent to Signed, app.sign_engagement_document). */
@@ -217,6 +268,11 @@ export interface OnboardingItem {
   readonly passes: boolean;
   /** True when the item passes, or a verified item from an earlier engagement carries over. */
   readonly satisfied: boolean;
+  /**
+   * True when it was submitted, nobody has reviewed it since and the scanner has not refused its file (6801), so a file
+   * sent again after a failed review waits for review, and a file the scanner refused does not.
+   */
+  readonly awaitingReview: boolean;
 }
 
 /** Where an onboarding item stands for the person, derived from the view's facts. */
@@ -227,8 +283,25 @@ export function onboardingStanding(item: OnboardingItem, today: string): Onboard
     return "expired";
   }
   if (item.satisfied) return "verified";
-  if (item.submittedAt !== null && item.latestOutcome !== "Failed") return "review";
+  if (item.awaitingReview) return "review";
   return "todo";
+}
+
+/**
+ * Of an engagement's uploaded items, which still have no certificate behind them, as far as the party can tell: those
+ * waiting for review, and those a reviewer passed, which records no certificate. A file failed or still to upload is
+ * neither.
+ */
+export function uploadsAwaitingCertificate(
+  items: readonly OnboardingItem[],
+  today: string,
+): { waiting: OnboardingItem[]; passed: OnboardingItem[] } {
+  return {
+    waiting: items.filter((i) => onboardingStanding(i, today) === "review"),
+    passed: items.filter(
+      (i) => i.submittedAt !== null && onboardingStanding(i, today) === "verified",
+    ),
+  };
 }
 
 function toOnboardingItem(row: ExternalRow<"onboarding_items">): OnboardingItem {
@@ -244,6 +317,7 @@ function toOnboardingItem(row: ExternalRow<"onboarding_items">): OnboardingItem 
     expiresOn: row.expires_on,
     passes: row.passes ?? false,
     satisfied: row.satisfied ?? false,
+    awaitingReview: row.awaiting_review ?? false,
   };
 }
 
@@ -255,7 +329,7 @@ export async function listOnboardingItems(
   let query = external(db)
     .from("onboarding_items")
     .select(
-      "id, engagement_id, name, item_kind, is_blocking, verification_method, submitted_at, latest_outcome, expires_on, passes, satisfied",
+      "id, engagement_id, name, item_kind, is_blocking, verification_method, submitted_at, latest_outcome, expires_on, passes, satisfied, awaiting_review",
     );
   if (engagementId !== undefined) query = query.eq("engagement_id", engagementId);
   const { data, error } = await query.order("name", { ascending: true });
@@ -419,6 +493,8 @@ export interface SharedRecord {
   readonly state: RecordState;
   readonly title: string;
   readonly startsAt: string | null;
+  /** True while the start is an estimate to be confirmed: Gateway shows TBC, not the time. */
+  readonly startTbc: boolean;
   readonly endsAt: string | null;
   readonly dueAt: string | null;
   readonly timeZone: string | null;
@@ -426,7 +502,8 @@ export interface SharedRecord {
 
 /**
  * Records shared with the caller's role type, person or organization on projects where they hold
- * an Active or Closing engagement (api_external.records), by the first date they carry.
+ * an Active or Closing engagement (api_external.records), by the first date they carry. Archived
+ * records are left out by the view (5183).
  */
 export async function listSharedRecords(
   db: XosClient,
@@ -436,7 +513,7 @@ export async function listSharedRecords(
   let query = external(db)
     .from("records")
     .select(
-      "id, project_id, record_kind, record_subtype, record_state, title, starts_at, ends_at, due_at, time_zone",
+      "id, project_id, record_kind, record_subtype, record_state, title, starts_at, start_tbc, ends_at, due_at, time_zone",
     );
   if (filter.projectIds) query = query.in("project_id", filter.projectIds);
   if (filter.kinds) query = query.in("record_kind", filter.kinds);
@@ -450,6 +527,7 @@ export async function listSharedRecords(
     state: req(row.record_state, "records.record_state"),
     title: req(row.title, "records.title"),
     startsAt: row.starts_at,
+    startTbc: row.start_tbc === true,
     endsAt: row.ends_at,
     dueAt: row.due_at,
     timeZone: row.time_zone,
@@ -591,12 +669,7 @@ export interface ExternalAccount {
 }
 
 /** Account roles in their Section 4.4.1 order, strongest first. */
-export const ACCOUNT_ROLE_ORDER: readonly AccountRole[] = [
-  "Account Owner",
-  "Account Admin",
-  "Account Finance",
-  "Account Member",
-];
+export const ACCOUNT_ROLE_ORDER: readonly AccountRole[] = enums.accountRole;
 
 /** The strongest of the roles held, for navigation standing; null when none is held. */
 export function strongestAccountRole(roles: readonly AccountRole[]): AccountRole | null {
@@ -624,11 +697,17 @@ export async function listMyAccounts(db: XosClient): Promise<Result<ExternalAcco
 /** Creates an external account with the caller as Account Owner (app.create_external_account). */
 export async function createExternalAccount(
   db: XosClient,
-  input: { readonly name: string; readonly slug: string },
+  input: {
+    readonly name: string;
+    readonly slug: string;
+    /** The country the creator states the company is established in (ADR 0160). */
+    readonly countryCode: string;
+  },
 ): Promise<Result<{ accountId: string }>> {
   const { data, error } = await db.rpc("create_external_account", {
     p_name: input.name,
     p_slug: input.slug,
+    p_country_code: input.countryCode,
   });
   if (error) return fail(toDataError(error));
   return ok({ accountId: data });
@@ -641,6 +720,8 @@ export interface AccountMember {
   readonly fullName: string | null;
   readonly validFrom: string;
   readonly roles: readonly AccountRole[];
+  /** When the member confirmed (R4); null while not confirmed. */
+  readonly acceptedAt: string | null;
 }
 
 /** The roster of one account the caller belongs to, by name. */
@@ -650,7 +731,9 @@ export async function listAccountMembers(
 ): Promise<Result<AccountMember[]>> {
   const { data, error } = await external(db)
     .from("account_members")
-    .select("account_membership_id, account_id, person_id, full_name, valid_from, valid_to, roles")
+    .select(
+      "account_membership_id, account_id, person_id, full_name, valid_from, valid_to, roles, accepted_at",
+    )
     .eq("account_id", accountId);
   if (error) return fail(toDataError(error));
   const members = data.map((row) => ({
@@ -659,6 +742,7 @@ export async function listAccountMembers(
     personId: req(row.person_id, "account_members.person_id"),
     fullName: row.full_name,
     validFrom: req(row.valid_from, "account_members.valid_from"),
+    acceptedAt: row.accepted_at ?? null,
     roles: ACCOUNT_ROLE_ORDER.filter((r) => (row.roles ?? []).includes(r)),
   }));
   return ok(members.sort((a, b) => (a.fullName ?? "").localeCompare(b.fullName ?? "")));
@@ -885,18 +969,24 @@ export async function removeAvailabilityBlock(db: XosClient, id: string): Promis
 
 export interface Rating {
   readonly id: string;
-  readonly side: "Organization" | "Party";
+  readonly side: Database["app"]["Enums"]["rating_side"];
   readonly score: number;
   readonly comment: string | null;
   readonly submittedAt: string;
   readonly ratedPersonId: string | null;
   readonly ratedOrganizationId: string | null;
   readonly raterOrganizationId: string | null;
+  readonly raterOrganizationName: string | null;
+  /** An org's rating of an individual, not of a company they are the contact for; only these can be disputed. */
+  readonly ofIndividual: boolean;
   readonly reply: string | null;
   readonly repliedAt: string | null;
 }
 
-/** Released ratings about a person or an organization, newest first. */
+/**
+ * Released ratings about a person or an organization, newest first. A rating of a person reads only for that person and
+ * members of the org that gave it (ADR 0158), so asking about anyone else returns nothing.
+ */
 export async function listRatingsAbout(
   db: XosClient,
   subject: { readonly personId: string } | { readonly organizationId: string },
@@ -904,7 +994,7 @@ export async function listRatingsAbout(
   let query = external(db)
     .from("ratings")
     .select(
-      "id, rater_side, score, comment, submitted_at, rated_person_id, rated_organization_id, rater_organization_id, reply, replied_at",
+      "id, rater_side, score, comment, submitted_at, rated_person_id, rated_organization_id, rater_organization_id, rater_organization_name, is_of_individual, reply, replied_at",
     );
   query =
     "personId" in subject
@@ -922,17 +1012,12 @@ export async function listRatingsAbout(
       ratedPersonId: row.rated_person_id,
       ratedOrganizationId: row.rated_organization_id,
       raterOrganizationId: row.rater_organization_id,
+      raterOrganizationName: row.rater_organization_name,
+      ofIndividual: row.is_of_individual === true,
       reply: row.reply,
       repliedAt: row.replied_at,
     })),
   );
-}
-
-/** The mean score of released ratings to one decimal; null when there are none (never zero). */
-export function averageScore(ratings: readonly Pick<Rating, "score">[]): number | null {
-  if (ratings.length === 0) return null;
-  const mean = ratings.reduce((sum, r) => sum + r.score, 0) / ratings.length;
-  return Math.round(mean * 10) / 10;
 }
 
 /** The party rates the org on a completed engagement; both release together (0740). */
@@ -951,7 +1036,7 @@ export async function rateEngagement(
   return error ? fail(toDataError(error)) : ok(null);
 }
 
-/** The rated side replies publicly to a released rating, once. */
+/** The rated side replies to a released rating, once. The reply is read wherever the rating is. */
 export async function replyToRating(
   db: XosClient,
   input: { readonly ratingId: string; readonly body: string },
@@ -960,4 +1045,247 @@ export async function replyToRating(
     .from("rating_replies")
     .insert(derivedRow<"rating_replies">({ rating_id: input.ratingId, body: input.body.trim() }));
   return error ? fail(toDataError(error)) : ok(null);
+}
+
+// Generated engagement documents, the party's side (B10, 6524) -------------------------------------------------------
+
+export interface DocumentText {
+  readonly documentId: string;
+  readonly engagementId: string;
+  readonly title: string;
+  /** Null when the caller reads it masked: a representative without Settlement scope and a text with a rate. */
+  readonly body: string | null;
+  readonly bodySha256: string | null;
+  readonly bodyMasked: boolean;
+  readonly signedName: string | null;
+  readonly signedAt: string | null;
+}
+
+/** The sent, generated texts of an engagement the caller's documents area opens. */
+export async function listDocumentTexts(
+  db: XosClient,
+  engagementId: string,
+): Promise<Result<DocumentText[]>> {
+  const { data, error } = await db
+    .schema("api_external")
+    .from("engagement_document_texts")
+    .select("id, engagement_id, title, body, body_sha256, body_masked, signed_name, signed_at")
+    .eq("engagement_id", engagementId);
+  if (error) return fail(toDataError(error));
+  return ok(
+    (data ?? []).map((r) => ({
+      documentId: r.id as string,
+      engagementId: r.engagement_id as string,
+      title: r.title as string,
+      body: r.body,
+      bodySha256: r.body_sha256,
+      bodyMasked: r.body_masked === true,
+      signedName: r.signed_name,
+      signedAt: r.signed_at,
+    })),
+  );
+}
+
+/** Signs a generated document with the typed name and the hash of the text the party read. */
+export async function signDocumentText(
+  db: XosClient,
+  input: { readonly documentId: string; readonly signedName: string; readonly bodySha256: string },
+): Promise<Result<null>> {
+  const { error } = await db.rpc("sign_engagement_document_text", {
+    p_document_id: input.documentId,
+    p_signed_name: input.signedName,
+    p_body_sha256: input.bodySha256,
+  });
+  if (error) return fail(toDataError(error));
+  return ok(null);
+}
+
+/** Declines a sent document with a reason, the party's Sent to Canceled. */
+export async function declineDocument(
+  db: XosClient,
+  input: { readonly documentId: string; readonly reason: string },
+): Promise<Result<null>> {
+  const { error } = await db.rpc("decline_engagement_document", {
+    p_document_id: input.documentId,
+    p_reason: input.reason,
+  });
+  if (error) return fail(toDataError(error));
+  return ok(null);
+}
+
+// Crew registrations, the registrant's side (B10, 6522) --------------------------------------------------------------
+
+export interface MyRegistration {
+  readonly id: string;
+  readonly orgName: string | null;
+  readonly orgSlug: string | null;
+  readonly pageTitle: string | null;
+  readonly pageSlug: string | null;
+  readonly state: Database["app"]["Enums"]["crew_registration_state"];
+  readonly submittedAt: string | null;
+  readonly decidedAt: string | null;
+}
+
+/** The caller's own registrations: never the pool, never a decision's reason. */
+export async function myRegistrations(db: XosClient): Promise<Result<MyRegistration[]>> {
+  const { data, error } = await db
+    .schema("api_external")
+    .from("my_crew_registrations")
+    .select(
+      "id, org_name, org_slug, page_title, page_slug, registration_state, submitted_at, decided_at",
+    )
+    .order("submitted_at", { ascending: false });
+  if (error) return fail(toDataError(error));
+  return ok(
+    (data ?? []).map((r) => ({
+      id: r.id as string,
+      orgName: r.org_name,
+      orgSlug: r.org_slug,
+      pageTitle: r.page_title,
+      pageSlug: r.page_slug,
+      state: r.registration_state as MyRegistration["state"],
+      submittedAt: r.submitted_at,
+      decidedAt: r.decided_at,
+    })),
+  );
+}
+
+// Showing and disputing ratings of a person (ADR 0158) ---------------------------------------------------------------
+
+/**
+ * The version of the notice beside the rating sharing choice. The page renders it with the form and the opt-in records
+ * the version the page sent. Change it whenever that notice's copy changes in meaning.
+ */
+export const RATING_SHARING_NOTICE_VERSION = "rating-sharing-2026-11-06";
+
+/** Whether the signed-in person's opt-in to show their ratings on their profile stands; off until they turn it on. */
+export async function getRatingSharing(db: XosClient): Promise<Result<boolean>> {
+  const { data, error } = await db
+    .from("rating_sharing_consents")
+    .select("id")
+    .is("withdrawn_at", null)
+    .is("deleted_at", null)
+    .limit(1);
+  if (error) return fail(toDataError(error));
+  return ok(data.length > 0);
+}
+
+/**
+ * The signed-in person opts in, recording the version of the notice their page showed, or withdraws, which takes effect
+ * at once and needs no version.
+ */
+export async function setRatingSharing(
+  db: XosClient,
+  optIn: boolean,
+  noticeVersion: string | null,
+): Promise<Result<boolean>> {
+  const { data, error } = await db.rpc("set_rating_sharing", {
+    p_opt_in: optIn,
+    ...(optIn && noticeVersion !== null ? { p_notice_version: noticeVersion } : {}),
+    p_source: "Web",
+  });
+  if (error) return fail(toDataError(error));
+  return ok(data);
+}
+
+export type RatingDisputeGround = Database["app"]["Enums"]["rating_dispute_ground"];
+export type RatingDisputeState = Database["app"]["Enums"]["rating_dispute_state"];
+
+export interface MyRatingDispute {
+  readonly id: string;
+  readonly ratingId: string;
+  readonly ground: RatingDisputeGround;
+  readonly details: string;
+  readonly state: RatingDisputeState;
+  readonly filedAt: string;
+  readonly orgResponse: string | null;
+  readonly decisionStatement: string | null;
+  readonly decidedAt: string | null;
+  /** What the dispute is about, which outlives a rating removed by an upheld dispute. */
+  readonly subject: RatingDisputeSubject | null;
+}
+
+/** The disputes the signed-in person filed, with the org's answer and the decision, newest first. */
+export async function listMyRatingDisputes(
+  db: XosClient,
+  personId: string,
+): Promise<Result<MyRatingDispute[]>> {
+  const [{ data, error }, subjects] = await Promise.all([
+    db
+      .from("rating_disputes")
+      .select(
+        "id, rating_id, dispute_ground, dispute_details, dispute_state, filed_at, org_response, decision_statement, decided_at",
+      )
+      .eq("disputant_person_id", personId)
+      .is("deleted_at", null)
+      .order("filed_at", { ascending: false }),
+    readRatingDisputeSubjects(db),
+  ]);
+  if (error) return fail(toDataError(error));
+  if (!subjects.ok) return subjects;
+  return ok(
+    data.map((row) => ({
+      id: row.id,
+      ratingId: row.rating_id,
+      ground: row.dispute_ground,
+      details: row.dispute_details,
+      state: row.dispute_state,
+      filedAt: row.filed_at,
+      orgResponse: row.org_response,
+      decisionStatement: row.decision_statement,
+      decidedAt: row.decided_at,
+      subject: subjects.data.get(row.id) ?? null,
+    })),
+  );
+}
+
+export async function submitRegistration(
+  db: XosClient,
+  input: {
+    readonly orgSlug: string;
+    readonly pageSlug: string;
+    readonly answers: readonly { questionId: string; answer: string }[];
+    readonly ageConfirmed: boolean;
+    readonly profileShareId?: string | null;
+    /** Profile sections to share with the org; written with the registration, so a refusal shares nothing. */
+    readonly shareSections?: readonly Database["app"]["Enums"]["profile_section"][];
+    /** The E.164 work phone to save; written with the registration, so a refusal saves nothing. */
+    readonly workPhone?: string | null;
+  },
+): Promise<Result<{ id: string }>> {
+  const { data, error } = await db.rpc("submit_crew_registration", {
+    p_org_slug: input.orgSlug,
+    p_page_slug: input.pageSlug,
+    p_answers: input.answers.map((a) => ({ question_id: a.questionId, answer: a.answer })),
+    p_age_confirmed: input.ageConfirmed,
+    ...(input.profileShareId ? { p_profile_share_id: input.profileShareId } : {}),
+    ...(input.shareSections?.length ? { p_share_sections: [...input.shareSections] } : {}),
+    ...(input.workPhone ? { p_work_phone: input.workPhone } : {}),
+  });
+  if (error) return fail(toDataError(error));
+  return ok({ id: data as string });
+}
+
+export async function withdrawRegistration(db: XosClient, id: string): Promise<Result<null>> {
+  const { error } = await db.rpc("withdraw_crew_registration", { p_registration_id: id });
+  if (error) return fail(toDataError(error));
+  return ok(null);
+}
+
+/** The rated person disputes a released rating of them, once per rating. The rating stays shown while it is open. */
+export async function fileRatingDispute(
+  db: XosClient,
+  input: {
+    readonly ratingId: string;
+    readonly ground: RatingDisputeGround;
+    readonly details: string;
+  },
+): Promise<Result<string>> {
+  const { data, error } = await db.rpc("file_rating_dispute", {
+    p_rating_id: input.ratingId,
+    p_ground: input.ground,
+    p_details: input.details.trim(),
+  });
+  if (error) return fail(toDataError(error));
+  return ok(data);
 }

@@ -21,7 +21,7 @@ PIN="${KIOSK_PIN:-2468}"
 
 status="$(supabase status -o env 2>/dev/null)"
 api_url="$(printf '%s\n' "$status" | sed -n 's/^API_URL="\(.*\)"$/\1/p')"
-anon_key="$(printf '%s\n' "$status" | sed -n 's/^ANON_KEY="\(.*\)"$/\1/p')"
+anon_key="$(printf '%s\n' "$status" | sed -n 's/^PUBLISHABLE_KEY="\(.*\)"$/\1/p')"
 if [ -z "$api_url" ] || [ -z "$anon_key" ]; then
   echo "No local stack: run supabase start first." >&2
   exit 1

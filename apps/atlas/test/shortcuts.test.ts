@@ -1,16 +1,36 @@
+import type { CapabilityCode } from "@xos/schemas/capabilities/codes";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { getMessages } from "@xos/i18n";
 import { getNode, routeParams, type ATLAS_ROLES } from "@xos/ia";
 import { allCapabilities, grantsByRole, loadCapabilityRegistry } from "@xos/schemas/capabilities";
 import { SHORTCUT_REGISTRY } from "@xos/schemas/shortcuts";
 import { sitemap } from "../ia/sitemap.generated";
+import { holdFirstPress } from "../components/shell/first-press";
 import { installShellKeys, type KeyState } from "../components/shell/key-dispatch";
+import { showActionOf, showKeyAction, stepTarget } from "../components/show/show-keys";
 import { CREATE_KINDS, createItems } from "../lib/shell/create-menu";
 import { orderForPage, type CreateItem } from "../lib/shell/create-order";
 import { buildShellNav, orderByLayout, sidebarNodeIds } from "../lib/shell/nav-model";
 import { buildShellKeys, goHints, type ShellKeys } from "../lib/shell/shell-keys";
 
 type Role = (typeof ATLAS_ROLES)[number];
+
+// The key handler finds record and view regions and their controls through @xos/ui/shortcut-targets,
+// which packages/ui tests against the DOM; here a region is a stand-in that records what it was asked.
+interface FakeRegion {
+  readonly scope: string;
+  readonly offers: readonly string[];
+  readonly inside: readonly unknown[];
+}
+const ran = vi.hoisted(() => [] as string[]);
+vi.mock("@xos/ui/shortcut-targets", () => ({
+  shortcutRegion: (target: { region?: FakeRegion } | null) => target?.region ?? null,
+  regionScope: (region: FakeRegion | null) => region?.scope ?? null,
+  runShortcut: (region: FakeRegion, id: string) => {
+    ran.push(`${region.scope}:${id}`);
+    return region.offers.includes(id);
+  },
+}));
 
 function flatten(value: unknown, prefix = "", out = new Map<string, string>()) {
   if (typeof value === "string") out.set(prefix, value);
@@ -84,6 +104,10 @@ describe("shell keys for one person", () => {
     expect(keys.global).not.toHaveProperty("list.next");
     expect(keys.scoped["inbox.approve"]).toBe("A");
     expect(keys.scoped["list.next"]).toBe("J");
+    expect(keys.scoped["record.state"]).toBe("S");
+    expect(keys.scopes["record.state"]).toBe("record");
+    expect(keys.scopes["view.export"]).toBe("view");
+    expect(keys.scopes["inbox.approve"]).toBe("inbox");
     // A section without default keys has no shortcut until the person binds one.
     expect(keys.global).not.toHaveProperty("go.safety");
     expect(goHints(keys)["finance"]).toBe("G F");
@@ -122,6 +146,81 @@ describe("shell keys for one person", () => {
   });
 });
 
+describe("showcaller console keys (ADR 0131)", () => {
+  const scoped = buildShellKeys(SHORTCUT_REGISTRY, {
+    platform: "other",
+    custom: {},
+    goTargets: goTargets("owner"),
+  }).scoped;
+
+  it("gives the console the show scope's keyboard and Stream Deck keys", () => {
+    expect(scoped["show.next"]).toBe("J");
+    expect(scoped["show.deck.go"]).toBe("F13");
+    expect(scoped["show.deck.department"]).toBe("F20");
+    const actions: [string, string][] = [
+      ["F13", "go"],
+      ["F14", "standby"],
+      ["F15", "previous"],
+      ["F16", "next"],
+      ["F17", "nudge-later"],
+      ["F18", "nudge-earlier"],
+      ["F19", "jump"],
+      ["F20", "department"],
+      ["J", "next"],
+      ["K", "previous"],
+      ["S", "standby"],
+      ["T", "jump"],
+      ["]", "nudge-later"],
+      ["[", "nudge-earlier"],
+      ["D", "department"],
+    ];
+    for (const [chord, action] of actions)
+      expect(showKeyAction(chord, scoped, true), chord).toBe(action);
+  });
+
+  it("answers function keys with single-key shortcuts off, and leaves letters and symbols alone", () => {
+    expect(showKeyAction("J", scoped, false)).toBeNull();
+    expect(showKeyAction("]", scoped, false)).toBeNull();
+    expect(showKeyAction("F15", scoped, false)).toBe("previous");
+    expect(showKeyAction("F16", scoped, false)).toBe("next");
+  });
+
+  it("moves the standby from the picked cue, else the standby cue, else the current cue", () => {
+    const called = "2027-03-13T20:00:00Z";
+    const fresh = [null, null, null].map((calledAt) => ({ calledAt }));
+    const none = { picked: -1, current: -1, next: 0, standby: false };
+    // Before the first call, Next stands by cue 1 and Previous has nowhere to go.
+    expect(stepTarget(fresh, none, 1)).toBe(0);
+    expect(stepTarget(fresh, none, -1)).toBeUndefined();
+    // With cue 1 on standby, Next moves on to cue 2; a picked cue wins over the standby.
+    expect(stepTarget(fresh, { ...none, standby: true }, 1)).toBe(1);
+    expect(stepTarget(fresh, { ...none, picked: 1, standby: true }, 1)).toBe(2);
+    // Cue 2 called past a skipped cue 1: Next passes the called cue, Previous returns to the skipped one.
+    const jumped = [{ calledAt: null }, { calledAt: called }, { calledAt: null }];
+    const after = { picked: -1, current: 1, next: 2, standby: false };
+    expect(stepTarget(jumped, after, 1)).toBe(2);
+    expect(stepTarget(jumped, after, -1)).toBe(0);
+  });
+
+  it("leaves Space to RunOfShowLive and ignores keys of other scopes", () => {
+    expect(showKeyAction("Space", scoped, true)).toBeNull();
+    expect(showKeyAction("A", scoped, true)).toBeNull();
+    expect(showKeyAction("X", scoped, true)).toBeNull();
+    expect(showActionOf("inbox.approve")).toBeNull();
+    expect(showActionOf("show.deck.jump")).toBe("jump");
+  });
+
+  it("follows the person's own bindings", () => {
+    const custom = buildShellKeys(SHORTCUT_REGISTRY, {
+      platform: "other",
+      custom: { "show.deck.go": "Shift+F13" },
+      goTargets: goTargets("owner"),
+    }).scoped;
+    expect(showKeyAction("F13", custom, true)).toBeNull();
+    expect(showKeyAction("Shift+F13", custom, false)).toBe("go");
+  });
+});
+
 describe("Create menu (Section 4.10)", () => {
   const codes = new Set(allCapabilities(capabilities).map((c) => c.code));
 
@@ -141,7 +240,8 @@ describe("Create menu (Section 4.10)", () => {
     const items = (role: Role, disabledModules: string[] = []) =>
       createItems(sitemap, {
         nav: { role, conditions: ["desktop"], disabledModules },
-        capabilities: new Set(byRole[role].keys()),
+        // Registry codes, typed as strings because grantsByRole also reads hand-written registries.
+        capabilities: new Set(byRole[role].keys()) as ReadonlySet<CapabilityCode>,
         params: { org: "acme" },
         t,
       }).map((i) => i.id);
@@ -242,11 +342,21 @@ class FakeElement {
   constructor(
     readonly tagName = "DIV",
     readonly overlay = false,
+    /** The record or view region around the element. */
+    readonly region?: FakeRegion,
+    /** The dialog or menu around the element, when it is not the element itself. */
+    readonly within?: unknown,
   ) {}
   readonly isContentEditable = false;
   closest(selector: string) {
-    return this.overlay && selector.includes("dialog") ? this : null;
+    if (!selector.includes("dialog")) return null;
+    return this.within ?? (this.overlay ? this : null);
   }
+}
+
+/** A region; `contains` answers for the elements listed in `inside`. */
+function region(scope: string, offers: readonly string[], inside: unknown[] = []) {
+  return { scope, offers, inside, contains: (el: unknown) => inside.includes(el) };
 }
 
 /** The parts of a key press the handler reads. */
@@ -276,7 +386,7 @@ describe("shell key handler (Section 11.2)", () => {
   });
   afterEach(() => stop?.());
 
-  function start(keys: ShellKeys) {
+  function start(keys: ShellKeys, held: readonly KeyboardEvent[] = []) {
     window = new EventTarget();
     Object.assign(globalThis, { window });
     calls = [];
@@ -290,12 +400,11 @@ describe("shell key handler (Section 11.2)", () => {
         },
       },
     };
-    stop = installShellKeys(state);
+    stop = installShellKeys(state, held);
   }
 
-  function press(key: string, init: PressInit = {}): Pressed {
+  function keyEvent(key: string, init: PressInit = {}): Event {
     const event = new Event("keydown", { cancelable: true });
-    const out: Pressed = { defaultPrevented: false, stopped: false };
     Object.defineProperties(event, {
       key: { value: key },
       code: { value: init.code ?? "" },
@@ -307,6 +416,12 @@ describe("shell key handler (Section 11.2)", () => {
       isComposing: { value: false },
       target: { value: init.target ?? new FakeElement() },
     });
+    return event;
+  }
+
+  function press(key: string, init: PressInit = {}): Pressed {
+    const event = keyEvent(key, init);
+    const out: Pressed = { defaultPrevented: false, stopped: false };
     const original = event.stopPropagation.bind(event);
     event.stopPropagation = () => {
       out.stopped = true;
@@ -342,6 +457,42 @@ describe("shell key handler (Section 11.2)", () => {
       "pending:none",
       "go:/acme/home",
     ]);
+  });
+
+  it("answers the presses first-press.ts held until it arrived, in order", () => {
+    const held = [keyEvent("k", { ctrlKey: true }), keyEvent("g"), keyEvent("h")];
+    held[0]?.preventDefault();
+    start(keys(), held as unknown as KeyboardEvent[]);
+    expect(calls.slice(0, 3)).toEqual(["command:command-menu", "pending:G", "pending:none"]);
+    expect(calls[3]).toMatch(/^go:.*home/);
+  });
+
+  it("holds the first press, stopping only a browser default the shell binds", () => {
+    const k = keys();
+    window = new EventTarget();
+    Object.assign(globalThis, { window });
+    const loads: number[] = [];
+    const held: KeyboardEvent[] = [];
+    stop = holdFirstPress(
+      () => k,
+      (list) => {
+        loads.push(list.length);
+        held.push(...list);
+      },
+    );
+    const send = (key: string, init: PressInit = {}) => {
+      const event = keyEvent(key, init);
+      window.dispatchEvent(event);
+      return event.defaultPrevented;
+    };
+    expect(send("Shift")).toBe(false);
+    expect(loads).toEqual([]);
+    expect(send("k", { ctrlKey: true })).toBe(true);
+    expect(loads).toEqual([1]);
+    expect(send("c", { ctrlKey: true })).toBe(false);
+    expect(send("z", { ctrlKey: true, target: new FakeElement("INPUT") })).toBe(false);
+    expect(send("j")).toBe(false);
+    expect(loads).toEqual([1]);
   });
 
   it("cancels a sequence on another key, and after four seconds", () => {
@@ -397,6 +548,81 @@ describe("shell key handler (Section 11.2)", () => {
     window.dispatchEvent(event);
     press("c", { repeat: true });
     press("Shift", { shiftKey: true });
+    expect(calls).toEqual([]);
+  });
+
+  it("acts on the record or view around focus through its marked control", () => {
+    start(keys());
+    ran.length = 0;
+    const record = region("record", ["record.state", "record.trash"]);
+    const view = region("view", ["view.export"]);
+    const inRecord = new FakeElement("BUTTON", false, record);
+    expect(press("s", { target: inRecord }).defaultPrevented).toBe(true);
+    expect(press("Backspace", { ctrlKey: true, target: inRecord }).defaultPrevented).toBe(true);
+    // A view key does nothing in a record, and a record without the control leaves the key alone.
+    expect(press("v", { target: inRecord }).defaultPrevented).toBe(false);
+    expect(press("a", { target: inRecord }).defaultPrevented).toBe(false);
+    expect(
+      press("E", { shiftKey: true, target: new FakeElement("DIV", false, view) }),
+    ).toMatchObject({ defaultPrevented: true });
+    // Global keys still answer inside a region.
+    press("c", { target: inRecord });
+    expect(ran).toEqual([
+      "record:record.state",
+      "record:record.trash",
+      "record:record.assign",
+      "view:view.export",
+    ]);
+    expect(calls).toEqual(["command:create-menu"]);
+  });
+
+  it("answers a side peek's keys inside it, but not in a menu open within it or while typing", () => {
+    start(keys());
+    ran.length = 0;
+    const menu = {};
+    const peek = region("record", ["record.copy-link"], [menu]);
+    // The peek is itself a dialog: its own keys answer, the shell's single keys stay quiet.
+    press("l", { target: new FakeElement("BUTTON", true, peek, peek) });
+    press("c", { target: new FakeElement("BUTTON", true, peek, peek) });
+    press("l", { target: new FakeElement("BUTTON", true, peek, menu) });
+    press("l", { target: new FakeElement("INPUT", false, peek) });
+    expect(ran).toEqual(["record:record.copy-link"]);
+    expect(calls).toEqual([]);
+  });
+
+  it("copies the address on screen for Copy link on a record page without a Copy link control", () => {
+    start(keys());
+    ran.length = 0;
+    const writeText = vi.fn(() => Promise.resolve());
+    vi.stubGlobal("navigator", { clipboard: { writeText } });
+    Object.assign(window, { location: { href: "https://atlas.test/acme/r/NWL-1042" } });
+    const page = region("record", []);
+    expect(press("l", { target: new FakeElement("DIV", false, page) }).defaultPrevented).toBe(true);
+    expect(writeText).toHaveBeenCalledWith("https://atlas.test/acme/r/NWL-1042");
+    // A record without the control for another action still leaves its key alone.
+    expect(press("o", { target: new FakeElement("DIV", false, page) }).defaultPrevented).toBe(
+      false,
+    );
+    expect(ran).toEqual(["record:record.copy-link", "record:record.open"]);
+    vi.unstubAllGlobals();
+  });
+
+  it("answers a region shortcut the person bound to a sequence", () => {
+    start(
+      buildShellKeys(SHORTCUT_REGISTRY, {
+        platform: "other",
+        custom: { "record.comment": "Q W" },
+        goTargets: goTargets("owner"),
+      }),
+    );
+    ran.length = 0;
+    const record = region("record", ["record.comment"]);
+    expect(press("q", { target: new FakeElement("DIV", false, record) }).defaultPrevented).toBe(
+      true,
+    );
+    press("w", { target: new FakeElement("DIV", false, record) });
+    expect(ran).toEqual(["record:record.comment"]);
+    // A region's sequence shows no G hint.
     expect(calls).toEqual([]);
   });
 

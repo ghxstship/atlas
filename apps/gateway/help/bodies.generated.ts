@@ -4,6 +4,120 @@ import type { HelpBodies } from "@xos/help";
 
 export const HELP_BODIES: HelpBodies = {
   "en-US": {
+    "approve-from-email": [
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Some organizations ask the people they engage to approve a pass, a dock booking or an equipment request before it takes effect. When yours lets you decide from email, the request email carries an ",
+          },
+          { t: "strong", v: "Approve" },
+          { t: "text", v: " button and a " },
+          { t: "strong", v: "Reject" },
+          { t: "text", v: " button." },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "You still need an XOS account, any Gateway account, so the email can reach you. You do not have to sign in to decide.",
+          },
+        ],
+      },
+      { t: "h2", v: "Decide" },
+      {
+        t: "ol",
+        items: [
+          [
+            { t: "text", v: "Press " },
+            { t: "strong", v: "Approve" },
+            { t: "text", v: " or " },
+            { t: "strong", v: "Reject" },
+            {
+              t: "text",
+              v: " in the email. The page that opens says which organization asks and where the code goes. Nothing happens yet.",
+            },
+          ],
+          [
+            { t: "text", v: "Press " },
+            { t: "strong", v: "Email me a code" },
+            {
+              t: "text",
+              v: ". A 6-digit code arrives by email; it works for 10 minutes. You can ask for a new one after a minute, up to five an hour.",
+            },
+          ],
+          [
+            { t: "text", v: "Enter the code and press " },
+            { t: "strong", v: "Show the request" },
+            { t: "text", v: ". The request and the step it waits on appear." },
+          ],
+          [
+            { t: "text", v: "Press " },
+            { t: "strong", v: "Approve" },
+            { t: "text", v: ", or write why and press " },
+            { t: "strong", v: "Reject" },
+            { t: "text", v: ". The page confirms it, and the organization is told." },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "The page decides only what its button says: to reject an Approve email, open its ",
+          },
+          { t: "strong", v: "Reject" },
+          { t: "text", v: " button instead." },
+        ],
+      },
+      { t: "h2", v: "When it does not work" },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "Wrong code" },
+            {
+              t: "text",
+              v: ": the page says how many tries are left. After five wrong codes across both buttons, the link locks; sign in to decide.",
+            },
+          ],
+          [
+            { t: "strong", v: "Already handled" },
+            {
+              t: "text",
+              v: ": someone decided the step, or the organization withdrew the request.",
+            },
+          ],
+          [
+            { t: "strong", v: "Expired" },
+            {
+              t: "text",
+              v: ": the link lasts 7 days. Reminders from the organization carry a fresh link.",
+            },
+          ],
+          [
+            { t: "strong", v: "Approval emails off" },
+            {
+              t: "text",
+              v: ": no code can be sent while approval emails are off in your notification settings. Sign in to decide instead.",
+            },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "If you are a member of the organization, its links always ask you to sign in, so its security settings apply.",
+          },
+        ],
+      },
+    ],
     "company-danger-zone": [
       {
         t: "p",
@@ -61,7 +175,12 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Organizations request certificates during onboarding, and you upload them there. Choose ",
+            v: "Organizations ask for certificates on an engagement, and you upload them under its ",
+          },
+          { t: "strong", v: "Compliance" },
+          {
+            t: "text",
+            v: " tab. An upload shows as received and waiting for review until the organization records the certificate. Choose ",
           },
           { t: "strong", v: "See engagements" },
           { t: "text", v: " to find the engagement asking for one. Each engagement's " },
@@ -276,7 +395,27 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "To add someone, ask them to create a Gateway account; an Account Owner or Admin then adds them by their account. Owners and Admins can remove members here.",
+            v: "An Account Owner or Admin invites someone by email with a role; only an Owner offers Account Owner. We send one email to the address, and the person signs in to Gateway with it and accepts on Home. Pending invitations are listed here until they are accepted, and Owners and Admins can revoke them.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "A member marked " },
+          { t: "strong", v: "Not confirmed" },
+          {
+            t: "text",
+            v: " was added without an invitation and has not confirmed yet. Until they confirm on Home, they cannot be put on a crew roster or assigned to an engagement, and nothing about them is shared.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "An Account Member reaches only the engagements an Owner or Admin assigns them, on the engagement's Overview. Owners and Admins can remove members here.",
           },
         ],
       },
@@ -337,6 +476,38 @@ export const HELP_BODIES: HelpBodies = {
         ],
       },
     ],
+    "crew-shifts": [
+      { t: "h2", v: "Opening your shifts" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Your crew lead can send you a link and a 6-digit code. Open the link, type the code, and you see your own shifts on that project for the next 14 days, with the times in each shift's own time zone, your job title and the venue. Your device remembers the code on this link for up to 12 hours. Choose Forget this code on a shared phone.",
+          },
+        ],
+      },
+      { t: "h2", v: "Accepting a shift" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Choose Accept shift on a Published shift. Your crew lead sees it at once. Declining and punching in stay in your account and in Compass, so choose Sign in to see all your work for those.",
+          },
+        ],
+      },
+      { t: "h2", v: "When a link stops working" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "A link stops working when it expires, when your crew lead revokes it or issues a new one, when your work on the project ends, or after five wrong codes. Ask your crew lead for a new one.",
+          },
+        ],
+      },
+    ],
     documents: [
       {
         t: "p",
@@ -366,7 +537,10 @@ export const HELP_BODIES: HelpBodies = {
             v: "Each shows its title, kind, organization, expiry date and state. A document waiting for your signature has ",
           },
           { t: "strong", v: "Sign" },
-          { t: "text", v: ". Open one to go to its engagement's Documents tab." },
+          {
+            t: "text",
+            v: ". A generated agreement or a quote is read first: open it to read and sign on its engagement's Documents tab. Open one to go to its engagement's Documents tab.",
+          },
         ],
       },
       { t: "h2", v: "Signed by link" },
@@ -394,6 +568,16 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "Show documents as a table or a list. Documents to sign also appear on Home under Needs you.",
+          },
+        ],
+      },
+      { t: "h2", v: "Reading and signing an agreement" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Some agreements are written for you from the organization's own wording. Open it on the engagement's Documents tab, read the full text and type your full name to sign. Your name signs exactly that text, and the document records its fingerprint. If you do not agree, choose Decline and say why. The organization then countersigns, and the PDF is yours to download.",
           },
         ],
       },
@@ -460,6 +644,21 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "Artists send their rider and hospitality needs through the advance. An artist's representative with the Advance scope answers for the artist.",
+          },
+        ],
+      },
+      { t: "h2", v: "Answers your organization recorded" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "When you answer by email or send a tour book, the organization may record your answer for you from what you sent. Such an answer says ",
+          },
+          { t: "strong", v: "Recorded by" },
+          {
+            t: "text",
+            v: " the organization, and you are told when it happens. If it needs changing, ask them to return it, then answer again.",
           },
         ],
       },
@@ -693,6 +892,77 @@ export const HELP_BODIES: HelpBodies = {
       },
       { t: "p", c: [{ t: "text", v: "Credentials are issued once onboarding passes." }] },
     ],
+    "engagement-crew": [
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Crew is the roster of people who work an engagement for your company: a vendor's technicians, a band and its touring crew, or a sponsor's activation staff. It shows to the people who manage the roster: the artist on their own engagement, the account's Owner and Admin, an Advancing Lead assigned to the engagement, and an artist's representative with the Advance scope.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Add someone from your team, or invite an email address for someone who is not on XOS yet; they get one email asking them to sign in to Gateway with that address. Give each person a role and, when you know it, their arrival window in the project's time zone. Submit the roster when it is ready; the organization accepts or returns each person, and a returned entry shows the reason so you can fix it and submit again.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Each person accepts or declines their own entry on Gateway Home. Nothing about them is shared until they accept: then your company can see their profile and project facts, and they choose what to share with the organization. View profile opens what they share with your company; each time you open it, they can see that you did. Allergies show only as On file.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "The roster opens while the engagement is onboarding and closes when it completes or is canceled. To swap someone after they were accepted, withdraw their entry and add the replacement.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "The organization can set a names lock: a date and time after which your company names no new crew for the engagement. Crew shows when names lock, and after that Add, Invite and Submit of new names are closed. A returned entry stays editable and can still be submitted again, and you can still withdraw entries. To add someone after the lock, ask the organization to move or clear it.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Each row shows whether the person's travel, uniform sizes and vehicle are on file for the project. Project details opens them; like View profile, each time you open it the person can see that you did. When the organization allows it, you can enter a kind the person has not entered yet; they are told and can correct it. What the person entered themselves only they change.",
+          },
+        ],
+      },
+      { t: "h2", v: "Reuse a roster from a past event" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "If you managed the roster of a past event with the same organization, for the same company or artist, ",
+          },
+          { t: "strong", v: "Reuse a roster from a past event" },
+          {
+            t: "text",
+            v: " adds those people here. Preview first: it lists who is added, which email addresses are invited again and who is skipped and why. People are added as drafts with their arrival moved to the new dates; each person accepts again, and you still submit the roster for the organization's review. Invitations are emailed only when you choose Add to roster.",
+          },
+        ],
+      },
+    ],
     "engagement-deliverables": [
       {
         t: "p",
@@ -733,8 +1003,14 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "The times booked for you at the dock: the zone, the start and end, any tracking number, and whether it is inbound or outbound.",
+            v: "The times booked for you at the dock: the zone, the start and end, any tracking number, and whether it is inbound or outbound. When the project approves bookings at that dock first, the slot also says ",
           },
+          { t: "strong", v: "Awaiting approval" },
+          { t: "text", v: ", " },
+          { t: "strong", v: "Approved" },
+          { t: "text", v: " or " },
+          { t: "strong", v: "Rejected" },
+          { t: "text", v: "." },
         ],
       },
       { t: "h2", v: "Shipments" },
@@ -774,6 +1050,25 @@ export const HELP_BODIES: HelpBodies = {
           { t: "text", v: "A document that is Sent waits for your signature. Choose " },
           { t: "strong", v: "Sign" },
           { t: "text", v: " in its row." },
+        ],
+      },
+      { t: "h2", v: "Accept a quote" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "A quote is signed on its own. Choose " },
+          { t: "strong", v: "Sign" },
+          { t: "text", v: " in its row to see its total and the date it is valid until, then " },
+          { t: "strong", v: "Accept quote" },
+          {
+            t: "text",
+            v: ". Download its PDF first to read the lines and terms. Accepting records your name, the date and a fingerprint of the exact content on the PDF. If you got a signing link instead, open it, enter the access code, read the quote, type your name and choose ",
+          },
+          { t: "strong", v: "Accept quote" },
+          {
+            t: "text",
+            v: ". A quote past its valid-until date can no longer be accepted; ask for a new version.",
+          },
         ],
       },
       {
@@ -862,6 +1157,26 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "The guest's email" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Add the guest's email if you have it. The production sends their pass there, with their table and how many they bring, once it approves them. Each email carries a link to stop the organization's emails to that address.",
+          },
+        ],
+      },
+      { t: "h2", v: "Stop guest emails" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "A guest who opens the stop link in an email is asked first, then stops every email from that organization to their address. Nothing changes until they confirm.",
+          },
+        ],
+      },
     ],
     "engagement-hospitality": [
       {
@@ -869,7 +1184,16 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Hospitality is for artists. It lists what the production arranged for you: lodging with its dates and guest name, and travel, catering and other items with their time and supplier.",
+            v: "Hospitality is for artists. It starts with your stay, day by day: your flights, your hotel's check-in and check-out, the pickups and runs that carry you or the people you answer for (with the driver, vehicle and times), the rooms booked for you and your set times. Anything the production changed since you last looked carries a tag that names what changed, such as a new set time, and anything it removed is listed under Removed since you last looked. A visit lasts 30 minutes, so refreshing the page keeps the tags; Mark all as seen clears them. Pickups and booked rooms are placed on their day but never tagged.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Below your stay come catering and the other items the production arranged, with their time and supplier.",
           },
         ],
       },
@@ -1292,6 +1616,44 @@ export const HELP_BODIES: HelpBodies = {
         ],
       },
     ],
+    "engagement-project-details": [
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Project details shows when the organization offers travel, uniforms or parking on your engagement. It asks only for what the project offers: your travel request (the airports and dates you fly in and home, and whether you need a pickup or a room), your uniform sizes, and the vehicle you park on site.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Each step saves when you continue, so you can stop and come back. Use my last details fills a step from what you entered on an earlier project; check it, then continue to save it.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "These details stay on this engagement and are never written to your profile. The organization reads only the kinds its people need for their work, and your company sees them while you are on its roster; each time someone else reads them, your access log in Settings shows it. They are deleted after the engagement is complete or canceled, 90 days later unless the organization sets another time.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "If your company entered something for you, you are told, and you can correct it here. You can clear a kind at any time.",
+          },
+        ],
+      },
+    ],
     "engagement-proof-of-performance": [
       {
         t: "p",
@@ -1569,6 +1931,16 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Your rooms" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "The green room or dressing room booked for you, with its in and out times and the set it serves. Each day sheet also lists that day's local contacts.",
+          },
+        ],
+      },
       {
         t: "p",
         c: [
@@ -1684,6 +2056,19 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Each submittal lists its files, version by version, with the organization's decision: ",
+          },
+          { t: "strong", v: "Approved" },
+          { t: "text", v: " or " },
+          { t: "strong", v: "Changes requested" },
+          { t: "text", v: ", with what to change. A new version starts unreviewed." },
+        ],
+      },
     ],
     "engagement-time": [
       {
@@ -1786,23 +2171,22 @@ export const HELP_BODIES: HelpBodies = {
     ],
     "engagement-travel-and-lodging": [
       { t: "p", c: [{ t: "text", v: "Travel and Lodging is for crew." }] },
-      { t: "h2", v: "Itinerary" },
+      { t: "h2", v: "Your stay" },
       {
         t: "p",
         c: [
           {
             t: "text",
-            v: "Each leg from one place to another, with the carrier and service number, departure and arrival times, the confirmation code and the mode of travel.",
+            v: "Your whole stay, day by day: each leg from one place to another, with the carrier and service number, departure and arrival times, the confirmation code and the mode of travel, your hotel's check-in and check-out on their dates, and your ground transport: where and when you are picked up, the drop-off, the driver and vehicle, the flight it meets, and who rides with you (if you drive, every passenger is listed). A leg sits on the day it departs and a pickup on its day, each in its own time zone.",
           },
         ],
       },
-      { t: "h2", v: "Lodging" },
       {
         t: "p",
         c: [
           {
             t: "text",
-            v: "Your hotel or room block, with the check-in and check-out dates and the guest name.",
+            v: 'Anything the organization changed since you last looked carries a tag that names what changed, such as "Changed since you last looked: Departure", and anything it removed is listed under Removed since you last looked. A visit lasts 30 minutes, so refreshing the page keeps the tags; Mark all as seen clears them. The tags start from your second visit. Ground transport is placed on its day but never tagged.',
           },
         ],
       },
@@ -1811,6 +2195,16 @@ export const HELP_BODIES: HelpBodies = {
         t: "p",
         c: [
           { t: "text", v: "Other travel the organization arranged, with its time and supplier." },
+        ],
+      },
+      { t: "h2", v: "Local contacts" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "The contacts the production shares for the project, today's first, with a number to call and an email.",
+          },
         ],
       },
       {
@@ -2081,7 +2475,7 @@ export const HELP_BODIES: HelpBodies = {
           { t: "strong", v: "Mod+K" },
           {
             t: "text",
-            v: " or choose Search to go to any page, engagement or opportunity. Press ",
+            v: " or choose Search to go to any page, or to find your documents, messages, engagements, opportunities, actions and settings by their words. Press ",
           },
           { t: "strong", v: "?" },
           {
@@ -2092,6 +2486,94 @@ export const HELP_BODIES: HelpBodies = {
           { t: "text", v: "." },
         ],
       },
+      { t: "h2", v: "On a keyboard" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "These work everywhere on a computer. Mod is Cmd on a Mac and Ctrl elsewhere.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "Mod+K" },
+            { t: "text", v: ": Search Gateway" },
+          ],
+          [
+            { t: "strong", v: "?" },
+            { t: "text", v: ": Open help for this page" },
+          ],
+          [
+            { t: "strong", v: "A" },
+            { t: "text", v: ": Open the account menu" },
+          ],
+          [
+            { t: "strong", v: "O" },
+            { t: "text", v: ": Switch organization" },
+          ],
+          [
+            { t: "strong", v: "Esc" },
+            { t: "text", v: ": Close a menu, dialog or peek" },
+          ],
+          [
+            { t: "strong", v: "Mod+Z" },
+            { t: "text", v: ": Undo the last change" },
+          ],
+          [
+            { t: "strong", v: "Mod+Shift+Z" },
+            { t: "text", v: ": Redo the change you undid" },
+          ],
+        ],
+      },
+      { t: "p", c: [{ t: "text", v: "Two keys, one after the other, go to a destination:" }] },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "G H" },
+            { t: "text", v: ": Go to Home" },
+          ],
+          [
+            { t: "strong", v: "G E" },
+            { t: "text", v: ": Go to Explore" },
+          ],
+          [
+            { t: "strong", v: "G W" },
+            { t: "text", v: ": Go to Work" },
+          ],
+          [
+            { t: "strong", v: "G M" },
+            { t: "text", v: ": Go to Money" },
+          ],
+          [
+            { t: "strong", v: "G I" },
+            { t: "text", v: ": Go to Messages" },
+          ],
+          [
+            { t: "strong", v: "G P" },
+            { t: "text", v: ": Go to Profile" },
+          ],
+          [
+            { t: "strong", v: "G D" },
+            { t: "text", v: ": Go to Documents" },
+          ],
+          [
+            { t: "strong", v: "G T" },
+            { t: "text", v: ": Go to Settings" },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "link", v: "Keyboard shortcuts", href: "help:settings-keyboard-shortcuts" },
+          { t: "text", v: " has the rest." },
+        ],
+      },
     ],
     home: [
       {
@@ -2099,7 +2581,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Home starts with a search box: type a role, a skill or an organization to search Explore.",
+            v: "Home starts with a search box. As you type, it lists your own documents, messages, engagements and opportunities, and the actions and settings that match. Choose one to open it, or press Enter to search every opportunity on Explore.",
           },
         ],
       },
@@ -2138,14 +2620,35 @@ export const HELP_BODIES: HelpBodies = {
           [{ t: "text", v: "engagements to rate, for 14 days after they complete" }],
         ],
       },
-      { t: "h2", v: "Updates" },
+      { t: "h2", v: "For your information" },
       {
         t: "p",
         c: [
           {
             t: "text",
-            v: "When an organization receives, approves, schedules or pays one of your invoices, the latest steps show here. Unread ones are marked New.",
+            v: "Updates that need nothing from you: an organization received, approved, scheduled or paid one of your invoices, a new match for a saved search, a reminder that something expires, a new shift or offer. Unread ones are marked New, and each opens where you follow it.",
           },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Clear each one with " },
+          { t: "strong", v: "Done" },
+          { t: "text", v: ", or " },
+          { t: "strong", v: "Snooze" },
+          {
+            t: "text",
+            v: " it to bring it back in a day. From the keyboard, select an item and press ",
+          },
+          { t: "strong", v: "E" },
+          { t: "text", v: " for Done or " },
+          { t: "strong", v: "H" },
+          { t: "text", v: " to snooze it; " },
+          { t: "strong", v: "J" },
+          { t: "text", v: " and " },
+          { t: "strong", v: "K" },
+          { t: "text", v: " move between items." },
         ],
       },
       { t: "h2", v: "Recommended for you" },
@@ -2165,7 +2668,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "The view switcher shows Home as a feed, or as an inbox with only Needs you and Updates.",
+            v: "The view switcher shows Home as a feed, or as an inbox with only Needs you and For your information.",
           },
         ],
       },
@@ -2324,7 +2827,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Each step also shows under Updates on Home, and reaches you by email or push as you choose in ",
+            v: "Each step also shows under For your information on Home, and reaches you by email or push as you choose in ",
           },
           { t: "link", v: "Settings, Notifications", href: "help:settings-notifications" },
           { t: "text", v: "." },
@@ -2527,6 +3030,30 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Client confidential" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Some organizations keep the client and the event private until you are booked. A ",
+          },
+          { t: "strong", v: "Client confidential" },
+          {
+            t: "text",
+            v: " listing still shows the organization, the city, the dates and the pay, but not the venue, and distance from a place is measured to a point near the venue rather than the venue itself. The venue appears once your application is accepted.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "The organization's title and description cannot name the project, its client or the venue. Some details are the organization's own words and are not checked: position labels, application questions, requirement descriptions, interview and audition locations, and messages in an offer. A project, venue or client renamed after the listing was posted is not checked again either. If one of these gives the client away, report the listing.",
+          },
+        ],
+      },
       { t: "h2", v: "Requirements" },
       {
         t: "p",
@@ -2591,6 +3118,86 @@ export const HELP_BODIES: HelpBodies = {
         ],
       },
     ],
+    "profile-badge-photos": [
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Organizations that hold a live credential for you print a badge for it. This page shows one card per organization, with the photo its badge prints. An organization can ask you for a photo; the request opens this page.",
+          },
+        ],
+      },
+      { t: "h2", v: "What each card shows" },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "On your badge" },
+            { t: "text", v: ": your photo prints on the badge." },
+          ],
+          [
+            { t: "strong", v: "Being checked" },
+            { t: "text", v: ": your photo is being virus-checked and prints in a few minutes." },
+          ],
+          [
+            { t: "strong", v: "Not accepted" },
+            { t: "text", v: ": the check refused your photo. Upload another." },
+          ],
+          [
+            { t: "strong", v: "Your profile photo" },
+            { t: "text", v: ": you gave no badge photo, so the badge prints your " },
+            { t: "link", v: "profile", href: "help:profile" },
+            { t: "text", v: " photo, when your privacy settings let the organization see it." },
+          ],
+          [
+            { t: "strong", v: "Requested" },
+            { t: "text", v: " or " },
+            { t: "strong", v: "None yet" },
+            { t: "text", v: ": the badge prints without a photo." },
+          ],
+        ],
+      },
+      { t: "h2", v: "Giving a photo" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Choose " },
+          { t: "strong", v: "Upload or take photo" },
+          {
+            t: "text",
+            v: " to pick a photo or take one with your camera. Drag the photo, or use the arrow keys and the zoom slider, to choose what shows in the 3 by 4 frame, then choose ",
+          },
+          { t: "strong", v: "Save photo" },
+          { t: "text", v: ". Nothing reads or detects your face; the crop is yours." },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "strong", v: "Use my profile photo" },
+          {
+            t: "text",
+            v: " copies your profile photo to the badge instead, when it is a JPEG or PNG of at most 2 MiB.",
+          },
+        ],
+      },
+      { t: "h2", v: "Who sees it, and taking it back" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "The organization's credential staff see the photo, and so does anyone who sees your badge. Saving a photo records your consent for that organization. Choose ",
+          },
+          { t: "strong", v: "Remove" },
+          {
+            t: "text",
+            v: " at any time: the photo is deleted, your consent is withdrawn, and the organization prints your badge without it.",
+          },
+        ],
+      },
+    ],
     profile: [
       {
         t: "p",
@@ -2637,7 +3244,17 @@ export const HELP_BODIES: HelpBodies = {
           ],
           [
             { t: "strong", v: "Ratings" },
-            { t: "text", v: ": ratings from completed engagements, with any reply." },
+            {
+              t: "text",
+              v: ": ratings organizations gave you after completed engagements, with any reply. Only you and the organization that gave a rating can read it, unless you turn on ",
+            },
+            { t: "strong", v: "Show all my ratings on my profile" },
+            { t: "text", v: " in Profile Privacy. " },
+            { t: "strong", v: "Dispute this rating" },
+            {
+              t: "text",
+              v: " if it is about the wrong person, false, abusive or shows personal data.",
+            },
           ],
           [
             { t: "strong", v: "Representation" },
@@ -2671,6 +3288,48 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "When you act as a company account, this page shows the company's profile and team instead.",
+          },
+        ],
+      },
+    ],
+    "quote-requests": [
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "When a company invites your account to quote, the request shows here for your account's Owner and Admins, with what is asked for, how many and by when.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "This page is read only. Send your quote to the contact it names, and they record it. A request leaves this page once the company closes it.",
+          },
+        ],
+      },
+    ],
+    registration: [
+      { t: "h2", v: "Registering" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "An organization shares a registration page to find crew and volunteers. Sign up or sign in, then answer its questions. Your work phone comes first and saves to your settings. You confirm the page's minimum age, and you can share chosen sections of your profile with that organization only. Your account stays yours.",
+          },
+        ],
+      },
+      { t: "h2", v: "What happens next" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "The organization approves or declines, and you hear either way. Once approved you are on its crew list and can see the work it offers that list in Explore. You can withdraw from the page at any time.",
           },
         ],
       },
@@ -2811,6 +3470,19 @@ export const HELP_BODIES: HelpBodies = {
       {
         t: "p",
         c: [
+          { t: "text", v: "To keep your calendar up to date instead, " },
+          { t: "strong", v: "Add a feed" },
+          {
+            t: "text",
+            v: " here. Give it a name, which your calendar shows, and choose what it shows: shifts, meetings, milestones, deadlines and cues, such as your set times. ",
+          },
+          { t: "strong", v: "Edit" },
+          { t: "text", v: " changes a feed's name and content without changing its link." },
+        ],
+      },
+      {
+        t: "p",
+        c: [
           { t: "text", v: "Choose " },
           { t: "strong", v: "Open Upcoming" },
           { t: "text", v: " to go there." },
@@ -2862,25 +3534,84 @@ export const HELP_BODIES: HelpBodies = {
     "settings-keyboard-shortcuts": [
       {
         t: "p",
-        c: [{ t: "text", v: "On a computer, Gateway answers these shortcuts everywhere:" }],
+        c: [
+          {
+            t: "text",
+            v: "On a computer, Gateway answers these shortcuts everywhere. Mod is Cmd on a Mac and Ctrl elsewhere.",
+          },
+        ],
       },
       {
         t: "ul",
         items: [
           [
             { t: "strong", v: "Mod+K" },
-            {
-              t: "text",
-              v: ": search pages, engagements and opportunities. Mod is Cmd on a Mac and Ctrl elsewhere.",
-            },
+            { t: "text", v: ": Search Gateway" },
           ],
           [
             { t: "strong", v: "?" },
-            { t: "text", v: ": open help for the page you are on, unless you are typing." },
+            { t: "text", v: ": Open help for this page" },
+          ],
+          [
+            { t: "strong", v: "A" },
+            { t: "text", v: ": Open the account menu" },
+          ],
+          [
+            { t: "strong", v: "O" },
+            { t: "text", v: ": Switch organization" },
           ],
           [
             { t: "strong", v: "Esc" },
-            { t: "text", v: ": close the open menu, dialog or panel." },
+            { t: "text", v: ": Close a menu, dialog or peek" },
+          ],
+          [
+            { t: "strong", v: "Mod+Z" },
+            { t: "text", v: ": Undo the last change" },
+          ],
+          [
+            { t: "strong", v: "Mod+Shift+Z" },
+            { t: "text", v: ": Redo the change you undid" },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [{ t: "text", v: "To go to a destination, press two keys, one after the other:" }],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "G H" },
+            { t: "text", v: ": Go to Home" },
+          ],
+          [
+            { t: "strong", v: "G E" },
+            { t: "text", v: ": Go to Explore" },
+          ],
+          [
+            { t: "strong", v: "G W" },
+            { t: "text", v: ": Go to Work" },
+          ],
+          [
+            { t: "strong", v: "G M" },
+            { t: "text", v: ": Go to Money" },
+          ],
+          [
+            { t: "strong", v: "G I" },
+            { t: "text", v: ": Go to Messages" },
+          ],
+          [
+            { t: "strong", v: "G P" },
+            { t: "text", v: ": Go to Profile" },
+          ],
+          [
+            { t: "strong", v: "G D" },
+            { t: "text", v: ": Go to Documents" },
+          ],
+          [
+            { t: "strong", v: "G T" },
+            { t: "text", v: ": Go to Settings" },
           ],
         ],
       },
@@ -2889,7 +3620,12 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "In search, the arrow keys move and Enter opens. Every icon button names its shortcut in a tooltip.",
+            v: "A destination you cannot open has no shortcut, and Switch organization works only where the account menu offers it. Shortcuts never act while you type in a field, except the ones with ",
+          },
+          { t: "strong", v: "Mod" },
+          {
+            t: "text",
+            v: ". In search, the arrow keys move and Enter opens. Every icon button names its shortcut in a tooltip.",
           },
         ],
       },
@@ -2900,8 +3636,14 @@ export const HELP_BODIES: HelpBodies = {
           { t: "strong", v: "Keyboard shortcuts" },
           {
             t: "text",
-            v: " setting on this page is your personal setting, shared with Atlas, where it turns single-key shortcuts such as J and K on or off.",
+            v: " setting on this page is your personal setting, shared with Atlas. Turned off, it stops every shortcut without ",
           },
+          { t: "strong", v: "Mod" },
+          { t: "text", v: ", " },
+          { t: "strong", v: "Ctrl" },
+          { t: "text", v: " or " },
+          { t: "strong", v: "Alt" },
+          { t: "text", v: "." },
         ],
       },
     ],
@@ -3005,7 +3747,10 @@ export const HELP_BODIES: HelpBodies = {
           ],
           [
             { t: "strong", v: "Automatic reply" },
-            { t: "text", v: ": sent once to each person who messages you while you are away." },
+            {
+              t: "text",
+              v: ": sent once to each person who messages you while you are away. A reply with a slur is not saved.",
+            },
           ],
         ],
       },
@@ -3278,20 +4023,45 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Your work details come from your profile: your skills, certifications, rates and availability. Organizations see them when you apply or share your profile.",
+            v: "Settings, Work Details holds what organizations need to feed, book and look after you: emergency contacts, dietary and accessibility needs, loyalty programs and your passport details.",
           },
         ],
       },
       {
         t: "p",
         c: [
-          { t: "text", v: "Choose " },
-          { t: "strong", v: "Edit profile" },
-          { t: "text", v: " to change them in " },
-          { t: "link", v: "Profile settings", href: "help:settings-profile" },
-          { t: "text", v: ". Mark the dates you are available or not on your " },
-          { t: "link", v: "profile", href: "help:profile" },
+          {
+            t: "text",
+            v: "Uniform sizes and your seat, meal and home airport are no longer kept here. Each production asks for them on the project you are rostered on and keeps them only for that project: open the engagement and choose ",
+          },
+          { t: "strong", v: "Project details" },
           { t: "text", v: "." },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "An organization sees a category only while you share it with that engagement. Your allergies are restricted: only the catering lead and on-site medical on the project, the organization's Owner, and anyone else the organization gives medical data access can read them, and every time they do it shows in your access log. Contact, your sign-in email and phone, is shared together with at least one other category.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Your skills, certifications, rates and availability are in " },
+          { t: "link", v: "Profile settings", href: "help:settings-profile" },
+          { t: "text", v: "." },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Dietary, allergy and accessibility details are optional. Before you add any, you read what we collect, why, who sees it and how to withdraw, and agree. Withdraw from the same place at any time: we stop using the details at once and delete them. If someone else entered details for you, they show here so you can remove them: whoever entered them cannot enter them for you again, by your account or email, anywhere in that organization, until you agree yourself. If a guest list entry is about someone else, choose This is not me: your name and email come off it, and the guest's needs stay with whoever keeps the list.",
+          },
         ],
       },
     ],
@@ -3474,6 +4244,117 @@ export const HELP_BODIES: HelpBodies = {
     ],
   },
   "es-US": {
+    "approve-from-email": [
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Algunas organizaciones piden a las personas que contratan aprobar un pase, una reserva de muelle o una solicitud de equipo antes de que tenga efecto. Cuando la tuya te deja decidir desde el correo, el correo de la solicitud trae un botón ",
+          },
+          { t: "strong", v: "Aprobar" },
+          { t: "text", v: " y un botón " },
+          { t: "strong", v: "Rechazar" },
+          { t: "text", v: "." },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Igual necesitas una cuenta de XOS, cualquier cuenta de Gateway, para que el correo te llegue. No tienes que iniciar sesión para decidir.",
+          },
+        ],
+      },
+      { t: "h2", v: "Decidir" },
+      {
+        t: "ol",
+        items: [
+          [
+            { t: "text", v: "Presiona " },
+            { t: "strong", v: "Aprobar" },
+            { t: "text", v: " o " },
+            { t: "strong", v: "Rechazar" },
+            {
+              t: "text",
+              v: " en el correo. La página que se abre dice qué organización lo pide y a dónde va el código. Todavía no pasa nada.",
+            },
+          ],
+          [
+            { t: "text", v: "Presiona " },
+            { t: "strong", v: "Enviarme un código" },
+            {
+              t: "text",
+              v: ". Llega un código de 6 dígitos por correo; funciona durante 10 minutos. Puedes pedir uno nuevo después de un minuto, hasta cinco por hora.",
+            },
+          ],
+          [
+            { t: "text", v: "Ingresa el código y presiona " },
+            { t: "strong", v: "Ver la solicitud" },
+            { t: "text", v: ". Aparecen la solicitud y el paso que espera." },
+          ],
+          [
+            { t: "text", v: "Presiona " },
+            { t: "strong", v: "Aprobar" },
+            { t: "text", v: ", o escribe por qué y presiona " },
+            { t: "strong", v: "Rechazar" },
+            { t: "text", v: ". La página lo confirma y se avisa a la organización." },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "La página decide solo lo que dice su botón: para rechazar desde un correo de Aprobar, abre su botón ",
+          },
+          { t: "strong", v: "Rechazar" },
+          { t: "text", v: "." },
+        ],
+      },
+      { t: "h2", v: "Cuando no funciona" },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "Código incorrecto" },
+            {
+              t: "text",
+              v: ": la página dice cuántos intentos quedan. Después de cinco códigos incorrectos entre los dos botones, el enlace se bloquea; inicia sesión para decidir.",
+            },
+          ],
+          [
+            { t: "strong", v: "Ya resuelto" },
+            { t: "text", v: ": alguien decidió el paso, o la organización retiró la solicitud." },
+          ],
+          [
+            { t: "strong", v: "Vencido" },
+            {
+              t: "text",
+              v: ": el enlace dura 7 días. Los recordatorios de la organización traen un enlace nuevo.",
+            },
+          ],
+          [
+            { t: "strong", v: "Correos de aprobación desactivados" },
+            {
+              t: "text",
+              v: ": no se puede enviar un código mientras los correos de aprobación estén desactivados en tu configuración de notificaciones. Inicia sesión para decidir.",
+            },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Si eres miembro de la organización, sus enlaces siempre te piden iniciar sesión, para que se apliquen sus ajustes de seguridad.",
+          },
+        ],
+      },
+    ],
     "company-danger-zone": [
       {
         t: "p",
@@ -3535,7 +4416,12 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Las organizaciones piden los certificados durante la incorporación, y los cargas allí. Elige ",
+            v: "Las organizaciones piden los certificados en una contratación, y los subes en su pestaña ",
+          },
+          { t: "strong", v: "Cumplimiento" },
+          {
+            t: "text",
+            v: ". Un archivo subido aparece como recibido y en espera de revisión hasta que la organización registra el certificado. Elige ",
           },
           { t: "strong", v: "Ver contrataciones" },
           { t: "text", v: " para encontrar la contratación que pide uno. La " },
@@ -3757,7 +4643,27 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Para agregar a alguien, pídele que cree una cuenta de Gateway; luego un Propietario o Administrador de la cuenta lo agrega por su cuenta. Los Propietarios y Administradores pueden quitar miembros aquí.",
+            v: "Un Propietario o Administrador de la cuenta invita a alguien por correo con un rol; solo un Propietario ofrece el rol de Propietario de la cuenta. Enviamos un correo a esa dirección, y la persona inicia sesión en Gateway con ella y acepta en Inicio. Las invitaciones pendientes aparecen aquí hasta que se aceptan, y los Propietarios y Administradores pueden revocarlas.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Un miembro marcado como " },
+          { t: "strong", v: "Sin confirmar" },
+          {
+            t: "text",
+            v: " se agregó sin invitación y aún no ha confirmado. Hasta que confirme en Inicio, no se le puede poner en una lista del equipo ni asignar a una contratación, y no se comparte nada sobre él.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Un Miembro de la cuenta solo accede a las contrataciones que un Propietario o Administrador le asigna, en el Resumen de la contratación. Los Propietarios y Administradores pueden quitar miembros aquí.",
           },
         ],
       },
@@ -3818,6 +4724,38 @@ export const HELP_BODIES: HelpBodies = {
         ],
       },
     ],
+    "crew-shifts": [
+      { t: "h2", v: "Abrir tus turnos" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Tu jefe de equipo puede enviarte un enlace y un código de 6 dígitos. Abre el enlace, escribe el código y verás tus propios turnos en ese proyecto durante los próximos 14 días, con las horas en la zona horaria de cada turno, tu puesto y el lugar. Tu dispositivo recuerda el código en este enlace hasta por 12 horas. Elige Olvidar este código en un teléfono compartido.",
+          },
+        ],
+      },
+      { t: "h2", v: "Aceptar un turno" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Elige Aceptar turno en un turno publicado. Tu jefe de equipo lo ve de inmediato. Rechazar y registrar tiempo siguen en tu cuenta y en Compass, así que elige Inicia sesión para ver todo tu trabajo para eso.",
+          },
+        ],
+      },
+      { t: "h2", v: "Cuando un enlace deja de funcionar" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Un enlace deja de funcionar cuando vence, cuando tu jefe de equipo lo revoca o emite uno nuevo, cuando termina tu trabajo en el proyecto o después de cinco códigos incorrectos. Pide uno nuevo a tu jefe de equipo.",
+          },
+        ],
+      },
+    ],
     documents: [
       {
         t: "p",
@@ -3847,7 +4785,10 @@ export const HELP_BODIES: HelpBodies = {
             v: "Cada uno muestra su título, tipo, organización, fecha de vencimiento y estado. Un documento que espera tu firma tiene ",
           },
           { t: "strong", v: "Firmar" },
-          { t: "text", v: ". Abre uno para ir a la pestaña Documentos de su contratación." },
+          {
+            t: "text",
+            v: ". Un acuerdo generado o una cotización se lee primero: ábrelo para leer y firmar en la pestaña Documentos de su contratación. Abre uno para ir a la pestaña Documentos de su contratación.",
+          },
         ],
       },
       { t: "h2", v: "Firmados por enlace" },
@@ -3875,6 +4816,16 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "Muestra los documentos como tabla o lista. Los documentos por firmar también aparecen en Inicio, en Te necesita.",
+          },
+        ],
+      },
+      { t: "h2", v: "Leer y firmar un acuerdo" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Algunos acuerdos se redactan para ti a partir del texto de la organización. Ábrelo en la pestaña Documentos de la contratación, lee el texto completo y escribe tu nombre completo para firmar. Tu nombre firma exactamente ese texto, y el documento registra su huella. Si no estás de acuerdo, elige Rechazar y di por qué. Luego la organización refrenda, y el PDF queda disponible para que lo descargues.",
           },
         ],
       },
@@ -3941,6 +4892,16 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "Los artistas envían su rider y sus necesidades de hospitalidad por la coordinación previa. Un representante de artista con el alcance Avance responde por el artista.",
+          },
+        ],
+      },
+      { t: "h2", v: "Respuestas que registró tu organización" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Cuando respondes por correo o envías un libro de gira, la organización puede registrar tu respuesta a partir de lo que enviaste. Esa respuesta indica quién la registró, y se te avisa cuando ocurre. Si necesita cambios, pídele que la devuelva y responde de nuevo.",
           },
         ],
       },
@@ -4187,6 +5148,77 @@ export const HELP_BODIES: HelpBodies = {
         c: [{ t: "text", v: "Las acreditaciones se emiten cuando pasa la incorporación." }],
       },
     ],
+    "engagement-crew": [
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Equipo es la lista de personas que trabajan en una contratación para tu empresa: los técnicos de un proveedor, una banda y su equipo de gira, o el personal de activación de un patrocinador. La ven quienes gestionan la lista: el artista en su propia contratación, el propietario y el administrador de la cuenta, un responsable de avance asignado a la contratación y el representante de un artista con el alcance de avance.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Agrega a alguien de tu equipo, o invita una dirección de correo para alguien que todavía no está en XOS; recibe un correo que le pide iniciar sesión en Gateway con esa dirección. Asigna a cada persona un puesto y, cuando lo sepas, su ventana de llegada en la zona horaria del proyecto. Envía la lista cuando esté lista; la organización acepta o devuelve a cada persona, y una entrada devuelta muestra el motivo para que la corrijas y la envíes de nuevo.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Cada persona acepta o rechaza su propia entrada en el Inicio de Gateway. No se comparte nada sobre ella hasta que acepta: entonces tu empresa puede ver su perfil y los datos del proyecto, y ella elige qué compartir con la organización. Ver perfil abre lo que comparte con tu empresa; cada vez que lo abres, la persona puede ver que lo hiciste. Las alergias solo aparecen como Registradas.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "La lista se abre mientras la contratación está en incorporación y se cierra cuando se completa o se cancela. Para cambiar a alguien después de que lo aceptaron, retira su entrada y agrega el reemplazo.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "La organización puede fijar un cierre de nombres: una fecha y hora después de la cual tu empresa ya no nombra más gente para la contratación. Equipo muestra cuándo se cierran los nombres y, después, ya no puedes agregar, invitar ni enviar nombres nuevos. Una entrada devuelta sigue siendo editable y se puede volver a enviar, y aún puedes retirar entradas. Para agregar a alguien después del cierre, pide a la organización que lo mueva o lo quite.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Cada fila muestra si el viaje, las tallas de uniforme y el vehículo de la persona están registrados para el proyecto. Datos del proyecto los abre; como con Ver perfil, cada vez que los abres la persona puede ver que lo hiciste. Cuando la organización lo permite, puedes ingresar un tipo de dato que la persona todavía no ingresó; se le avisa y puede corregirlo. Lo que la persona ingresó por su cuenta solo lo cambia ella.",
+          },
+        ],
+      },
+      { t: "h2", v: "Reutilizar una lista de un evento anterior" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Si administró la lista de un evento anterior con la misma organización, para la misma empresa o artista, ",
+          },
+          { t: "strong", v: "Reutilizar una lista de un evento anterior" },
+          {
+            t: "text",
+            v: " agrega aquí a esas personas. Primero vea la vista previa: muestra a quién se agrega, qué direcciones de correo se invitan de nuevo y a quién se omite y por qué. Las personas se agregan como borradores con su llegada movida a las nuevas fechas; cada persona acepta de nuevo y usted todavía envía la lista para que la organización la revise. Las invitaciones se envían por correo solo cuando elige Agregar a la lista.",
+          },
+        ],
+      },
+    ],
     "engagement-deliverables": [
       {
         t: "p",
@@ -4228,8 +5260,14 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Los horarios reservados para ti en el muelle: la zona, el inicio y el fin, el número de seguimiento si lo hay, y si es de entrada o de salida.",
+            v: "Los horarios reservados para ti en el muelle: la zona, el inicio y el fin, el número de seguimiento si lo hay, y si es de entrada o de salida. Cuando el proyecto aprueba primero las reservas de ese muelle, el horario también dice ",
           },
+          { t: "strong", v: "En espera de aprobación" },
+          { t: "text", v: ", " },
+          { t: "strong", v: "Aprobado" },
+          { t: "text", v: " o " },
+          { t: "strong", v: "Rechazado" },
+          { t: "text", v: "." },
         ],
       },
       { t: "h2", v: "Envíos" },
@@ -4269,6 +5307,28 @@ export const HELP_BODIES: HelpBodies = {
           { t: "text", v: "Un documento Por firmar espera tu firma. Elige " },
           { t: "strong", v: "Firmar" },
           { t: "text", v: " en su fila." },
+        ],
+      },
+      { t: "h2", v: "Aceptar una cotización" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Una cotización se firma por separado. Elige " },
+          { t: "strong", v: "Firmar" },
+          {
+            t: "text",
+            v: " en su fila para ver su total y la fecha hasta la que es válida, y luego ",
+          },
+          { t: "strong", v: "Aceptar la cotización" },
+          {
+            t: "text",
+            v: ". Antes descarga su PDF para leer las líneas y los términos. Al aceptar se registran tu nombre, la fecha y una huella del contenido exacto en el PDF. Si recibiste un enlace de firma, ábrelo, escribe el código de acceso, lee la cotización, escribe tu nombre y elige ",
+          },
+          { t: "strong", v: "Aceptar la cotización" },
+          {
+            t: "text",
+            v: ". Una cotización vencida ya no se puede aceptar; pide una versión nueva.",
+          },
         ],
       },
       {
@@ -4361,6 +5421,26 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "El correo del invitado" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Agregue el correo del invitado si lo tiene. La producción le envía ahí su pase, con su mesa y cuántas personas lo acompañan, cuando lo aprueba. Cada correo incluye un enlace para dejar de recibir los correos de la organización en esa dirección.",
+          },
+        ],
+      },
+      { t: "h2", v: "Dejar de recibir correos" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Un invitado que abre el enlace para darse de baja en un correo primero recibe una pregunta y luego deja de recibir todos los correos de esa organización en su dirección. Nada cambia hasta que confirma.",
+          },
+        ],
+      },
     ],
     "engagement-hospitality": [
       {
@@ -4368,7 +5448,16 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Hospitalidad es para artistas. Muestra lo que la producción organizó para ti: el alojamiento con sus fechas y el nombre del huésped, y el viaje, la comida y otros elementos con su hora y proveedor.",
+            v: "Hospitalidad es para artistas. Empieza con tu estadía, día por día: tus vuelos, la entrada y salida de tu hotel, las recogidas y los recorridos que te llevan a ti o a las personas por las que respondes (con el conductor, el vehículo y los horarios), las salas reservadas para ti y tus horarios de presentación. Lo que la producción cambió desde tu última visita lleva una etiqueta que dice qué cambió, como un nuevo horario de presentación, y lo que eliminó aparece en Eliminado desde tu última visita. Una visita dura 30 minutos, así que al actualizar la página las etiquetas se mantienen; Marcar todo como visto las quita. Las recogidas y las salas reservadas aparecen en su día pero nunca llevan etiqueta.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Debajo de tu estadía aparecen la comida y los demás elementos que organizó la producción, con su hora y proveedor.",
           },
         ],
       },
@@ -4805,6 +5894,44 @@ export const HELP_BODIES: HelpBodies = {
         ],
       },
     ],
+    "engagement-project-details": [
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Datos del proyecto aparece cuando la organización ofrece viaje, uniformes o estacionamiento en tu contratación. Solo pide lo que el proyecto ofrece: tu solicitud de viaje (los aeropuertos y las fechas de llegada y de regreso, y si necesitas que te recojan o una habitación), tus tallas de uniforme y el vehículo que estacionas en el sitio.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Cada paso se guarda al continuar, así que puedes parar y volver. Usar mis últimos datos llena un paso con lo que ingresaste en un proyecto anterior; revísalo y continúa para guardarlo.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Estos datos se quedan en esta contratación y nunca se escriben en tu perfil. La organización solo lee los tipos que su gente necesita para su trabajo, y tu empresa los ve mientras estás en su lista; cada vez que otra persona los lee, tu registro de accesos en Configuración lo muestra. Se eliminan después de que la contratación se completa o se cancela, 90 días después salvo que la organización fije otro plazo.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Si tu empresa ingresó algo por ti, se te avisa y puedes corregirlo aquí. Puedes borrar un tipo de dato en cualquier momento.",
+          },
+        ],
+      },
+    ],
     "engagement-proof-of-performance": [
       {
         t: "p",
@@ -5086,6 +6213,16 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Tus salas" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "La sala de espera o el camerino reservado para ti, con su hora de entrada y salida y la presentación que atiende. Cada hoja del día también muestra los contactos locales de ese día.",
+          },
+        ],
+      },
       {
         t: "p",
         c: [
@@ -5201,6 +6338,19 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Cada envío muestra sus archivos, versión por versión, con la decisión de la organización: ",
+          },
+          { t: "strong", v: "Aprobado" },
+          { t: "text", v: " o " },
+          { t: "strong", v: "Cambios solicitados" },
+          { t: "text", v: ", con lo que hay que cambiar. Una versión nueva empieza sin revisar." },
+        ],
+      },
     ],
     "engagement-time": [
       {
@@ -5303,23 +6453,22 @@ export const HELP_BODIES: HelpBodies = {
     ],
     "engagement-travel-and-lodging": [
       { t: "p", c: [{ t: "text", v: "Viaje y alojamiento es para el equipo técnico." }] },
-      { t: "h2", v: "Itinerario" },
+      { t: "h2", v: "Tu estadía" },
       {
         t: "p",
         c: [
           {
             t: "text",
-            v: "Cada tramo de un lugar a otro, con la empresa y el número de servicio, las horas de salida y llegada, el código de confirmación y el medio de transporte.",
+            v: "Toda tu estadía, día por día: cada tramo de un lugar a otro, con la empresa y el número de servicio, las horas de salida y llegada, el código de confirmación y el medio de transporte, la entrada y salida de tu hotel en sus fechas, y tu transporte terrestre: dónde y cuándo te recogen, el destino, el conductor y el vehículo, el vuelo que recibe y quién viaja contigo (si conduces, aparecen todos los pasajeros). Un tramo aparece el día en que sale y una recogida en su día, cada uno en su propia zona horaria.",
           },
         ],
       },
-      { t: "h2", v: "Alojamiento" },
       {
         t: "p",
         c: [
           {
             t: "text",
-            v: "Tu hotel o bloque de habitaciones, con las fechas de entrada y salida y el nombre del huésped.",
+            v: 'Lo que la organización cambió desde tu última visita lleva una etiqueta que dice qué cambió, como "Cambió desde tu última visita: Salida", y lo que eliminó aparece en Eliminado desde tu última visita. Una visita dura 30 minutos, así que al actualizar la página las etiquetas se mantienen; Marcar todo como visto las quita. Las etiquetas empiezan a partir de tu segunda visita. El transporte terrestre aparece en su día pero nunca lleva etiqueta.',
           },
         ],
       },
@@ -5328,6 +6477,16 @@ export const HELP_BODIES: HelpBodies = {
         t: "p",
         c: [
           { t: "text", v: "Otros viajes que organizó la organización, con su hora y proveedor." },
+        ],
+      },
+      { t: "h2", v: "Contactos locales" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Los contactos que la producción comparte para el proyecto, primero los de hoy, con un número para llamar y un correo.",
+          },
         ],
       },
       {
@@ -5601,7 +6760,7 @@ export const HELP_BODIES: HelpBodies = {
           { t: "strong", v: "Mod+K" },
           {
             t: "text",
-            v: " o elige Buscar para ir a cualquier página, contratación u oportunidad. Pulsa ",
+            v: " o elige Buscar para ir a cualquier página, o para encontrar por sus palabras tus documentos, mensajes, contrataciones, oportunidades, acciones y configuración. Pulsa ",
           },
           { t: "strong", v: "?" },
           {
@@ -5612,6 +6771,94 @@ export const HELP_BODIES: HelpBodies = {
           { t: "text", v: "." },
         ],
       },
+      { t: "h2", v: "Con el teclado" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Funcionan en todas partes en una computadora. Mod es Cmd en una Mac y Ctrl en los demás equipos.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "Mod+K" },
+            { t: "text", v: ": Buscar en Gateway" },
+          ],
+          [
+            { t: "strong", v: "?" },
+            { t: "text", v: ": Abrir la ayuda de esta página" },
+          ],
+          [
+            { t: "strong", v: "A" },
+            { t: "text", v: ": Abrir el menú de la cuenta" },
+          ],
+          [
+            { t: "strong", v: "O" },
+            { t: "text", v: ": Cambiar de organización" },
+          ],
+          [
+            { t: "strong", v: "Esc" },
+            { t: "text", v: ": Cerrar un menú, diálogo o panel" },
+          ],
+          [
+            { t: "strong", v: "Mod+Z" },
+            { t: "text", v: ": Deshacer el último cambio" },
+          ],
+          [
+            { t: "strong", v: "Mod+Shift+Z" },
+            { t: "text", v: ": Rehacer el cambio que deshizo" },
+          ],
+        ],
+      },
+      { t: "p", c: [{ t: "text", v: "Dos teclas, una después de la otra, llevan a un destino:" }] },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "G H" },
+            { t: "text", v: ": Ir a Inicio" },
+          ],
+          [
+            { t: "strong", v: "G E" },
+            { t: "text", v: ": Ir a Explorar" },
+          ],
+          [
+            { t: "strong", v: "G W" },
+            { t: "text", v: ": Ir a Trabajo" },
+          ],
+          [
+            { t: "strong", v: "G M" },
+            { t: "text", v: ": Ir a Dinero" },
+          ],
+          [
+            { t: "strong", v: "G I" },
+            { t: "text", v: ": Ir a Mensajes" },
+          ],
+          [
+            { t: "strong", v: "G P" },
+            { t: "text", v: ": Ir a Perfil" },
+          ],
+          [
+            { t: "strong", v: "G D" },
+            { t: "text", v: ": Ir a Documentos" },
+          ],
+          [
+            { t: "strong", v: "G T" },
+            { t: "text", v: ": Ir a Configuración" },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "link", v: "Atajos de teclado", href: "help:settings-keyboard-shortcuts" },
+          { t: "text", v: " explica el resto." },
+        ],
+      },
     ],
     home: [
       {
@@ -5619,7 +6866,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Inicio empieza con un cuadro de búsqueda: escribe un rol, una habilidad o una organización para buscar en Explorar.",
+            v: "Inicio empieza con un cuadro de búsqueda. Mientras escribes, muestra tus propios documentos, mensajes, contrataciones y oportunidades, y las acciones y la configuración que coinciden. Elige uno para abrirlo, o pulsa Intro para buscar todas las oportunidades en Explorar.",
           },
         ],
       },
@@ -5663,14 +6910,35 @@ export const HELP_BODIES: HelpBodies = {
           ],
         ],
       },
-      { t: "h2", v: "Novedades" },
+      { t: "h2", v: "Para tu información" },
       {
         t: "p",
         c: [
           {
             t: "text",
-            v: "Cuando una organización recibe, aprueba, programa o paga una de tus facturas, los últimos pasos aparecen aquí. Los que no has leído se marcan como Nuevo.",
+            v: "Novedades que no te piden nada: una organización recibió, aprobó, programó o pagó una de tus facturas, una coincidencia nueva para una búsqueda guardada, un aviso de que algo vence, un turno o una oferta nuevos. Los que no has leído se marcan como Nuevo, y cada uno abre donde le das seguimiento.",
           },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Quita cada uno con " },
+          { t: "strong", v: "Listo" },
+          { t: "text", v: ", o " },
+          { t: "strong", v: "Posponer" },
+          {
+            t: "text",
+            v: " para que vuelva en un día. Con el teclado, selecciona un elemento y presiona ",
+          },
+          { t: "strong", v: "E" },
+          { t: "text", v: " para Listo o " },
+          { t: "strong", v: "H" },
+          { t: "text", v: " para posponerlo; " },
+          { t: "strong", v: "J" },
+          { t: "text", v: " y " },
+          { t: "strong", v: "K" },
+          { t: "text", v: " pasan de un elemento a otro." },
         ],
       },
       { t: "h2", v: "Recomendadas para ti" },
@@ -5690,7 +6958,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "El selector de vista muestra Inicio como un feed, o como una bandeja con solo Te necesita y Novedades.",
+            v: "El selector de vista muestra Inicio como un feed, o como una bandeja con solo Te necesita y Para tu información.",
           },
         ],
       },
@@ -5858,7 +7126,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Cada paso también aparece en Novedades, en Inicio, y te llega por correo o aviso push según lo que elijas en ",
+            v: "Cada paso también aparece en Para tu información, en Inicio, y te llega por correo o aviso push según lo que elijas en ",
           },
           { t: "link", v: "Configuración, Notificaciones", href: "help:settings-notifications" },
           { t: "text", v: "." },
@@ -6067,6 +7335,30 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Cliente confidencial" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Algunas organizaciones mantienen en privado el cliente y el evento hasta que te contratan. Una publicación con ",
+          },
+          { t: "strong", v: "Cliente confidencial" },
+          {
+            t: "text",
+            v: " muestra igual la organización, la ciudad, las fechas y el pago, pero no el lugar, y la distancia desde un sitio se mide hasta un punto cercano al lugar y no hasta el lugar mismo. El lugar aparece cuando aceptan tu postulación.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "El título y la descripción de la organización no pueden nombrar el proyecto, su cliente ni el lugar. Algunos detalles son palabras de la propia organización y no se revisan: los nombres de los puestos, las preguntas de la postulación, las descripciones de los requisitos, los lugares de entrevistas y audiciones, y los mensajes de una oferta. Tampoco se vuelve a revisar un proyecto, un lugar o un cliente cuyo nombre cambió después de publicar. Si alguno de ellos revela al cliente, reporta la publicación.",
+          },
+        ],
+      },
       { t: "h2", v: "Requisitos" },
       {
         t: "p",
@@ -6134,6 +7426,95 @@ export const HELP_BODIES: HelpBodies = {
         ],
       },
     ],
+    "profile-badge-photos": [
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Las organizaciones que tienen una credencial vigente para ti imprimen una credencial con ella. Esta página muestra una tarjeta por organización, con la foto que imprime su credencial. Una organización puede pedirte una foto; la solicitud abre esta página.",
+          },
+        ],
+      },
+      { t: "h2", v: "Qué muestra cada tarjeta" },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "En tu credencial" },
+            { t: "text", v: ": tu foto se imprime en la credencial." },
+          ],
+          [
+            { t: "strong", v: "En revisión" },
+            {
+              t: "text",
+              v: ": tu foto pasa por la revisión antivirus y se imprime en unos minutos.",
+            },
+          ],
+          [
+            { t: "strong", v: "No aceptada" },
+            { t: "text", v: ": la revisión rechazó tu foto. Sube otra." },
+          ],
+          [
+            { t: "strong", v: "Tu foto de perfil" },
+            {
+              t: "text",
+              v: ": no entregaste foto de credencial, así que se imprime la foto de tu ",
+            },
+            { t: "link", v: "perfil", href: "help:profile" },
+            {
+              t: "text",
+              v: ", cuando tu configuración de privacidad deja que la organización la vea.",
+            },
+          ],
+          [
+            { t: "strong", v: "Solicitada" },
+            { t: "text", v: " o " },
+            { t: "strong", v: "Aún no hay" },
+            { t: "text", v: ": la credencial se imprime sin foto." },
+          ],
+        ],
+      },
+      { t: "h2", v: "Entregar una foto" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Elige " },
+          { t: "strong", v: "Subir o tomar foto" },
+          {
+            t: "text",
+            v: " para escoger una foto o tomarla con la cámara. Arrastra la foto, o usa las flechas y el control de zoom, para elegir lo que se ve en el marco de 3 por 4, y luego elige ",
+          },
+          { t: "strong", v: "Guardar foto" },
+          { t: "text", v: ". Nada lee ni detecta tu cara; el recorte es tuyo." },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "strong", v: "Usar mi foto de perfil" },
+          {
+            t: "text",
+            v: " copia tu foto de perfil a la credencial, cuando es un JPEG o PNG de 2 MiB como máximo.",
+          },
+        ],
+      },
+      { t: "h2", v: "Quién la ve y cómo retirarla" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "El personal de credenciales de la organización ve la foto, y también cualquiera que vea tu credencial. Al guardar una foto se registra tu consentimiento para esa organización. Elige ",
+          },
+          { t: "strong", v: "Quitar" },
+          {
+            t: "text",
+            v: " cuando quieras: la foto se borra, tu consentimiento se retira y la organización imprime tu credencial sin ella.",
+          },
+        ],
+      },
+    ],
     profile: [
       {
         t: "p",
@@ -6180,7 +7561,17 @@ export const HELP_BODIES: HelpBodies = {
           ],
           [
             { t: "strong", v: "Calificaciones" },
-            { t: "text", v: ": las de contrataciones completadas, con su respuesta si la hay." },
+            {
+              t: "text",
+              v: ": las que te dieron las organizaciones tras contrataciones completadas, con su respuesta si la hay. Solo tú y la organización que dio una calificación pueden leerla, salvo que actives ",
+            },
+            { t: "strong", v: "Mostrar todas mis calificaciones en mi perfil" },
+            { t: "text", v: " en Privacidad del perfil. Usa " },
+            { t: "strong", v: "Impugnar esta calificación" },
+            {
+              t: "text",
+              v: " si se refiere a otra persona, es falsa, ofensiva o muestra datos personales.",
+            },
           ],
           [
             { t: "strong", v: "Representación" },
@@ -6214,6 +7605,48 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "Cuando actúas como una cuenta de empresa, esta página muestra el perfil y el equipo de la empresa.",
+          },
+        ],
+      },
+    ],
+    "quote-requests": [
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Cuando una empresa invita a tu cuenta a cotizar, la solicitud aparece aquí para los propietarios y administradores de tu cuenta, con lo que se pide, cuánto y para cuándo.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Esta página es de solo lectura. Envía tu cotización al contacto que indica y esa persona la registra. Una solicitud sale de esta página cuando la empresa la cierra.",
+          },
+        ],
+      },
+    ],
+    registration: [
+      { t: "h2", v: "Registrarte" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Una organización comparte una página de registro para encontrar equipo y voluntarios. Regístrate o inicia sesión, y responde sus preguntas. Tu teléfono de trabajo va primero y se guarda en tu configuración. Confirmas la edad mínima de la página, y puedes compartir solo con esa organización las secciones de tu perfil que elijas. Tu cuenta sigue siendo tuya.",
+          },
+        ],
+      },
+      { t: "h2", v: "Qué sigue" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "La organización aprueba o rechaza, y te avisa en ambos casos. Una vez aprobado estás en su lista de equipo y puedes ver en Explorar el trabajo que ofrece a esa lista. Puedes retirarte de la página en cualquier momento.",
           },
         ],
       },
@@ -6359,6 +7792,19 @@ export const HELP_BODIES: HelpBodies = {
       {
         t: "p",
         c: [
+          { t: "text", v: "Para mantener tu calendario al día, " },
+          { t: "strong", v: "Agrega un calendario" },
+          {
+            t: "text",
+            v: " aquí. Dale un nombre, que tu calendario muestra, y elige qué muestra: turnos, reuniones, hitos, fechas límite y cues, como tus horarios de presentación. ",
+          },
+          { t: "strong", v: "Editar" },
+          { t: "text", v: " cambia el nombre y el contenido sin cambiar el enlace." },
+        ],
+      },
+      {
+        t: "p",
+        c: [
           { t: "text", v: "Elige " },
           { t: "strong", v: "Abrir Próximos" },
           { t: "text", v: " para ir allí." },
@@ -6410,28 +7856,84 @@ export const HELP_BODIES: HelpBodies = {
     "settings-keyboard-shortcuts": [
       {
         t: "p",
-        c: [{ t: "text", v: "En una computadora, Gateway atiende estos atajos en todas partes:" }],
+        c: [
+          {
+            t: "text",
+            v: "En una computadora, Gateway atiende estos atajos en todas partes. Mod es Cmd en una Mac y Ctrl en los demás equipos.",
+          },
+        ],
       },
       {
         t: "ul",
         items: [
           [
             { t: "strong", v: "Mod+K" },
-            {
-              t: "text",
-              v: ": buscar páginas, contrataciones y oportunidades. Mod es Cmd en una Mac y Ctrl en los demás equipos.",
-            },
+            { t: "text", v: ": Buscar en Gateway" },
           ],
           [
             { t: "strong", v: "?" },
-            {
-              t: "text",
-              v: ": abrir la ayuda de la página donde estás, salvo que estés escribiendo.",
-            },
+            { t: "text", v: ": Abrir la ayuda de esta página" },
+          ],
+          [
+            { t: "strong", v: "A" },
+            { t: "text", v: ": Abrir el menú de la cuenta" },
+          ],
+          [
+            { t: "strong", v: "O" },
+            { t: "text", v: ": Cambiar de organización" },
           ],
           [
             { t: "strong", v: "Esc" },
-            { t: "text", v: ": cerrar el menú, diálogo o panel abierto." },
+            { t: "text", v: ": Cerrar un menú, diálogo o panel" },
+          ],
+          [
+            { t: "strong", v: "Mod+Z" },
+            { t: "text", v: ": Deshacer el último cambio" },
+          ],
+          [
+            { t: "strong", v: "Mod+Shift+Z" },
+            { t: "text", v: ": Rehacer el cambio que deshizo" },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [{ t: "text", v: "Para ir a un destino, pulsa dos teclas, una después de la otra:" }],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "G H" },
+            { t: "text", v: ": Ir a Inicio" },
+          ],
+          [
+            { t: "strong", v: "G E" },
+            { t: "text", v: ": Ir a Explorar" },
+          ],
+          [
+            { t: "strong", v: "G W" },
+            { t: "text", v: ": Ir a Trabajo" },
+          ],
+          [
+            { t: "strong", v: "G M" },
+            { t: "text", v: ": Ir a Dinero" },
+          ],
+          [
+            { t: "strong", v: "G I" },
+            { t: "text", v: ": Ir a Mensajes" },
+          ],
+          [
+            { t: "strong", v: "G P" },
+            { t: "text", v: ": Ir a Perfil" },
+          ],
+          [
+            { t: "strong", v: "G D" },
+            { t: "text", v: ": Ir a Documentos" },
+          ],
+          [
+            { t: "strong", v: "G T" },
+            { t: "text", v: ": Ir a Configuración" },
           ],
         ],
       },
@@ -6440,7 +7942,12 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "En la búsqueda, las flechas te mueven y Enter abre. Cada botón con ícono indica su atajo en una descripción emergente.",
+            v: "Un destino que no puedes abrir no tiene atajo, y Cambiar de organización solo funciona donde el menú de la cuenta lo ofrece. Los atajos nunca actúan mientras escribes en un campo, salvo los que llevan ",
+          },
+          { t: "strong", v: "Mod" },
+          {
+            t: "text",
+            v: ". En la búsqueda, las flechas te mueven y Enter abre. Cada botón con ícono indica su atajo en una descripción emergente.",
           },
         ],
       },
@@ -6451,8 +7958,14 @@ export const HELP_BODIES: HelpBodies = {
           { t: "strong", v: "Atajos de teclado" },
           {
             t: "text",
-            v: " de esta página es tu ajuste personal, compartido con Atlas, donde activa o desactiva los atajos de una sola tecla como J y K.",
+            v: " de esta página es tu ajuste personal, compartido con Atlas. Si lo desactivas, se detienen todos los atajos sin ",
           },
+          { t: "strong", v: "Mod" },
+          { t: "text", v: ", " },
+          { t: "strong", v: "Ctrl" },
+          { t: "text", v: " o " },
+          { t: "strong", v: "Alt" },
+          { t: "text", v: "." },
         ],
       },
     ],
@@ -6562,7 +8075,7 @@ export const HELP_BODIES: HelpBodies = {
             { t: "strong", v: "Respuesta automática" },
             {
               t: "text",
-              v: ": se envía una vez a cada persona que te escribe mientras estás fuera.",
+              v: ": se envía una vez a cada persona que te escribe mientras estás fuera. Una respuesta con un insulto discriminatorio no se guarda.",
             },
           ],
         ],
@@ -6847,20 +8360,45 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Tus datos laborales vienen de tu perfil: tus habilidades, certificaciones, tarifas y disponibilidad. Las organizaciones los ven cuando postulas o compartes tu perfil.",
+            v: "Configuración, Datos laborales reúne lo que las organizaciones necesitan para alimentarte, reservar tus viajes y cuidarte: contactos de emergencia, necesidades alimentarias y de accesibilidad, programas de lealtad y los datos de tu pasaporte.",
           },
         ],
       },
       {
         t: "p",
         c: [
-          { t: "text", v: "Elige " },
-          { t: "strong", v: "Editar perfil" },
-          { t: "text", v: " para cambiarlos en " },
-          { t: "link", v: "Configuración del perfil", href: "help:settings-profile" },
-          { t: "text", v: ". Marca las fechas en que estás disponible o no en tu " },
-          { t: "link", v: "perfil", href: "help:profile" },
+          {
+            t: "text",
+            v: "Las tallas de uniforme y tu asiento, comida y aeropuerto de origen ya no se guardan aquí. Cada producción te los pide en el proyecto en cuya lista estás y los guarda solo para ese proyecto: abre la contratación y elige ",
+          },
+          { t: "strong", v: "Datos del proyecto" },
           { t: "text", v: "." },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Una organización ve una categoría solo mientras la compartes con esa contratación. Tus alergias están restringidas: solo el responsable de catering y el personal médico en el lugar del proyecto, el Propietario de la organización y cualquier otra persona a quien la organización dé acceso a datos médicos pueden leerlas, y cada vez que lo hacen aparece en tu registro de acceso. Contacto, tu correo y teléfono de inicio de sesión, se comparte junto con al menos otra categoría.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Tus habilidades, certificaciones, tarifas y disponibilidad están en " },
+          { t: "link", v: "Configuración del perfil", href: "help:settings-profile" },
+          { t: "text", v: "." },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Los datos de dieta, alergias y accesibilidad son opcionales. Antes de añadir alguno, lees qué recopilamos, por qué, quién lo ve y cómo retirar el consentimiento, y aceptas. Retíralo desde el mismo lugar en cualquier momento: dejamos de usar los datos de inmediato y los eliminamos. Si otra persona introdujo datos por ti, aparecen aquí para que puedas eliminarlos: quien los introdujo no podrá volver a introducirlos por ti, con tu cuenta o tu correo, en ninguna parte de esa organización, hasta que lo aceptes tú. Si una entrada de la lista de invitados es de otra persona, elige No soy yo: tu nombre y tu correo se quitan de ella, y las necesidades del invitado siguen con quien lleva la lista.",
+          },
         ],
       },
     ],

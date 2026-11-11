@@ -90,10 +90,22 @@ test("an Owner on the Pro trial pays for Core in Checkout and manages it in the 
   await expect(page.getByRole("navigation", { name: "Billing term" })).toBeVisible();
   await expectAccessible(page);
 
-  // Choosing a plan asks for a second factor first, and Stripe hears nothing until then.
+  // Choosing a plan shows its renewal terms first, with nothing ticked (ADR 0161).
   const before = stripe.requests.length;
-  const core = page.getByRole("form", { name: "Choose Core" });
-  await core.getByRole("button", { name: "Choose Core" }).click();
+  await page.getByRole("link", { name: "Choose Core" }).click();
+  const statement = page.getByTestId("renewal-statement");
+  await expect(statement).toContainText(
+    "Core renews automatically every month at $149 USD a month",
+  );
+  await expect(statement).toContainText("choose End plan in Settings, Billing and Plan");
+  const agree = page.getByRole("checkbox", { name: /I agree to these renewal terms/ });
+  await expect(agree).not.toBeChecked();
+  await expectAccessible(page);
+
+  // Agreeing asks for a second factor first, and Stripe hears nothing until then.
+  const core = page.getByRole("form", { name: "Agree and continue to payment" });
+  await agree.check();
+  await core.getByRole("button", { name: "Agree and continue to payment" }).click();
   await expect(core.getByText(STEP_UP)).toBeVisible();
   const dialog = page.getByRole("dialog", { name: "Set up a second factor" });
   await expect(dialog).toBeVisible();
@@ -104,11 +116,14 @@ test("an Owner on the Pro trial pays for Core in Checkout and manages it in the 
   // With a second factor, Checkout opens on the fake, carrying the rest of the trial.
   await stepUp(page, email);
   await page.reload();
+  await page.getByRole("checkbox", { name: /I agree to these renewal terms/ }).check();
   await page
-    .getByRole("form", { name: "Choose Core" })
-    .getByRole("button", { name: "Choose Core" })
+    .getByRole("form", { name: "Agree and continue to payment" })
+    .getByRole("button", { name: "Agree and continue to payment" })
     .click();
   await page.waitForURL(`${stripe.url}/pay/**`);
+  // Stripe's own page repeats the terms above its pay button.
+  await expect(page.getByTestId("renewal-message")).toContainText("Core renews automatically");
   await expect(page.getByRole("heading", { name: "Fake Stripe Checkout" })).toBeVisible();
   await expect(page.getByRole("list", { name: "Line items" })).toContainText(
     "xos_plan_core_monthly_v4 x 1",
@@ -133,7 +148,7 @@ test("an Owner on the Pro trial pays for Core in Checkout and manages it in the 
   await expect(page.getByText(/^Payment received/)).toHaveCount(0);
   await expect(page.getByTestId("billing-lifecycle")).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Billing portal" })).toBeVisible();
-  await expect(page.getByRole("button", { name: /^Choose / })).toHaveCount(0);
+  await expect(page.getByRole("link", { name: /^Choose / })).toHaveCount(0);
   await expectAccessible(page);
   expect(await subscriptionOf(slug)).toEqual({ plan_code: "core", subscription_state: "active" });
   expect((await checkoutsOf(slug)).map((c) => c.checkout_state)).toEqual(["Completed"]);
@@ -158,8 +173,11 @@ test("a canceled checkout charges nothing, and choosing again expires the open s
   // Yearly billing for Pro, then back out of Checkout.
   await page.getByRole("link", { name: "Yearly, two months free" }).click();
   await page.waitForURL(`**/${slug}/settings/billing-and-plan?term=annual`);
-  const pro = page.getByRole("button", { name: "Choose Pro, billed yearly" });
-  await pro.click();
+  await page.getByRole("link", { name: "Choose Pro, billed yearly" }).click();
+  await expect(page.getByTestId("renewal-statement")).toContainText("every year");
+  await page.getByRole("checkbox", { name: /I agree to these renewal terms/ }).check();
+  await page.getByRole("textbox", { name: "Your initials" }).fill("BB");
+  await page.getByRole("button", { name: "Agree and continue to payment" }).click();
   await page.waitForURL(`${stripe.url}/pay/**`);
   await expect(page.getByRole("list", { name: "Line items" })).toContainText(
     "xos_plan_pro_annual_v4 x 1",
@@ -171,7 +189,9 @@ test("a canceled checkout charges nothing, and choosing again expires the open s
   expect(await subscriptionOf(slug)).toEqual({ plan_code: "pro", subscription_state: "trialing" });
 
   // Choosing again expires the first session in Stripe before the second opens.
-  await page.getByRole("button", { name: "Choose Team" }).click();
+  await page.getByRole("link", { name: "Choose Team" }).click();
+  await page.getByRole("checkbox", { name: /I agree to these renewal terms/ }).check();
+  await page.getByRole("button", { name: "Agree and continue to payment" }).click();
   await page.waitForURL(`${stripe.url}/pay/**`);
   expect(stripe.sessions.get(first)?.status).toBe("expired");
   expect((await checkoutsOf(slug)).map((c) => [c.plan_code, c.checkout_state])).toEqual([

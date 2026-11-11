@@ -52,6 +52,7 @@ export function loadHub(): Promise<Hub | null> {
   })().catch((error: unknown) => {
     // Offline or a new deploy: the next page that watches tries again.
     hub = null;
+    // eslint-disable-next-line xos/no-server-console -- runs in the browser: only client components import it
     console.error(error);
     return null;
   });

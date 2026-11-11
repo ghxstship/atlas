@@ -7,10 +7,12 @@
  * 422 with the rule the database named.
  */
 import { z } from "@hono/zod-openapi";
+import { Constants } from "@xos/data/database.types";
 import { defineResource, fields } from "@xos/schemas";
 import { defineAdditions } from "../additions.ts";
 import { orNull } from "../correct.ts";
 import { collectionAction, collectionQuery, itemAction, itemQuery, resource } from "../define.ts";
+import { showChannelActions } from "./parts/segment-library.ts";
 
 // Shared pieces ------------------------------------------------------------------------------------
 
@@ -29,7 +31,7 @@ const AUDIT = {
 const AUDIT_SET = ["created_by", "updated_by"] as const;
 
 const AudienceKind = label(
-  ["Organization", "Project", "Team", "Department", "Role", "Group"],
+  Constants.app.Enums.audience_kind,
   "Who the row reaches. Department (a canon department, 1365) is for feed posts only.",
 );
 const AUDIENCE = {
@@ -85,7 +87,7 @@ const Group = defineResource({
   serverSet: ["archived_at", ...AUDIT_SET],
   fields: {
     name: fields.text("Group name, unique in the org.", "Rigging Crew", 120),
-    group_kind: label(["Department", "Project", "Crew", "Custom"], "What the group gathers."),
+    group_kind: label(Constants.app.Enums.group_kind, "What the group gathers."),
     project_id: orNull(fields.ref("project a Project group gathers")),
     description: orNull(fields.text("What the group is for.", "Everyone flying points.", 2000)),
     archived_at: orNull(fields.instant("When the group was archived.")),
@@ -103,7 +105,7 @@ const GroupMember = defineResource({
   fields: {
     group_id: fields.ref("group"),
     membership_id: fields.ref("member of the org in the group"),
-    group_role: label(["Member", "Owner"], "Owners add and remove members."),
+    group_role: label(Constants.app.Enums.group_role, "Owners add and remove members."),
     ...AUDIT,
   },
 });
@@ -115,7 +117,7 @@ const Conversation = defineResource({
     "A chat conversation: one-to-one between two members, or the conversation of a group.",
   serverSet: ["conversation_kind", "group_id", "direct_key", "last_message_at", ...AUDIT_SET],
   fields: {
-    conversation_kind: label(["Direct", "Group"], "Direct or Group."),
+    conversation_kind: label(Constants.app.Enums.conversation_kind, "Direct or Group."),
     group_id: orNull(fields.ref("group whose conversation this is")),
     direct_key: orNull(
       fields.text(
@@ -138,7 +140,7 @@ const ChatMessage = defineResource({
   fields: {
     conversation_id: fields.ref("conversation"),
     author_membership_id: fields.ref("member who sent it"),
-    message_kind: label(["Text", "Photo", "File", "Voice"], "What the message carries."),
+    message_kind: label(Constants.app.Enums.chat_message_kind, "What the message carries."),
     body: orNull(
       fields.text(
         "Message text; optional for a photo, file or voice note.",
@@ -216,7 +218,7 @@ const FeedPost = defineResource({
   ],
   fields: {
     post_kind: label(
-      ["Announcement", "Update", "Poll", "Recognition"],
+      Constants.app.Enums.feed_post_kind,
       "Post kind; Poll posts come from the createPoll action, Recognition posts from recognitions.",
     ),
     title: orNull(fields.text("Optional headline.", "Wristband change", 200)),
@@ -334,7 +336,7 @@ const Survey = defineResource({
     author_membership_id: orNull(fields.ref("member who wrote the survey")),
     is_anonymous: fields.bool("Whether answers are stored with no respondent.", true),
     min_responses: fields.int("Responses needed before results show.", 5, 3),
-    survey_state: label(["Draft", "Open", "Closed"], "Draft, Open or Closed."),
+    survey_state: label(Constants.app.Enums.survey_state, "Draft, Open or Closed."),
     closes_at: orNull(fields.instant("When responses stop.")),
     ...AUDIT,
   },
@@ -358,7 +360,7 @@ const SurveyQuestion = defineResource({
     survey_id: fields.ref("survey"),
     position: fields.int("Order, from 1.", 1, 1),
     prompt: fields.text("Question text.", "How safe did the load-in feel?", 500),
-    question_kind: label(["Scale", "Choice", "Text"], "Question kind."),
+    question_kind: label(Constants.app.Enums.survey_question_kind, "Question kind."),
     choices: z
       .array(z.string())
       .nullable()
@@ -410,7 +412,7 @@ const SurveyDraftRequest = z
             .max(500)
             .meta({ description: "Question text.", example: "How safe did it feel?" }),
           kind: z
-            .enum(["Scale", "Choice", "Text"])
+            .enum(Constants.app.Enums.survey_question_kind)
             .meta({ description: "Question kind.", example: "Scale" }),
           choices: z
             .array(z.string().min(1))
@@ -451,7 +453,7 @@ const SurveyResults = z
           position: fields.int("Order.", 1),
           prompt: fields.text("Question text.", "How safe did it feel?"),
           kind: z
-            .enum(["Scale", "Choice", "Text"])
+            .enum(Constants.app.Enums.survey_question_kind)
             .meta({ description: "Question kind.", example: "Scale" }),
           scale_max: z.number().int().nullable().meta({ description: "Scale top.", example: 5 }),
           answered: fields.int("Answers given.", 12),
@@ -506,7 +508,7 @@ const WorkforceEvent = defineResource({
   immutable: ["audience_kind", "team_id", "role_id", "group_id"],
   serverSet: ["organizer_membership_id", "canceled_at", "cancel_reason", ...AUDIT_SET],
   fields: {
-    event_kind: label(["Briefing", "Crew Call", "Meeting"], "Event kind."),
+    event_kind: label(Constants.app.Enums.workforce_event_kind, "Event kind."),
     title: fields.text("Event title.", "Load-in crew call", 200),
     agenda: orNull(fields.longText("Agenda, in order.", "1. Safety brief. 2. Assignments.")),
     location: orNull(fields.text("Where to meet.", "Dock door 3", 300)),
@@ -531,7 +533,7 @@ const EventRsvp = defineResource({
   fields: {
     workforce_event_id: fields.ref("event"),
     membership_id: fields.ref("invitee"),
-    response: label(["Going", "Maybe", "Declined"], "RSVP answer."),
+    response: label(Constants.app.Enums.rsvp_response, "RSVP answer."),
     responded_at: fields.instant("When they last answered."),
     ...AUDIT,
   },
@@ -551,7 +553,7 @@ const EventCheckIn = defineResource({
   fields: {
     workforce_event_id: fields.ref("event"),
     membership_id: fields.ref("attendee"),
-    check_in_method: label(["Self", "Organizer", "Scan"], "How they were checked in."),
+    check_in_method: label(Constants.app.Enums.check_in_method, "How they were checked in."),
     checked_in_at: fields.instant("When they checked in."),
     ...AUDIT,
   },
@@ -621,7 +623,7 @@ const FormTemplate = defineResource({
       .optional()
       .meta({ description: "Score needed to pass; null when not scored to pass.", example: 2 }),
     approver_role_id: orNull(fields.ref("org role whose holders approve submissions")),
-    template_state: label(["Draft", "Published", "Retired"], "Draft, Published or Retired."),
+    template_state: label(Constants.app.Enums.form_template_state, "Draft, Published or Retired."),
     current_version: fields.int("Latest published version; 0 before the first publish.", 1),
     ...AUDIT,
   },
@@ -676,7 +678,7 @@ const FormSubmission = defineResource({
       fields.text("Signature image path in the field-media bucket.", "org/forms/sig.png", 500),
     ),
     signed_at: orNull(fields.instant("When it was signed.")),
-    submission_state: label(["Submitted", "Approved", "Rejected", "Recorded"], "Submission state."),
+    submission_state: label(Constants.app.Enums.form_submission_state, "Submission state."),
     decided_by_membership_id: orNull(fields.ref("approver who decided")),
     decision_note: orNull(fields.text("Approver's note.", "Good to lift.", 1000)),
     ...AUDIT,
@@ -702,7 +704,7 @@ const TrainingCourse = defineResource({
     validity_days: orNull(fields.int("Days a pass stays current.", 365, 1)),
     pass_percent: fields.int("Quiz score needed to pass, in percent.", 80, 1),
     estimated_minutes: orNull(fields.int("Expected time.", 20, 1)),
-    course_state: label(["Draft", "Published", "Retired"], "Course state."),
+    course_state: label(Constants.app.Enums.training_course_state, "Course state."),
     ...AUDIT,
   },
 });
@@ -718,7 +720,7 @@ const TrainingLesson = defineResource({
     training_course_id: fields.ref("course"),
     position: fields.int("Order, from 1.", 1, 1),
     title: fields.text("Lesson title.", "Slings", 200),
-    lesson_kind: label(["Reading", "Video", "Quiz"], "Lesson kind."),
+    lesson_kind: label(Constants.app.Enums.training_lesson_kind, "Lesson kind."),
     body: orNull(fields.longText("Reading text or notes.", "Inspect every sling before use.")),
     video_url: orNull(fields.url("HTTPS address of the lesson video.")),
     ...AUDIT,
@@ -835,7 +837,7 @@ const HandbookArticle = defineResource({
       "Wear hearing protection near the stacks.",
     ),
     is_mandatory: fields.bool("Whether every member must acknowledge the current version.", true),
-    article_state: label(["Draft", "Published", "Archived"], "Article state."),
+    article_state: label(Constants.app.Enums.handbook_article_state, "Article state."),
     published_version: fields.int("Latest published version.", 1),
     published_at: orNull(fields.instant("When the latest version was published.")),
     ...AUDIT,
@@ -872,7 +874,7 @@ const HelpDeskTeam = defineResource({
   serverSet: ["archived_at", ...AUDIT_SET],
   fields: {
     name: fields.text("Team name.", "IT Desk", 120),
-    team_kind: label(["Operations", "IT", "HR", "Facilities", "Other"], "Team kind."),
+    team_kind: label(Constants.app.Enums.help_desk_team_kind, "Team kind."),
     description: orNull(fields.text("What the team helps with.", "Devices and accounts.", 1000)),
     first_response_hours: fields.int("Business hours to first response.", 8, 1),
     archived_at: orNull(fields.instant("When the team stopped taking requests.")),
@@ -911,17 +913,14 @@ const HelpDeskRequest = defineResource({
   fields: {
     ticket_number: fields.code("Display number.", "SUP-0001"),
     help_desk_team_id: fields.ref("team the request is routed to"),
-    category: label(
-      ["Question", "Problem", "Access", "Billing", "Account", "Feature Request"],
-      "What it is about.",
-    ),
-    severity: label(["Severity 3", "Severity 1", "Severity 2", "Severity 4"], "Severity."),
+    category: label(Constants.app.Enums.support_category, "What it is about."),
+    severity: label(Constants.app.Enums.support_severity, "Severity."),
     subject: fields.text("One-line summary.", "Tablet will not sign in", 200),
     body: fields.longText(
       "What happened and what is needed.",
       "The dock tablet shows a blank screen.",
     ),
-    ticket_state: label(["Open", "Waiting", "Resolved", "Closed"], "Request state."),
+    ticket_state: label(Constants.app.Enums.support_ticket_state, "Request state."),
     membership_id: fields.ref("member who asked"),
     assignee_membership_id: orNull(fields.ref("team member it is assigned to")),
     help_desk_response_due_at: orNull(fields.instant("When the first response is due.")),
@@ -955,7 +954,7 @@ const OccupancyCounter = defineResource({
     space_id: orNull(fields.ref("space counted")),
     name: fields.text("Counter name.", "Main Floor", 120),
     load_basis: label(
-      ["Occupant Load Factor", "Space Capacity", "Permit"],
+      Constants.app.Enums.occupancy_load_basis,
       "Where the permitted load comes from.",
     ),
     metric_domain: orNull(fields.code("Bible metric domain of the load factor.", "capacity")),
@@ -998,8 +997,8 @@ const WeatherThreshold = defineResource({
   serverSet: [...AUDIT_SET],
   fields: {
     project_id: fields.ref("project"),
-    hazard: label(["Wind", "Lightning", "Heat"], "Hazard."),
-    alert_level: label(["Monitor", "Restrict", "Evacuate"], "Level."),
+    hazard: label(Constants.app.Enums.weather_hazard, "Hazard."),
+    alert_level: label(Constants.app.Enums.weather_alert_level, "Level."),
     threshold_value: z
       .number()
       .min(0)
@@ -1010,7 +1009,7 @@ const WeatherThreshold = defineResource({
       "Unit: mph for wind, mi for lightning distance, F for heat index.",
     ),
     comparison: label(
-      ["At or Above", "At or Below"],
+      Constants.app.Enums.threshold_comparison,
       "At or Above for wind and heat, At or Below for lightning.",
     ),
     source_note: fields.text("Where the value comes from.", "Emergency plan 4.2", 300),
@@ -1027,7 +1026,7 @@ const WeatherAlertRole = defineResource({
   serverSet: [...AUDIT_SET],
   fields: {
     project_id: fields.ref("project"),
-    alert_level: label(["Monitor", "Restrict", "Evacuate"], "Level."),
+    alert_level: label(Constants.app.Enums.weather_alert_level, "Level."),
     role_code: fields.code("Canon role notified.", "5000.01.01"),
     ...AUDIT,
   },
@@ -1037,16 +1036,133 @@ const WeatherReading = defineResource({
   name: "WeatherReading",
   table: "app.weather_readings",
   description: "A weather reading on site, in the hazard's unit.",
-  serverSet: ["recorded_by_membership_id", ...AUDIT_SET],
+  serverSet: ["recorded_by_membership_id", "source", ...AUDIT_SET],
   fields: {
     project_id: fields.ref("project"),
-    hazard: label(["Wind", "Lightning", "Heat"], "Hazard."),
+    hazard: label(Constants.app.Enums.weather_hazard, "Hazard."),
     reading_value: z.number().min(0).max(200).meta({ description: "Reading.", example: 33 }),
     observed_at: fields.instant("When it was observed."),
     recorded_by_membership_id: orNull(fields.ref("member who recorded it")),
+    source: label(
+      Constants.app.Enums.weather_reading_source,
+      "Manual for a reading on site, NWS for one the official feed recorded (B8, 6256).",
+    ),
     ...AUDIT,
   },
 });
+
+/** app.weather_feeds (6256, B8): a project's official US National Weather Service feed. */
+const WeatherFeed = defineResource({
+  name: "WeatherFeed",
+  table: "app.weather_feeds",
+  description:
+    "A project's official weather feed (gap G-150): on while it exists, off once deleted. Only for a venue with a location in the US (weather_feed_unsupported, 422). The worker polls every 10 minutes during the project's window.",
+  immutable: ["project_id"],
+  serverSet: [
+    "provider",
+    "nws_forecast_hourly_url",
+    "nws_station_id",
+    "points_checked_at",
+    ...AUDIT_SET,
+  ],
+  fields: {
+    project_id: fields.ref("project"),
+    provider: label(["NWS"], "The US National Weather Service."),
+    nws_forecast_hourly_url: orNull(
+      fields.text(
+        "Hourly forecast URL the worker cached.",
+        "https://api.weather.gov/gridpoints/MFL/110,50/forecast/hourly",
+        300,
+      ),
+    ),
+    nws_station_id: orNull(fields.code("Observation station the worker cached.", "KMIA")),
+    points_checked_at: orNull(fields.instant("When the worker last looked the venue up.")),
+    ...AUDIT,
+  },
+});
+
+/** app.weather_warnings (6256, B8): official alerts the feed stored. */
+const WeatherWarning = defineResource({
+  name: "WeatherWarning",
+  table: "app.weather_warnings",
+  description:
+    "An official alert the US National Weather Service issued for the venue's location, in English as issued. A new Severe or Extreme alert notifies the alert-role people and the dispatchers once (weather.warning).",
+  serverSet: [
+    "project_id",
+    "provider",
+    "provider_alert_id",
+    "event",
+    "severity",
+    "certainty",
+    "urgency",
+    "headline",
+    "description",
+    "instruction",
+    "onset",
+    "expires_at",
+    "ends_at",
+    "sent_at",
+    "ended_at",
+    ...AUDIT_SET,
+  ],
+  fields: {
+    project_id: fields.ref("project"),
+    provider: label(["NWS"], "The US National Weather Service."),
+    provider_alert_id: fields.text("The provider's alert id.", "urn:oid:2.49.0.1.840.0.abc", 300),
+    event: fields.text("Event name.", "Severe Thunderstorm Warning", 200),
+    severity: label(["Extreme", "Severe", "Moderate", "Minor", "Unknown"], "Severity."),
+    certainty: orNull(fields.text("Certainty.", "Observed", 40)),
+    urgency: orNull(fields.text("Urgency.", "Immediate", 40)),
+    headline: orNull(fields.text("Headline.", "Severe Thunderstorm Warning until 9:45 PM", 300)),
+    description: orNull(
+      fields.text("Description.", "At 9:02 PM, a severe thunderstorm was located...", 4000),
+    ),
+    instruction: orNull(fields.text("What to do.", "Move to an interior room.", 2000)),
+    onset: orNull(fields.instant("When the hazard begins.")),
+    expires_at: orNull(fields.instant("When this message expires.")),
+    ends_at: orNull(fields.instant("When the hazard ends.")),
+    sent_at: orNull(fields.instant("When the provider sent it.")),
+    ended_at: orNull(fields.instant("When it was cancelled or left the active list.")),
+    ...AUDIT,
+  },
+});
+
+/** app.weather_holds (6257, B8): a dispatcher's weather hold and its all-clear. */
+const WeatherHold = defineResource({
+  name: "WeatherHold",
+  table: "app.weather_holds",
+  description:
+    "A weather hold a dispatcher called to stop work, and the all-clear that ended it (gap G-150). At most one is open per project. Calling one notifies the alert-role people, the dispatchers and everyone present in the project's zones (weather.hold); the all-clear notifies the same people as they are then (weather.all_clear).",
+  serverSet: ["called_at", "cleared_at", "cleared_by", "all_clear_message", ...AUDIT_SET],
+  immutable: ["project_id", "hazard", "weather_alert_id", "weather_warning_id", "message"],
+  fields: {
+    project_id: fields.ref("project"),
+    hazard: orNull(label(Constants.app.Enums.weather_hazard, "Hazard the hold is for.")),
+    weather_alert_id: orNull(fields.ref("weather alert that prompted it")),
+    weather_warning_id: orNull(fields.ref("official warning that prompted it")),
+    message: fields.text(
+      "The hold message sent.",
+      "Lightning within 8 miles: stop work and shelter.",
+      1000,
+    ),
+    called_at: fields.instant("When the hold was called."),
+    cleared_at: orNull(fields.instant("When the all-clear was given.")),
+    cleared_by: orNull(fields.ref("person who gave the all-clear")),
+    all_clear_message: orNull(
+      fields.text("The all-clear message sent.", "All clear: resume work.", 1000),
+    ),
+    ...AUDIT,
+  },
+});
+
+const allClearBody = z
+  .object({
+    message: z.string().min(1).max(1000).meta({
+      description: "The all-clear message, 1 to 1,000 characters.",
+      example: "All clear: resume work.",
+    }),
+  })
+  .meta({ id: "WeatherAllClearRequest", description: "The all-clear that ends a weather hold." });
 
 const WeatherAlert = defineResource({
   name: "WeatherAlert",
@@ -1064,8 +1180,8 @@ const WeatherAlert = defineResource({
   ],
   fields: {
     project_id: fields.ref("project"),
-    hazard: label(["Wind", "Lightning", "Heat"], "Hazard."),
-    alert_level: label(["Monitor", "Restrict", "Evacuate"], "Level met."),
+    hazard: label(Constants.app.Enums.weather_hazard, "Hazard."),
+    alert_level: label(Constants.app.Enums.weather_alert_level, "Level met."),
     weather_reading_id: fields.ref("reading that raised it"),
     issued_at: fields.instant("When it was raised."),
     cleared_at: orNull(fields.instant("When it cleared.")),
@@ -1105,6 +1221,12 @@ const DoorGuest = z
       .nullable()
       .meta({ description: "Plus-ones admitted.", example: 2 }),
     door: fields.text("Door.", "Gate A").nullable(),
+    // B8 (6254): the guest's pass.
+    pass_code: fields.code("Pass code the door scans.", "GP-ABCDEFGHIJ").nullable(),
+    pass_category_code: fields.code("Pass type code.", "VIP").nullable(),
+    pass_category_name: fields.text("Pass type.", "VIP Guest").nullable(),
+    table_label: fields.text("Table or seat.", "Table 4").nullable(),
+    host_person_id: fields.uuid("Project person hosting the guest.").nullable(),
   })
   .meta({ id: "DoorGuest", description: "A guest on the door list." });
 
@@ -1117,10 +1239,7 @@ const LostFoundItem = defineResource({
   fields: {
     project_id: fields.ref("project"),
     item_number: fields.code("Display number.", "LF-0001"),
-    category: label(
-      ["Wallet", "Bag", "Clothing", "Electronics", "Jewelry", "Keys", "Documents", "Other"],
-      "Category.",
-    ),
+    category: label(Constants.app.Enums.lost_item_category, "Category."),
     description: fields.text(
       "Description a claimant is checked against.",
       "Brown leather wallet.",
@@ -1130,7 +1249,7 @@ const LostFoundItem = defineResource({
     found_location: fields.text("Where it was found.", "Bar 2", 200),
     storage_location: orNull(fields.text("Where it is held.", "Security office locker 4", 200)),
     logged_by_membership_id: orNull(fields.ref("member who logged it")),
-    item_state: label(["Logged", "Claimed", "Returned", "Disposed"], "Item state."),
+    item_state: label(Constants.app.Enums.lost_item_state, "Item state."),
     ...AUDIT,
   },
 });
@@ -1184,6 +1303,7 @@ export const additions = defineAdditions("Workforce", {
           description:
             "Archives the group; it keeps its history and takes no new messages. Archiving is final.",
         }),
+        ...showChannelActions,
       ],
     }),
     resource("Workforce", "/group-members", GroupMember, {
@@ -1354,11 +1474,10 @@ export const additions = defineAdditions("Workforce", {
           summary: "Open or close a survey",
           description: "Opens a draft survey (notifying its audience) or closes an open one.",
           rpc: "app.transition_survey",
-          body: transition(
-            "SurveyTransitionRequest",
-            ["Draft", "Open", "Closed"],
-            ["Draft", "Open"],
-          ),
+          body: transition("SurveyTransitionRequest", Constants.app.Enums.survey_state, [
+            "Draft",
+            "Open",
+          ]),
           response: Ledger,
         }),
         itemAction("respond", {
@@ -1405,7 +1524,7 @@ export const additions = defineAdditions("Workforce", {
           body: z
             .object({
               response: z
-                .enum(["Going", "Maybe", "Declined"])
+                .enum(Constants.app.Enums.rsvp_response)
                 .meta({ description: "Answer.", example: "Going" }),
             })
             .meta({ id: "RsvpRequest", description: "An RSVP." }),
@@ -1420,7 +1539,7 @@ export const additions = defineAdditions("Workforce", {
             .object({
               membership_id: fields.uuid("Invitee to check in; the caller by default.").optional(),
               method: z
-                .enum(["Self", "Organizer", "Scan"])
+                .enum(Constants.app.Enums.check_in_method)
                 .optional()
                 .meta({ description: "How.", example: "Self" }),
             })
@@ -1669,11 +1788,10 @@ export const additions = defineAdditions("Workforce", {
           description:
             "A team member moves the request through Open, Waiting, Resolved and Closed with a reason.",
           rpc: "app.transition_help_desk_request",
-          body: transition(
-            "HelpDeskTransitionRequest",
-            ["Open", "Waiting", "Resolved", "Closed"],
-            ["Open", "Resolved"],
-          ),
+          body: transition("HelpDeskTransitionRequest", Constants.app.Enums.support_ticket_state, [
+            "Open",
+            "Resolved",
+          ]),
           response: Ledger,
         }),
       ],
@@ -1727,6 +1845,26 @@ export const additions = defineAdditions("Workforce", {
     resource("Workforce", "/weather-alerts", WeatherAlert, {
       verbs: ["list", "get"],
       order: { by: ["issued_at"], numeric: false, descending: true },
+    }),
+    resource("Workforce", "/weather-feeds", WeatherFeed, {
+      verbs: ["list", "get", "create", "delete"],
+    }),
+    resource("Workforce", "/weather-warnings", WeatherWarning, {
+      verbs: ["list", "get"],
+      order: { by: ["sent_at"], numeric: false, descending: true },
+    }),
+    resource("Workforce", "/weather-holds", WeatherHold, {
+      verbs: ["list", "get", "create"],
+      order: { by: ["called_at"], numeric: false, descending: true },
+      actions: [
+        itemAction("allClear", {
+          summary: "Give the all-clear",
+          description:
+            "Ends an open weather hold and notifies the same people as they are now (weather.all_clear). Needs safety.incident.dispatch; refuses weather_hold_closed and weather_hold_message (422).",
+          body: allClearBody,
+          rpc: "app.give_weather_all_clear",
+        }),
+      ],
     }),
     resource("Workforce", "/guest-check-ins", GuestCheckIn, {
       verbs: ["list", "get", "create"],
@@ -1814,7 +1952,16 @@ export const additions = defineAdditions("Workforce", {
     }),
   ],
   capabilities: {
-    workforceGroups: { read, write: "org.communication.write" },
+    workforceGroups: {
+      read,
+      write: "org.communication.write",
+      // The database decides who may open, join or read a project's show channel (6242).
+      actions: {
+        openShowChannel: "show.run_of_show.read",
+        joinShowChannel: "show.run_of_show.read",
+        showChannelStatus: "show.run_of_show.read",
+      },
+    },
     workforceGroupMembers: { read, write: "org.communication.write" },
     conversations: { read, write: "inbox.notifications.write" },
     chatMessages: { read, write: "inbox.notifications.write" },
@@ -1894,6 +2041,13 @@ export const additions = defineAdditions("Workforce", {
     weatherAlertRoles: { read: "safety.incident.read", write: "safety.emergency_code.write" },
     weatherReadings: { read: "safety.incident.read", write: "safety.incident.write" },
     weatherAlerts: { read: "safety.incident.read" },
+    weatherFeeds: { read: "safety.incident.read", write: "safety.emergency_code.write" },
+    weatherWarnings: { read: "safety.incident.read" },
+    weatherHolds: {
+      read: "safety.incident.read",
+      write: "safety.incident.dispatch",
+      actions: { allClear: "safety.incident.dispatch" },
+    },
     guestCheckIns: { read: "credentials.scan.write", write: "credentials.scan.write" },
     lostFoundItems: {
       read: "safety.incident.read",

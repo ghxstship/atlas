@@ -8,7 +8,10 @@ export function TemplateSettings({
   saveBar,
 }: TemplateSettingsProps): ReactElement {
   return (
-    <div className="grid grid-cols-[var(--ui-settings-nav)_minmax(0,var(--layout-form))] max-md:grid-cols-[minmax(0,1fr)] gap-32 max-md:gap-16">
+    <div
+      data-template="settings"
+      className="grid grid-cols-[var(--ui-settings-nav)_minmax(0,var(--layout-form))] max-md:grid-cols-[minmax(0,1fr)] gap-32 max-md:gap-16"
+    >
       <div className="min-w-0">{sections}</div>
       <div className="flex flex-col gap-16 min-w-0">
         {children}

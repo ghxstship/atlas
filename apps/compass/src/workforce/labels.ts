@@ -30,6 +30,7 @@ import {
   type UnitSystem,
 } from "@xos/i18n/units";
 import { countKey } from "../runtime/i18n";
+import { Constants } from "@xos/data/database.types";
 
 export type T = (key: string, values?: Record<string, string | number>) => string;
 
@@ -89,7 +90,7 @@ export function feedLabels(t: T): FeedScreenLabels {
     vote: t(`${C}.feed.vote`),
     voted: t(`${C}.feed.voted`),
     comments: t(`${C}.feed.comments`),
-    kinds: record(["Announcement", "Update", "Poll", "Recognition"], t, `${C}.feed.kinds`),
+    kinds: record(Constants.app.Enums.feed_post_kind, t, `${C}.feed.kinds`),
     reaction: (code, count, mine) =>
       t(mine ? `${C}.feed.reactionMine` : `${C}.feed.reaction`, {
         name: t(`${C}.feed.reactions.${code}`),
@@ -152,6 +153,7 @@ export function directoryLabels(t: T): DirectoryScreenLabels {
     call: (name) => t(`${C}.directory.call`, { name }),
     message: (name) => t(`${C}.directory.message`, { name }),
     recognitions: (count) => t(`${C}.directory.recognitions`, { count }),
+    block: (name) => t("compass.safety.block", { name }),
   };
 }
 
@@ -163,8 +165,8 @@ export function eventsLabels(t: T): EventsScreenLabels {
     failed: t(`${C}.common.failed`),
     checkIn: t(`${C}.events.checkIn`),
     checkedIn: t(`${C}.events.checkedIn`),
-    kinds: record(["Briefing", "Crew Call", "Meeting"], t, `${C}.events.kinds`),
-    responses: record(["Going", "Maybe", "Declined"], t, `${C}.events.responses`),
+    kinds: record(Constants.app.Enums.workforce_event_kind, t, `${C}.events.kinds`),
+    responses: record(Constants.app.Enums.rsvp_response, t, `${C}.events.responses`),
     phases: {
       canceled: t(`${C}.events.phases.canceled`),
       past: t(`${C}.events.phases.past`),
@@ -292,12 +294,8 @@ export function helpDeskLabels(t: T): HelpDeskScreenLabels {
     body: t(`${C}.helpDesk.body`),
     send: t(`${C}.helpDesk.send`),
     overdue: t(`${C}.helpDesk.overdue`),
-    states: record(["Open", "Waiting", "Resolved", "Closed"], t, `${C}.helpDesk.states`),
-    categories: record(
-      ["Question", "Problem", "Access", "Billing", "Account", "Feature Request"],
-      t,
-      `${C}.helpDesk.categories`,
-    ),
+    states: record(Constants.app.Enums.support_ticket_state, t, `${C}.helpDesk.states`),
+    categories: record(Constants.app.Enums.support_category, t, `${C}.helpDesk.categories`),
     meta: (number, assignee, createdAt) =>
       t(assignee ? `${C}.helpDesk.metaAssigned` : `${C}.helpDesk.meta`, {
         number,
@@ -308,6 +306,7 @@ export function helpDeskLabels(t: T): HelpDeskScreenLabels {
 }
 
 export function occupancyLabels(t: T): OccupancyCounterScreenLabels {
+  const compact = (basis: string) => basis.replaceAll(" ", "");
   return {
     ...frame(t, t(`${C}.occupancy.title`)),
     empty: t(`${C}.occupancy.empty`),
@@ -319,8 +318,14 @@ export function occupancyLabels(t: T): OccupancyCounterScreenLabels {
     add: (n) => t(`${C}.occupancy.add`, { n }),
     remove: (n) => t(`${C}.occupancy.remove`, { n }),
     count: (count, permitted) => t(`${C}.occupancy.count`, { count, permitted }),
-    percent: (percent) => t(`${C}.occupancy.percent`, { percent }),
-    level: (level) => t(`${C}.occupancy.level${level}`),
+    percent: (percent, basis) =>
+      t(`${C}.occupancy.percent`, {
+        percent,
+        load: t(`${C}.occupancy.loadName.${compact(basis)}`),
+      }),
+    level: (level, basis) =>
+      t(`${C}.occupancy.level${level}`, { load: t(`${C}.occupancy.loadName.${compact(basis)}`) }),
+    basis: (basis) => t(`${C}.occupancy.basis.${compact(basis)}`),
   };
 }
 
@@ -362,8 +367,8 @@ export function weatherLabels(t: T, units: WeatherUnits = STORED_IMPERIAL): Weat
     value: (unit) => t(`${C}.weather.value`, { unit: symbol(unit) }),
     valueError: t(`${C}.weather.valueError`),
     save: t(`${C}.weather.save`),
-    hazards: record(["Wind", "Lightning", "Heat"], t, `${C}.weather.hazards`),
-    levels: record(["Monitor", "Restrict", "Evacuate"], t, `${C}.weather.levels`),
+    hazards: record(Constants.app.Enums.weather_hazard, t, `${C}.weather.hazards`),
+    levels: record(Constants.app.Enums.weather_alert_level, t, `${C}.weather.levels`),
     alertLine: (hazard, level, issuedAt) =>
       t(`${C}.weather.alertLine`, { hazard, level, time: when(issuedAt) }),
     readingLine: (value, unit, observedAt) =>
@@ -379,6 +384,24 @@ export function weatherLabels(t: T, units: WeatherUnits = STORED_IMPERIAL): Weat
         unit: symbol(unit),
         source,
       }),
+    holdSince: (calledAt) => t(`${C}.weather.holdSince`, { time: when(calledAt) }),
+    warnings: t(`${C}.weather.warnings`),
+    noWarnings: t(`${C}.weather.noWarnings`),
+    issuedBy: t(`${C}.weather.issuedBy`),
+    severities: record(
+      ["Extreme", "Severe", "Moderate", "Minor", "Unknown"],
+      t,
+      `${C}.weather.severities`,
+    ),
+    callHold: t(`${C}.weather.callHold`),
+    allClear: t(`${C}.weather.allClear`),
+    message: t(`${C}.weather.message`),
+    messageHelp: t(`${C}.weather.messageHelp`),
+    send: t(`${C}.weather.send`),
+    close: t(`${C}.common.close`),
+    defaultHold: (hazard) =>
+      hazard ? t(`${C}.weather.defaultHoldHazard`, { hazard }) : t(`${C}.weather.defaultHold`),
+    defaultAllClear: t(`${C}.weather.defaultAllClear`),
   };
 }
 
@@ -405,6 +428,15 @@ export function doorLabels(t: T): DoorCheckInScreenLabels {
         door: door ?? "",
         time: when(at),
       }),
+    pass: t(`${C}.door.pass`),
+    passHelp: t(`${C}.door.passHelp`),
+    checkPass: t(`${C}.door.checkPass`),
+    passNotListed: t(`${C}.door.passNotListed`),
+    passUsed: (name, at) =>
+      at ? t(`${C}.door.passUsedAt`, { name, time: when(at) }) : t(`${C}.door.passUsed`, { name }),
+    passOffline: t(`${C}.door.passOffline`),
+    passType: (name) => t(`${C}.door.passType`, { name }),
+    table: (table) => t(`${C}.door.table`, { table }),
   };
 }
 
@@ -421,12 +453,8 @@ export function lostFoundLabels(t: T): LostFoundScreenLabels {
     foundLocation: t(`${C}.lostFound.foundLocation`),
     storageLocation: t(`${C}.lostFound.storageLocation`),
     save: t(`${C}.lostFound.save`),
-    categories: record(
-      ["Bag", "Clothing", "Electronics", "Jewelry", "Keys", "Documents", "Wallet", "Other"],
-      t,
-      `${C}.lostFound.categories`,
-    ),
-    states: record(["Logged", "Claimed", "Returned", "Disposed"], t, `${C}.lostFound.states`),
+    categories: record(Constants.app.Enums.lost_item_category, t, `${C}.lostFound.categories`),
+    states: record(Constants.app.Enums.lost_item_state, t, `${C}.lostFound.states`),
     itemTitle: (category, description) => t(`${C}.lostFound.itemTitle`, { category, description }),
     meta: (number, foundLocation, openClaims) =>
       t(`${C}.lostFound.meta`, { number, place: foundLocation, count: openClaims }),

@@ -1,7 +1,8 @@
 import type { XosClient } from "./client.ts";
-import type { Json } from "./database.types.ts";
+import type { Database, Json } from "./database.types.ts";
 import { external, type ExternalRow, type ExternalView } from "./gateway-external.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
+import { untyped } from "./untyped.ts";
 
 /**
  * Gateway operations (A28b migrations 0760 to 0775, Section 8.7 areas): the party's own rows that
@@ -50,6 +51,67 @@ export async function readView<V extends ExternalView>(
   const { data, error } = await query;
   if (error) return fail(toDataError(error));
   return ok((data ?? []) as ExternalRow<V>[]);
+}
+
+/** One Clean version of a file on a submittal the caller's vendor account was asked for (B14, migration 6265). */
+export interface SubmittalFileVersion {
+  readonly submittalId: string;
+  readonly attachmentId: string;
+  readonly title: string;
+  readonly versionId: string;
+  readonly versionNumber: number;
+  readonly filename: string;
+  readonly contentType: string;
+  readonly sizeBytes: number;
+  readonly uploadedAt: string | null;
+  /** The newest Clean version of the file, the one the org reviews now. */
+  readonly isCurrent: boolean;
+  readonly reviewDecision: Database["app"]["Enums"]["file_review_decision"] | null;
+  /** What the org asked to change, or its comment on approval; written for the vendor. */
+  readonly reviewComment: string | null;
+  readonly reviewedAt: string | null;
+}
+
+const text = (v: unknown): string | null => (typeof v === "string" ? v : null);
+
+/**
+ * The files of the given submittals, version by version, newest first, with the org's latest decision
+ * and comment on each (api_external.submittal_files). Who reviewed never appears, nor any download
+ * path; files classified Confidential or Restricted are not listed.
+ */
+export async function listSubmittalFiles(
+  db: XosClient,
+  submittalIds: readonly string[],
+): Promise<Result<SubmittalFileVersion[]>> {
+  if (submittalIds.length === 0) return ok([]);
+  const { data, error } = await untyped(db)
+    .schema("api_external")
+    .from("submittal_files")
+    .select("*")
+    .in("submittal_id", [...submittalIds])
+    .order("version_number", { ascending: false });
+  if (error) return fail(toDataError(error));
+  return ok(
+    ((data ?? []) as Record<string, unknown>[]).map((r) => {
+      const decision = r["review_decision"];
+      return {
+        submittalId: text(r["submittal_id"]) ?? "",
+        attachmentId: text(r["attachment_id"]) ?? "",
+        title: text(r["title"]) ?? "",
+        versionId: text(r["version_id"]) ?? "",
+        versionNumber: typeof r["version_number"] === "number" ? r["version_number"] : 0,
+        filename: text(r["filename"]) ?? "",
+        contentType: text(r["content_type"]) ?? "",
+        sizeBytes: typeof r["size_bytes"] === "number" ? r["size_bytes"] : 0,
+        uploadedAt: text(r["uploaded_at"]),
+        isCurrent: r["is_current"] === true,
+        reviewDecision:
+          decision === "Approved" || decision === "Changes Requested" ? decision : null,
+        reviewComment: text(r["review_comment"]),
+        reviewedAt: text(r["reviewed_at"]),
+      };
+    }),
+  );
 }
 
 async function call(
@@ -248,6 +310,25 @@ export function acceptEngagedShift(
   );
 }
 
+// Staffing agencies (R12) ------------------------------------------------------------------------------
+// The agency's lead places its roster staff on the slots the production allocated (Positions), and the person on a
+// roster entry acknowledges the training due on it before their first shift (api_external.my_roster_training).
+
+export { assignRosterShift, rosterTrainingSummary, unassignRosterShift } from "./crew/agency.ts";
+
+/** The person on a roster entry acknowledges training due on it (app.acknowledge_roster_training). */
+export function acknowledgeRosterTraining(
+  db: XosClient,
+  input: { readonly rosterEntryId: string; readonly requirementId: string },
+): Promise<Result<{ id: string }>> {
+  return callId(
+    db.rpc("acknowledge_roster_training", {
+      p_roster_entry_id: input.rosterEntryId,
+      p_requirement_id: input.requirementId,
+    }),
+  );
+}
+
 // Vendor -------------------------------------------------------------------------------------------
 
 /** The vendor acknowledges a sent purchase order (app.acknowledge_purchase_order). */
@@ -256,6 +337,27 @@ export function acknowledgePurchaseOrder(
   purchaseOrderId: string,
 ): Promise<Result<{ id: string }>> {
   return callId(db.rpc("acknowledge_purchase_order", { p_purchase_order_id: purchaseOrderId }));
+}
+
+/**
+ * The vendor submits a Proposed submittal or resubmits a Returned one with a note
+ * (app.submit_engaged_submittal, R2); returns the transition id.
+ */
+export function submitEngagedSubmittal(
+  db: XosClient,
+  input: {
+    readonly submittalId: string;
+    readonly expected: "Proposed" | "Returned";
+    readonly note: string;
+  },
+): Promise<Result<{ id: string }>> {
+  return callId(
+    db.rpc("submit_engaged_submittal", {
+      p_submittal_id: input.submittalId,
+      p_expected: input.expected,
+      p_note: input.note,
+    }),
+  );
 }
 
 // Artist and advancing -------------------------------------------------------------------------------
@@ -274,6 +376,116 @@ export function submitAdvanceAnswer(
   );
 }
 
+// Typed advance answers and party uploads (R9, migrations 4711 and 4712) ----------------------------
+
+/** What a party-uploads object is for: a File section of an advance, or a sponsor entitlement. */
+export type PartyUploadTarget =
+  | { readonly kind: "advance"; readonly recipientId: string; readonly sectionId: string }
+  | { readonly kind: "sponsor-asset"; readonly entitlementId: string };
+
+/**
+ * The object name a party upload takes in the party-uploads bucket (4712):
+ * <org>/advance/<recipient>/<section>/<file> or <org>/sponsor-asset/<entitlement>/<file>.
+ */
+export function partyUploadObjectName(input: {
+  readonly orgId: string;
+  readonly target: PartyUploadTarget;
+  readonly fileName: string;
+}): string {
+  const safe = input.fileName.replace(/[^A-Za-z0-9._-]+/g, "-").replace(/^-+|-+$/g, "") || "upload";
+  const folder =
+    input.target.kind === "advance"
+      ? `advance/${input.target.recipientId}/${input.target.sectionId}`
+      : `sponsor-asset/${input.target.entitlementId}`;
+  return `${input.orgId}/${folder}/${Date.now().toString(36)}-${safe}`;
+}
+
+/**
+ * Uploads a file to party-uploads and registers it (app.register_party_upload), which makes it a
+ * document of the project, ready to attach to an answer or a supplied sponsor asset. The scan
+ * worker clears it before anyone but the uploader can read it.
+ */
+export async function uploadPartyFile(
+  db: XosClient,
+  input: {
+    readonly objectName: string;
+    readonly title: string;
+    readonly body: Blob;
+    readonly contentType: string;
+    readonly checksumSha256: string;
+  },
+): Promise<Result<{ documentId: string }>> {
+  const uploaded = await db.storage
+    .from("party-uploads")
+    .upload(input.objectName, input.body, { contentType: input.contentType, upsert: false });
+  if (uploaded.error) return fail({ kind: "unexpected", message: uploaded.error.message });
+  const { data, error } = await db.rpc("register_party_upload", {
+    p_object_name: input.objectName,
+    p_title: input.title,
+    p_checksum_sha256: input.checksumSha256,
+  });
+  if (error) return fail(toDataError(error));
+  return ok({ documentId: data });
+}
+
+/** One line of a typed answer, as app.submit_advance_answer takes it. */
+export interface AdvanceAnswerLine {
+  readonly assetClassId?: string | null;
+  readonly credentialCategoryId?: string | null;
+  readonly quantity?: number | null;
+  readonly rosterEntryId?: string | null;
+  readonly neededFrom?: string | null;
+  readonly neededTo?: string | null;
+  readonly windowZone?: string | null;
+  readonly note?: string | null;
+}
+
+/** The p_lines payload of app.submit_advance_answer: snake_case keys, empty values left out. */
+export function advanceAnswerLines(lines: readonly AdvanceAnswerLine[]): Json {
+  return lines.map((line) => {
+    const out: Record<string, string | number> = {};
+    const put = (key: string, value: string | number | null | undefined) => {
+      if (value !== null && value !== undefined && value !== "") out[key] = value;
+    };
+    put("asset_class_id", line.assetClassId);
+    put("credential_category_id", line.credentialCategoryId);
+    put("quantity", line.quantity);
+    put("roster_entry_id", line.rosterEntryId);
+    put("needed_window_start", line.neededFrom);
+    put("needed_window_end", line.neededTo);
+    put("window_zone", line.windowZone);
+    put("note", line.note?.trim());
+    return out;
+  });
+}
+
+/**
+ * The signed-in recipient answers a section of any kind (app.submit_advance_answer): text, files
+ * already registered from party-uploads, windows, items or credentials. Refusals keep their rule.
+ */
+export function submitTypedAdvanceAnswer(
+  db: XosClient,
+  input: {
+    readonly recipientId: string;
+    readonly sectionId: string;
+    readonly text?: string | null;
+    readonly note?: string | null;
+    readonly lines?: readonly AdvanceAnswerLine[];
+    readonly documentIds?: readonly string[];
+  },
+): Promise<Result<{ id: string }>> {
+  return callId(
+    db.rpc("submit_advance_answer", {
+      p_recipient_id: input.recipientId,
+      p_section_id: input.sectionId,
+      ...(input.text?.trim() ? { p_text: input.text.trim() } : {}),
+      ...(input.note?.trim() ? { p_note: input.note.trim() } : {}),
+      p_lines: advanceAnswerLines(input.lines ?? []),
+      p_document_ids: [...(input.documentIds ?? [])],
+    }),
+  );
+}
+
 // Client ---------------------------------------------------------------------------------------------
 
 /** The client approves or rejects a requested approval (app.decide_client_approval). */
@@ -281,7 +493,7 @@ export function decideClientApproval(
   db: XosClient,
   input: {
     readonly requestId: string;
-    readonly decision: "Approved" | "Rejected";
+    readonly decision: Database["app"]["Enums"]["approval_decision"];
     readonly response: string;
   },
 ): Promise<Result<null>> {
@@ -320,4 +532,126 @@ export async function claimTokenSubmissions(
   if (error) return fail(toDataError(error));
   const row = data[0];
   return ok({ advance: row?.claimed_advance ?? 0, documents: row?.claimed_documents ?? 0 });
+}
+
+// Advance tracks (R11, migration 6223) ----------------------------------------------------------
+
+/** One of the caller's recipients' tracks, as Gateway reads it: no reviewer names (Section 8.7). */
+export interface ExternalTrackProgress {
+  readonly recipientId: string;
+  readonly packetId: string;
+  readonly track: string;
+  readonly sectionsTotal: number;
+  readonly sectionsDone: number;
+  /** Not Started, In Progress, Ready for Sign-off, Signed Off or Reopened. */
+  readonly state: string;
+  readonly signedOffAt: string | null;
+}
+
+/** The tracks of the caller's recipients on the given packets (api_external.advance_track_progress). */
+export async function listMyTrackProgress(
+  db: XosClient,
+  packetIds: readonly string[],
+): Promise<Result<ExternalTrackProgress[]>> {
+  if (packetIds.length === 0) return ok([]);
+  const { data, error } = await external(db)
+    .from("advance_track_progress")
+    .select(
+      "advance_recipient_id, advance_packet_id, track, sections_total, sections_done, track_state, signed_off_at",
+    )
+    .in("advance_packet_id", [...packetIds]);
+  if (error) return fail(toDataError(error));
+  return ok(
+    (data ?? []).map((r) => ({
+      recipientId: String(r.advance_recipient_id),
+      packetId: String(r.advance_packet_id),
+      track: r.track ?? "General",
+      sectionsTotal: r.sections_total ?? 0,
+      sectionsDone: r.sections_done ?? 0,
+      state: r.track_state ?? "Not Started",
+      signedOffAt: r.signed_off_at,
+    })),
+  );
+}
+
+/** The track of each of the caller's sections (api_external.advance_sections.track, 6223). */
+export async function listSectionTracks(
+  db: XosClient,
+  sectionIds: readonly string[],
+): Promise<Result<Map<string, string>>> {
+  const tracks = new Map<string, string>();
+  if (sectionIds.length === 0) return ok(tracks);
+  const { data, error } = await external(db)
+    .from("advance_sections")
+    .select("id, track")
+    .in("id", [...sectionIds]);
+  if (error) return fail(toDataError(error));
+  for (const r of data ?? []) {
+    if (r.id) tracks.set(r.id, r.track ?? "General");
+  }
+  return ok(tracks);
+}
+
+// Client cue fields (api_external.cue_field_values, B3 6240) ----------------------------------------
+
+/** A Client-audience custom value of a cue, as Gateway's running order shows it (ADR 0142). */
+export interface ClientCueField {
+  readonly cueId: string;
+  readonly key: string;
+  readonly label: string;
+  readonly dataType: string;
+  readonly sortOrder: number;
+  readonly text: string | null;
+  readonly number: number | null;
+  readonly date: string | null;
+  readonly timestamp: string | null;
+  readonly boolean: boolean | null;
+  readonly choiceLabel: string | null;
+  readonly choiceColorKey: string | null;
+}
+
+/**
+ * The Client-audience field values of the given cues. The view answers only a Client engaged on the cue's
+ * project; anyone else reads no rows. Untyped until the data types carry the view (6240).
+ */
+export async function readClientCueFields(
+  db: XosClient,
+  cueIds: readonly string[],
+): Promise<Result<ClientCueField[]>> {
+  if (cueIds.length === 0) return ok([]);
+  const view = (
+    external(db) as unknown as {
+      from(name: string): {
+        select(columns: string): {
+          in(
+            column: string,
+            values: readonly string[],
+          ): PromiseLike<{
+            data: unknown[] | null;
+            error: { code?: string; message: string } | null;
+          }>;
+        };
+      };
+    }
+  ).from("cue_field_values");
+  const { data, error } = await view.select("*").in("cue_id", cueIds);
+  if (error) return fail(toDataError(error));
+  return ok(
+    ((data ?? []) as Record<string, unknown>[])
+      .map((r) => ({
+        cueId: String(r["cue_id"] ?? ""),
+        key: String(r["field_key"] ?? ""),
+        label: String(r["label"] ?? ""),
+        dataType: String(r["data_type"] ?? "Text"),
+        sortOrder: typeof r["sort_order"] === "number" ? r["sort_order"] : 0,
+        text: typeof r["value_text"] === "string" ? r["value_text"] : null,
+        number: typeof r["value_number"] === "number" ? r["value_number"] : null,
+        date: typeof r["value_date"] === "string" ? r["value_date"] : null,
+        timestamp: typeof r["value_timestamp"] === "string" ? r["value_timestamp"] : null,
+        boolean: typeof r["value_boolean"] === "boolean" ? r["value_boolean"] : null,
+        choiceLabel: typeof r["choice_label"] === "string" ? r["choice_label"] : null,
+        choiceColorKey: typeof r["choice_color_key"] === "string" ? r["choice_color_key"] : null,
+      }))
+      .sort((a, b) => a.sortOrder - b.sortOrder || a.label.localeCompare(b.label)),
+  );
 }

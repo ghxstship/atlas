@@ -9,17 +9,46 @@ import type {
   TreeNode as ReferenceTreeNode,
   TreeViewProps as ReferenceTreeViewProps,
 } from "../types/reference";
+import type { ItemSelection } from "../lib/selection.ts";
+
+/**
+ * Right-click, Shift+F10 or the Context Menu key on an item (Section 11.7): its id, the pointer's
+ * point (null from the keyboard, when the menu opens at the item) and the element it opened on.
+ */
+export type ItemContextMenu = (
+  id: string,
+  at: { x: number; y: number } | null,
+  element: HTMLElement,
+) => void;
 
 export type RecordRowProps = ReferenceRecordRowProps & {
-  /** X toggles selection of the focused row. */
+  /**
+   * The row's id: its list selects it and opens its menu by this id, and hover cards find it
+   * (`data-item`). Rows of a selectable list need one.
+   */
+  id?: string;
+  /** X toggles selection of the focused row, when its list has no selection of its own. */
   onSelect?: () => void;
   /** Enter opens the record. */
   onOpen?: () => void;
 };
 
-export type RecordListProps = ReferenceRecordListProps;
+export type RecordListProps = ReferenceRecordListProps & {
+  /** Rows can be selected by id; each row needs an `id`. See useItemSelection. */
+  selection?: ItemSelection;
+  onItemContextMenu?: ItemContextMenu;
+};
 
-export type BoardProps = ReferenceBoardProps & {
+type ReferenceColumn = ReferenceBoardProps["columns"][number];
+
+export type BoardProps = Omit<ReferenceBoardProps, "columns"> & {
+  columns: (Omit<ReferenceColumn, "cards"> & {
+    /** A card's `id` is how the selection and menus name it; its key by default. */
+    cards: (ReferenceColumn["cards"][number] & { id?: string })[];
+  })[];
+  /** Cards can be selected by id. See useItemSelection. */
+  selection?: ItemSelection;
+  onItemContextMenu?: ItemContextMenu;
   /** Called after a card moves to another column by drag or keyboard. */
   onMove?: (cardKey: string, from: RecordState, to: RecordState) => void;
   onAdd?: (state: RecordState) => void;
@@ -59,7 +88,7 @@ export type StatTileProps = ReferenceStatTileProps & {
   trend?: (number | null)[];
 };
 
-export type Card = ReferenceBoardProps["columns"][number]["cards"][number];
+export type Card = BoardProps["columns"][number]["cards"][number];
 
 export interface FlatNode {
   node: TreeNode;

@@ -5,10 +5,12 @@ import {
   isProviderCode,
   providersIn,
   scopesFor,
+  usesClientCredentials,
 } from "../src/framework/catalog.ts";
 import { asIntegrationError, errorForStatus, IntegrationError } from "../src/framework/errors.ts";
 import { callJson, callRaw, httpFromFetch } from "../src/framework/http.ts";
 import {
+  clientCredentialSecret,
   contentHash,
   credentialField,
   decimalToMinor,
@@ -155,6 +157,34 @@ describe("support", () => {
       fields: { access_token: "a", realm_id: "r" },
     });
     expect(parseCredential('{"api_key":"k"}').token).toBe("k");
+    // UPS and FedEx store a client-credentials pair, in the form Atlas saves, and mint their token from it.
+    expect(PROVIDERS.filter((p) => usesClientCredentials(p.code)).map((p) => p.code)).toEqual([
+      "ups",
+      "fedex",
+    ]);
+    for (const provider of ["ups", "fedex"]) {
+      expect(parseCredential(clientCredentialSecret("i/+", 's"1'), provider)).toEqual({
+        token: "",
+        fields: { client_id: "i/+", client_secret: 's"1' },
+      });
+      expect(() => parseCredential('{"client_id":"i"}', provider)).toThrow(
+        expect.objectContaining({
+          code: "credential_malformed",
+          message: "The stored credential has no client ID and secret.",
+        }),
+      );
+    }
+    // Any other provider given a pair fails here, not later with an empty bearer token.
+    for (const provider of ["xero", "slack", "dhl", undefined]) {
+      expect(() => parseCredential(clientCredentialSecret("i", "s"), provider)).toThrow(
+        expect.objectContaining({
+          code: "credential_malformed",
+          connectionError: true,
+          message: "The stored credential has no access token or key.",
+        }),
+      );
+    }
+    expect(parseCredential('{"access_token":"a","client_id":"i"}', "xero").token).toBe("a");
     expect(() => parseCredential(null)).toThrow(
       expect.objectContaining({ code: "credential_required", connectionError: true }),
     );

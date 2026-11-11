@@ -10,8 +10,11 @@ const KEPT: readonly KeptCategory[] = [
   "tax_forms",
   "engagements",
   "org_records",
+  "billing_consent",
   "audit_trail",
   "erasure_request",
+  "rating_sharing",
+  "rating_disputes",
 ];
 
 /**

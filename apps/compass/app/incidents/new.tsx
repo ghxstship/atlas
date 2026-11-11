@@ -92,6 +92,11 @@ function Report(): ReactElement {
   };
   return (
     <Screen testID="incident-new" title={t("compass.incidents.new")}>
+      <InlineAlert
+        testID="incident-emergency"
+        tone="danger"
+        message={t("compass.incidents.emergencyFirst")}
+      />
       <QuickIncidentSheet
         testID="incident-sheet"
         types={ordered.map((s) => ({
@@ -145,6 +150,11 @@ function Report(): ReactElement {
           typeGroup: t("compass.incidents.typeGroup"),
         }}
       />
+      {step === 1 ? (
+        <Text testID="incident-near-miss" variant="text13" tone="secondary">
+          {t("compass.incidents.nearMiss")}
+        </Text>
+      ) : null}
       {step === 2 ? (
         <Button
           testID="incident-next"

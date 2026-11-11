@@ -19,6 +19,7 @@ import {
   recordLegalAcceptances,
   removeFavorite,
   removeOrgDomain,
+  reorderFavorites,
   resolveSettings,
   saveOrgBrand,
   setModuleEnabled,
@@ -469,6 +470,25 @@ describe("modules and favorites", () => {
     expect(await removeFavorite(db, "f1")).toEqual({ ok: true, data: null });
     expect(await removeFavorite(db, "f2")).toEqual({ ok: false, error: { kind: "not-found" } });
     expect((await removeFavorite(db, "f3")).ok).toBe(false);
+  });
+
+  it("reorders favorites in one call", async () => {
+    const { db, calls } = fakeClient({
+      "rpc:reorder_favorites": [
+        okResponse(3),
+        errorResponse("XR001", "favorites_order: Send each id once.", "favorites_order"),
+      ],
+    });
+    expect(await reorderFavorites(db, { orgId: "o1", favoriteIds: ["f3", "f1", "f2"] })).toEqual({
+      ok: true,
+      data: 3,
+    });
+    expect(calls[0]?.steps[0]).toEqual([
+      "args",
+      [{ p_org_id: "o1", p_favorite_ids: ["f3", "f1", "f2"] }],
+    ]);
+    const refused = await reorderFavorites(db, { orgId: "o1", favoriteIds: ["f1", "f1"] });
+    expect(refused.ok).toBe(false);
   });
 });
 

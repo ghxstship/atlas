@@ -17,6 +17,10 @@ export function ConversationList({
   locale: string;
   t: Translate;
 }) {
+  const metaLine = (c: Conversation) =>
+    [c.orgName, c.context ?? t("gateway.messages.withOrg"), formatDateTime(locale, c.at)]
+      .filter(Boolean)
+      .join(" · ");
   return (
     <nav aria-label={t("nav.gateway.primary.messages")}>
       <ul className="m-0 flex list-none flex-col divide-y divide-border-subtle rounded-card border border-border-subtle bg-bg-raised p-0">
@@ -30,7 +34,10 @@ export function ConversationList({
               <BrandMark name={c.orgName} size="sm" iconOnly />
               <span className="flex min-w-0 flex-1 flex-col gap-2">
                 <span className="flex items-center gap-8">
-                  <span className={`truncate ${c.unread > 0 ? "font-semibold" : "font-medium"}`}>
+                  <span
+                    className={`truncate ${c.unread > 0 ? "font-semibold" : "font-medium"}`}
+                    title={c.subject}
+                  >
                     {c.subject}
                   </span>
                   {c.unread > 0 ? (
@@ -41,14 +48,9 @@ export function ConversationList({
                     />
                   ) : null}
                 </span>
-                <span className="truncate text-text-13 text-text-secondary">
-                  {[
-                    c.orgName,
-                    c.context ?? t("gateway.messages.withOrg"),
-                    formatDateTime(locale, c.at),
-                  ]
-                    .filter(Boolean)
-                    .join(" · ")}
+                {/* A longer translation ellipsizes with the whole line as its title. */}
+                <span className="truncate text-text-13 text-text-secondary" title={metaLine(c)}>
+                  {metaLine(c)}
                 </span>
               </span>
             </Link>

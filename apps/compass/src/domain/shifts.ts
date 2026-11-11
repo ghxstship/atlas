@@ -10,6 +10,10 @@ export interface ShiftRow {
   readonly project_id: string;
   readonly membership_id?: string | null;
   readonly engagement_id?: string | null;
+  /** The agency staff member on the shift (R12). */
+  readonly roster_entry_id?: string | null;
+  /** The project position the shift is held for until someone fills it (B9). */
+  readonly project_position_id?: string | null;
   readonly starts_at: string;
   readonly ends_at: string;
   readonly time_zone?: string;
@@ -38,10 +42,13 @@ export function groupByDay(
   return [...days].map(([day, list]) => ({ day, shifts: list }));
 }
 
+/** A published shift with nobody on it and held for no position (B9), which is all a person may claim. */
 export function isOpenShift(s: ShiftRow): boolean {
   return (
     (s.membership_id ?? null) === null &&
     (s.engagement_id ?? null) === null &&
+    (s.roster_entry_id ?? null) === null &&
+    (s.project_position_id ?? null) === null &&
     s.shift_state === "Published"
   );
 }

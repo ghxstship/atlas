@@ -2,22 +2,25 @@
   "name": "@xos/schemas",
   "version": "0.0.0",
   "private": true,
-  "description": "Single-source registries for XOS: the capability, plan, settings, notification kind and shortcut registries, with Zod schemas and generated contracts alongside.",
+  "description": "Single-source registries for XOS: the capability, plan, settings, notification kind and shortcut registries and the denormalization register, with Zod schemas and generated contracts alongside.",
   "license": "MIT",
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
     "./capabilities": "./src/capabilities/index.ts",
     "./capabilities.yaml": "./capabilities.yaml",
+    "./capabilities/codes": "./src/capabilities/codes.generated.ts",
     "./plans": "./src/plans/index.ts",
     "./plans.yaml": "./plans.yaml",
     "./settings": "./src/settings/index.ts",
     "./shortcuts": "./src/shortcuts/index.ts",
     "./shortcuts/keys": "./src/shortcuts/keys.ts",
+    "./shortcuts/docs": "./src/shortcuts/docs.ts",
     "./shortcuts.yaml": "./shortcuts.yaml",
     "./views": "./src/views/index.ts",
     "./views.yaml": "./views.yaml",
     "./notifications": "./src/notifications/index.ts",
+    "./notifications/action-token": "./src/notifications/action-token.ts",
     "./notification-kinds.yaml": "./notification-kinds.yaml",
     "./automations": "./src/automations/index.ts",
     "./automation.schema.json": "./automation.schema.json"
@@ -40,11 +43,16 @@
     "generate:views": "node --experimental-strip-types --no-warnings src/views/generate-cli.ts",
     "check:views": "node --experimental-strip-types --no-warnings src/views/generate-cli.ts --check",
     "generate:automations": "node --experimental-strip-types --no-warnings src/automations/generate-cli.ts",
-    "check:automations": "node --experimental-strip-types --no-warnings src/automations/generate-cli.ts --check"
+    "check:automations": "node --experimental-strip-types --no-warnings src/automations/generate-cli.ts --check",
+    "generate:denormalization": "node --experimental-strip-types --no-warnings src/denormalization/generate-cli.ts",
+    "check:denormalization": "node --experimental-strip-types --no-warnings src/denormalization/generate-cli.ts --check",
+    "generate:airports": "node --experimental-strip-types --no-warnings src/airports/generate-cli.ts",
+    "check:airports": "node --experimental-strip-types --no-warnings src/airports/generate-cli.ts --check",
+    "fetch:airports": "node --experimental-strip-types --no-warnings src/airports/fetch-cli.ts"
   },
   "dependencies": {
     "yaml": "2.9.1",
-    "zod": "4.6.5"
+    "zod": "4.6.6"
   },
   "devDependencies": {
     "@types/node": "22.20.5",

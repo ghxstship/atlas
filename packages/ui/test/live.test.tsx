@@ -64,6 +64,25 @@ describe("useLive", () => {
     expect(watches[0]?.stopped).toBe(true);
   });
 
+  it("keeps an in filter's comma-separated values in one topic", () => {
+    const { source, watches } = recordingSource();
+    render(
+      <LiveProvider source={source}>
+        <Watcher
+          topics={[
+            { table: "timesheets", filter: "engagement_id=in.(e1,e2,e3)" },
+            { table: "tax_forms", filter: "person_id=eq.p1" },
+          ]}
+          onChange={() => undefined}
+        />
+      </LiveProvider>,
+    );
+    expect(watches[0]?.topics).toEqual([
+      { table: "tax_forms", filter: "person_id=eq.p1" },
+      { table: "timesheets", filter: "engagement_id=in.(e1,e2,e3)" },
+    ]);
+  });
+
   it("keeps one watch while the same topics rerender, and calls the latest handler", () => {
     const { source, watches } = recordingSource();
     const seen: string[] = [];

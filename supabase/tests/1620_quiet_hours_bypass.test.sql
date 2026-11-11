@@ -24,6 +24,10 @@ $$;
 -- Dave takes texts and pushes for schedule and account notices, and is inside his quiet hours.
 select pg_temp.as_platform();
 update auth.users set phone = '15555550122', phone_confirmed_at = now() where id = pg_temp.id('dave_user');
+-- The phone is this suite's starting point; since 2050 (A104) it also tells Dave his phone changed. The claims below
+-- count only the notifications this suite sends, so that notice's deliveries go.
+delete from app.notification_deliveries d using app.notifications n
+where n.id = d.notification_id and n.kind = 'account.security_changed' and n.recipient_person_id = pg_temp.id('dave');
 insert into app.sms_consent_events (org_id, person_id, phone_e164, action, source)
 values (pg_temp.id('org_a'), pg_temp.id('dave'), '+15555550122', 'Opt In', 'Web');
 insert into app.notification_settings (membership_id, time_zone, quiet_hours_start, quiet_hours_end)
@@ -38,10 +42,12 @@ values (pg_temp.id('dave@org_a'), 'ExponentPushToken[cccccccccccccccccccc]', 'io
 select pg_temp.as_platform();
 
 select set_eq($$select kind, starts_within from private.notification_quiet_hours_bypass$$,
-  $$values ('shift.assigned', interval '12 hours'), ('shift.changed', interval '12 hours'), ('incident.reported', null::interval),
-    ('occupancy.threshold', null::interval), ('weather.alert', null::interval), ('account.security_changed', null::interval),
-    ('account.recovery_code_used', null::interval), ('access.break_glass_started', null::interval)$$,
-  'the bypass list adds a new shift, security changes and emergency access, and stays short');
+  $$values ('shift.assigned', interval '12 hours'), ('shift.changed', interval '12 hours'), ('shift.reconfirm', interval '12 hours'), ('incident.reported', null::interval),
+    ('occupancy.threshold', null::interval), ('weather.alert', null::interval), ('crisis_alert.issued', null::interval),
+    ('crisis_alert.ended', null::interval), ('account.security_changed', null::interval),
+    ('account.recovery_code_used', null::interval), ('access.break_glass_started', null::interval),
+    ('weather.warning', null::interval), ('weather.hold', null::interval), ('weather.all_clear', null::interval)$$,
+  'the bypass list adds a new shift, security changes and emergency access, and the B8 weather warning, hold and all-clear, the crisis alert and its all-clear, and stays short');
 
 -- 1. A new shift within 12 hours goes at once, like a shift change ---------------------------------------------------------
 select pg_temp.notify('shift.assigned', jsonb_build_object('title', 'Load in', 'startsAt', now() + interval '3 hours')) as v_soon \gset

@@ -1,5 +1,6 @@
 {
   "name": "@xos/email",
+  "sideEffects": false,
   "version": "0.0.0",
   "private": true,
   "description": "XOS transactional and notification email: React Email templates with copy from @xos/i18n, rendered to semantic HTML and plain text, sent through Resend behind a transport interface.",
@@ -7,6 +8,7 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
+    "./actions": "./src/actions.ts",
     "./env": "./src/env.ts",
     "./messages": "./src/messages.ts",
     "./transport": "./src/transport.ts"
@@ -24,7 +26,7 @@
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "resend": "6.32.1",
-    "zod": "4.6.5"
+    "zod": "4.6.6"
   },
   "devDependencies": {
     "@types/node": "22.20.5",

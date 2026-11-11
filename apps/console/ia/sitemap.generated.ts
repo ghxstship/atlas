@@ -6,9 +6,31 @@ export const sitemap: Sitemap = {
   schemaVersion: 1,
   shell: "console",
   home: "tenants",
-  params: { orgId: { type: "uuid" }, sessionId: { type: "uuid" }, opportunityId: { type: "uuid" } },
+  params: {
+    orgId: { type: "uuid" },
+    sessionId: { type: "uuid" },
+    opportunityId: { type: "uuid" },
+    itemId: { type: "uuid" },
+    subjectId: { type: "uuid" },
+    disputeId: { type: "uuid" },
+  },
   audience: { dimension: "operator-role", roles: ["administrator", "support", "trust-and-safety"] },
-  chrome: { topBar: ["tenants", "flags", "support", "moderation", "banners", "team", "activity"] },
+  chrome: {
+    topBar: [
+      "tenants",
+      "metrics",
+      "flags",
+      "territories",
+      "support",
+      "moderation",
+      "legal-queue",
+      "reported-content",
+      "banners",
+      "funnels",
+      "team",
+      "activity",
+    ],
+  },
   nodes: [
     {
       id: "console",
@@ -32,11 +54,19 @@ export const sitemap: Sitemap = {
             },
           ],
         },
+        { id: "metrics", kind: "page", label: "nav.console.metrics", route: "/metrics" },
         {
           id: "flags",
           kind: "page",
           label: "nav.console.flags",
           route: "/flags",
+          list: { views: ["table"], default: "table" },
+        },
+        {
+          id: "territories",
+          kind: "page",
+          label: "nav.console.territories",
+          route: "/territories",
           list: { views: ["table"], default: "table" },
         },
         {
@@ -69,6 +99,53 @@ export const sitemap: Sitemap = {
               label: "nav.console.listing",
               route: "/moderation/{opportunityId}",
             },
+            {
+              id: "moderation.rating-disputes",
+              kind: "page",
+              label: "nav.console.ratingDisputes",
+              route: "/rating-disputes",
+              list: { views: ["table"], default: "table" },
+              children: [
+                {
+                  id: "moderation.rating-dispute",
+                  kind: "record",
+                  label: "nav.console.ratingDispute",
+                  route: "/rating-disputes/{disputeId}",
+                },
+              ],
+            },
+          ],
+        },
+        {
+          id: "legal-queue",
+          kind: "page",
+          label: "nav.console.legalQueue",
+          route: "/legal-queue",
+          visibility: { administrator: "full", support: "hidden", "trust-and-safety": "hidden" },
+          list: { views: ["table"], default: "table" },
+          children: [
+            {
+              id: "legal-queue.item",
+              kind: "record",
+              label: "nav.console.legalQueueItem",
+              route: "/legal-queue/{itemId}",
+            },
+          ],
+        },
+        {
+          id: "reported-content",
+          kind: "page",
+          label: "nav.console.reportedContent",
+          route: "/reported-content",
+          visibility: { administrator: "full", support: "hidden", "trust-and-safety": "full" },
+          list: { views: ["table"], default: "table" },
+          children: [
+            {
+              id: "reported-content.item",
+              kind: "record",
+              label: "nav.console.reportedItem",
+              route: "/reported-content/{subjectId}",
+            },
           ],
         },
         {
@@ -77,6 +154,13 @@ export const sitemap: Sitemap = {
           label: "nav.console.banners",
           route: "/banners",
           list: { views: ["list"], default: "list" },
+        },
+        {
+          id: "funnels",
+          kind: "page",
+          label: "nav.console.funnels",
+          route: "/funnels",
+          list: { views: ["table"], default: "table" },
         },
         {
           id: "team",

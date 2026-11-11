@@ -5,7 +5,8 @@ import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 import { getOrgContext } from "@/lib/shell/context";
-import { fromDataError, type WorkflowActionState } from "@/lib/workflow/state";
+import { type WorkflowActionState } from "@/lib/workflow/state";
+import { fromDataError } from "@/lib/workflow/data-error";
 
 /** Restores a row from Trash as the viewer (app.restore_trash_item): the table's own rules decide. */
 export async function restoreAction(

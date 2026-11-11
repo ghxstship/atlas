@@ -260,6 +260,8 @@ export interface TotpEnrollment {
   readonly qrCode: string;
   /** The shared secret, for typing into an authenticator app that cannot scan. */
   readonly secret: string;
+  /** The otpauth:// URI the QR code encodes, which an authenticator app on the same phone opens (Compass, A110). */
+  readonly uri: string;
 }
 
 /** Starts enrolling an authenticator app; the factor counts once a code from it is verified. */
@@ -274,7 +276,12 @@ export async function startTotpEnrollment(
     friendlyName: label.trim(),
   });
   if (error) return fail(authFailure(error));
-  return ok({ factorId: data.id, qrCode: data.totp.qr_code, secret: data.totp.secret });
+  return ok({
+    factorId: data.id,
+    qrCode: data.totp.qr_code,
+    secret: data.totp.secret,
+    uri: data.totp.uri,
+  });
 }
 
 /**

@@ -38,7 +38,8 @@
     "booked": "Reservado"
   },
   "avatar": {
-    "more": "{n} más"
+    "more": "{n} más",
+    "overflow": "+{n}"
   },
   "badge": {
     "brightness": "Subir el brillo",
@@ -84,7 +85,8 @@
   "bulk": {
     "clear": "Borrar selección",
     "label": "Acciones masivas",
-    "selected": "{n} seleccionados"
+    "selected": "{n} seleccionados",
+    "itemSelected": "Seleccionado"
   },
   "calendar": {
     "agenda": "Agenda",
@@ -92,7 +94,8 @@
     "month": "Mes",
     "more": "+{n} más",
     "range": "Rango",
-    "week": "Semana"
+    "week": "Semana",
+    "dayTypes": "Tipos de día"
   },
   "camera": {
     "viewfinder": "Visor de la cámara"
@@ -155,7 +158,8 @@
   },
   "daysheet": {
     "contacts": "Contactos",
-    "now": "Ahora"
+    "now": "Ahora",
+    "dayTypes": "Tipos de día"
   },
   "diff": {
     "after": "Después",
@@ -196,6 +200,7 @@
     "kb": "{n} KB",
     "orBrowse": "o explore",
     "page": "Página {n}",
+    "previewArea": "Vista previa de {name}",
     "zoomIn": "Acercar",
     "zoomOut": "Alejar"
   },
@@ -222,7 +227,11 @@
   "grid": {
     "derived": "Derivado del canon. Edite el registro de origen para cambiarlo.",
     "hint": "Las flechas mueven, Enter edita, Supr borra a Sin precio, pegar desde Excel llena el rango.",
-    "row": "Fila"
+    "row": "Fila",
+    "newRow": "Fila nueva",
+    "hintAppend": "Las flechas y Tab mueven, Intro edita y baja, y escribir en la última fila agrega una fila. Pegar desde una hoja de cálculo llena el rango.",
+    "cellError": "Fila {row}, {column}: {message}",
+    "newRowMark": "+"
   },
   "help": {
     "ask": "Haga una pregunta sobre esta página",
@@ -251,6 +260,7 @@
     "whatFailed": "¿Qué falló?"
   },
   "key": {
+    "enter": "↵",
     "esc": "Esc",
     "space": "Espacio"
   },
@@ -328,6 +338,7 @@
     "account": "Número de cuenta",
     "accountHelp": "Se cifra al ingresarlo. Después de guardar, solo se muestran los últimos cuatro dígitos.",
     "checking": "Corriente",
+    "masked": "•••• {last4}",
     "routing": "Número de ruta",
     "routingHint": "9 dígitos",
     "save": "Guardar de forma segura",
@@ -356,6 +367,9 @@
   "profile": {
     "complete": "{n}% completo",
     "title": "Perfil"
+  },
+  "progress": {
+    "percent": "{n}%"
   },
   "provenance": {
     "rank": "Nivel de procedencia {rank}",
@@ -388,6 +402,10 @@
   "record": {
     "untitled": "Sin título"
   },
+  "region": {
+    "title": "Esta sección no se cargó",
+    "body": "El resto de la página sigue funcionando. Reintente para cargar esta sección de nuevo."
+  },
   "resource": {
     "doubleBooked": "Reserva duplicada",
     "person": "Persona"
@@ -401,7 +419,9 @@
     "go": "Go",
     "label": "Guion del evento",
     "live": "En vivo",
-    "nextIn": "Siguiente cue en"
+    "nextIn": "Siguiente cue en",
+    "standby": "En espera",
+    "skipped": "Omitido"
   },
   "rte": {
     "bold": "Negrita",
@@ -484,15 +504,48 @@
     "selectRow": "Seleccionar {row}"
   },
   "timeline": {
+    "bar": "{key} {title}, del {start} al {end}",
+    "controls": "Reprogramar {label}",
     "critical": "ruta crítica",
     "dependsOn": "Depende de",
     "end": "Fin",
     "key": "Clave",
+    "locked": "fijado",
     "milestone": "hito",
+    "moveHint": "Las flechas mueven la barra un día. Mayús con una flecha mueve su final. Intro aplica el cambio y Escape lo cancela.",
+    "preview": {
+      "applied": "{key} reprogramado.",
+      "apply": "Aplicar",
+      "cancel": "Cancelar",
+      "canceled": "Cambio cancelado.",
+      "change": "{key} pasa del {start} al {end}.",
+      "checking": "Comprobando todas las dependencias antes de poder aplicar el cambio.",
+      "criticalChanges": "La ruta crítica cambia.",
+      "criticalSame": "La ruta crítica no cambia.",
+      "cycle": "Las dependencias son circulares, así que este cambio no se puede hacer.",
+      "finishEarlierMany": "El último final se adelanta {count} días.",
+      "finishEarlierOne": "El último final se adelanta 1 día.",
+      "finishLaterMany": "El último final se atrasa {count} días.",
+      "finishLaterOne": "El último final se atrasa 1 día.",
+      "label": "Vista previa de la reprogramación",
+      "locked": "{keys} no se puede mover: está fijado.",
+      "movesMany": "Se mueven {count} sucesores: {keys}.",
+      "movesNone": "Ningún otro registro se mueve.",
+      "movesOne": "Se mueve 1 sucesor: {keys}."
+    },
     "record": "Registro",
     "scroll": "{label}, días",
     "start": "Inicio",
-    "state": "Estado"
+    "state": "Estado",
+    "dayTypes": "Tipos de día",
+    "dayWithTypes": "{day} ({types})",
+    "segment": "{label} del {start} al {end}",
+    "offset": "Desfase",
+    "offsetOn": "En el día del ancla",
+    "offsetBefore": "{n} días antes del ancla",
+    "offsetAfter": "{n} días después del ancla",
+    "offsetBeforeOne": "1 día antes del ancla",
+    "offsetAfterOne": "1 día después del ancla"
   },
   "tooltip": {
     "withShortcut": "{label} ({shortcut})"
@@ -532,6 +585,7 @@
   },
   "recordList": {
     "columns": {
+      "select": "Seleccionar",
       "state": "Estado",
       "key": "Clave",
       "title": "Registro",
@@ -540,5 +594,25 @@
       "owner": "Responsable",
       "action": "Acción"
     }
+  },
+  "heatmap": {
+    "cell": "{row}, {column}: {value}",
+    "stateCell": "{row}, {col}: {state}",
+    "detail": "{row}, {col}: {state}. {detail}",
+    "none": "{row}, {col}: no se pide",
+    "select": "Seleccionar {row}",
+    "legend": "Qué significa cada estado",
+    "noneMark": "-"
+  },
+  "recordStates": {
+    "proposed": "Propuesto",
+    "ready": "Listo",
+    "scheduled": "Programado",
+    "active": "Activo",
+    "blocked": "Bloqueado",
+    "inReview": "En revisión",
+    "complete": "Completo",
+    "deferred": "Aplazado",
+    "canceled": "Cancelado"
   }
 }

@@ -206,6 +206,13 @@ test("A65-031: a supplier diversity certification is shared by separate consent 
     DEMO.owner,
   );
   await signIn(page, "crew@example.com", "/profile");
+  // ADR 0164: the form appears only after the person reads and agrees to what is collected.
+  await page.getByRole("button", { name: "Add a certification" }).click();
+  const consent = page.getByRole("dialog", {
+    name: "Before you add a supplier diversity certification",
+  });
+  await consent.getByRole("button", { name: "I agree" }).click();
+  await expect(consent).toBeHidden();
   const add = page.getByRole("form", { name: "Add certification" });
   await add.getByLabel("Certification").selectOption({ label: "Women-owned business" });
   await add.getByLabel("Certified by").fill(body);
@@ -230,7 +237,11 @@ test("A65-031: a supplier diversity certification is shared by separate consent 
   await atlas.page.goto(`/${ORG}/vendors/directory`);
   const shared = atlas.page.getByRole("region", { name: "Supplier diversity" });
   await expect(shared.getByRole("cell", { name: body })).toBeVisible();
-  await expect(shared.getByRole("cell", { name: "FL-WBE-2026-118842" })).toBeVisible();
+  // The number is encrypted (2011): the list shows its last four, and the Owner, who holds government identifier
+  // access, reveals the rest only with a reason and step-up (decision 38).
+  await expect(shared.getByRole("cell", { name: "Ending 8842" }).first()).toBeVisible();
+  await expect(shared.getByText("FL-WBE-2026-118842")).toHaveCount(0);
+  await expect(shared.getByRole("form", { name: "Reveal a certificate number" })).toBeVisible();
   await atlas.context.close();
 
   // The read is in the person's own access log.

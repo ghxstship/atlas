@@ -1,4 +1,5 @@
 import { listCounterparties } from "@xos/data/finance";
+import { STANDARD_REPORTS } from "@xos/data/report-builder-standard";
 import { listMyRuns, listSavedReports, listSharedReports } from "@xos/data/reports";
 import { listEngagementRefs } from "@xos/data/settlements";
 import { getNode } from "@xos/ia";
@@ -113,6 +114,8 @@ export async function SavedReportsView({ page }: { page: FinancePage }) {
             title={peek.name}
             state={peek.shared ? "active" : "ready"}
             stateLabel={peek.shared ? t("reports.saved.shared") : t("reports.saved.private")}
+            // A saved report opens in its peek only; it has no full page to offer.
+            fullPage={false}
             properties={[
               {
                 label: t("reports.saved.source"),
@@ -186,6 +189,7 @@ export async function SavedReportsView({ page }: { page: FinancePage }) {
           ) : page.view === "table" ? (
             <CollectionTable
               label={t("reports.saved.definitions")}
+              fullPage={false}
               columns={[
                 { key: "name", label: t("reports.saved.name"), wrap: true },
                 { key: "source", label: t("reports.saved.source") },
@@ -213,6 +217,39 @@ export async function SavedReportsView({ page }: { page: FinancePage }) {
             />
           )}
         </Section>
+        {page.inProject ? null : (
+          <Section id="standard" title={t("reports.saved.standard.title")}>
+            <p className="m-0 max-w-layout-reading text-text-12 text-text-secondary">
+              {t("reports.saved.standard.help")}
+            </p>
+            <ul className="m-0 flex list-none flex-col gap-8 p-0">
+              {STANDARD_REPORTS.map((r) => (
+                <li
+                  key={r.code}
+                  className="flex flex-wrap items-center justify-between gap-8 rounded-card border border-border-subtle p-12"
+                >
+                  <span className="flex flex-col">
+                    <span className="text-text-14 font-medium">
+                      {t(`reports.saved.standard.names.${r.code}`)}
+                    </span>
+                    <span className="text-text-12 text-text-secondary">
+                      {t(`reports.saved.sources.${r.definition.sourceCode}`)}
+                    </span>
+                  </span>
+                  <Link
+                    href={`/${org}/reports/builder?standard=${r.code}` as Route}
+                    aria-label={t("reports.saved.standard.openNamed", {
+                      name: t(`reports.saved.standard.names.${r.code}`),
+                    })}
+                    className="inline-flex h-control-md items-center rounded-control border border-border-default px-12 text-text-13 font-medium"
+                  >
+                    {t("reports.saved.standard.open")}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </Section>
+        )}
         <Section id="share" title={t("reports.saved.shareTitle")}>
           <p className="m-0 max-w-layout-reading text-text-12 text-text-secondary">
             {t("reports.saved.shareSentence")}

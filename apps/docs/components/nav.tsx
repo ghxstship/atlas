@@ -4,11 +4,9 @@
 import { Sidebar } from "@xos/ui";
 import { usePathname } from "next/navigation";
 import type { ReactElement } from "react";
+import { activeNavLabel, type NavGroup } from "@/lib/nav-active.ts";
 
-export interface NavGroup {
-  readonly label?: string;
-  readonly items: readonly { readonly label: string; readonly href: string }[];
-}
+export type { NavGroup };
 
 export function DocsSidebar({
   label,
@@ -17,18 +15,7 @@ export function DocsSidebar({
   label: string;
   groups: readonly NavGroup[];
 }): ReactElement {
-  const path = usePathname();
-  let active: string | undefined;
-  let best = -1;
-  for (const group of groups) {
-    for (const item of group.items) {
-      const matches = path === item.href || path.startsWith(`${item.href}/`);
-      if (matches && item.href.length > best) {
-        best = item.href.length;
-        active = item.label;
-      }
-    }
-  }
+  const active = activeNavLabel(usePathname(), groups);
   return (
     <Sidebar
       label={label}

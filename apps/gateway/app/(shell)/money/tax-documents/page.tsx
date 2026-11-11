@@ -4,6 +4,7 @@ import { formatPostalAddress } from "@xos/i18n/formats";
 import { getNode } from "@xos/ia";
 import type { Metadata } from "next";
 import { getLocale } from "next-intl/server";
+import { LiveRefresh } from "@/components/live/live-refresh";
 import { LinkTable } from "@/components/page/collections";
 import { RowList } from "@/components/engagement/rows";
 import { TaxAddressForm, type TaxAddressCopy } from "@/components/forms/tax-address-form";
@@ -11,6 +12,7 @@ import { PageTitle, pickView, RegionError, Section, ViewSwitcher } from "@/compo
 import { DestinationTabs } from "@/components/page/work-tabs";
 import { EmptyStateLink, InlineAlert } from "@/components/ui";
 import { formatDate } from "@/lib/format";
+import { personTopic } from "@/lib/live/topics";
 import { requireNode, sitemap } from "@/lib/shell/sitemap";
 import { enumLabelKey, getTranslate } from "@/lib/shell/translate";
 
@@ -22,7 +24,7 @@ export async function generateMetadata(): Promise<Metadata> {
 /**
  * Money, Tax documents (Section 4.4.5, Section 8.7): the tax forms the person or their account
  * gave each org, which never close, and the payout destinations by org. Only the last four
- * characters of an identifier or account are ever shown.
+ * characters of an identifier or account are ever shown. The person's own forms update live.
  */
 export default async function TaxDocumentsPage({
   searchParams,
@@ -58,6 +60,7 @@ export default async function TaxDocumentsPage({
   };
   return (
     <>
+      <LiveRefresh topics={[personTopic("tax_forms", "person_id", ctx.personId)]} />
       <PageTitle
         title={t("nav.gateway.primary.money")}
         action={

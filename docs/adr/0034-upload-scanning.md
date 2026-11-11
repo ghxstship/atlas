@@ -83,3 +83,9 @@ private staging bucket first was named as the fix. It is made now.
 Tests: pgTAP `1265_public_upload_staging` (policies, publication, the infected path), `0938` and `1041` follow the
 new write path, and the unit tests in `packages/platform/test/scanning.test.ts`,
 `packages/data/test/staged-uploads.test.ts` and `packages/data/test/account-deletion.test.ts`.
+
+## Amendment (2026-11-06): Fly.io receives file bytes, so it is a subprocessor (RRR-248)
+
+This ADR and decision 10 said files never leave XOS infrastructure, so scanning adds no subprocessor. Since the hosting approved on 2026-10-24, `upload-scan` sends each file's bytes to a machine at Fly.io. The machine is ours to run, but Fly.io operates the hardware and network that handle those bytes, so the protective reading applies and Fly.io is on the Subprocessor List. The runbooks now say so. This choice was made by AI on the owner's instruction to take the most defensible option, and no attorney has reviewed it.
+
+The Fly.io hosting also added `XOS_CLAMAV_TLS_CA`, `XOS_CLAMAV_TLS_CERT` and `XOS_CLAMAV_TLS_KEY`, which `selectVirusScanner` takes as all three or none.

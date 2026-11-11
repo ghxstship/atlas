@@ -65,7 +65,8 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/p
         backHref={withParams(base, search, { peek: null, full: null })}
         actions={
           <>
-            <ButtonLink href={`${pipeline}?peek=${o.applicationId}`} size="sm" variant="primary">
+            {/* Pipeline opens an application at ?id; ?peek there is the shell's, for record keys. */}
+            <ButtonLink href={`${pipeline}?id=${o.applicationId}`} size="sm" variant="primary">
               {t("people.offers.openApplication")}
             </ButtonLink>
             {o.state === "Accepted" && crew.can("people.agreement.write") ? (

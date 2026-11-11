@@ -6,7 +6,7 @@ import { expectAccessible, sql, uniqueId } from "./support";
  * choices, the server-side record, Cookie settings, and Global Privacy Control (Section 14.3); and
  * re-accepting the Worker Terms after a material change (Section 14.4). The config sends Global
  * Privacy Control so the banner stays out of other journeys; the cookie tests open their own
- * contexts. The "16 or older" question is covered in sign-up.spec.ts and google-sign-in.spec.ts.
+ * contexts. The "18 or older" question is covered in sign-up.spec.ts and google-sign-in.spec.ts.
  */
 
 async function plainContext(browser: Browser) {
@@ -93,7 +93,7 @@ test("a material change to the Worker Terms asks the worker to accept the new ve
         where u.email = $1 and a.document_slug = 'worker-terms' order by a.accepted_at`,
       [email],
     );
-    expect(accepted.map((a) => a.version)).toEqual(["1.0.0-draft", version]);
+    expect(accepted.map((a) => a.version)).toEqual(["1.0.0", version]);
     expect(accepted.every((a) => a.org === null)).toBe(true);
   } finally {
     await sql("select app.withdraw_legal_change('worker-terms', $1)", [version]);

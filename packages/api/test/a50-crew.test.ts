@@ -235,6 +235,15 @@ function world() {
         Object.assign(s, { membership_id: MEMBER, shift_state: "Accepted" });
         return id(7003);
       },
+      mark_shift_no_show: (args, db) => {
+        find(db, "shifts", args["p_shift_id"]);
+        if (args["p_reason"] === "Too soon.") throw refusal("shift_no_show_state");
+        return args["p_no_show_id"];
+      },
+      respond_shift_reconfirmation: (args) => {
+        if (args["p_coming"] === true) throw refusal("shift_reconfirm_answered");
+        return id(7006);
+      },
       decide_shift_swap: (args, db) => {
         find(db, "shift_swaps", args["p_shift_swap_id"])["swap_state"] =
           args["p_decision"] === "Approved" ? "Approved" : "Rejected";
@@ -426,6 +435,43 @@ describe("Crew: shifts and swaps", () => {
     expect(find(db, "shifts", made.id)["deleted_at"]).not.toBeNull();
   });
 
+  it("marks a no-show and answers Still coming? (B9)", async () => {
+    const { db, http } = world();
+    const NO_SHOW = id(14);
+    const marked = await success(
+      http.post(`/shifts/${SHIFT}/no-show`, { no_show_id: NO_SHOW, reason: "Did not arrive." }),
+    );
+    await expectContract(marked, "shifts.markNoShow");
+    expect(db.calls.filter((c) => c.name === "mark_shift_no_show").map((c) => c.args)[0]).toEqual({
+      p_no_show_id: NO_SHOW,
+      p_shift_id: SHIFT,
+      p_reason: "Did not arrive.",
+      p_open_replacement: false,
+    });
+    const refused = await http.post(`/shifts/${SHIFT}/no-show`, {
+      no_show_id: id(15),
+      reason: "Too soon.",
+    });
+    expect(refused.status).toBe(422);
+    expect(await refused.json()).toMatchObject({ rule: "shift_no_show_state" });
+    expect(
+      (await http.post(`/shifts/${MISSING}/no-show`, { no_show_id: NO_SHOW, reason: "x" })).status,
+    ).toBe(404);
+
+    const answered = await success(
+      http.post(`/shifts/${SHIFT}/reconfirm`, { coming: false, reason: "Sick." }),
+    );
+    await expectContract(answered, "shifts.reconfirm");
+    expect(db.calls.find((c) => c.name === "respond_shift_reconfirmation")?.args).toEqual({
+      p_shift_id: SHIFT,
+      p_coming: false,
+      p_reason: "Sick.",
+    });
+    const again = await http.post(`/shifts/${SHIFT}/reconfirm`, { coming: true });
+    expect(again.status).toBe(422);
+    expect(await again.json()).toMatchObject({ rule: "shift_reconfirm_answered" });
+  });
+
   it("asks for, decides and withdraws swaps", async () => {
     const { db, http } = world();
     await expectContract(await success(http.get("/shift-swaps")), "shiftSwaps.list");
@@ -433,6 +479,16 @@ describe("Crew: shifts and swaps", () => {
     const create = await success(
       http.post("/shift-swaps", { shift_id: SHIFT, proposed_membership_id: OTHER_MEMBER }),
     );
+    const withReason = await success(
+      http.post("/shift-swaps", {
+        shift_id: SHIFT,
+        proposed_membership_id: OTHER_MEMBER,
+        reason: "Exam that morning.",
+      }),
+    );
+    expect(await expectContract(withReason, "shiftSwaps.create")).toMatchObject({
+      reason: "Exam that morning.",
+    });
     const made = (await expectContract(create, "shiftSwaps.create")) as {
       id: string;
       requested_by_membership_id: string;

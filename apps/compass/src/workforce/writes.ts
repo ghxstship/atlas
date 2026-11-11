@@ -1,10 +1,14 @@
 /**
  * Workforce Suite writes from Compass (Section 4.9). The sixteen RPCs A29 allowlisted in
- * private.sync_rpcs (0807; each SECURITY DEFINER with its own capability check, 0935) queue offline and
- * replay once through app.apply_sync_mutation, keyed by the mutation id. Everything else (starting a
+ * private.sync_rpcs (0807; each SECURITY DEFINER with its own capability check, 0935), and B8's weather hold and
+ * all-clear (6257), queue offline and replay once through app.apply_sync_mutation, keyed by the mutation id. The hold
+ * RPCs also carry the mutation id as p_id (a replay returns the stored hold) and the device time: an all-clear made
+ * offline more than 10 minutes before it reaches the server is refused, while a hold is sent however late, and says
+ * when it was called, because a late stop-work errs safe. Everything else (starting a
  * direct message, grading a quiz, opening a help desk request) needs the server's answer at once and
  * goes online through A29's repositories.
  */
+import { holdsObjectionableLanguage } from "@xos/data/content-filter";
 import { uuidv7, type MutationInput } from "@xos/sync";
 import { signaturePng } from "./signature-png";
 
@@ -25,7 +29,15 @@ export const WORKFORCE_SYNC_RPCS = [
   "record_weather_reading",
   "check_in_guest",
   "log_lost_item",
+  "call_weather_hold",
+  "give_weather_all_clear",
 ] as const;
+
+/** The queued RPCs that take the mutation id as p_id and the device time as p_device_at (6257). */
+const STAMPED: ReadonlySet<WorkforceSyncRpc> = new Set([
+  "call_weather_hold",
+  "give_weather_all_clear",
+]);
 
 export type WorkforceSyncRpc = (typeof WORKFORCE_SYNC_RPCS)[number];
 
@@ -47,7 +59,31 @@ const TABLE: Readonly<Record<WorkforceSyncRpc, string>> = {
   record_weather_reading: "weather_readings",
   check_in_guest: "guest_check_ins",
   log_lost_item: "lost_found_items",
+  call_weather_hold: "weather_holds",
+  give_weather_all_clear: "weather_holds",
 };
+
+/**
+ * The arguments of a queued write that other people read: a chat message and a shout-out. The database refuses a slur
+ * in them (content_objectionable, migration 6890); Compass checks the same list before it queues, so the person reads
+ * why at once and keeps what they wrote, instead of finding the write refused in the offline queue later.
+ */
+const TEXT_ARGS: Partial<Readonly<Record<WorkforceSyncRpc, readonly string[]>>> = {
+  send_chat_message: ["p_body"],
+  recognize: ["p_message"],
+};
+
+/** Whether a write would be refused for objectionable language in the text other people read. */
+export function holdsObjectionableText(
+  rpc: WorkforceSyncRpc,
+  args: Readonly<Record<string, unknown>>,
+): boolean {
+  const texts = (TEXT_ARGS[rpc] ?? []).map((name) => {
+    const value = args[name];
+    return typeof value === "string" ? value : null;
+  });
+  return holdsObjectionableLanguage(...texts);
+}
 
 /** Arguments with undefined values dropped, as the repositories send them. */
 function compact(args: Readonly<Record<string, unknown>>): Record<string, unknown> {
@@ -61,12 +97,15 @@ export function workforceWrite(
   nowMs: number,
   newId: (ms: number) => string = uuidv7,
 ): MutationInput {
+  const rowId = newId(nowMs);
   return {
     op: "rpc",
     target: `app.${rpc}`,
     table: TABLE[rpc],
-    rowId: newId(nowMs),
-    payload: compact(args),
+    rowId,
+    payload: STAMPED.has(rpc)
+      ? { ...compact(args), p_id: rowId, p_device_at: new Date(nowMs).toISOString() }
+      : compact(args),
     policy: "append",
     optimistic: null,
   };

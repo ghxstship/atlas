@@ -32,11 +32,28 @@ function operations(doc: Doc): Map<string, Json> {
   return out;
 }
 
+/**
+ * A frozen list operation as published, less the optional query parameters a module appended to it
+ * (`listQuery`, A124): those are additive, so they must come after the frozen parameters, be
+ * optional and be read from the query string.
+ */
+function lessAddedListParameters(frozen: Json, published: Json | undefined): Json | undefined {
+  if (published === undefined || !String(frozen["operationId"]).endsWith(".list")) return published;
+  const was = (frozen["parameters"] as Json[] | undefined) ?? [];
+  const now = (published["parameters"] as Json[] | undefined) ?? [];
+  for (const added of now.slice(was.length)) {
+    expect(added["in"], String(added["name"])).toBe("query");
+    expect(added["required"], String(added["name"])).toBe(false);
+  }
+  return { ...published, parameters: now.slice(0, was.length) };
+}
+
 /** Every frozen operation and component is present, unchanged, in `doc`. */
 function expectAdditive(frozen: Doc, doc: Doc): void {
   const before = operations(frozen);
   const after = operations(doc);
-  for (const [key, op] of before) expect(after.get(key), key).toEqual(op);
+  for (const [key, op] of before)
+    expect(lessAddedListParameters(op, after.get(key)), key).toEqual(op);
   for (const [kind, entries] of Object.entries(frozen.components)) {
     for (const [name, value] of Object.entries(entries)) {
       expect(doc.components[kind]?.[name], `${kind}/${name}`).toEqual(value);

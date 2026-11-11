@@ -242,7 +242,10 @@ describe("packets", () => {
           { id: "sec2", position: 2, title: "Backline", prompt: null },
           { id: "sec1", position: 1, title: "Arrival", prompt: "When?" },
         ]),
+        // R11: the tracks, read after the sections (6223).
+        okResponse([{ id: "sec2", track: "Technical" }]),
       ],
+      "from:advance_section_choices": [okResponse([])],
       "from:advance_recipients": [
         okResponse([
           { id: "r1", person_id: "p1", counterparty_id: null },
@@ -262,6 +265,7 @@ describe("packets", () => {
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.data.sections.map((s) => s.title)).toEqual(["Arrival", "Backline"]);
+    expect(result.data.sections.map((s) => s.track)).toEqual(["General", "Technical"]);
     expect(result.data.recipients.map((r) => r.party.name)).toEqual(["Mia", "Harbor Audio"]);
     expect(result.data.submissions.map((s) => [s.id, s.latest, s.viaLink])).toEqual([
       ["s2", true, true],
@@ -278,18 +282,21 @@ describe("packets", () => {
     const sections = fakeClient({
       "from:advance_packets": [okResponse(packetRow)],
       "from:advance_sections": [down()],
+      "from:advance_section_choices": [okResponse([])],
       "from:advance_recipients": [okResponse([])],
     });
     expect((await getPacket(sections.db, "pk1")).ok).toBe(false);
     const recipients = fakeClient({
       "from:advance_packets": [okResponse(packetRow)],
       "from:advance_sections": [okResponse([])],
+      "from:advance_section_choices": [okResponse([])],
       "from:advance_recipients": [down()],
     });
     expect((await getPacket(recipients.db, "pk1")).ok).toBe(false);
     const names = fakeClient({
       "from:advance_packets": [okResponse(packetRow)],
       "from:advance_sections": [okResponse([])],
+      "from:advance_section_choices": [okResponse([])],
       "from:advance_recipients": [
         okResponse([{ id: "r1", person_id: "p1", counterparty_id: null }]),
       ],
@@ -299,6 +306,7 @@ describe("packets", () => {
     const cpNames = fakeClient({
       "from:advance_packets": [okResponse(packetRow)],
       "from:advance_sections": [okResponse([])],
+      "from:advance_section_choices": [okResponse([])],
       "from:advance_recipients": [
         okResponse([{ id: "r1", person_id: null, counterparty_id: "c1" }]),
       ],
@@ -309,7 +317,9 @@ describe("packets", () => {
       "from:advance_packets": [okResponse(packetRow)],
       "from:advance_sections": [
         okResponse([{ id: "sec1", position: 1, title: "A", prompt: null }]),
+        okResponse([]),
       ],
+      "from:advance_section_choices": [okResponse([])],
       "from:advance_recipients": [okResponse([])],
       "from:advance_submissions": [down()],
     });
@@ -354,9 +364,17 @@ describe("packets", () => {
     );
     expect(await updateSection(db, "s", { title: "x".repeat(201), prompt: null })).toEqual(invalid);
     expect(
-      await createRider(db, { orgId: "o1", projectId: "p", title: "", counterpartyId: null }),
+      await createRider(db, {
+        orgId: "o1",
+        projectId: "p",
+        title: "",
+        counterpartyId: null,
+        engagementId: null,
+      }),
     ).toEqual(invalid);
-    expect(await updateRider(db, "r", { title: "", counterpartyId: null })).toEqual(invalid);
+    expect(
+      await updateRider(db, "r", { title: "", counterpartyId: null, engagementId: null }),
+    ).toEqual(invalid);
     expect(calls).toHaveLength(0);
   });
 
@@ -406,7 +424,19 @@ describe("sections and recipients", () => {
     ).toEqual({ ok: true, data: { id: "sec4" } });
     expect(calls[1]?.steps[0]).toEqual([
       "insert",
-      [{ org_id: "o1", advance_packet_id: "pk1", position: 4, title: "Hospitality", prompt: null }],
+      [
+        {
+          org_id: "o1",
+          advance_packet_id: "pk1",
+          position: 4,
+          title: "Hospitality",
+          prompt: null,
+          section_kind: "Text",
+          window_kind: null,
+          max_lines: null,
+          per_person: false,
+        },
+      ],
     ]);
   });
 
@@ -424,7 +454,17 @@ describe("sections and recipients", () => {
       true,
     );
     expect(calls[1]?.steps[0]?.[1]).toEqual([
-      { org_id: "o", advance_packet_id: "p", position: 1, title: "A", prompt: "Q" },
+      {
+        org_id: "o",
+        advance_packet_id: "p",
+        position: 1,
+        title: "A",
+        prompt: "Q",
+        section_kind: "Text",
+        window_kind: null,
+        max_lines: null,
+        per_person: false,
+      },
     ]);
     expect((await addSection(db, { orgId: "o", packetId: "p", title: "A", prompt: null })).ok).toBe(
       false,
@@ -526,7 +566,16 @@ describe("sections and recipients", () => {
     expect(await addRecipient(db, input)).toEqual({ ok: true, data: { id: "r1" } });
     expect(calls[1]?.steps[0]).toEqual([
       "insert",
-      [{ org_id: "o1", advance_packet_id: "pk1", person_id: null, counterparty_id: "c1" }],
+      [
+        {
+          org_id: "o1",
+          advance_packet_id: "pk1",
+          person_id: null,
+          counterparty_id: "c1",
+          engagement_id: null,
+          names_due_at: null,
+        },
+      ],
     ]);
     const again = await addRecipient(db, { ...input, party: { kind: "person", id: "p1" } });
     expect(!again.ok && again.error.kind === "refusal" && again.error.rule).toBe(
@@ -772,6 +821,7 @@ describe("riders", () => {
     project_id: "pr1",
     title: "Technical Rider",
     counterparty_id: "c1",
+    engagement_id: null,
     created_at: "2026-10-01",
   };
 
@@ -866,15 +916,87 @@ describe("riders", () => {
       projectId: "pr1",
       title: "Hospitality Rider",
       counterpartyId: null,
+      engagementId: null,
     };
+    const none = { counterpartyId: null, engagementId: null };
     expect(await createRider(db, create)).toEqual({ ok: true, data: { id: "rd1" } });
     expect((await createRider(db, create)).ok).toBe(false);
-    expect((await updateRider(db, "rd1", { title: "A", counterpartyId: "c1" })).ok).toBe(true);
-    expect((await updateRider(db, "rd1", { title: "A", counterpartyId: null })).ok).toBe(false);
-    expect((await updateRider(db, "rd1", { title: "A", counterpartyId: null })).ok).toBe(false);
+    expect(
+      (await updateRider(db, "rd1", { title: "A", counterpartyId: "c1", engagementId: null })).ok,
+    ).toBe(true);
+    expect((await updateRider(db, "rd1", { title: "A", ...none })).ok).toBe(false);
+    expect((await updateRider(db, "rd1", { title: "A", ...none })).ok).toBe(false);
     expect((await archiveRider(db, "rd1", NOW)).ok).toBe(true);
     expect((await archiveRider(db, "rd1", NOW)).ok).toBe(false);
     expect((await archiveRider(db, "rd1", NOW)).ok).toBe(false);
+  });
+
+  it("creates a rider for an individual artist's engagement and names one party at most", async () => {
+    const { db, calls } = fakeClient({
+      "from:riders": [okResponse({ id: "rd3" }), okResponse([{ id: "rd3" }])],
+    });
+    expect(
+      await createRider(db, {
+        orgId: "o1",
+        projectId: "pr1",
+        title: " Arturo Bell Technical Rider ",
+        counterpartyId: null,
+        engagementId: "e1",
+      }),
+    ).toEqual({ ok: true, data: { id: "rd3" } });
+    expect(calls[0]?.steps[0]?.[1]).toEqual([
+      {
+        org_id: "o1",
+        project_id: "pr1",
+        title: "Arturo Bell Technical Rider",
+        counterparty_id: null,
+        engagement_id: "e1",
+      },
+    ]);
+    expect(
+      (await updateRider(db, "rd3", { title: "A", counterpartyId: null, engagementId: "e1" })).ok,
+    ).toBe(true);
+    expect(calls[1]?.steps[0]?.[1]).toEqual([
+      { title: "A", counterparty_id: null, engagement_id: "e1" },
+    ]);
+    const both = { counterpartyId: "c1", engagementId: "e1" };
+    const party = { ok: false, error: { kind: "invalid", message: "party" } };
+    expect(await createRider(db, { orgId: "o1", projectId: "pr1", title: "A", ...both })).toEqual(
+      party,
+    );
+    expect(await updateRider(db, "rd3", { title: "A", ...both })).toEqual(party);
+  });
+
+  it("names the artist of an engagement rider", async () => {
+    const { db } = fakeClient({
+      "from:riders": [
+        okResponse([{ ...riderRow, id: "rd3", counterparty_id: null, engagement_id: "e1" }]),
+        okResponse({ ...riderRow, id: "rd3", counterparty_id: null, engagement_id: "e1" }),
+      ],
+      "from:rider_lines": [okResponse([]), okResponse([])],
+      "from:engagements": [
+        okResponse([{ id: "e1", person_id: "pe1" }]),
+        okResponse([{ id: "e1", person_id: "pe1" }]),
+      ],
+      "from:people": [
+        okResponse([{ id: "pe1", full_name: "Arturo Bell" }]),
+        okResponse([{ id: "pe1", full_name: "Arturo Bell" }]),
+      ],
+    });
+    const list = await listRiders(db, { orgId: "o1" });
+    expect(list.ok && list.data[0]).toMatchObject({
+      counterpartyId: null,
+      engagementId: "e1",
+      engagementName: "Arturo Bell",
+    });
+    const one = await getRider(db, "rd3");
+    expect(one.ok && one.data.engagementName).toBe("Arturo Bell");
+    const down2 = fakeClient({
+      "from:riders": [okResponse([{ ...riderRow, counterparty_id: null, engagement_id: "e1" }])],
+      "from:rider_lines": [okResponse([])],
+      "from:engagements": [down()],
+    });
+    expect((await listRiders(down2.db, { orgId: "o1" })).ok).toBe(false);
   });
 
   it("keeps a blank quantity blank and refuses invalid lines", async () => {

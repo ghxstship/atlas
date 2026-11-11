@@ -12,6 +12,7 @@ import { redirect } from "next/navigation";
 import { getLocale } from "next-intl/server";
 import { getOrgContext } from "@/lib/shell/context";
 import { createServerSupabase } from "@/lib/supabase/server";
+import { observability } from "@/lib/observability";
 
 /**
  * Subprocessor List change notices (Section 14.4, finding A65-014; migration 1382). Plain forms on
@@ -64,6 +65,9 @@ export async function setMemberNoticeAction(form: FormData): Promise<void> {
   const ctx = await getOrgContext(String(form.get("org") ?? ""));
   if (!ctx) return;
   const result = await setMemberNoticeSubscription(ctx.viewer.db, form.get("subscribed") === "on");
-  if (!result.ok) console.error("subprocessor notice preference was not saved", result.error);
+  if (!result.ok)
+    observability.logger.error("subprocessor notice preference was not saved", {
+      error: result.error,
+    });
   revalidatePath(`/${ctx.org.slug}/me/notifications`);
 }

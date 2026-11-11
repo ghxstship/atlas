@@ -5,6 +5,7 @@ import { Button, InlineAlert, Select } from "@xos/ui";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
+import * as enums from "@xos/data/enums";
 
 type Translate = (key: string, values?: Record<string, string | number>) => string;
 
@@ -14,7 +15,7 @@ type Media = (typeof MEDIA)[number];
 /** Fields insuranceCertificates.create cannot do without; a NO ANSWER on one blocks confirming. */
 const REQUIRED = ["insurer", "policy_identifier", "coverage_type", "valid_from", "valid_to"];
 const INSURED_OPERATION = "insuranceCertificateInsureds.create";
-const ENDORSEMENTS = ["Additional Insured", "Primary and Noncontributory", "Waiver of Subrogation"];
+const ENDORSEMENTS: readonly string[] = enums.endorsementKind;
 
 /** A proposed field's value, or null when it was not read. */
 function read(s: AuroraSuggestion, path: string): string | null {

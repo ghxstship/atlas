@@ -1,11 +1,9 @@
-import { getSubscription } from "@xos/data";
 import {
   deviceName,
   getRecoveryCodeStatus,
   listMySessions,
   type SignedInSession,
 } from "@xos/data/account-security";
-import { listApiKeys, listCapabilityGroups } from "@xos/data/api-keys";
 import { listSecondFactors } from "@xos/data/auth-assurance";
 import { dateIn } from "@xos/data/calendar";
 import { listConnectedApps, listOAuthApps } from "@xos/data/oauth";
@@ -18,22 +16,22 @@ import {
 } from "@/app/auth/account-security-actions";
 import { ConfirmAction } from "@/components/auth/security/confirm-action";
 import { RecoveryCodesControl } from "@/components/auth/security/recovery-codes";
-import { CreateApiKeyForm, RegisterOAuthAppForm } from "@/components/settings/a99-forms";
+import { RegisterOAuthAppForm } from "@/components/settings/a99-forms";
 import { InlineAlert } from "@/components/ui";
 import { env } from "@/lib/env";
-import { planHasFeature } from "@/lib/settings/plan";
 import { getOrgTimeZone } from "@/lib/shell/time-zone";
 import { getTranslate, type Translate } from "@/lib/shell/translate";
-import { removeOAuthAppAction, revokeApiKeyAction } from "./a99-actions";
+import { removeOAuthAppAction } from "./a99-actions";
 import type { SettingsContribution, SettingsPanelProps } from "./types";
 
 /**
  * A99's settings panels (RRR-144, ADR 0055; Section 4.5.6 personal setting 4, "Security: passkeys, MFA, sessions and
- * devices", personal setting Connected Apps, org settings 32 Integrations and 33 API Keys): recovery codes and signed-in
- * sessions on Personal settings, Security; apps the person connected on Connected apps; org API keys (created with
- * step-up) and registered OAuth apps on org settings. Personal panels read with the viewer's session, so a person only
- * ever sees their own codes, sessions and grants; admins see no one else's sessions (Section 4.5.6 lists sessions
- * under the person's own settings only).
+ * devices", personal setting Connected Apps and org setting 32 Integrations): recovery codes and signed-in sessions on
+ * Personal settings, Security; apps the person connected on Connected apps; registered OAuth apps on org settings. Org
+ * API keys are A86's panel (surfaces/developer.tsx), whose keys act as a service account; app.create_api_key asks for
+ * step-up there (1562). Personal panels read with the viewer's session, so a person only ever sees their own codes,
+ * sessions and grants; admins see no one else's sessions (Section 4.5.6 lists sessions under the person's own
+ * settings only).
  */
 
 const P = "authSecurity";
@@ -293,82 +291,6 @@ async function ConnectedAppsPanel({ ctx }: SettingsPanelProps) {
   );
 }
 
-// Org API keys ---------------------------------------------------------------------------------------------------------------------
-
-async function ApiKeysPanel({ ctx }: SettingsPanelProps) {
-  if (!ctx.capabilities.has("org.api_keys.manage")) return null;
-  const t = await getTranslate();
-  const [keys, groups, subscription, format] = await Promise.all([
-    listApiKeys(ctx.viewer.db, ctx.org.id),
-    listCapabilityGroups(ctx.viewer.db),
-    getSubscription(ctx.viewer.db, ctx.org.id),
-    formatters(ctx),
-  ]);
-  if (!keys.ok || !groups.ok || !subscription.ok) {
-    return <InlineAlert tone="danger">{t("settings.loadFailed")}</InlineAlert>;
-  }
-  const inPlan = planHasFeature(subscription.data.planCode, "api_keys");
-  const now = format.nowMs;
-  const labels = Object.fromEntries(groups.data.map((g) => [g, t(`${P}.scopes.${g}`)]));
-  return (
-    <Section
-      id="api-keys"
-      title={t(`${P}.apiKeys.title`)}
-      description={t(`${P}.apiKeys.description`, { org: ctx.org.name })}
-    >
-      {!inPlan ? <InlineAlert tone="info">{t(`${P}.apiKeys.notInPlan`)}</InlineAlert> : null}
-      {keys.data.length === 0 ? (
-        <p className="m-0 text-text-13 text-text-secondary">{t(`${P}.apiKeys.none`)}</p>
-      ) : (
-        <ul
-          aria-label={t(`${P}.apiKeys.title`)}
-          className="m-0 flex list-none flex-col divide-y divide-border-subtle p-0"
-        >
-          {keys.data.map((k) => {
-            const expired = k.expiresAt !== null && Date.parse(k.expiresAt) <= now;
-            return (
-              <li key={k.id} className="flex flex-wrap items-start justify-between gap-12 py-12">
-                <div className="flex min-w-0 flex-col gap-2">
-                  <span className="text-label-13 font-medium break-words">{k.name}</span>
-                  <span className="text-text-12 text-text-secondary">
-                    {t(`${P}.apiKeys.prefix`, { prefix: k.prefix })} · {scopeList(t, k.scopes)}
-                  </span>
-                  <span className="text-text-12 text-text-secondary">
-                    {k.revokedAt
-                      ? t(`${P}.apiKeys.revokedOn`, { date: format.date(k.revokedAt) })
-                      : expired
-                        ? t(`${P}.apiKeys.expired`)
-                        : k.expiresAt
-                          ? t(`${P}.apiKeys.expiresOn`, { date: format.date(k.expiresAt) })
-                          : ""}
-                  </span>
-                </div>
-                {k.revokedAt || expired ? null : (
-                  <ConfirmAction
-                    action={revokeApiKeyAction}
-                    fields={{ org: ctx.org.slug, apiKeyId: k.id }}
-                    formId={`revoke-key-${k.id}`}
-                    trigger={t(`${P}.apiKeys.revoke`)}
-                    triggerLabel={t(`${P}.apiKeys.revokeLabel`, { name: k.name })}
-                    title={t(`${P}.apiKeys.revokeTitle`, { name: k.name })}
-                    sentence={t(`${P}.apiKeys.revokeSentence`)}
-                    confirm={t(`${P}.apiKeys.revoke`)}
-                    successKey="apiKeys.revoked"
-                    cancel={t(`${P}.apiKeys.cancel`)}
-                  />
-                )}
-              </li>
-            );
-          })}
-        </ul>
-      )}
-      {inPlan ? (
-        <CreateApiKeyForm org={ctx.org.slug} groups={groups.data} scopeLabels={labels} />
-      ) : null}
-    </Section>
-  );
-}
-
 // Registered OAuth apps --------------------------------------------------------------------------------------------------------------
 
 async function OAuthAppsPanel({ ctx }: SettingsPanelProps) {
@@ -443,6 +365,5 @@ export const contributions: readonly SettingsContribution[] = [
   { node: "me.security", order: 15, Panel: RecoveryCodesPanel },
   { node: "me.security", order: 30, Panel: SessionsPanel },
   { node: "me.connected-apps", order: 10, Panel: ConnectedAppsPanel },
-  { node: "settings.api-keys-and-service-accounts", order: 10, Panel: ApiKeysPanel },
   { node: "settings.integrations", order: 40, Panel: OAuthAppsPanel },
 ];

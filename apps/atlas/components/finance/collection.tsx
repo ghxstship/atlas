@@ -4,6 +4,7 @@ import type { BulkConfig } from "@/components/bulk/types";
 import { collectionPeek } from "@/components/shell/collection-peek";
 import type { AskCatalog } from "@/lib/aurora/ask";
 import { withQuery, type FinancePage } from "@/lib/finance/context";
+import { isConditionParam } from "@/lib/views/query";
 import { BackToList } from "./kit-back-to-list";
 import { CollectionBoard } from "./kit-collection-board";
 import { CollectionList } from "./kit-collection-list";
@@ -81,11 +82,13 @@ export function FinanceCollection({
     noMatches: string;
     clearLabel: string;
     icon?: string;
+    /** The page already holds its primary action, or adds none, so the button is secondary (gate 27). */
+    secondary?: boolean;
   };
   detail?: RecordDetail | null;
   sheet?: ReactNode;
   above?: ReactNode;
-  /** Bulk edit of the table view's selection (Section 11.7). */
+  /** Bulk edit of a selection in the table, list and board (Section 11.7). */
   bulk?: BulkConfig | null;
   /** False on a page that renders no record panel (no `detail`): its rows open nothing. */
   activatable?: boolean;
@@ -104,6 +107,7 @@ export function FinanceCollection({
   if (refusal) {
     return (
       <TemplateCollection header={header}>
+        {above}
         <RefusalPanel capability={refusal} href={`/${page.ctx.org.slug}/home`} />
       </TemplateCollection>
     );
@@ -111,6 +115,7 @@ export function FinanceCollection({
   if (error) {
     return (
       <TemplateCollection header={header}>
+        {above}
         <ErrorPanel sentence={error} />
       </TemplateCollection>
     );
@@ -147,22 +152,26 @@ export function FinanceCollection({
   let body: ReactNode;
   // The page's own filters a plain-language filter may set count as filters too (A95).
   const askFilters = (ask?.fields ?? []).map((f) => f.name);
+  // So are the Add filter control's conditions (A117).
+  const conditions = Object.keys(query.extra).filter(isConditionParam);
   if (rows.length === 0) {
     const filtered = Boolean(
       query.q ||
       query.state ||
       (query.project && !page.inProject) ||
-      askFilters.some((name) => query.extra[name] !== undefined),
+      askFilters.some((name) => query.extra[name] !== undefined) ||
+      conditions.length > 0,
     );
     body = (
       <EmptyPanel
         icon={empty.icon ?? "Inbox"}
         sentence={filtered ? empty.noMatches : empty.sentence}
+        secondary={empty.secondary ?? false}
         actionLabel={filtered ? empty.clearLabel : empty.actionLabel}
         href={
           filtered
             ? withQuery(page, {
-                ...Object.fromEntries(askFilters.map((name) => [name, null])),
+                ...Object.fromEntries([...askFilters, ...conditions].map((name) => [name, null])),
                 q: null,
                 state: null,
                 ...(page.inProject ? {} : { project: null }),
@@ -174,15 +183,30 @@ export function FinanceCollection({
       />
     );
   } else if (page.view === "list" && listItems) {
-    body = <CollectionList label={title} items={listItems} activatable={activatable} />;
+    body = (
+      <CollectionList
+        label={title}
+        items={listItems}
+        bulk={bulk ?? null}
+        activatable={activatable}
+      />
+    );
   } else if (page.view === "board" && board) {
-    body = <CollectionBoard columns={board} activatable={activatable} />;
+    body = (
+      <CollectionBoard
+        columns={board}
+        {...(listItems ? { previews: listItems } : {})}
+        bulk={bulk ?? null}
+        activatable={activatable}
+      />
+    );
   } else {
     body = (
       <CollectionTable
         label={title}
         columns={columns}
         rows={rows}
+        {...(listItems ? { previews: listItems } : {})}
         bulk={bulk ?? null}
         activatable={activatable}
       />

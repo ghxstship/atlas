@@ -23,7 +23,13 @@ DEMO ACCOUNT
 The user name and password are in the Sign-In Information fields. The account is a field crew member of a demo organization, with a shift today on a project that has no geofence, so you can clock in from anywhere.
 
 SIGN IN
-On the sign-in screen tap "Use Password", enter the demo email and password, and tap "Sign In".
+On the sign-in screen tap "Use Password", enter the demo email and password, and tap "Sign In". Sign in with Apple is offered above Continue with Google.
+
+FIRST SIGN-IN
+Before anything else, Compass asks your age and for your agreement to the Mobile End User License Agreement (and the Worker Terms where they apply), and records your answers. Choose "I am 18 or older", turn on the agreement and tap "Agree and Continue". Choosing "I am under 18" closes the account, so please do not use it on the demo account; use the deletion test account to see it.
+
+AI FEATURES (guideline 5.1.2(i))
+The first time an AI feature would send anything, Compass names the third-party AI provider, says what goes to it and asks. Compass sends nothing of that person's unless they allow it. "Don't Allow" leaves AI features off for them across XOS, and More, Settings, AI Features changes it. The screen says what the choice does not cover.
 
 WHAT TO TRY
 1. Today: tap "Clock In" and allow location. Compass records where the punch happened; it never tracks location in the background. Then try "Start Break", "End Break" and "Clock Out". While you are clocked in, a Live Activity shows the shift on the Lock Screen.
@@ -35,8 +41,11 @@ WHAT TO TRY
 PERMISSIONS
 Camera: scanning and incident photos. Microphone: voice notes, only while the button is held. Location while using the app: on-site clock in and the incident location. Face ID: optional app lock (More, Settings, Biometric Unlock). Notifications: approvals and announcements. Compass does not track users and has no third-party analytics or advertising.
 
+REPORT AND BLOCK (guideline 1.2)
+More, Feed (also a conversation in Chat, and Recognition): tap the three dots on a post, message or shout-out by someone else. "Report This Post" asks for a reason and sends it to the organization's moderators, who review every report within 24 hours in the XOS web app. "Block" hides that person's posts, comments, shout-outs and messages at once. More, Settings, Blocked People lists blocks with Unblock.
+
 ACCOUNT DELETION (guideline 5.1.1(v))
-More, Settings, Delete Account. Compass lists the records organizations must keep by law (for example time and pay records), asks for the account email, confirms with Face ID or the passcode, and deletes the account after a two-second hold on "Delete Account". Deletion is refused while the person is clocked in, so clock out first. Signing in with an email link to an address that has no invitation creates an empty account; Compass then shows a screen that explains this and offers Delete Account. Please test deletion with the second account, OWNER_DELETION_TEST_USERNAME, which has the same password as the demo account, so the demo account stays available.
+More, Settings, Delete Account. Compass lists the records organizations must keep by law (for example time and pay records), asks for the account email, confirms with Face ID or the passcode, and deletes the account after a two-second hold on "Delete Account". Deletion is refused while the person is clocked in, so clock out first. An email link to an address with no invitation creates an empty account. The first sign-in questions offer Sign Out and Delete Account without agreeing to anything, and the screen after them offers Delete Account too. Please test deletion with the second account, OWNER_DELETION_TEST_USERNAME, which has the same password as the demo account, so the demo account stays available.
 
 CONTACT
 OWNER_REVIEW_CONTACT_EMAIL
@@ -50,7 +59,7 @@ The production database must not carry the local demo seed (ADR 0033, decision 1
 2. Invite two people with the Field role and set a password for each through the normal invitation: the demo account (`OWNER_DEMO_USERNAME`) and the deletion test account (`OWNER_DELETION_TEST_USERNAME`). Use the same password for both. Store it in the owner's password manager, never in a file.
 3. Publish a shift today to the demo account, covering the review window (or a long recurring shift), and accept it once in Compass so Today shows Clock In.
 4. Issue a crew badge to the demo account valid for the review window and including the zone; put its code into `OWNER_REVIEW_CREDENTIAL_CODE`.
-5. Optionally post an announcement and send one approval request, so Inbox is not empty.
+5. Post a feed update from another account of the organization (an Admin), so the reviewer has someone else's post to report and whose author to block (guideline 1.2), and optionally send one approval request, so Inbox is not empty.
 6. Before each submission, sign in with both accounts on a TestFlight build, then clock out, so neither is left on shift (an open shift refuses deletion).
 
 ## Google Play: App access
@@ -66,7 +75,7 @@ Play Console, App content, App access: choose "All or some functionality is rest
 
 SIM-004 added deletion to Compass; A68 re-checked it on 2026-10-20 against the `xos4-a68` stack (migrations and demo seed of main 7ccd1fd9, Compass Release build on an iOS 26.5 simulator):
 
-- **Where:** More, Settings, Delete Account (`app/settings/account.tsx`). A sign-in with no organization or engagement lands on a screen that offers Delete Account too (`identity-failed-delete-account` in `app/_layout.tsx`), so every account Compass can open can be deleted.
+- **Where:** More, Settings, Delete Account (`app/settings/delete-account.tsx`; Settings, Account opens it too). A sign-in with no organization or engagement lands on a screen that offers Delete Account too (`identity-failed-delete-account` in `app/_layout.tsx`), and so do the first sign-in step's age and decline screens (`legal-gate-age-delete`, `legal-gate-delete` in `src/screens/LegalGate.tsx`), so every account Compass can open can be deleted without agreeing to anything.
 - **Flow:** the preview (`app.account_deletion_preview`) lists blockers (legal hold, on shift, sole owner) and what organizations keep and why; the person types the account email, passes Face ID, Touch ID or the passcode when the device has one, and holds Delete Account for two seconds; `app.delete_my_account` runs and the confirmation names how many organizations were told; Done wipes the local database and signs out on this device.
 - **Evidence:** journey 38 (`apps/compass/.maestro/flows/account-delete.yaml`) passed on the A68 iPhone 17 Pro Max simulator: a throwaway account signed in, landed on the no-organization screen, opened Delete Account, typed its email, held the button, saw "Your account is deleted", tapped Done and was back on the sign-in screen; its `auth.users` row was gone. It passed with three test-only changes in a local copy of the flow, listed in `store/README.md`, Verification; the app needed none.
 - **Web path for Google Play:** Play's Data safety form needs a deletion URL that works without the app. `legal/account-deletion.md` is published at `/legal/account-deletion` on Atlas, so the URL is `https://app.OWNER_DOMAIN/legal/account-deletion` once the domain exists.

@@ -113,7 +113,13 @@ export const identityParity = {
 
   ...handlersFor("Identity", organizations),
   "organizations.create": async ({ body }, context) => {
-    const { orgId } = unwrap(await createOrganization(context.db, body));
+    const { orgId } = unwrap(
+      await createOrganization(context.db, {
+        name: body.name,
+        slug: body.slug,
+        ...(body.country_code === undefined ? {} : { countryCode: body.country_code }),
+      }),
+    );
     return created((await organizations.read(context, orgId)) as Components["Organization"]);
   },
   "organizations.createClient": async ({ body }, context) => {
@@ -124,6 +130,7 @@ export const identityParity = {
         p_slug: body.slug,
         p_owner_email: body.owner_email,
         ...(body.plan_code === undefined ? {} : { p_plan_code: body.plan_code }),
+        ...(body.country_code === undefined ? {} : { p_country_code: body.country_code }),
       }),
     );
     const row = rows[0];

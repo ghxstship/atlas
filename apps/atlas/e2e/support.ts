@@ -1,5 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
-import { expect, type Page } from "@playwright/test";
+import { expect, type Locator, type Page } from "@playwright/test";
+import pg from "pg";
 import { settle } from "./engine-test";
 
 /** Unique test identities so runs never collide on the shared local stack. */
@@ -53,6 +54,25 @@ export async function expectAccessible(page: Page): Promise<void> {
       { timeout: 5_000 },
     )
     .catch(() => undefined);
+  // Next streams the page's metadata, so on a loaded runner the title can land after the body, and a
+  // view switch can clear it once more while the new one streams in; axe's document-title rule would
+  // then fail a page that has one (runs 40123982182, 42661223834). The title must stay set for 300 ms;
+  // a page with no title still fails once this wait gives up.
+  await page
+    .waitForFunction(
+      () => {
+        const w = window as typeof window & { __xosTitleSince?: number };
+        if (document.title.trim() === "") {
+          delete w.__xosTitleSince;
+          return false;
+        }
+        w.__xosTitleSince ??= performance.now();
+        return performance.now() - w.__xosTitleSince >= 300;
+      },
+      undefined,
+      { timeout: 10_000, polling: 50 },
+    )
+    .catch(() => undefined);
   const results = await new AxeBuilder({ page })
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
     .analyze();
@@ -83,7 +103,44 @@ export async function createOrganization(page: Page, input: { name: string; slug
   await expectAccessible(page);
   await page.getByLabel("Organization name").fill(input.name);
   await page.getByLabel("Web address").fill(input.slug);
+  await page
+    .getByLabel("Country where your organization is established", { exact: true })
+    .selectOption("US");
   await page.getByRole("checkbox").check();
   await page.getByRole("button", { name: "Create organization" }).click();
   await page.waitForURL(`**/${input.slug}/home`);
+}
+
+/**
+ * Ends a new org's 14-day Pro trial the way the hourly lifecycle job does when no card was added
+ * (private.expire_trial, migration 1350): the org moves to the Access plan. For journeys about the
+ * Access plan's limits. Runs as postgres against the local stack only (E2E_DATABASE_URL).
+ */
+export async function endTrial(slug: string): Promise<void> {
+  const url =
+    process.env["E2E_DATABASE_URL"] ?? "postgresql://postgres:postgres@127.0.0.1:55422/postgres";
+  if (!/@(127\.0\.0\.1|localhost):/.test(url)) throw new Error("Only a local stack is changed.");
+  const client = new pg.Client({ connectionString: url });
+  await client.connect();
+  try {
+    const { rowCount } = await client.query(
+      `select private.expire_trial(s.id) from app.subscriptions s
+         join app.organizations o on o.id = s.org_id
+        where o.slug = $1 and s.subscription_state = 'trialing' and s.deleted_at is null`,
+      [slug],
+    );
+    expect(rowCount).toBe(1);
+  } finally {
+    await client.end();
+  }
+}
+
+/**
+ * Opens a closed group of choices in a settings form (a long checkbox list, a notification category; gate 27 keeps
+ * them behind their summary), named by the title its summary shows, so its boxes can be checked.
+ */
+export async function openChoices(scope: Page | Locator, title: string): Promise<void> {
+  const summary = scope.locator("summary").filter({ hasText: title });
+  await summary.click();
+  await expect(summary.locator("xpath=..")).toHaveAttribute("open", "");
 }

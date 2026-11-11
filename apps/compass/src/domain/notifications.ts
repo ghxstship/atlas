@@ -175,6 +175,10 @@ export interface InboxNotificationRow {
   readonly subjectTable: string | null;
   readonly subjectId: string | null;
   readonly orgSlug: string | null;
+  /** The org the notification belongs to, for the role lens of the active org (A128). */
+  readonly orgId?: string | null;
+  /** For an approval request, the role the step it waits on names (app.inbox_items, 3211), for the role lens. */
+  readonly approverRoleId?: string | null;
   /** The record key read from the record and its project when the notification carries none. */
   readonly lookedUpRecordKey: string | null;
 }
@@ -211,6 +215,31 @@ export function inboxTarget(row: InboxNotificationRow): InboxTarget | null {
   const path = row.args["gatewayPath"];
   if (typeof path === "string" && GATEWAY_PATH.test(path)) return { kind: "gateway", path };
   return null;
+}
+
+/** What the Inbox says of a crisis alert or its all-clear (6800): which it is, and for an alert what to do. */
+export interface CrisisAlertNotice {
+  readonly ended: boolean;
+  readonly code: string;
+  readonly project: string;
+  readonly message: string;
+}
+
+/** The crisis alert a notification carries, or null for any other kind. */
+export function crisisAlertNotice(
+  row: Pick<InboxNotificationRow, "kind" | "args">,
+): CrisisAlertNotice | null {
+  if (row.kind !== "crisis_alert.issued" && row.kind !== "crisis_alert.ended") return null;
+  const text = (key: string): string => {
+    const value = row.args[key];
+    return typeof value === "string" ? value.trim() : "";
+  };
+  return {
+    ended: row.kind === "crisis_alert.ended",
+    code: text("title"),
+    project: text("project"),
+    message: text("message"),
+  };
 }
 
 /** The record key the Inbox shows beside a notification, when it has one. */

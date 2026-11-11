@@ -8,11 +8,13 @@ import {
   type MemberRef,
   type ProjectRef,
 } from "@xos/data/crew";
+import type { CapabilityCode } from "@xos/schemas/capabilities/codes";
 import { notFound } from "next/navigation";
 import { cache } from "react";
 import { getCanonLabels } from "@/lib/canon/labels";
 import { requireNode } from "@/lib/shell/require-node";
 import type { OrgContext } from "@/lib/shell/context";
+import type { Database } from "@xos/data/database.types";
 
 /**
  * The context every People and Crew page shares: the org context (404 when hidden, Section 4.5.9),
@@ -20,7 +22,7 @@ import type { OrgContext } from "@/lib/shell/context";
  * level security decides every row; reach only decides which controls render (Section 5, rule 1).
  */
 
-export type Reach = "own" | "assigned" | "organization";
+export type Reach = Database["app"]["Enums"]["capability_reach"];
 
 export interface CrewContext {
   readonly ctx: OrgContext;
@@ -28,9 +30,9 @@ export interface CrewContext {
   readonly slug: string;
   readonly membershipId: string;
   /** True when the viewer holds the capability at any reach. */
-  readonly can: (capability: string) => boolean;
+  readonly can: (capability: CapabilityCode) => boolean;
   /** True when the viewer holds the capability across the org. */
-  readonly canAll: (capability: string) => boolean;
+  readonly canAll: (capability: CapabilityCode) => boolean;
   /** The project a project tab is scoped to; null on org-level pages. */
   readonly project: ProjectRef | null;
 }

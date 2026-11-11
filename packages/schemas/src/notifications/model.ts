@@ -5,6 +5,7 @@
  */
 
 /** Channels a notification can reach a person on (app.notification_channel), in matrix order. */
+// eslint-disable-next-line xos/no-restated-enums -- below @xos/data; test/database-enums.test.ts holds it equal
 export const NOTIFICATION_CHANNELS = ["In App", "Email", "SMS", "Push"] as const;
 export type NotificationChannel = (typeof NOTIFICATION_CHANNELS)[number];
 
@@ -53,8 +54,6 @@ export interface KindDefinition {
   readonly quietHoursBypass: { readonly startsWithinHours: number | null } | null;
   /** Channels the kind can be delivered on. */
   readonly channels: readonly NotificationChannel[];
-  /** Catalog keys of the kind's copy in the `email` namespace, used on every channel. */
-  readonly copy: { readonly subject: string; readonly body: string };
 }
 
 /**
@@ -91,9 +90,25 @@ export function copyKeys(kind: string): { subject: string; body: string } {
   return { subject: `kinds.${kind}.subject`, body: `kinds.${kind}.body` };
 }
 
-/** One row of the preference matrix: a category and the kinds it gathers. */
+/**
+ * The channels the kinds of a category reach, in matrix order (A104). A preference grid offers a switch only for
+ * these: a channel no kind of the category is delivered on, such as SMS for opportunities, could never send
+ * anything. Empty for a category without kinds.
+ */
+export function categoryChannels(
+  registry: Pick<NotificationKindRegistry, "kinds">,
+  category: string,
+): NotificationChannel[] {
+  const reached = new Set(
+    registry.kinds.filter((k) => k.category === category).flatMap((k) => k.channels),
+  );
+  return NOTIFICATION_CHANNELS.filter((c) => reached.has(c));
+}
+
+/** One row of the preference matrix: a category, the kinds it gathers and the channels they reach. */
 export interface MatrixRow extends CategoryDefinition {
   readonly kinds: readonly string[];
+  readonly channels: readonly NotificationChannel[];
 }
 
 /** The preference matrix: categories in display order by channel, with each channel's default. */
@@ -105,5 +120,6 @@ export function preferenceMatrix(
     .map((c) => ({
       ...c,
       kinds: registry.kinds.filter((k) => k.category === c.code).map((k) => k.kind),
+      channels: categoryChannels(registry, c.code),
     }));
 }

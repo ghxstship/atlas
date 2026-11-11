@@ -6,21 +6,44 @@ import {
   listOnboardingItems,
   listRepresentations,
   listSharedRecords,
+  readView,
   searchMarketplace,
   type Engagement,
 } from "@xos/data/gateway";
 import { startOfDayIn } from "@xos/data/calendar";
+import {
+  listMyParkingPasses,
+  listMyRosterEngagements,
+  type RosterEngagement,
+} from "@xos/data/gateway-allocations";
+import {
+  listMyRosterEntries,
+  listMyUnconfirmedMemberships,
+  myPendingInvitations,
+} from "@xos/data/roster";
+import dynamic from "next/dynamic";
 import type { Metadata, Route } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { getLocale } from "next-intl/server";
 import { ActionButton } from "@/components/actions/action-button";
+import { HomeSearch } from "@/components/page/home-search";
+import { StillComingDecline } from "@/components/home/still-coming-decline";
+import { confirmStillComingAction } from "@/lib/actions/still-coming";
+import { listStillComing } from "@xos/data/notification-actions";
 import { OpportunityLinkCard } from "@/components/page/opportunity-card";
 import { PageTitle, RegionError, Section, pickView, ViewSwitcher } from "@/components/page/page";
 import { ButtonLink, Card, EmptyStateLink, Icon, PropertyList } from "@/components/ui";
 import { UpNextActions } from "@/components/page/up-next-actions";
-import { Updates } from "@/components/page/updates";
+import { ForYourInformation } from "@/components/page/for-your-information";
+import { IntakeRequestsCard } from "@/components/outside/intake-requests-card";
 import { acceptRepresentationAction, signDocumentAction } from "@/lib/actions/engagement";
+import {
+  acceptAccountMembershipAction,
+  leaveAccountMembershipAction,
+  respondPartyInvitationAction,
+  respondRosterEntryAction,
+} from "@/lib/actions/roster";
 import {
   formatCountdown,
   formatDate,
@@ -30,11 +53,28 @@ import {
   type ScheduleView,
 } from "@/lib/format";
 import { getScheduleView } from "@/lib/time-zone";
-import { needsYou, pickUpNext, UP_NEXT_KINDS, type FeedItem } from "@/lib/home";
+import {
+  needsYou,
+  pickUpNext,
+  upNextDetails,
+  UP_NEXT_KINDS,
+  type FeedItem,
+  type UpNextDetails,
+} from "@/lib/home";
+import type { GatewayContext } from "@/lib/shell/context";
+import { lensApplications, lensEngagements, lensRepresentations } from "@/lib/shell/role-lens";
 import { requireNode, sitemap } from "@/lib/shell/sitemap";
 import { getNode } from "@xos/ia";
 import { enumLabelKey, getTranslate, type Translate } from "@/lib/shell/translate";
+import { signsInOneClick } from "@/lib/documents/links";
+import { tabHref } from "@/lib/engagement";
 import { engagementTitle } from "@/lib/engagement-state";
+import { RosterFactsButton } from "@/components/roster/roster-facts-button";
+
+// Leaving an account is irreversible, so it is confirmed in a dialog whose code loads on demand (R4).
+const ConfirmButton = dynamic(() =>
+  import("@/components/actions/confirm-button").then((m) => m.ConfirmButton),
+);
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslate();
@@ -47,7 +87,8 @@ function engagementHref(e: Engagement, tab = "overview"): Route {
 
 /**
  * Gateway Home (Section 4.5.8): search first, the Up Next card, a feed of things that need the
- * person with each action inline, then recommended opportunities. Every engagement detail is one
+ * person with each action inline, For Your Information beside it with Done (E) and Snooze (H) (A127), then
+ * recommended opportunities. Every engagement detail is one
  * tap from here (Section 11.12, Work).
  */
 export default async function HomePage({ searchParams }: PageProps<"/home">) {
@@ -70,35 +111,73 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
       </>
     );
   }
-  const engagements = engagementsResult.data;
+  // Under a role lens (A128) Home shows that role type's engagements and what they ask of the person.
+  const engagements = lensEngagements(ctx.lens, engagementsResult.data);
   const current = engagements.filter(isCurrentEngagement);
-  const [records, documents, onboarding, applications, representations, recommended] =
-    await Promise.all([
-      listSharedRecords(ctx.db, {
-        projectIds: [...new Set(current.map((e) => e.projectId))],
-        kinds: [...UP_NEXT_KINDS],
-      }),
-      listEngagementDocuments(ctx.db),
-      listOnboardingItems(ctx.db),
-      listMyApplications(ctx.db),
-      listRepresentations(ctx.db),
-      searchMarketplace(ctx.db, {
-        limit: 6,
-        ...(ctx.brand.kind === "org" ? { orgId: ctx.brand.org.orgId } : {}),
-      }),
-    ]);
-  const upNext = records.ok ? pickUpNext(records.data, current, now) : null;
+  const [
+    records,
+    documents,
+    onboarding,
+    applications,
+    representations,
+    recommended,
+    invitations,
+    memberships,
+    rosterEntries,
+    rosterEngagements,
+    stillComing,
+  ] = await Promise.all([
+    listSharedRecords(ctx.db, {
+      projectIds: [...new Set(current.map((e) => e.projectId))],
+      kinds: [...UP_NEXT_KINDS],
+    }),
+    listEngagementDocuments(ctx.db),
+    listOnboardingItems(ctx.db),
+    listMyApplications(ctx.db),
+    listRepresentations(ctx.db),
+    searchMarketplace(ctx.db, {
+      limit: 6,
+      ...(ctx.brand.kind === "org" ? { orgId: ctx.brand.org.orgId } : {}),
+    }),
+    myPendingInvitations(ctx.db),
+    listMyUnconfirmedMemberships(ctx.db, ctx.personId),
+    listMyRosterEntries(ctx.db),
+    listMyRosterEngagements(ctx.db),
+    listStillComing(ctx.db),
+  ]);
+  const rostered = rosterEngagements.ok ? rosterEngagements.data : [];
+  const upNext = records.ok ? pickUpNext(records.data, current, now, rostered) : null;
+  const details = upNext?.engagement
+    ? await loadUpNextDetails(
+        ctx,
+        upNext.engagement,
+        rostered.find((r) => r.id === upNext.engagement?.id) ?? null,
+      )
+    : null;
   const feed = needsYou({
     engagements,
     documents: documents.ok ? documents.data : [],
     onboarding: onboarding.ok ? onboarding.data : [],
-    applications: applications.ok ? applications.data : [],
-    representations: representations.ok ? representations.data : [],
+    applications: applications.ok ? lensApplications(ctx.lens, applications.data) : [],
+    representations: representations.ok ? lensRepresentations(ctx.lens, representations.data) : [],
+    invitations: invitations.ok ? invitations.data : [],
+    memberships: memberships.ok ? memberships.data : [],
+    rosterEntries: rosterEntries.ok ? rosterEntries.data : [],
+    stillComing: stillComing.ok ? stillComing.data : [],
     personId: ctx.personId,
     now,
   });
   const failed =
-    !records.ok || !documents.ok || !onboarding.ok || !applications.ok || !representations.ok;
+    !records.ok ||
+    !documents.ok ||
+    !onboarding.ok ||
+    !applications.ok ||
+    !representations.ok ||
+    !invitations.ok ||
+    !memberships.ok ||
+    !rosterEntries.ok ||
+    !rosterEngagements.ok ||
+    !stillComing.ok;
   const firstName = (ctx.personName ?? "").split(" ")[0] ?? "";
 
   return (
@@ -111,25 +190,19 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
         }
         action={<ViewSwitcher views={views} current={view} path="/home" query={query} />}
       />
-      <form action="/explore" method="get" role="search" className="flex">
-        <label className="flex min-h-touch-min w-full items-center gap-8 rounded-control border border-border-control bg-bg-surface ps-12 pe-8 focus-within:outline-solid focus-within:outline-stroke-focus focus-within:outline-focus-ring">
-          <span className="text-text-secondary">
-            <Icon name="Search" />
-          </span>
-          <span className="sr-only">{t("gateway.home.searchLabel")}</span>
-          <input
-            name="q"
-            type="search"
-            placeholder={t("gateway.home.searchHint")}
-            className="min-w-0 flex-1 border-0 bg-transparent text-text-14 text-text-primary outline-none placeholder:text-text-tertiary"
-          />
-        </label>
-      </form>
+      <HomeSearch />
 
       {view === "feed" ? (
         <Section title={t("gateway.home.upNext.title")}>
           {upNext ? (
-            <UpNextCardView upNext={upNext} locale={locale} t={t} now={now} schedule={schedule} />
+            <UpNextCardView
+              upNext={upNext}
+              details={details}
+              locale={locale}
+              t={t}
+              now={now}
+              schedule={schedule}
+            />
           ) : (
             <EmptyStateLink
               icon="CalendarClock"
@@ -143,6 +216,15 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
 
       <Section title={t("gateway.home.needsYou.title")}>
         {failed ? <RegionError /> : null}
+        {query["answered"] === "coming" || query["answered"] === "declined" ? (
+          <p role="status" className="m-0 text-text-13 text-success-text">
+            {t(
+              query["answered"] === "coming"
+                ? "gateway.home.needsYou.stillComingConfirmed"
+                : "gateway.home.needsYou.stillComingDeclined",
+            )}
+          </p>
+        ) : null}
         {feed.length === 0 && !failed ? (
           <EmptyStateLink
             icon="Inbox"
@@ -160,7 +242,9 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
         )}
       </Section>
 
-      <Updates db={ctx.db} t={t} locale={locale} />
+      <IntakeRequestsCard db={ctx.db} t={t} locale={locale} />
+
+      <ForYourInformation db={ctx.db} t={t} locale={locale} />
 
       {view === "feed" ? (
         <Section
@@ -196,8 +280,95 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
   );
 }
 
+/**
+ * The next call, the venue, the contact and what to bring for the Up Next engagement (R2), read in
+ * parallel. A read that fails leaves its rows out rather than failing the card.
+ */
+async function loadUpNextDetails(
+  ctx: GatewayContext,
+  e: Engagement,
+  roster: RosterEngagement | null,
+): Promise<UpNextDetails> {
+  const [row, badges, gear, parking] = await Promise.all([
+    readView(ctx.db, "engagement_up_next", { eq: { engagement_id: e.id } }),
+    readView(ctx.db, "credentials", {
+      eq: { project_id: e.projectId, holder_person_id: ctx.personId },
+    }),
+    readView(ctx.db, "asset_custody", { eq: { engagement_id: e.id } }),
+    listMyParkingPasses(ctx.db, e.projectId),
+  ]);
+  return upNextDetails({
+    row: row.ok ? (row.data[0] ?? null) : null,
+    orgName: e.orgName,
+    // Parking passes have their own row.
+    badges: badges.ok ? badges.data.filter((b) => b.category_kind !== "Parking") : [],
+    gear: gear.ok ? gear.data : [],
+    parking: parking.ok ? parking.data : [],
+    lead: roster?.leadName ?? null,
+  });
+}
+
+/** The Up Next rows R2 adds, each left out when it has no value. */
+function detailItems(
+  details: UpNextDetails | null,
+  e: Engagement | null,
+  locale: string,
+  t: Translate,
+  schedule: ScheduleView,
+): { label: string; value: ReactNode }[] {
+  if (!details || !e) return [];
+  return [
+    ...(details.call
+      ? [
+          {
+            label: t(`gateway.home.upNext.callKind.${details.call.kind}`),
+            value: details.call.tbc
+              ? t("gateway.common.tbc")
+              : formatScheduleTime(locale, details.call.at, details.call.timeZone, schedule),
+          },
+        ]
+      : []),
+    ...(details.where ? [{ label: t("gateway.home.upNext.where"), value: details.where }] : []),
+    ...(details.parking.length > 0
+      ? [{ label: t("gateway.home.upNext.parking"), value: details.parking.join("; ") }]
+      : []),
+    {
+      label: t("gateway.home.upNext.contact"),
+      value: (
+        <span className="flex flex-wrap items-center gap-8">
+          <span>{details.contact}</span>
+          <Link href={engagementHref(e, "messages")} className="text-accent-text underline">
+            {t("gateway.home.upNext.message")}
+          </Link>
+        </span>
+      ),
+    },
+    ...(details.bring.length > 0
+      ? [
+          {
+            label: t("gateway.home.upNext.bring"),
+            value: (
+              <ul className="m-0 flex list-none flex-col gap-2 p-0">
+                {details.bring.map((b) => (
+                  <li key={b}>{b}</li>
+                ))}
+                {details.bringMore > 0 ? (
+                  <li className="text-text-secondary">
+                    {t("gateway.home.upNext.bringMore", { n: details.bringMore })}
+                  </li>
+                ) : null}
+              </ul>
+            ),
+          },
+        ]
+      : []),
+  ];
+}
+
 function feedKey(item: FeedItem): string {
   switch (item.kind) {
+    case "stillComing":
+      return `still-coming-${item.ask.id}`;
     case "sign":
       return `sign-${item.document.id}`;
     case "offer":
@@ -210,17 +381,26 @@ function feedKey(item: FeedItem): string {
       return `interview-${item.application.id}`;
     case "rate":
       return `rate-${item.engagement.id}`;
+    case "invitation":
+      return `invitation-${item.invitation.id}`;
+    case "membership":
+      return `membership-${item.membership.accountMembershipId}`;
+    case "roster":
+      return `roster-${item.entry.id}`;
   }
 }
 
 function UpNextCardView({
   upNext,
+  details,
   locale,
   t,
   now,
   schedule,
 }: {
   upNext: ReturnType<typeof pickUpNext> & object;
+  /** Call, venue, contact and what to bring for the Up Next engagement (R2). */
+  details: UpNextDetails | null;
   locale: string;
   t: Translate;
   now: Date;
@@ -255,6 +435,7 @@ function UpNextCardView({
               label: t("gateway.home.upNext.state"),
               value: t(enumLabelKey("engagementState", e.state)),
             },
+            ...detailItems(details, e, locale, t, schedule),
           ]}
         />
       </Card>
@@ -308,6 +489,7 @@ function UpNextCardView({
                 { label: t("gateway.home.upNext.project"), value: upNext.engagement.projectName },
               ]
             : []),
+          ...detailItems(details, upNext.engagement, locale, t, schedule),
         ]}
       />
     </Card>
@@ -328,17 +510,44 @@ function FeedRow({ item, locale, t }: { item: FeedItem; locale: string; t: Trans
     </li>
   );
   switch (item.kind) {
+    case "stillComing":
+      return row(
+        "CalendarClock",
+        t("gateway.home.needsYou.stillComing", { title: item.ask.args["title"] ?? "" }),
+        item.ask.args["startsAt"] ? formatDateTime(locale, item.ask.args["startsAt"]) : "",
+        <span className="flex flex-wrap items-start gap-8">
+          <ActionButton
+            action={confirmStillComingAction.bind(null, item.ask.id)}
+            label={t("gateway.home.needsYou.stillComingYes")}
+            variant="secondary"
+          />
+          <StillComingDecline notificationId={item.ask.id} />
+        </span>,
+      );
     case "sign":
       return row(
         "FileSignature",
         t("gateway.home.needsYou.sign", { title: item.document.title }),
         `${item.engagement.orgName} · ${t(enumLabelKey("engagementDocumentKind", item.document.kind))}`,
-        <ActionButton
-          action={signDocumentAction.bind(null, item.document.id)}
-          label={t("gateway.common.sign")}
-          variant="secondary"
-          done={t("gateway.common.signed")}
-        />,
+        // A quote and a generated agreement are signed from the engagement's Documents tab, once read.
+        !signsInOneClick(item.document) ? (
+          <ButtonLink
+            href={tabHref(item.engagement.key, "engagement.documents")}
+            variant="secondary"
+            size="sm"
+          >
+            {item.document.kind === "Quote"
+              ? t("gateway.home.needsYou.reviewQuote")
+              : t("gateway.home.needsYou.readAndSign")}
+          </ButtonLink>
+        ) : (
+          <ActionButton
+            action={signDocumentAction.bind(null, item.document.id)}
+            label={t("gateway.common.sign")}
+            variant="secondary"
+            done={t("gateway.common.signed")}
+          />
+        ),
       );
     case "offer": {
       const o = item.application.opportunity;
@@ -395,5 +604,97 @@ function FeedRow({ item, locale, t }: { item: FeedItem; locale: string; t: Trans
           {t("gateway.home.needsYou.rateAction")}
         </ButtonLink>,
       );
+    case "invitation": {
+      const i = item.invitation;
+      return row(
+        "Mail",
+        i.kind === "account"
+          ? t("gateway.home.feed.invitation.account", { account: i.accountName ?? "" })
+          : i.kind === "pool"
+            ? t("gateway.home.feed.invitation.pool", { org: i.orgName ?? "" })
+            : t("gateway.home.feed.invitation.roster", {
+                party: i.partyName ?? "",
+                project: i.projectName ?? "",
+              }),
+        [
+          i.kind === "account" && i.accountRole
+            ? t(enumLabelKey("accountRole", i.accountRole))
+            : i.jobTitle,
+          i.kind === "roster" ? t("gateway.home.feed.invitation.consent") : null,
+          i.inviterName ? t("gateway.home.feed.invitation.from", { name: i.inviterName }) : null,
+          t("gateway.home.feed.invitation.expires", { date: formatDate(locale, i.expiresAt) }),
+        ]
+          .filter(Boolean)
+          .join(" · "),
+        <span className="flex flex-wrap gap-8">
+          <ActionButton
+            action={respondPartyInvitationAction.bind(null, i.kind, i.id, true)}
+            label={t("gateway.home.feed.invitation.accept")}
+            variant="secondary"
+          />
+          <ActionButton
+            action={respondPartyInvitationAction.bind(null, i.kind, i.id, false)}
+            label={t("gateway.home.feed.invitation.decline")}
+            variant="ghost"
+          />
+        </span>,
+      );
+    }
+    case "membership":
+      return row(
+        "Building2",
+        t("gateway.home.feed.membership.title", { account: item.membership.accountName }),
+        t("gateway.home.feed.membership.meta"),
+        <span className="flex flex-wrap gap-8">
+          <ActionButton
+            action={acceptAccountMembershipAction.bind(null, item.membership.accountMembershipId)}
+            label={t("gateway.home.feed.membership.confirm")}
+            variant="secondary"
+          />
+          <ConfirmButton
+            action={leaveAccountMembershipAction.bind(null, item.membership.accountMembershipId)}
+            label={t("gateway.home.feed.membership.leave")}
+            title={t("gateway.home.feed.membership.leaveTitle", {
+              account: item.membership.accountName,
+            })}
+            sentence={t("gateway.home.feed.membership.leaveSentence")}
+            confirm={t("gateway.home.feed.membership.leaveConfirm")}
+            cancel={t("gateway.common.cancel")}
+          />
+        </span>,
+      );
+    case "roster": {
+      const e = item.entry;
+      return row(
+        "Users",
+        t("gateway.home.feed.roster.title", {
+          party: e.partyName ?? e.orgName ?? "",
+          project: e.projectName ?? "",
+        }),
+        [e.jobTitle, t("gateway.home.feed.roster.consent")].filter(Boolean).join(" · "),
+        <span className="flex flex-wrap items-center gap-8">
+          <ActionButton
+            action={respondRosterEntryAction.bind(null, e.id, "Accepted")}
+            label={t("gateway.home.feed.roster.accept")}
+            variant="secondary"
+          />
+          <ActionButton
+            action={respondRosterEntryAction.bind(null, e.id, "Declined")}
+            label={t("gateway.home.feed.roster.decline")}
+            variant="ghost"
+          />
+          <RosterFactsButton
+            rosterEntryId={e.id}
+            name={e.partyName ?? e.orgName ?? ""}
+            companyName={e.partyName ?? ""}
+            projectName={e.projectName ?? ""}
+            self
+          />
+          <Link href={"/settings/work-details" as Route} className="text-text-13 text-text-link">
+            {t("gateway.home.feed.roster.share")}
+          </Link>
+        </span>,
+      );
+    }
   }
 }

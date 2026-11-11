@@ -21,6 +21,10 @@ export const KNOWN_RULES = [
   "credential_revoked",
   "credential_unknown",
   "credential_engagement_project",
+  "credential_engagement_holder",
+  "credential_engagement_closed",
+  "credential_category_kind_in_use",
+  "person_not_on_project",
   "scan_id_taken",
   "scan_intake_resolved",
   "scan_intake_dismiss_note",
@@ -44,6 +48,25 @@ export const KNOWN_RULES = [
   "incident_party_id_taken",
   "incident_media_id_taken",
   "dispatch_id_taken",
+  // P5 badge photos (5822).
+  "credential_photo_batch_size",
+  "credential_photo_path",
+  "credential_photo_no_credential",
+  "credential_photo_not_issuer",
+  "credential_photo_scanning",
+  "credential_photo_unscanned",
+  // B8 gate scans and accreditation checks (6250 to 6253).
+  "credential_training_incomplete",
+  "credential_duplicate",
+  "credential_requirement_course_state",
+  "scan_not_denied",
+  "scan_override_revoked",
+  "scan_override_not_approved",
+  "scan_override_stale",
+  "scan_override_taken",
+  "scan_override_self",
+  "scan_override_reason",
+  "scan_override_rpc",
 ] as const;
 
 const KNOWN = new Set<string>(KNOWN_RULES);

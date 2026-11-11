@@ -1,5 +1,4 @@
 import {
-  defaultLocale,
   getMessages,
   isBetaCatalogLoaded,
   isBetaLocale,
@@ -12,6 +11,7 @@ import { loadMessages } from "@xos/i18n/load";
 import { cookies, headers } from "next/headers";
 import { getRequestConfig } from "next-intl/server";
 import { cache } from "react";
+import { currentOffering } from "@/lib/offering";
 import { orgLanguage } from "@/lib/shell/org-language";
 import { ROUTE_ORG_HEADER } from "@/lib/shell/route-org";
 import { LOCALE_COOKIE, formattingLocale, negotiateLocale, type AtlasLocale } from "./negotiate";
@@ -55,6 +55,12 @@ const SERVER_ONLY_NAMESPACES: readonly Namespace[] = [
   "handoff",
   // A86's settings surfaces render their copy on the server and pass it to their forms as props.
   "settingsSurfaces",
+  // B16's panels and banners render their copy on the server and pass it to their forms as props.
+  "agentChanges",
+  "mcpConnectors",
+  "memberBlocklist",
+  "storageLinks",
+  "subscriptionPause",
   "ui",
 ];
 
@@ -68,11 +74,11 @@ export function clientMessages(locale: AtlasLocale) {
 }
 
 /**
- * Flat `ui` messages for @xos/ui, which ships only en-US; every other locale, shipped or pseudo,
- * passes its own through XOSProvider. @xos/ui fills `{name}` itself, so these stay source text.
+ * Flat `ui` messages for @xos/ui, for every locale, en-US included: Atlas's browser bundle leaves out @xos/ui's en-US
+ * fallback (next.config.ts, ADR 0027), so the copy comes once with the layout instead of in every route's JavaScript.
+ * @xos/ui fills `{name}` itself, so these stay source text.
  */
-export function uiMessages(locale: AtlasLocale): Record<string, string> | undefined {
-  if (locale === defaultLocale) return undefined;
+export function uiMessages(locale: AtlasLocale): Record<string, string> {
   const out: Record<string, string> = {};
   const walk = (value: unknown, prefix: string) => {
     if (typeof value === "string") out[prefix] = value;
@@ -91,13 +97,18 @@ export function uiMessages(locale: AtlasLocale): Record<string, string> | undefi
  * Read once per request; a Beta locale's catalog is loaded before it returns.
  */
 export const negotiatedLocale = cache(async (): Promise<AtlasLocale> => {
-  const [cookieStore, headerStore] = await Promise.all([cookies(), headers()]);
+  const [cookieStore, headerStore, offering] = await Promise.all([
+    cookies(),
+    headers(),
+    currentOffering(),
+  ]);
   const org = headerStore.get(ROUTE_ORG_HEADER);
   const locale = negotiateLocale({
     cookie: cookieStore.get(LOCALE_COOKIE)?.value,
     acceptLanguage: headerStore.get("accept-language"),
     production: process.env.NODE_ENV === "production",
     setting: org ? await orgLanguage(org) : null,
+    offered: offering.locales,
   });
   // A Beta catalog loads on first use (ADR 0053), before anything in this request reads messages; its
   // untranslated keys read en-US, so no raw key ever shows.

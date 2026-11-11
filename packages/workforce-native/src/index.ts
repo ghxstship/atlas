@@ -5,11 +5,14 @@
  * wires the actions to @xos/data. `workforceScreens` lists them for the mounting follow-up.
  */
 export {
+  ContentActionsButton,
   defined,
   useActionRunner,
   WorkforceFrame,
   type Action,
   type ActionResult,
+  type ContentActions,
+  type ContentActionTarget,
   type FrameLabels,
   type ScreenStatus,
 } from "./shared.tsx";

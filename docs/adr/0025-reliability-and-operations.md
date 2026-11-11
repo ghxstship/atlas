@@ -34,7 +34,7 @@ A26 built the reliability stack under `infra/`: observability, synthetic checks,
 ## Consequences
 
 - **Owner approvals:** point-in-time recovery, log drains, synthetic checks every minute from five regions, production PowerSync hosting, and Vercel Rolling Releases unless the current plan includes them.
-- **Owner inputs:** the public backup key, the `STAGING_DB_URL`, synthetic-user and alert-webhook secrets, the PowerSync image pin in ADR 0001, and EU-region backup storage.
+- **Owner inputs:** the public backup key, the `STAGING_DB_URL`, the production backup login's password and `PRODUCTION_BACKUP_DB_URL` (ADR 0033, decision 47), synthetic-user and alert-webhook secrets, the PowerSync image pin in ADR 0001, and EU-region backup storage.
 - **Wiring still to do:** Atlas and Gateway still need `@sentry/nextjs` and `@opentelemetry/api` wired in as described in `infra/observability/README.md`.
 - **CI snippets:** the snippets in `infra/ci/README.md` are applied once their secrets exist.
 
@@ -49,3 +49,11 @@ A26 built the reliability stack under `infra/`: observability, synthetic checks,
 11. **Edge Functions report over HTTP.** `serve()` wraps every function with `observe`. On an unexpected error it returns the A22-013 problem and, when the `SENTRY_DSN` secret is set, sends one scrubbed event through a dependency-free envelope sender. `@sentry/deno` stays a later decision.
 
 The Consequences item about wiring Sentry into Atlas and Gateway is closed.
+
+## Amendment (2026-11-06): what the status page calls an outage
+
+The page says Outage, and "We are working on it", only for a failure confirmed by a second failure in a row, which is also when a required check alerts. One failed check is Degraded and starts no deployment. The daily history and the uptime figure count only confirmed failures against the service; scattered single failures count with slow answers, and mark a day Degraded past 5 percent of its answers. The page is the public record the SLA points at, so a request lost by a CI runner must not read as downtime that nobody has been told about. The rule is `CONFIRM_AFTER_FAILS` in `infra/synthetics/src/run.ts`, read by `infra/status/src/render.ts`. SLA Section 2 has to define Downtime to match, which is tracked in RRR-248.
+
+## Amendment (2026-11-06): where the status page's history lives
+
+Item 7 no longer describes the status page. The page is a static Vercel project (owner decision, 2026-10-24), and its history is the single-commit ref `refs/status/history`, not a `status-data` branch. Vercel deploys every branch push on each project connected to the repository, and a commit holding only the history has none of their root directories. The one such push, `status-site` on 2026-10-25, failed on four projects. At one run every five minutes, a branch would have meant about 1,500 deployments a day.

@@ -315,6 +315,8 @@ export async function ShipmentsSection({
           { key: "lines", label: t("shipments.fields.lines"), type: "number", width: 80 },
         ]}
         rows={rows.map((s) => ({
+          id: s.id,
+          label: s.key,
           key: s.key,
           title: titleOf(s),
           progress: progressLabel(s.progress),
@@ -324,7 +326,54 @@ export async function ShipmentsSection({
           arrives: format.dateTime(s.arrivesAt, s.timeZone) ?? "",
           lines: s.lineCount,
           href: peekHref(s.key),
+          fullHref: hrefWith(base, search, { peek: s.key, full: "1", edit: null }),
+          ...(scope.access.can(s.projectId, "logistics.shipment.write")
+            ? { trashMessage: t("common.deleted", { key: s.key }) }
+            : {}),
         }))}
+        bulk={
+          writable.length > 0
+            ? {
+                org: scope.ctx.org.slug,
+                resource: "shipments",
+                fields: [
+                  {
+                    key: "carrier_counterparty_id",
+                    label: t("shipments.fields.carrier"),
+                    options: [
+                      { value: null, label: t("common.none") },
+                      ...carriers.data.map((c) => ({
+                        value: c.id,
+                        label: c.name ?? t("common.notSet"),
+                      })),
+                    ],
+                  },
+                  {
+                    key: "freight_type_enum_id",
+                    label: t("shipments.fields.freightType"),
+                    options: [
+                      { value: null, label: t("common.notSet") },
+                      ...freight.data.map((f) => ({ value: f.id, label: f.label ?? f.id })),
+                    ],
+                  },
+                  {
+                    key: "direction",
+                    label: t("shipments.fields.direction"),
+                    options: SHIPMENT_DIRECTIONS.map((d) => ({
+                      value: d,
+                      label: t(`shipments.direction.${d}`),
+                    })),
+                  },
+                ],
+              }
+            : null
+        }
+        trash={{
+          org: scope.ctx.org.slug,
+          label: t("common.delete"),
+          run: deleteShipmentAction,
+          restore: restoreShipmentAction,
+        }}
       />
     );
   } else if (view === "board") {

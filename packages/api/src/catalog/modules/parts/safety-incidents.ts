@@ -16,11 +16,12 @@ import {
   setTable,
 } from "../../correct.ts";
 import { itemAction, transition } from "../../define.ts";
+import { Constants } from "@xos/data/database.types";
 
 const SINCE = "1.0.0-draft.2";
 
 const incidentState = z
-  .enum(["Reported", "Dispatched", "Contained", "Closed"])
+  .enum(Constants.app.Enums.incident_state)
   .meta({ description: "Incident state.", example: "Reported" });
 const movableState = z.enum(["Reported", "Dispatched", "Contained"]);
 

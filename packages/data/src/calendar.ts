@@ -72,6 +72,21 @@ export function startOfDayIn(day: string, zone: string | null | undefined): stri
   return new Date(instant).toISOString();
 }
 
+/**
+ * The instant a wall-clock time (`YYYY-MM-DDTHH:mm`, as a datetime-local input gives it) names in a
+ * time zone, as an ISO string; null when the text is not such a time. Same two passes as
+ * `startOfDayIn`, so a time just after a daylight saving change takes the new offset.
+ */
+export function instantOfLocalIn(local: string, zone: string | null | undefined): string | null {
+  if (!/^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}(:[0-9]{2})?$/.test(local)) return null;
+  const asUtc = Date.parse(`${local.length === 16 ? `${local}:00` : local}Z`);
+  if (Number.isNaN(asUtc)) return null;
+  const z = zoneOrUtc(zone);
+  let instant = asUtc - offsetMs(new Date(asUtc), z);
+  instant = asUtc - offsetMs(new Date(instant), z);
+  return new Date(instant).toISOString();
+}
+
 /** A `YYYY-MM-DD` date plus some days. */
 export function addCalendarDays(day: string, days: number): string {
   return new Date(Date.parse(`${day}T00:00:00Z`) + days * DAY_MS).toISOString().slice(0, 10);

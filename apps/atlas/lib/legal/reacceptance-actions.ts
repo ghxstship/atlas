@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { clientIp } from "@/lib/auth/legal";
 import { getOrgContext } from "@/lib/shell/context";
+import { observability } from "@/lib/observability";
 
 /**
  * Accepts an announced legal change for the org (Section 14.4, migration 1383), from Settings, Legal.
@@ -28,6 +29,7 @@ export async function acceptLegalChangeAction(form: FormData): Promise<void> {
     documents: [{ slug, version }],
     clientIp: clientIp(await headers()),
   });
-  if (!recorded.ok) console.error("legal acceptance was not recorded", recorded.error);
+  if (!recorded.ok)
+    observability.logger.error("legal acceptance was not recorded", { error: recorded.error });
   revalidatePath(`/${ctx.org.slug}`, "layout");
 }

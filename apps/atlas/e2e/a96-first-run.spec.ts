@@ -142,11 +142,8 @@ test("feedback with a screenshot reaches the platform team, who triage it", asyn
 
   // A person on the platform team triages it; anyone else gets 404.
   expect((await page.goto("/support/feedback"))?.status()).toBe(404);
-  await sql(
-    `insert into private.platform_staff (person_id, reason)
-     select p.id, 'A96 journey' from app.people p join auth.users u on u.id = p.user_id where u.email = $1`,
-    [email],
-  );
+  // The platform names operators by email (A90, 1470); any live operator grant is platform staff.
+  await sql("select private.grant_platform_operator($1, 'Support', 'A96 journey.')", [email]);
   const staff = await (
     await browser.newContext({ storageState: await page.context().storageState() })
   ).newPage();
@@ -224,15 +221,19 @@ test("with a yes to performance cookies, page views are recorded as route templa
   await context.addCookies([{ name: "xos-consent", value: consentCookie(true), url: baseUrl() }]);
   const page = await context.newPage();
   const { slug } = await freshOrg(page, "consented");
-  const posted = page.waitForRequest((r) => r.url().includes("/api/product-events"), {
-    timeout: 60_000,
-  });
+  // Analytics loads once the page is idle (after the service worker registers) and sends a page view in the next
+  // batch, five seconds later or when the page is left; a page left sooner was never counted. So each page waits
+  // for the batch that carries its own view before the next one opens.
   for (const path of ["projects", "inbox", "my-work"]) {
+    const sent = page.waitForRequest(
+      (r) =>
+        r.url().includes("/api/product-events") &&
+        (r.postData() ?? "").includes(`"route":"/[org]/${path}"`),
+      { timeout: 60_000 },
+    );
     await page.goto(`/${slug}/${path}`);
-    await page.locator("html[data-shell-ready]").waitFor({ state: "attached" });
+    await sent;
   }
-  await page.goto("/auth/sign-in?next=/");
-  await posted;
   await expect
     .poll(
       async () =>

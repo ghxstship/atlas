@@ -5,10 +5,17 @@ import type { CustomDataType } from "@xos/data/custom-objects";
 import { Checkbox, Drawer, Input, PropertyList, Select, Textarea } from "@xos/ui";
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
+import { useTranslations } from "next-intl";
 import { createRecordAction, setChoiceAction } from "@/app/[org]/objects/actions";
 import { WhyCanISeeThis } from "@/components/access/why-can-i-see-this";
+import { FieldHistoryList, type HistoryItem } from "@/components/history/field-history-list";
 import { ActionForm, usePlatformT } from "@/components/platform/kit";
+import { Region } from "@/components/shell/region";
+import { RegionContent } from "@/components/shell/region-content";
+import type { RegionData } from "@/lib/shell/region-data";
+import { CollabPanels } from "@/components/work/collab";
+import type { Conversation } from "@/components/work/record-sections";
 
 /** Money fields are entered in US dollars, shown beside the amount. */
 const MONEY_CURRENCY = "USD";
@@ -154,7 +161,13 @@ export function CreateRecordDrawer({
   );
 }
 
-/** A record in the side peek: its values, moving it to another board column, and Why can I see this. */
+/**
+ * A record in the side peek: its values, moving it to another board column, its activity (the field
+ * history 2100 records), its comments and files through the same panels as every record's (Section
+ * 4.6.3), and Why can I see this. The activity and the comments and files each fail alone (A143). The
+ * drawer is a record region for the shell's record shortcuts (@xos/ui/shortcut-targets): the board
+ * column is the Change state target.
+ */
 export function RecordPeek({
   org,
   objectKey,
@@ -165,6 +178,10 @@ export function RecordPeek({
   paths,
   canWrite,
   closeHref,
+  activity,
+  conversation,
+  me,
+  actions,
 }: {
   org: string;
   objectKey: string;
@@ -175,8 +192,16 @@ export function RecordPeek({
   paths: readonly AccessPath[] | null;
   canWrite: boolean;
   closeHref: string;
+  /** The record's field history, worded; null when it could not be read. */
+  activity: readonly HistoryItem[] | null;
+  conversation: RegionData<Conversation>;
+  /** The viewer's person id, to offer deleting their own comments and files. */
+  me: string | null;
+  /** Row actions the page adds, such as Archive (A124). */
+  actions?: ReactNode;
 }) {
   const t = usePlatformT();
+  const c = useTranslations("collab");
   const router = useRouter();
   const board = fields.find((f) => f.choices !== null);
   const [choice, setChoice] = useState(board?.current ?? board?.choices?.[0]?.value ?? "");
@@ -184,6 +209,7 @@ export function RecordPeek({
     <Drawer
       title={`${recordKey} ${title}`}
       open
+      shortcutScope="record"
       onOpenChange={(open) => (open ? null : router.push(closeHref as Route, { scroll: false }))}
     >
       <PropertyList
@@ -199,14 +225,42 @@ export function RecordPeek({
           inline
           onDone={() => router.refresh()}
         >
-          <Select
-            label={t("objects.move", { field: board.label })}
-            value={choice}
-            options={[...board.choices]}
-            onChange={(e) => setChoice(e.target.value)}
-          />
+          <span data-shortcut="record.state" className="contents">
+            <Select
+              label={t("objects.move", { field: board.label })}
+              value={choice}
+              options={[...board.choices]}
+              onChange={(e) => setChoice(e.target.value)}
+            />
+          </span>
         </ActionForm>
       ) : null}
+      {actions}
+      <Region>
+        {activity ? (
+          <FieldHistoryList
+            id={recordId}
+            title={c("history.title")}
+            empty={c("history.empty")}
+            items={activity}
+          />
+        ) : (
+          <p className="m-0 text-text-13 text-text-secondary">{c("history.unavailable")}</p>
+        )}
+      </Region>
+      <RegionContent data={conversation}>
+        {(loaded) => (
+          <CollabPanels
+            org={org}
+            subject={{ table: "app.custom_object_records", id: recordId }}
+            threads={loaded.threads}
+            attachments={loaded.attachments}
+            names={loaded.names}
+            me={me}
+            canPost
+          />
+        )}
+      </RegionContent>
       <WhyCanISeeThis paths={paths} />
     </Drawer>
   );

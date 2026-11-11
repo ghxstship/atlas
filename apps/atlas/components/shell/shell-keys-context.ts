@@ -7,6 +7,7 @@ const NONE: ShellKeys = {
   platform: "other",
   global: {},
   scoped: {},
+  scopes: {},
   fields: [],
   go: {},
   display: {},

@@ -31,6 +31,14 @@
       "decided": {
         "subject": "{title} fue {decision, select, approved {aprobado} other {rechazado}}",
         "body": "{actorName} {decision, select, approved {aprobó} other {rechazó}} {title}."
+      },
+      "reminder": {
+        "subject": "Recordatorio: {title} espera tu decisión",
+        "body": "{title} espera tu decisión desde el {waitingSince, date, medium}. Este es el recordatorio {reminderNumber} de {reminderLimit}."
+      },
+      "link_code": {
+        "subject": "Tu código de acceso de {orgName}",
+        "body": "Tu código de acceso para {title} está en este correo."
       }
     },
     "comment": {
@@ -47,6 +55,24 @@
       "changed": {
         "subject": "Turno modificado: {title}",
         "body": "Tu turno {title} ahora empieza el {startsAt, date, full} a las {startsAt, time, short}."
+      },
+      "reconfirm": {
+        "subject": "¿Sigues yendo? {title}",
+        "body": "Tienes programado {title} a partir del {startsAt, date, full} a las {startsAt, time, short}. ¿Sigues yendo?"
+      },
+      "reconfirm_declined": {
+        "subject": "Alguien no puede ir a {title}",
+        "body": "{named, select, yes {{workerName}} other {La persona de este turno}} dijo que no puede ir a {title} a partir del {startsAt, date, full} a las {startsAt, time, short}. {reopened, select, yes {El turno volvió a quedar abierto.} other {Sigue en él hasta que lo cambies.}}"
+      },
+      "no_show": {
+        "subject": "Marcado como ausente: {title}",
+        "body": "Te marcaron como ausente en {title} a partir del {startsAt, date, full} a las {startsAt, time, short}. Registrar tu entrada lo retira."
+      }
+    },
+    "availability": {
+      "requested": {
+        "subject": "{orgName} te pide tu disponibilidad: {title}",
+        "body": "{orgName} te pregunta qué días puedes trabajar en {projectName}: {dayCount, plural, one {# día} other {# días}} del {firstDay} al {lastDay}. Tus respuestas se comparten con sus planificadores."
       }
     },
     "invoice": {
@@ -73,10 +99,20 @@
         "body": "{actorName} reportó {title}. Ábrelo para ver los detalles y la respuesta."
       }
     },
+    "crisis_alert": {
+      "issued": {
+        "subject": "Alerta de crisis en {project}: {title}",
+        "body": "{message} Anunciada por {actorName}. XOS no avisa a los servicios de emergencia. En una emergencia, llama a tu número local de emergencias."
+      },
+      "ended": {
+        "subject": "Fin de la alerta en {project}: {title}",
+        "body": "{actorName} dio por terminada la alerta {title} en {project}."
+      }
+    },
     "account": {
       "security_changed": {
         "subject": "Cambió la seguridad de tu cuenta",
-        "body": "Cambió un ajuste de seguridad de tu cuenta: {change}. Si no fuiste tú, restablece tu contraseña ahora."
+        "body": "{change, select, password {Se cambió tu contraseña.} password_set {Se agregó una contraseña a tu cuenta.} password_removed {Se quitó la contraseña de tu cuenta.} email {Se cambió el correo electrónico con el que inicias sesión.} phone {Se cambió el número de teléfono de tu cuenta.} factor_added {Se agregó {factorType, select, totp {una app de autenticación} webauthn {una llave de seguridad o llave de acceso} phone {un teléfono} other {un segundo factor}} a tu verificación en dos pasos.} factor_removed {Se quitó {factorType, select, totp {una app de autenticación} webauthn {una llave de seguridad o llave de acceso} phone {un teléfono} other {un segundo factor}} de tu verificación en dos pasos.} passkey_added {Se agregó una llave de acceso a tu cuenta.} passkey_removed {Se quitó una llave de acceso de tu cuenta.} recovery_codes {Se creó un juego nuevo de códigos de recuperación y tus códigos anteriores ya no sirven.} other {Cambió un ajuste de seguridad de tu cuenta.}} Si no fuiste tú, restablece tu contraseña ahora."
       },
       "recovery_code_used": {
         "subject": "Se usó un código de recuperación en tu cuenta",
@@ -85,6 +121,18 @@
       "session_signed_out": {
         "subject": "{count, plural, one {Se cerró una sesión} other {Se cerraron # sesiones}}",
         "body": "{count, plural, one {Se cerró una sesión de tu cuenta} other {Se cerraron # sesiones de tu cuenta}} desde Configuración, Seguridad. Si no fuiste tú, cambia tu contraseña y revisa tus sesiones."
+      },
+      "work_details_moved": {
+        "subject": "Las tallas de uniforme y las preferencias de viaje pasaron a cada proyecto",
+        "body": "{moved, select, uniform {Tus tallas de uniforme se quitaron} travel {Tus preferencias de asiento, comida y aeropuerto de origen se quitaron} other {Tus tallas de uniforme y tus preferencias de viaje se quitaron}} de tu perfil. Ahora las producciones te las piden en cada proyecto en cuya lista estás, y las guardan solo para ese proyecto. Tus demás datos de trabajo no cambiaron."
+      },
+      "sensitive_data_attested": {
+        "subject": "Alguien introdujo datos por ti",
+        "body": "Alguien dijo tener tu autorización para introducir tus datos de {category, select, Accessibility {accesibilidad} other {dieta}}. Consúltalos o elimínalos en Configuración, Datos de trabajo."
+      },
+      "sensitive_consent_needed": {
+        "subject": "Confirma o elimina tus datos sensibles",
+        "body": "Tienes datos de dieta, accesibilidad o diversidad de proveedores guardados de antes de que registráramos el consentimiento. Están ocultos para los demás. Acepta donde los guardas, en Configuración, Datos de trabajo, o en tu perfil para la diversidad de proveedores, o los eliminaremos en 30 días."
       }
     },
     "report": {
@@ -95,8 +143,8 @@
     },
     "import": {
       "finished": {
-        "subject": "Importación terminada: {title}",
-        "body": "La importación {title} terminó."
+        "subject": "{stage, select, validated {Importación lista para revisar: {title}} other {Importación terminada: {title}}}",
+        "body": "{stage, select, validated {{title} está revisada: {written, plural, one {# fila está lista} other {# filas están listas}} para escribir, {refused, plural, one {# necesita} other {# necesitan}} corrección y {skipped, plural, one {# se omitió} other {# se omitieron}}. Revísala y luego confirma la importación.} other {{title} terminó: {written, plural, one {# fila escrita} other {# filas escritas}}, {refused, plural, one {# rechazada} other {# rechazadas}} y {skipped, plural, one {# omitida} other {# omitidas}}.}}"
       }
     },
     "export": {
@@ -121,6 +169,34 @@
       "trial_ended": {
         "subject": "Su prueba de Pro terminó",
         "body": "Su organización ahora está en el plan Access. No se eliminó ningún dato. Agregue una tarjeta en Facturación y plan cuando quiera volver a Pro."
+      },
+      "paused": {
+        "subject": "Su organización está en pausa",
+        "body": "La facturación está en pausa y la organización es de solo lectura {resumesOn, select, none {hasta que el propietario la reanude} other {hasta el {resumesOn}}}. Todo sigue disponible para leer y exportar, y no se elimina ningún dato."
+      },
+      "resumed": {
+        "subject": "Su organización se reanudó",
+        "body": "La pausa terminó. La organización vuelve a permitir cambios y la facturación continúa."
+      },
+      "purchase_confirmed": {
+        "subject": "Tu plan {plan} está confirmado",
+        "body": "Tu plan {plan} se renueva automáticamente cada {term, select, Annual {año} other {mes}} por {price}, más impuestos, hasta que lo canceles. El próximo cargo es el {nextChargeOn, date, long}. Para detenerlo, elige Terminar plan en Configuración, Facturación y plan en cualquier momento antes de esa fecha. El plan sigue activo hasta el final del período que pagaste. Las tarifas ya pagadas no se reembolsan, salvo que la ley lo exija."
+      },
+      "renewal_reminder": {
+        "subject": "Tu plan {plan} se renueva el {renewsOn, date, long}",
+        "body": "Tu plan anual {plan} se renueva automáticamente por otro año el {renewsOn, date, long}, y se cargará {price, select, none {el precio anual del plan, que aparece en el portal de facturación} other {{price}}}, más impuestos, a tu método de pago. Para detenerlo, elige Terminar plan en Configuración, Facturación y plan en cualquier momento antes de esa fecha. El plan sigue activo hasta el final del año que pagaste. Las tarifas ya pagadas no se reembolsan, salvo que la ley lo exija."
+      },
+      "cancellation_confirmed": {
+        "subject": "Tu suscripción está cancelada",
+        "body": "Stripe aceptó la cancelación y no volverá a cobrar esta suscripción. El tiempo que ya pagaste no se reembolsa, salvo que la ley lo exija. Si recibes un cargo después de cancelar, escribe a support@ghxstship.pro y te lo reembolsaremos."
+      },
+      "plan_ending": {
+        "subject": "Tu plan {plan} termina el {endsOn, date, long}",
+        "body": "Stripe aceptó tu solicitud. Tu plan {plan} no se renovará y no se te volverá a cobrar. Sigue funcionando hasta el {endsOn, date, long}, y luego la organización pasa al plan Access con sus datos intactos. El tiempo que ya pagaste no se reembolsa, salvo que la ley lo exija."
+      },
+      "cancellation_delayed": {
+        "subject": "Tu cancelación aún no está confirmada",
+        "body": "Recibimos tu cancelación y la estamos enviando a Stripe, nuestro proveedor de pagos. Stripe todavía no la ha aceptado, así que la suscripción puede seguir activa. No tienes que hacer nada. Seguimos intentándolo automáticamente, nuestro equipo ya recibió la alerta y te escribiremos en cuanto se acepte. Si recibes un cargo después de cancelar, escribe a support@ghxstship.pro y te lo reembolsaremos."
       }
     },
     "message": {
@@ -167,14 +243,26 @@
     },
     "occupancy": {
       "threshold": {
-        "subject": "{title} está al {percent} % de su aforo permitido",
-        "body": "{title} tiene {count} personas adentro, el {percent} % del aforo permitido de {permitted_load}."
+        "subject": "{title} está al {percent} % de su aforo",
+        "body": "{title} tiene {count} personas adentro, el {percent} % de su aforo de {permitted_load}."
       }
     },
     "weather": {
       "alert": {
         "subject": "Alerta de clima: {level}",
         "body": "Una lectura de {hazard} de {reading} alcanzó el umbral de {level}. Sigue el plan de emergencia."
+      },
+      "warning": {
+        "subject": "Aviso oficial: {event}",
+        "body": "El Servicio Meteorológico Nacional emitió una alerta {severity}: {headline}. Sigue el plan de emergencia."
+      },
+      "hold": {
+        "subject": "Suspensión por clima: detenga el trabajo",
+        "body": "{message}{late, select, yes { Se declaró a las {called_at, time, short} en un dispositivo sin conexión.} other {}}"
+      },
+      "all_clear": {
+        "subject": "Fin de la suspensión: puede volver al trabajo",
+        "body": "{message}"
       }
     },
     "access": {
@@ -187,6 +275,12 @@
       "matched": {
         "subject": "{count, plural, one {Nueva coincidencia para {searchName}: {title}} other {# nuevas coincidencias para {searchName}}}",
         "body": "{count, plural, one {{orgName} publicó {title}, que coincide con su búsqueda guardada {searchName}.} other {{orgName} publicó # oportunidades que coinciden con su búsqueda guardada {searchName}, entre ellas {title}.}}"
+      }
+    },
+    "offer": {
+      "sent": {
+        "subject": "Oferta de {orgName}: {title}",
+        "body": "{orgName} te envió una oferta para {title}. Revisa las condiciones y acéptalas o respóndelas en Gateway."
       }
     },
     "onboarding": {
@@ -266,18 +360,207 @@
     "listing_report": {
       "decided": {
         "subject": "Revisamos el anuncio {title} que denunciaste",
-        "body": "{action, select, Removed {Retiramos el anuncio.} Restricted {Restringimos el anuncio.} Restored {Restablecimos el anuncio.} other {No tomamos ninguna medida sobre el anuncio.}} {statement} Puedes apelar esta decisión en un plazo de seis meses."
+        "body": "{action, select, Removed {Retiramos el anuncio. {statement}} Restricted {Restringimos el anuncio. {statement}} Restored {Restablecimos el anuncio. {statement} Puedes apelar esta decisión en un plazo de seis meses escribiendo a support@ghxstship.pro con Appeal en el asunto.} other {No tomamos ninguna medida sobre el anuncio. {statement} Puedes apelar esta decisión en un plazo de seis meses escribiendo a support@ghxstship.pro con Appeal en el asunto.}}"
       }
     },
     "moderation_appeal": {
       "decided": {
         "subject": "{outcome, select, Reversed {Revertimos nuestra decisión sobre {title}} other {Mantuvimos nuestra decisión sobre {title}}}",
-        "body": "{outcome, select, Reversed {Otra persona revisó tu apelación, estuvo de acuerdo y revirtió la decisión.} other {Otra persona revisó tu apelación y mantuvo la decisión.}} {statement}"
+        "body": "{outcome, select, Reversed {Revisamos tu apelación desde cero y revertimos la decisión.} other {Revisamos tu apelación desde cero y mantuvimos la decisión.}} {reviewer, select, same {La persona que tomó la primera decisión hizo esta revisión.} outside {{reviewerName}, revisor externo, hizo esta revisión.} other {Alguien que no tomó la primera decisión hizo esta revisión.}} {statement}"
+      }
+    },
+    "rating_dispute": {
+      "filed": {
+        "subject": "Alguien impugnó una calificación en {project}",
+        "body": "Una persona a la que tu organización calificó en {project} impugna la calificación. Responde desde Oportunidades, Calificaciones. Decide nuestro equipo de la plataforma."
+      },
+      "decided": {
+        "subject": "{outcome, select, Upheld {Se retiró la calificación de {project} tras una impugnación} other {La calificación de {project} sigue tras una impugnación}}",
+        "body": "{outcome, select, Upheld {Se aceptó la impugnación y se retiró la calificación.} other {No se aceptó la impugnación y la calificación sigue.}} {statement}"
+      }
+    },
+    "content_report": {
+      "filed": {
+        "subject": "{subject, select, comment {Se denunció un comentario} message {Se denunció un mensaje} other {Se denunció una publicación}}",
+        "body": "Alguien denunció {subject, select, comment {un comentario} message {un mensaje} other {una publicación}} por {reason, select, harassment {acoso o intimidación} hate {discurso o símbolos de odio} sexual_content {contenido sexual} violence {violencia o amenazas} spam {spam o estafa} other {otro motivo}}. Revísalo en 24 horas en Atlas, Personas, Contenido denunciado."
+      },
+      "overdue": {
+        "subject": "{subject, select, comment {Un comentario denunciado} message {Un mensaje denunciado} other {Una publicación denunciada}} lleva más de 24 horas en espera",
+        "body": "{subject, select, comment {Un comentario denunciado} message {Un mensaje denunciado} other {Una publicación denunciada}} hace más de 24 horas sigue esperando una decisión. Revísalo en Atlas, Personas, Contenido denunciado."
+      },
+      "decided": {
+        "subject": "{action, select, Removed {{subject, select, comment {Se eliminó el comentario que denunciaste} message {Se eliminó el mensaje que denunciaste} other {Se eliminó la publicación que denunciaste}}} other {Se revisó tu denuncia}}",
+        "body": "{actorName} revisó {subject, select, comment {el comentario} message {el mensaje} other {la publicación}} que denunciaste. {statement}"
+      }
+    },
+    "content": {
+      "removed": {
+        "subject": "{subject, select, comment {Se eliminó tu comentario} message {Se eliminó tu mensaje} other {Se eliminó tu publicación}}",
+        "body": "{actorName} eliminó tu {subject, select, comment {comentario} message {mensaje} other {publicación}} según {ruleReference}. {statement}"
+      }
+    },
+    "agent": {
+      "change_proposed": {
+        "subject": "{app} propuso un cambio",
+        "body": "{app} propuso {operation}. Revíselo en Configuración personal, Aplicaciones conectadas; nada cambia hasta que lo confirme."
+      }
+    },
+    "credential_photo": {
+      "requested": {
+        "subject": "{orgName} te pide tu foto de credencial",
+        "body": "{actorName}, de {orgName}, pidió una foto para imprimir en tu credencial. Agrégala en Gateway, en Perfil, Fotos de credencial."
+      }
+    },
+    "roster_entry": {
+      "invited": {
+        "subject": "Estás en el equipo de {partyName} para {projectName}",
+        "body": "Abre el Inicio de Gateway para aceptar o rechazar."
+      },
+      "returned": {
+        "subject": "Devolvieron a {personName} en la lista de {projectName}",
+        "body": "Motivo: {reason}"
+      },
+      "declined": {
+        "subject": "{personName} rechazó la lista de {projectName}",
+        "body": "Agrega a otra persona o retira la entrada."
+      },
+      "project_facts_entered": {
+        "subject": "{actorName} agregó tus {kind, select, travel {datos de viaje} uniform {tallas de uniforme} vehicle {datos del vehículo} other {datos del proyecto}}",
+        "body": "{actorName} los ingresó para {projectName}. Revísalos y corrige lo que esté mal."
+      },
+      "removed": {
+        "subject": "Ya no estás en el equipo de {partyName} para {projectName}",
+        "body": "Se retiró tu entrada de la lista. No necesitas hacer nada más para este equipo."
+      },
+      "facts_requested": {
+        "subject": "{projectName} necesita tus {kind, select, uniform {tallas de uniforme} travel {datos de viaje} vehicle {datos del vehículo} other {datos del proyecto}}",
+        "body": "Ingrésalos en Gateway antes de llegar, para que {partyName} y el equipo de producción se organicen."
+      },
+      "share_revoked": {
+        "subject": "{personName} dejó de compartir sus datos de trabajo para {projectName}",
+        "body": "Los datos de trabajo que {personName} compartió en el equipo de {partyName} ya no se comparten."
+      }
+    },
+    "engagement": {
+      "roster_lock_changed": {
+        "subject": "Cambió el cierre de nombres de {projectName}",
+        "body": "Abre la lista del equipo para ver cuándo se cierran los nombres. Después, pide a la organización productora que cambie la lista."
+      }
+    },
+    "advance_answer": {
+      "recorded": {
+        "subject": "{actorName} registró tu respuesta a {sectionTitle} para {projectName}",
+        "body": "La registró a partir de tu mensaje o de un archivo que enviaste. Pídele que la devuelva si necesita cambios."
+      }
+    },
+    "allocation": {
+      "decided": {
+        "subject": "Tu {kind, select, credential {credencial} parking_pass {pase de estacionamiento} asset {{itemName}} catering {catering} lodging {habitación} travel {viaje} per_diem {viático} other {asignación}} para {projectName} fue {decision, select, approved {aprobada} declined {rechazada} other {decidida}}",
+        "body": "{decision, select, declined {Motivo: {reason}} other {{quantity} para {personName}, a través de {partyName}.}}"
+      },
+      "assigned": {
+        "subject": "Recibiste {kind, select, credential {credencial} parking_pass {pase de estacionamiento} asset {{itemName}} catering {catering} lodging {habitación} travel {viaje} per_diem {viático} other {asignación}} para {projectName}",
+        "body": "{partyName} te pasó {quantity}."
+      },
+      "issued": {
+        "subject": "Te entregaron tu {kind, select, credential {credencial} parking_pass {pase de estacionamiento} asset {{itemName}} catering {catering} lodging {habitación} travel {viaje} per_diem {viático} other {asignación}} para {projectName}",
+        "body": "Ahora está a tu nombre. Devuélvelo cuando termine el trabajo."
+      },
+      "withdrawn": {
+        "subject": "Se retiró tu {kind, select, credential {credencial} parking_pass {pase de estacionamiento} asset {{itemName}} catering {catering} lodging {habitación} travel {viaje} per_diem {viático} other {asignación}} para {projectName}",
+        "body": "{cause, select, engagement_ended {La contratación terminó.} entry_removed {Ya no estás en el equipo.} other {{orgName} la retiró.}}"
+      }
+    },
+    "quote": {
+      "accepted": {
+        "subject": "Cotización aceptada: {quoteKey} v{version}",
+        "body": "{actorName} aceptó la cotización {quoteKey}, versión {version}, mediante firma electrónica. Ya no puede cambiar; registra los cambios posteriores como una orden de cambio."
+      }
+    },
+    "rfq": {
+      "quote_reminder": {
+        "subject": "{orgName} te pidió una cotización: {title}",
+        "body": "{orgName} te pidió una cotización de {title} en {projectName}{dueDate, select, none {.} other {, antes del {dueDate}.}} Ábrela para ver lo que necesitan."
+      },
+      "not_awarded": {
+        "subject": "{orgName} eligió otro proveedor para {title}",
+        "body": "{orgName} eligió otro proveedor para {title} en {projectName}. Gracias por tu cotización."
+      }
+    },
+    "crew_registration": {
+      "decided": {
+        "subject": "{outcome, select, approved {{orgName} aprobó tu registro} other {{orgName} no te seleccionó esta vez}}",
+        "body": "{outcome, select, approved {Estás en la lista de equipo de {title}. Revisa Explorar para ver trabajos de {orgName}.} other {Gracias por registrarte en {title}. Puedes registrarte de nuevo cuando la página abra.}}"
+      },
+      "invited": {
+        "subject": "{orgName} te invita a registrarte: {title}",
+        "body": "Abre la página en Gateway para registrarte con {orgName}."
+      }
+    },
+    "engagement_document": {
+      "sent": {
+        "subject": "{orgName} te envió {title} para firmar",
+        "body": "Léelo en Gateway y fírmalo con tu nombre, o recházalo con un motivo."
+      }
+    },
+    "vendor_intake": {
+      "submitted": {
+        "subject": "Nueva solicitud de alta: {title}",
+        "body": "{requesterName} envió una solicitud por {title} para {projectName}. Revísala en la pestaña Contrataciones del proyecto."
+      }
+    },
+    "guest": {
+      "arrived": {
+        "subject": "Llegó {guest_name}",
+        "body": "Tu invitado {guest_name} se registró{has_door, select, yes { en {door}} other {}} con {plus_ones_admitted, plural, =0 {ningún acompañante} one {# acompañante} other {# acompañantes}}.{has_table, select, yes { Mesa: {table_label}.} other {}}"
+      }
+    },
+    "advance_packet": {
+      "reminder": {
+        "subject": "{reminder, select, overdue {Vencido: {title}} other {Recordatorio: {title}}} para {projectName}",
+        "body": "{outstanding, plural, one {Queda # sección} other {Quedan # secciones}} por responder para {orgName}. {due, select, set {{reminder, select, overdue {Venció el {dueAt, date, medium}.} other {Vence el {dueAt, date, medium} a las {dueAt, time, short}.}}} other {Respóndela en Gateway.}}"
+      }
+    },
+    "advance_submission": {
+      "returned": {
+        "subject": "Se devolvió tu respuesta a {title}",
+        "body": "{packetTitle}: {reason} Vuelve a responder la sección en Gateway."
+      }
+    },
+    "submittal": {
+      "returned": {
+        "subject": "Entregable devuelto: {title}",
+        "body": "{projectName}: {reason} Revísalo y vuelve a enviarlo en Gateway."
+      }
+    },
+    "credential": {
+      "revoked": {
+        "subject": "Se revocó tu credencial {title} para {projectName}",
+        "body": "Ya no da acceso. Consulta al equipo de producción si crees que es un error."
+      }
+    },
+    "accommodation_block": {
+      "release_due": {
+        "subject": "{blockKey} {blockTitle} se libera {days, plural, =0 {hoy} one {en # día} other {en # días}}",
+        "body": "{freeRoomNights, plural, one {Queda # noche de habitación libre} other {Quedan # noches de habitación libres}} en {blockTitle} para {projectName}. Las habitaciones sin asignar vuelven al hotel el {releaseOn}."
+      }
+    },
+    "transfer": {
+      "assigned": {
+        "subject": "Conduces el traslado {transferKey}",
+        "body": "Recogida en {pickupPlace}, el {startsAt, date, medium} a las {startsAt, time, short}, hacia {dropoffPlace}, con {passengerCount, plural, one {# pasajero} other {# pasajeros}}."
       }
     }
   },
   "notification": {
-    "heading": "{subject}"
+    "heading": "{subject}",
+    "actions": {
+      "approve": "Aprobar",
+      "reject": "Rechazar",
+      "accept": "Aceptar",
+      "note": "Cada botón abre una página para confirmar. Funciona una vez, durante 7 días.",
+      "confirmComing": "Confirma que vas"
+    }
   },
   "digest": {
     "subject": "{count, plural, one {# novedad} other {# novedades}} de {orgName}",
@@ -295,7 +578,9 @@
     "subject": "{reportName}: {periodLabel}",
     "heading": "{reportName}",
     "body": "Tu informe programado de {periodLabel} va adjunto en formato {format}.",
-    "membersOnly": "Los informes programados se envían solo a miembros de {orgName}."
+    "membersOnly": "Los informes programados se envían solo a miembros de {orgName}.",
+    "contents": "Tiene {rows, plural, one {# fila} other {# filas}}{unpriced, plural, =0 {.} one {; # tiene un importe sin precio, fuera de sus totales.} other {; # tienen un importe sin precio, fuera de sus totales.}}",
+    "access": "Se ejecutó con tu propio acceso, así que solo muestra lo que puedes ver."
   },
   "export_ready": {
     "subject": "Tu exportación {exportName} está lista",
@@ -304,9 +589,9 @@
     "download": "Descargar exportación"
   },
   "import_finished": {
-    "subject": "La importación {importName} terminó",
-    "heading": "Importación terminada",
-    "body": "{written, plural, one {# fila escrita} other {# filas escritas}}, {refused, plural, one {# rechazada} other {# rechazadas}} y {skipped, plural, one {# omitida} other {# omitidas}}.",
+    "subject": "{stage, select, validated {La importación {importName} está lista para revisar} other {La importación {importName} terminó}}",
+    "heading": "{stage, select, validated {Importación lista para revisar} other {Importación terminada}}",
+    "body": "{stage, select, validated {{written, plural, one {# fila está lista} other {# filas están listas}} para escribir, {refused, plural, one {# necesita} other {# necesitan}} corrección y {skipped, plural, one {# se omitió} other {# se omitieron}}. Revisa las filas y luego confirma la importación.} other {{written, plural, one {# fila escrita} other {# filas escritas}}, {refused, plural, one {# rechazada} other {# rechazadas}} y {skipped, plural, one {# omitida} other {# omitidas}}.}}",
     "review": "Revisar importación"
   },
   "dsar_received": {
@@ -339,5 +624,71 @@
   "deletionCertificate": {
     "subject": "Certificado de eliminación de {org}",
     "body": "Los datos de {org} se eliminaron de XOS el {date}, según el ciclo de vida de la organización.\n\nSe adjunta su certificado de eliminación. Su id es {id}. También puede descargarlo desde Atlas mientras tenga una cuenta.\n\nLas copias de seguridad cifradas hechas antes de la eliminación caducan según su propio calendario."
+  },
+  "approval_link_code": {
+    "subject": "Tu código para decidir en {orgName}",
+    "heading": "Tu código de acceso",
+    "body": "{orgName} te pidió decidir una aprobación. Ingresa este código en la página que abriste desde el correo de aprobación:",
+    "expiry": "El código funciona durante {minutes} minutos y solo con los enlaces del correo de aprobación que abriste.",
+    "ignore": "Si no pediste un código, ignora este correo. Nada se decide sin el código y el enlace."
+  },
+  "party_invitation": {
+    "accountSubject": "{inviterName} te invita a {accountName} en XOS",
+    "rosterSubject": "{inviterName} te invita al equipo de {partyName} para {projectName}",
+    "how": "Inicia sesión en Gateway con este correo y acepta en el Inicio antes del {expiresAt, date, long}. La empresa verá tu perfil y los datos del proyecto. ¿No lo esperabas? Ignóralo.",
+    "action": "Iniciar sesión en Gateway",
+    "poolSubject": "{inviterName} te invita a unirte a la lista de equipo de {orgName}",
+    "poolRole": "Rol: {jobTitle}",
+    "poolHow": "Inicia sesión en Gateway con esta dirección y acepta en Inicio antes del {expiresAt, date, long}. ¿No lo esperabas? Ignóralo."
+  },
+  "legal_clock_alert": {
+    "subject": "{overdue, plural, =0 {Cola legal de XOS: {dueSoon, plural, one {# plazo está por vencer} other {# plazos están por vencer}}} one {Cola legal de XOS: # plazo está vencido} other {Cola legal de XOS: # plazos están vencidos}}",
+    "open": "Abrir la cola legal",
+    "intro": {
+      "operator": "Estos plazos te necesitan. Abre la cola para atenderlos y deja constancia de lo que hiciste.",
+      "backup": "Eres un contacto de respaldo de la cola legal de GHXSTSHIP Industries LLC. Estos plazos están vencidos. Asegúrate de que el propietario lo haya visto.",
+      "reviewer": "Estas apelaciones te corresponden como revisor externo de GHXSTSHIP Industries LLC. GHXSTSHIP te envía cada expediente por separado."
+    },
+    "item": "{reference}: {clock, select, Due {vence} other {la primera respuesta vence}} el {at, date, long} a las {at, time, short}, hora de Nueva York{overdue, select, yes {. Vencido.} other {.}}",
+    "itemMatter": "{reference}, {matter}: {clock, select, Due {vence} other {la primera respuesta vence}} el {at, date, long} a las {at, time, short}, hora de Nueva York{overdue, select, yes {. Vencido.} other {.}}",
+    "matters": {
+      "Data Subject Request": "solicitud de derechos de datos",
+      "Privacy Complaint": "queja de privacidad",
+      "DMCA Notice": "aviso DMCA",
+      "DMCA Counter-Notice": "contraaviso DMCA",
+      "Repeat Infringer Review": "revisión de infractor reincidente",
+      "Abuse Report": "denuncia de abuso",
+      "Moderation Appeal": "apelación de moderación",
+      "Security Report": "informe de seguridad",
+      "Personal Data Breach": "violación de datos personales",
+      "Accessibility Complaint": "queja de accesibilidad",
+      "Government Data Request": "solicitud de datos del gobierno",
+      "Other Promise": "otro compromiso",
+      "Undelivered Notice": "aviso no entregado",
+      "Queue Failure": "fallo de la cola"
+    }
+  },
+  "stakeholder_pack": {
+    "subject": "{sender} compartió {pack} contigo",
+    "intro": "{sender} compartió {pack} contigo. Ábrelo con el botón de abajo y el código de acceso que te dio.",
+    "message": "Su mensaje: {message}",
+    "items": "En este paquete: {items}",
+    "expires": "Este enlace funciona hasta {date}.",
+    "code": "El código de acceso nunca llega por correo. Si no lo tienes, pídeselo a quien compartió este paquete.",
+    "open": "Abrir el paquete",
+    "why": "Recibes este correo porque {sender} compartió contigo un paquete de {orgName}.",
+    "preferences": "Dejar de recibir estos correos"
+  },
+  "guest_message": {
+    "invitationSubject": "{orgName} te invita a {projectName}",
+    "passSubject": "Tu pase para {projectName}",
+    "heading": "{projectName}",
+    "greeting": "Hola, {name}:",
+    "invitation": "{orgName} te agregó a la lista de invitados de {projectName}.",
+    "pass": "Adjuntamos tu pase para {projectName}. Muéstralo en la puerta{plusOnes, plural, =0 {} one {; admite # invitado más} other {; admite # invitados más}}.",
+    "show": "Función: {showName}.",
+    "showOn": "Función: {showName}, {showDate, date, long}.",
+    "why": "Recibes este correo porque estás en la lista de invitados de {orgName}.",
+    "preferences": "Dejar de recibir correos de esta organización"
   }
 }

@@ -1,0 +1,40 @@
+{
+  "loadFailed": "This section did not load. Pull down to try again.",
+  "registry": {
+    "deviceZone": "Compass uses this phone's time zone, {zone}, until you choose one.",
+    "deviceLanguage": "Compass follows this phone's language until you or your organization choose one.",
+    "date": "Enter the date as year-month-day, for example 2026-11-02.",
+    "dateHelp": "Year-month-day, for example 2026-11-02. Leave it blank for no date."
+  },
+  "zones": {
+    "search": "Search time zones",
+    "searchHelp": "Type a city or region, for example Chicago.",
+    "none": "No time zone matches. Check the spelling, or type the full name, for example America/Chicago.",
+    "device": "This phone's time zone ({zone})"
+  },
+  "notifications": {
+    "orgsTitle": "In your organizations",
+    "orgsHelp": "Each organization you belong to keeps its own choices. Atlas shows the same ones.",
+    "org": "Organization",
+    "timeHelp": "24-hour time, for example 22:00. Leave both times blank for no quiet hours.",
+    "textsTitle": "Texts",
+    "otherTitle": "From other organizations",
+    "otherHelp": "Organizations you work with without being a member, and marketplace alerts. In-app notifications always show in your Inbox. Gateway shows the same choices.",
+    "ownQuietTitle": "Your own quiet hours",
+    "ownQuietHelp": "Push notifications from organizations you are not a member of wait until your quiet hours end. Safety alerts, changes to your sign-in security, a recovery code used on your account and a new or changed shift starting within 12 hours still reach you. Email is never held.",
+    "errors": {
+      "time": "Enter the time as hours and minutes, for example 22:00.",
+      "pair": "Set both a start and an end, or leave both blank to turn quiet hours off.",
+      "same": "Choose an end time different from the start.",
+      "zone": "Choose your time zone from the list."
+    }
+  },
+  "outOfOffice": {
+    "order": "End on or after the start date."
+  },
+  "workDetails": {
+    "offline": "Work details are edited online only, so they never stay on this phone.",
+    "webTitle": "Passport, loyalty programs and sharing",
+    "webHelp": "Your passport, loyalty programs, what you share with each engagement and your access log open in Gateway."
+  }
+}

@@ -16,6 +16,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { safeNext } from "@/lib/auth/redirect";
 import { createServerSupabase } from "@/lib/supabase/server";
+import { observability } from "@/lib/observability";
 
 /**
  * Recovery codes, signed-in sessions and connected apps (A99, RRR-144; ADR 0055; Section 4.5.6 personal setting 4).
@@ -50,7 +51,8 @@ function errorKey(error: DataError): string {
     return RULES.has(error.rule) ? error.rule : "unexpected";
   }
   if (error.kind === "not-found") return "denied";
-  if (error.kind === "unexpected") console.error("account security action failed", error);
+  if (error.kind === "unexpected")
+    observability.logger.error("account security action failed", { error: error });
   return "unexpected";
 }
 

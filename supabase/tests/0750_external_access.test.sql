@@ -58,7 +58,7 @@ select is(pg_temp.n('mia', 'select 1 from api_external.engagements'), 1, 'gate 3
 select is(pg_temp.n('dave', 'select 1 from api_external.engagements'), 0, 'internal members have no external engagements to read');
 select pg_temp.as_user('ivy');
 select is((select rate_minor from api_external.engagements where id = pg_temp.id('eng_ivy_a')), null::bigint, 'the party''s rate stays hidden until the money area opens');
-select is((select areas from api_external.engagements where id = pg_temp.id('eng_ivy_a')), array['documents', 'engagement', 'onboarding'], 'Onboarding opens engagement, documents and onboarding');
+select is((select areas from api_external.engagements where id = pg_temp.id('eng_ivy_a')), array['documents', 'engagement', 'onboarding', 'roster'], 'Onboarding opens engagement, documents, onboarding and the roster (R4)');
 select pg_temp.as_platform();
 select pg_temp.move_engagement('eng_ivy_a', 'Onboarding', 'Active');
 select pg_temp.as_user('ivy');
@@ -119,6 +119,15 @@ select is(pg_temp.n('ivy', $$select 1 from api_external.records where id = '$$ |
 select is(pg_temp.n('victor', $$select 1 from api_external.records where id = '$$ || pg_temp.id('rec_internal') || $$'$$), 0, 'records without external visibility stay internal');
 select is(pg_temp.n('quinn', 'select 1 from api_external.records'), 0, 'records: denial for another party');
 select is(pg_temp.n('fiona', 'select 1 from api_external.records'), 0, 'Account Finance has no operational area');
+-- An archived record leaves the party's shared records until it is unarchived (A124, 5183).
+select pg_temp.as_user('carol');
+select app.archive_row('records', pg_temp.id('rec_ivy'));
+select pg_temp.as_platform();
+select is(pg_temp.n('ivy', 'select 1 from api_external.records'), 0, 'records: an archived record leaves the shared records');
+select pg_temp.as_user('carol');
+select app.unarchive_row('records', pg_temp.id('rec_ivy'));
+select pg_temp.as_platform();
+select is(pg_temp.n('ivy', 'select 1 from api_external.records'), 1, 'and comes back when unarchived');
 
 -- Money -----------------------------------------------------------------------------------------------------------------
 select pg_temp.as_platform();

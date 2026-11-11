@@ -7,6 +7,7 @@ import type { TemplateCode } from "./index.tsx";
  */
 export const TEMPLATE_CODES = [
   "notification",
+  "billing_notice",
   "digest",
   "invite",
   "report_delivery",
@@ -15,4 +16,10 @@ export const TEMPLATE_CODES = [
   "dsar_received",
   "subprocessor_confirm",
   "subprocessor_notice",
+  "party_invitation",
+  "approval_link_code",
+  "stakeholder_pack",
+  "guest_message",
+  "legal_clock_alert",
+  "moderation_notice",
 ] as const satisfies readonly TemplateCode[];

@@ -15,6 +15,7 @@ import {
 import { listGlAccounts } from "@xos/data/finance";
 import { listGateCriteria } from "@xos/data/projects";
 import { getNode } from "@xos/ia";
+import { workflowMarker } from "@xos/data/workflow-signal";
 import Link from "next/link";
 import type { Route } from "next";
 import type { ReactNode } from "react";
@@ -28,6 +29,9 @@ import { EmptyPanel, ErrorPanel, RefusalPanel } from "@/components/finance/panel
 import { PageHeader, TemplateCollection } from "@/components/finance/ui";
 import { Chart } from "@/components/platform/client/chart";
 import { ExportCsvButton, MatrixWithDrill } from "./client";
+
+/** A figure opened to the records behind it completes the Reports funnel (A146). */
+const DRILL = workflowMarker("atlas.reports:done");
 import { DocumentActions } from "@/components/documents/document-actions";
 
 /**
@@ -224,6 +228,7 @@ export async function GateReadinessReport({ page }: { page: FinancePage }) {
             key="p"
             className="text-accent-text underline"
             href={`/${org}/p/${r.project.key}/gates` as Route}
+            {...DRILL}
           >
             {r.project.key}
           </Link>,
@@ -246,6 +251,7 @@ export async function GateReadinessReport({ page }: { page: FinancePage }) {
             key="p"
             className="text-accent-text underline"
             href={`/${org}/p/${r.project.key}/gates` as Route}
+            {...DRILL}
           >
             {r.project.key} · {r.project.name}
           </Link>,
@@ -366,6 +372,7 @@ export async function CoordinateMatrixReport({ page }: { page: FinancePage }) {
                   key={p.code}
                   className="text-accent-text underline"
                   href={recordsHref(d.code, p.code) as Route}
+                  {...DRILL}
                 >
                   {c.number(n)}
                 </Link>
@@ -421,9 +428,18 @@ export async function BudgetVersusActualReport({ page }: { page: FinancePage }) 
     t("reports.bva.budget"),
     t("reports.bva.changes"),
     t("reports.bva.revised"),
+    t("reports.bva.committed"),
     t("reports.bva.actual"),
     t("reports.bva.variance"),
+    t("reports.bva.efc"),
   ];
+  // A row's committed amount is withheld, never partial, when any of its lines' purchase orders are
+  // hidden from the viewer (3810).
+  const committedCell = (r: (typeof rows)[number]) =>
+    r.committedWithheldCount > 0
+      ? t("reports.bva.withheld")
+      : c.money(r.committedMinor, r.currency);
+  const anyWithheld = rows.some((r) => r.committedWithheldCount > 0);
   const line = (r: (typeof rows)[number], label: string) => [
     label,
     r.currency,
@@ -432,8 +448,10 @@ export async function BudgetVersusActualReport({ page }: { page: FinancePage }) 
       : c.money(r.budgetMinor, r.currency),
     c.money(r.approvedChangeMinor, r.currency),
     c.money(r.revisedMinor, r.currency),
+    committedCell(r),
     c.money(r.actualMinor, r.currency),
     c.money(r.varianceMinor, r.currency),
+    r.efcWithheld ? t("reports.bva.withheld") : c.money(r.efcMinor, r.currency),
   ];
   const csv = rows.map((r) => line(r, keyLabel(r.key)));
   const drill = (key: string) =>
@@ -482,6 +500,12 @@ export async function BudgetVersusActualReport({ page }: { page: FinancePage }) 
           categories={same.map((r) => keyLabel(r.key))}
           series={[
             { name: t("reports.bva.revised"), values: same.map((r) => major(r.revisedMinor, exp)) },
+            {
+              name: t("reports.bva.committed"),
+              values: same.map((r) =>
+                r.committedWithheldCount > 0 ? null : major(r.committedMinor, exp),
+              ),
+            },
             { name: t("reports.bva.actual"), values: same.map((r) => major(r.actualMinor, exp)) },
           ]}
           format="money"
@@ -490,7 +514,7 @@ export async function BudgetVersusActualReport({ page }: { page: FinancePage }) 
         <SimpleTable
           caption={t("reports.bva.chartTitle", { currency: cur })}
           head={header}
-          numeric={[2, 3, 4, 5, 6]}
+          numeric={[2, 3, 4, 5, 6, 7, 8]}
           rows={same.map((r) => line(r, keyLabel(r.key)))}
         />
       </div>
@@ -508,7 +532,7 @@ export async function BudgetVersusActualReport({ page }: { page: FinancePage }) 
         <SimpleTable
           caption={t("reports.bva.tableCaption")}
           head={header}
-          numeric={[2, 3, 4, 5, 6]}
+          numeric={[2, 3, 4, 5, 6, 7, 8]}
           rows={rows.map((r) => line(r, keyLabel(r.key)))}
         />
         <SimpleTable
@@ -521,7 +545,7 @@ export async function BudgetVersusActualReport({ page }: { page: FinancePage }) 
             t(`reports.bva.dimensions.${dimension === "costCenter" ? "account" : "costCenter"}`),
             ...header.slice(1),
           ]}
-          numeric={[2, 3, 4, 5, 6]}
+          numeric={[2, 3, 4, 5, 6, 7, 8]}
           rows={other.map((r) => line(r, r.key || t("reports.bva.unassigned.costCenter")))}
         />
       </div>
@@ -531,9 +555,14 @@ export async function BudgetVersusActualReport({ page }: { page: FinancePage }) 
       <SimpleTable
         caption={t("reports.bva.tableCaption")}
         head={header}
-        numeric={[2, 3, 4, 5, 6]}
+        numeric={[2, 3, 4, 5, 6, 7, 8]}
         rows={rows.map((r) => [
-          <Link key="k" className="text-accent-text underline" href={drill(r.key) as Route}>
+          <Link
+            key="k"
+            className="text-accent-text underline"
+            href={drill(r.key) as Route}
+            {...DRILL}
+          >
             {keyLabel(r.key)}
           </Link>,
           ...line(r, "").slice(1),
@@ -577,6 +606,9 @@ export async function BudgetVersusActualReport({ page }: { page: FinancePage }) 
         ])}
       />
       {body}
+      {anyWithheld ? (
+        <p className="m-0 text-text-12 text-text-secondary">{t("reports.bva.committedWithheld")}</p>
+      ) : null}
     </ReportFrame>
   );
 }
@@ -594,8 +626,13 @@ export async function LaborReport({ page }: { page: FinancePage }) {
     projectId: page.project?.id ?? null,
   });
   if (!result.ok) return failure(page, node, t);
-  const { projects, payrollRuns } = result.data;
+  const { projects, payrollRuns, postedByTeam, offBudget, offBudgetMore } = result.data;
   const org = page.ctx.org.slug;
+  const projectKey = (id: string) => projects.find((p) => p.project.id === id)?.project.key ?? "";
+  const teamLabel = (r: (typeof postedByTeam)[number]) =>
+    r.teamKind === "Agency"
+      ? (r.teamName ?? t("reports.labor.teams.Agency"))
+      : t(`reports.labor.teams.${r.teamKind.replace(" ", "")}`);
   const hours = (m: number) => c.number(Math.round((m / 60) * 10) / 10);
   const header = [
     t("finance.common.project"),
@@ -660,6 +697,7 @@ export async function LaborReport({ page }: { page: FinancePage }) {
               key="p"
               className="text-accent-text underline"
               href={`/${org}/p/${p.project.key}/crew` as Route}
+              {...DRILL}
             >
               {p.project.key} · {p.project.name}
             </Link>,
@@ -683,6 +721,7 @@ export async function LaborReport({ page }: { page: FinancePage }) {
                 key="r"
                 className="text-accent-text underline"
                 href={`/${org}/crew/payroll-exports?peek=${r.payrollRunId}` as Route}
+                {...DRILL}
               >
                 {r.payrollRunId.slice(0, 8)}
               </Link>,
@@ -696,6 +735,69 @@ export async function LaborReport({ page }: { page: FinancePage }) {
           {payrollRuns.some((r) => r.isMasked) ? (
             <p className="m-0 text-text-12 text-text-secondary">
               {t("reports.labor.maskedSentence")}
+            </p>
+          ) : null}
+        </Section>
+      ) : null}
+      {postedByTeam.length > 0 ? (
+        <Section id="posted-by-team" title={t("reports.labor.postedByTeam")}>
+          <SimpleTable
+            caption={t("reports.labor.postedByTeam")}
+            head={[
+              t("finance.common.project"),
+              t("reports.labor.team"),
+              t("reports.labor.hours"),
+              t("reports.labor.cost"),
+              t("reports.labor.unpricedHours"),
+            ]}
+            numeric={[2, 3, 4]}
+            rows={postedByTeam.map((r) => [
+              projectKey(r.projectId),
+              teamLabel(r),
+              hours(r.minutes),
+              r.isMasked
+                ? t("reports.labor.masked")
+                : r.currency
+                  ? c.money(r.amountMinor, r.currency)
+                  : t("finance.common.unpriced"),
+              hours(r.unpricedMinutes),
+            ])}
+          />
+        </Section>
+      ) : null}
+      {offBudget.length > 0 ? (
+        <Section id="hours-off-budget" title={t("reports.labor.offBudget")}>
+          <SimpleTable
+            caption={t("reports.labor.offBudget")}
+            head={[
+              t("finance.common.project"),
+              t("reports.labor.person"),
+              t("reports.labor.date"),
+              t("reports.labor.hours"),
+              t("reports.labor.shift"),
+            ]}
+            numeric={[3]}
+            rows={offBudget.map((r) => [
+              projectKey(r.projectId),
+              r.person ?? "",
+              c.date(r.workDate),
+              hours(r.minutes),
+              r.shiftId ? (
+                <Link
+                  key="s"
+                  className="text-accent-text underline"
+                  href={`/${org}/crew/shifts?peek=${r.shiftId}` as Route}
+                >
+                  {t("reports.labor.openShift")}
+                </Link>
+              ) : (
+                t("reports.labor.noShift")
+              ),
+            ])}
+          />
+          {offBudgetMore ? (
+            <p className="m-0 text-text-12 text-text-secondary">
+              {t("reports.labor.offBudgetMore", { count: offBudget.length })}
             </p>
           ) : null}
         </Section>

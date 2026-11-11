@@ -17,9 +17,15 @@ set -eu
 cd "$(dirname "$0")/../.."
 
 if [ $# -gt 0 ]; then
-  TARGET="--db-url=$1"
+  TARGET="--remote=$1"
 else
-  TARGET="--local"
+  # CLI 3 targets the local stack by default.
+  TARGET=""
 fi
 
-supabase db advisors "$TARGET" --type all --level "${ADVISOR_LEVEL:-warn}" --fail-on warn
+# CLI 3 lints every schema [api] exposes, so the report is judged against the same accepted list as staging
+# (infra/security/advisors-accepted.json) instead of failing on the CLI's own --fail-on.
+REPORT="$(mktemp)"
+trap 'rm -f "$REPORT"' EXIT
+supabase db advisors ${TARGET:+"$TARGET"} --type all --level "${ADVISOR_LEVEL:-warn}" --output-format json >"$REPORT"
+node --experimental-strip-types --no-warnings infra/security/src/cli.ts advisors-local "$REPORT"

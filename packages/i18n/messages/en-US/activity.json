@@ -28,7 +28,12 @@
     "loadErrorTitle": "Activity did not load",
     "loadError": "The activity feed could not be loaded. Check your connection and try again.",
     "retry": "Try again",
-    "times": "{count, plural, one {once} other {# times}}"
+    "times": "{count, plural, one {once} other {# times}}",
+    "restore": "Restore",
+    "restoreLabel": "Restore {target}",
+    "restoreUntil": "Restorable until {date}",
+    "restored": "Restored {target}.",
+    "restoreFailed": "Couldn't restore it: {message}"
   },
   "audit": {
     "title": "Audit log",
@@ -46,7 +51,7 @@
     "systemActor": "System",
     "older": "Show older entries",
     "newest": "Back to newest",
-    "changedFields": "{count, plural, one {# field} other {# fields}}",
+    "changedFieldList": "{count, plural, one {# field} other {# fields}}: {fields}",
     "ops": {
       "insert": "Created",
       "update": "Updated",
@@ -122,7 +127,8 @@
     "swap_approved": "approved a swap on",
     "updated": "updated",
     "verified": "verified",
-    "fallback": "changed"
+    "fallback": "changed",
+    "trashed": "moved to Trash"
   },
   "subjects": {
     "access_scan": "an access scan",
@@ -213,6 +219,7 @@
     "journal_entry": "a journal entry",
     "journal_line": "a journal line",
     "credential_category": "a credential category",
+    "custom_object_record": "a custom object record",
     "subscription": "a subscription",
     "purchase_order": "a purchase order",
     "po_line": "a purchase order line",
@@ -225,6 +232,9 @@
     "sponsor_asset": "a sponsor asset",
     "cost_center": "a cost center",
     "time_off_request": "a time off request",
-    "access_grid": "an access grid entry"
+    "access_grid": "an access grid entry",
+    "communication_mark": "a communication mark",
+    "travel_segment": "a travel segment",
+    "settlement_line": "a settlement line"
   }
 }

@@ -1,8 +1,10 @@
 import {
   listEngagements,
+  listRatingDisputes,
   listRatings,
   type EngagementCard,
   type Rating,
+  type RatingDispute,
 } from "@xos/data/opportunities";
 import { resolveSettings } from "@xos/data/settings";
 import { ActionForm } from "@/components/opportunities/action-form";
@@ -13,12 +15,13 @@ import { enumKey } from "@/lib/opportunities/format";
 import { must, setupPage, type PageSetup, type SearchParams } from "@/lib/opportunities/page";
 import { engagementsToRate, ratingPromptsOn } from "@/lib/shell/org-settings";
 import { nodeHref } from "@/lib/shell/sitemap";
-import { rateAction, replyAction } from "../actions";
+import { rateAction, replyAction, respondToRatingDisputeAction } from "../actions";
 
 /**
  * Ratings (Section 4.4.3, Section 14.9): two-sided ratings of completed engagements. The org rates the party here; both
- * ratings release together once both are in or 14 days after completion; the org replies once, publicly, to the party's
- * rating. Ratings are never edited, withdrawn or suppressed, and internal notes never appear here.
+ * ratings release together once both are in or 14 days after completion; the org replies once to the party's rating.
+ * Ratings are never edited, withdrawn or suppressed, and internal notes never appear here. A rating of a person stays with
+ * this org and that person (ADR 0158): the person may dispute it, the org answers here, and a platform operator decides.
  * gateway.ratings_enabled decides only whether members are prompted to rate (ADR 0038): with prompts off the list of
  * engagements waiting for a rating goes, and every rating still shows.
  */
@@ -33,12 +36,14 @@ export default async function RatingsPage({
     (await searchParams) as SearchParams,
   );
   const { ctx, t } = page;
-  const [ratings, completed, settings] = await Promise.all([
+  const [ratings, completed, settings, disputes] = await Promise.all([
     listRatings(ctx.viewer.db, ctx.org.id),
     listEngagements(ctx.viewer.db, ctx.org.id, { states: ["Complete"] }),
     resolveSettings(ctx.viewer.db, { orgId: ctx.org.id }),
+    listRatingDisputes(ctx.viewer.db, ctx.org.id),
   ]);
   const all = must(ratings, "ratings");
+  const disputed = must(disputes, "rating disputes");
   const engagements = new Map(must(completed, "engagements").map((e) => [e.id, e]));
   const setting = (key: string) => (settings.ok ? settings.data.get(key)?.value : undefined);
   const prompts = ratingPromptsOn(setting);
@@ -111,6 +116,22 @@ export default async function RatingsPage({
           </ul>
         </Section>
       ) : null}
+      {disputed.length > 0 ? (
+        <Section id="ratings-disputes" title={t("ratings.disputes.title")}>
+          <p className="m-0 text-text-13 text-text-secondary">{t("ratings.disputes.help")}</p>
+          <ul className="m-0 flex list-none flex-col gap-8 p-0">
+            {disputed.map((d) => (
+              <DisputeItem
+                key={d.id}
+                page={page}
+                d={d}
+                canRate={canRate}
+                engagementsHref={engagementsHref}
+              />
+            ))}
+          </ul>
+        </Section>
+      ) : null}
       <Section id="ratings-all" title={t("ratings.all")}>
         {all.length === 0 ? (
           <EmptyStateLink
@@ -165,6 +186,67 @@ export default async function RatingsPage({
         )}
       </Section>
     </TemplateCollection>
+  );
+}
+
+function DisputeItem({
+  page,
+  d,
+  canRate,
+  engagementsHref,
+}: {
+  page: PageSetup;
+  d: RatingDispute;
+  canRate: boolean;
+  engagementsHref: string;
+}) {
+  const { ctx, t } = page;
+  const about = d.subject;
+  return (
+    <li className="flex flex-col gap-4 rounded-card border border-border-subtle p-8 text-text-13">
+      {about ? (
+        <>
+          <p className="m-0 font-medium">
+            <RowLink href={`${engagementsHref}?id=${about.engagementId}`}>
+              {about.partyName ?? t("engagements.unnamed")} · {about.projectName}
+            </RowLink>
+          </p>
+          {about.ratingScore === null ? null : (
+            <p className="m-0">
+              {t("ratings.disputes.yourRating", {
+                score: t("engagements.stars", { score: about.ratingScore }),
+                comment: about.ratingComment ?? t("none"),
+              })}
+            </p>
+          )}
+        </>
+      ) : null}
+      <p className="m-0 font-medium">
+        {t(`ratings.disputes.grounds.${enumKey(d.ground)}`)} ·{" "}
+        {t(`ratings.disputes.states.${enumKey(d.state)}`)}
+      </p>
+      <p className="m-0 text-text-secondary">{d.details}</p>
+      {d.orgResponse ? (
+        <p className="m-0">{t("ratings.disputes.answered", { response: d.orgResponse })}</p>
+      ) : canRate && d.state === "Open" ? (
+        <ActionForm
+          action={respondToRatingDisputeAction}
+          hidden={{ org: ctx.org.slug, disputeId: d.id }}
+          fields={[
+            {
+              name: "response",
+              label: t("ratings.disputes.answer"),
+              kind: "textarea",
+              required: true,
+            },
+          ]}
+          submitLabel={t("ratings.disputes.sendAnswer")}
+        />
+      ) : null}
+      {d.decisionStatement ? (
+        <p className="m-0">{t("ratings.disputes.decided", { statement: d.decisionStatement })}</p>
+      ) : null}
+    </li>
   );
 }
 

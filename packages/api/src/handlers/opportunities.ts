@@ -18,6 +18,7 @@ import { decodeCursor, pageSize, toPage } from "../runtime/pagination.ts";
 import { bidTotal } from "@xos/data/gateway-marketplace";
 import { from, handlersFor, run, tableResource } from "./support/table.ts";
 import type { Row, TableResource } from "./support/table.ts";
+import type { Database } from "@xos/data/database.types";
 
 type Engagement = Components["Engagement"];
 type OnboardingItem = Components["OnboardingItem"];
@@ -132,7 +133,7 @@ interface Chain extends PromiseLike<{ data: unknown; error: unknown }> {
 
 // Engagements -----------------------------------------------------------------------------------------------------
 
-const ENGAGEMENT_COLUMNS = `${AUDIT}, project_id, person_id, role_type, engagement_state, application_id, worker_classification, pay_basis, arrangement, start_date, end_date, counterparty_id, counterparty:counterparties(organization_id), transitions:engagement_state_transitions(to_state, created_at), application:applications(offers(id, offer_state, deleted_at))`;
+const ENGAGEMENT_COLUMNS = `${AUDIT}, project_id, person_id, role_type, engagement_state, application_id, worker_classification, pay_basis, arrangement, start_date, end_date, counterparty_id, roster_locks_at, counterparty:counterparties(organization_id), transitions:engagement_state_transitions(to_state, created_at), application:applications(offers(id, offer_state, deleted_at))`;
 
 interface EngagementRow extends AuditRow {
   project_id: string;
@@ -147,6 +148,8 @@ interface EngagementRow extends AuditRow {
   start_date: string;
   end_date: string | null;
   counterparty_id: string | null;
+  /** Names lock (R5, 4656); null means no lock. */
+  roster_locks_at: string | null;
   counterparty: { organization_id: string } | null;
   transitions: { to_state: string; created_at: string }[] | null;
   application: {
@@ -181,6 +184,7 @@ function toEngagement(row: EngagementRow): Engagement {
     start_date: row.start_date,
     end_date: row.end_date,
     counterparty_id: row.counterparty_id ?? null,
+    roster_locks_at: row.roster_locks_at ?? null,
   };
 }
 
@@ -243,7 +247,7 @@ const VERIFICATION_COLUMNS =
 
 interface VerificationRow extends Omit<AuditRow, "deleted_at"> {
   onboarding_item_id: string;
-  outcome: "Passed" | "Failed";
+  outcome: Database["app"]["Enums"]["verification_outcome"];
   verified_by: string | null;
   verified_at: string;
   note: string | null;
@@ -274,7 +278,8 @@ interface RatingRow extends AuditRow {
 
 /**
  * When the ratings of each engagement were released (ADR 0019 item 6): when the second rating arrived, or 14 days
- * after the engagement completed; null while held.
+ * after the engagement completed; null while held. Read from app.rating_release_times, which takes it from the release
+ * record, because the reader may no longer see both ratings of an engagement (ADR 0158).
  */
 async function releaseTimes(
   db: XosClient,
@@ -283,33 +288,13 @@ async function releaseTimes(
   const ids = [...new Set(engagementIds)];
   const result = new Map<string, string | null>();
   if (ids.length === 0) return result;
-  const [ratings, completions] = await Promise.all([
-    db
-      .from("ratings")
-      .select("engagement_id, submitted_at")
-      .in("engagement_id", ids)
-      .is("deleted_at", null),
-    db
-      .from("engagement_state_transitions")
-      .select("engagement_id, created_at")
-      .in("engagement_id", ids)
-      .eq("to_state", "Complete"),
-  ]);
-  if (ratings.error !== null) throw ratings.error;
-  if (completions.error !== null) throw completions.error;
-  for (const id of ids) {
-    const both = (ratings.data ?? [])
-      .filter((r) => r.engagement_id === id)
-      .map((r) => r.submitted_at);
-    const completedAt = (completions.data ?? []).find((c) => c.engagement_id === id)?.created_at;
-    const lapse = completedAt
-      ? new Date(Date.parse(completedAt) + 14 * 86_400_000).toISOString()
-      : null;
-    const second = both.length >= 2 ? (both.sort().at(-1) ?? null) : null;
-    const candidates = [second, lapse && Date.parse(lapse) <= Date.now() ? lapse : null].filter(
-      (v): v is string => v !== null,
-    );
-    result.set(id, candidates.length === 0 ? null : (candidates.sort()[0] ?? null));
+  const { data, error } = await db
+    .from("rating_release_times")
+    .select("engagement_id, released_at")
+    .in("engagement_id", ids);
+  if (error !== null) throw error;
+  for (const row of data ?? []) {
+    if (row.engagement_id !== null) result.set(row.engagement_id, row.released_at);
   }
   return result;
 }
@@ -457,7 +442,11 @@ const opportunities = tableResource("opportunities", {
   fixed: ["project_id", "role_type"],
 });
 const applications = tableResource("applications", { orgColumn: false });
-const engagementDocuments = tableResource("engagementDocuments");
+// A Quote document follows its quote (6553) and is read through /quotes: the frozen resource's list
+// omits it, and get and transition answer 404, so its document_kind enum holds (ADR 0152).
+const engagementDocuments = tableResource("engagementDocuments", {
+  scope: (q) => q.neq("document_kind", "Quote"),
+});
 
 /** A bid's NULL-aware total from its lines and whether it is still sealed (before the opportunity deadline). */
 async function bidContract(row: Row, context: { db: XosClient }): Promise<Row> {
@@ -648,6 +637,26 @@ export const handlers = defineHandlers("Opportunities", {
       p_expected: body.expected_state,
       p_next: body.to_state,
       p_reason: body.reason ?? `Moved to ${body.to_state}.`,
+    });
+    if (error !== null) throw error;
+    return ok(
+      toEngagement(
+        await readOne<EngagementRow>(
+          db,
+          "engagements",
+          ENGAGEMENT_COLUMNS,
+          params.id,
+          "engagement",
+        ),
+      ),
+    );
+  },
+
+  // The names lock (R5, G-142): app.set_roster_lock decides authority and refusals.
+  "engagements.setRosterLock": async ({ params, body }, { db }) => {
+    const { error } = await db.rpc("set_roster_lock", {
+      p_engagement_id: params.id,
+      p_locks_at: (body.locks_at ?? null) as string,
     });
     if (error !== null) throw error;
     return ok(

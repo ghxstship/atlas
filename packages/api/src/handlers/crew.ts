@@ -16,6 +16,8 @@ import { listPage } from "../runtime/listing.ts";
 import { selectColumns } from "../runtime/pagination.ts";
 import { problemFor } from "./projects.ts";
 import { crewA50Handlers } from "./parts/crew-a50.ts";
+import { bulkEdit, fieldHistory } from "./parts/bulk-edit-and-history.ts";
+import { communicationStatus, markShiftsCommunicated } from "./parts/communication.ts";
 import type { HandlerSet } from "../runtime/handler.ts";
 
 type Row = Record<string, unknown>;
@@ -353,4 +355,18 @@ export const handlers = defineHandlers("Crew", {
 
   "timeOffPolicies.delete": async ({ params }, { db }) =>
     softDelete(db, "time_off_policies", params.id, "time off policy"),
+
+  // Bulk edit and field history (A106, migrations 1451 and 1452).
+  "shifts.bulkPreview": async ({ body }, context) =>
+    ok((await bulkEdit(context, "shifts", body, true)) as never),
+  "shifts.bulkUpdate": async ({ body }, context) =>
+    ok((await bulkEdit(context, "shifts", body, false)) as never),
+  "shifts.fieldHistory": async ({ params, query }, context) =>
+    ok((await fieldHistory(context, "app.shifts", params.id, query.limit)) as never),
+
+  // Needs review and Mark as communicated (B6, migration 5951).
+  "shifts.communicationStatus": async ({ query }, context) =>
+    ok((await communicationStatus(context, query.ids)) as never),
+  "shifts.markCommunicated": async ({ body }, context) =>
+    ok((await markShiftsCommunicated(context, body)) as never),
 });

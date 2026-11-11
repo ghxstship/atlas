@@ -1,0 +1,107 @@
+# Owner decision of 2026-10-24 on Linear RRR-67: everything relating to the client of the CSMIA26 activation is
+# anonymized. The rest of the activation's rows stay as they are, private to GHXSTSHIP: the 14 SOPs and 11
+# documents listed in private.standard_library_withheld (migration 1612) never reach another org.
+#
+# The importer applies this to every text value it writes into the canon seed (canon/import/src/rrr67.ts, called
+# from sql.ts textLiteral), so a regenerated 0150_xpms_canon_seed.sql never names the client. Migration 2001 applies
+# the same substitutions, through private.rrr67_anonymize, to a database that already holds the earlier seed.
+# The source workbooks in canon/source stay as the owner supplied them.
+
+decision: RRR-67
+decided_on: "2026-10-24"
+linear: RRR-67
+
+# A cell whose whole value is one of these is replaced whole: the client's contact, split over the
+# Personnel Roster's name columns, and the client's tax identifier in the Vendor Directory.
+values:
+  "Isabella": "Client"
+  "Acker": "Lead"
+  "Izzy": "Client"
+  "13-4029182": "00-0000000"
+
+# Then these substrings, in this order, so a longer phrase is replaced before a shorter one inside it.
+replacements:
+  - ["isabella@spotify.com", "client.lead@example.com"]
+  - ["https://www.spotify.com", "https://www.example.com"]
+  - ["Isabella Acker (Spotify)", "the client lead"]
+  - ["Isabella Acker", "Client Lead"]
+  - ["Casa Spotify Brand Toolkit", "Brand House Toolkit"]
+  - ["Casa Spotify Wynwood", "Brand House Wynwood"]
+  - ["Casa Spotify Miami", "Brand House Miami"]
+  - ["Casa Spotify", "Brand House"]
+  - ["Spotify House Austin", "Brand House Austin"]
+  - ["Spotify Branding Integration Elements", "Client Branding Integration Elements"]
+  - ["Spotify-green", "brand-green"]
+  - ["official Spotify logo bugs", "official client logo bugs"]
+  - ["GHXSTSHIP, Spotify, and Venue Owner", "GHXSTSHIP, the client, and Venue Owner"]
+  - ["permitting led by Spotify", "permitting led by the client"]
+  - ["BY OWNER (Spotify)", "BY OWNER (client)"]
+  - ["SPOTIFY", "CLIENT"]
+  - ["Spotify", "Client"]
+  - ["spotify", "client"]
+
+# The owner also decided (2026-10-24) that every org receives all 34 Standard Library SOPs and 34 documents, so the
+# 14 SOPs and 11 documents written from the activation are generalized: its site, the agencies that permitted it and
+# its permit numbers become generic wording. These apply only to xpms.std_sop and xpms.std_document_library (the
+# Playbook's SOP Library and Document & Asset Library sheets), after the replacements above.
+library_replacements:
+  - ["Permit EL-2026-04421 on file", "Electrical permit on file"]
+  - ["Permit EL-2026-04421 with master electrician", "Electrical permit with master electrician"]
+  - ["Assembly permit BD-2026-08914 approved", "Assembly permit approved"]
+  - ["Permit BD-2026-08914 issued under", "Assembly permit issued under"]
+  - ["toward Biscayne property boundary", "toward the nearest property boundary"]
+  - ["and Biscayne perimeter SPL", "and perimeter SPL"]
+  - ["along Biscayne Blvd", "along the property boundary"]
+  - [
+      "to satisfy Wynwood / Biscayne perimeter noise curfew",
+      "to satisfy the perimeter noise curfew",
+    ]
+  - ["rideshare dispatch hub on 76th St.", "rideshare dispatch hub on the adjacent street."]
+  - ["City of Miami / FDOT MOT permit active", "City and state DOT MOT permit active"]
+  - ["deployed along 76th St.", "deployed along the closed street."]
+  - [
+      "City of Miami Public Works / FDOT curb-lane closure permit and traffic control staging for 76th St.",
+      "Public works and state DOT curb-lane closure permit and traffic control staging for the closed street.",
+    ]
+  - ["using Brand House Wynwood LUT", "using the client brand LUT"]
+  - ["Brand House Wynwood Brand Toolkit & Style Guide", "Client Brand Toolkit & Style Guide"]
+  - ["& Wynwood Perimeter SPL Curfew Enforcement", "& Perimeter SPL Curfew Enforcement"]
+  - ["across Wynwood venue airspace", "across the venue airspace"]
+  - ["City of Miami Fire-Rescue permit active", "Fire-rescue permit active"]
+  - ["Miami Fire watch on duty", "fire watch on duty"]
+  - [
+      "City of Miami Chapter 36 Noise Ordinance and perimeter",
+      "Local noise ordinance and perimeter",
+    ]
+  - ["Miami-Dade Fire Rescue medical plan active", "County fire rescue medical plan active"]
+  - [
+      "transfer to Miami-Dade Fire Rescue ALS transport unit",
+      "transfer to the county fire rescue ALS transport unit",
+    ]
+  - ["City of Miami approved security overlay", "City-approved security overlay"]
+  - ["loaded with Miami broadcast exclusions", "loaded with local broadcast exclusions"]
+  - [
+      "& Miami-Dade DERM temporary fuel transfer protocol",
+      "& county environmental temporary fuel transfer protocol",
+    ]
+  - ["& Miami-Dade WASD temporary potable water", "& county water utility temporary potable water"]
+  - ["direct dispatch link to Miami 911 PSAP", "direct dispatch link to the local 911 PSAP"]
+  - ["responding Miami Fire/Police commanders", "responding fire and police commanders"]
+  - ["City of Miami Special Assembly Occupancy Permit", "Special Assembly Occupancy Permit"]
+  - [
+      "Miami Fire-Rescue Special Effects & Flame Effects Permit",
+      "Fire-Rescue Special Effects & Flame Effects Permit",
+    ]
+  - ["City of Miami Fire-Rescue NFPA 160", "Fire-rescue NFPA 160"]
+  - ["City of Miami Code Compliance Noise Variance", "Code Compliance Noise Variance"]
+  - ["& Miami-Dade EMS Detail", "& County EMS Detail"]
+  - ["Miami-Dade Fire Rescue approved EMS plan", "County fire rescue approved EMS plan"]
+  - [
+      "EPA / Miami-Dade DERM secondary containment",
+      "EPA and county environmental secondary containment",
+    ]
+  - [
+      "naming City of Miami and Client as additional insureds",
+      "naming the city and the client as additional insureds",
+    ]
+  - ["Miami-Dade WASD backflow prevention", "County water utility backflow prevention"]

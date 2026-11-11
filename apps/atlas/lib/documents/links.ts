@@ -41,5 +41,29 @@ export function atlasRecordPath(
       return `${o}/reports/final-cost-report?project=${encodeURIComponent(record.projectKey ?? "")}`;
     case "agreement-certificate":
       return `${o}/people/agreements?peek=${id}`;
+    case "engagement-document":
+      return `${o}/opportunities/onboarding?project=${encodeURIComponent(record.projectKey ?? "")}`;
+    case "radio-handout":
+      return `${o}/advancing/allocations?project=${encodeURIComponent(record.projectKey ?? "")}&kind=Asset`;
+    case "site-plan":
+      return `${o}/places/site-plans?peek=${id}`;
+    case "signage-build-sheet":
+      return `${o}/places/signage?project=${id}`;
+    case "wrap-up-report":
+      return `${o}/p/${encodeURIComponent(record.projectKey ?? "")}/reports?wrap=1`;
+    case "guest-pass":
+      return `${o}/p/${encodeURIComponent(record.projectKey ?? "")}/advancing?peek=${id}&section=guests`;
+    case "quote":
+      return `${o}/finance/quotes?peek=${id}`;
   }
+}
+
+/** The route that answers a book as one PDF (app/[org]/documents/books/[id], B7). */
+export function bookHref(org: string, id: string): string {
+  return `/${encodeURIComponent(org)}/documents/books/${encodeURIComponent(id)}`;
+}
+
+/** Where a book opens in Atlas: the project's Documents tab with the book in view (B7). */
+export function bookPath(org: string, projectKey: string, id: string): string {
+  return `/${encodeURIComponent(org)}/p/${encodeURIComponent(projectKey)}/documents?book=${encodeURIComponent(id)}`;
 }

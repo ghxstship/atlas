@@ -1,13 +1,17 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
+  cuePosition,
   dataRows,
+  durationSeconds,
   headers,
   parseCsv,
+  plannedAt,
   playbookFieldMap,
   proposeTarget,
   sheetLayout,
   suggestWithSources,
   type DataRow,
+  type NumberFormat,
   type PlaybookColumn,
   type PlaybookSheet,
   type Sheet,
@@ -21,26 +25,21 @@ import {
   type SheetsFetch,
   type Workbook,
 } from "./import-sheets.ts";
+import type { Database } from "./database.types.ts";
 
 /**
- * The import worker (A36; Section 4.6.2 steps 2, 4, 5 and 7), run with the service role like A35's
- * report.run worker: it claims import.detect, import.validate and import.commit jobs from A18's queue.
- *   * detect: reads the uploaded spreadsheet, records its columns with a suggested field each, and marks
- *     the import Mapped for the person to confirm
- *   * validate: checks every row against the target (required fields, canon values, references by name),
- *     records the row states with per-cell issues, matches strong keys exactly and sends name plus address
- *     to the fuzzy match (0.85, merge review), and marks the import Validated
- *   * commit: writes each Valid row in the batch the person's commit opened: a create, an update of the
- *     strong key match, or a merge into the candidate the person chose, each recorded with the batch id
- *   * fetch (A83): reads a Google Sheets link through the org's Google Drive connection and saves it to the
- *     imports bucket, where it is scanned like an upload; its Clean verdict queues detection
- * Detection reads every sheet of the workbook (A83, finding A65-025): it records each sheet with its header row,
- * data range and a proposed target, and the import reads one sheet; another sheet is imported as its own import.
- * Suggestions come from a saved profile, the Playbook column map and header similarity, each with its source.
- * A failed attempt goes back to the queue while attempts remain, then the import is marked Failed.
- * A spreadsheet is parsed only once its virus scan is Clean (owner decision 10, migration 1240): the
- * database queues detection on the Clean verdict, and every step checks again before reading.
- * Not exported from the package index: only the worker entry points load it, with its .xlsx reader.
+ * The import worker (A36; Section 4.6.2 steps 2, 4, 5 and 7), run with the service role like A35's report.run worker:
+ *   * detect: records a spreadsheet's sheets and columns with suggestions (a saved profile, the Playbook column map, header
+ *     similarity), and marks the import Mapped for the person to confirm
+ *   * validate: checks every row against the target, records row states and per-cell issues, matches strong keys exactly,
+ *     sends name plus address to the fuzzy match (0.85, merge review), and marks the import Validated
+ *   * commit: writes each Valid row in the batch the person's commit opened, recorded with the batch id
+ *   * fetch (A83): saves a Google Sheets link to the imports bucket through the org's Drive connection, to be scanned
+ * A failed attempt goes back to the queue while attempts remain, then the import is marked Failed. A spreadsheet is parsed
+ * only once its virus scan is Clean (owner decision 10, migration 1240). A finished step sends import.finished (A104, 2051).
+ * Cues and guest list entries (P3, 5800 to 5802) stay inside the running order or project the import names, and a row that
+ * repeats an earlier row is Invalid. Pool invitations (B10), needs and order lines (B11) and budget lines (B13) load their
+ * own target modules.
  */
 
 export const IMPORT_JOB_KINDS = [
@@ -71,6 +70,72 @@ export interface ImportJobRecord {
   readonly sheetName?: string | null;
   /** The Google Sheets link of a Google Sheets import. */
   readonly sourceUrl?: string | null;
+  /** The project a guest list import writes into (P3). */
+  readonly projectId?: string | null;
+  /** The running order a cue import writes into (P3). */
+  readonly runOfShowId?: string | null;
+  /** The pool a pool invitation import puts rows without a pool name into (B10). */
+  readonly talentPoolId?: string | null;
+  /** How the file writes amounts (B10). */
+  readonly numberFormat?: NumberFormat;
+  /** Who created the import: the inviter of its pool invitations (B10). */
+  readonly createdBy?: string | null;
+  /** The order an order line import writes into; projectId then holds its project (B11, 6537). */
+  readonly purchaseOrderId?: string | null;
+  /** The budget a budget line import writes into (B13). */
+  readonly budgetId?: string | null;
+}
+
+/** Where a cue or guest list import writes (P3): its running order or its project. */
+export interface ImportDestination {
+  readonly runOfShow?: RunOfShowContext;
+  readonly project?: { readonly id: string };
+  readonly pools?: PoolInvitationContext;
+  /** The import, for catalogue matching of needs and order lines (B11). */
+  readonly jobId?: string;
+  readonly budget?: BudgetDestination;
+}
+
+/** What validating a pool invitation row needs (B10). */
+export interface PoolInvitationContext {
+  /** The import's own pool, for rows without a pool name. */
+  readonly talentPoolId: string | null;
+  readonly numberFormat: NumberFormat;
+  /** True when the import's creator holds payroll org-wide (app.import_job_can_write_rates). */
+  readonly canWriteRates: boolean;
+  /** The org's language setting, whose region is the default phone region. */
+  readonly language: string | null;
+  /** The org's base currency, for a bare currency symbol or a rate with no currency. */
+  readonly baseCurrency: string | null;
+  readonly exponents: ReadonlyMap<string, number>;
+}
+
+/** What validating and numbering a budget line needs from its budget (B13). */
+export interface BudgetDestination {
+  readonly id: string;
+  /** Digits after the point in the budget's currency, to read typed amounts. */
+  readonly exponent: number;
+  readonly maxLineNumber: number;
+}
+
+/** What validating a cue needs from its running order. */
+export interface RunOfShowContext {
+  readonly id: string;
+  readonly projectId: string;
+  /** YYYY-MM-DD. */
+  readonly showDate: string;
+  /** The project's IANA time zone, which times typed for the show are read in. */
+  readonly timeZone: string;
+  /** The venue whose spaces a cue may name: the show's scope node venue, else the project's. */
+  readonly venueId: string | null;
+}
+
+/** One sample cell of a detected column, for the uploader's mapping preview (5801). */
+export interface ColumnSample {
+  readonly columnId: string;
+  /** Data row the cell comes from, 1 to 3. */
+  readonly index: number;
+  readonly value: string;
 }
 
 /** One detected sheet of a workbook, with the target proposed for it. */
@@ -112,11 +177,14 @@ export interface ImportStore {
   ): Promise<{ name: string; required: boolean; strongKey: boolean }[]>;
   profileMapping(profileId: string): Promise<Map<string, string>>;
   setStatus(jobId: string, status: string): Promise<void>;
+  /** Records the detected columns; returns their ids in column order. */
   insertColumns(
     jobId: string,
     sheet: string,
     columns: { header: string; suggested: string | null; source?: SuggestionSource | null }[],
-  ): Promise<void>;
+  ): Promise<string[]>;
+  /** Records the sample cells of the detected columns (app.record_import_column_samples, P3). */
+  recordColumnSamples(jobId: string, samples: readonly ColumnSample[]): Promise<void>;
   /** Records every sheet detection found (A83). */
   insertSheets(jobId: string, sheets: readonly DetectedSheet[]): Promise<void>;
   /** Records the sheet the import reads, once (A83). */
@@ -143,16 +211,32 @@ export interface ImportStore {
   }): Promise<string>;
   recordCellIssues(rowId: string, issues: readonly CellIssue[]): Promise<void>;
   recordMatch(rowId: string, targetId: string): Promise<void>;
+  recordMaterialMatch(
+    rowId: string,
+    match: "Matched" | "Unmatched",
+    note: string | null,
+  ): Promise<void>;
   validRows(jobId: string): Promise<ValidRow[]>;
   commitWrite(input: {
     rowId: string;
     batchId: string;
     targetId: string;
-    action: "Created" | "Updated" | "Merged";
+    action: Database["app"]["Enums"]["import_write_action"];
     before: Row | null;
   }): Promise<void>;
   refuseRow(rowId: string, reason: string): Promise<void>;
+  /** Marks a Valid row Skipped with the reason, and writes nothing (B10). */
+  skipRow(rowId: string, reason: string): Promise<void>;
+  /** Adds a reason to a row that was written, such as a rate left as it was (B10). */
+  noteRow(rowId: string, reason: string): Promise<void>;
   finishBatch(batchId: string): Promise<void>;
+  /** The org's slug, the first segment of its Atlas paths. */
+  orgSlug(orgId: string): Promise<string | null>;
+  /**
+   * Sends import.finished (2051) for a validated import (no batch) or a committed batch, with the absolute link that
+   * reviews it; the database counts the rows and picks the person.
+   */
+  notifyFinished(input: { jobId: string; batchId: string | null; url: string }): Promise<void>;
   /** Target lookups and writes. */
   lookups: TargetLookups;
 }
@@ -162,6 +246,12 @@ export interface TargetLookups {
   jurisdictionExists(id: string): Promise<boolean>;
   vendorIdByName(orgId: string, name: string): Promise<string | null>;
   elementExists(id: string): Promise<boolean>;
+  /** The canon discipline or category exists (a budget line's URID). */
+  uridExists(urid: string): Promise<boolean>;
+  /** The category's own XYZ tag; null for a discipline, whose lines declare one. */
+  uridXyz(urid: string): Promise<"X" | "Y" | "Z" | null>;
+  /** A live cost center of the org by its code; null for none. */
+  costCenterId(orgId: string, code: string): Promise<string | null>;
   assetClassId(orgId: string, idOrName: string): Promise<string | null>;
   venueId(orgId: string, idOrName: string): Promise<string | null>;
   strongKeyMatch(
@@ -171,6 +261,64 @@ export interface TargetLookups {
   ): Promise<string | null>;
   create(orgId: string, targetCode: string, values: Row): Promise<string>;
   update(targetCode: string, id: string, values: Row): Promise<Row>;
+  /** A live running order with what validating its cues needs, or null (P3). */
+  runOfShow(id: string): Promise<RunOfShowContext | null>;
+  /** A live space of the venue by id or name, case-insensitively; null for none, two or no venue (P3, C12). */
+  spaceId(venueId: string | null, idOrName: string): Promise<string | null>;
+  /** A live scope node (show) of the project by scope code or name; null for none or two (P3, C12). */
+  scopeNodeId(projectId: string, codeOrName: string): Promise<string | null>;
+  /** A live counterparty of the org by its organization's name, trimmed and case-insensitive; null for none or two (C8). */
+  counterpartyIdByName(orgId: string, name: string): Promise<string | null>;
+  /**
+   * The existing row of a cue or guest list import's destination matching its strong keys exactly
+   * (app.import_strong_key_match, C9); the destination comes from the import, never from the sheet.
+   */
+  destinationKeyMatch(
+    importJobId: string,
+    keys: Readonly<Record<string, string>>,
+  ): Promise<string | null>;
+  /** The position after the highest live cue of the running order (1 when it has none). */
+  nextCuePosition(runOfShowId: string): Promise<number>;
+  /** The budget a budget line import writes into: its currency's exponent and its highest line number. */
+  budgetDestination(budgetId: string): Promise<BudgetDestination | null>;
+  /** A budget line's URID and how its XYZ tag was set, so an update never overwrites a declared tag. */
+  budgetLineTag(id: string): Promise<{ urid: string; xyzBasis: string | null } | null>;
+  /** True when the cue was already called; an import never rewrites a called cue (C11). */
+  cueCalled(id: string): Promise<boolean>;
+  /** A live Talent pool of the org by name, trimmed and case-insensitive; null for none or two (B10). */
+  talentPoolIdByName(orgId: string, name: string): Promise<string | null>;
+  /** A Roles Library code by the code itself or a job title; null for none or two (B10). */
+  roleCode(codeOrTitle: string): Promise<string | null>;
+  /** What the import's pool invitation rows are checked against (B10). */
+  poolInvitationContext(job: ImportJobRecord): Promise<PoolInvitationContext>;
+  /** A pending pool invitation's expiry and whether it holds a rate; null when it is gone (B10). */
+  poolInvitation(id: string): Promise<{ expiresAt: string; hasRate: boolean } | null>;
+  /** True when a budget line's grade, phase or tier is one canon lists (B13). */
+  canonCodeExists(kind: "grade" | "phase" | "tier", code: string): Promise<boolean>;
+  /** True when the unit is one canon lists (B11). */
+  unitExists(unit: string): Promise<boolean>;
+  /** Catalogue matching of a need or order line (app.import_material_match, B11, 6537); null for none. */
+  materialMatch(
+    importJobId: string,
+    vendorSku: string | null,
+    text: string | null,
+  ): Promise<MaterialMatch | null>;
+  /** The time zone of a project, for the need's dates (B11). */
+  projectTimeZone(projectId: string): Promise<string>;
+  /** The order's state, or null when it is gone (B11). */
+  purchaseOrderState(id: string): Promise<string | null>;
+  /** The number after the highest live line of the order (B11). */
+  nextPoLineNumber(purchaseOrderId: string): Promise<number>;
+}
+
+/** What catalogue matching found: a SKU among the vendor's products, or a class by name (private.material_match). */
+export interface MaterialMatch {
+  readonly source: "vendor_sku" | "asset_class";
+  readonly elementId: string | null;
+  readonly assetClassId: string | null;
+  readonly unitPriceMinor: number | null;
+  readonly currencyCode: string | null;
+  readonly orderCurrencyCode: string | null;
 }
 
 export interface ImportJobResult {
@@ -179,6 +327,8 @@ export interface ImportJobResult {
   readonly subjectId: string;
   readonly status: "Succeeded" | "Queued" | "Failed" | "Skipped";
   readonly error?: string;
+  /** Why import.finished was not sent for a step that succeeded. */
+  readonly noticeError?: string;
 }
 
 // Reading the spreadsheet ---------------------------------------------------------------------------------
@@ -283,9 +433,31 @@ export interface Validated {
   readonly strongKeys: Record<string, string>;
   readonly matchName: string | null;
   readonly matchAddress: string | null;
+  /** Needs and order lines: whether the catalogue named the row, and why a price stayed blank (B11). */
+  readonly materialMatch?: "Matched" | "Unmatched";
+  readonly matchNote?: "price_currency_differs" | null;
 }
 
-/** Checks one row against its target; cell issues name the column and an issue code from the catalogs. */
+/** The longest text each cue and guest field holds (the column checks of 0350, 1180 and 0431). */
+const MAX_LENGTH: Readonly<Record<string, number>> = {
+  label: 200,
+  segment: 200,
+  description: 2000,
+  guest_name: 200,
+  note: 500,
+  table_label: 40,
+};
+
+/** A guest email as the guest list stores it (6254): trimmed, lowercased, the 1382 pattern, at most 320 characters. */
+export function importGuestEmail(value: string): string | null {
+  const email = value.trim().toLowerCase();
+  return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email) && email.length <= 320 ? email : null;
+}
+
+/**
+ * Checks one row against its target; cell issues name the column and an issue code from the catalogs. A cue or guest
+ * list row is checked inside its destination (P3): the running order's show date, time zone and venue, or the project.
+ */
 export async function validateRow(
   orgId: string,
   targetCode: string,
@@ -293,6 +465,7 @@ export async function validateRow(
   columns: readonly MappedColumn[],
   row: DataRow,
   lookups: TargetLookups,
+  destination: ImportDestination = {},
 ): Promise<Validated> {
   const issues: CellIssue[] = [];
   const raw: Record<string, { value: string; column: number }> = {};
@@ -320,6 +493,15 @@ export async function validateRow(
       issues.push({ columnIndex: columnOf(field), issue });
     else values[column] = out === true ? v : out;
   };
+  const bounded = (field: string) => {
+    const v = text(field).trim();
+    if (!v) return;
+    if (v.length > (MAX_LENGTH[field] ?? 200))
+      issues.push({ columnIndex: columnOf(field), issue: "too_long" });
+    else values[field] = v;
+  };
+  let materialMatch: "Matched" | "Unmatched" | undefined;
+  let matchNote: "price_currency_differs" | null = null;
 
   switch (targetCode) {
     case "counterparties":
@@ -369,27 +551,274 @@ export async function validateRow(
       await set("asset_class_id", (v) => lookups.assetClassId(orgId, v), "unknown_asset_class");
       await set("home_venue_id", (v) => lookups.venueId(orgId, v), "unknown_venue");
       break;
+    case "cues": {
+      const run = destination.runOfShow;
+      for (const f of ["label", "segment", "description"]) bounded(f);
+      await set("position", (v) => cuePosition(v), "invalid_position");
+      await set(
+        "planned_at",
+        (v) => (run ? plannedAt(v, run.showDate, run.timeZone) : null),
+        "invalid_time",
+      );
+      await set(
+        "duration",
+        (v) => {
+          const seconds = durationSeconds(v);
+          return seconds === null ? null : `${seconds} seconds`;
+        },
+        "invalid_duration",
+      );
+      await set("space_id", (v) => lookups.spaceId(run?.venueId ?? null, v), "unknown_space");
+      break;
+    }
+    case "guest_list_entries": {
+      const projectId = destination.project?.id ?? null;
+      for (const f of ["guest_name", "note", "table_label"]) bounded(f);
+      await set("guest_email", importGuestEmail, "invalid_email");
+      // ADR 0164: the door note has no consent step; the guard refuses these words too (guest_note_sensitive, 6852).
+      // Loaded only for this target, which keeps import-run's boot under its ceiling.
+      const { looksSensitive } = await import("./sensitive-words.ts");
+      await set("note", (v) => (looksSensitive(v) ? null : v), "sensitive_note");
+      await set(
+        "plus_ones",
+        (v) => {
+          const n = v.trim();
+          return /^\d{1,2}$/.test(n) && Number(n) <= 20 ? Number(n) : null;
+        },
+        "invalid_plus_ones",
+      );
+      await set(
+        "scope_node_id",
+        (v) => (projectId ? lookups.scopeNodeId(projectId, v) : null),
+        "unknown_show",
+      );
+      await set("counterparty_id", (v) => lookups.counterpartyIdByName(orgId, v), "unknown_party");
+      break;
+    }
+    case "pool_invitations": {
+      // Loaded only for this target, which keeps import-run's boot under its ceiling.
+      const { checkPoolInvitationRow } = await import("./import-pool-target.ts");
+      await checkPoolInvitationRow({
+        orgId,
+        raw,
+        columnOf,
+        pools: destination.pools,
+        lookups,
+        values,
+        issues,
+      });
+      break;
+    }
+    case "procurement_needs":
+    case "po_lines": {
+      // Loaded only for these targets, which keeps import-run's boot under its ceiling.
+      const { checkMaterialRow } = await import("./import-material-target.ts");
+      const found = await checkMaterialRow({
+        targetCode,
+        orgId,
+        destination,
+        lookups,
+        text,
+        set,
+        columnOf,
+        values,
+        issues,
+      });
+      materialMatch = found.materialMatch;
+      matchNote = found.matchNote;
+      break;
+    }
+    case "budget_lines": {
+      const { checkBudgetLineRow } = await import("./import-budget-target.ts");
+      await checkBudgetLineRow({
+        destination,
+        lookups,
+        text,
+        set,
+        bounded,
+        orgId,
+        columnOf,
+        values,
+        issues,
+      });
+      break;
+    }
     default:
       issues.push({ columnIndex: 0, issue: "target_not_importable" });
   }
-  const strongKeys: Record<string, string> = {};
-  for (const f of fields) if (f.strongKey && text(f.name)) strongKeys[f.name] = text(f.name);
+  const strongKeys: Record<string, string> = destinationStrongKeys(targetCode, values) ?? {};
+  if (!DESTINATION_TARGETS.has(targetCode)) {
+    for (const f of fields) if (f.strongKey && text(f.name)) strongKeys[f.name] = text(f.name);
+  }
   if (targetCode === "vendor_products" && typeof values["vendor_id"] === "string")
     strongKeys["vendor_id"] = values["vendor_id"];
-  const fuzzy = targetCode === "venues" || targetCode === "counterparties";
+  const fuzzy =
+    targetCode === "venues" ||
+    targetCode === "counterparties" ||
+    targetCode === "guest_list_entries" ||
+    targetCode === "pool_invitations";
+  const nameField =
+    targetCode === "guest_list_entries"
+      ? "guest_name"
+      : targetCode === "pool_invitations"
+        ? "invitee_name"
+        : "name";
+  const matchName = fuzzy ? text(nameField).trim() : "";
   return {
     state: issues.length === 0 ? "Valid" : "Invalid",
     issues,
     values,
     strongKeys,
-    matchName: fuzzy && text("name") ? text("name") : null,
+    matchName: matchName || null,
     matchAddress:
       targetCode === "venues"
         ? [text("street_address"), text("locality"), text("postal_code")]
             .filter(Boolean)
             .join(" ") || null
         : null,
+    ...(materialMatch ? { materialMatch, matchNote } : {}),
   };
+}
+
+/** Targets matched through app.import_strong_key_match (P3, B10, B11, B13). */
+const DESTINATION_TARGETS: ReadonlySet<string> = new Set([
+  "cues",
+  "guest_list_entries",
+  "pool_invitations",
+  "procurement_needs",
+  "po_lines",
+  "budget_lines",
+]);
+
+/**
+ * The strong keys of a cue or guest row, from its checked values (C9, C10): a cue's position, or without one its
+ * label and planned time; a guest's trimmed, lower-case name and show. A missing time or show is left out, which
+ * app.import_strong_key_match reads as NULL. Null for other targets.
+ */
+function destinationStrongKeys(targetCode: string, values: Row): Record<string, string> | null {
+  const str = (key: string) => (typeof values[key] === "string" ? (values[key] as string) : null);
+  if (targetCode === "cues") {
+    if (typeof values["position"] === "number") return { position: String(values["position"]) };
+    const label = str("label");
+    if (label === null) return {};
+    const at = str("planned_at");
+    return at === null ? { label } : { label, planned_at: at };
+  }
+  if (targetCode === "guest_list_entries") {
+    const name = str("guest_name");
+    if (name === null) return {};
+    const show = str("scope_node_id");
+    const guest_name = name.trim().toLowerCase();
+    return show === null ? { guest_name } : { guest_name, scope_node_id: show };
+  }
+  if (targetCode === "pool_invitations") {
+    const email = str("email");
+    const pool = str("talent_pool_id");
+    return email === null || pool === null ? {} : { email, talent_pool_id: pool };
+  }
+  if (targetCode === "procurement_needs") {
+    const description = str("description");
+    return description === null ? {} : { description: description.trim().toLowerCase() };
+  }
+  if (targetCode === "po_lines" || targetCode === "budget_lines") {
+    return typeof values["line_number"] === "number"
+      ? { line_number: String(values["line_number"]) }
+      : {};
+  }
+  return null;
+}
+
+/** The column whose cell a duplicate-in-file issue points at. */
+const DUPLICATE_COLUMN_FIELD: Readonly<Record<string, string>> = {
+  position: "position",
+  label: "label",
+  guest_name: "guest_name",
+  email: "email",
+  description: "description",
+  line_number: "line_number",
+};
+
+/**
+ * Marks every row whose strong key repeats an earlier row of the file Invalid with duplicate_in_file (C10): a cue's
+ * position, or its label and time without one; a guest's name and show. Run over the whole sheet, in validation and
+ * again at commit, so two rows never update the same cue or guest. Other targets are returned as they are.
+ */
+export function markInFileDuplicates(
+  targetCode: string,
+  columns: readonly MappedColumn[],
+  checked: readonly Validated[],
+): Validated[] {
+  if (!DESTINATION_TARGETS.has(targetCode)) return [...checked];
+  const seen = new Set<string>();
+  return checked.map((v) => {
+    const keys = Object.entries(v.strongKeys);
+    if (keys.length === 0) return v;
+    const key = JSON.stringify(keys.sort(([a], [b]) => a.localeCompare(b)));
+    if (!seen.has(key)) {
+      seen.add(key);
+      return v;
+    }
+    const field = DUPLICATE_COLUMN_FIELD[keys[0]?.[0] ?? ""] ?? "";
+    const columnIndex = columns.find((c) => c.fieldName === field)?.index ?? 0;
+    return {
+      ...v,
+      state: "Invalid" as const,
+      issues: [...v.issues, { columnIndex, issue: "duplicate_in_file" }],
+    };
+  });
+}
+
+/** The running order or project a cue or guest list import writes into; empty for an org-wide target. */
+async function destinationOf(store: ImportStore, job: ImportJobRecord): Promise<ImportDestination> {
+  if (job.targetCode === "cues" && job.runOfShowId) {
+    const run = await store.lookups.runOfShow(job.runOfShowId);
+    if (run === null) throw new Error(`The running order of import ${job.id} no longer exists.`);
+    return { runOfShow: run };
+  }
+  if (job.targetCode === "guest_list_entries" && job.projectId) {
+    return { project: { id: job.projectId } };
+  }
+  if (job.targetCode === "pool_invitations") {
+    return { pools: await store.lookups.poolInvitationContext(job) };
+  }
+  if (job.targetCode === "procurement_needs" && job.projectId) {
+    return { project: { id: job.projectId }, jobId: job.id };
+  }
+  if (job.targetCode === "po_lines" && job.purchaseOrderId) {
+    return { jobId: job.id };
+  }
+  if (job.targetCode === "budget_lines" && job.budgetId) {
+    const budget = await store.lookups.budgetDestination(job.budgetId);
+    if (budget === null) throw new Error(`The budget of import ${job.id} no longer exists.`);
+    return { budget };
+  }
+  return {};
+}
+
+/** Every data row of a sheet checked against the target, with repeats within the file marked. */
+async function checkSheet(
+  store: ImportStore,
+  job: ImportJobRecord,
+  rows: readonly DataRow[],
+  fields: readonly { name: string; required: boolean; strongKey: boolean }[],
+  columns: readonly MappedColumn[],
+  destination: ImportDestination,
+): Promise<Validated[]> {
+  const checked: Validated[] = [];
+  for (const row of rows) {
+    checked.push(
+      await validateRow(
+        job.orgId,
+        job.targetCode,
+        fields,
+        columns,
+        row,
+        store.lookups,
+        destination,
+      ),
+    );
+  }
+  return markInFileDuplicates(job.targetCode, columns, checked);
 }
 
 // The jobs ---------------------------------------------------------------------------------------------------
@@ -428,7 +857,7 @@ async function readUpload(store: ImportStore, job: ImportJobRecord): Promise<She
   return sheet;
 }
 
-async function detect(store: ImportStore, jobId: string): Promise<void> {
+async function detect(store: ImportStore, jobId: string): Promise<StepNote> {
   const job = await store.job(jobId);
   if (!job || job.status !== "Uploaded") return;
   let sheets: Sheet[];
@@ -471,7 +900,7 @@ async function detect(store: ImportStore, jobId: string): Promise<void> {
     );
     await store.setSheet(job.id, sheet.name.slice(0, 200) || "Sheet 1");
   }
-  await store.insertColumns(
+  const columnIds = await store.insertColumns(
     job.id,
     sheet.name,
     heads.map((header, i) => ({
@@ -480,12 +909,67 @@ async function detect(store: ImportStore, jobId: string): Promise<void> {
       source: suggested[i]?.source ?? null,
     })),
   );
+  await store.recordColumnSamples(job.id, columnSamples(columnIds, dataRows(sheet)));
   await store.setStatus(job.id, "Mapped");
 }
 
-/** What the worker entry points pass: fetch for the Google Sheets reader. */
+/**
+ * The first three data rows' cells under each column, aligned by row (5801): a blank cell is kept as empty text so
+ * every column shows the same rows. Cells are cut to 200 characters.
+ */
+export function columnSamples(
+  columnIds: readonly string[],
+  rows: readonly DataRow[],
+): ColumnSample[] {
+  return rows.slice(0, 3).flatMap((row, r) =>
+    columnIds.map((columnId, c) => ({
+      columnId,
+      index: r + 1,
+      value: (row.cells[c] ?? "").slice(0, 200),
+    })),
+  );
+}
+
+/** What the worker entry points pass: fetch for the Google Sheets reader, and Atlas's address for review links. */
 export interface ImportWorkerOptions {
   readonly sheetsFetch?: SheetsFetch;
+  /** Atlas's origin (XOS_APP_URL), such as https://atlas.example. Without it nobody is told an import finished. */
+  readonly appUrl?: string;
+}
+
+/** Where an import is reviewed in Atlas: the import wizard opened at that import (`/{org}/import?import={id}`). */
+export function importReviewUrl(appUrl: string, orgSlug: string, jobId: string): string {
+  const url = new URL(`/${encodeURIComponent(orgSlug)}/import`, appUrl);
+  url.searchParams.set("import", jobId);
+  return url.toString();
+}
+
+/** What a step reports beyond succeeding: why the person was not told the import finished. */
+type StepNote = { readonly noticeError: string } | undefined;
+
+/**
+ * Tells the person an import finished validating (no batch) or committing (import.finished). The step's own work is
+ * done by then, so a notice that cannot be sent never fails or repeats it: the error comes back with the result.
+ */
+async function notifyFinished(
+  store: ImportStore,
+  job: ImportJobRecord,
+  batchId: string | null,
+  options: ImportWorkerOptions,
+): Promise<StepNote> {
+  if (!options.appUrl) return undefined;
+  try {
+    const slug = await store.orgSlug(job.orgId);
+    if (slug === null) return { noticeError: `The org of import ${job.id} has no slug.` };
+    await store.notifyFinished({
+      jobId: job.id,
+      batchId,
+      url: importReviewUrl(options.appUrl, slug, job.id),
+    });
+    return undefined;
+  } catch (error) {
+    return { noticeError: error instanceof Error ? error.message : String(error) };
+  }
 }
 
 /** import.fetch: reads a Google Sheets link through the org's Drive connection and saves it for scanning. */
@@ -493,7 +977,7 @@ async function fetchSheet(
   store: ImportStore,
   jobId: string,
   options: ImportWorkerOptions,
-): Promise<void> {
+): Promise<StepNote> {
   const job = await store.job(jobId);
   if (!job || job.status !== "Uploaded" || job.source !== "Google Sheets" || !job.sourceUrl) return;
   // Already saved (a retried job): the scan verdict queues detection.
@@ -525,74 +1009,131 @@ async function fetchSheet(
   await store.saveUpload(job.path, await writeWorkbook(workbook));
 }
 
-async function validate(store: ImportStore, jobId: string): Promise<void> {
+async function validate(
+  store: ImportStore,
+  jobId: string,
+  options: ImportWorkerOptions,
+): Promise<StepNote> {
   const job = await store.job(jobId);
   if (!job || job.status !== "Mapped") return;
   const sheet = await readUpload(store, job);
   const fields = await store.targetFields(job.targetCode);
   const columns = await store.mappedColumns(job.id);
-  for (const row of dataRows(sheet)) {
-    const checked = await validateRow(
-      job.orgId,
-      job.targetCode,
-      fields,
-      columns,
-      row,
-      store.lookups,
-    );
+  const rows = dataRows(sheet);
+  const checked = await checkSheet(
+    store,
+    job,
+    rows,
+    fields,
+    columns,
+    await destinationOf(store, job),
+  );
+  for (const [i, row] of rows.entries()) {
+    const result = checked[i];
+    if (!result) continue;
+    // The exact match comes first: a row that matches on its strong keys is an update and never goes to merge review.
+    const match =
+      result.state === "Valid" && Object.keys(result.strongKeys).length > 0
+        ? DESTINATION_TARGETS.has(job.targetCode)
+          ? await store.lookups.destinationKeyMatch(job.id, result.strongKeys)
+          : await store.lookups.strongKeyMatch(job.orgId, job.targetCode, result.strongKeys)
+        : null;
     const rowId = await store.recordRow({
       jobId: job.id,
       sheet: sheet.name,
       rowNumber: row.rowNumber,
-      state: checked.state,
-      reason: checked.state === "Invalid" ? checked.issues.map((i) => i.issue).join(", ") : null,
-      matchName: checked.state === "Valid" ? checked.matchName : null,
-      matchAddress: checked.state === "Valid" ? checked.matchAddress : null,
+      state: result.state,
+      reason: result.state === "Invalid" ? result.issues.map((x) => x.issue).join(", ") : null,
+      matchName: result.state === "Valid" && match === null ? result.matchName : null,
+      matchAddress: result.state === "Valid" && match === null ? result.matchAddress : null,
     });
-    if (checked.issues.length > 0) await store.recordCellIssues(rowId, checked.issues);
-    if (checked.state === "Valid" && Object.keys(checked.strongKeys).length > 0) {
-      const match = await store.lookups.strongKeyMatch(
-        job.orgId,
-        job.targetCode,
-        checked.strongKeys,
-      );
-      if (match) await store.recordMatch(rowId, match);
-    }
+    if (result.issues.length > 0) await store.recordCellIssues(rowId, result.issues);
+    if (match) await store.recordMatch(rowId, match);
+    // B11: the preview shows whether the catalogue named the row; the person confirms at commit.
+    if (result.materialMatch)
+      await store.recordMaterialMatch(rowId, result.materialMatch, result.matchNote ?? null);
   }
   await store.setStatus(job.id, "Validated");
+  return notifyFinished(store, job, null, options);
 }
 
-async function commit(store: ImportStore, batchId: string): Promise<void> {
+async function commit(
+  store: ImportStore,
+  batchId: string,
+  options: ImportWorkerOptions,
+): Promise<StepNote> {
   const jobId = await store.batchJob(batchId);
   const job = jobId ? await store.job(jobId) : null;
   if (!job || job.status !== "Committing") return;
   const sheet = await readUpload(store, job);
   const fields = await store.targetFields(job.targetCode);
   const columns = await store.mappedColumns(job.id);
-  const byNumber = new Map(dataRows(sheet).map((r) => [r.rowNumber, r]));
-  for (const valid of await store.validRows(job.id)) {
-    const row = byNumber.get(valid.rowNumber);
-    if (!row) {
+  const rows = dataRows(sheet);
+  const checkedRows = await checkSheet(
+    store,
+    job,
+    rows,
+    fields,
+    columns,
+    await destinationOf(store, job),
+  );
+  const byNumber = new Map(rows.map((r, i) => [r.rowNumber, checkedRows[i]]));
+  const valids = await store.validRows(job.id);
+  // Numbered cues and updates are written first; unnumbered new cues are then appended in sheet order, so an
+  // appended cue never takes a position a later numbered row needs (C10).
+  const appended = (v: ValidRow) =>
+    v.mergeInto === null &&
+    v.matchedId === null &&
+    ((job.targetCode === "cues" &&
+      typeof byNumber.get(v.rowNumber)?.values["position"] !== "number") ||
+      (job.targetCode === "budget_lines" &&
+        typeof byNumber.get(v.rowNumber)?.values["line_number"] !== "number"));
+  const ordered = [...valids.filter((v) => !appended(v)), ...valids.filter(appended)];
+  for (const valid of ordered) {
+    const checked = byNumber.get(valid.rowNumber);
+    if (!checked) {
       await store.refuseRow(valid.id, "The row is no longer in the uploaded file.");
       continue;
     }
-    const checked = await validateRow(
-      job.orgId,
-      job.targetCode,
-      fields,
-      columns,
-      row,
-      store.lookups,
-    );
     if (checked.state !== "Valid") {
       await store.refuseRow(valid.id, checked.issues.map((i) => i.issue).join(", "));
       continue;
     }
+    // An order that left Proposed since the import began refuses its rows, one by one, and the batch goes on (C6).
+    if (
+      job.targetCode === "po_lines" &&
+      job.purchaseOrderId &&
+      (await store.lookups.purchaseOrderState(job.purchaseOrderId)) !== "Proposed"
+    ) {
+      await store.refuseRow(valid.id, "import_po_not_proposed");
+      continue;
+    }
     try {
       const target = valid.mergeInto?.id ?? valid.matchedId;
+      if (job.targetCode === "pool_invitations" && target) {
+        const { commitPoolMatch } = await import("./import-pool-target.ts");
+        await commitPoolMatch({
+          store,
+          batchId,
+          valid,
+          values: updateChanges(job.targetCode, checked.values),
+          refuse: (message) => new ImportWriteError(message),
+        });
+        continue;
+      }
       if (target) {
-        const changes = { ...checked.values };
-        if (job.targetCode === "counterparties") delete changes["name"];
+        const changes = updateChanges(job.targetCode, checked.values);
+        // The URID's own tag never replaces a declared one unless the sheet moves the line to another URID.
+        if (job.targetCode === "budget_lines" && changes["xyz_basis"] === "Category") {
+          const current = await store.lookups.budgetLineTag(target);
+          if (current?.xyzBasis === "Declared" && current.urid === changes["urid"]) {
+            delete changes["xyz"];
+            delete changes["xyz_basis"];
+          }
+        }
+        if (job.targetCode === "cues" && (await store.lookups.cueCalled(target))) {
+          throw new ImportWriteError("This cue was already called");
+        }
         const before = await store.lookups.update(job.targetCode, target, changes);
         await store.commitWrite({
           rowId: valid.id,
@@ -602,7 +1143,8 @@ async function commit(store: ImportStore, batchId: string): Promise<void> {
           before,
         });
       } else {
-        const id = await store.lookups.create(job.orgId, job.targetCode, checked.values);
+        const values = await createValues(store, job, checked.values);
+        const id = await store.lookups.create(job.orgId, job.targetCode, values);
         await store.commitWrite({
           rowId: valid.id,
           batchId,
@@ -613,10 +1155,81 @@ async function commit(store: ImportStore, batchId: string): Promise<void> {
       }
     } catch (error) {
       if (!(error instanceof ImportWriteError)) throw error;
-      await store.refuseRow(valid.id, error.message.slice(0, 1000));
+      // Someone who declined within 12 months is not invited again, which is not a failure of the row. A pool refusal keeps
+      // its code alone, so the wizard says it in the reader's language.
+      const pool = /^(pool_invitation_[a-z_]+):/.exec(error.message)?.[1];
+      if (pool === "pool_invitation_declined") await store.skipRow(valid.id, pool);
+      else await store.refuseRow(valid.id, pool ?? error.message.slice(0, 1000));
     }
   }
   await store.finishBatch(batchId);
+  return notifyFinished(store, job, batchId, options);
+}
+
+/**
+ * What an update or merge may change (C11): a counterparty keeps its name; a cue keeps its running order and position;
+ * a guest keeps its project, name and show, so a merge never moves a guest to another night.
+ */
+function updateChanges(targetCode: string, values: Row): Row {
+  const kept: Readonly<Record<string, readonly string[]>> = {
+    counterparties: ["name"],
+    cues: ["run_of_show_id", "project_id", "position"],
+    guest_list_entries: ["project_id", "guest_name", "scope_node_id"],
+    pool_invitations: ["talent_pool_id", "email", "invited_by"],
+    procurement_needs: ["project_id", "description"],
+    po_lines: ["purchase_order_id", "line_number"],
+    budget_lines: ["budget_id", "line_number"],
+  };
+  const keep = kept[targetCode] ?? [];
+  return Object.fromEntries(Object.entries(values).filter(([key]) => !keep.includes(key)));
+}
+
+/**
+ * What a create writes (C11): a cue goes into the import's running order (the database stamps its project), at its
+ * own position or appended after the highest; a guest goes into the import's project as Requested only.
+ */
+async function createValues(store: ImportStore, job: ImportJobRecord, values: Row): Promise<Row> {
+  if (job.targetCode === "cues" && job.runOfShowId) {
+    const position =
+      typeof values["position"] === "number"
+        ? values["position"]
+        : await store.lookups.nextCuePosition(job.runOfShowId);
+    return { ...values, run_of_show_id: job.runOfShowId, position };
+  }
+  if (job.targetCode === "guest_list_entries" && job.projectId) {
+    return { ...values, project_id: job.projectId, entry_state: "Requested" };
+  }
+  if (job.targetCode === "pool_invitations") {
+    if (!job.createdBy) throw new ImportWriteError("This import has no inviter.");
+    return { ...values, invited_by: job.createdBy };
+  }
+  if (job.targetCode === "procurement_needs" && job.projectId) {
+    return { ...values, project_id: job.projectId };
+  }
+  if (job.targetCode === "po_lines" && job.purchaseOrderId) {
+    const line_number =
+      typeof values["line_number"] === "number"
+        ? values["line_number"]
+        : await store.lookups.nextPoLineNumber(job.purchaseOrderId);
+    return { ...values, purchase_order_id: job.purchaseOrderId, line_number };
+  }
+  if (job.targetCode === "budget_lines" && job.budgetId) {
+    // Unnumbered rows are written last, in sheet order, each after the highest number at that moment.
+    const budget = await store.lookups.budgetDestination(job.budgetId);
+    const line_number =
+      typeof values["line_number"] === "number"
+        ? values["line_number"]
+        : (budget?.maxLineNumber ?? 0) + 1;
+    return {
+      quantity: 1,
+      unit_price_minor: null,
+      line_type: "Cost",
+      ...values,
+      budget_id: job.budgetId,
+      line_number,
+    };
+  }
+  return values;
 }
 
 /** A row the database refused to write; the row is marked Refused with the reason and the batch goes on. */
@@ -627,7 +1240,11 @@ export class ImportWriteError extends Error {
   }
 }
 
-type Step = (store: ImportStore, subjectId: string, options: ImportWorkerOptions) => Promise<void>;
+type Step = (
+  store: ImportStore,
+  subjectId: string,
+  options: ImportWorkerOptions,
+) => Promise<StepNote>;
 
 const STEPS: Record<ImportJobKind, Step> = {
   "import.fetch": fetchSheet,
@@ -647,13 +1264,14 @@ export async function runImportJobs(
   for (const kind of IMPORT_JOB_KINDS) {
     for (const claimed of await store.claim(kind, worker, limit)) {
       try {
-        await STEPS[kind](store, claimed.subjectId, options);
+        const note = await STEPS[kind](store, claimed.subjectId, options);
         await store.finishJob(claimed.jobId, true, null);
         results.push({
           kind,
           jobId: claimed.jobId,
           subjectId: claimed.subjectId,
           status: "Succeeded",
+          ...(note ? { noticeError: note.noticeError } : {}),
         });
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
@@ -701,7 +1319,27 @@ const TABLES: Readonly<Record<string, string>> = {
   counterparties: "counterparties",
   vendor_products: "vendor_products",
   asset_units: "asset_units",
+  cues: "cues",
+  guest_list_entries: "guest_list_entries",
+  pool_invitations: "talent_pool_invitations",
+  procurement_needs: "procurement_needs",
+  po_lines: "po_lines",
+  budget_lines: "budget_lines",
 };
+
+/** Trimmed, lower-case text for a name match, as the database compares names (private.fuzzy_candidates). */
+const nameKey = (v: string) => v.trim().toLowerCase();
+
+/** The one id whose name matches, or null for none or more than one. */
+function onlyMatch(rows: readonly Row[], name: string, ...keys: string[]): string | null {
+  const wanted = nameKey(name);
+  const hits = rows.filter((r) =>
+    keys.some((k) => typeof r[k] === "string" && nameKey(r[k] as string) === wanted),
+  );
+  return hits.length === 1 && typeof hits[0]?.["id"] === "string"
+    ? (hits[0]["id"] as string)
+    : null;
+}
 
 function text(row: Row | null | undefined, key: string): string {
   const v = row?.[key];
@@ -731,6 +1369,17 @@ export function supabaseImportStore(client: SupabaseClient): ImportStore {
     const { error } = await query;
     if (error) throw new Error(`${what}: ${error.message}`);
   };
+  const setRow = (rowId: string, values: Row) =>
+    exec(app.from("import_row_results").update(values).eq("id", rowId), "import_row_results");
+  const poolStore = async () =>
+    (await import("./import-pool-target.ts")).poolLookups({
+      app,
+      canon,
+      call,
+      one,
+      onlyMatch,
+      text,
+    });
   const lookups: TargetLookups = {
     async counterpartyTypeExists(type) {
       return (
@@ -768,6 +1417,40 @@ export function supabaseImportStore(client: SupabaseClient): ImportStore {
       });
       return match ? text(match, "id") : null;
     },
+    async uridExists(urid) {
+      const [discipline, category] = await Promise.all([
+        one(
+          canon.from("dim_discipline").select("disc_code").eq("disc_code", urid.trim()).limit(1),
+          "dim_discipline",
+        ),
+        one(
+          canon.from("dim_category").select("cat_urid").eq("cat_urid", urid.trim()).limit(1),
+          "dim_category",
+        ),
+      ]);
+      return discipline !== null || category !== null;
+    },
+    async uridXyz(urid) {
+      const row = await one(
+        canon.from("dim_category").select("xyz").eq("cat_urid", urid.trim()).limit(1),
+        "dim_category",
+      );
+      const tag = typeof row?.["xyz"] === "string" ? row["xyz"].trim() : null;
+      return tag === "X" || tag === "Y" || tag === "Z" ? tag : null;
+    },
+    async costCenterId(orgId, code) {
+      const row = await one(
+        app
+          .from("cost_centers")
+          .select("id")
+          .eq("org_id", orgId)
+          .eq("code", code.trim().toUpperCase())
+          .is("deleted_at", null)
+          .limit(1),
+        "cost_centers",
+      );
+      return typeof row?.["id"] === "string" ? row["id"] : null;
+    },
     async elementExists(id) {
       return (
         (await one(
@@ -790,11 +1473,13 @@ export function supabaseImportStore(client: SupabaseClient): ImportStore {
       return row ? text(row, "id") : null;
     },
     async venueId(orgId, idOrName) {
+      // Live venues only: an archived venue may share a live venue's name (A124, 5180).
       const query = app
         .from("venues")
         .select("id")
         .eq("org_id", orgId)
         .is("deleted_at", null)
+        .is("archived_at", null)
         .limit(1);
       const row = await one(
         UUID.test(idOrName) ? query.eq("id", idOrName) : query.ilike("name", idOrName),
@@ -849,6 +1534,163 @@ export function supabaseImportStore(client: SupabaseClient): ImportStore {
       if (error) throw new ImportWriteError(error.message);
       return text((data as Row[])[0], "id");
     },
+    async runOfShow(id) {
+      const row = await one(
+        app
+          .from("run_of_show")
+          .select(
+            "id, project_id, show_date, scope_nodes (venue_id), projects!inner (time_zone, venue_id)",
+          )
+          .eq("id", id)
+          .is("deleted_at", null),
+        "run_of_show",
+      );
+      if (!row) return null;
+      const node = row["scope_nodes"] as Row | null;
+      const project = row["projects"] as Row | null;
+      const venue = (r: Row | null) => (typeof r?.["venue_id"] === "string" ? r["venue_id"] : null);
+      return {
+        id: text(row, "id"),
+        projectId: text(row, "project_id"),
+        showDate: text(row, "show_date"),
+        timeZone: text(project, "time_zone"),
+        venueId: venue(node) ?? venue(project),
+      };
+    },
+    async spaceId(venueId, idOrName) {
+      if (venueId === null) return null;
+      const { data, error } = await app
+        .from("spaces")
+        .select("id, name")
+        .eq("venue_id", venueId)
+        .is("deleted_at", null);
+      if (error) throw new Error(`spaces: ${error.message}`);
+      const spaces = (data as Row[] | null) ?? [];
+      const id = idOrName.trim().toLowerCase();
+      if (UUID.test(id)) return spaces.some((r) => r["id"] === id) ? id : null;
+      return onlyMatch(spaces, idOrName, "name");
+    },
+    async scopeNodeId(projectId, codeOrName) {
+      const { data, error } = await app
+        .from("scope_nodes")
+        .select("id, scope_code, name")
+        .eq("project_id", projectId)
+        .is("deleted_at", null);
+      if (error) throw new Error(`scope_nodes: ${error.message}`);
+      const nodes = (data as Row[] | null) ?? [];
+      return onlyMatch(nodes, codeOrName, "scope_code") ?? onlyMatch(nodes, codeOrName, "name");
+    },
+    async counterpartyIdByName(orgId, name) {
+      // The computed app.counterparty_name reads private.my_org_ids(), empty under the service role, so the name
+      // is read from the organization itself (C8).
+      const { data, error } = await app
+        .from("counterparties")
+        .select("id, organizations!counterparties_organization_id_fkey!inner (name)")
+        .eq("org_id", orgId)
+        .is("deleted_at", null);
+      if (error) throw new Error(`counterparties: ${error.message}`);
+      const rows = ((data as Row[] | null) ?? []).map((r) => ({
+        id: r["id"],
+        name: (r["organizations"] as Row | null)?.["name"],
+      }));
+      return onlyMatch(rows, name, "name");
+    },
+    async destinationKeyMatch(importJobId, keys) {
+      const id = await call("import_strong_key_match", {
+        p_import_job_id: importJobId,
+        p_keys: keys,
+      });
+      return typeof id === "string" ? id : null;
+    },
+    async canonCodeExists(kind, code) {
+      const [table, column] = {
+        grade: ["grade", "code"],
+        phase: ["dim_phase", "phase_code"],
+        tier: ["dim_tier", "tier_code"],
+      }[kind] as [string, string];
+      const row = await one(canon.from(table).select(column).eq(column, code).limit(1), table);
+      return row !== null;
+    },
+    async unitExists(unit) {
+      const row = await one(
+        canon.from("dim_unit_alias").select("alias").eq("alias", unit.trim()).limit(1),
+        "dim_unit_alias",
+      );
+      return row !== null;
+    },
+    async materialMatch(importJobId, vendorSku, matchText) {
+      const row = await call("import_material_match", {
+        p_import_job_id: importJobId,
+        p_vendor_sku: vendorSku,
+        p_text: matchText,
+      });
+      const first = (Array.isArray(row) ? row[0] : null) as Row | undefined;
+      if (!first) return null;
+      return {
+        source: first["match_source"] === "vendor_sku" ? "vendor_sku" : "asset_class",
+        elementId: (first["element_id"] as string | null) ?? null,
+        assetClassId: (first["asset_class_id"] as string | null) ?? null,
+        unitPriceMinor: (first["unit_price_minor"] as number | null) ?? null,
+        currencyCode: (first["currency_code"] as string | null) ?? null,
+        orderCurrencyCode: (first["order_currency_code"] as string | null) ?? null,
+      };
+    },
+    async projectTimeZone(projectId) {
+      const row = await one(
+        app.from("projects").select("time_zone").eq("id", projectId),
+        "projects",
+      );
+      return typeof row?.["time_zone"] === "string" ? row["time_zone"] : "UTC";
+    },
+    async purchaseOrderState(id) {
+      const row = await one(
+        app.from("purchase_orders").select("po_state").eq("id", id).is("deleted_at", null),
+        "purchase_orders",
+      );
+      return typeof row?.["po_state"] === "string" ? row["po_state"] : null;
+    },
+    async nextPoLineNumber(purchaseOrderId) {
+      const row = await one(
+        app
+          .from("po_lines")
+          .select("line_number")
+          .eq("purchase_order_id", purchaseOrderId)
+          .is("deleted_at", null)
+          .order("line_number", { ascending: false })
+          .limit(1),
+        "po_lines",
+      );
+      return (typeof row?.["line_number"] === "number" ? row["line_number"] : 0) + 1;
+    },
+    async budgetLineTag(id) {
+      const { readBudgetLineTag } = await import("./import-budget-target.ts");
+      return readBudgetLineTag(app, one, id);
+    },
+    async budgetDestination(budgetId) {
+      const { readBudgetDestination } = await import("./import-budget-target.ts");
+      return readBudgetDestination(app, one, budgetId);
+    },
+    async nextCuePosition(runOfShowId) {
+      const row = await one(
+        app
+          .from("cues")
+          .select("position")
+          .eq("run_of_show_id", runOfShowId)
+          .is("deleted_at", null)
+          .order("position", { ascending: false })
+          .limit(1),
+        "cues",
+      );
+      return typeof row?.["position"] === "number" ? row["position"] + 1 : 1;
+    },
+    async cueCalled(id) {
+      const row = await one(app.from("cues").select("called_at").eq("id", id), "cues");
+      return typeof row?.["called_at"] === "string";
+    },
+    talentPoolIdByName: async (o, n) => (await poolStore()).talentPoolIdByName(o, n),
+    roleCode: async (v) => (await poolStore()).roleCode(v),
+    poolInvitationContext: async (j) => (await poolStore()).poolInvitationContext(j),
+    poolInvitation: async (id) => (await poolStore()).poolInvitation(id),
     async update(targetCode, id, values) {
       const table = TABLES[targetCode];
       if (!table) throw new ImportWriteError(`${targetCode} is not an import target.`);
@@ -888,7 +1730,7 @@ export function supabaseImportStore(client: SupabaseClient): ImportStore {
         app
           .from("import_jobs")
           .select(
-            "id, org_id, target_code, source, storage_object_path, original_filename, import_status, import_mapping_profile_id, sheet_name, source_url",
+            "id, org_id, target_code, source, storage_object_path, original_filename, import_status, import_mapping_profile_id, sheet_name, source_url, project_id, run_of_show_id, purchase_order_id, budget_id, talent_pool_id, number_format, created_by",
           )
           .eq("id", id)
           .is("deleted_at", null),
@@ -907,6 +1749,13 @@ export function supabaseImportStore(client: SupabaseClient): ImportStore {
             profileId: optional("import_mapping_profile_id"),
             sheetName: optional("sheet_name"),
             sourceUrl: optional("source_url"),
+            projectId: optional("project_id"),
+            runOfShowId: optional("run_of_show_id"),
+            talentPoolId: optional("talent_pool_id"),
+            numberFormat: (optional("number_format") as NumberFormat | null) ?? "comma-dot",
+            createdBy: optional("created_by"),
+            purchaseOrderId: optional("purchase_order_id"),
+            budgetId: optional("budget_id"),
           }
         : null;
     },
@@ -1062,9 +1911,10 @@ export function supabaseImportStore(client: SupabaseClient): ImportStore {
       );
     },
     async insertColumns(jobId, sheet, columns) {
-      if (columns.length === 0) return;
-      await exec(
-        app.from("import_job_columns").insert(
+      if (columns.length === 0) return [];
+      const { data, error } = await app
+        .from("import_job_columns")
+        .insert(
           columns.map((c, i) => ({
             import_job_id: jobId,
             sheet_name: sheet,
@@ -1073,9 +1923,23 @@ export function supabaseImportStore(client: SupabaseClient): ImportStore {
             suggested_field_name: c.suggested,
             suggestion_source: c.suggested === null ? null : (c.source ?? null),
           })),
-        ),
-        "import_job_columns",
-      );
+        )
+        .select("id, column_index");
+      if (error) throw new Error(`import_job_columns: ${error.message}`);
+      return ((data as Row[] | null) ?? [])
+        .sort((a, b) => Number(a["column_index"]) - Number(b["column_index"]))
+        .map((c) => text(c, "id"));
+    },
+    async recordColumnSamples(jobId, samples) {
+      if (samples.length === 0) return;
+      await call("record_import_column_samples", {
+        p_import_job_id: jobId,
+        p_samples: samples.map((x) => ({
+          import_job_column_id: x.columnId,
+          sample_index: x.index,
+          sample_value: x.value,
+        })),
+      });
     },
     async mappedColumns(jobId) {
       const { data, error } = await app
@@ -1113,6 +1977,15 @@ export function supabaseImportStore(client: SupabaseClient): ImportStore {
           })),
         ),
         "import_cell_issues",
+      );
+    },
+    async recordMaterialMatch(rowId, match, note) {
+      await exec(
+        app
+          .from("import_row_results")
+          .update({ material_match: match, match_note: note })
+          .eq("id", rowId),
+        "import_row_results",
       );
     },
     async recordMatch(rowId, targetId) {
@@ -1164,8 +2037,24 @@ export function supabaseImportStore(client: SupabaseClient): ImportStore {
         "import_row_results",
       );
     },
+    skipRow: (rowId, reason) => setRow(rowId, { row_state: "Skipped", reason }),
+    noteRow: (rowId, reason) => setRow(rowId, { reason }),
     async finishBatch(batchId) {
       await call("finish_import_batch", { p_import_batch_id: batchId });
+    },
+    async orgSlug(orgId) {
+      const row = await one(
+        app.from("organizations").select("slug").eq("id", orgId),
+        "organizations",
+      );
+      return typeof row?.["slug"] === "string" ? row["slug"] : null;
+    },
+    async notifyFinished(input) {
+      await call("notify_import_finished", {
+        p_import_job_id: input.jobId,
+        p_import_batch_id: input.batchId,
+        p_review_url: input.url,
+      });
     },
   };
 }

@@ -24,7 +24,7 @@ with v as (insert into app.venues (org_id, name, jurisdiction_id, time_zone)
   values (pg_temp.id('GHXSTSHIP'), 'Mana Wynwood Convention Center & Grounds', 'US-FL-MIAMI-DADE', 'America/New_York') returning id)
   insert into world select 'mana-wynwood', id from v;
 with p as (insert into app.projects (org_id, project_key, name, venue_id, time_zone)
-  values (pg_temp.id('GHXSTSHIP'), 'CSMIA', 'Casa Spotify Miami', pg_temp.id('mana-wynwood'), 'America/New_York') returning id)
+  values (pg_temp.id('GHXSTSHIP'), 'CSMIA', 'Brand House Miami', pg_temp.id('mana-wynwood'), 'America/New_York') returning id)
   insert into world select 'CSMIA26', id from p;
 select pg_temp.as_platform();
 with p as (insert into app.people (full_name) values ('Check Person') returning id) insert into world select 'PER-T01', id from p;

@@ -205,7 +205,7 @@ call private.install_default_retention('app.role_library');
 
 -- Withheld until the owner decides Linear RRR-67 ------------------------------------------------------------------------
 -- Sections 2.1 and 3.14: no tenant receives a real client's data. These Standard Library rows describe the real CSMIA26
--- activation by naming its client (Spotify, Casa Spotify Wynwood), its site (Wynwood, the Biscayne boundary, 76th St),
+-- activation by naming its client, its site (Wynwood, the Biscayne boundary, 76th St),
 -- the City of Miami or Miami-Dade bodies that permitted it, or its permit numbers. Canon keeps them; adoption copies
 -- none of them and the status leaves them out of its counts until the owner decides whether they stay private to
 -- GHXSTSHIP, are anonymized or are excluded. The rule is applied once here, by record id, so a reviewer reads exactly
@@ -223,7 +223,7 @@ as $$
       'SOP-002',  -- Temporary Event Power Distribution: its electrical permit number, EL-2026-04421
       'SOP-003',  -- Concert Line Array Tuning: rear rejection toward the Biscayne property boundary
       'SOP-005',  -- Assembly Occupancy Ingress & Egress: its assembly permit number, BD-2026-08914, and 76th St
-      'SOP-007',  -- Real-Time Media Ingest: the Casa Spotify Wynwood brand toolkit, LUT and Spotify logo bugs
+      'SOP-007',  -- Real-Time Media Ingest: the client's brand toolkit, LUT and logo bugs
       'SOP-010',  -- Stage Pyrotechnics: the City of Miami Fire-Rescue permit and Miami fire watch
       'SOP-012',  -- Environmental Noise Monitoring: the Wynwood and Biscayne perimeter, Miami's noise ordinance
       'SOP-015',  -- Mass-Gathering Emergency Medical: the Miami-Dade Fire Rescue medical plan and ALS unit
@@ -231,7 +231,7 @@ as $$
       'SOP-017',  -- Public Right-of-Way Traffic Control: the City of Miami / FDOT permit and 76th St
       'SOP-020',  -- RF Spectrum Coordination: Miami broadcast exclusions and the Wynwood venue airspace
       'SOP-021',  -- Generator Diesel Fueling: the Miami-Dade DERM fuel transfer protocol
-      'SOP-022',  -- Commercial Insurance Endorsement: Spotify as additional insured
+      'SOP-022',  -- Commercial Insurance Endorsement: the client as additional insured
       'SOP-027',  -- Temporary Potable Water: the Miami-Dade WASD distribution protocol
       'SOP-032'   -- Incident Command CAD Logging: the direct link to the Miami 911 PSAP
     ]
@@ -239,13 +239,13 @@ as $$
       'DOC-002',  -- City of Miami Special Assembly Occupancy Permit (BD-2026-08914)
       'DOC-003',  -- Temporary Power & Generator Tie-In Permit: its permit number, EL-2026-04421
       'DOC-005',  -- Acoustic Sound Modeling: the Wynwood / Biscayne perimeter curfew
-      'DOC-006',  -- Casa Spotify Wynwood Brand Toolkit & Style Guide
+      'DOC-006',  -- the client's brand toolkit and style guide
       'DOC-010',  -- Miami Fire-Rescue Special Effects & Flame Effects Permit
       'DOC-012',  -- City of Miami Code Compliance Noise Variance
       'DOC-015',  -- Medical Action Plan & Miami-Dade EMS Detail
       'DOC-017',  -- Right-of-Way Closure: the City of Miami Public Works / FDOT permit on 76th St
       'DOC-021',  -- Hazardous Materials Plan: the Miami-Dade DERM containment plan
-      'DOC-022',  -- Insurance Binder naming the City of Miami and Spotify as additional insureds
+      'DOC-022',  -- Insurance Binder naming the City of Miami and the client as additional insureds
       'DOC-027'   -- Potable Water Certification: the Miami-Dade WASD inspection
     ]
     else '{}'::text[]

@@ -44,8 +44,8 @@ Vercel receives the new keys once. Step 14 can run any time after step 4.
 - Either of two ways to reach the hosted project:
   - **Linked (preferred, no secrets in the shell):** the Supabase CLI logged in (`supabase login`) and the
     repository linked (`supabase link --project-ref fquuqnzlpobaawucczgq`). `remove-demo-data.sh --linked` runs
-    the same SQL through `supabase db query --linked` (the Management API) and deletes storage objects through
-    `supabase storage rm --linked`. It needs neither the database password nor the service role key.
+    the same SQL through `supabase db query --remote --yes` (the Management API) and deletes storage objects through
+    `supabase storage rm --remote`. It needs neither the database password nor the service role key.
     `src/plain-sql.ts` translates the psql script for one mode and refuses anything it cannot translate exactly;
     the run prints one JSON report per step and keeps it in the `--log` directory.
   - **psql:** from the owner's secret store, exported in the shell only for the commands that need them:
@@ -59,9 +59,9 @@ Vercel receives the new keys once. Step 14 can run any time after step 4.
    Recovery). PITR is a paid add-on: the owner approved it in decision 2.
 2. Take a logical backup that does not depend on Supabase:
    - with the owner's public key committed: `XOS_BACKUP_DB_URL="$DATABASE_URL" infra/ci/backup-weekly.sh pre-promotion <dir>`;
-   - otherwise `supabase db dump --linked -f schema.sql` (or `--db-url "$DATABASE_URL"`), then the same with `--data-only --use-copy -f data.sql` and `--role-only -f roles.sql`, kept encrypted on the owner's machine.
+   - otherwise `supabase db dump --remote -f schema.sql` (or `--remote="$DATABASE_URL"`), then the same with `--data-only --use-copy -f data.sql` and `--role-only -f roles.sql`, kept encrypted on the owner's machine.
 3. Record the key-table fingerprints: run `infra/drills/key-tables.sql` in the SQL editor and keep the output.
-4. Record the full row counts: `supabase db query --linked --agent no -o json -f infra/production/table-counts.sql`
+4. Record the full row counts: `supabase db query --remote --yes --agent no -o json -f infra/production/table-counts.sql`
    (one row per table), or `psql "$DATABASE_URL" -X -q -tA -f infra/production/table-counts.sql > before.txt`.
 
 Verify: Database, Backups shows PITR enabled with an earliest restore point, and the daily backups list today.
@@ -246,8 +246,12 @@ an error. Rollback: put back the values recorded before the change.
 2. Authentication, Emails, SMTP Settings: enable custom SMTP, host `smtp.resend.com`, port 465, user `resend`,
    password the Resend API key (secret), sender `no-reply@mail.ghxstship.tech`, sender name `XOS`.
 3. Templates (confirm signup, invite, magic link, change email, reset password, reauthentication): the product's
-   own email goes through the Edge Functions; the auth templates keep Supabase's defaults with the product name
-   and links to `https://atlas.ghxstship.tech`. Check that no template still names staging or the demo tenant.
+   own email goes through the Edge Functions; the auth emails wear the XOS platform brand from the repository's
+   `supabase/templates` (4.9 email branding audit). For each, paste the subject from `supabase/config.toml`
+   (`[auth.email.template.<name>]`) and the file's HTML into Authentication, Emails, Templates. Never push them with
+   `supabase config push`, which would push the repository's local values too (`hosted-security-settings.md`).
+   Check that the Site URL is `https://atlas.ghxstship.tech` and that no template names staging or the demo tenant
+   (`packages/email/test/auth-templates.test.ts` checks the repository's copies).
 4. Set the email rate limit (Authentication, Rate Limits) to about 100 emails an hour, sent through Resend (ADR 0033,
    decision 43). Watch the Auth logs for sign-up confirmations, magic links and password resets after launch, and
    raise it before real volume reaches it. The repository's local value (`email_sent = 2` an hour in
@@ -293,16 +297,18 @@ loads the org switcher). Rollback: restore the recorded values.
 
 ## 9. Edge Function secrets (OWNER CONFIRMS)
 
-Names only; values come from the owner's secret store. `supabase secrets list --project-ref fquuqnzlpobaawucczgq`
+Names only; values come from the owner's secret store. `supabase secrets list --remote=fquuqnzlpobaawucczgq`
 prints names and digests, never values.
 
-`XOS_API_JWT_SIGNING_KEY` (the project's JWT secret, so it changes again in step 12), `XOS_APP_URL`,
-`XOS_GATEWAY_URL`, `XOS_POSTAL_ADDRESS`, `XOS_EMAIL_TRANSPORT`, `XOS_EMAIL_FROM`, `RESEND_API_KEY`,
+`XOS_API_JWT_SIGNING_KEY` (XOS's own signing key, a private JWK, ADR 0168), `XOS_APP_URL`,
+`XOS_GATEWAY_URL`, `XOS_CONSOLE_URL`, `XOS_POSTAL_ADDRESS`, `XOS_EMAIL_TRANSPORT`, `XOS_EMAIL_FROM`, `RESEND_API_KEY`,
 `XOS_EMAIL_ALLOWLIST`, `XOS_EMAIL_DELIVER_TO_ANY` (true only at cutover, once `mail.ghxstship.tech` passes its
 SPF, DKIM and DMARC checks and `XOS_POSTAL_ADDRESS` holds the postal address; ADR 0033, decision 41),
-`XOS_INBOUND_SECRET`, `XOS_INBOUND_DOMAIN` (`inbound.ghxstship.tech`, decision 60), `STRIPE_SECRET_KEY`,
+`RESEND_INBOUND_WEBHOOK_SECRET`, `RESEND_RECEIVING_API_KEY` and `XOS_INBOUND_DOMAIN` (`inbound.ghxstship.tech`,
+decision 60; `production.md`, Email), `STRIPE_SECRET_KEY`,
 `STRIPE_WEBHOOK_SECRET` (test keys until Atlas Checkout ships and billing opens with live keys, decision 59), `XOS_CLAMAV_HOST`, `XOS_CLAMAV_PORT`, `SENTRY_DSN`, `XOS_ENVIRONMENT` (`production`),
-`XOS_LOG_LEVEL` (`info`). Unset `XOS_REPORT_MAILPIT_URL`, which only a local stack uses.
+`XOS_LOG_LEVEL` (`info`), `XOS_FILE_HANDOVER_SECRET` (a new random value for production, the same as on `atlas` in
+step 13; `production.md`, File handover). Unset `XOS_REPORT_MAILPIT_URL`, which only a local stack uses.
 
 Verify: the list shows each name; `XOS_ENVIRONMENT` digest differs from staging's. Rollback: set the previous
 value again.
@@ -312,11 +318,13 @@ value again.
 `select name from vault.secrets order by 1;` (names only). Expected after step 4:
 
 - created by migrations: `xos_medical_notes_key`, `xos_tax_form_key`, `xos_org_tax_identifier_key`,
-  `xos_passport_number_key`, `xos_inbound_reply_secret`;
-- set by the operator: `xos_worker_key`, the service role key the cron worker schedules use. It must be replaced
-  in step 12.
+  `xos_passport_number_key`, `xos_inbound_reply_secret`, and, once 2010 and 2011 are pushed,
+  `xos_vendor_bank_account_key` and `xos_supplier_certificate_number_key` (ADR 0057);
+- set by the operator: `xos_worker_key`, the secret API key (`sb_secret_...`, never the legacy service_role JWT) the
+  cron worker schedules send on the `apikey` header (ADR 0168). A new secret key replaces it in step 12.
 
-The five keys were generated in this project and never left Vault, so the demo period did not expose them. After
+The five keys were generated in this project and never left Vault, so the demo period did not expose them. The two
+A100 keys are generated the same way when their migrations run. After
 step 4 no row they encrypt remains (the demo encounters, tax forms and entities are gone), so regenerating them
 now would cost nothing, but the owner decided to keep them (ADR 0033, decision 49). No `xos_integration_*` secret
 may remain: the removal deletes the demo connections' credentials.
@@ -328,11 +336,20 @@ and Edge Functions use the HTTPS API and are not affected. What is affected: the
 `supabase db push`, and any GitHub Actions job that connects to Postgres (runner addresses change on every run).
 The owner decided to leave them off for now (ADR 0033, decision 47): the weekly production backup is a CI job with
 its own read-only login, and GitHub runners connect from changing addresses. Revisit when that job moves to a fixed
-address.
+address. Once migration 1650 is on production, set that login up: `backup-and-restore.md`, Set up the production
+backup login.
 
 Verify: a connection from an unlisted address is refused; the API still works. Rollback: allow all again.
 
 ## 12. Rotate the JWT secret and the anon and service keys (OWNER CONFIRMS)
+
+Since ADR 0168 (2026-11-09) nothing reads the legacy `anon` and `service_role` keys: the apps use the publishable key, the
+functions `SUPABASE_SECRET_KEYS` and `SUPABASE_PUBLISHABLE_KEYS`, and the worker schedules a secret key in Vault. The
+legacy keys are deactivated (Settings, API Keys), not rotated, and rotating a key is now: create a new secret or
+publishable key, put it where the old one was (Vault `xos_worker_key`; Vercel `SUPABASE_ANON_KEY`; EAS
+`EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY`), then delete the old one, with no sign-out. On 2026-11-09 the owner disabled the legacy keys on production, whose sessions are signed with an asymmetric JWT
+signing key; the tokens XOS mints use its own imported key (`infra/production/signing-key-setup.sh`, ADR 0168, D5).
+The text below is the step as approved for cutover.
 
 Approved for cutover (ADR 0033, decision 44). The owner still confirms the moment in writing, because of what it
 does:
@@ -359,7 +376,7 @@ Do the following immediately after, in this order, with the new values:
 3. Vercel (step 13): `SUPABASE_ANON_KEY` in `atlas`, `gateway` and `console`, Production environment, then redeploy
    all three. Their Preview environments keep the old key and stop signing in until step 14 points them at the
    staging branch.
-4. EAS `production`: `EXPO_PUBLIC_SUPABASE_ANON_KEY`, picked up by the next Compass build.
+4. EAS `production`: `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, picked up by the next Compass build.
 5. The owner's secret store: the new service key replaces the old one; delete the old one.
 
 Verify: Atlas and console sign-in work; `api-token` issues a token the API accepts; within a minute
@@ -373,12 +390,12 @@ the legacy keys; moving to them is a separate change, because `api-token` signs 
 Production environment only; the Preview environment moves to the staging branch in step 14. The full table is
 in `production.md`, "Environment variables".
 
-| App       | Production variables                                                                                                                                                                                                                           |
-| --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `atlas`   | `SUPABASE_URL`, `SUPABASE_ANON_KEY` (new), `ATLAS_SITE_URL`, `GATEWAY_SITE_URL`, `XOS_API_HOST`, `DOCS_SITE_URL`, `NEXT_PUBLIC_SENTRY_DSN`, `XOS_TRACES_SAMPLE_RATE`, `XOS_LOG_LEVEL`, `COMPASS_APPLE_TEAM_IDS`, `COMPASS_ANDROID_CERT_SHA256` |
-| `gateway` | `SUPABASE_URL`, `SUPABASE_ANON_KEY` (new), `GATEWAY_SITE_URL`, `GATEWAY_PLATFORM_HOSTS`, `DOCS_SITE_URL`, `NEXT_PUBLIC_SENTRY_DSN`, `XOS_TRACES_SAMPLE_RATE`, `XOS_LOG_LEVEL`, `COMPASS_APPLE_TEAM_IDS`, `COMPASS_ANDROID_CERT_SHA256`         |
-| `console` | `SUPABASE_URL`, `SUPABASE_ANON_KEY` (new), `CONSOLE_SITE_URL` (`https://console.ghxstship.tech`), `CONSOLE_PASSWORD_SIGN_IN` (`false`)                                                                                                         |
-| `docs`    | None                                                                                                                                                                                                                                           |
+| App       | Production variables                                                                                                                                                                                                                                                                          |
+| --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `atlas`   | `SUPABASE_URL`, `SUPABASE_ANON_KEY` (new), `ATLAS_SITE_URL`, `GATEWAY_SITE_URL`, `XOS_API_HOST`, `DOCS_SITE_URL`, `NEXT_PUBLIC_SENTRY_DSN`, `XOS_TRACES_SAMPLE_RATE`, `XOS_LOG_LEVEL`, `COMPASS_APPLE_TEAM_IDS`, `COMPASS_ANDROID_CERT_SHA256`, `XOS_FILE_HANDOVER_SECRET` (the step 9 value) |
+| `gateway` | `SUPABASE_URL`, `SUPABASE_ANON_KEY` (new), `GATEWAY_SITE_URL`, `GATEWAY_PLATFORM_HOSTS`, `DOCS_SITE_URL`, `NEXT_PUBLIC_SENTRY_DSN`, `XOS_TRACES_SAMPLE_RATE`, `XOS_LOG_LEVEL`, `COMPASS_APPLE_TEAM_IDS`, `COMPASS_ANDROID_CERT_SHA256`                                                        |
+| `console` | `SUPABASE_URL`, `SUPABASE_ANON_KEY` (new), `CONSOLE_SITE_URL` (`https://console.ghxstship.tech`), `CONSOLE_PASSWORD_SIGN_IN` (`false`)                                                                                                                                                        |
+| `docs`    | None                                                                                                                                                                                                                                                                                          |
 
 `SUPABASE_URL` does not change (the project keeps its ref). Set on 2026-10-20: `ATLAS_SITE_URL`
 (`https://atlas.ghxstship.tech`) and `GATEWAY_SITE_URL` (`https://gateway.ghxstship.tech`) in both projects, and
@@ -393,8 +410,9 @@ Rollback: Vercel Instant Rollback to the previous deployment, with the previous 
 
 The plan is in "Staging branch plan" below. When the staging branch exists:
 
-- GitHub secret `STAGING_DB_URL` = the staging branch's direct connection string (it feeds `backup-weekly.yml`
-  and the load-test instructions). It must no longer point at this project.
+- GitHub secret `STAGING_DB_URL` = the staging branch's Session pooler connection string, port 5432 (it feeds
+  `backup-weekly.yml` and the load-test instructions). GitHub's hosted runners have no IPv6, and a direct host is IPv6
+  without the IPv4 add-on. It must no longer point at this project.
 - GitHub variables `XOS_STAGING_*` (synthetics) = the branch's API URL and anon key; the synthetic account is
   created on the branch.
 - Vercel `atlas`, `gateway` and `console`, Preview environment: `SUPABASE_URL` and `SUPABASE_ANON_KEY` of the branch,
@@ -412,6 +430,13 @@ the branch. Rollback: point the secret and variables back.
 - Supabase advisors (`infra/security/supabase-advisors.sh`) report nothing new.
 - Synthetic checks green against production and staging.
 - The hosted Data API's exposed schemas still match `[api] schemas` in `supabase/config.toml` (step 5).
+- The account security notice triggers (migration 2050, ADR 0064) exist on staging and production. They sit on
+  Supabase Auth's tables, outside the `app` and `private` schemas (the weekly backup's `platform.sql` carries them,
+  as it does 0206's `xos_create_person`). This query lists
+  `xos_notify_security_change` on `auth.users`, `xos_notify_factor_change` on `auth.mfa_factors` and
+  `xos_notify_passkey_change` on `auth.webauthn_credentials`; a missing one means a password, second factor or
+  passkey change there tells nobody:
+  `select tgrelid::regclass, tgname from pg_trigger where tgname like 'xos_notify_%';`
 - `https://api.ghxstship.tech/` answers the JSON pointer, `https://api.ghxstship.tech/v1/openapi.json` the
   document, and `https://api.ghxstship.tech/auth/sign-in` a 404 problem with no `Set-Cookie`.
 
@@ -443,7 +468,7 @@ Branching needs Pro, which decision 1 already buys. Branches are billed per hour
    enabled = false
    ```
 
-   Seeding runs when a branch is created. To seed by hand, or to reseed: `supabase db push --db-url <branch
+   Seeding runs when a branch is created. To seed by hand, or to reseed: `supabase db push --yes --remote=<branch
 direct connection string> --include-seed`, on the branch only. `--include-seed` is never used against
    production; Supabase's documentation says the same.
 
@@ -452,7 +477,7 @@ direct connection string> --include-seed`, on the branch only. `--include-seed` 
    `https://gateway-staging.ghxstship.tech/auth/callback**`, the console's preview callback
    `https://console-git-staging-ghxstship.vercel.app/auth/callback**` (step 14) and the preview URLs (decisions 7, 63
    and 79). Branch secrets are separate from production:
-   `supabase secrets set --project-ref <branch ref> ...` with staging values (Resend with
+   `supabase secrets set --remote=<branch --yes ref> ...` with staging values (Resend with
    `XOS_EMAIL_ALLOWLIST`, Stripe test keys, `XOS_ENVIRONMENT=staging`).
 5. **Vercel previews.** The Preview environment variables of `atlas`, `gateway` and `console` point at the
    persistent `staging` branch's values (ADR 0033, decision 63). No database is made per pull request, and the

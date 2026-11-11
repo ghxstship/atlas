@@ -1,3 +1,4 @@
+import type { CapabilityCode } from "@xos/schemas/capabilities/codes";
 import type { XosClient } from "./client.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 import {
@@ -11,29 +12,25 @@ import {
   type Raw,
 } from "./platform-common.ts";
 import { untyped } from "./untyped.ts";
+import type { Database } from "./database.types.ts";
+import { parsePasted, rowsToCsv, type NumberFormat } from "./import-parse.ts";
 
 /**
  * The import wizard's side of imports (A36 on A18's 0530 and A36's 1061; Section 4.6.2): upload a
  * spreadsheet, confirm the column mapping, decide fuzzy duplicates, read the dry run, request the commit
  * and undo a batch. Detection, validation and the writes run in the import worker (import-worker.ts,
  * service role); everything here runs as the signed-in person.
+ * Cues and guest list entries (P3, 5800 to 5802) are targets with a destination: an import of them names the
+ * running order or project its rows go into, and the person's project capability decides. Pasted rows become a
+ * CSV upload, scanned and read like any other.
  */
 
 export const IMPORT_BUCKET = "imports";
 
-export type ImportSource = "CSV" | "XLSX" | "XLS" | "Google Sheets";
-export type ImportStatus =
-  | "Uploaded"
-  | "Detected"
-  | "Mapped"
-  | "Validated"
-  | "Committing"
-  | "Committed"
-  | "Undone"
-  | "Failed"
-  | "Canceled";
-export type RowState = "Valid" | "Invalid" | "Written" | "Refused" | "Skipped";
-export type MergeDecision = "Pending" | "Merged" | "Kept Separate";
+export type ImportSource = Database["app"]["Enums"]["import_source"];
+export type ImportStatus = Database["app"]["Enums"]["import_status"];
+export type RowState = Database["app"]["Enums"]["import_row_state"];
+export type MergeDecision = Database["app"]["Enums"]["merge_decision"];
 
 export interface ImportTargetField {
   readonly name: string;
@@ -41,11 +38,17 @@ export interface ImportTargetField {
   readonly strongKey: boolean;
 }
 
+/** The import column that names where a target's rows go: none for an org-wide target. */
+export type ImportDestinationKind =
+  "run_of_show_id" | "project_id" | "purchase_order_id" | "budget_id";
+
 export interface ImportTarget {
   readonly code: string;
   /** Capability that authorizes importing into the target. */
-  readonly writeCapability: string;
+  readonly writeCapability: CapabilityCode;
   readonly fuzzyMatch: boolean;
+  /** The running order (cues) or project (guest list entries) an import names; null for an org-wide target. */
+  readonly destination: ImportDestinationKind | null;
   readonly fields: readonly ImportTargetField[];
 }
 
@@ -55,7 +58,7 @@ export async function listImportTargets(db: XosClient): Promise<Result<ImportTar
     rows(
       untyped(db)
         .from("import_targets")
-        .select("code, write_capability, fuzzy_match, sort_order")
+        .select("code, write_capability, fuzzy_match, sort_order, destination")
         .order("sort_order"),
     ),
     rows(
@@ -69,8 +72,16 @@ export async function listImportTargets(db: XosClient): Promise<Result<ImportTar
   return ok(
     targets.data.map((t) => ({
       code: str(t["code"]),
-      writeCapability: str(t["write_capability"]),
+      // write_capability references app.capabilities, seeded from the registry (migration 0530).
+      writeCapability: str(t["write_capability"]) as CapabilityCode,
       fuzzyMatch: t["fuzzy_match"] === true,
+      destination:
+        t["destination"] === "run_of_show_id" ||
+        t["destination"] === "project_id" ||
+        t["destination"] === "purchase_order_id" ||
+        t["destination"] === "budget_id"
+          ? t["destination"]
+          : null,
       fields: fields.data
         .filter((f) => f["target_code"] === t["code"])
         .map((f) => ({
@@ -130,7 +141,32 @@ export function importObjectPath(personId: string, uploadId: string, ext: string
   return `${personId}/${uploadId}.${ext}`;
 }
 
-export interface NewImport {
+/**
+ * Where a cue or guest list import writes: one of the two, as its target names (P3). A pool invitation import names an
+ * optional pool and how its file writes amounts (B10), fixed once the import exists.
+ */
+export interface ImportDestinationInput {
+  readonly projectId?: string | null;
+  readonly runOfShowId?: string | null;
+  readonly talentPoolId?: string | null;
+  readonly numberFormat?: NumberFormat | null;
+  readonly purchaseOrderId?: string | null;
+  readonly budgetId?: string | null;
+}
+
+/** The destination columns of a new import; an org-wide target sends none of them. */
+function destinationColumns(input: ImportDestinationInput): Record<string, string> {
+  return {
+    ...(input.projectId ? { project_id: input.projectId } : {}),
+    ...(input.runOfShowId ? { run_of_show_id: input.runOfShowId } : {}),
+    ...(input.talentPoolId ? { talent_pool_id: input.talentPoolId } : {}),
+    ...(input.numberFormat ? { number_format: input.numberFormat } : {}),
+    ...(input.purchaseOrderId ? { purchase_order_id: input.purchaseOrderId } : {}),
+    ...(input.budgetId ? { budget_id: input.budgetId } : {}),
+  };
+}
+
+export interface NewImport extends ImportDestinationInput {
   readonly orgId: string;
   readonly targetCode: string;
   readonly filename: string;
@@ -157,13 +193,126 @@ export async function createImport(db: XosClient, input: NewImport): Promise<Res
         source: input.source,
         original_filename: input.filename,
         storage_object_path: input.objectPath,
+        ...destinationColumns(input),
       })
       .select("id"),
   );
 }
 
+/** Rows pasted into the wizard (P3): the target, its destination and the text as copied. */
+export interface NewPastedImport extends ImportDestinationInput {
+  readonly orgId: string;
+  readonly targetCode: string;
+  readonly text: string;
+  /** The name the import is listed under, such as "Pasted rows 2026-11-02". */
+  readonly filename: string;
+  /** The person's own imports folder and a fresh id, ending in .csv. */
+  readonly objectPath: string;
+}
+
+export type PastedImportCheck =
+  | { readonly ok: true; readonly csv: string }
+  | { readonly ok: false; readonly rule: "import_paste_empty" | "import_file_size" };
+
+/**
+ * Reads pasted rows into CSV: a header row and at least one data row, at most the imports bucket's limit once
+ * written. Tab-separated rows (what spreadsheets copy) and CSV both work.
+ */
+export function checkPastedRows(text: string): PastedImportCheck {
+  const rows = parsePasted(text).filter((r) => r.some((c) => c.trim() !== ""));
+  if (rows.length < 2) return { ok: false, rule: "import_paste_empty" };
+  const csv = rowsToCsv(rows);
+  if (new TextEncoder().encode(csv).byteLength > IMPORT_MAX_BYTES) {
+    return { ok: false, rule: "import_file_size" };
+  }
+  return { ok: true, csv };
+}
+
+/**
+ * Starts an import of pasted rows: they are written as a CSV file in the person's imports folder with source CSV,
+ * so the upload is scanned (1240) and detected like any other .csv.
+ */
+export async function createPastedImport(
+  db: XosClient,
+  input: NewPastedImport,
+): Promise<Result<string>> {
+  const check = checkPastedRows(input.text);
+  if (!check.ok) return fail({ kind: "refusal", rule: check.rule, message: check.rule });
+  return createImport(db, {
+    orgId: input.orgId,
+    targetCode: input.targetCode,
+    filename: input.filename,
+    objectPath: input.objectPath,
+    source: "CSV",
+    body: new TextEncoder().encode(check.csv),
+    contentType: "text/csv",
+    projectId: input.projectId ?? null,
+    runOfShowId: input.runOfShowId ?? null,
+    talentPoolId: input.talentPoolId ?? null,
+    numberFormat: input.numberFormat ?? null,
+    purchaseOrderId: input.purchaseOrderId ?? null,
+    budgetId: input.budgetId ?? null,
+  });
+}
+
+/** A running order or project a person may import cues or guests into (app.import_destinations, P3). */
+export interface ImportDestination {
+  /** The running order (cues), project (guest list entries) or budget (budget lines). */
+  readonly id: string;
+  readonly projectId: string;
+  /** Project key · name. */
+  readonly label: string;
+  /** The running order's show date (YYYY-MM-DD); null for a project. */
+  readonly showDate: string | null;
+}
+
+/**
+ * The destinations of a target in one org that the caller may import into, newest first, at most 200, plus
+ * `include` when the caller may import into it (a destination preselected from a link). Empty for an org-wide
+ * target.
+ */
+export function listImportDestinations(
+  db: XosClient,
+  input: { orgId: string; targetCode: string; include?: string | null },
+): Promise<Result<ImportDestination[]>> {
+  return rpc(
+    db,
+    "import_destinations",
+    { p_org_id: input.orgId, p_target_code: input.targetCode, p_include: input.include ?? null },
+    (d) =>
+      ((d as Raw[] | null) ?? []).map((r) => ({
+        id: str(r["destination_id"]),
+        projectId: str(r["project_id"]),
+        label: str(r["label"]),
+        showDate: strOrNull(r["show_date"]),
+      })),
+  );
+}
+
+/** A sample cell of a detected column (P3): only for the import's creator, while it is Mapped. */
+export interface ColumnSample {
+  readonly columnId: string;
+  /** Data row 1 to 3, the same for every column. */
+  readonly index: number;
+  readonly value: string;
+}
+
+/** The sample cells of an import's columns for the mapping preview; empty for anyone but its creator. */
+export function importColumnSamples(
+  db: XosClient,
+  importId: string,
+): Promise<Result<ColumnSample[]>> {
+  return rpc(db, "import_column_samples", { p_import_job_id: importId }, (d) =>
+    ((d as Raw[] | null) ?? []).map((r) => ({
+      columnId: str(r["import_job_column_id"]),
+      index: num(r["sample_index"]),
+      value: str(r["sample_value"]),
+    })),
+  );
+}
+
 /** A Google Sheets import: the link the worker reads through the org's Google Drive connection (A83). */
-export interface NewSheetsImport {
+export interface NewSheetsImport extends ImportDestinationInput {
   readonly orgId: string;
   readonly targetCode: string;
   readonly link: string;
@@ -196,6 +345,7 @@ export function createSheetsImport(db: XosClient, input: NewSheetsImport): Promi
         original_filename: `Google Sheets ${id ?? ""}`.trim().slice(0, 255),
         storage_object_path: input.objectPath,
         source_url: input.link.trim(),
+        ...destinationColumns(input),
       })
       .select("id"),
   );
@@ -204,12 +354,19 @@ export function createSheetsImport(db: XosClient, input: NewSheetsImport): Promi
 /** Starts the import of another detected sheet of a read workbook, into a target (app.import_detected_sheet). */
 export function importDetectedSheet(
   db: XosClient,
-  input: { sheetId: string; targetCode: string },
+  input: { sheetId: string; targetCode: string } & ImportDestinationInput,
 ): Promise<Result<string>> {
   return rpc(
     db,
     "import_detected_sheet",
-    { p_sheet_id: input.sheetId, p_target_code: input.targetCode },
+    {
+      p_sheet_id: input.sheetId,
+      p_target_code: input.targetCode,
+      p_project_id: input.projectId ?? null,
+      p_run_of_show_id: input.runOfShowId ?? null,
+      p_purchase_order_id: input.purchaseOrderId ?? null,
+      p_budget_id: input.budgetId ?? null,
+    },
     str,
   );
 }
@@ -254,7 +411,7 @@ export interface ImportColumn {
   readonly fieldName: string | null;
   readonly suggestedFieldName: string | null;
   /** Where the suggestion came from: a saved profile, the Playbook column map or header similarity. */
-  readonly suggestionSource: "Profile" | "Playbook" | "Header" | null;
+  readonly suggestionSource: Database["app"]["Enums"]["import_suggestion_source"] | null;
 }
 
 /** A sheet detection found in the workbook, with the proposed target and the import that reads it, if any. */
@@ -280,6 +437,14 @@ export interface RowIssue {
   readonly state: RowState;
   readonly reason: string | null;
   readonly cells: readonly { columnIndex: number; issue: string }[];
+}
+
+/** Whether the catalogue named a need or order line row (B11, 6537); the person confirms at commit. */
+export interface MaterialRowMatch {
+  readonly rowNumber: number;
+  readonly match: "Matched" | "Unmatched";
+  /** price_currency_differs when the vendor's price is in another currency, so the price stayed blank. */
+  readonly note: string | null;
 }
 
 export interface MergeReview {
@@ -324,6 +489,14 @@ export interface ImportDetail extends ImportSummary {
   readonly sourceUrl: string | null;
   /** Why the worker failed the import before reading it (google_sheet_not_shared and others). */
   readonly failureCode: string | null;
+  /** The project a guest list import writes into (P3). */
+  readonly projectId: string | null;
+  /** The running order a cue import writes into (P3). */
+  readonly runOfShowId: string | null;
+  /** The budget a budget line import writes into (B13). */
+  readonly budgetId: string | null;
+  /** The running order or project, as project key · name, when the caller can read it. */
+  readonly destinationLabel: string | null;
   /** Every sheet of the workbook, listed on the import detection read first. */
   readonly sheets: readonly ImportSheet[];
   /**
@@ -333,6 +506,7 @@ export interface ImportDetail extends ImportSummary {
   readonly scanStatus: UploadScanStatus | null;
   readonly columns: readonly ImportColumn[];
   readonly issues: readonly RowIssue[];
+  readonly materialMatches: readonly MaterialRowMatch[];
   readonly reviews: readonly MergeReview[];
   readonly dryRun: DryRun | null;
   readonly batches: readonly ImportBatch[];
@@ -356,7 +530,7 @@ export async function getImport(db: XosClient, id: string): Promise<Result<Impor
     untyped(db)
       .from("import_jobs")
       .select(
-        "id, target_code, original_filename, import_status, created_at, mapping_confirmed_at, storage_object_path, source, sheet_name, source_url, failure_code, import_job_sheet_id",
+        "id, target_code, original_filename, import_status, created_at, mapping_confirmed_at, storage_object_path, source, sheet_name, source_url, failure_code, import_job_sheet_id, project_id, run_of_show_id, budget_id",
       )
       .eq("id", id)
       .is("deleted_at", null)
@@ -381,7 +555,7 @@ export async function getImport(db: XosClient, id: string): Promise<Result<Impor
       untyped(db)
         .from("import_row_results")
         .select(
-          "id, sheet_name, row_number, row_state, reason, import_batch_id, undo_outcome, undo_reason, import_cell_issues (column_index, issue_code)",
+          "id, sheet_name, row_number, row_state, reason, material_match, match_note, import_batch_id, undo_outcome, undo_reason, import_cell_issues (column_index, issue_code)",
         )
         .eq("import_job_id", id)
         .is("deleted_at", null)
@@ -423,6 +597,13 @@ export async function getImport(db: XosClient, id: string): Promise<Result<Impor
 
   const names = await candidateNames(db, reviews.data);
   if (!names.ok) return names;
+  const destination = await destinationLabel(
+    db,
+    strOrNull(head["project_id"]),
+    strOrNull(head["run_of_show_id"]),
+    strOrNull(head["budget_id"]),
+  );
+  if (!destination.ok) return destination;
   const scan = await uploadScanStatus(db, head);
   if (!scan.ok) return scan;
 
@@ -433,6 +614,10 @@ export async function getImport(db: XosClient, id: string): Promise<Result<Impor
     sheetName: strOrNull(head["sheet_name"]),
     sourceUrl: strOrNull(head["source_url"]),
     failureCode: strOrNull(head["failure_code"]),
+    projectId: strOrNull(head["project_id"]),
+    runOfShowId: strOrNull(head["run_of_show_id"]),
+    budgetId: strOrNull(head["budget_id"]),
+    destinationLabel: destination.data,
     sheets: sheets.data.map((sheet) =>
       sheet.name === strOrNull(head["sheet_name"]) && sheet.importId === null
         ? { ...sheet, importId: id }
@@ -448,12 +633,21 @@ export async function getImport(db: XosClient, id: string): Promise<Result<Impor
       suggestedFieldName: strOrNull(c["suggested_field_name"]),
       suggestionSource: strOrNull(c["suggestion_source"]) as ImportColumn["suggestionSource"],
     })),
+    materialMatches: results.data
+      .filter((r) => r["material_match"] === "Matched" || r["material_match"] === "Unmatched")
+      .map((r) => ({
+        rowNumber: num(r["row_number"]),
+        match: r["material_match"] as "Matched" | "Unmatched",
+        note: strOrNull(r["match_note"]),
+      })),
+    // A written row is listed only when it carries a note, such as a rate left as it was.
     issues: results.data
       .filter(
         (r) =>
           r["row_state"] === "Invalid" ||
           r["row_state"] === "Refused" ||
-          r["row_state"] === "Skipped",
+          r["row_state"] === "Skipped" ||
+          (r["row_state"] === "Written" && strOrNull(r["reason"]) !== null),
       )
       .map((r) => ({
         id: str(r["id"]),
@@ -569,7 +763,56 @@ async function importSheets(
   );
 }
 
-/** Display names of merge candidates, read as the caller: venues by name, counterparties by company. */
+/** The running order or project an import writes into, as project key · name; null when it names none. */
+async function destinationLabel(
+  db: XosClient,
+  projectId: string | null,
+  runOfShowId: string | null,
+  budgetId: string | null = null,
+): Promise<Result<string | null>> {
+  if (budgetId !== null) {
+    const budget = await rows(
+      untyped(db)
+        .from("budgets")
+        .select("name, projects (project_key)")
+        .eq("id", budgetId)
+        .limit(1),
+    );
+    if (!budget.ok) return budget;
+    const head = budget.data[0];
+    if (!head) return ok(null);
+    const key = strOrNull(((head["projects"] as Raw | null) ?? {})["project_key"]);
+    return ok(key ? `${key} · ${str(head["name"])}` : str(head["name"]));
+  }
+  if (runOfShowId !== null) {
+    const run = await rows(
+      untyped(db)
+        .from("run_of_show")
+        .select("name, projects (project_key)")
+        .eq("id", runOfShowId)
+        .limit(1),
+    );
+    if (!run.ok) return run;
+    const head = run.data[0];
+    if (!head) return ok(null);
+    const key = strOrNull(((head["projects"] as Raw | null) ?? {})["project_key"]);
+    return ok(key ? `${key} · ${str(head["name"])}` : str(head["name"]));
+  }
+  if (projectId !== null) {
+    const project = await rows(
+      untyped(db).from("projects").select("project_key, name").eq("id", projectId).limit(1),
+    );
+    if (!project.ok) return project;
+    const head = project.data[0];
+    return ok(head ? `${str(head["project_key"])} · ${str(head["name"])}` : null);
+  }
+  return ok(null);
+}
+
+/**
+ * Display names of merge candidates, read as the caller: venues by name, counterparties by company, guests by name, pool
+ * invitations by the org's label or address (B10), pool members through app.pool_member_names.
+ */
 async function candidateNames(
   db: XosClient,
   reviews: readonly Raw[],
@@ -579,6 +822,43 @@ async function candidateNames(
     reviews.filter((r) => r["candidate_table"] === table).map((r) => str(r["candidate_id"]));
   const venues = ids("app.venues");
   const counterparties = ids("app.counterparties");
+  const guests = ids("app.guest_list_entries");
+  const invitations = ids("app.talent_pool_invitations");
+  const members = ids("app.pool_members");
+  if (invitations.length > 0) {
+    const result = await rows(
+      untyped(db)
+        .from("talent_pool_invitations")
+        .select("id, invitee_name, email")
+        .in("id", invitations),
+    );
+    if (!result.ok) return result;
+    for (const r of result.data) {
+      names.set(
+        str(r["id"]),
+        typeof r["invitee_name"] === "string" ? r["invitee_name"] : str(r["email"]),
+      );
+    }
+  }
+  if (members.length > 0) {
+    const result = await rows(
+      untyped(db)
+        .from("pool_member_names")
+        .select("pool_member_id, full_name")
+        .in("pool_member_id", members),
+    );
+    if (!result.ok) return result;
+    for (const r of result.data) {
+      if (typeof r["full_name"] === "string") names.set(str(r["pool_member_id"]), r["full_name"]);
+    }
+  }
+  if (guests.length > 0) {
+    const result = await rows(
+      untyped(db).from("guest_list_entries").select("id, guest_name").in("id", guests),
+    );
+    if (!result.ok) return result;
+    for (const r of result.data) names.set(str(r["id"]), str(r["guest_name"]));
+  }
   if (venues.length > 0) {
     const result = await rows(untyped(db).from("venues").select("id, name").in("id", venues));
     if (!result.ok) return result;

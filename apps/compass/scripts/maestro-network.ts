@@ -8,7 +8,7 @@
  *   node --experimental-strip-types scripts/maestro-network.ts serve | offline | online
  *
  * `serve` answers POST /offline and POST /online on 127.0.0.1:NETWORK_HELPER_PORT (default 57158) for
- * .maestro/scripts/network.js. Needs SUPABASE_URL (a local stack only) and SUPABASE_PROJECT_ID, the
+ * .maestro/scripts/network.js. Needs SUPABASE_URL (a local stack only) and XOS_SUPABASE_STACK, the
  * project_id in that stack's supabase/config.toml. It refuses a container that does not publish the
  * port in SUPABASE_URL, so it can never stop another stack's gateway.
  */
@@ -25,7 +25,7 @@ const url = env("SUPABASE_URL");
 const local = /^http:\/\/(127\.0\.0\.1|localhost):(\d+)$/.exec(url);
 if (!local) throw new Error("Local stacks only.");
 const port = local[2] ?? "";
-const container = `supabase_kong_${env("SUPABASE_PROJECT_ID")}`;
+const container = `supabase_kong_${env("XOS_SUPABASE_STACK")}`;
 
 function docker(...args: string[]): string {
   return execFileSync("docker", args, { encoding: "utf8" }).trim();

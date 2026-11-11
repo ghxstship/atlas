@@ -10,8 +10,8 @@ import {
   labelClass,
   useFieldId,
 } from "../Field/Field.tsx";
-import { type ColorPickerProps } from "./Editing.types.ts";
-import { contrastRatio } from "./contrastRatio.tsx";
+import { type ColorCheck, type ColorPickerProps } from "./Editing.types.ts";
+import { contrastRatio, overlaid } from "./contrastRatio.tsx";
 
 const HEX = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i;
 
@@ -22,18 +22,33 @@ function expand(hex: string): string {
     : hex.toUpperCase();
 }
 
+/** The ratio of one check for a color: the color as foreground or background, under any overlay. */
+function measure(check: ColorCheck, color: string): number {
+  const fg = check.fgIsValue ? color : (check.fg ?? color);
+  const fill = check.fgIsValue ? (check.bg ?? color) : color;
+  const bg = check.overlay ? overlaid(fill, check.overlay.color, check.overlay.opacity) : fill;
+  return contrastRatio(fg, bg);
+}
+
 /** A tenant color with live WCAG 2.2 AA checks; a color that fails any check cannot be saved. */
-export function ColorPicker({ label, value, checks, onChange }: ColorPickerProps): ReactElement {
+export function ColorPicker({
+  label,
+  value,
+  checks,
+  onChange,
+  disabled,
+  help,
+  error,
+  id: idProp,
+}: ColorPickerProps): ReactElement {
   const t = useT();
-  const id = useFieldId(undefined);
+  const id = useFieldId(idProp);
   const [color, setColor] = useState(value);
   const valid = HEX.test(color);
   const [swatch, setSwatch] = useState(HEX.test(value) ? expand(value) : "");
   const results = valid
     ? checks.map((c) => {
-        const fg = c.fgIsValue ? color : (c.fg ?? color);
-        const bg = c.fgIsValue ? (c.bg ?? color) : color;
-        const r = contrastRatio(fg, bg);
+        const r = measure(c, color);
         return { ...c, ratio: r, pass: r >= (c.min ?? 4.5) };
       })
     : [];
@@ -42,17 +57,7 @@ export function ColorPicker({ label, value, checks, onChange }: ColorPickerProps
     setColor(next);
     const ok = HEX.test(next);
     if (ok) setSwatch(expand(next));
-    onChange?.(
-      next,
-      ok &&
-        checks.every(
-          (c) =>
-            contrastRatio(
-              c.fgIsValue ? next : (c.fg ?? next),
-              c.fgIsValue ? (c.bg ?? next) : next,
-            ) >= (c.min ?? 4.5),
-        ),
-    );
+    onChange?.(next, ok && checks.every((c) => measure(c, next) >= (c.min ?? 4.5)));
   };
   return (
     <div className={cx(fieldClass, "w-(--layout-property-column)")}>
@@ -64,18 +69,27 @@ export function ColorPicker({ label, value, checks, onChange }: ColorPickerProps
           type="color"
           aria-labelledby={`${id}-label`}
           value={swatch}
+          disabled={disabled}
           onChange={(e) => set(e.target.value.toUpperCase())}
-          className="xos-hit h-control-md min-w-control-md p-0 rounded-control border border-border-control bg-transparent cursor-pointer pointer-coarse:min-h-target-coarse pointer-coarse:min-w-target-coarse"
+          className="xos-hit h-control-md min-w-control-md p-0 rounded-control border border-border-control bg-transparent cursor-pointer pointer-coarse:min-h-target-coarse pointer-coarse:min-w-target-coarse disabled:opacity-disabled disabled:cursor-not-allowed"
         />
         <input
+          id={id}
+          spellCheck={false}
           aria-label={t("color.hex", { label })}
-          aria-invalid={valid ? undefined : true}
-          aria-describedby={`${id}-status`}
+          aria-invalid={valid && !error ? undefined : true}
+          aria-describedby={`${id}-status${help ? ` ${id}-help` : ""}`}
           value={color}
-          onChange={(e) => set(e.target.value)}
+          disabled={disabled}
+          onChange={(e) => set(e.target.value.trim())}
           className={cx(controlClass, "flex-1 font-mono")}
         />
       </div>
+      {help ? (
+        <span id={`${id}-help`} className={helpClass}>
+          {help}
+        </span>
+      ) : null}
       <div id={`${id}-status`} aria-live="polite" className="flex flex-col gap-4">
         {valid ? (
           results.map((r) => (
@@ -99,6 +113,12 @@ export function ColorPicker({ label, value, checks, onChange }: ColorPickerProps
           </div>
         )}
         {valid && !allPass ? <span className={helpClass}>{t("color.blocked")}</span> : null}
+        {error ? (
+          <div className={errorClass} role="alert">
+            <Icon name="alert" size={12} />
+            {error}
+          </div>
+        ) : null}
       </div>
     </div>
   );

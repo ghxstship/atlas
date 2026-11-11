@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 import { loadPlanRegistry } from "@xos/schemas/plans";
 import {
   CatalogDriftError,
+  assertModeKey,
   assertTestModeKey,
+  describeKey,
   stripeCatalog,
   syncStripeCatalog,
   type StripeCatalogClient,
@@ -227,19 +229,29 @@ describe("Stripe catalogue setup against a mocked Stripe client", () => {
     });
   });
 
-  it("configures the customer portal to switch between the plan prices it created", async () => {
+  it("configures one customer portal per term, so the portal can switch plans but never the renewal term", async () => {
     const stripe = mockStripe();
     const report = await syncStripeCatalog(stripe.client, registry);
-    expect(report.items.at(-1)).toEqual({
-      kind: "portal_configuration",
-      key: "xos_billing_portal_v1",
-      action: "created",
-    });
-    expect(stripe.portals).toHaveLength(1);
+    expect(report.items.slice(-2)).toEqual([
+      { kind: "portal_configuration", key: "xos_billing_portal_monthly_v1", action: "created" },
+      { kind: "portal_configuration", key: "xos_billing_portal_annual_v1", action: "created" },
+    ]);
+    expect(stripe.portals).toHaveLength(2);
     const idOf = (key: string) => stripe.prices.find((p) => p["lookup_key"] === key)?.["id"];
+    expect(stripe.portals[1]).toMatchObject({
+      name: "XOS annual plans",
+      metadata: { xos_portal: "xos_billing_portal_annual_v1" },
+      features: { subscription_update: { enabled: true } },
+    });
+    const annual = stripe.portals[1] as {
+      features: { subscription_update: { products: { prices: unknown[] }[] } };
+    };
+    expect(annual.features.subscription_update.products.flatMap((p) => p.prices)).toEqual(
+      ["core", "pro", "team"].map((code) => idOf(`xos_plan_${code}_annual_v4`)),
+    );
     expect(stripe.portals[0]).toMatchObject({
-      name: "XOS plans",
-      metadata: { xos_portal: "xos_billing_portal_v1" },
+      name: "XOS monthly plans",
+      metadata: { xos_portal: "xos_billing_portal_monthly_v1" },
       features: {
         payment_method_update: { enabled: true },
         invoice_history: { enabled: true },
@@ -251,7 +263,7 @@ describe("Stripe catalogue setup against a mocked Stripe client", () => {
           trial_update_behavior: "continue_trial",
           products: ["core", "pro", "team"].map((code) => ({
             product: `xos_plan_${code}_v4`,
-            prices: [idOf(`xos_plan_${code}_monthly_v4`), idOf(`xos_plan_${code}_annual_v4`)],
+            prices: [idOf(`xos_plan_${code}_monthly_v4`)],
           })),
         },
       },
@@ -263,14 +275,14 @@ describe("Stripe catalogue setup against a mocked Stripe client", () => {
     await syncStripeCatalog(stripe.client, registry);
     for (const code of stripe.promotionCodes)
       code["promotion"] = { coupon: "xos_founding_customer_v4" };
-    const portal = stripe.portals[0] as { features: { subscription_update: { enabled: boolean } } };
+    const portal = stripe.portals[1] as { features: { subscription_update: { enabled: boolean } } };
     portal.features.subscription_update.enabled = false;
     const dry = await syncStripeCatalog(stripe.client, registry, { dryRun: true });
     expect(dry.items.at(-1)?.action).toBe("would update");
     const report = await syncStripeCatalog(stripe.client, registry);
     expect(report.items.at(-1)?.action).toBe("updated");
-    expect(stripe.writes.at(-1)).toBe("billingPortal.configurations.update bpc_1");
-    expect(stripe.portals).toHaveLength(1);
+    expect(stripe.writes.at(-1)).toBe("billingPortal.configurations.update bpc_2");
+    expect(stripe.portals).toHaveLength(2);
   });
 
   it("is idempotent: a second run writes nothing", async () => {
@@ -383,5 +395,22 @@ describe("test mode key", () => {
     expect(() => assertTestModeKey("")).toThrow(/not set/);
     expect(() => assertTestModeKey("sk_live_abcdefgh123")).toThrow(/not a Stripe test mode key/);
     expect(() => assertTestModeKey("pk_test_abcdefgh123")).toThrow(/not a Stripe test mode key/);
+  });
+
+  it("takes a live key only in live mode, and refuses a test key there", () => {
+    expect(assertModeKey("sk_live_abcdefgh123", "live")).toBe("sk_live_abcdefgh123");
+    expect(() => assertModeKey("sk_test_abcdefgh123", "live")).toThrow(
+      /not a Stripe live mode key/,
+    );
+    expect(() => assertModeKey("sk_live_abcdefgh123", "test")).toThrow(/unless you pass --live/);
+    expect(() => assertModeKey(undefined, "live")).toThrow(/sk_live_/);
+  });
+
+  it("says what a refused key looks like without its secret part", () => {
+    expect(describeKey("pk_live_abcdefgh123")).toBe(
+      "It starts pk_live_ (a publishable key: use the secret key, sk_), is 19 characters long.",
+    );
+    expect(describeKey("sk_live_abc def")).toMatch(/with spaces or line breaks/);
+    expect(() => assertModeKey("sk_test_abcdefgh123", "live")).toThrow(/It starts sk_test_/);
   });
 });

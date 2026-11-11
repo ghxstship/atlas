@@ -21,7 +21,8 @@ export function Dialog({
       {control.trigger ? <RDialog.Trigger asChild>{control.trigger}</RDialog.Trigger> : null}
       <RDialog.Portal>
         <RDialog.Overlay className={scrimClass} />
-        <div className="pointer-events-none fixed inset-0 z-dialog grid place-items-center p-16">
+        {/* One row of minmax(0, 1fr): an auto row would grow to a tall panel, so max-h-full would not hold it to the viewport. */}
+        <div className="pointer-events-none fixed inset-0 z-dialog grid grid-rows-1 place-items-center p-16">
           <RDialog.Content
             onCloseAutoFocus={returnFocus}
             className={cx(

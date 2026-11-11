@@ -14,9 +14,10 @@ import { getOrgContext } from "@/lib/shell/context";
 import { done, failed, invalid, type ActionResult } from "./action-result";
 
 /**
- * Comments and attachments on Schedule, Work and Show rows (Section 19.6), through A18's unified
- * comment system and attachment service (0580, 0590). Only the subject tables A08 owns are accepted;
- * whether the person may read or post is decided by each subject's read policy in the database.
+ * Comments and attachments on Schedule, Work and Show rows (Section 19.6) and on custom object
+ * records (Section 4.6.3), through A18's unified comment system and attachment service (0580, 0590).
+ * Only the subject tables these panels serve are accepted; whether the person may read or post is
+ * decided by each subject's read policy in the database.
  */
 
 const SUBJECT_TABLES = [
@@ -27,6 +28,7 @@ const SUBJECT_TABLES = [
   "app.day_sheets",
   "app.call_sheets",
   "app.schedule_baselines",
+  "app.custom_object_records",
 ] as const;
 
 const subjectSchema = z.object({ table: z.enum(SUBJECT_TABLES), id: z.uuid() });

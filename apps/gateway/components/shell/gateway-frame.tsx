@@ -4,12 +4,14 @@ import {
   BrandMark,
   IconButton,
   Avatar,
+  LiveProvider,
   PreferencesProvider,
   TabBar,
   TemplateGatewayShell,
   TopNav,
   type NavItem,
 } from "@xos/ui";
+import { undoStack } from "@xos/ui/undo";
 import type { Route } from "next";
 import NextLink from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -24,13 +26,17 @@ import {
   type ReactNode,
 } from "react";
 import { HelpEntry } from "@/components/help/help-entry";
+import { gatewayLiveSource } from "@/components/live/live-source";
+import { UndoCenter } from "@/components/undo/undo-center";
 import {
   applyDocumentAttributes,
   decodePreferences,
   preferencesCookie,
   singleKeyShortcutsEnabled,
 } from "@xos/ui/preferences";
+import type { GatewayKeys } from "@/lib/shell/shell-keys";
 import type { ThemePreference } from "@/lib/theme";
+import { installLetterKeys, type LetterState } from "./letter-keys";
 import { onDemand, useOnDemand } from "./on-demand";
 import { broadcast, SessionWatcher } from "./session-watcher";
 
@@ -53,6 +59,11 @@ export interface FrameAvatarEntry {
   readonly action?: "switch-org" | "help" | "sign-out";
 }
 
+export interface GatewayLensOptions {
+  readonly current: string | null;
+  readonly roles: readonly { readonly id: string; readonly label: string }[];
+}
+
 export interface GatewayFrameProps {
   readonly brandName: string;
   readonly showPoweredBy: boolean;
@@ -69,6 +80,8 @@ export interface GatewayFrameProps {
   }[];
   readonly actingId: string | null;
   readonly orgs: readonly { readonly id: string; readonly name: string }[];
+  /** The role lens the switcher offers (A128): the person's role types and the one chosen, null for All roles. */
+  readonly lens: GatewayLensOptions;
   readonly theme: ThemePreference;
   readonly locale: string;
   readonly locales: readonly string[];
@@ -80,6 +93,8 @@ export interface GatewayFrameProps {
   readonly viewerTimeZone?: string | null;
   /** The docs site origin (DOCS_SITE_URL), on the platform brand only; null hides its links. */
   readonly docsUrl: string | null;
+  /** The person's letter shortcuts from the registry (lib/shell/shell-keys.ts). */
+  readonly keys: GatewayKeys;
   readonly children: ReactNode;
 }
 
@@ -97,8 +112,11 @@ function activeLabel(links: readonly FrameLink[], pathname: string): string {
  * The Gateway shell (Section 11.6, Gateway shell; Section 4.5.8): the org or platform brand, the five
  * destinations in the top bar on desktop and the bottom tab bar on phones, search (Cmd or Ctrl+K),
  * help (the Help button, the avatar menu's Help and the `?` key open the contextual help panel,
- * Section 11.16), and the account panel with the avatar menu, the acting account, theme and
- * language. Every destination comes from ia/sitemap.yaml through the server-built navigation model.
+ * Section 11.16), undo and redo (Cmd or Ctrl+Z and Shift+Cmd or Ctrl+Z, over the tab's undo
+ * stack, Section 11.7), G then a letter for each destination and keys for the account panel and
+ * the organization switcher from the shortcut registry, live updates for the lists on the page,
+ * and the account panel with the avatar menu, the acting account, theme and language. Every
+ * destination comes from ia/sitemap.yaml through the server-built navigation model.
  * Search, the account panel and the organization switcher (shell-overlays.tsx) load on first use;
  * pointing at or focusing the header fetches them early. Help loads its own panel (HelpEntry).
  */
@@ -150,11 +168,35 @@ export function GatewayFrame(props: GatewayFrameProps) {
         // The command menu's own Cmd or Ctrl+K arrives with its module, so the frame owns it.
         event.preventDefault();
         setCommandOpen((open) => !open);
+      } else if (
+        (event.metaKey || event.ctrlKey) &&
+        !event.altKey &&
+        event.key.toLowerCase() === "z" &&
+        !typing
+      ) {
+        // Undo and redo over the tab's stack; inside a field the keys stay the field's own.
+        event.preventDefault();
+        void (event.shiftKey ? undoStack.redo() : undoStack.undo());
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
+
+  // G then a letter goes to a destination, and single letters open the account panel or the
+  // organization switcher, from the registry keys the server sent (letter-keys.ts, Section 11.2).
+  const letters = useRef<LetterState>({ keys: props.keys, go, command: () => undefined });
+  useEffect(() => {
+    letters.current = {
+      keys: props.keys,
+      go,
+      command: (id) => {
+        if (id === "account") setAccountOpen(true);
+        else if (id === "switch-org") setSwitchOpen(true);
+      },
+    };
+  }, [props.keys, go]);
+  useEffect(() => installLetterKeys(letters), []);
 
   // Settings changed in Atlas, Compass or Gateway settings reach this device: apply them now and keep the
   // cookie in step, so the next page renders with them (A65-001).
@@ -258,7 +300,7 @@ export function GatewayFrame(props: GatewayFrameProps) {
             preferences={displayPreferences}
             timeZone={props.viewerTimeZone ?? null}
           >
-            {props.children}
+            <LiveProvider source={gatewayLiveSource}>{props.children}</LiveProvider>
           </PreferencesProvider>
         </div>
         {props.showPoweredBy ? (
@@ -284,6 +326,7 @@ export function GatewayFrame(props: GatewayFrameProps) {
           accounts={props.accounts}
           actingId={props.actingId}
           orgs={props.orgs}
+          lens={props.lens}
           theme={props.theme}
           locale={props.locale}
           locales={props.locales}
@@ -292,7 +335,13 @@ export function GatewayFrame(props: GatewayFrameProps) {
         />
       ) : null}
 
-      <HelpEntry open={helpOpen} onOpenChange={setHelpOpen} docsUrl={props.docsUrl} />
+      <HelpEntry
+        open={helpOpen}
+        onOpenChange={setHelpOpen}
+        docsUrl={props.docsUrl}
+        shortcuts={props.keys.shown}
+      />
+      <UndoCenter />
 
       <form ref={signOutForm} method="post" action="/auth/sign-out" className="hidden" />
       <SessionWatcher email={props.email} />

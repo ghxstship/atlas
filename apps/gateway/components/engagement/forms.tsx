@@ -1,8 +1,10 @@
 "use client";
 
+import { emitWorkflow } from "@xos/data/workflow-signal";
 import { Button, Checkbox, InlineAlert, Input, Textarea } from "@xos/ui";
+import { useActionOutcome } from "@xos/ui/pwa/action-outcome";
 import { useTranslations } from "next-intl";
-import { useActionState, useEffect, useRef, useState, type ReactNode } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { OutcomeAlert } from "@/components/actions/action-button";
 import {
@@ -16,6 +18,7 @@ import {
   answerAdvanceAction,
   decideApprovalAction,
   openThreadAction,
+  respondSubmittalAction,
   submitDeliverableAction,
   submitInvoiceAction,
   submitTaxFormAction,
@@ -24,71 +27,21 @@ import {
 } from "@/lib/actions/operations";
 
 import { keepInputOnSubmit } from "@/components/forms/keep-input";
-type Translate = (key: string, values?: Record<string, string | number>) => string;
+import type { Database } from "@xos/data/database.types";
+import * as enums from "@xos/data/enums";
+import { FormShell, useCopy } from "./form-shell";
 
-export function useCopy(): Translate {
-  return useTranslations("gateway.engagement.forms") as unknown as Translate;
-}
+// The shared form chrome lives in its own module, so a screen that needs only it (Settings' team invite) does not
+// carry every engagement form; these re-exports keep the existing imports working.
+export { FormShell, useCopy };
 
-/** Shared form chrome: field and outcome errors, a success line, refresh on success. */
-export function FormShell({
-  state,
-  pending,
-  submitLabel,
-  doneLabel,
-  children,
-  action,
-  label,
-  row = false,
-}: {
-  state: FormResult;
-  pending: boolean;
-  submitLabel: string;
-  doneLabel: string;
-  children: ReactNode;
-  action: (form: FormData) => void;
-  label: string;
-  /** One of several forms in a list (an answer per section, a decision per row): its submit is
-   *  secondary, so the screen keeps one primary action (Section 11.10; finding A59-029). */
-  row?: boolean;
-}) {
-  const t = useCopy();
-  const router = useRouter();
-  useEffect(() => {
-    if (state.done) router.refresh();
-  }, [state.done, router]);
-  if (state.done)
-    return (
-      <p role="status" className="m-0 text-text-13 text-success-text">
-        {doneLabel}
-      </p>
-    );
-  return (
-    <form
-      action={action}
-      onSubmit={keepInputOnSubmit(action)}
-      className="flex w-full flex-col gap-12"
-      aria-label={label}
-    >
-      {state.fieldError ? (
-        <InlineAlert tone="danger">{t(`errors.${state.fieldError}`)}</InlineAlert>
-      ) : null}
-      <OutcomeAlert outcome={state.outcome} />
-      {children}
-      <div>
-        <Button
-          type="submit"
-          variant={row ? "secondary" : "primary"}
-          size="sm"
-          disabled={pending}
-          aria-busy={pending}
-        >
-          {submitLabel}
-        </Button>
-      </div>
-    </form>
-  );
-}
+// Workflow funnel signals (A146): a submitted invoice completes Get paid, an uploaded item is Onboard's step, and a
+// sent reply completes Communicate. An uploaded item can leave its list with the result, so the tabs that list them
+// wrap the rows in an ActionOutcomeScope.
+const done = (s: FormResult) => s.done === true;
+const invoiced = () => emitWorkflow("gateway.get_paid:done");
+const uploaded = () => emitWorkflow("gateway.onboard:step1");
+const replied = () => emitWorkflow("gateway.communicate:done");
 
 export function AdvanceAnswerForm(props: {
   recipientId: string;
@@ -124,7 +77,8 @@ export function AdvanceAnswerForm(props: {
 export function ApprovalForm(props: { requestId: string; subject: string }) {
   const t = useCopy();
   const [state, action, pending] = useActionState<FormResult, FormData>(decideApprovalAction, {});
-  const [decision, setDecision] = useState<"Approved" | "Rejected">("Approved");
+  const [decision, setDecision] =
+    useState<Database["app"]["Enums"]["approval_decision"]>("Approved");
   return (
     <FormShell
       row
@@ -139,7 +93,7 @@ export function ApprovalForm(props: { requestId: string; subject: string }) {
       <input type="hidden" name="decision" value={decision} />
       <fieldset className="m-0 flex flex-wrap gap-8 border-0 p-0">
         <legend className="sr-only">{t("approval.decision")}</legend>
-        {(["Approved", "Rejected"] as const).map((d) => (
+        {enums.approvalDecision.map((d) => (
           <Button
             key={d}
             type="button"
@@ -222,6 +176,7 @@ export function InvoiceForm(props: {
 }) {
   const t = useCopy();
   const [state, action, pending] = useActionState<FormResult, FormData>(submitInvoiceAction, {});
+  useActionOutcome(state, pending, done, invoiced);
   const [lines, setLines] = useState([0]);
   const [next, setNext] = useState(1);
   return (
@@ -229,6 +184,7 @@ export function InvoiceForm(props: {
       state={state}
       pending={pending}
       action={action}
+      submitSignal="gateway.get_paid:step1"
       submitLabel={t("invoice.submit")}
       doneLabel={t("invoice.done")}
       label={t("invoice.title")}
@@ -328,6 +284,7 @@ export function OnboardingUploadForm(props: {
 }) {
   const t = useCopy();
   const [state, action, pending] = useActionState<FormResult, FormData>(uploadOnboardingAction, {});
+  useActionOutcome(state, pending, done, uploaded);
   return (
     <FormShell
       row
@@ -354,6 +311,40 @@ export function OnboardingUploadForm(props: {
         />
         <span className="text-text-12 text-text-secondary">{t("upload.help")}</span>
       </label>
+    </FormShell>
+  );
+}
+
+/** The vendor's submission of a Proposed submittal, or resubmission of a Returned one (R2). */
+export function SubmittalResponseForm(props: {
+  submittalId: string;
+  title: string;
+  expected: "Proposed" | "Returned";
+}) {
+  const t = useTranslations("gateway.engagement.submittals");
+  const [state, action, pending] = useActionState<FormResult, FormData>(respondSubmittalAction, {});
+  return (
+    <FormShell
+      row
+      state={state}
+      pending={pending}
+      action={action}
+      submitLabel={props.expected === "Returned" ? t("resubmit") : t("submit")}
+      doneLabel={t("done")}
+      label={props.title}
+    >
+      <input type="hidden" name="submittalId" value={props.submittalId} />
+      <input type="hidden" name="expected" value={props.expected} />
+      <Textarea
+        id={`submittal-${props.submittalId}`}
+        name="note"
+        required
+        maxLength={500}
+        rows={2}
+        width="100%"
+        label={t("note")}
+        help={t("noteHelp")}
+      />
     </FormShell>
   );
 }
@@ -437,6 +428,7 @@ export function MessageComposer(props: { threadId: string; action?: "engagement"
     sendMessageAction,
     {},
   );
+  useActionOutcome(state, pending, (s) => s.sent !== undefined, replied);
   useEffect(() => {
     if (state.sent) {
       ref.current?.reset();
@@ -450,6 +442,7 @@ export function MessageComposer(props: { threadId: string; action?: "engagement"
       onSubmit={keepInputOnSubmit(action)}
       className="flex flex-col gap-8"
       aria-label={t("message.label")}
+      data-workflow="gateway.communicate:step1"
     >
       <OutcomeAlert outcome={state.outcome} />
       <input type="hidden" name="threadId" value={props.threadId} />

@@ -1,0 +1,41 @@
+# Fly.io app for clamd behind mutual TLS (infra/scanning/fly/README.md). The owner creates the app and its volume,
+# sets the three XOS_CLAMD_TLS_* secrets and deploys; nothing here holds a secret.
+app = "xos-clamav"
+primary_region = "iad" # Ashburn, next to the Supabase project in AWS US East
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  # clamd answers on loopback only; stunnel (port 3311) is the one way in.
+  CLAMD_CONF_TCPAddr = "127.0.0.1"
+  CLAMD_CONF_TCPSocket = "3310"
+  # The largest upload bucket accepts 50 MiB.
+  CLAMD_CONF_StreamMaxLength = "60M"
+  CLAMD_CONF_MaxScanSize = "150M"
+  CLAMD_CONF_MaxFileSize = "60M"
+
+[[mounts]]
+  source = "clamav_signatures"
+  destination = "/var/lib/clamav"
+
+[[services]]
+  internal_port = 3311
+  protocol = "tcp"
+  auto_stop_machines = "off"
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [[services.ports]]
+    port = 3311
+
+  [[services.tcp_checks]]
+    interval = "30s"
+    timeout = "5s"
+    # The first start downloads the signature database, which takes a few minutes.
+    grace_period = "10m"
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 2
+  memory = "4gb"

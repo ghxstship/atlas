@@ -23,7 +23,7 @@ export {
 export {
   MAX_ADDON_QUANTITY,
   MAX_EXTRA_SEATS,
-  PORTAL_CONFIGURATION_KEY,
+  PORTAL_CONFIGURATION_KEYS,
   PriceNotFoundError,
   createAddonCheckoutSession,
   createCheckoutSession,
@@ -52,6 +52,17 @@ export {
   type StripeWebhookRequest,
   type WebhookOutcome,
 } from "./billing/webhook.ts";
+export { stripeCancellationStore } from "./billing/cancel-store.ts";
+export {
+  runStripeCancellations,
+  sendStripeCancel,
+  stripeStatusEnded,
+  type BillingAlert,
+  type BillingAlertSink,
+  type StripeCancelJob,
+  type StripeCancellationRun,
+  type StripeCancellationStore,
+} from "./billing/cancel.ts";
 export { signWebhook, verifyWebhook, type VerifyOptions } from "./webhooks/signing.ts";
 export {
   dispatchWebhooks,
@@ -99,6 +110,10 @@ export {
   dispatchPush,
   expoPushClient,
   outcomeOf,
+  ENGAGEMENT_OFFER_CATEGORY,
+  MESSAGE_REPLY_CATEGORY,
+  SHIFT_OFFER_CATEGORY,
+  pushCategoryFor,
   pushEnvSchema,
   pushMessage,
   readPushEnv,
@@ -119,6 +134,16 @@ export {
   type WebPushStore,
   webPushPayload,
 } from "./notifications/push.ts";
+export {
+  ACTION_PATH,
+  ACTION_TOKEN,
+  actionLinks,
+  actionPath,
+  isActionToken,
+  type ActionAudience,
+  type ActionLinkBases,
+  type MintedAction,
+} from "./notifications/action-links.ts";
 export {
   RecordingWebPushClient,
   WEB_PUSH_MAX_PAYLOAD,
@@ -207,19 +232,46 @@ export {
   type SmsStoreOptions,
 } from "./notifications/stores.ts";
 export {
+  MAX_INBOUND_BODY_CHARS,
+  MAX_MESSAGE_ID_BYTES,
+  inboundMessageId,
   localPartFor,
+  postgresText,
   receiveInbound,
   stripQuotedText,
   type InboundMessage,
   type InboundStore,
 } from "./inbound/parse.ts";
 export {
+  INBOUND_MAIL_BUCKET,
+  MAX_RAW_MESSAGE_BYTES,
+  RESEND_API_URL,
+  SIGNATURE_TOLERANCE_SECONDS,
+  fetchReceivedEmail,
+  htmlToText,
+  inboundOrgs,
+  parseResendEvent,
+  receiveResendEmail,
+  storageRawMailStore,
+  verifyResendSignature,
+  type InboundOrgs,
+  type RawMailStore,
+  type ResendInboundDeps,
+  type ResendInboundOutcome,
+  type ResendReceivedEmail,
+  type ResendReceivedEvent,
+  type ResendSignatureHeaders,
+} from "./inbound/resend.ts";
+export { billingStore } from "./billing/store.ts";
+export {
   PUNCH_KINDS,
   PlatformDbError,
-  billingStore,
   inboundStore,
+  isPlatformEmailKind,
   kioskPunch,
   gatewayLink,
+  mailbox,
+  mailboxAddress,
   notificationStore,
   recipientProfile,
   restDb,
@@ -280,6 +332,7 @@ export {
 export { scanStore, supabaseStorage } from "./scanning/stores.ts";
 export {
   buildPkpass,
+  passImages,
   passJson,
   readAppleWalletEnv,
   unconfiguredPassSigner,
@@ -287,6 +340,7 @@ export {
   type ApplePassConfig,
   type AppleSignerKeys,
   type AppleWalletEnv,
+  type PassFile,
   type PassSigner,
   type WalletLabels,
   type WalletPass,
@@ -303,22 +357,53 @@ export {
   type JwtSigner,
 } from "./wallet/google.ts";
 export {
+  APPLE_ID_ORIGIN,
+  CLIENT_SECRET_SECONDS,
+  appleClientSecret,
+  appleRevokeResponse,
+  callerAppleSubjectLoader,
+  identityTokenSubject,
+  parseAppleRevokeRequest,
+  readAppleRevokeEnv,
+  unconfiguredAppleSigner,
+  webCryptoEs256Signer,
+  type AppleRevokeConfig,
+  type AppleRevokeDeps,
+  type AppleRevokeEnv,
+  type AppleRevokeRequest,
+  type AppleRevokeResponse,
+  type AppleSecretSigner,
+} from "./apple-sign-in/revoke.ts";
+export {
   PKPASS_TYPE,
   callerPassLoader,
   parseWalletRequest,
   passFromRow,
+  publicBrandLogo,
   walletPassResponse,
+  type BrandLogo,
   type WalletDeps,
   type WalletRequest,
   type WalletResponse,
 } from "./wallet/handler.ts";
 export {
   CLAMAV_DEFAULT_PORT,
+  clamdTls,
   isLocalDevelopment,
   passThroughScanner,
   scannerChoice,
   selectVirusScanner,
+  type ClamdTls,
   type ScannerChoice,
   type ScannerEnv,
   type SelectedScanner,
 } from "./scanning/select.ts";
+export {
+  importProjectSigningKey,
+  projectTokenSigner,
+  ProjectSigningKeyError,
+  signProjectToken,
+  type ProjectSigningKey,
+  type ProjectTokenClaims,
+  type ProjectTokenSigner,
+} from "./jwt/project-token.ts";

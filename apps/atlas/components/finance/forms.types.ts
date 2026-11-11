@@ -4,6 +4,12 @@ import { type Option } from "./kit.types";
 
 export interface LineOption extends Option {
   readonly currency: string;
+  readonly projectId: string;
+}
+
+/** A live engagement an expense can name, on its project (6547). */
+export interface ActOption extends Option {
+  readonly projectId: string;
 }
 
 // Change orders ------------------------------------------------------------------------------------

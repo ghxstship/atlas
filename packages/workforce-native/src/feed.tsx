@@ -7,12 +7,14 @@ import {
   type Poll,
 } from "@xos/data/workforce-feed";
 import {
+  ContentActionsButton,
   Empty,
   Stack,
   WorkforceFrame,
   defined,
   useActionRunner,
   type Action,
+  type ContentActions,
   type FrameLabels,
   type ScreenStatus,
 } from "./shared.tsx";
@@ -49,6 +51,10 @@ export interface FeedScreenProps {
   readonly onOpenComments?: (postId: string) => void;
   /** The empty state's action, such as opening notification settings. */
   readonly onEmptyAction?: () => void;
+  /** Report and block on posts by someone else (ADR 0033 decision 57); absent, no post shows the button. */
+  readonly contentActions?: ContentActions;
+  /** The viewer's memberships: their own posts offer no report or block. */
+  readonly myMembershipIds?: readonly string[];
   readonly refreshing?: boolean;
   readonly onRefresh?: () => void;
   readonly onRetry?: () => void;
@@ -118,6 +124,8 @@ export function FeedScreen({
   onVote,
   onOpenComments,
   onEmptyAction,
+  contentActions,
+  myMembershipIds = [],
   refreshing,
   onRefresh,
   onRetry,
@@ -140,6 +148,21 @@ export function FeedScreen({
             key={post.id}
             title={post.title ?? labels.kinds[post.kind]}
             meta={labels.byline(post.authorName, post.publishAt)}
+            footer={
+              contentActions !== undefined &&
+              (post.authorMembershipId === null ||
+                !myMembershipIds.includes(post.authorMembershipId)) ? (
+                <ContentActionsButton
+                  actions={contentActions}
+                  target={{
+                    kind: "Feed Post",
+                    id: post.id,
+                    authorMembershipId: post.authorMembershipId,
+                    authorName: post.authorName,
+                  }}
+                />
+              ) : undefined
+            }
           >
             <Stack>
               <Stack row>

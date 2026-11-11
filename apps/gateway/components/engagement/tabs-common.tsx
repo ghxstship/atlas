@@ -1,17 +1,30 @@
+import { listMyIntakeRequests } from "@xos/data/vendor-intake";
+import { submitIntakeInvoiceAction } from "@/lib/actions/intake";
 import { addCalendarDays } from "@xos/data/calendar";
+import { workflowMarker } from "@xos/data/workflow-signal";
+import { ActionOutcomeScope } from "@xos/ui/pwa/action-outcome";
+import { QuoteSignButton } from "./quote-sign-button";
 import {
   APP_ENUMS,
+  listDocumentTexts,
   listEngagementDocuments,
   listMessages,
   listOnboardingItems,
   listThreads,
   onboardingStanding,
   readView,
+  type DocumentText,
+  type EngagementDocument,
   type EngagementDocumentKind,
+  type OnboardingItem,
+  listEngagementQuoteVersions,
+  type EngagementQuoteVersion,
 } from "@xos/data/gateway";
 import { ActionButton } from "@/components/actions/action-button";
 import { RegionError, Section } from "@/components/page/page";
+import { DocumentTextPanel } from "./document-text";
 import {
+  ButtonLink,
   Card,
   EngagementTimeline,
   InlineAlert,
@@ -23,9 +36,11 @@ import { PaymentSteps } from "./payment-steps";
 import { signDocumentAction, submitOnboardingItemAction } from "@/lib/actions/engagement";
 import { agreeSelfBillingAction, revokeSelfBillingAction } from "@/lib/actions/operations";
 import { hasArea, tabHref } from "@/lib/engagement";
+import { onRoster } from "@/lib/roster-member";
 import { engagementTitle, overviewRows, type OverviewRow } from "@/lib/engagement-state";
 import { formatDate, formatDateRange, formatDateTime, formatMoney } from "@/lib/format";
 import { enumLabelKey } from "@/lib/shell/translate";
+import { signsInOneClick } from "@/lib/documents/links";
 import { toneFor } from "@/lib/states";
 import {
   InvoiceForm,
@@ -36,6 +51,12 @@ import {
   TaxFormForm,
 } from "./forms";
 import { AreaClosed, RowList, TabEmpty } from "./rows";
+import { AccountTeamSection } from "./tabs-roster";
+import {
+  AssignedToYouSection,
+  RosterMemberDocuments,
+  RosterMemberOverview,
+} from "./tabs-roster-member";
 import type { TabProps } from "./tab-context";
 import { DocumentActions } from "@/components/documents/document-actions";
 import { MySharingPanel } from "@/components/settings/work-details";
@@ -52,6 +73,10 @@ const STAGE_FOR_STATE: Record<string, number> = {
 };
 
 export async function OverviewTab({ view, t, locale, engagementKey }: TabProps) {
+  // A person on the party's roster sees their own call, parking, gear and items (R8).
+  if (onRoster(view)) {
+    return <RosterMemberOverview view={view} t={t} locale={locale} engagementKey={engagementKey} />;
+  }
   const e = view.engagement;
   const rows = overviewRows(view.roleType);
   const [documents, onboarding, given, approvals, entitlements] = await Promise.all([
@@ -116,11 +141,25 @@ export async function OverviewTab({ view, t, locale, engagementKey }: TabProps) 
     ? onboarding.data.filter((i) => onboardingStanding(i, today) !== "verified")
     : [];
   const rated = given.ok && given.data.length > 0;
+  // A role type without an Onboarding tab files its documents and certificates here; vendors file
+  // theirs on Compliance (R2).
+  const uploads =
+    !view.tabs.includes("engagement.onboarding") && e.roleType !== "Vendor"
+      ? open.filter((i) => isUpload(i) && canUpload(i, today))
+      : [];
   return (
     <div className="grid grid-cols-[minmax(0,1fr)_var(--layout-property-column)] gap-24 max-lg:grid-cols-[minmax(0,1fr)]">
       <div className="flex min-w-0 flex-col gap-16">
         {e.state === "Blocked" ? (
-          <InlineAlert tone="warning">{t("gateway.engagement.overview.blocked")}</InlineAlert>
+          <InlineAlert tone="warning">
+            {t(
+              {
+                "engagement.onboarding": "gateway.engagement.overview.blocked",
+                "engagement.compliance": "gateway.engagement.overview.blockedCompliance",
+                "engagement.overview": "gateway.engagement.overview.blockedHere",
+              }[onboardingTab(view)] ?? "gateway.engagement.overview.blockedHere",
+            )}
+          </InlineAlert>
         ) : null}
         {toSign.length > 0 || open.length > 0 ? (
           <Section title={t("gateway.engagement.overview.next")}>
@@ -131,14 +170,19 @@ export async function OverviewTab({ view, t, locale, engagementKey }: TabProps) 
                   id: d.id,
                   title: t("gateway.home.needsYou.sign", { title: d.title }),
                   meta: [t(enumLabelKey("engagementDocumentKind", d.kind))],
-                  action: (
-                    <ActionButton
-                      action={signDocumentAction.bind(null, d.id)}
-                      label={t("gateway.common.sign")}
-                      variant="secondary"
-                      done={t("gateway.common.signed")}
-                    />
-                  ),
+                  // A quote is signed from the Documents tab, after its total and consent are shown.
+                  ...(signsInOneClick(d)
+                    ? {
+                        action: (
+                          <ActionButton
+                            action={signDocumentAction.bind(null, d.id)}
+                            label={t("gateway.common.sign")}
+                            variant="secondary"
+                            done={t("gateway.common.signed")}
+                          />
+                        ),
+                      }
+                    : { href: tabHref(engagementKey, "engagement.documents") }),
                 })),
                 ...(open.length > 0
                   ? [
@@ -153,12 +197,7 @@ export async function OverviewTab({ view, t, locale, engagementKey }: TabProps) 
                             n: open.filter((i) => i.blocking).length,
                           }),
                         ],
-                        href: tabHref(
-                          engagementKey,
-                          view.tabs.includes("engagement.onboarding")
-                            ? "engagement.onboarding"
-                            : "engagement.overview",
-                        ),
+                        href: tabHref(engagementKey, onboardingTab(view)),
                       },
                     ]
                   : []),
@@ -166,12 +205,43 @@ export async function OverviewTab({ view, t, locale, engagementKey }: TabProps) 
             />
           </Section>
         ) : null}
+        {/* An uploaded item leaves the list, and its form with it, in the commit that brings the result; the scope
+            stays to hear of it (funnel signals, A146). */}
+        <ActionOutcomeScope token={uploads.map((i) => i.id).join(",")}>
+          {uploads.length > 0 ? (
+            <Section title={t("gateway.engagement.overview.uploads")}>
+              <RowList
+                label={t("gateway.engagement.overview.uploads")}
+                items={uploads.map((i) => ({
+                  id: i.id,
+                  title: i.name,
+                  meta: [
+                    t(enumLabelKey("onboardingItemKind", i.kind)),
+                    i.blocking ? t("gateway.engagement.onboarding.blocking") : null,
+                  ],
+                  detail: (
+                    <OnboardingUploadForm
+                      orgId={e.orgId}
+                      engagementId={e.id}
+                      itemId={i.id}
+                      name={i.name}
+                    />
+                  ),
+                }))}
+              />
+            </Section>
+          ) : null}
+        </ActionOutcomeScope>
         <Section title={t("gateway.engagement.overview.stages")}>
           <EngagementTimeline
             current={STAGE_FOR_STATE[e.state] ?? 0}
             stages={STAGE_KEYS.map((k) => ({ label: t(`gateway.engagement.overview.stage.${k}`) }))}
           />
         </Section>
+        {/* What is assigned to the viewer on their own roster entry, such as a self entry (R8). */}
+        <AssignedToYouSection view={view} t={t} locale={locale} />
+        {/* The account's assigned members (R4): only its Owner and Admin see this. */}
+        <AccountTeamSection view={view} t={t} />
         {/* Work Details shared with this engagement, with consent (A78); only the engaged person sees it. */}
         <MySharingPanel ctx={view.ctx} engagementId={e.id} />
         {e.state === "Complete" ? (
@@ -193,6 +263,25 @@ export async function OverviewTab({ view, t, locale, engagementKey }: TabProps) 
   );
 }
 
+/** Onboarding items the party completes with a file: documents and certificates. */
+export function isUpload(item: OnboardingItem): boolean {
+  return item.kind === "Document Upload" || item.kind === "Certification";
+}
+
+/** An item still waiting for its file, or whose file has expired. */
+export function canUpload(item: OnboardingItem, today: string): boolean {
+  const standing = onboardingStanding(item, today);
+  return standing === "todo" || standing === "expired";
+}
+
+/** Where the party finishes onboarding: its Onboarding tab, a vendor's Compliance, else the Overview. */
+function onboardingTab(view: TabProps["view"]): string {
+  if (view.tabs.includes("engagement.onboarding")) return "engagement.onboarding";
+  if (view.engagement.roleType === "Vendor" && view.tabs.includes("engagement.compliance"))
+    return "engagement.compliance";
+  return "engagement.overview";
+}
+
 const OFFER_KINDS: readonly EngagementDocumentKind[] = [
   "Offer",
   "Agreement",
@@ -208,9 +297,27 @@ export async function DocumentsTab({
   engagementKey,
   kinds,
 }: TabProps & { kinds?: readonly EngagementDocumentKind[] }) {
-  const docs = await listEngagementDocuments(view.ctx.db, view.engagement.id);
-  if (!docs.ok) return <RegionError />;
+  // A person on the party's roster keeps their own documents and certifications here (R8).
+  if (onRoster(view)) {
+    return (
+      <RosterMemberDocuments view={view} t={t} locale={locale} engagementKey={engagementKey} />
+    );
+  }
+  const [docs, texts] = await Promise.all([
+    listEngagementDocuments(view.ctx.db, view.engagement.id),
+    listDocumentTexts(view.ctx.db, view.engagement.id),
+  ]);
+  if (!docs.ok || !texts.ok) return <RegionError />;
+  const textOf = new Map(texts.data.map((x) => [x.documentId, x]));
   const shown = kinds ? docs.data.filter((d) => kinds.includes(d.kind)) : docs.data;
+  // A Quote document's PDF and confirmation read its version (api_external.quote_versions).
+  const quotes = shown.some((d) => d.kind === "Quote")
+    ? await listEngagementQuoteVersions(
+        view.ctx.db,
+        shown.map((d) => d.id),
+      )
+    : null;
+  const quoteOf = new Map((quotes?.ok ? quotes.data : []).map((q) => [q.engagementDocumentId, q]));
   if (shown.length === 0) {
     return (
       <TabEmpty
@@ -236,20 +343,100 @@ export async function DocumentsTab({
             : null,
         ],
         tag: { label: t(enumLabelKey("engagementDocumentState", d.state)), tone: toneFor(d.state) },
-        ...(d.state === "Sent"
+        ...(d.kind === "Quote" && quoteOf.get(d.id)
           ? {
               action: (
-                <ActionButton
-                  action={signDocumentAction.bind(null, d.id)}
-                  label={t("gateway.common.sign")}
-                  variant="secondary"
-                  done={t("gateway.common.signed")}
+                <QuoteDocumentActions
+                  quote={quoteOf.get(d.id) as EngagementQuoteVersion}
+                  documentId={d.id}
+                  engagementKey={engagementKey}
+                  canSign={d.state === "Sent"}
+                  total={
+                    formatMoney(
+                      locale,
+                      quoteOf.get(d.id)?.totalMinor ?? null,
+                      quoteOf.get(d.id)?.currency ?? "USD",
+                    ) ?? ""
+                  }
+                  validUntil={formatDate(locale, quoteOf.get(d.id)?.validUntil ?? "")}
                 />
               ),
             }
-          : {}),
+          : // A generated document is read in full and signed with the hash of what was read (B10), never with one button.
+            documentAnswer(d, textOf.get(d.id), { t, engagementKey })),
       }))}
     />
+  );
+}
+
+function documentAnswer(
+  d: EngagementDocument,
+  text: DocumentText | undefined,
+  { t, engagementKey }: { t: TabProps["t"]; engagementKey: string },
+) {
+  if (text) {
+    if (text.bodyMasked || text.body === null || text.bodySha256 === null) {
+      return {
+        detail: (
+          <p className="m-0 text-text-13 text-text-secondary">
+            {t("gateway.documents.readAndSign.masked")}
+          </p>
+        ),
+      };
+    }
+    return {
+      detail: (
+        <div className="flex flex-col gap-8">
+          <DocumentTextPanel
+            documentId={d.id}
+            title={d.title}
+            body={text.body}
+            sha256={text.bodySha256}
+            canAnswer={d.state === "Sent"}
+            path={tabHref(engagementKey, "engagement.documents")}
+          />
+          <DocumentActions kind="engagement-document" id={d.id} engagementKey={engagementKey} />
+        </div>
+      ),
+    };
+  }
+  return signsInOneClick(d)
+    ? {
+        action: (
+          <ActionButton
+            action={signDocumentAction.bind(null, d.id)}
+            label={t("gateway.common.sign")}
+            variant="secondary"
+            done={t("gateway.common.signed")}
+          />
+        ),
+      }
+    : {};
+}
+
+/** A Quote row: its PDF, and Sign behind a confirmation while it waits for a signature. */
+function QuoteDocumentActions({
+  quote,
+  documentId,
+  engagementKey,
+  canSign,
+  total,
+  validUntil,
+}: {
+  quote: EngagementQuoteVersion;
+  documentId: string;
+  engagementKey: string;
+  canSign: boolean;
+  total: string;
+  validUntil: string;
+}) {
+  return (
+    <span className="inline-flex flex-wrap items-center gap-8">
+      <DocumentActions kind="quote" id={quote.id} engagementKey={engagementKey} />
+      {canSign ? (
+        <QuoteSignButton documentId={documentId} total={total} validUntil={validUntil} />
+      ) : null}
+    </span>
   );
 }
 
@@ -273,92 +460,115 @@ export async function OnboardingTab({ view, t, locale, engagementKey }: TabProps
   }
   const today = view.today;
   const done = items.data.filter((i) => onboardingStanding(i, today) === "verified").length;
+  // The Onboard funnel (A146): a packet with something left to send starts it, and one with nothing left completes it,
+  // which counts only in a session that started it.
+  const toSend = items.data.some((i) => ["todo", "expired"].includes(onboardingStanding(i, today)));
   return (
     <div className="flex flex-col gap-16">
+      <span
+        key={toSend ? "start" : "done"}
+        hidden
+        {...workflowMarker(toSend ? "gateway.onboard:start" : "gateway.onboard:done")}
+      />
       <ProgressBar
         label={t("gateway.engagement.onboarding.progress", { n: done, total: items.data.length })}
         value={(done / items.data.length) * 100}
       />
-      <RowList
-        label={t("nav.gateway.engagementTabs.onboarding")}
-        items={items.data.map((i) => {
-          const standing = onboardingStanding(i, today);
-          const canAct = standing === "todo" || standing === "expired";
-          return {
-            id: i.id,
-            title: i.name,
-            meta: [
-              t(enumLabelKey("onboardingItemKind", i.kind)),
-              i.blocking ? t("gateway.engagement.onboarding.blocking") : null,
-              t(enumLabelKey("verificationMethod", i.verification)),
-              i.expiresOn
-                ? t("gateway.engagement.documents.expires", {
-                    date: formatDate(locale, i.expiresOn),
-                  })
-                : null,
-            ],
-            tag: {
-              label: t(`gateway.engagement.onboarding.standing.${standing}`),
-              tone:
-                standing === "verified"
-                  ? "success"
-                  : standing === "review"
-                    ? "accent"
-                    : standing === "expired"
-                      ? "danger"
-                      : "warning",
-            },
-            ...(canAct
-              ? {
-                  detail:
-                    i.kind === "Tax Form" ? (
-                      <TaxFormForm
-                        orgId={view.engagement.orgId}
-                        asAccount={view.ctx.acting !== null}
-                        kinds={APP_ENUMS.tax_form_kind.map((k) => ({
-                          value: k,
-                          label: t(enumLabelKey("taxFormKind", k)),
-                        }))}
-                      />
-                    ) : i.kind === "Electronic Signature" ? (
-                      <p className="m-0 text-text-13 text-text-secondary">
-                        {t("gateway.engagement.onboarding.signHint")}
-                      </p>
-                    ) : i.kind === "Acknowledgment" ? (
-                      // A training or briefing acknowledgment is the person's statement, no file
-                      // (journey 42); the organization verifies it like any other step.
-                      <div className="flex flex-col gap-8">
-                        <p className="m-0 text-text-13 text-text-secondary">
-                          {t("gatewayOnboarding.acknowledgeHint")}
-                        </p>
-                        <ActionButton
-                          action={submitOnboardingItemAction.bind(null, i.id)}
-                          label={t("gatewayOnboarding.acknowledge")}
-                          variant="secondary"
-                          done={t("gatewayOnboarding.acknowledged")}
+      {/* A sent item's form leaves in the commit that brings the result; the scope stays to hear of it (A146). */}
+      <ActionOutcomeScope
+        token={items.data.map((i) => `${i.id}:${onboardingStanding(i, today)}`).join(",")}
+      >
+        <RowList
+          label={t("nav.gateway.engagementTabs.onboarding")}
+          items={items.data.map((i) => {
+            const standing = onboardingStanding(i, today);
+            const canAct = standing === "todo" || standing === "expired";
+            return {
+              id: i.id,
+              title: i.name,
+              meta: [
+                t(enumLabelKey("onboardingItemKind", i.kind)),
+                i.blocking ? t("gateway.engagement.onboarding.blocking") : null,
+                t(enumLabelKey("verificationMethod", i.verification)),
+                i.expiresOn
+                  ? t("gateway.engagement.documents.expires", {
+                      date: formatDate(locale, i.expiresOn),
+                    })
+                  : null,
+              ],
+              tag: {
+                label: t(`gateway.engagement.onboarding.standing.${standing}`),
+                tone:
+                  standing === "verified"
+                    ? "success"
+                    : standing === "review"
+                      ? "accent"
+                      : standing === "expired"
+                        ? "danger"
+                        : "warning",
+              },
+              ...(canAct
+                ? {
+                    detail:
+                      i.kind === "Tax Form" ? (
+                        <TaxFormForm
+                          orgId={view.engagement.orgId}
+                          asAccount={view.ctx.acting !== null}
+                          kinds={APP_ENUMS.tax_form_kind.map((k) => ({
+                            value: k,
+                            label: t(enumLabelKey("taxFormKind", k)),
+                          }))}
                         />
-                      </div>
-                    ) : i.kind === "Background Check" ? (
-                      <p className="m-0 text-text-13 text-text-secondary">
-                        {t("gateway.engagement.onboarding.backgroundHint")}
-                      </p>
-                    ) : i.kind === "Payout Details" ? (
-                      <p className="m-0 text-text-13 text-text-secondary">
-                        {t("gateway.engagement.onboarding.payoutHint")}
-                      </p>
-                    ) : (
-                      <OnboardingUploadForm
-                        orgId={view.engagement.orgId}
-                        engagementId={view.engagement.id}
-                        itemId={i.id}
-                        name={i.name}
-                      />
-                    ),
-                }
-              : {}),
-          };
-        })}
-      />
+                      ) : i.kind === "Electronic Signature" ? (
+                        <div className="flex flex-col gap-8">
+                          <p className="m-0 text-text-13 text-text-secondary">
+                            {t("gateway.engagement.onboarding.signHint")}
+                          </p>
+                          <div>
+                            <ButtonLink
+                              href={tabHref(engagementKey, "engagement.documents")}
+                              size="sm"
+                            >
+                              {t("nav.gateway.engagementTabs.documents")}
+                            </ButtonLink>
+                          </div>
+                        </div>
+                      ) : i.kind === "Acknowledgment" ? (
+                        // A training or briefing acknowledgment is the person's statement, no file
+                        // (journey 42); the organization verifies it like any other step.
+                        <div className="flex flex-col gap-8">
+                          <p className="m-0 text-text-13 text-text-secondary">
+                            {t("gatewayOnboarding.acknowledgeHint")}
+                          </p>
+                          <ActionButton
+                            action={submitOnboardingItemAction.bind(null, i.id)}
+                            label={t("gatewayOnboarding.acknowledge")}
+                            variant="secondary"
+                            done={t("gatewayOnboarding.acknowledged")}
+                          />
+                        </div>
+                      ) : i.kind === "Background Check" ? (
+                        <p className="m-0 text-text-13 text-text-secondary">
+                          {t("gateway.engagement.onboarding.backgroundHint")}
+                        </p>
+                      ) : i.kind === "Payout Details" ? (
+                        <p className="m-0 text-text-13 text-text-secondary">
+                          {t("gateway.engagement.onboarding.payoutHint")}
+                        </p>
+                      ) : (
+                        <OnboardingUploadForm
+                          orgId={view.engagement.orgId}
+                          engagementId={view.engagement.id}
+                          itemId={i.id}
+                          name={i.name}
+                        />
+                      ),
+                  }
+                : {}),
+            };
+          })}
+        />
+      </ActionOutcomeScope>
     </div>
   );
 }
@@ -427,11 +637,24 @@ export async function InvoicesTab({ view, t, locale, engagementKey }: TabProps) 
   });
   if (!lines.ok) return <RegionError />;
   const agreement = selfBilling.data.find((a) => a.is_active);
+  const intake = await listMyIntakeRequests(view.ctx.db);
+  const intakeInvoice = intake.ok
+    ? intake.data.find((r) => r.engagementId === e.id && r.viewerCanSubmitInvoice)
+    : undefined;
   const currency = e.rateCurrency ?? "USD";
   const today = view.today;
   const due = addCalendarDays(view.today, 30);
   return (
     <div className="flex flex-col gap-16">
+      {intakeInvoice ? (
+        <span>
+          <ActionButton
+            action={submitIntakeInvoiceAction.bind(null, intakeInvoice.id)}
+            label={t("gateway.home.intake.submitInvoice")}
+            variant="secondary"
+          />
+        </span>
+      ) : null}
       {invoices.data.length === 0 ? (
         <p className="m-0 text-text-14 text-text-secondary">
           {t("gateway.engagement.invoices.empty")}

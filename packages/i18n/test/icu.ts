@@ -41,9 +41,18 @@ function collect(elements: readonly MessageFormatElement[], out: Map<string, str
   }
 }
 
+// The catalogs repeat most strings: a Beta locale reads en-US for every key it lacks, and the suites
+// ask for the arguments of the same en-US message several times. Each distinct message is parsed once
+// per test file.
+const parsed = new Map<string, readonly string[]>();
+
 /** Parses an ICU message and returns its arguments as `name:kind`, sorted. Throws on invalid ICU. */
-export function icuArguments(message: string): string[] {
+export function icuArguments(message: string): readonly string[] {
+  const known = parsed.get(message);
+  if (known !== undefined) return known;
   const args = new Map<string, string>();
   collect(parse(message), args);
-  return [...args].map(([name, kind]) => `${name}:${kind}`).sort();
+  const result = Object.freeze([...args].map(([name, kind]) => `${name}:${kind}`).sort());
+  parsed.set(message, result);
+  return result;
 }

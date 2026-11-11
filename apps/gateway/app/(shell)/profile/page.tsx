@@ -3,10 +3,12 @@ import {
   getPublicPersonProfile,
   listAccountMembers,
   listAvailability,
+  listMyRatingDisputes,
   listRatingsAbout,
   listRepresentations,
   readView,
   representationStanding,
+  type MyRatingDispute,
 } from "@xos/data/gateway";
 import {
   getMyProfile,
@@ -16,11 +18,14 @@ import {
   listMyLinks,
   listMySkills,
 } from "@xos/data/profiles";
+import { workflowMarker } from "@xos/data/workflow-signal";
 import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { getLocale } from "next-intl/server";
 import { ActionButton } from "@/components/actions/action-button";
 import { ReplyForm } from "@/components/engagement/forms";
+import { AvailabilityRequests } from "@/components/profile/availability-requests";
+import { RatingDisputeForm } from "@/components/profile/rating-dispute-form";
 import { SupplierDiversityPanel } from "@/components/profile/supplier-diversity";
 import { RowList } from "@/components/engagement/rows";
 import { SimpleForm } from "@/components/forms/simple-form";
@@ -40,7 +45,7 @@ import { formatDate, formatDateRange } from "@/lib/format";
 import { personToday } from "@/lib/time-zone";
 import { profileStrength, STRENGTH_LINKS } from "@/lib/profile";
 import { requireNode } from "@/lib/shell/sitemap";
-import { enumLabelKey, getTranslate } from "@/lib/shell/translate";
+import { enumLabelKey, getTranslate, type Translate } from "@/lib/shell/translate";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslate();
@@ -64,10 +69,43 @@ function blockDays(
   return days;
 }
 
+/** A dispute's standing under a rating, or the way to file one. */
+function RatingDisputeStanding({
+  t,
+  ratingId,
+  dispute,
+}: {
+  t: Translate;
+  ratingId: string;
+  dispute: MyRatingDispute | undefined;
+}) {
+  if (!dispute) return <RatingDisputeForm ratingId={ratingId} />;
+  return (
+    <div className="flex flex-col gap-4 text-text-13 text-text-secondary">
+      <p className="m-0">
+        {t("gateway.profile.ratings.dispute.standing", {
+          state: t(enumLabelKey("ratingDisputeState", dispute.state)),
+          ground: t(enumLabelKey("ratingDisputeGround", dispute.ground)),
+        })}
+      </p>
+      {dispute.orgResponse ? (
+        <p className="m-0">
+          {t("gateway.profile.ratings.dispute.orgResponse", { response: dispute.orgResponse })}
+        </p>
+      ) : null}
+      {dispute.decisionStatement ? (
+        <p className="m-0">
+          {t("gateway.profile.ratings.dispute.decision", { statement: dispute.decisionStatement })}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
 /**
  * Profile (Section 4.5.8 avatar menu; Section 11.12 Reputation): the person's own profile with a
  * strength meter naming the next improvement, certifications with verified badges, availability,
- * ratings with public replies, representation and the profile shares they gave. Acting for a
+ * ratings and the person's replies, representation and the profile shares they gave. Acting for a
  * company, it shows the company and its team instead.
  */
 export default async function ProfilePage() {
@@ -132,6 +170,7 @@ export default async function ProfilePage() {
     carryable,
     calendars,
     publicView,
+    disputes,
   ] = await Promise.all([
     listMySkills(ctx.db, ctx.personId),
     listMyCertifications(ctx.db, ctx.personId),
@@ -144,7 +183,13 @@ export default async function ProfilePage() {
     listCarryableCertifications(ctx.db, ctx.personId),
     readView(ctx.db, "my_availability_calendars", {}),
     getPublicPersonProfile(ctx.db, p.handle),
+    listMyRatingDisputes(ctx.db, ctx.personId),
   ]);
+  const disputeByRating = new Map(disputes.ok ? disputes.data.map((d) => [d.ratingId, d]) : []);
+  // An upheld dispute takes its rating out of the list above, so its decision shows on its own.
+  const shownRatings = new Set(ratings.ok ? ratings.data.map((r) => r.id) : []);
+  const removedDisputes =
+    ratings.ok && disputes.ok ? disputes.data.filter((d) => !shownRatings.has(d.ratingId)) : [];
   const count = <T,>(r: { ok: true; data: readonly T[] } | { ok: false }) =>
     r.ok ? r.data.length : 0;
   const blocks = availability.ok ? availability.data : [];
@@ -188,6 +233,15 @@ export default async function ProfilePage() {
       />
 
       <Card title={t("gateway.profile.strength.title")} meta={`${strength.percent}%`}>
+        {/* The Reputation funnel (A146): an incomplete profile starts it, following a missing step is its step, and a
+            complete profile completes it, counted only in a session that started it. */}
+        <span
+          key={strength.missing.length > 0 ? "start" : "done"}
+          hidden
+          {...workflowMarker(
+            strength.missing.length > 0 ? "gateway.reputation:start" : "gateway.reputation:done",
+          )}
+        />
         <ProgressBar
           label={
             strength.next
@@ -211,7 +265,12 @@ export default async function ProfilePage() {
               {strength.missing.map((step) => (
                 <li key={step} className="flex items-center gap-8 text-text-13">
                   <Icon name="Circle" size={14} />
-                  <Link href={STRENGTH_LINKS[step] as Route} className="text-accent-text underline">
+                  {/* Stacked links four pixels apart, so each needs the minimum target itself (WCAG 2.5.8). */}
+                  <Link
+                    href={STRENGTH_LINKS[step] as Route}
+                    {...workflowMarker("gateway.reputation:step1")}
+                    className="inline-flex min-h-target-fine items-center text-accent-text underline pointer-coarse:min-h-target-coarse"
+                  >
                     {t(`gateway.profile.strength.missing.${step}`)}
                   </Link>
                 </li>
@@ -272,6 +331,9 @@ export default async function ProfilePage() {
       </Section>
 
       <SupplierDiversityPanel db={ctx.db} t={t} locale={locale} accountId={null} />
+
+      {/* P8: orgs' availability polls, linked from the availability.requested notification. */}
+      <AvailabilityRequests db={ctx.db} t={t} locale={locale} />
 
       <Section title={t("gateway.profile.availability.title")} id="availability">
         <AvailabilityCalendar
@@ -336,6 +398,12 @@ export default async function ProfilePage() {
       </Section>
 
       <Section title={t("gateway.profile.ratings.title")}>
+        <p className="m-0 text-text-13 text-text-secondary">
+          {t("gateway.profile.ratings.who")}{" "}
+          <Link href="/settings/profile-privacy" className="text-accent-text underline">
+            {t("gateway.profile.ratings.whoAction")}
+          </Link>
+        </p>
         {!ratings.ok ? (
           <RegionError />
         ) : ratings.data.length === 0 ? (
@@ -348,17 +416,43 @@ export default async function ProfilePage() {
             items={ratings.data.map((r) => ({
               id: r.id,
               title: t("gateway.profile.public.score", { n: r.score }),
-              meta: [r.comment, formatDate(locale, r.submittedAt)],
-              detail: r.reply ? (
-                <p className="m-0 text-text-13 text-text-secondary">
-                  {t("gateway.profile.public.reply", { reply: r.reply })}
-                </p>
-              ) : (
-                <ReplyForm ratingId={r.id} />
+              meta: [r.raterOrganizationName, r.comment, formatDate(locale, r.submittedAt)],
+              detail: (
+                <div className="flex flex-col gap-8">
+                  {r.reply ? (
+                    <p className="m-0 text-text-13 text-text-secondary">
+                      {t("gateway.profile.public.reply", { reply: r.reply })}
+                    </p>
+                  ) : (
+                    <ReplyForm ratingId={r.id} />
+                  )}
+                  {r.ofIndividual ? (
+                    <RatingDisputeStanding
+                      t={t}
+                      ratingId={r.id}
+                      dispute={disputeByRating.get(r.id)}
+                    />
+                  ) : null}
+                </div>
               ),
             }))}
           />
         )}
+        {removedDisputes.length > 0 ? (
+          <ul className="m-0 flex list-none flex-col gap-8 p-0">
+            {removedDisputes.map((d) => (
+              <li key={d.id} className="flex flex-col gap-4">
+                <p className="m-0 text-text-13 font-medium">
+                  {t("gateway.profile.ratings.dispute.removed", {
+                    org: d.subject?.orgName ?? "",
+                    project: d.subject?.projectName ?? "",
+                  })}
+                </p>
+                <RatingDisputeStanding t={t} ratingId={d.ratingId} dispute={d} />
+              </li>
+            ))}
+          </ul>
+        ) : null}
       </Section>
 
       {asArtist.length > 0 ? (
@@ -411,6 +505,18 @@ export default async function ProfilePage() {
           />
         </Section>
       ) : null}
+
+      {/* P5: the photo each organization prints on the person's credential badge. */}
+      <Section
+        title={t("gateway.badgePhotos.section")}
+        action={
+          <ButtonLink href="/profile/badge-photos">{t("gateway.badgePhotos.open")}</ButtonLink>
+        }
+      >
+        <p className="m-0 text-text-13 text-text-secondary">
+          {t("gateway.badgePhotos.sectionLead")}
+        </p>
+      </Section>
 
       <Section title={t("gateway.profile.shares.title")}>
         {!shares.ok ? (

@@ -91,6 +91,31 @@ describe("FilePreviewer", () => {
   });
 });
 
+describe("FilePreviewer for one-page files", () => {
+  it("leaves out the page rail for one page and the zoom for a file without it", async () => {
+    const { container } = render(
+      <FilePreviewer name="clip.mp4" meta="Video" pages={0} zoomable={false} onDownload={vi.fn()}>
+        <p>Player</p>
+      </FilePreviewer>,
+    );
+    expect(screen.queryByRole("button", { name: /^Page / })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Zoom in" })).toBeNull();
+    expect(screen.getByRole("button", { name: "Download" })).toBeTruthy();
+    await expectAccessible(container);
+  });
+
+  it("offers no download while there is nothing to download", () => {
+    render(
+      <FilePreviewer name="Rider.pdf" meta="" pages={1} downloadable={false}>
+        <p>Loading</p>
+      </FilePreviewer>,
+    );
+    expect(screen.queryByRole("button", { name: "Download" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Page 1" })).toBeNull();
+    expect(screen.getByRole("button", { name: "Zoom out" })).toBeTruthy();
+  });
+});
+
 describe("MapView", () => {
   const props = {
     label: "Site plan",

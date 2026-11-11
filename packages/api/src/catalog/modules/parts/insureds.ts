@@ -11,14 +11,13 @@ import type { CapabilityRule } from "../../capabilities.ts";
 import { editDefinition, orNull } from "../../correct.ts";
 import { resource } from "../../define.ts";
 import type { ResourceSpec } from "../../types.ts";
+import { Constants } from "@xos/data/database.types";
 
-const endorsement = z
-  .enum(["Additional Insured", "Primary and Noncontributory", "Waiver of Subrogation"])
-  .meta({
-    description:
-      "Endorsement: Additional Insured, Primary and Noncontributory, or Waiver of Subrogation.",
-    example: "Additional Insured",
-  });
+const endorsement = z.enum(Constants.app.Enums.endorsement_kind).meta({
+  description:
+    "Endorsement: Additional Insured, Primary and Noncontributory, or Waiver of Subrogation.",
+  example: "Additional Insured",
+});
 
 const InsuranceCertificateInsured = editDefinition(
   defineResource({

@@ -13,6 +13,8 @@ import { safeNext } from "./redirect";
 
 export const MFA_PATH = "/auth/mfa";
 export const SESSION_ENDED_PATH = "/auth/session-ended";
+/** Where a member whose network an org's IP allow-list refuses is sent. */
+export const NETWORK_RESTRICTED_PATH = "/auth/network-restricted";
 
 /** The device's last request, for the org idle timeout: an httpOnly epoch-milliseconds cookie. */
 export const LAST_SEEN_COOKIE = "xos-last-seen";
@@ -37,6 +39,26 @@ export function lastSeenSetCookie(now: number, secure: boolean): string {
 
 /** The page a request is for, as the proxy forwards it, so a page context can return there after verifying. */
 export const PATH_HEADER = "x-xos-path";
+
+/**
+ * The device's previous request, as the proxy read it before recording this one. Pages and actions behind the proxy
+ * see the last-seen cookie already set to now, so code outside /{org} that judges the org idle timeout itself (the
+ * one-tap link gate, A127) reads this instead. The proxy sets or removes it on every request, so a browser cannot
+ * send its own.
+ */
+export const PREVIOUS_SEEN_HEADER = "x-xos-previous-seen";
+
+/** Sets PREVIOUS_SEEN_HEADER to the previous request's time, or removes it when the device had none. */
+export function forwardPreviousSeen(headers: Headers, lastSeenAt: number | null): Headers {
+  if (lastSeenAt === null) headers.delete(PREVIOUS_SEEN_HEADER);
+  else headers.set(PREVIOUS_SEEN_HEADER, String(lastSeenAt));
+  return headers;
+}
+
+/** The previous request's time the proxy forwarded, or null when the device had none. */
+export function previousSeenFrom(headers: Headers): number | null {
+  return parseLastSeen(headers.get(PREVIOUS_SEEN_HEADER) ?? undefined);
+}
 
 /** Paths a session that owes a second factor may still open: signing in or out, and the auth returns. */
 const OPEN_PATHS = new Set([
@@ -65,6 +87,19 @@ function nextOf(path: string, search: string): string {
 export function secondFactorRedirect(path: string, search: string, org?: string): string {
   const query = `next=${nextOf(path, search)}${org ? `&org=${encodeURIComponent(org)}` : ""}`;
   return `${MFA_PATH}?${query}`;
+}
+
+/**
+ * Whether the age question comes before this path. Pages behind the auth routes ask it themselves or come before it, and
+ * the legal pages stay open so a person can read what they are asked about (ADR 0156).
+ */
+export function asksAgeFirst(path: string): boolean {
+  return !path.startsWith("/auth/") && path !== "/legal" && !path.startsWith("/legal/");
+}
+
+/** The age question for a request, carrying where to return. */
+export function ageRedirect(path: string, search: string): string {
+  return `/auth/age?next=${nextOf(path, search)}`;
 }
 
 /** Where an org's decision sends the request, or null to let it through. */

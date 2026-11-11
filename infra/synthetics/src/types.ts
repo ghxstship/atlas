@@ -3,7 +3,15 @@
  */
 
 /** Status page components (Section 5.1): one row per component and region. */
-export const COMPONENTS = ["atlas", "gateway", "api", "realtime", "sync", "notifications"] as const;
+export const COMPONENTS = [
+  "atlas",
+  "gateway",
+  "api",
+  "docs",
+  "realtime",
+  "sync",
+  "notifications",
+] as const;
 export type ComponentId = (typeof COMPONENTS)[number];
 
 /**
@@ -58,6 +66,8 @@ export interface CheckDefinition {
   readonly budgetMs: number;
   /** Required checks fail the run (and page on-call) when they fail. */
   readonly required: boolean;
+  /** Pages on-call but stays off the public status page: it says nothing about the service Customers use. */
+  readonly internal?: boolean;
   readonly runbook: string;
   probe(context: CheckContext): Promise<ProbeOutcome>;
 }

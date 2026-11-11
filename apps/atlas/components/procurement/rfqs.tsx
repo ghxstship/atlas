@@ -7,7 +7,15 @@ import {
   type Rfq,
   type RfqState,
 } from "@xos/data/procurement";
+import {
+  getProcurementTimeZone,
+  getRfqChaseStatus,
+  listRfqLines,
+  listUnreachableVendorIds,
+} from "@xos/data/procurement-needs";
 import { listTransitionRules, listVendors } from "@xos/data/vendors";
+import { workflowMarker } from "@xos/data/workflow-signal";
+import type { CapabilityCode } from "@xos/schemas/capabilities/codes";
 import { getFormatter } from "next-intl/server";
 import {
   createRfqAction,
@@ -22,6 +30,7 @@ import { CollabPanels } from "@/components/collection-kit/collab";
 import { CollectionView } from "@/components/collection-kit/collection-view";
 import { emptyFor } from "@/components/collection-kit/empty";
 import { StateHistory } from "@/components/collection-kit/history";
+import { PresenceFor } from "@/components/presence/presence-for";
 import {
   ActionButton,
   EntityForm,
@@ -36,6 +45,7 @@ import {
 import { recordStateOf, type KitRow, type ViewKind } from "@/components/collection-kit/types";
 import { InlineAlert, PageHeader } from "@/components/collection-kit/ui";
 import { DataTable } from "@/components/platform/client/data-table";
+import { rfqBulk } from "@/lib/bulk/procurement";
 import { getCopy, type Copy } from "@/lib/collection-kit/i18n";
 import {
   collectionState,
@@ -45,14 +55,17 @@ import {
 } from "@/lib/collection-kit/page";
 import type { OrgContext } from "@/lib/shell/context";
 import { orgToday } from "@/lib/shell/time-zone";
+import { addRfqLineAction, removeRfqLineAction } from "@/app/[org]/procurement/needs-actions";
 import { ResponseForm } from "./forms";
+import * as enums from "@xos/data/enums";
+import { CollectionPage } from "@/components/platform/collection-page";
 
 const VIEWS: readonly ViewKind[] = ["table", "list", "board"];
 const REFUSALS = "procurement.refusals";
-const STATES: readonly RfqState[] = ["Proposed", "Issued", "Closed", "Awarded", "Canceled"];
+const STATES: readonly RfqState[] = enums.rfqState;
 
 /** Which capability each RFQ move needs (app.transition_rfq). */
-const MOVE_CAPABILITY: Record<RfqState, string> = {
+const MOVE_CAPABILITY: Record<RfqState, CapabilityCode> = {
   Proposed: "procurement.rfq.write",
   Issued: "procurement.rfq.issue",
   Closed: "procurement.bid.unseal",
@@ -63,7 +76,9 @@ const MOVE_CAPABILITY: Record<RfqState, string> = {
 /**
  * Procurement > RFQs (journey 4): draft an RFQ on a project, invite vendors, issue it, keep
  * responses sealed until it closes, compare the quotes, award, and issue the purchase order from
- * the awarded response. Vendors respond in Gateway; a quote received another way is recorded here.
+ * the awarded response. Vendors read what is asked in Gateway (Work > Quote requests, B11) and send
+ * the quote to the named contact; it is recorded here. Reminders go out hourly, and nothing here says
+ * who answered while the RFQ is Issued.
  */
 export async function RfqsSection({
   ctx,
@@ -83,16 +98,16 @@ export async function RfqsSection({
     getFormatter(),
     listRfqs(db, ctx.org.id),
     listProjectOptions(db, ctx.org.id),
-    listVendors(db, ctx.org.id),
+    // Invited vendors keep their names once archived; only live ones can be invited (A124).
+    listVendors(db, ctx.org.id, "include"),
     listTransitionRules<RfqState>(db, "rfq"),
   ]);
   const title = t("rfqs.title");
   if (!all.ok || !projects.ok || !vendors.ok || !rules.ok) {
     return (
-      <>
-        <PageHeader title={title} />
+      <CollectionPage header={<PageHeader title={title} />}>
         <ErrorPanel what={t("rfqs.what")} />
-      </>
+      </CollectionPage>
     );
   }
   const rfqs = projectId ? all.data.filter((r) => r.projectId === projectId) : all.data;
@@ -134,10 +149,12 @@ export async function RfqsSection({
         properties={properties(selected)}
         transitions={transitions(selected)}
         vendorName={vendorName}
-        vendors={vendors.data.map((v) => ({
-          value: v.id,
-          label: v.name ?? t("fields.unnamedVendor"),
-        }))}
+        vendors={vendors.data
+          .filter((v) => v.archivedAt === null)
+          .map((v) => ({
+            value: v.id,
+            label: v.name ?? t("fields.unnamedVendor"),
+          }))}
         canWrite={canWrite}
         stateLabel={stateLabel}
         purchaseOrdersPath={`/${ctx.org.slug}/procurement/purchase-orders`}
@@ -204,6 +221,7 @@ export async function RfqsSection({
         properties={properties(selected)}
         actions={transitions(selected)}
       >
+        <PresenceFor table="rfqs" id={selected.id} />
         <p className="m-0 text-text-13 text-text-secondary">
           {selected.state === "Issued" ? t("rfqs.sealedNotice") : t("rfqs.openFullHint")}
         </p>
@@ -233,6 +251,7 @@ export async function RfqsSection({
         ) : null
       }
       empty={emptyFor(t, canWrite, withQuery(path, state, { create: "1" }), "rfqs")}
+      bulk={rfqBulk(ctx.org.slug, ctx.capabilities, t)}
     >
       {drawer}
     </CollectionView>
@@ -265,11 +284,21 @@ async function RfqRecord({
   purchaseOrdersPath: string;
 }) {
   const db = ctx.viewer.db;
-  const [format, responses, currencies] = await Promise.all([
+  const [format, responses, currencies, requested, chase, unreachable, zone] = await Promise.all([
     getFormatter(),
     listRfqResponses(db, rfq.id),
     listCurrencies(db),
+    listRfqLines(db, rfq.id),
+    getRfqChaseStatus(db, rfq.id),
+    listUnreachableVendorIds(db, rfq.id),
+    getProcurementTimeZone(db, rfq.projectId),
   ]);
+  // The hire dates read on the project's calendar, as they were typed.
+  const hireDay = {
+    dateStyle: "medium",
+    ...(zone.ok && zone.data ? { timeZone: zone.data } : {}),
+  } as const;
+  const unreachableIds = new Set(unreachable.ok ? unreachable.data : []);
   const exponent = new Map(
     (currencies.ok ? currencies.data : []).map((c) => [c.code, c.minorUnits]),
   );
@@ -287,6 +316,7 @@ async function RfqRecord({
       properties={properties}
       actions={transitions}
     >
+      <PresenceFor table="rfqs" id={rfq.id} />
       {canWrite && rfq.state === "Proposed" ? (
         <KitSection id="rfq-details" title={t("rfqs.details")}>
           <EntityForm
@@ -314,6 +344,94 @@ async function RfqRecord({
         </KitSection>
       ) : null}
 
+      <KitSection id="rfq-lines" title={t("rfqs.requestedLines")}>
+        {!requested.ok ? (
+          <ErrorPanel what={t("rfqs.requestedLines")} />
+        ) : requested.data.length === 0 ? (
+          <p className="m-0 text-text-13 text-text-secondary">{t("rfqs.noRequestedLines")}</p>
+        ) : (
+          <ul className="m-0 flex list-none flex-col divide-y divide-border-subtle p-0">
+            {requested.data.map((l) => (
+              <li
+                key={l.id}
+                className="flex flex-wrap items-center justify-between gap-8 py-8 text-text-13"
+              >
+                <span>
+                  {l.hireStartsAt && l.hireEndsAt
+                    ? t("rfqs.requestedHire", {
+                        quantity: format.number(l.quantity),
+                        description: l.description,
+                        from: format.dateTime(new Date(l.hireStartsAt), hireDay),
+                        to: format.dateTime(new Date(l.hireEndsAt), hireDay),
+                      })
+                    : t("rfqs.requestedLine", {
+                        quantity: format.number(l.quantity),
+                        description: l.description,
+                      })}
+                </span>
+                {canWrite && rfq.state === "Proposed" ? (
+                  <ActionButton
+                    action={removeRfqLineAction}
+                    hidden={{ org: ctx.org.slug, id: l.id }}
+                    label={t("rfqs.removeLine")}
+                    refusals={REFUSALS}
+                  />
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        )}
+        {canWrite && rfq.state === "Proposed" ? (
+          <EntityForm
+            id={`rfq-line-${rfq.id}`}
+            action={addRfqLineAction}
+            hidden={{ org: ctx.org.slug, rfqId: rfq.id, projectId: rfq.projectId }}
+            refusals={REFUSALS}
+            submitLabel={t("rfqs.addLine")}
+            fields={[
+              { kind: "text", name: "description", label: t("needs.description"), required: true },
+              { kind: "number", name: "quantity", label: t("needs.quantity"), required: true },
+              {
+                kind: "text",
+                name: "unitBasis",
+                label: t("needs.unit"),
+                help: t("lines.unitBasisHelp"),
+              },
+              {
+                kind: "select",
+                name: "acquisitionKind",
+                label: t("rfqs.acquisition"),
+                defaultValue: "Purchase",
+                options: [
+                  { value: "Purchase", label: t("rfqs.acquisitionPurchase") },
+                  { value: "Rental", label: t("rfqs.acquisitionRental") },
+                ],
+              },
+              { kind: "datetime", name: "hireFrom", label: t("rfqs.hireFrom") },
+              { kind: "datetime", name: "hireTo", label: t("rfqs.hireTo") },
+            ]}
+          />
+        ) : null}
+      </KitSection>
+
+      {chase.ok && chase.data ? (
+        <KitSection id="rfq-chase" title={t("rfqs.chaseTitle")}>
+          <p className="m-0 text-text-13 text-text-secondary">
+            {chase.data.enabled
+              ? t("rfqs.chaseOn", {
+                  hours: chase.data.intervalHours,
+                  limit: chase.data.reminderLimit,
+                })
+              : t("rfqs.chaseOff")}
+          </p>
+          {chase.data.remindersSent !== null ? (
+            <p className="m-0 text-text-13">
+              {t("rfqs.chaseSent", { count: chase.data.remindersSent })}
+            </p>
+          ) : null}
+        </KitSection>
+      ) : null}
+
       <KitSection id="rfq-invitations" title={t("rfqs.invitations")}>
         {invited.length === 0 ? (
           <p className="m-0 text-text-13 text-text-secondary">{t("rfqs.noInvitations")}</p>
@@ -324,7 +442,14 @@ async function RfqRecord({
                 key={id}
                 className="flex flex-wrap items-center justify-between gap-8 py-8 text-text-13"
               >
-                {vendorName.get(id) ?? t("fields.unnamedVendor")}
+                <span>
+                  {vendorName.get(id) ?? t("fields.unnamedVendor")}
+                  {unreachableIds.has(id) ? (
+                    <span className="block text-text-12 text-text-secondary">
+                      {t("rfqs.notReachable")}
+                    </span>
+                  ) : null}
+                </span>
                 {canWrite && open ? (
                   <ActionButton
                     action={removeInvitationAction}
@@ -362,6 +487,8 @@ async function RfqRecord({
           <p className="m-0 text-text-13 text-text-secondary">{t("rfqs.noResponses")}</p>
         ) : (
           <>
+            {/* The quotes side by side are the Procurement funnel's step (A146). */}
+            <span hidden {...workflowMarker("atlas.procurement:step1")} />
             <DataTable
               caption={t("rfqs.comparison")}
               columns={[
@@ -401,6 +528,7 @@ async function RfqRecord({
                     variant="primary"
                     confirm={{ title: t("rfqs.orderTitle"), body: t("rfqs.orderBody") }}
                     refusals={REFUSALS}
+                    signal="atlas.procurement:done"
                   />
                 ))}
                 <KitLink href={purchaseOrdersPath} size="sm">
@@ -426,6 +554,11 @@ async function RfqRecord({
                 label: c.code,
               }))}
               defaultCurrency="USD"
+              requested={(requested.ok ? requested.data : []).map((l) => ({
+                id: l.id,
+                description: l.description,
+                quantity: l.quantity,
+              }))}
             />
           </KitSection>
         ) : null}

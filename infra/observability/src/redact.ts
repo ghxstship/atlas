@@ -36,6 +36,8 @@ const EXACT_KEYS = new Set([
   "iban",
   "cookie",
   "cookies",
+  "ticket",
+  "pticket",
   "session",
   "notes",
   "street",
@@ -75,6 +77,8 @@ const KEY_SUFFIXES = [
   "setcookie",
   "sessionid",
   "recoverycode",
+  "accesscode",
+  "downloadticket",
   "totp",
   "email",
   "emailaddress",
@@ -147,25 +151,54 @@ const VALUE_PATTERNS: readonly ValuePattern[] = [
     replace: (_m, scheme) => `${scheme} ${REDACTED}`,
   },
   { pattern: /\bxos_(?:live|test)_[A-Za-z0-9_]+/g, replace: "[api-key]" },
-  // A69-008: bearer links carry their token in the path (/advance/xadv_..., /sign/xdoc_...,
+  // A69-008: bearer links carry their token in the path (/advance/xadv_..., /sign/xdoc_..., /shifts/xcrw_...,
   // /auth/invite/xinv_...), and request logs keep the path. Calendar feeds, join links, agreements
-  // and SCIM tokens share the shape.
+  // and SCIM tokens share the shape. A69-012: so do share links (/share/xshr_...), their download
+  // tickets (xdlt_), kiosk device keys (xkio_), subprocessor notice links (xspn_, xspu_) and
+  // personal access tokens (xos_pat_). P1 (ADR 0130): so do live links to a saved view
+  // (/share/view/xshv_...) and display screens (/share/screen/xscr_...), their device grants
+  // (xlgr_) and their Realtime channel keys (xlch_). B3 (ADR 0142): so do showcaller links
+  // (/share/showcaller/xscl_...), their device grants (xcgr_) and their channel keys (xcch_).
+  // A127 (ADR 0106): so do one-tap action links (/auth/act/xact_...), whose token is a nonce, a dot and a signature,
+  // and B8's guest email links (xgue_, 6255), which have the same shape.
+  // No leading word boundary: a token right after a percent escape (%22, %2F) is still a token,
+  // as in Next's encoded router state header and a sign-in redirect's next= parameter.
   {
-    pattern: /\b(?:xadv|xagr|xcal|xdoc|xinv|xlnk|xos_scim)_[0-9a-f]{16,}\b/gi,
+    pattern:
+      /(?:xact|xadv|xagr|xcal|xcch|xcgr|xcrw|xdlt|xdoc|xfrg|xfrm|xgue|xinv|xkio|xlch|xlgr|xlnk|xpkg|xpkl|xpku|xscl|xscr|xshr|xshv|xspn|xspu|xvig|xvin|xos_pat|xos_scim)_[0-9a-f]{16,}(?:\.[0-9a-f]{16,})?\b/gi,
     replace: "[token]",
   },
   // A84: whatever follows /ical/ is a feed token or a guess at one, whatever its shape (a mistyped,
   // truncated or uppercased link), and signed reply addresses (r-<thread>-<person>-<signature>)
   // are bearer secrets too, even outside a full email address.
   { pattern: /(\/ical\/)[^/?#\s"'<>]+/gi, replace: (_m, prefix) => `${prefix}[token]` },
+  // A69-012: likewise whatever follows a leading /share/ (a mistyped or truncated share link), but
+  // not /usr/share/ or file:///usr/share/ in a stack trace. The lookahead first keeps the
+  // lookbehind to the places /share/ occurs, so a long string stays linear. A live link's
+  // /share/view/ or /share/screen/, a showcaller link's /share/showcaller/ (B3), and a stakeholder pack's /share/pack/
+  // and /share/pack/unsubscribe/ (B2, ADR 0141) stay, and what follows them is the token.
+  {
+    pattern:
+      /(?=\/share\/)(?<=^|[\s"'(<=,]|(?<!\/)\/\/[^/?#\s"'<>]+)(\/share\/(?:view\/|screen\/|showcaller\/|pack\/(?:unsubscribe\/)?)?)[^/?#\s"'<>]+/gi,
+    replace: (_m, prefix) => `${prefix}[token]`,
+  },
+  // Gateway's intake and public form links (B2, ADR 0141), with the same lookbehind: it matches only at the start of a
+  // string, after a host or after a delimiter, so Atlas's /{org}/knowledge/forms stays and needs no host logic.
+  {
+    pattern:
+      /(?=\/(?:onboard|forms)\/)(?<=^|[\s"'(<=,]|(?<!\/)\/\/[^/?#\s"'<>]+)(\/(?:onboard|forms)\/)[^/?#\s"'<>]+/gi,
+    replace: (_m, prefix) => `${prefix}[token]`,
+  },
   { pattern: /\br-[0-9a-f]{32}-[0-9a-f]{32}-[0-9a-f]{32}\b/gi, replace: "[token]" },
   { pattern: /\b(?:sk|rk|pk|whsec)_(?:live|test)_[A-Za-z0-9]+/g, replace: "[api-key]" },
   {
     pattern:
-      /([?&;](?:token|access_token|refresh_token|id_token|code|key|apikey|api_key|signature|sig|password|email|phone|token_hash)=)[^&#\s"']+/gi,
+      /([?&;](?:token|access_token|refresh_token|id_token|code|key|apikey|api_key|signature|sig|password|email|phone|token_hash|ticket|access_code)=)[^&#\s"']+/gi,
     replace: (_m, prefix) => `${prefix}${REDACTED}`,
   },
-  { pattern: /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, replace: "[email]" },
+  // The local part is at most 64 characters (RFC 5321); the bound keeps a long run with no @
+  // from costing quadratic time.
+  { pattern: /[A-Z0-9._%+-]{1,64}@[A-Z0-9.-]+\.[A-Z]{2,}/gi, replace: "[email]" },
   { pattern: /\b\d{3}-\d{2}-\d{4}\b/g, replace: "[ssn]" },
   {
     pattern: /(?<![\w-])\d{4}(?:[ -]?\d{4}){2,3}(?:[ -]?\d{1,3})?(?![\w-])/g,

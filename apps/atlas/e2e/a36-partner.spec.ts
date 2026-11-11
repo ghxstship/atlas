@@ -33,6 +33,7 @@ test("journey 26: client org, inherited brand, wholesale billing and support ses
   await expect(create.getByLabel("Web address")).toHaveValue(clientSlug);
   await create.getByLabel("Owner's email").fill(ownerEmail);
   await create.getByLabel("Plan").selectOption("core");
+  await create.getByLabel("Client's country", { exact: true }).selectOption("US");
   await create.getByRole("button", { name: "Create and invite the Owner" }).click();
   const link = create.getByLabel("Owner invitation link");
   await expect(link).toHaveValue(/\/auth\/invite\//);

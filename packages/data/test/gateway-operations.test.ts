@@ -1,8 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
   acceptEngagedShift,
+  acknowledgeRosterTraining,
+  assignRosterShift,
+  unassignRosterShift,
   acceptOffer,
   acknowledgePurchaseOrder,
+  advanceSectionOpen,
   agreeSelfBilling,
   brandForHost,
   brandForSlug,
@@ -32,11 +36,16 @@ import {
   submitAdvance,
   submitAdvanceAnswer,
   submitDeliverable,
+  submitEngagedSubmittal,
   submitEngagementInvoice,
   submitTimesheet,
   toDisplayKey,
   unsaveOpportunity,
   uploadOnboardingFile,
+  advanceAnswerLines,
+  partyUploadObjectName,
+  submitTypedAdvanceAnswer,
+  uploadPartyFile,
 } from "../src/gateway.ts";
 import { errorResponse, okResponse } from "./fake-client.ts";
 import { gatewayClient } from "./gateway-client.ts";
@@ -101,7 +110,18 @@ describe("party RPCs", () => {
     ["rpc:revoke_self_billing", (db) => revokeSelfBilling(db, "e1")],
     ["rpc:submit_timesheet", (db) => submitTimesheet(db, "t1")],
     ["rpc:accept_engaged_shift", (db) => acceptEngagedShift(db, "s1")],
+    [
+      "rpc:acknowledge_roster_training",
+      (db) => acknowledgeRosterTraining(db, { rosterEntryId: "re1", requirementId: "q1" }),
+    ],
+    ["rpc:assign_roster_shift", (db) => assignRosterShift(db, "s1", "re1")],
+    ["rpc:unassign_roster_shift", (db) => unassignRosterShift(db, "s1", "Moved to the gate.")],
     ["rpc:acknowledge_purchase_order", (db) => acknowledgePurchaseOrder(db, "po1")],
+    [
+      "rpc:submit_engaged_submittal",
+      (db) =>
+        submitEngagedSubmittal(db, { submittalId: "s1", expected: "Proposed", note: "Rev A" }),
+    ],
     [
       "rpc:submit_engaged_advance_answer",
       (db) => submitAdvanceAnswer(db, { recipientId: "r1", sectionId: "s1", body: "Two risers" }),
@@ -124,6 +144,21 @@ describe("party RPCs", () => {
     });
     expect((await run(db as never)).ok).toBe(true);
     expect((await run(db as never)).ok).toBe(false);
+  });
+
+  it("submits a submittal with the expected state and the note", async () => {
+    const { db, calls } = gatewayClient({ "rpc:submit_engaged_submittal": [okResponse("t1")] });
+    expect(
+      await submitEngagedSubmittal(db, {
+        submittalId: "s1",
+        expected: "Returned",
+        note: "Bridle points added",
+      }),
+    ).toEqual({ ok: true, data: { id: "t1" } });
+    expect(calls[0]?.steps[0]).toEqual([
+      "args",
+      [{ p_submittal_id: "s1", p_expected: "Returned", p_note: "Bridle points added" }],
+    ]);
   });
 
   it("claims token submissions", async () => {
@@ -474,6 +509,8 @@ describe("api_public", () => {
       section_prompt: null,
       answer_body: null,
       answered_at: null,
+      review_outcome: null,
+      return_reason: null,
     });
     const { db } = gatewayClient({
       "rpc:preview_advance": [
@@ -506,6 +543,10 @@ describe("api_public", () => {
       "s1",
       "s2",
     ]);
+    expect(packet.ok && !packet.data.refused && packet.data.sections[0]).toMatchObject({
+      reviewOutcome: null,
+      returnReason: null,
+    });
     expect(await previewAdvance(db, input)).toEqual({
       ok: true,
       data: { refused: true, reason: "advance_token_expired" },
@@ -521,5 +562,170 @@ describe("api_public", () => {
       data: { refused: true, reason: "advance_answer_length" },
     });
     expect((await submitAdvance(db, answer)).ok).toBe(false);
+  });
+});
+
+describe("advance sections", () => {
+  it("maps the review of the latest answer", async () => {
+    const { db } = gatewayClient({
+      "rpc:preview_advance": [
+        okResponse([
+          {
+            refusal: null,
+            reason: null,
+            org_name: "Northwind Live",
+            packet_title: "Artist Advance",
+            due_at: null,
+            recipient_email: null,
+            expires_at: null,
+            section_id: "s1",
+            section_position: 1,
+            section_title: "Arrival",
+            section_prompt: null,
+            answer_body: "Lands at noon.",
+            answered_at: "2027-05-01",
+            review_outcome: "Returned",
+            return_reason: "Which airport?",
+          },
+        ]),
+      ],
+    });
+    (db as unknown as Record<string, unknown>)["schema"] = () => ({
+      rpc: (fn: string, args: unknown) =>
+        (db as unknown as { rpc(f: string, a: unknown): unknown }).rpc(fn, args),
+    });
+    const packet = await previewAdvance(db, { token: "t", accessCode: "1" });
+    expect(packet.ok && !packet.data.refused && packet.data.sections[0]).toMatchObject({
+      reviewOutcome: "Returned",
+      returnReason: "Which airport?",
+    });
+  });
+
+  it("opens a section that is unanswered or returned", () => {
+    expect(advanceSectionOpen({ answer: null, reviewOutcome: null })).toBe(true);
+    expect(advanceSectionOpen({ answer: "Noon.", reviewOutcome: "Returned" })).toBe(true);
+    expect(advanceSectionOpen({ answer: "Noon.", reviewOutcome: null })).toBe(false);
+    expect(advanceSectionOpen({ answer: "Noon.", reviewOutcome: "Accepted" })).toBe(false);
+  });
+});
+
+describe("party uploads and typed answers (R9)", () => {
+  it("names advance and sponsor objects under their folders", () => {
+    expect(
+      partyUploadObjectName({
+        orgId: "o",
+        target: { kind: "advance", recipientId: "r", sectionId: "s" },
+        fileName: "Stage plot (rev B).pdf",
+      }),
+    ).toMatch(/^o\/advance\/r\/s\/[a-z0-9]+-Stage-plot-rev-B-.pdf$/);
+    expect(
+      partyUploadObjectName({
+        orgId: "o",
+        target: { kind: "sponsor-asset", entitlementId: "e" },
+        fileName: "***",
+      }),
+    ).toMatch(/^o\/sponsor-asset\/e\/[a-z0-9]+-upload$/);
+  });
+
+  it("uploads to party-uploads, then registers", async () => {
+    const fake = gatewayClient({
+      "rpc:register_party_upload": [
+        okResponse("doc1"),
+        errorResponse("XR001", "party_upload_checksum: Hex.", "party_upload_checksum"),
+      ],
+    });
+    const buckets: string[] = [];
+    const uploads: { error: { message: string } | null }[] = [
+      { error: null },
+      { error: null },
+      { error: { message: "too big" } },
+    ];
+    (fake.db as unknown as Record<string, unknown>)["storage"] = {
+      from: (bucket: string) => {
+        buckets.push(bucket);
+        return { upload: async () => uploads.shift() };
+      },
+    };
+    const input = {
+      objectName: "o/advance/r/s/f.pdf",
+      title: "Stage plot",
+      body: new Blob(["x"]),
+      contentType: "application/pdf",
+      checksumSha256: "a".repeat(64),
+    };
+    expect(await uploadPartyFile(fake.db, input)).toEqual({
+      ok: true,
+      data: { documentId: "doc1" },
+    });
+    expect(buckets[0]).toBe("party-uploads");
+    expect(fake.calls[0]?.steps[0]).toEqual([
+      "args",
+      [
+        {
+          p_object_name: "o/advance/r/s/f.pdf",
+          p_title: "Stage plot",
+          p_checksum_sha256: "a".repeat(64),
+        },
+      ],
+    ]);
+    const refused = await uploadPartyFile(fake.db, input);
+    expect(!refused.ok && refused.error.kind).toBe("refusal");
+    expect(await uploadPartyFile(fake.db, input)).toEqual({
+      ok: false,
+      error: { kind: "unexpected", message: "too big" },
+    });
+  });
+
+  it("sends lines in the shape app.submit_advance_answer takes", async () => {
+    expect(
+      advanceAnswerLines([
+        { assetClassId: "c1", quantity: 6, rosterEntryId: null, note: "  FOH  " },
+        {
+          neededFrom: "2027-06-01T08:00:00Z",
+          neededTo: "2027-06-01T10:00:00Z",
+          windowZone: "America/New_York",
+        },
+      ]),
+    ).toEqual([
+      { asset_class_id: "c1", quantity: 6, note: "FOH" },
+      {
+        needed_window_start: "2027-06-01T08:00:00Z",
+        needed_window_end: "2027-06-01T10:00:00Z",
+        window_zone: "America/New_York",
+      },
+    ]);
+    const fake = gatewayClient({
+      "rpc:submit_advance_answer": [
+        okResponse("a1"),
+        errorResponse("XR001", "advance_line_limit: Give 1 to 2 lines.", "advance_line_limit"),
+      ],
+    });
+    const input = {
+      recipientId: "r1",
+      sectionId: "s1",
+      note: " Revision B ",
+      lines: [{ credentialCategoryId: "k1", quantity: 4 }],
+      documentIds: [],
+    };
+    expect(await submitTypedAdvanceAnswer(fake.db, input)).toEqual({
+      ok: true,
+      data: { id: "a1" },
+    });
+    expect(fake.calls[0]?.steps[0]).toEqual([
+      "args",
+      [
+        {
+          p_recipient_id: "r1",
+          p_section_id: "s1",
+          p_note: "Revision B",
+          p_lines: [{ credential_category_id: "k1", quantity: 4 }],
+          p_document_ids: [],
+        },
+      ],
+    ]);
+    const refused = await submitTypedAdvanceAnswer(fake.db, input);
+    expect(!refused.ok && refused.error.kind === "refusal" && refused.error.rule).toBe(
+      "advance_line_limit",
+    );
   });
 });

@@ -19,16 +19,22 @@ import {
 import type { Route } from "next";
 import { useLocale } from "next-intl";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useState, type ReactNode } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { ActionErrorAlert, useAction, useCopy } from "./action-ui";
 import { formatWhen, fromLocalInput, stateToken, withQuery } from "./format";
 import { createPunchItemAction } from "./work-order-actions";
+import { useRecordKeyHovers } from "@/components/hover/use-hover-cards";
 import { CollectionViews } from "@/components/views/collection-views";
+import type { BulkConfig } from "@/components/bulk/types";
+import { useBulk } from "@/components/bulk/use-bulk";
+import { useRowMenu } from "@/components/menus/use-row-menu";
+import { ArchivedFilter } from "@/components/archive/archived-filter";
 
 /**
  * Work > Punch lists (Section 4.5.5): punch items, each a Task record of subtype Execute titled
  * "Correct ...", as a list, table or board by record state. Opening one shows its record peek,
- * where it is moved to Complete to close it.
+ * where it is moved to Complete to close it. The table selects items for bulk state and owner
+ * changes, and each row's menu offers the same (Section 11.7).
  */
 export function PunchCollection({
   org,
@@ -44,6 +50,7 @@ export function PunchCollection({
   canCreate,
   open,
   peek,
+  bulk,
 }: {
   org: string;
   title: string;
@@ -58,16 +65,24 @@ export function PunchCollection({
   canCreate: boolean;
   open: boolean;
   peek: ReactNode;
+  /** Bulk edit of the table view's selection, for people who may close punch items. */
+  bulk?: BulkConfig | null;
 }) {
   const t = useCopy("work");
   const locale = useLocale();
   const router = useRouter();
+  // A punch item's key or title previews its record (Section 11.7).
+  const hover = useRecordKeyHovers(org);
   const pathname = usePathname();
   const params = useSearchParams();
   const go = (changes: Record<string, string | null>) =>
     router.replace(withQuery(pathname, params, changes) as Route, { scroll: false });
   const openItem = (key: string) =>
     router.push(withQuery(pathname, params, { peek: key }) as Route, { scroll: false });
+  // Rows select by punch item id, which the punch bulk RPC takes; refusals name the record key.
+  const bulkRows = useMemo(() => items.map((i) => ({ id: i.id, label: i.record.key })), [items]);
+  const bulkKit = useBulk(view === "table" ? bulk : null, bulkRows);
+  const rowMenu = useRowMenu();
   const where = (i: PunchItem) => i.zoneName ?? i.locationText ?? t("punch.noLocation");
   const due = (i: PunchItem) =>
     formatWhen(i.record.dueAt, locale, i.record.timeZone ?? i.record.projectTimeZone);
@@ -94,17 +109,20 @@ export function PunchCollection({
     />
   );
   const filters = (
-    <Select
-      key={`state-${state}`}
-      id="punch-state"
-      label={t("collection.state")}
-      value={state}
-      options={[
-        { value: "", label: t("collection.allStates") },
-        ...states.map((s) => ({ value: s.state, label: t(`states.${s.state}`) })),
-      ]}
-      onChange={(e) => go({ state: e.target.value || null })}
-    />
+    <>
+      <Select
+        key={`state-${state}`}
+        id="punch-state"
+        label={t("collection.state")}
+        value={state}
+        options={[
+          { value: "", label: t("collection.allStates") },
+          ...states.map((s) => ({ value: s.state, label: t(`states.${s.state}`) })),
+        ]}
+        onChange={(e) => go({ state: e.target.value || null })}
+      />
+      <ArchivedFilter id="punch-archived" />
+    </>
   );
 
   let body: ReactNode;
@@ -128,27 +146,47 @@ export function PunchCollection({
     );
   } else if (view === "table") {
     body = (
-      <DataTable
-        caption={title}
-        columns={[
-          { key: "key", label: t("columns.key"), type: "code" },
-          { key: "title", label: t("columns.title"), wrap: true },
-          { key: "state", label: t("columns.state"), type: "state" },
-          { key: "location", label: t("columns.location") },
-          { key: "owner", label: t("columns.owner") },
-          { key: "due", label: t("columns.due") },
-        ]}
-        rows={items.map((i) => ({
-          id: i.record.key,
-          key: i.record.key,
-          title: i.record.title,
-          state: { state: stateToken(i.record.state), label: t(`states.${i.record.state}`) },
-          location: where(i),
-          owner: i.record.ownerName ?? t("values.unassigned"),
-          due: due(i) ?? t("values.noDate"),
-        }))}
-        onRowActivate={(row) => openItem(String(row["key"]))}
-      />
+      <>
+        <DataTable
+          caption={title}
+          columns={[
+            { key: "key", label: t("columns.key"), type: "code" },
+            { key: "title", label: t("columns.title"), wrap: true },
+            { key: "state", label: t("columns.state"), type: "state" },
+            { key: "location", label: t("columns.location") },
+            { key: "owner", label: t("columns.owner") },
+            { key: "due", label: t("columns.due") },
+          ]}
+          rows={items.map((i) => ({
+            id: i.id,
+            key: i.record.key,
+            title: i.record.title,
+            state: { state: stateToken(i.record.state), label: t(`states.${i.record.state}`) },
+            location: where(i),
+            owner: i.record.ownerName ?? t("values.unassigned"),
+            due: due(i) ?? t("values.noDate"),
+          }))}
+          onRowActivate={(row) => openItem(String(row["key"]))}
+          onRowContextMenu={(_row, index, at, cell) => {
+            const i = items[index];
+            if (!i) return;
+            rowMenu.open(
+              {
+                id: i.id,
+                label: i.record.key,
+                open: () => openItem(i.record.key),
+                href: `/${org}/r/${encodeURIComponent(i.record.key)}`,
+                bulk: bulkKit,
+              },
+              at,
+              cell,
+            );
+          }}
+          {...(bulkKit.selection ? { selection: bulkKit.selection } : {})}
+        />
+        {bulkKit.bar}
+        {rowMenu.menu}
+      </>
     );
   } else if (view === "board") {
     body = (
@@ -178,6 +216,7 @@ export function PunchCollection({
         {items.map((i) => (
           <RecordRow
             key={i.id}
+            id={i.record.key}
             state={stateToken(i.record.state)}
             stateLabel={t(`states.${i.record.state}`)}
             recordKey={i.record.key}
@@ -197,7 +236,8 @@ export function PunchCollection({
 
   return (
     <TemplateCollection header={header} filters={filters} peek={peek}>
-      {body}
+      {items.length > 0 ? <div {...hover.hoverProps}>{body}</div> : body}
+      {hover.card}
     </TemplateCollection>
   );
 }

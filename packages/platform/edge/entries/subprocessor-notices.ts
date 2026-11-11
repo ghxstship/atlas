@@ -1,6 +1,5 @@
 /**
  * subprocessor-notices (A82): the platform email worker for Subprocessor List confirmations and notices.
- * React Email, the templates and Resend load only when an email is rendered or sent (@xos/email).
+ * React Email, the templates and Resend and the worker itself load only when a request comes (@xos/email).
  */
-export { dispatchPlatformEmails, platformEmailStore } from "../../src/legal/platform-emails.ts";
-export { createTransport, readEmailEnv } from "@xos/email/env";
+export const loadSubprocessorNotices = () => import("../subprocessor-notices-worker.ts");

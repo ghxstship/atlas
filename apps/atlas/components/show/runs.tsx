@@ -1,9 +1,27 @@
 "use client";
 
-import type { Cue, CueProgress, RunOfShow } from "@xos/data/show";
+import {
+  callLines,
+  cueProgress,
+  CUE_CALL_KINDS,
+  CUE_CALL_SLUGS,
+  type Cue,
+  type CueCall,
+  type CueCallKind,
+  type CueEngagement,
+  type CueProgress,
+  type HeardCalls,
+  type RunOfShow,
+  unconfirmedCalls,
+  withHeardCalls,
+  segmentKey,
+  type SegmentColor,
+} from "@xos/data/show";
 import type { ProjectRef, ScopeNodeRef } from "@xos/data/work";
+import { emitWorkflow } from "@xos/data/workflow-signal";
 import {
   Button,
+  Checkbox,
   DataTable,
   Dialog,
   Drawer,
@@ -13,30 +31,88 @@ import {
   PageHeader,
   RecordList,
   RecordRow,
-  RunOfShowLive,
   Select,
   Tag,
   TemplateCollection,
   Timeline,
 } from "@xos/ui";
 import type { Route } from "next";
+import dynamic from "next/dynamic";
+import Link from "next/link";
 import { useFormatter, useLocale } from "next-intl";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { ActionErrorAlert, useAction, useCopy } from "@/components/work/action-ui";
-import { formatDay, formatScheduleTime, fromLocalInput, withQuery } from "@/components/work/format";
+// B4: the cue grid's one-module wrapper loads it when opened, so the run of show carries none of it until then.
+import { CueGrid } from "@/components/lazy-ui/cue-grid";
+import {
+  formatDay,
+  formatScheduleTime,
+  formatStartTime,
+  fromLocalInput,
+  toLocalInput,
+  withQuery,
+} from "@/components/work/format";
 import { useScheduleView } from "@/components/work/use-schedule-view";
+import type { CueFieldChip } from "@/lib/show/cue-field-chips";
 import {
   addCueAction,
-  callCueAction,
   createRunAction,
   deleteRunAction,
+  linkCueAction,
   moveCueAction,
   removeCueAction,
+  unlinkCueAction,
   updateRunAction,
 } from "./actions";
+import { ShowChannelPanel } from "./show-channel-panel";
+import { showChannelComposerId } from "./show-channel-ids";
 import { CollectionViews } from "@/components/views/collection-views";
-import { useLiveRefresh } from "@/components/live/live-refresh";
+import { LiveCues } from "./live-cues";
+import { ListDraftEntry } from "@/components/aurora/entry/list-draft-entry";
+import { useRowMenu } from "@/components/menus/use-row-menu";
+
+// These load behind a person's action, so the route keeps its weight. The console never renders on the server: an
+// inert copy of its buttons would lose a click made before its chunk arrives, so they appear when they can answer.
+const ShowcallerConsole = dynamic(
+  () => import("./showcaller-console").then((m) => m.ShowcallerConsole),
+  { ssr: false },
+);
+const CueEditor = dynamic(() => import("./cue-editor").then((m) => m.CueEditor));
+const MoveCueDialog = dynamic(() => import("./cue-editor").then((m) => m.MoveCueDialog));
+const CueShift = dynamic(() => import("./cue-shift").then((m) => m.CueShift));
+const InsertSegmentDialog = dynamic(() =>
+  import("./segment-insert-dialog").then((m) => m.InsertSegmentDialog),
+);
+
+/** A segment's name, with its color as the Tag's swatch when the running order gives it one. */
+function SegmentMark({ segment, color }: { segment: string; color: SegmentColor | null }) {
+  return color ? (
+    <Tag swatch={color}>{segment}</Tag>
+  ) : (
+    <span className="text-text-12 font-semibold text-text-secondary">{segment}</span>
+  );
+}
+
+/** Crew-audience custom values of a cue as chips; a choice with a color shows it beside the label. */
+function FieldChips({ chips }: { chips: readonly CueFieldChip[] | undefined }) {
+  const t = useCopy("show");
+  if (!chips || chips.length === 0) return null;
+  return (
+    <span className="flex flex-wrap gap-4">
+      {chips.map((chip) => (
+        <Tag key={chip.key} {...(chip.colorKey ? { swatch: chip.colorKey } : {})}>
+          {t("cues.fieldValue", { label: chip.label, value: chip.text })}
+        </Tag>
+      ))}
+    </span>
+  );
+}
+
+/** The cue's segment as the database matches it. */
+function segmentOf(cue: Cue | undefined): string {
+  return segmentKey(cue?.segment ?? null);
+}
 
 /**
  * Show > Run of show (Section 4.5.5): running orders as a list, table or timeline by show day.
@@ -55,6 +131,7 @@ export function RunCollection({
   canCreate,
   create,
   peek,
+  showDay,
 }: {
   org: string;
   /** Today on the org's calendar (A71); an empty timeline starts here. */
@@ -68,6 +145,8 @@ export function RunCollection({
   canCreate: boolean;
   create: ReactNode;
   peek: ReactNode;
+  /** The project Show tab's link to its Show day (B6), with the project and today on its calendar. */
+  showDay?: ReactNode;
 }) {
   const t = useCopy("show");
   const locale = useLocale();
@@ -76,6 +155,7 @@ export function RunCollection({
   const pathname = usePathname();
   const params = useSearchParams();
   const [search, setSearch] = useState(q);
+  const rowMenu = useRowMenu();
   const go = (changes: Record<string, string | null>) =>
     router.replace(withQuery(pathname, params, changes) as Route, { scroll: false });
   const open = (runId: string) =>
@@ -101,7 +181,14 @@ export function RunCollection({
           />
         ) : undefined
       }
-      actions={canCreate ? create : undefined}
+      actions={
+        canCreate || showDay ? (
+          <>
+            {showDay}
+            {canCreate ? create : null}
+          </>
+        ) : undefined
+      }
     />
   );
   const filters = (
@@ -166,6 +253,36 @@ export function RunCollection({
           cues: progress(r),
         }))}
         onRowActivate={(row) => open(String(row["id"]))}
+        onRowContextMenu={(_row, index, at, cell) => {
+          const r = runs[index];
+          if (!r) return;
+          // A running order has no full page or property that changes in bulk (Section 11.7):
+          // its menu opens it, or starts live mode as its peek does once it has cues.
+          rowMenu.open(
+            {
+              id: r.id,
+              label: `${r.projectKey} · ${r.name}`,
+              open: () => open(r.id),
+              ...(r.cueCount > 0
+                ? {
+                    more: [
+                      {
+                        label: t("live.start"),
+                        icon: "Play" as const,
+                        onSelect: () =>
+                          router.push(
+                            withQuery(pathname, params, { peek: r.id, live: "1" }) as Route,
+                            { scroll: false },
+                          ),
+                      },
+                    ],
+                  }
+                : {}),
+            },
+            at,
+            cell,
+          );
+        }}
       />
     );
   } else if (view === "timeline") {
@@ -238,6 +355,7 @@ export function RunCollection({
   return (
     <TemplateCollection header={header} filters={filters} peek={peek}>
       {body}
+      {rowMenu.menu}
     </TemplateCollection>
   );
 }
@@ -358,21 +476,55 @@ export function CreateRunDialog({
   );
 }
 
-/** Show mode follows cue calls within half a second (Section 11.11): small batches, short gaps. */
-const SHOW_PACING = { batchMs: 30, minIntervalMs: 200, maxIntervalMs: 1_000 } as const;
-
 /**
- * Follows cue calls live while mounted (ADR 0044): a called cue refreshes the page as soon as
- * Realtime reports it. A 15-second pull covers a dropped channel; it replaced a 2-second poll.
+ * A cue's Set for control in edit mode: each linked artist with an unlink button (a back-to-back set
+ * links two), then a select of the project's other Artist engagements. Gateway Set Times shows the
+ * linked cue to each artist (Section 4.4.4).
  */
-function LiveCues({ runId }: { runId: string }) {
-  const router = useRouter();
-  useLiveRefresh([{ table: "cues", filter: `run_of_show_id=eq.${runId}` }], SHOW_PACING);
-  useEffect(() => {
-    const timer = setInterval(() => router.refresh(), 15_000);
-    return () => clearInterval(timer);
-  }, [router]);
-  return null;
+function SetFor({
+  org,
+  cue,
+  links,
+  artists,
+  action,
+}: {
+  org: string;
+  cue: Cue;
+  links: readonly CueEngagement[];
+  artists: readonly { value: string; label: string }[];
+  action: ReturnType<typeof useAction>;
+}) {
+  const t = useCopy("show");
+  const unlinked = artists.filter((a) => !links.some((l) => l.engagementId === a.value));
+  return (
+    <>
+      {links.map((link) => (
+        <span key={link.id} className="flex items-center gap-4 text-text-12">
+          {t("cues.setForName", { name: link.personName ?? t("cues.setForNone") })}
+          <IconButton
+            icon="X"
+            label={t("cues.unlink", {
+              name: link.personName ?? t("cues.setForNone"),
+              label: cue.label,
+            })}
+            onClick={() => action.run(() => unlinkCueAction(org, link.id))}
+          />
+        </span>
+      ))}
+      {unlinked.length > 0 ? (
+        <Select
+          id={`set-for-${cue.id}`}
+          label={t("cues.setFor")}
+          value=""
+          options={[{ value: "", label: t("cues.setForNone") }, ...unlinked]}
+          onChange={(e) => {
+            const engagementId = e.target.value;
+            if (engagementId) action.run(() => linkCueAction(org, cue.id, engagementId));
+          }}
+        />
+      ) : null}
+    </>
+  );
 }
 
 /** Seconds as m:ss, or h:mm:ss past an hour. */
@@ -384,15 +536,109 @@ function clock(total: number): string {
   return h > 0 ? `${h}:${String(m).padStart(2, "0")}:${sec}` : `${m}:${sec}`;
 }
 
+/** A cue's planned time, or "TBC · est. <time>" while it is to be confirmed (G-40). */
+function useCueTime(tz: string): (cue: Cue) => string {
+  const t = useCopy("show");
+  const locale = useLocale();
+  const view = useScheduleView();
+  return (cue) =>
+    formatStartTime(cue.plannedAt, cue.startTbc, locale, tz, view, "time", (time) =>
+      t("cues.tbcEstimate", { time }),
+    ) ?? "";
+}
+
+/**
+ * A cue's department calls as tagged lines ("Lighting · LX 14 GO"), in enum order (G-74). With a
+ * department chosen only its line shows, or "No Lighting call".
+ */
+function CallLines({
+  calls,
+  department,
+}: {
+  calls: readonly CueCall[];
+  department: CueCallKind | null;
+}) {
+  const t = useCopy("show");
+  const name = (k: CueCallKind) => t(`cues.departments.${CUE_CALL_SLUGS[k]}`);
+  const lines = callLines(calls, department);
+  if (department !== null && lines.length === 0) {
+    return (
+      <span className="text-text-12 text-text-tertiary">
+        {t("cues.noCall", { department: name(department) })}
+      </span>
+    );
+  }
+  if (lines.length === 0) return null;
+  return (
+    <ul className="m-0 flex list-none flex-col gap-2 p-0">
+      {lines.map((line) => (
+        <li
+          key={line.kind}
+          className={
+            department === null
+              ? "text-text-12 text-text-secondary"
+              : "text-text-13 font-semibold text-accent-text"
+          }
+        >
+          {t("cues.callLine", { department: name(line.kind), instruction: line.instruction })}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/** The Department select (All plus the five), held in the URL as `dept=<slug>`. */
+function DepartmentFilter({
+  runId,
+  department,
+}: {
+  runId: string;
+  department: CueCallKind | null;
+}) {
+  const t = useCopy("show");
+  const router = useRouter();
+  const pathname = usePathname();
+  const params = useSearchParams();
+  return (
+    <Select
+      id={`cue-department-${runId}`}
+      label={t("cues.department")}
+      value={department === null ? "" : CUE_CALL_SLUGS[department]}
+      options={[
+        { value: "", label: t("cues.allDepartments") },
+        ...CUE_CALL_KINDS.map((k) => ({
+          value: CUE_CALL_SLUGS[k],
+          label: t(`cues.departments.${CUE_CALL_SLUGS[k]}`),
+        })),
+      ]}
+      onChange={(e) =>
+        router.replace(withQuery(pathname, params, { dept: e.target.value || null }) as Route, {
+          scroll: false,
+        })
+      }
+    />
+  );
+}
+
 /** One running order: details, the cue list editor, and live mode with cue calls. */
 export function RunBody({
   org,
   run: runOfShow,
-  cues,
-  progress,
+  cues: servedCues,
+  progress: served,
   live,
   canEdit,
   canCall,
+  draftable = false,
+  setTimes = [],
+  artists = [],
+  importHref = null,
+  calls = [],
+  department = null,
+  segmentColors = {},
+  fieldChips = {},
+  hasCueFields = false,
+  channelProjectId = null,
   children,
 }: {
   org: string;
@@ -402,6 +648,29 @@ export function RunBody({
   live: boolean;
   canEdit: boolean;
   canCall: boolean;
+  /**
+   * Whether Aurora may draft into this running order (P6): it has no cue, also none the viewer
+   * cannot see, and the viewer may write to its project (app.drafted_list_is_empty).
+   */
+  draftable?: boolean;
+  /** Cues marked as an artist's set time (app.engagement_cues), for the Set for control. */
+  setTimes?: readonly CueEngagement[];
+  /** The run's project's Artist engagements a cue can be set for. */
+  artists?: readonly { value: string; label: string }[];
+  /** The import wizard preselected on this running order (P3); null when the viewer cannot import cues here. */
+  importHref?: string | null;
+  /** The running order's department calls (app.cue_calls). */
+  calls?: readonly CueCall[];
+  /** The department chosen in the URL (`dept=`), or null for every department. */
+  department?: CueCallKind | null;
+  /** Segment colors of the running order, by segment name lowercased and trimmed (app.run_segment_colors). */
+  segmentColors?: Readonly<Record<string, SegmentColor>>;
+  /** Crew-audience custom values by cue id, as chips (ADR 0142). */
+  fieldChips?: Readonly<Record<string, readonly CueFieldChip[]>>;
+  /** Whether the org has any live cue field, in any audience, so the cue editor shows its Fields tab. */
+  hasCueFields?: boolean;
+  /** The project whose show channel sits beside the running cue in live mode; null hides the panel. */
+  channelProjectId?: string | null;
   children?: ReactNode;
 }) {
   const t = useCopy("show");
@@ -409,81 +678,132 @@ export function RunBody({
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
+  const rowMenu = useRowMenu();
   const tz = runOfShow.timeZone;
+  const [shifting, setShifting] = useState(false);
   const details = useAction();
   const cueAction = useAction();
-  const calls = useAction();
   const [name, setName] = useState(runOfShow.name);
   const [showDate, setShowDate] = useState(runOfShow.showDate);
+  const [curfew, setCurfew] = useState(toLocalInput(runOfShow.curfewAt, tz));
   const [label, setLabel] = useState("");
   const [planned, setPlanned] = useState("");
+  const [plannedTbc, setPlannedTbc] = useState(false);
   const [duration, setDuration] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [editing, setEditing] = useState<string | null>(null);
+  const [moving, setMoving] = useState<Cue | null>(null);
+  // B4 (G-41): the running order as a grid, loaded when opened.
+  const [gridOpen, setGridOpen] = useState(false);
+  const [inserting, setInserting] = useState(false);
+  // While a cue is edited the peek shows only the list and the editor: a dialog is one screen of at most seven fields.
+  const editingCue = editing !== null;
+  const colorOf = (cue: Cue | undefined): SegmentColor | null =>
+    segmentColors[segmentOf(cue)] ?? null;
+  const calledText = (c: Cue) =>
+    c.calledAt
+      ? c.calledViaLink
+        ? t("cues.calledViaLink", { time: time(c.calledAt) ?? "", name: c.calledViaLink })
+        : c.calledByName
+          ? t("cues.called", { time: time(c.calledAt) ?? "", name: c.calledByName })
+          : t("cues.calledBySomeone", { time: time(c.calledAt) ?? "" })
+      : t("cues.notCalled");
   // Cue times follow me.time_zone_display and carry their zone abbreviation (Section 15).
   const view = useScheduleView();
   const time = (at: string | null) => formatScheduleTime(at, locale, tz, view, "time");
+  const cueTime = useCueTime(tz);
+  // Calls heard from Realtime rows or from the caller's own answer (cue id to called_at), held until
+  // a server read carries them: a device shows a call in the frame it arrives (Section 11.11, cue
+  // sync under 500 ms), and a reread that started before the call cannot take it back (ADR 0119).
+  const [heard, setHeard] = useState<HeardCalls>({});
+  const cues = withHeardCalls(servedCues, heard);
+  const progress = cues === servedCues ? served : cueProgress(cues);
+  const onCalled = (cueId: string, calledAt: string) =>
+    setHeard((h) => ({ ...unconfirmedCalls(h, servedCues), [cueId]: calledAt }));
   const next = progress.next >= 0 ? cues[progress.next] : undefined;
   const current = progress.current >= 0 ? cues[progress.current] : undefined;
+  const callsOf = (cueId: string) => calls.filter((c) => c.cueId === cueId);
+  const lastCalled = cues.reduce((last, c, i) => (c.calledAt ? i : last), -1);
+  const setDepartment = (kind: CueCallKind | null) =>
+    router.replace(
+      withQuery(pathname, params, { dept: kind === null ? null : CUE_CALL_SLUGS[kind] }) as Route,
+      { scroll: false },
+    );
 
   if (live) {
-    return (
-      <div className="flex flex-col gap-16">
-        <LiveCues runId={runOfShow.id} />
+    const running = (
+      <div className="flex min-w-0 flex-col gap-16">
+        <LiveCues runId={runOfShow.id} onCalled={onCalled} />
         <p className="m-0 text-text-12 text-text-secondary">{t("live.syncing")}</p>
-        <ActionErrorAlert error={calls.error} />
+        {/* The current and standby lines are the only live regions; each changes once per call. */}
         <p role="status" className="m-0 text-heading-16 font-semibold">
           {progress.complete
-            ? t("live.complete")
+            ? progress.skipped.length > 0
+              ? t("live.completeSkipped", { count: progress.skipped.length })
+              : t("live.complete")
             : current
               ? t("live.current", { label: current.label })
               : t("live.notStarted")}
         </p>
+        {current?.segment ? (
+          <SegmentMark segment={current.segment} color={colorOf(current)} />
+        ) : null}
+        <FieldChips chips={current ? fieldChips[current.id] : undefined} />
+        {current?.script ? (
+          <details className="rounded-card border border-border-subtle p-8">
+            <summary className="cursor-pointer text-label-13 font-semibold">
+              {t("live.script")}
+            </summary>
+            <p className="m-0 mt-8 whitespace-pre-wrap text-text-14">{current.script}</p>
+          </details>
+        ) : null}
         {next ? (
-          <p className="m-0 text-text-14">
-            {t("live.standby", { label: next.label })}{" "}
+          <p className="m-0 flex flex-wrap items-baseline gap-x-8 text-text-14">
+            <span role="status">
+              {progress.standby
+                ? t("live.standby", { label: next.label })
+                : t("live.next", { label: next.label })}
+            </span>
             <span className="text-text-secondary">
-              {progress.nextInSeconds === null
-                ? t("live.noPlan")
+              {progress.nextInSeconds === null || next.startTbc
+                ? next.startTbc
+                  ? cueTime(next)
+                  : t("live.noPlan")
                 : progress.nextInSeconds >= 0
                   ? t("live.nextIn", { time: clock(progress.nextInSeconds) })
                   : t("live.nextLate", { time: clock(progress.nextInSeconds) })}
             </span>
           </p>
         ) : null}
+        {next ? <FieldChips chips={fieldChips[next.id]} /> : null}
         {canCall ? (
-          <>
-            <RunOfShowLive
-              key={`${progress.current}`}
-              cues={cues.map((c) => ({
-                number: String(c.position),
-                time: time(c.plannedAt) ?? "",
-                title: c.label,
-                ...(c.durationSeconds !== null ? { durationSeconds: c.durationSeconds } : {}),
-              }))}
-              current={progress.current}
-              nextInSeconds={progress.nextInSeconds ?? 0}
-              showMode
-              onGo={(index) => {
-                const cue = cues[index];
-                if (cue && !cue.calledAt) calls.run(() => callCueAction(org, cue.id));
-              }}
-            />
-            {next ? (
-              <div>
-                <Button
-                  variant="primary"
-                  loading={calls.pending}
-                  onClick={() => calls.run(() => callCueAction(org, next.id))}
-                >
-                  {t("live.callNext")}
-                </Button>
-              </div>
-            ) : null}
-          </>
+          <ShowcallerConsole
+            org={org}
+            run={runOfShow}
+            cues={cues}
+            calls={calls}
+            department={department}
+            onDepartment={setDepartment}
+            onCalled={onCalled}
+            {...(channelProjectId
+              ? {
+                  onChat: () =>
+                    document.getElementById(showChannelComposerId(channelProjectId))?.focus(),
+                }
+              : {})}
+          />
         ) : (
           <>
             <p className="m-0 text-text-13 text-text-secondary">{t("live.readOnly")}</p>
-            <CueList cues={cues} tz={tz} highlight={progress.current} />
+            <DepartmentFilter runId={runOfShow.id} department={department} />
+            <CueList
+              cues={cues}
+              tz={tz}
+              progress={progress}
+              calls={calls}
+              department={department}
+              colorOf={colorOf}
+            />
           </>
         )}
         <div>
@@ -500,6 +820,16 @@ export function RunBody({
         </div>
       </div>
     );
+    if (!channelProjectId) return running;
+    // Two columns from 1024 px, in the wide peek RunPeek opens for live mode: the running cue and the show channel;
+    // stacked below that. The grid is not a show scope region: the show keys answer only in the console, which hands show.chat (M) to the channel's message box,
+    // so a key pressed on the channel (Space on its buttons, J in its messages) never calls or stands by a cue.
+    return (
+      <div className="grid gap-24 lg:grid-cols-[minmax(0,1fr)_var(--layout-property-column)]">
+        {running}
+        <ShowChannelPanel org={org} projectId={channelProjectId} />
+      </div>
+    );
   }
 
   return (
@@ -514,14 +844,17 @@ export function RunBody({
           {formatDay(runOfShow.showDate, locale, { dateStyle: "full" })}
         </span>
       </div>
-      {cues.length > 0 ? (
+      {cues.length > 0 && !editingCue ? (
         <div>
           <Button
             variant="primary"
             icon="Play"
-            onClick={() =>
-              router.replace(withQuery(pathname, params, { live: "1" }) as Route, { scroll: false })
-            }
+            onClick={() => {
+              emitWorkflow("atlas.show:start");
+              router.replace(withQuery(pathname, params, { live: "1" }) as Route, {
+                scroll: false,
+              });
+            }}
           >
             {t("live.start")}
           </Button>
@@ -529,67 +862,228 @@ export function RunBody({
       ) : null}
 
       <section aria-labelledby={`cues-${runOfShow.id}`} className="flex flex-col gap-8">
-        <h3 id={`cues-${runOfShow.id}`} className="m-0 text-label-13 font-semibold">
-          {t("cues.title")}
-        </h3>
+        <div className="flex flex-wrap items-baseline justify-between gap-8">
+          <h3 id={`cues-${runOfShow.id}`} className="m-0 text-label-13 font-semibold">
+            {t("cues.title")}
+          </h3>
+          <span className="flex flex-wrap items-center gap-12">
+            {canEdit ? (
+              <Button
+                size="sm"
+                variant="secondary"
+                icon="Layers"
+                onClick={() => setInserting(true)}
+              >
+                {t("segmentLibrary.insert")}
+              </Button>
+            ) : null}
+            {importHref ? (
+              <Link href={importHref as Route} className="text-text-13 text-accent-text underline">
+                {t("importCues")}
+              </Link>
+            ) : null}
+          </span>
+        </div>
+        {inserting ? (
+          <InsertSegmentDialog
+            org={org}
+            run={runOfShow}
+            cues={cues}
+            onClose={() => setInserting(false)}
+          />
+        ) : null}
         <ActionErrorAlert error={cueAction.error} />
+        {cues.length > 0 && !editingCue ? (
+          <DepartmentFilter runId={runOfShow.id} department={department} />
+        ) : null}
         {cues.length === 0 ? (
-          <p className="m-0 text-text-13 text-text-secondary">
-            {canEdit ? t("cues.empty") : t("cues.emptyReadOnly")}
-          </p>
+          <div className="flex flex-col gap-8">
+            <p className="m-0 text-text-13 text-text-secondary">
+              {canEdit ? t("cues.empty") : t("cues.emptyReadOnly")}
+            </p>
+            {canEdit && draftable ? (
+              <ListDraftEntry
+                kind="run_of_show"
+                target={{ collection: "run-of-show", id: runOfShow.id, label: runOfShow.name }}
+                context={[
+                  {
+                    collection: "projects",
+                    id: runOfShow.projectId,
+                    label: runOfShow.projectKey,
+                  },
+                ]}
+                timeZone={tz}
+                showDate={runOfShow.showDate}
+              />
+            ) : null}
+          </div>
         ) : (
           <ol
             aria-label={t("cues.listLabel", { name: runOfShow.name })}
             className="m-0 flex list-none flex-col divide-y divide-border-subtle p-0"
           >
-            {cues.map((c, i) => (
-              <li key={c.id} className="flex flex-wrap items-center justify-between gap-8 py-6">
-                <span className="flex items-baseline gap-8">
-                  <span className="font-mono text-text-12 text-text-secondary">{c.position}</span>
-                  <span className="text-text-14">{c.label}</span>
-                  <span className="text-text-12 text-text-secondary">
-                    {time(c.plannedAt) ?? ""}
-                  </span>
-                </span>
-                <span className="flex items-center gap-4">
-                  <span className="text-text-12 text-text-secondary">
-                    {c.calledAt
-                      ? c.calledByName
-                        ? t("cues.called", { time: time(c.calledAt) ?? "", name: c.calledByName })
-                        : t("cues.calledBySomeone", { time: time(c.calledAt) ?? "" })
-                      : t("cues.notCalled")}
-                  </span>
-                  {canEdit && !c.calledAt ? (
-                    <>
-                      <IconButton
-                        icon="ArrowUp"
-                        label={t("cues.moveUp", { label: c.label })}
-                        disabled={i === 0}
-                        onClick={() =>
-                          cueAction.run(() => moveCueAction(org, runOfShow.id, c.id, "up"))
+            {cues.map((c, i) => {
+              const own = callsOf(c.id);
+              const marked = department !== null && own.some((k) => k.kind === department);
+              const movable = canEdit && !c.calledAt;
+              if (editing === c.id) {
+                return (
+                  <li key={c.id} className="flex py-6">
+                    <CueEditor
+                      org={org}
+                      run={runOfShow}
+                      cue={c}
+                      calls={own}
+                      segmentColors={segmentColors}
+                      hasCueFields={hasCueFields}
+                      onClose={() => setEditing(null)}
+                    />
+                  </li>
+                );
+              }
+              return (
+                <li
+                  key={c.id}
+                  className={`flex flex-wrap items-center justify-between gap-8 py-6 ${marked ? "border-s-2 border-s-accent ps-8" : ""}`}
+                  onContextMenu={
+                    movable
+                      ? (e) => {
+                          e.preventDefault();
+                          rowMenu.open(
+                            {
+                              id: c.id,
+                              label: c.label,
+                              more: [
+                                {
+                                  label: t("cues.moveToMenu"),
+                                  icon: "ChevronsUpDown" as const,
+                                  onSelect: () => setMoving(c),
+                                },
+                              ],
+                            },
+                            { x: e.clientX, y: e.clientY },
+                            e.currentTarget,
+                          );
                         }
+                      : undefined
+                  }
+                >
+                  <span className="flex flex-col gap-2">
+                    {c.segment && segmentOf(c) !== segmentOf(cues[i - 1]) ? (
+                      <SegmentMark segment={c.segment} color={colorOf(c)} />
+                    ) : null}
+                    <span className="flex items-baseline gap-8">
+                      <span className="font-mono text-text-12 text-text-secondary">
+                        {c.position}
+                      </span>
+                      <span className="text-text-14">{c.label}</span>
+                      <span className="text-text-12 text-text-secondary">{cueTime(c)}</span>
+                      {marked ? (
+                        <span className="sr-only">
+                          {t("cues.hasCall", {
+                            department: t(`cues.departments.${CUE_CALL_SLUGS[department]}`),
+                          })}
+                        </span>
+                      ) : null}
+                    </span>
+                    <FieldChips chips={fieldChips[c.id]} />
+                    <CallLines calls={own} department={department} />
+                  </span>
+                  <span className="flex items-center gap-4">
+                    {canEdit && !editingCue ? (
+                      <SetFor
+                        org={org}
+                        cue={c}
+                        links={setTimes.filter((s) => s.cueId === c.id)}
+                        artists={artists}
+                        action={cueAction}
                       />
+                    ) : null}
+                    <span className="text-text-12 text-text-secondary">{calledText(c)}</span>
+                    {canEdit ? (
                       <IconButton
-                        icon="ArrowDown"
-                        label={t("cues.moveDown", { label: c.label })}
-                        disabled={i === cues.length - 1}
-                        onClick={() =>
-                          cueAction.run(() => moveCueAction(org, runOfShow.id, c.id, "down"))
-                        }
+                        icon="Pencil"
+                        label={t("cues.edit", { label: c.label })}
+                        onClick={() => setEditing(c.id)}
                       />
-                      <IconButton
-                        icon="X"
-                        label={t("cues.remove", { label: c.label })}
-                        onClick={() => cueAction.run(() => removeCueAction(org, c.id))}
-                      />
-                    </>
-                  ) : null}
-                </span>
-              </li>
-            ))}
+                    ) : null}
+                    {movable ? (
+                      <>
+                        <IconButton
+                          icon="ArrowUp"
+                          label={t("cues.moveUp", { label: c.label })}
+                          disabled={i === 0 || i - 1 <= lastCalled}
+                          onClick={() =>
+                            cueAction.run(() => moveCueAction(org, runOfShow.id, c.id, "up"))
+                          }
+                        />
+                        <IconButton
+                          icon="ArrowDown"
+                          label={t("cues.moveDown", { label: c.label })}
+                          disabled={i === cues.length - 1}
+                          onClick={() =>
+                            cueAction.run(() => moveCueAction(org, runOfShow.id, c.id, "down"))
+                          }
+                        />
+                        <IconButton
+                          icon="ChevronsUpDown"
+                          label={t("cues.moveTo", { label: c.label })}
+                          onClick={() => setMoving(c)}
+                        />
+                        <IconButton
+                          icon="X"
+                          label={t("cues.remove", { label: c.label })}
+                          onClick={() => cueAction.run(() => removeCueAction(org, c.id))}
+                        />
+                      </>
+                    ) : null}
+                  </span>
+                </li>
+              );
+            })}
           </ol>
         )}
         {canEdit ? (
+          <div>
+            <Button size="sm" icon="Sheet" onClick={() => setGridOpen(true)}>
+              {t("cueGrid.open")}
+            </Button>
+          </div>
+        ) : null}
+        {gridOpen ? (
+          <CueGrid
+            org={org}
+            runId={runOfShow.id}
+            day={runOfShow.showDate}
+            timeZone={runOfShow.timeZone}
+            onClose={() => setGridOpen(false)}
+          />
+        ) : null}
+        {canEdit && cues.some((c) => !c.calledAt && c.plannedAt) ? (
+          shifting ? (
+            <CueShift
+              org={org}
+              runId={runOfShow.id}
+              cues={cues}
+              label={(c) => time(c.plannedAt) ?? ""}
+            />
+          ) : (
+            <div>
+              <Button onClick={() => setShifting(true)}>{t("cueShift.title")}</Button>
+            </div>
+          )
+        ) : null}
+        {moving ? (
+          <MoveCueDialog
+            org={org}
+            runId={runOfShow.id}
+            cues={cues}
+            cue={moving}
+            onClose={() => setMoving(null)}
+          />
+        ) : null}
+        {rowMenu.menu}
+        {canEdit && !editingCue ? (
           <form
             className="flex flex-wrap items-end gap-8"
             onSubmit={(e) => {
@@ -603,10 +1097,12 @@ export function RunBody({
                       ? fromLocalInput(`${runOfShow.showDate}T${planned}`, tz)
                       : null,
                     durationSeconds: duration === "" ? null : Number(duration),
+                    startTbc: planned !== "" && plannedTbc,
                   }),
                 () => {
                   setLabel("");
                   setPlanned("");
+                  setPlannedTbc(false);
                   setDuration("");
                 },
               );
@@ -626,6 +1122,12 @@ export function RunBody({
               value={planned}
               onChange={(e) => setPlanned(e.target.value)}
             />
+            <Checkbox
+              label={t("cues.tbc")}
+              checked={planned !== "" && plannedTbc}
+              disabled={planned === ""}
+              onChange={(e) => setPlannedTbc(e.target.checked)}
+            />
             <Input
               id={`cue-duration-${runOfShow.id}`}
               type="number"
@@ -642,13 +1144,19 @@ export function RunBody({
         ) : null}
       </section>
 
-      {canEdit ? (
+      {canEdit && !editingCue ? (
         <form
           aria-label={t("runs.rename")}
           className="flex flex-wrap items-end gap-8"
           onSubmit={(e) => {
             e.preventDefault();
-            details.run(() => updateRunAction(org, runOfShow.id, { name, showDate }));
+            details.run(() =>
+              updateRunAction(org, runOfShow.id, {
+                name,
+                showDate,
+                curfewAt: fromLocalInput(curfew, tz),
+              }),
+            );
           }}
         >
           <ActionErrorAlert error={details.error} />
@@ -664,6 +1172,13 @@ export function RunBody({
             label={t("runs.showDate")}
             value={showDate}
             onChange={(e) => setShowDate(e.target.value)}
+          />
+          <Input
+            id={`run-edit-curfew-${runOfShow.id}`}
+            type="datetime-local"
+            label={t("runs.curfew")}
+            value={curfew}
+            onChange={(e) => setCurfew(e.target.value)}
           />
           <Button type="submit" loading={details.pending}>
             {t("runs.rename")}
@@ -704,35 +1219,72 @@ export function RunBody({
           ) : null}
         </form>
       ) : null}
-      {children}
+      {editingCue ? null : children}
     </div>
   );
 }
 
-function CueList({ cues, tz, highlight }: { cues: readonly Cue[]; tz: string; highlight: number }) {
-  const locale = useLocale();
-  const view = useScheduleView();
+/**
+ * What a follower without show.cue.call sees in live mode: the cues with the current one marked, the
+ * standby cue, cues the caller jumped past, TBC times and the department lines.
+ */
+function CueList({
+  cues,
+  tz,
+  progress,
+  calls,
+  department,
+  colorOf,
+}: {
+  cues: readonly Cue[];
+  tz: string;
+  progress: CueProgress;
+  calls: readonly CueCall[];
+  department: CueCallKind | null;
+  colorOf: (cue: Cue) => SegmentColor | null;
+}) {
+  const t = useCopy("show");
+  const cueTime = useCueTime(tz);
+  const highlight = progress.current;
   return (
     <ol className="m-0 flex list-none flex-col p-0">
       {cues.map((c, i) => (
         <li
           key={c.id}
           aria-current={i === highlight ? "true" : undefined}
-          className={`flex gap-8 px-8 py-4 ${i === highlight ? "bg-bg-hover font-semibold" : i < highlight ? "text-text-tertiary" : ""}`}
+          className={`flex flex-wrap items-baseline gap-8 px-8 py-4 ${i === highlight ? "bg-bg-hover font-semibold" : i < highlight ? "text-text-tertiary" : ""}`}
         >
+          {c.segment && segmentOf(c) !== segmentOf(cues[i - 1]) ? (
+            <span className="basis-full">
+              <SegmentMark segment={c.segment} color={colorOf(c)} />
+            </span>
+          ) : null}
           <span className="font-mono text-text-12">{c.position}</span>
-          <span className="text-text-secondary">
-            {formatScheduleTime(c.plannedAt, locale, tz, view, "time") ?? ""}
-          </span>
+          <span className="text-text-secondary">{cueTime(c)}</span>
           <span>{c.label}</span>
+          {progress.skipped.includes(i) ? <Tag>{t("cues.skipped")}</Tag> : null}
+          {c.calledAt === null && c.standbyAt ? (
+            <Tag tone="warning">{t("cues.onStandby")}</Tag>
+          ) : null}
+          <span className="basis-full">
+            <CallLines calls={calls.filter((k) => k.cueId === c.id)} department={department} />
+          </span>
         </li>
       ))}
     </ol>
   );
 }
 
-/** The running order peek. */
-export function RunPeek({ title, children }: { title: string; children: ReactNode }) {
+/** The running order peek. Live mode opens it wide: from 1024 px its body holds the console and the show channel. */
+export function RunPeek({
+  title,
+  wide = false,
+  children,
+}: {
+  title: string;
+  wide?: boolean;
+  children: ReactNode;
+}) {
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
@@ -740,6 +1292,8 @@ export function RunPeek({ title, children }: { title: string; children: ReactNod
     <Drawer
       title={title}
       open
+      wide={wide}
+      shortcutScope="record"
       onOpenChange={(v) => {
         if (!v)
           router.replace(withQuery(pathname, params, { peek: null, live: null }) as Route, {

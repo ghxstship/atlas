@@ -268,6 +268,43 @@
     "invalid": "This sign-in request is incomplete. Go back to the app and start again.",
     "pageTitle": "Allow an app"
   },
+  "actionLink": {
+    "pageTitle": "Confirm from email",
+    "heading": {
+      "approve": "Approve {title}?",
+      "reject": "Reject {title}?",
+      "accept": "Accept {title}?",
+      "confirmComing": "Are you still coming to {title}?"
+    },
+    "untitled": "this item",
+    "org": "From {org}. Nothing happens until you confirm.",
+    "signedInAs": "Signed in as {email}.",
+    "confirm": {
+      "approve": "Approve",
+      "reject": "Reject",
+      "accept": "Accept",
+      "confirmComing": "Confirm you're coming"
+    },
+    "reason": "Why are you rejecting it?",
+    "reasonHelp": "The person who asked sees your reason.",
+    "done": {
+      "approve": "Approved. Nothing else to do.",
+      "reject": "Rejected with your reason.",
+      "accept": "Accepted. Nothing else to do."
+    },
+    "openInbox": "Open your Inbox",
+    "state": {
+      "used": "This was already handled. Nothing else to do.",
+      "expired": "This link has expired. Open the item from your Inbox to act on it.",
+      "not_yours": "This link was sent to someone else. Sign out, then sign in as the person it was sent to.",
+      "elsewhere": "This link opens in Gateway. Use the button in the email to open it there.",
+      "invalid": "This link does not work. Open the item from your Inbox."
+    },
+    "errors": {
+      "notification_action_reason": "Say why you are rejecting it.",
+      "unexpected": "It wasn't done. Try again, or open the item from your Inbox."
+    }
+  },
   "scopes": {
     "home": "Home",
     "inbox": "Inbox",
@@ -283,6 +320,7 @@
     "assets": "Assets",
     "credentials": "Credentials",
     "safety": "Safety",
+    "workforce": "Site Operations",
     "people": "People",
     "opportunities": "Opportunities",
     "crew": "Crew",
@@ -297,34 +335,6 @@
     "org": "Organization settings and members",
     "data": "Data, exports and Restricted fields",
     "me": "Your own account"
-  },
-  "apiKeys": {
-    "title": "API keys",
-    "description": "Keys let your own servers call the XOS API for {org}. Each key reaches only the areas you choose and stops working when it expires. Creating one asks you to confirm it's you.",
-    "notInPlan": "API keys need the Pro plan or above.",
-    "none": "No API keys yet.",
-    "name": "Name",
-    "nameHelp": "So you can tell keys apart, for example Payroll sync",
-    "scopes": "Areas this key can use",
-    "scopesNone": "Choose at least one area.",
-    "expires": "Expires after",
-    "days": "{count, plural, one {# day} other {# days}}",
-    "create": "Create API key",
-    "created": "Copy this key now. You won't see it again.",
-    "secret": "API key",
-    "copy": "Copy key",
-    "copied": "Copied.",
-    "done": "I saved it",
-    "prefix": "Starts with {prefix}",
-    "expiresOn": "Expires {date}",
-    "revokedOn": "Revoked {date}",
-    "expired": "Expired",
-    "revoke": "Revoke",
-    "revokeLabel": "Revoke {name}",
-    "revokeTitle": "Revoke {name}?",
-    "revokeSentence": "Anything using this key stops working at once.",
-    "cancel": "Cancel",
-    "revoked": "Revoked."
   },
   "oauthApps": {
     "title": "OAuth apps",

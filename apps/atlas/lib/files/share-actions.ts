@@ -68,7 +68,6 @@ const createSchema = z.object({
   attachmentId: z.uuid(),
   /** A calendar day; the link expires at the end of it in UTC. Empty for a Public file's open link. */
   expiresOn: z.union([z.literal(""), z.iso.date()]),
-  accessCode: z.boolean(),
   recipientEmail: z.union([z.literal(""), z.email().max(320)]),
   note: z.string().trim().max(200),
 });
@@ -98,7 +97,6 @@ export async function createShareLinkAction(
   const created = await createShareLink(ctx.viewer.db, {
     attachmentId: p.attachmentId,
     expiresAt: p.expiresOn === "" ? null : `${p.expiresOn}T23:59:59Z`,
-    accessCodeRequired: p.accessCode,
     recipientEmail: p.recipientEmail === "" ? null : p.recipientEmail,
     note: p.note === "" ? null : p.note,
   });

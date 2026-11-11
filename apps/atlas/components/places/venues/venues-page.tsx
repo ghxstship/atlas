@@ -1,18 +1,26 @@
 import {
+  getPlaceSpec,
   getVenue,
+  listCapabilityDocuments,
   listJurisdictions,
+  listVenueLevels,
   listVenues,
-  type ArchiveFilter,
   type Jurisdiction,
   type Venue,
 } from "@xos/data/places";
 import { listCapabilityStatements, type CapabilityStatement } from "@xos/data/reconciliation";
 import type { XosClient } from "@xos/data";
-import { getLocationDefaults, NO_LOCATION_DEFAULTS } from "@xos/data/org-setup";
+import { getLocationDefaults, NO_LOCATION_DEFAULTS, venueStartValues } from "@xos/data/org-setup";
+import { regionFromLocale } from "@xos/i18n/formats";
 import type { Route } from "next";
 import Link from "next/link";
-import { getFormatter } from "next-intl/server";
+import { redirect } from "next/navigation";
+import { getFormatter, getLocale } from "next-intl/server";
+import { addressFormat, addressLines, VENUE_ADDRESS } from "@/lib/address";
 import { requireNode } from "@/lib/shell/require-node";
+import { CustomFieldList } from "@/components/custom-fields/list";
+import { CustomFieldsPanel } from "@/components/custom-fields/custom-fields-panel";
+import { customFieldList } from "@/lib/custom-fields/server";
 import { nodeHref } from "@/lib/shell/sitemap";
 import { getTranslate, type Translate } from "@/lib/shell/translate";
 import { setPlaceArchivedAction } from "@/app/[org]/places/actions";
@@ -21,7 +29,6 @@ import { Collaboration } from "../kit/collaboration";
 import { ActionButton } from "../kit/buttons";
 import { PeekTable, QueryDrawer } from "../kit/client";
 import {
-  ArchiveFilter as ArchiveFilterLinks,
   BackLink,
   Collection,
   CollectionEmpty,
@@ -34,19 +41,42 @@ import {
 import { InlineAlert, PropertyList, Tag, TemplateRecord } from "../kit/ui";
 import { MapView } from "@/components/platform/client/map-view";
 import { chooseView, matchesSearch, param, withQuery } from "../kit/views";
+import { LevelsSection } from "./levels-section";
+import { PlaceSpecForm } from "./place-spec-form";
 import { VenueForm } from "./venue-form";
+import { ArchivedFilter } from "@/components/archive/archived-filter";
+import { archiveOf, legacyArchiveChanges } from "./archive-param";
+import { VenueContacts } from "@/components/local-contacts/venue-contacts";
 
 const NODE = "places.venues";
 const MAP = { width: 800, height: 480, margin: 40 } as const;
 
-function archiveOf(search: Search): ArchiveFilter {
-  const value = param(search, "archive");
-  return value === "archived" || value === "all" ? value : "live";
+/**
+ * The venue's address in its country's format (Section 15), on one line. The country and state come from
+ * the jurisdiction (US-FL-MIAMI-DADE gives US and FL); a venue abroad also names its country.
+ */
+function address(v: Venue, locale: string): string | null {
+  if (!v.streetAddress && !v.locality && !v.postalCode) return null;
+  const country = v.jurisdictionId.slice(0, 2);
+  const lines = addressLines(
+    {
+      streetAddress: v.streetAddress,
+      locality: v.locality,
+      administrativeArea: v.jurisdictionId.split("-")[1] ?? null,
+      postalCode: v.postalCode,
+    },
+    country,
+    { locale, viewerCountry: regionFromLocale(locale) },
+  );
+  return lines ? lines.join(", ") : null;
 }
 
-function address(v: Venue): string | null {
-  const parts = [v.streetAddress, v.locality, v.postalCode].filter((p): p is string => !!p);
-  return parts.length > 0 ? parts.join(", ") : null;
+/**
+ * The venue address form of a jurisdiction's country: the state is the jurisdiction's, so it is not
+ * asked, and every field stays optional (VENUE_ADDRESS).
+ */
+export function venueAddressFormat(jurisdictionId: string) {
+  return addressFormat(jurisdictionId.slice(0, 2) || "US", VENUE_ADDRESS);
 }
 
 /** Projects located venues into the drawing box; venues without a location are left out. */
@@ -84,13 +114,17 @@ export async function VenuesPage({
   search: Search;
 }) {
   const ctx = await requireNode(NODE, params);
+  const legacy = legacyArchiveChanges(search);
+  if (legacy) redirect(withQuery(nodeHref(NODE, params) ?? "/", search, legacy) as Route);
   const db = ctx.viewer.db;
   const archive = archiveOf(search);
-  const [venues, jurisdictions, t, held] = await Promise.all([
+  const [venues, jurisdictions, t, held, locale, custom] = await Promise.all([
     listVenues(db, ctx.org.id, archive),
     listJurisdictions(db),
     getTranslate(),
     heldCapabilities(ctx),
+    getLocale(),
+    customFieldList(ctx, "app.venues", search),
   ]);
   if (!venues.ok) throw new Error(`Cannot list venues: ${JSON.stringify(venues.error)}`);
   if (!jurisdictions.ok) {
@@ -99,8 +133,9 @@ export async function VenuesPage({
   const canWrite = held.has("places.venue.write");
   const path = nodeHref(NODE, params) ?? "/";
   const q = param(search, "q");
-  const rows = venues.data.filter((v) =>
-    matchesSearch(q, v.name, v.locality, v.jurisdictionId, v.streetAddress),
+  const rows = venues.data.filter(
+    (v) =>
+      custom.keep(v.id) && matchesSearch(q, v.name, v.locality, v.jurisdictionId, v.streetAddress),
   );
   const peekId = param(search, "peek");
   const full = param(search, "full") === "1";
@@ -111,6 +146,8 @@ export async function VenuesPage({
         db={db}
         me={ctx.viewer.person?.id ?? null}
         org={ctx.org.slug}
+        orgId={ctx.org.id}
+        held={held}
         id={peekId}
         backHref={withQuery(path, search, { peek: undefined, full: undefined })}
         jurisdictions={jurisdictions.data}
@@ -128,14 +165,17 @@ export async function VenuesPage({
 
   let overlay = null;
   if (param(search, "create") === "1" && canWrite) {
+    const defaults = await getLocationDefaults(db, ctx.org.id).then((d) =>
+      d.ok ? d.data : NO_LOCATION_DEFAULTS,
+    );
+    const start = venueStartValues(defaults, jurisdictions.data[0]?.id ?? null, "UTC");
     overlay = (
       <QueryDrawer title={t("places.venues.create")} closeKeys={["create"]}>
         <VenueForm
           org={ctx.org.slug}
           jurisdictions={jurisdictions.data}
-          defaults={await getLocationDefaults(db, ctx.org.id).then((d) =>
-            d.ok ? d.data : NO_LOCATION_DEFAULTS,
-          )}
+          defaults={defaults}
+          addressFormat={venueAddressFormat(start.jurisdictionId)}
         />
       </QueryDrawer>
     );
@@ -146,6 +186,8 @@ export async function VenuesPage({
           db={db}
           me={ctx.viewer.person?.id ?? null}
           org={ctx.org.slug}
+          orgId={ctx.org.id}
+          held={held}
           id={peekId}
           openFullHref={withQuery(path, search, { full: "1" })}
           jurisdictions={jurisdictions.data}
@@ -223,7 +265,7 @@ export async function VenuesPage({
         rows={rows.map((v) => ({
           id: v.id,
           title: v.name,
-          meta: [address(v), v.timeZone].filter(Boolean).join(" · "),
+          meta: [address(v, locale), v.timeZone].filter(Boolean).join(" · "),
           chips: (
             <>
               <Tag>{v.jurisdictionId}</Tag>
@@ -240,7 +282,7 @@ export async function VenuesPage({
     );
   }
 
-  return (
+  const collection = (
     <Collection
       title={t("places.venues.title")}
       count={rows.length}
@@ -253,7 +295,7 @@ export async function VenuesPage({
       filters={
         <>
           <SearchBox path={path} search={search} label={t("places.venues.search")} />
-          <ArchiveFilterLinks path={path} search={search} current={archive} t={t} />
+          <ArchivedFilter id="venues-archived" />
         </>
       }
       overlay={overlay}
@@ -261,12 +303,17 @@ export async function VenuesPage({
       {body}
     </Collection>
   );
+  return (
+    <CustomFieldList value={await custom.view(rows.map((v) => v.id))}>{collection}</CustomFieldList>
+  );
 }
 
 interface DetailProps {
   db: XosClient;
   me: string | null;
   org: string;
+  orgId: string;
+  held: ReadonlySet<string>;
   id: string;
   jurisdictions: readonly Jurisdiction[];
   canWrite: boolean;
@@ -287,7 +334,7 @@ async function loadVenue(db: XosClient, id: string) {
 }
 
 async function VenueProperties({ venue, t }: { venue: Venue; t: Translate }) {
-  const format = await getFormatter();
+  const [format, locale] = await Promise.all([getFormatter(), getLocale()]);
   return (
     <PropertyList
       items={[
@@ -295,7 +342,7 @@ async function VenueProperties({ venue, t }: { venue: Venue; t: Translate }) {
         { label: t("places.venues.fields.timeZone"), value: venue.timeZone },
         {
           label: t("places.venues.fields.address"),
-          value: address(venue) ?? t("places.kit.notRecorded"),
+          value: address(venue, locale) ?? t("places.kit.notRecorded"),
         },
         {
           label: t("places.venues.fields.location"),
@@ -393,6 +440,46 @@ function ArchiveControl({ org, venue, t }: { org: string; venue: Venue; t: Trans
   );
 }
 
+/** A venue's levels and technical specs (B1, G-06 and G-92): levels write with places.space.write, specs with places.venue.write. */
+async function VenueDepth({
+  db,
+  org,
+  orgId,
+  venueId,
+  held,
+}: {
+  db: XosClient;
+  org: string;
+  orgId: string;
+  venueId: string;
+  held: ReadonlySet<string>;
+}) {
+  const [levels, spec, documents] = await Promise.all([
+    listVenueLevels(db, { venueId }),
+    getPlaceSpec(db, { venueId }),
+    listCapabilityDocuments(db, { orgId, venueId }),
+  ]);
+  if (!levels.ok || !spec.ok || !documents.ok) return null;
+  return (
+    <>
+      <LevelsSection
+        org={org}
+        venueId={venueId}
+        levels={levels.data}
+        canWrite={held.has("places.space.write")}
+      />
+      <PlaceSpecForm
+        org={org}
+        spec={spec.data}
+        documents={documents.data
+          .filter((d) => d.archivedAt === null)
+          .map((d) => ({ id: d.id, title: d.title }))}
+        canWrite={held.has("places.venue.write")}
+      />
+    </>
+  );
+}
+
 /** The venue peek: properties, links, capabilities, edit and archive. */
 async function VenueDetail(props: DetailProps & { openFullHref: string }) {
   const { org, id, jurisdictions, canWrite, t, params } = props;
@@ -422,9 +509,23 @@ async function VenueDetail(props: DetailProps & { openFullHref: string }) {
       <VenueProperties venue={venue} t={t} />
       <VenueLinks venue={venue} t={t} params={params} />
       <ProvidedCapabilities statements={statements} t={t} />
+      <CustomFieldsPanel org={org} table="app.venues" id={venue.id} />
+      <VenueDepth
+        db={props.db}
+        org={org}
+        orgId={props.orgId}
+        venueId={venue.id}
+        held={props.held}
+      />
+      <VenueContacts db={props.db} org={org} venueId={venue.id} canWrite={canWrite} />
       {canWrite ? (
         <RecordSection id="venue-edit" title={t("places.kit.edit")}>
-          <VenueForm org={org} venue={venue} jurisdictions={jurisdictions} />
+          <VenueForm
+            org={org}
+            venue={venue}
+            jurisdictions={jurisdictions}
+            addressFormat={venueAddressFormat(venue.jurisdictionId)}
+          />
           <ArchiveControl org={org} venue={venue} t={t} />
         </RecordSection>
       ) : null}
@@ -475,9 +576,22 @@ async function VenueRecord(props: DetailProps & { backHref: string }) {
       >
         <VenueLinks venue={venue} t={t} params={params} />
         <ProvidedCapabilities statements={statements} t={t} />
+        <CustomFieldsPanel org={org} table="app.venues" id={venue.id} />
+        <VenueDepth
+          db={props.db}
+          org={org}
+          orgId={props.orgId}
+          venueId={venue.id}
+          held={props.held}
+        />
         {canWrite ? (
           <RecordSection id="venue-edit" title={t("places.kit.edit")}>
-            <VenueForm org={org} venue={venue} jurisdictions={jurisdictions} />
+            <VenueForm
+              org={org}
+              venue={venue}
+              jurisdictions={jurisdictions}
+              addressFormat={venueAddressFormat(venue.jurisdictionId)}
+            />
           </RecordSection>
         ) : null}
         <Collaboration

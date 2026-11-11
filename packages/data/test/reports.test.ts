@@ -50,6 +50,7 @@ describe("budget versus actual", () => {
   it("groups by account with NULL-aware budgets and applies approved changes", async () => {
     const { db } = fakeClient({
       "from:projects": [okResponse([project])],
+      "from:budget_line_forecasts": [okResponse([])],
       "from:budget_line_facts": [
         okResponse([
           fact({}),
@@ -102,10 +103,69 @@ describe("budget versus actual", () => {
     });
   });
 
+  it("sums committed per group, blank when any line is withheld or unpriced", async () => {
+    const { db } = fakeClient({
+      "from:projects": [okResponse([project])],
+      "from:budget_line_forecasts": [okResponse([])],
+      "from:budget_line_facts": [
+        okResponse([
+          fact({ committed_minor: 600, other_currency_po_line_count: 1 }),
+          fact({ budget_line_id: "l2", committed_minor: 0 }),
+          fact({
+            budget_line_id: "l3",
+            account_code: "5600",
+            committed_minor: null,
+            is_committed_withheld: true,
+          }),
+          fact({ budget_line_id: "l4", account_code: "5700", committed_minor: null }),
+        ]),
+      ],
+      "from:change_order_line_facts": [okResponse([])],
+    });
+    const result = await budgetVersusActual(db, { orgId: "o1", dimension: "account" });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.data.rows).toEqual([
+      expect.objectContaining({
+        key: "5500",
+        committedMinor: 600,
+        committedWithheldCount: 0,
+        committedOtherCurrencyCount: 1,
+      }),
+      expect.objectContaining({ key: "5600", committedMinor: null, committedWithheldCount: 1 }),
+      expect.objectContaining({ key: "5700", committedMinor: null, committedWithheldCount: 0 }),
+    ]);
+    expect(result.data.totals[0]).toMatchObject({
+      committedMinor: null,
+      committedWithheldCount: 1,
+      committedOtherCurrencyCount: 1,
+    });
+  });
+
+  it("totals committed when every line is readable", async () => {
+    const { db } = fakeClient({
+      "from:projects": [okResponse([project])],
+      "from:budget_line_forecasts": [okResponse([])],
+      "from:budget_line_facts": [
+        okResponse([
+          fact({ committed_minor: 600 }),
+          fact({ budget_line_id: "l2", account_code: "5600", committed_minor: 150 }),
+        ]),
+      ],
+      "from:change_order_line_facts": [okResponse([])],
+    });
+    const result = await budgetVersusActual(db, { orgId: "o1", dimension: "account" });
+    expect(result.ok && result.data.totals[0]).toMatchObject({
+      committedMinor: 750,
+      committedWithheldCount: 0,
+    });
+  });
+
   it("groups by every dimension, resolving change cost centers", async () => {
     for (const dimension of ["costCenter", "urid", "department", "project"] as const) {
       const { db } = fakeClient({
         "from:projects": [okResponse([project])],
+        "from:budget_line_forecasts": [okResponse([])],
         "from:budget_line_facts": [okResponse([fact({ cost_center_code: null })])],
         "from:change_order_line_facts": [
           okResponse([
@@ -134,6 +194,7 @@ describe("budget versus actual", () => {
     expect(result.ok && result.data.rows).toEqual([]);
     const broken = fakeClient({
       "from:projects": [okResponse([project])],
+      "from:budget_line_forecasts": [okResponse([])],
       "from:budget_line_facts": [errorResponse("42501", "denied")],
       "from:change_order_line_facts": [okResponse([])],
     });
@@ -346,11 +407,135 @@ describe("coordinate matrix", () => {
   });
 });
 
+describe("estimated final cost by group", () => {
+  const facts = [
+    fact({ budget_line_id: "a1", account_code: "5500" }),
+    fact({ budget_line_id: "a2", account_code: "5500" }),
+    fact({ budget_line_id: "b1", account_code: "5600" }),
+    fact({ budget_line_id: "c1", account_code: "5700" }),
+  ];
+  const report = async (forecasts: Record<string, unknown>[]) => {
+    const { db } = fakeClient({
+      "from:projects": [okResponse([project])],
+      "from:budget_line_forecasts": [okResponse(forecasts)],
+      "from:budget_line_facts": [okResponse(facts)],
+      "from:change_order_line_facts": [okResponse([])],
+    });
+    const result = await budgetVersusActual(db, { orgId: "o1", dimension: "account" });
+    if (!result.ok) throw new Error("the report did not load");
+    return new Map(result.data.rows.map((r) => [r.key, r]));
+  };
+
+  it("sums the group's lines, blanks a group holding an unknown line, and withholds per group", async () => {
+    const rows = await report([
+      { budget_line_id: "a1", efc_minor: 700, is_withheld: false },
+      { budget_line_id: "a2", efc_minor: 300, is_withheld: false },
+      { budget_line_id: "b1", efc_minor: null, is_withheld: false },
+      { budget_line_id: "c1", efc_minor: null, is_withheld: true },
+    ]);
+    expect(rows.get("5500")).toMatchObject({ efcMinor: 1000, efcWithheld: false });
+    expect(rows.get("5600")).toMatchObject({ efcMinor: null, efcWithheld: false });
+    expect(rows.get("5700")).toMatchObject({ efcMinor: null, efcWithheld: true });
+  });
+
+  it("reads a line the forecast view did not return as unknown, never as zero", async () => {
+    const rows = await report([{ budget_line_id: "a1", efc_minor: 700, is_withheld: false }]);
+    expect(rows.get("5500")?.efcMinor).toBeNull();
+  });
+});
+
 describe("labor", () => {
+  it("lists postings by team, masked cost included, and time on no budget line", async () => {
+    const { db } = fakeClient({
+      "from:projects": [okResponse([project])],
+      "from:budget_line_facts": [okResponse([])],
+      "from:labor_posting_team_totals": [
+        okResponse([
+          {
+            project_id: "p1",
+            team_kind: "Own Team",
+            team_name: null,
+            currency_code: "USD",
+            minutes: 480,
+            unpriced_minutes: 0,
+            amount_minor: 16000,
+            is_masked: false,
+          },
+          {
+            project_id: "p1",
+            team_kind: "Agency",
+            team_name: "Bayside Staffing",
+            currency_code: null,
+            minutes: 120,
+            unpriced_minutes: 60,
+            amount_minor: null,
+            is_masked: true,
+          },
+        ]),
+      ],
+      "from:labor_cost_posting_details": [
+        okResponse([
+          {
+            posting_id: "n1",
+            project_id: "p1",
+            shift_id: null,
+            person_name: "Kai Morgan",
+            work_date: "2026-11-02",
+            minutes: 90,
+          },
+        ]),
+      ],
+      "from:timesheet_hours": [okResponse([])],
+      "from:payroll_line_amounts": [okResponse([])],
+    });
+    const result = await laborReport(db, { orgId: "o1" });
+    if (!result.ok) throw new Error("the report did not load");
+    expect(result.data.postedByTeam).toEqual([
+      expect.objectContaining({ teamKind: "Own Team", amountMinor: 16000, isMasked: false }),
+      expect.objectContaining({
+        teamKind: "Agency",
+        teamName: "Bayside Staffing",
+        amountMinor: null,
+        isMasked: true,
+        unpricedMinutes: 60,
+      }),
+    ]);
+    expect(result.data.offBudget).toEqual([
+      expect.objectContaining({ shiftId: null, person: "Kai Morgan", minutes: 90 }),
+    ]);
+    expect(result.data.offBudgetMore).toBe(false);
+  });
+
+  it("says when more time on no budget line exists than the report lists", async () => {
+    const posting = (i: number) => ({
+      posting_id: `n${i}`,
+      project_id: "p1",
+      shift_id: null,
+      person_name: null,
+      work_date: "2026-11-02",
+      minutes: 30,
+    });
+    const { db } = fakeClient({
+      "from:projects": [okResponse([project])],
+      "from:budget_line_facts": [okResponse([])],
+      "from:labor_posting_team_totals": [okResponse([])],
+      "from:labor_cost_posting_details": [
+        okResponse(Array.from({ length: 201 }, (_, i) => posting(i))),
+      ],
+      "from:timesheet_hours": [okResponse([])],
+      "from:payroll_line_amounts": [okResponse([])],
+    });
+    const result = await laborReport(db, { orgId: "o1" });
+    expect(result.ok && result.data.offBudget).toHaveLength(200);
+    expect(result.ok && result.data.offBudgetMore).toBe(true);
+  });
+
   it("reports labor budget, worked time and masked payroll", async () => {
     const { db } = fakeClient({
       "from:projects": [okResponse([project])],
       "from:budget_line_facts": [okResponse([fact({ line_type: "Labor", extended_minor: 5000 })])],
+      "from:labor_posting_team_totals": [okResponse([])],
+      "from:labor_cost_posting_details": [okResponse([])],
       "from:timesheet_hours": [
         okResponse([
           { timesheet_id: "t1", project_id: "p1", worked_minutes: 480, has_open_entry: false },
@@ -395,6 +580,8 @@ describe("labor", () => {
     const { db } = fakeClient({
       "from:projects": [okResponse([project]), okResponse([])],
       "from:budget_line_facts": [okResponse([])],
+      "from:labor_posting_team_totals": [okResponse([])],
+      "from:labor_cost_posting_details": [okResponse([])],
       "from:timesheet_hours": [okResponse([])],
       "from:payroll_line_amounts": [okResponse([])],
     });

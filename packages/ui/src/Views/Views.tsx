@@ -1,6 +1,7 @@
 export {
   type RecordRowProps,
   type RecordListProps,
+  type ItemContextMenu,
   type BoardProps,
   type TreeNode,
   type TreeViewProps,

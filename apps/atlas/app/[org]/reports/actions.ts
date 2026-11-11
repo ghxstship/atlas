@@ -7,6 +7,8 @@ import { notFound } from "next/navigation";
 import { z } from "zod";
 import type { ActionError, ActionState } from "@/app/[org]/finance/actions";
 import { getOrgContext } from "@/lib/shell/context";
+import { observability } from "@/lib/observability";
+import * as enums from "@xos/data/enums";
 
 /**
  * Reports actions (A15): run a saved report through A18's app.run_report, share a finished run with
@@ -16,7 +18,8 @@ import { getOrgContext } from "@/lib/shell/context";
 
 function toError(error: DataError): ActionError {
   if (error.kind === "refusal") return error;
-  if (error.kind === "unexpected") console.error("reports action failed", error);
+  if (error.kind === "unexpected")
+    observability.logger.error("reports action failed", { error: error });
   return { kind: error.kind === "unexpected" ? "unexpected" : error.kind };
 }
 
@@ -30,7 +33,7 @@ async function contextFor(form: FormData) {
 export async function runReportAction(_: ActionState, form: FormData): Promise<ActionState> {
   const ctx = await contextFor(form);
   const parsed = z
-    .object({ reportDefinitionId: z.uuid(), format: z.enum(["CSV", "XLSX", "PDF"]) })
+    .object({ reportDefinitionId: z.uuid(), format: z.enum(enums.exportFormat) })
     .safeParse({ reportDefinitionId: form.get("reportDefinitionId"), format: form.get("format") });
   if (!parsed.success) return { error: { kind: "input" }, fieldErrors: { format: "target" } };
   const result = await runReport(ctx.viewer.db, parsed.data);

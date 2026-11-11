@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { globalSearch, recentItems, recordRecentView, searchContext } from "../src/search.ts";
+import {
+  globalSearch,
+  recentItems,
+  recentProjects,
+  recordRecentView,
+  searchContext,
+} from "../src/search.ts";
 import { parseSearchQuery, searchRequest } from "../src/search-query.ts";
 import { errorResponse, fakeClient, okResponse } from "./fake-client.ts";
 
@@ -71,6 +77,69 @@ describe("globalSearch", () => {
     ]);
   });
 
+  it("maps asset units and asset classes (P7)", async () => {
+    const { db } = fakeClient({
+      "rpc:global_search": [
+        okResponse([
+          {
+            result_type: "asset",
+            result_id: "u1",
+            result_key: "MH-002",
+            title: "Spot Fixture",
+            record_kind: null,
+            state: "Deployed",
+            project_key: null,
+            dated_at: "2026-10-27T12:00:00Z",
+            rank: 1,
+            matched: "key",
+          },
+          {
+            result_type: "asset_class",
+            result_id: "c1",
+            result_key: null,
+            title: "Digital Two-Way Radio",
+            record_kind: null,
+            state: null,
+            project_key: null,
+            dated_at: "2026-10-20T12:00:00Z",
+            rank: 0.4,
+            matched: "text",
+          },
+        ]),
+      ],
+    });
+    const result = await globalSearch(db, {
+      orgId: "o1",
+      request: searchRequest(parseSearchQuery("MH-002")),
+    });
+    expect(result.ok && result.data).toEqual([
+      {
+        type: "asset",
+        id: "u1",
+        key: "MH-002",
+        title: "Spot Fixture",
+        recordKind: null,
+        state: "Deployed",
+        projectKey: null,
+        datedAt: "2026-10-27T12:00:00Z",
+        rank: 1,
+        matched: "key",
+      },
+      {
+        type: "asset_class",
+        id: "c1",
+        key: null,
+        title: "Digital Two-Way Radio",
+        recordKind: null,
+        state: null,
+        projectKey: null,
+        datedAt: "2026-10-20T12:00:00Z",
+        rank: 0.4,
+        matched: "text",
+      },
+    ]);
+  });
+
   it("passes the query vector and its model", async () => {
     const { db, calls } = fakeClient({ "rpc:global_search": [okResponse(null)] });
     const request = searchRequest(parseSearchQuery("harness"));
@@ -123,7 +192,7 @@ describe("globalSearch", () => {
 });
 
 describe("recent views", () => {
-  it("lists recent items and skips rows it cannot place", async () => {
+  it("lists recent items and skips rows it cannot place, people and assets among them", async () => {
     const { db, calls } = fakeClient({
       "rpc:recent_items": [
         okResponse([
@@ -138,6 +207,8 @@ describe("recent views", () => {
             viewed_at: "2026-10-21T12:00:00Z",
           },
           { result_type: "person", result_id: "p1", viewed_at: "2026-10-21T12:00:00Z" },
+          { result_type: "asset", result_id: "u1", viewed_at: "2026-10-21T12:00:00Z" },
+          { result_type: "asset_class", result_id: "c1", viewed_at: "2026-10-21T12:00:00Z" },
           { result_type: "sop", result_id: "s1", viewed_at: null },
         ]),
       ],
@@ -178,6 +249,46 @@ describe("recent views", () => {
     expect(await recordRecentView(broken.db, { orgId: "o1", table: "records", id: "r1" })).toBe(
       false,
     );
+  });
+});
+
+describe("recentProjects", () => {
+  it("lists the projects the person opened, newest first", async () => {
+    const { db, calls } = fakeClient({
+      "rpc:recent_projects": [
+        okResponse([
+          {
+            project_id: "p2",
+            project_key: "NWX",
+            name: "Northwind Winter Gala",
+            viewed_at: "2026-10-22T12:00:00Z",
+          },
+          {
+            project_id: "p1",
+            project_key: "NWL",
+            name: "Northwind Summer Series",
+            viewed_at: "2026-10-21T12:00:00Z",
+          },
+        ]),
+        errorResponse("42501", "not a member"),
+      ],
+    });
+    const result = await recentProjects(db, "o1");
+    expect(result.ok && result.data.map((p) => `${p.key} ${p.name}`)).toEqual([
+      "NWX Northwind Winter Gala",
+      "NWL Northwind Summer Series",
+    ]);
+    expect(calls[0]?.steps[0]).toEqual(["args", [{ p_org_id: "o1", p_limit: 5 }]]);
+    expect((await recentProjects(db, "o1")).ok).toBe(false);
+  });
+
+  it("records a project view", async () => {
+    const { db, calls } = fakeClient({ "rpc:record_recent_view": [okResponse(true)] });
+    expect(await recordRecentView(db, { orgId: "o1", table: "projects", id: "p1" })).toBe(true);
+    expect(calls[0]?.steps[0]).toEqual([
+      "args",
+      [{ p_org_id: "o1", p_subject_table: "projects", p_subject_id: "p1" }],
+    ]);
   });
 });
 

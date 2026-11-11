@@ -9,6 +9,7 @@ import {
   parseConsent,
   preferenceCookieOptions,
   preferencesAllowed,
+  owesAgeAnswer,
   recordCookieConsent,
   sendsGpc,
   serializeConsent,
@@ -19,13 +20,18 @@ import { OFFLINE_KEY_HEADER, offlineKey } from "@xos/ui/pwa/offline-key";
 import { NextResponse, type NextFetchEvent, type NextRequest } from "next/server";
 import { sitemap } from "@/ia/sitemap.generated";
 import {
+  ageRedirect,
+  asksAgeFirst,
+  forwardPreviousSeen,
   LAST_SEEN_COOKIE,
   lastSeenSetCookie,
+  NETWORK_RESTRICTED_PATH,
   recordsLastSeen,
   opensWithoutSecondFactor,
   orgAuthRedirect,
   parseLastSeen,
   PATH_HEADER,
+  PREVIOUS_SEEN_HEADER,
   secondFactorRedirect,
 } from "@/lib/auth/assurance";
 import { apiHostResponse, isApiHost } from "@/lib/api-host";
@@ -42,6 +48,7 @@ import { ROUTE_ORG_HEADER } from "@/lib/shell/route-org";
 import { applyViewAs } from "@/lib/access/view-as";
 import { resolveMembership } from "@/lib/shell/membership";
 import { createProxySupabase } from "@/lib/supabase/proxy";
+import { observability } from "@/lib/observability";
 
 /**
  * Atlas proxy (Next 16 renames middleware to proxy), run before every page and server action:
@@ -59,7 +66,10 @@ import { createProxySupabase } from "@/lib/supabase/proxy";
  *      first factor, and an org's security.mfa_policy, security.session_hours and
  *      security.idle_timeout_minutes send the person to verify or sign in again before its pages
  *      (lib/auth/assurance.ts, orgAuthRedirect);
- *   6. records the device behind the session at most once a minute, for Personal settings, Security
+ *   7. asks the age question (ADR 0156) before any signed-in page, of anyone who has not answered at 18, however the
+ *      account was made: an earlier 16, a provider, single sign-on or SCIM. A page or client navigation only: a server
+ *      action reads nothing here, and the database refuses joining an org and AI features until it is answered.
+ *   8. records the device behind the session at most once a minute, for Personal settings, Security
  *      (A99, migration 1561): the client address as clientAddress() reads it, the place the host
  *      derived from it, and the user agent.
  * Pages repeat the visibility check (components/shell/sitemap-page.tsx), so a matcher change can
@@ -82,13 +92,13 @@ function withRouteOrg(request: NextRequest, slug: string | undefined): Headers {
   const headers = new Headers(request.headers);
   if (slug) headers.set(ROUTE_ORG_HEADER, slug);
   else headers.delete(ROUTE_ORG_HEADER);
+  // Only the proxy names the previous request (forwardPreviousSeen), never the browser.
+  headers.delete(PREVIOUS_SEEN_HEADER);
   return headers;
 }
 
 /** A path no route serves; rewriting to it renders app/not-found.tsx with status 404. */
 const NOT_FOUND_PATH = "/auth/not-found";
-/** Where a member whose network an org's IP allow-list refuses is sent. */
-const NETWORK_RESTRICTED_PATH = "/auth/network-restricted";
 
 /** A top-level page load, not a server action, an RSC fetch or a prefetch. */
 function isDocumentRequest(request: NextRequest): boolean {
@@ -136,13 +146,21 @@ export async function proxy(request: NextRequest, event?: NextFetchEvent): Promi
     supabaseOrigin: new URL(config.SUPABASE_URL).origin,
     secureSite,
   });
+  // The org idle timeout judges the device's previous request, recorded at most once a minute
+  // (recordsLastSeen); pages and actions behind this request see it recorded already, and get the
+  // previous one in PREVIOUS_SEEN_HEADER.
+  const now = Date.now();
+  const lastSeenAt = parseLastSeen(request.cookies.get(LAST_SEEN_COOKIE)?.value);
+  const recordSeen = recordsLastSeen(lastSeenAt, now);
+  if (recordSeen) request.cookies.set(LAST_SEEN_COOKIE, String(now));
+
   /** Request headers for the app, rebuilt after any cookie refresh so they carry the new cookies. */
   const forwardedHeaders = () => {
     const headers = withRouteOrg(request, slug);
     headers.set("x-nonce", nonce);
     headers.set("content-security-policy", csp);
     headers.set(PATH_HEADER, `${request.nextUrl.pathname}${request.nextUrl.search}`);
-    return headers;
+    return forwardPreviousSeen(headers, lastSeenAt);
   };
   // Global Privacy Control (Section 14.3): a browser that sends it and has no recorded GPC choice yet.
   const consent = parseConsent(request.cookies.get(CONSENT_COOKIE)?.value);
@@ -171,13 +189,6 @@ export async function proxy(request: NextRequest, event?: NextFetchEvent): Promi
     return response;
   };
 
-  // The org idle timeout judges the device's previous request, recorded at most once a minute
-  // (recordsLastSeen); pages and actions behind this request see it recorded already.
-  const now = Date.now();
-  const lastSeenAt = parseLastSeen(request.cookies.get(LAST_SEEN_COOKIE)?.value);
-  const recordSeen = recordsLastSeen(lastSeenAt, now);
-  if (recordSeen) request.cookies.set(LAST_SEEN_COOKIE, String(now));
-
   const { db, response } = createProxySupabase(request, () =>
     NextResponse.next({ request: { headers: forwardedHeaders() } }),
   );
@@ -185,7 +196,10 @@ export async function proxy(request: NextRequest, event?: NextFetchEvent): Promi
   const user = data.user;
   if (gpcConsent) {
     const recorded = await recordCookieConsent(db, gpcConsent);
-    if (!recorded.ok) console.error("Global Privacy Control was not recorded", recorded.error);
+    if (!recorded.ok)
+      observability.logger.error("Global Privacy Control was not recorded", {
+        error: recorded.error,
+      });
   }
   const path = request.nextUrl.pathname;
   const carry = (target: NextResponse) => {
@@ -204,6 +218,22 @@ export async function proxy(request: NextRequest, event?: NextFetchEvent): Promi
         const to = secondFactorRedirect(path, request.nextUrl.search);
         return carry(NextResponse.redirect(new URL(to, request.url)));
       }
+    }
+  }
+
+  // Anyone who has not answered at 18 answers before any signed-in page (ADR 0156).
+  if (
+    user &&
+    request.method === "GET" &&
+    !request.headers.has("next-action") &&
+    asksAgeFirst(path)
+  ) {
+    const route = findRoute(sitemap, path);
+    const needsSession = route && (getNode(sitemap, route.id).node.auth ?? "session") === "session";
+    if (needsSession && (await owesAgeAnswer(db))) {
+      return carry(
+        NextResponse.redirect(new URL(ageRedirect(path, request.nextUrl.search), request.url)),
+      );
     }
   }
 
@@ -300,7 +330,8 @@ export async function proxy(request: NextRequest, event?: NextFetchEvent): Promi
         XOS_TRUSTED_PROXY_HOPS: config.XOS_TRUSTED_PROXY_HOPS,
       }),
     }).then((outcome) => {
-      if (!outcome.ok) console.error("session device not recorded", outcome.error);
+      if (!outcome.ok)
+        observability.logger.error("session device not recorded", { error: outcome.error });
     });
     if (event) event.waitUntil(touched);
     else await touched;

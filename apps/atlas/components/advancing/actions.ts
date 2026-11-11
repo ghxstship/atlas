@@ -5,6 +5,15 @@ import {
   addRecipient,
   addRiderLine,
   addSection,
+  addSectionChoice,
+  ADVANCE_SECTION_KINDS,
+  ADVANCE_TRACKS,
+  ADVANCE_WINDOW_KINDS,
+  bookDockSlotFromAnswer,
+  removeSectionChoice,
+  sectionConfig,
+  setRecipientNamesDue,
+  setSectionTrack,
   archivePacket,
   archiveRider,
   createPacket,
@@ -29,8 +38,10 @@ import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 import { gatewayUrl } from "@/lib/gateway-url";
+import { localToInstant } from "@/lib/operations/time";
 import { getOrgContext } from "@/lib/shell/context";
 import { KNOWN_ERRORS } from "./errors";
+import * as enums from "@xos/data/enums";
 
 /**
  * Advancing actions. Each resolves the viewer's org context again (404 when it is gone), validates
@@ -42,6 +53,11 @@ export interface AdvancingState {
   readonly ok?: boolean;
   readonly error?: string;
   readonly fieldErrors?: Readonly<Record<string, string>>;
+  /**
+   * What a refused badge issue lacked (B8): the unmet requirements' titles and the live duplicate's number, which the
+   * Issue dialog names beside the refusal.
+   */
+  readonly detail?: { readonly missing: readonly string[]; readonly duplicates: readonly string[] };
   /** The id of a row the action created, for navigation to it. */
   readonly id?: string;
   /** A link issued once: shown to the issuer, never stored in clear. */
@@ -170,13 +186,102 @@ export async function sendPacketAction(_: AdvancingState, form: FormData): Promi
 
 export async function addSectionAction(_: AdvancingState, form: FormData): Promise<AdvancingState> {
   const ctx = await contextFor(form);
-  const parsed = z.object({ packetId: id, title, prompt: optionalText(2000) }).safeParse({
-    packetId: text(form, "packetId"),
-    title: text(form, "title"),
-    prompt: text(form, "prompt"),
+  const parsed = z
+    .object({
+      packetId: id,
+      title,
+      prompt: optionalText(2000),
+      kind: z.enum(ADVANCE_SECTION_KINDS).catch("Text"),
+      windowKind: z.enum(ADVANCE_WINDOW_KINDS).nullable().catch(null),
+      maxLines: z.coerce.number().int().nullable().catch(null),
+      perPerson: z.boolean(),
+      choices: z.array(z.string().regex(/^(asset_class|credential_category):[0-9a-f-]{36}$/)),
+      track: z.enum(ADVANCE_TRACKS).catch("General"),
+    })
+    .safeParse({
+      packetId: text(form, "packetId"),
+      title: text(form, "title"),
+      prompt: text(form, "prompt"),
+      kind: text(form, "kind") || "Text",
+      windowKind: text(form, "windowKind") || null,
+      maxLines: text(form, "maxLines") || null,
+      perPerson: text(form, "perPerson") === "on",
+      choices: form.getAll("choice").filter((c): c is string => typeof c === "string" && c !== ""),
+      track: text(form, "track") || "General",
+    });
+  if (!parsed.success) {
+    return {
+      fieldErrors: {
+        [parsed.error.issues[0]?.path[0] === "choices" ? "choices" : "title"]: "invalid",
+      },
+    };
+  }
+  const f = parsed.data;
+  // R9: the kind and its configuration, held to the kind as advance_sections_kind_fields holds them.
+  const config = sectionConfig({
+    kind: f.kind,
+    windowKind: f.windowKind,
+    maxLines: f.maxLines,
+    perPerson: f.perPerson,
   });
-  if (!parsed.success) return { fieldErrors: { title: "title" } };
-  return done(ctx.org.slug, await addSection(ctx.viewer.db, { orgId: ctx.org.id, ...parsed.data }));
+  if (config === null) return { fieldErrors: { maxLines: "maxLines" } };
+  const needsChoices = f.kind === "Item Request" || f.kind === "Credential Request";
+  if (needsChoices && f.choices.length === 0) return { fieldErrors: { choices: "choices" } };
+  const added = await addSection(ctx.viewer.db, {
+    orgId: ctx.org.id,
+    packetId: f.packetId,
+    title: f.title,
+    prompt: f.prompt,
+    config,
+    track: f.track,
+  });
+  if (!added.ok || !needsChoices) return done(ctx.org.slug, added);
+  for (const choice of f.choices) {
+    const [kind, targetId] = choice.split(":") as ["asset_class" | "credential_category", string];
+    const made = await addSectionChoice(ctx.viewer.db, {
+      orgId: ctx.org.id,
+      sectionId: added.data.id,
+      target: { kind, id: targetId },
+    });
+    if (!made.ok) {
+      // Leave no half-built section behind: the builder adds it again with its choices.
+      await removeSection(ctx.viewer.db, added.data.id);
+      return done(ctx.org.slug, made);
+    }
+  }
+  return done(ctx.org.slug, added);
+}
+
+/** Removes one choice from a draft Item Request or Credential Request section (R9). */
+export async function removeSectionChoiceAction(
+  _: AdvancingState,
+  form: FormData,
+): Promise<AdvancingState> {
+  const ctx = await contextFor(form);
+  const choiceId = id.safeParse(text(form, "choiceId"));
+  if (!choiceId.success) return { error: "invalid" };
+  return done(ctx.org.slug, await removeSectionChoice(ctx.viewer.db, choiceId.data));
+}
+
+/** Adds one choice to a draft Item Request or Credential Request section (R9). */
+export async function addSectionChoiceAction(
+  _: AdvancingState,
+  form: FormData,
+): Promise<AdvancingState> {
+  const ctx = await contextFor(form);
+  const [kind, targetId] = text(form, "choice").split(":");
+  const parsed = z
+    .object({ sectionId: id, kind: z.enum(["asset_class", "credential_category"]), targetId: id })
+    .safeParse({ sectionId: text(form, "sectionId"), kind, targetId });
+  if (!parsed.success) return { fieldErrors: { choice: "choice" } };
+  return done(
+    ctx.org.slug,
+    await addSectionChoice(ctx.viewer.db, {
+      orgId: ctx.org.id,
+      sectionId: parsed.data.sectionId,
+      target: { kind: parsed.data.kind, id: parsed.data.targetId },
+    }),
+  );
 }
 
 export async function updateSectionAction(
@@ -184,18 +289,29 @@ export async function updateSectionAction(
   form: FormData,
 ): Promise<AdvancingState> {
   const ctx = await contextFor(form);
-  const parsed = z.object({ sectionId: id, title, prompt: optionalText(2000) }).safeParse({
-    sectionId: text(form, "sectionId"),
-    title: text(form, "title"),
-    prompt: text(form, "prompt"),
-  });
+  const parsed = z
+    .object({
+      sectionId: id,
+      title,
+      prompt: optionalText(2000),
+      track: z.enum(ADVANCE_TRACKS).nullable().catch(null),
+    })
+    .safeParse({
+      sectionId: text(form, "sectionId"),
+      title: text(form, "title"),
+      prompt: text(form, "prompt"),
+      track: text(form, "track") || null,
+    });
   if (!parsed.success) return { fieldErrors: { title: "title" } };
+  const updated = await updateSection(ctx.viewer.db, parsed.data.sectionId, {
+    title: parsed.data.title,
+    prompt: parsed.data.prompt,
+  });
+  // R11: the track is a grouping label, editable after the packet is sent like the wording (6223).
+  if (!updated.ok || parsed.data.track === null) return done(ctx.org.slug, updated);
   return done(
     ctx.org.slug,
-    await updateSection(ctx.viewer.db, parsed.data.sectionId, {
-      title: parsed.data.title,
-      prompt: parsed.data.prompt,
-    }),
+    await setSectionTrack(ctx.viewer.db, parsed.data.sectionId, parsed.data.track),
   );
 }
 
@@ -234,17 +350,67 @@ export async function addRecipientAction(
   const ctx = await contextFor(form);
   const [kind, partyId] = text(form, "party").split(":");
   const parsed = z
-    .object({ packetId: id, kind: z.enum(["person", "counterparty"]), partyId: id })
-    .safeParse({ packetId: text(form, "packetId"), kind, partyId });
+    .object({
+      packetId: id,
+      kind: z.enum(["person", "counterparty"]),
+      partyId: id,
+      engagementId: id.nullable(),
+      timeZone: z.string().trim().min(1).max(64),
+    })
+    .safeParse({
+      packetId: text(form, "packetId"),
+      kind,
+      partyId,
+      engagementId: text(form, "engagementId") || null,
+      timeZone: text(form, "timeZone") || "UTC",
+    });
   if (!parsed.success) return { fieldErrors: { party: "party" } };
+  // R9: the engagement the recipient answers under, and its naming deadline in the project's zone (G-141).
+  const local = parsed.data.engagementId ? text(form, "namesDueAt") : "";
+  const namesDue = local === "" ? null : localToInstant(local, parsed.data.timeZone);
+  if (local !== "" && namesDue === null) return { fieldErrors: { namesDueAt: "namesDueAt" } };
   return done(
     ctx.org.slug,
     await addRecipient(ctx.viewer.db, {
       orgId: ctx.org.id,
       packetId: parsed.data.packetId,
       party: { kind: parsed.data.kind, id: parsed.data.partyId },
+      engagementId: parsed.data.engagementId,
+      namesDueAt: namesDue,
     }),
   );
+}
+
+/** Sets or clears a recipient's naming deadline, in the project's zone (G-141, migration 4716). */
+export async function setNamesDueAction(
+  _: AdvancingState,
+  form: FormData,
+): Promise<AdvancingState> {
+  const ctx = await contextFor(form);
+  const parsed = z
+    .object({ recipientId: id, timeZone: z.string().trim().min(1).max(64) })
+    .safeParse({
+      recipientId: text(form, "recipientId"),
+      timeZone: text(form, "timeZone") || "UTC",
+    });
+  if (!parsed.success) return { error: "invalid" };
+  const local = text(form, "namesDueAt");
+  const at = local === "" ? null : localToInstant(local, parsed.data.timeZone);
+  if (local !== "" && at === null) return { fieldErrors: { namesDueAt: "namesDueAt" } };
+  return done(ctx.org.slug, await setRecipientNamesDue(ctx.viewer.db, parsed.data.recipientId, at));
+}
+
+/** Books an Accepted Load In or Load Out window as a dock slot (app.book_dock_slot_from_answer, R9). */
+export async function bookDockSlotAction(
+  _: AdvancingState,
+  form: FormData,
+): Promise<AdvancingState> {
+  const ctx = await contextFor(form);
+  const parsed = z
+    .object({ lineId: id, zoneId: id })
+    .safeParse({ lineId: text(form, "lineId"), zoneId: text(form, "zoneId") });
+  if (!parsed.success) return { fieldErrors: { zoneId: "zoneId" } };
+  return done(ctx.org.slug, await bookDockSlotFromAnswer(ctx.viewer.db, parsed.data));
 }
 
 export async function removeRecipientAction(
@@ -325,7 +491,7 @@ export async function reviewSubmissionAction(
   const parsed = z
     .object({
       submissionId: id,
-      outcome: z.enum(["Accepted", "Returned"]),
+      outcome: z.enum(enums.advanceReviewOutcome),
       returnReason: optionalText(1000),
     })
     .refine((v) => v.outcome === "Accepted" || v.returnReason !== null, {
@@ -345,21 +511,34 @@ export async function reviewSubmissionAction(
 
 // Riders --------------------------------------------------------------------------------------------
 
-const counterpartyId = z
+/**
+ * Whose rider it is (R2): nobody (""), a counterparty ("c:<id>") or an individual artist's
+ * engagement ("e:<id>"), so a rider never names both.
+ */
+const party = z
   .string()
   .trim()
-  .transform((v) => (v.length === 0 ? null : v))
-  .pipe(z.uuid().nullable());
+  .transform((v, ctx) => {
+    if (v.length === 0) return { counterpartyId: null, engagementId: null };
+    const [kind, value] = [v.slice(0, 2), v.slice(2)];
+    if (!z.uuid().safeParse(value).success || (kind !== "c:" && kind !== "e:")) {
+      ctx.addIssue({ code: "custom", message: "party" });
+      return z.NEVER;
+    }
+    return kind === "c:"
+      ? { counterpartyId: value, engagementId: null }
+      : { counterpartyId: null, engagementId: value };
+  });
 
 export async function createRiderAction(
   _: AdvancingState,
   form: FormData,
 ): Promise<AdvancingState> {
   const ctx = await contextFor(form);
-  const parsed = z.object({ projectId: id, title, counterpartyId }).safeParse({
+  const parsed = z.object({ projectId: id, title, party }).safeParse({
     projectId: text(form, "projectId"),
     title: text(form, "title"),
-    counterpartyId: text(form, "counterpartyId"),
+    party: text(form, "party"),
   });
   if (!parsed.success) {
     const fields = new Set(parsed.error.issues.map((i) => String(i.path[0])));
@@ -367,7 +546,12 @@ export async function createRiderAction(
   }
   return done(
     ctx.org.slug,
-    await createRider(ctx.viewer.db, { orgId: ctx.org.id, ...parsed.data }),
+    await createRider(ctx.viewer.db, {
+      orgId: ctx.org.id,
+      projectId: parsed.data.projectId,
+      title: parsed.data.title,
+      ...parsed.data.party,
+    }),
     (data) => ({ id: data.id }),
   );
 }
@@ -377,17 +561,20 @@ export async function updateRiderAction(
   form: FormData,
 ): Promise<AdvancingState> {
   const ctx = await contextFor(form);
-  const parsed = z.object({ riderId: id, title, counterpartyId }).safeParse({
+  const parsed = z.object({ riderId: id, title, party }).safeParse({
     riderId: text(form, "riderId"),
     title: text(form, "title"),
-    counterpartyId: text(form, "counterpartyId"),
+    party: text(form, "party"),
   });
-  if (!parsed.success) return { fieldErrors: { title: "title" } };
+  if (!parsed.success) {
+    const fields = new Set(parsed.error.issues.map((i) => String(i.path[0])));
+    return { fieldErrors: Object.fromEntries([...fields].map((f) => [f, f])) };
+  }
   return done(
     ctx.org.slug,
     await updateRider(ctx.viewer.db, parsed.data.riderId, {
       title: parsed.data.title,
-      counterpartyId: parsed.data.counterpartyId,
+      ...parsed.data.party,
     }),
   );
 }

@@ -13,6 +13,11 @@ import { PASSWORD } from "./support";
  * user in through Supabase Auth, enrolls a TOTP factor, verifies a code computed here (RFC 6238), and copies
  * the resulting session cookies into the page's context. A77's step-up dialog does the same in the
  * interface once it lands.
+ *
+ * Verifying a factor signs the person's sessions below aal2 out, the page's own among them, and a
+ * request the page still has in flight on that session comes back clearing the session cookies,
+ * possibly after the new ones are in (the next load then lands on sign-in). So the page waits on a
+ * blank document while the session changes, then returns to where it was.
  */
 
 function stack(): { url: string; anon: string; service: string } {
@@ -62,6 +67,8 @@ const factors = new Map<string, { id: string; secret: string }>();
 
 export async function stepUp(page: Page, email: string): Promise<void> {
   const { url, anon } = stack();
+  const back = page.url();
+  await page.goto("about:blank");
   const jar = new Map<string, string>();
   const client = createServerClient(url, anon, {
     cookieOptions: { name: "xos-auth", path: "/", sameSite: "lax", httpOnly: true, secure: false },
@@ -92,7 +99,7 @@ export async function stepUp(page: Page, email: string): Promise<void> {
     code: totp(factor.secret),
   });
   if (verified.error) throw new Error(`TOTP verification failed: ${verified.error.message}`);
-  const host = new URL(page.url().startsWith("http") ? page.url() : "http://127.0.0.1").hostname;
+  const host = new URL(back.startsWith("http") ? back : "http://127.0.0.1").hostname;
   await page.context().clearCookies({ name: /^xos-auth/ });
   await page.context().addCookies(
     [...jar].map(([name, value]) => ({
@@ -105,6 +112,7 @@ export async function stepUp(page: Page, email: string): Promise<void> {
       secure: false,
     })),
   );
+  if (back.startsWith("http")) await page.goto(back);
 }
 
 /** The id of an org by slug, read with the service role. */

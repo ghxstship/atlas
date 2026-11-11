@@ -1,7 +1,8 @@
 "use client";
 
 import { Button, EmptyState, InlineAlert, Input, Select, Textarea } from "@xos/ui";
-import { useActionState, useId } from "react";
+import { useActionState, useId, type ReactNode } from "react";
+import type { Database } from "@xos/data/database.types";
 
 /**
  * The connector settings of Atlas Settings > Integrations (Section 17), contributed to A30's settings
@@ -34,13 +35,27 @@ export interface ConnectionView {
   readonly providerCode: string;
   readonly providerLabel: string;
   readonly displayName: string;
-  readonly state: "Pending" | "Connected" | "Error" | "Paused" | "Disconnected";
+  readonly state: Database["app"]["Enums"]["integration_connection_state"];
   readonly stateLabel: string;
   readonly lastSynced: string | null;
   readonly lastError: string | null;
   readonly needsCredential: boolean;
   readonly credentialStored: boolean;
+  /**
+   * Set for providers whose connection stores a developer app's client ID and secret (UPS, FedEx): where to
+   * create that app and which values to copy. The form then asks for the two values instead of a token.
+   */
+  readonly clientCredentialHelp?: string;
   readonly scopes: readonly { readonly value: string; readonly label: string }[];
+  /**
+   * For providers that sign in (Google Drive and OneDrive, B16): the Connect with Google or Connect with Microsoft
+   * button, disabled with its reason while the platform app is not set up. It replaces the pasted credential.
+   */
+  readonly oauth?: { readonly label: string; readonly disabledReason: string | null } | undefined;
+  /** The provider account the connection signed in as. */
+  readonly accountName?: string | null | undefined;
+  /** What Atlas adds under the connection, such as the linking folder of a storage connection. */
+  readonly extra?: ReactNode | undefined;
 }
 
 export interface IntegrationsCopy {
@@ -66,6 +81,9 @@ export interface IntegrationsCopy {
   readonly kindOAuth: string;
   readonly kindKey: string;
   readonly kindServiceAccount: string;
+  readonly clientId: string;
+  readonly clientSecret: string;
+  readonly clientSecretHelp: string;
   readonly storeCredential: string;
   readonly connect: string;
   readonly pause: string;
@@ -89,6 +107,8 @@ export interface IntegrationsSettingsProps {
     readonly credential: IntegrationAction;
     readonly transition: IntegrationAction;
     readonly sync: IntegrationAction;
+    /** Starts a provider sign-in and sends the browser to the provider (B16). */
+    readonly oauth?: IntegrationAction;
   };
 }
 
@@ -183,32 +203,64 @@ function CredentialForm({
       <input type="hidden" name="org" value={org} />
       <input type="hidden" name="connectionId" value={connection.id} />
       <Outcome state={state} success={copy.saved} />
-      <Textarea
-        id={`${id}-secret`}
-        name="secret"
-        label={copy.secret}
-        help={copy.secretHelp}
-        rows={3}
-        required
-        autoComplete="off"
-        spellCheck={false}
-      />
-      <div className="flex flex-wrap items-end gap-12">
-        <Select
-          id={`${id}-kind`}
-          name="kind"
-          label={copy.kind}
-          value="OAuth Token"
-          options={[
-            { value: "OAuth Token", label: copy.kindOAuth },
-            { value: "API Key", label: copy.kindKey },
-            { value: "Service Account", label: copy.kindServiceAccount },
-          ]}
-        />
-        <Button type="submit" variant="secondary" loading={pending}>
-          {copy.storeCredential}
-        </Button>
-      </div>
+      {connection.clientCredentialHelp === undefined ? (
+        <>
+          <Textarea
+            id={`${id}-secret`}
+            name="secret"
+            label={copy.secret}
+            help={copy.secretHelp}
+            rows={3}
+            required
+            autoComplete="off"
+            spellCheck={false}
+          />
+          <div className="flex flex-wrap items-end gap-12">
+            <Select
+              id={`${id}-kind`}
+              name="kind"
+              label={copy.kind}
+              value="OAuth Token"
+              options={[
+                { value: "OAuth Token", label: copy.kindOAuth },
+                { value: "API Key", label: copy.kindKey },
+                { value: "Service Account", label: copy.kindServiceAccount },
+              ]}
+            />
+            <Button type="submit" variant="secondary" loading={pending}>
+              {copy.storeCredential}
+            </Button>
+          </div>
+        </>
+      ) : (
+        <>
+          <Input
+            id={`${id}-client-id`}
+            name="clientId"
+            label={copy.clientId}
+            help={connection.clientCredentialHelp}
+            maxLength={1024}
+            required
+            autoComplete="off"
+            spellCheck={false}
+          />
+          <div className="flex flex-wrap items-end gap-12">
+            <Input
+              id={`${id}-client-secret`}
+              name="clientSecret"
+              type="password"
+              label={copy.clientSecret}
+              help={copy.clientSecretHelp}
+              maxLength={1024}
+              required
+              autoComplete="off"
+            />
+            <Button type="submit" variant="secondary" loading={pending}>
+              {copy.storeCredential}
+            </Button>
+          </div>
+        </>
+      )}
     </form>
   );
 }
@@ -244,6 +296,47 @@ function TransitionButton({
       >
         {label}
       </Button>
+      {state.error ? <InlineAlert tone="danger">{state.error}</InlineAlert> : null}
+    </form>
+  );
+}
+
+function OAuthConnectButton({
+  org,
+  connection,
+  oauth,
+  action,
+}: {
+  org: string;
+  connection: ConnectionView;
+  oauth: NonNullable<ConnectionView["oauth"]>;
+  action: IntegrationAction;
+}) {
+  const [state, submit, pending] = useActionState(action, INITIAL);
+  return (
+    <form
+      action={submit}
+      className="flex flex-col gap-4"
+      data-testid={`oauth-connect-${connection.providerCode}`}
+    >
+      <input type="hidden" name="org" value={org} />
+      <input type="hidden" name="connectionId" value={connection.id} />
+      <input type="hidden" name="provider" value={connection.providerCode} />
+      <div>
+        <Button
+          type="submit"
+          variant="primary"
+          size="sm"
+          loading={pending}
+          disabled={oauth.disabledReason !== null}
+          aria-label={`${oauth.label}: ${connection.displayName}`}
+        >
+          {oauth.label}
+        </Button>
+      </div>
+      {oauth.disabledReason ? (
+        <p className="m-0 text-text-12 text-text-secondary">{oauth.disabledReason}</p>
+      ) : null}
       {state.error ? <InlineAlert tone="danger">{state.error}</InlineAlert> : null}
     </form>
   );
@@ -310,6 +403,9 @@ function ConnectionCard({
         <div className="flex flex-col gap-2">
           <span className="text-label-14 font-medium">{connection.displayName}</span>
           <span className="text-text-12 text-text-secondary">{connection.providerLabel}</span>
+          {connection.accountName ? (
+            <span className="text-text-12 text-text-secondary">{connection.accountName}</span>
+          ) : null}
         </div>
         <span className="text-label-12 font-medium" data-state={connection.state}>
           {connection.stateLabel}
@@ -329,7 +425,14 @@ function ConnectionCard({
       </dl>
       {canManage && connection.state !== "Disconnected" ? (
         <div className="flex flex-col gap-12">
-          {connection.needsCredential ? (
+          {connection.oauth && actions.oauth ? (
+            <OAuthConnectButton
+              org={org}
+              connection={connection}
+              oauth={connection.oauth}
+              action={actions.oauth}
+            />
+          ) : connection.needsCredential ? (
             <CredentialForm
               org={org}
               connection={connection}
@@ -338,7 +441,7 @@ function ConnectionCard({
             />
           ) : null}
           <div className="flex flex-wrap gap-8">
-            {connection.state === "Pending" && canConnect ? (
+            {connection.state === "Pending" && canConnect && !connection.oauth ? (
               <TransitionButton
                 org={org}
                 connection={connection}
@@ -348,7 +451,7 @@ function ConnectionCard({
                 action={actions.transition}
               />
             ) : null}
-            {connection.state === "Error" ? (
+            {connection.state === "Error" && !connection.oauth ? (
               <TransitionButton
                 org={org}
                 connection={connection}
@@ -390,6 +493,7 @@ function ConnectionCard({
           {connection.state === "Connected" && connection.scopes.length > 0 ? (
             <SyncForm org={org} connection={connection} copy={copy} action={actions.sync} />
           ) : null}
+          {connection.extra ?? null}
         </div>
       ) : null}
     </li>

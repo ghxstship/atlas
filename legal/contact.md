@@ -1,48 +1,61 @@
 ---
 title: Legal Contact
-version: 1.0.0-draft
-effective_date: The date this version is published at /legal
-status: Draft for review by counsel before launch; every value pending owner input
+version: 1.0.0
+effective_date: 2026-11-10
+status: In effect
 ---
 
 # Legal Contact
 
-> **Draft for review by counsel before launch.** This document is a draft. It is not in effect and no one may rely on it. It takes effect only when GHXSTSHIP Industries LLC publishes it at /legal, and its effective date is that date of publication.
+Every document at /legal refers to this page as the "Contact Page" or "our contact page at /legal/contact". It is the single place where GHXSTSHIP Industries LLC publishes its addresses, email address and appointed representatives, so a change to any of them is made once.
 
-Every document at /legal refers to this page as the "Contact Page" or "our contact page at /legal/contact". It is the single place where GHXSTSHIP Industries LLC publishes its addresses, mailboxes and appointed representatives, so a change to any of them is made once. Each value below is supplied by the Owner; the item number points to `legal/OWNER_INPUTS.md`. Wave 2 must not publish /legal until every value is filled.
+If you have a question about your work, a shift, a payment or a document from an organization that uses XOS, contact that organization first. It holds and answers for its own records. Use this page for GHXSTSHIP itself.
 
 ## Company
 
-| Particular                                     | Value                                     |
-| ---------------------------------------------- | ----------------------------------------- |
-| Legal name                                     | GHXSTSHIP Industries LLC                  |
-| State of organization                          | Pending owner input (OWNER_INPUTS item 1) |
-| Postal address (registered office)             | Pending owner input (OWNER_INPUTS item 2) |
-| Governing jurisdiction                         | Pending owner input (OWNER_INPUTS item 3) |
-| SCC governing law and courts (EU Member State) | Pending owner input (OWNER_INPUTS item 4) |
-| EU-US Data Privacy Framework status            | Pending owner input (OWNER_INPUTS item 5) |
+| Particular                                     | Value                                                                                                                                                       |
+| ---------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Legal name                                     | GHXSTSHIP Industries LLC                                                                                                                                    |
+| State of organization                          | Florida                                                                                                                                                     |
+| Postal address                                 | 66 W Flagler St, Suite 900, PMB 12524, Miami, FL 33130, United States                                                                                       |
+| Telephone                                      | +1 (407) 885-6011                                                                                                                                           |
+| Names we operate under                         | XOS, Atlas, Gateway, Compass and Aurora, at atlas.ghxstship.tech, gateway.ghxstship.tech, api.ghxstship.tech, docs.ghxstship.tech and status.ghxstship.tech |
+| Governing Jurisdiction                         | The laws of the State of Florida; the state and federal courts in Miami-Dade County, Florida; no arbitration and no class action waiver                     |
+| SCC governing law and courts (EU Member State) | Ireland (Clauses 17 and 18 require an EU Member State)                                                                                                      |
+| EU-US Data Privacy Framework status            | Not self-certified; transfers rely on the EU SCCs, the UK Addendum and the Swiss amendments                                                                 |
 
-## Mailboxes
+## Email
 
-| Purpose                                            | Value                                     |
-| -------------------------------------------------- | ----------------------------------------- |
-| Legal notices                                      | Pending owner input (OWNER_INPUTS item 6) |
-| Privacy and data subject requests                  | Pending owner input (OWNER_INPUTS item 6) |
-| Security (in addition to GitHub private reporting) | Pending owner input (OWNER_INPUTS item 6) |
-| Accessibility feedback                             | Pending owner input (OWNER_INPUTS item 6) |
-| Abuse and illegal content reports                  | Pending owner input (OWNER_INPUTS item 6) |
-| Copyright notices                                  | Pending owner input (OWNER_INPUTS item 6) |
-| Support                                            | Pending owner input (OWNER_INPUTS item 6) |
+GHXSTSHIP has two email addresses. **sos@ghxstship.pro** is for your account and billing: plans, invoices, cancellations, refunds and service credits. **support@ghxstship.pro** is for everything else on this page: help with the apps, and legal, privacy, security, accessibility, abuse and copyright matters. Write the purpose of your message in the subject line, so it reaches the right queue at once and its clock starts on the day it arrives. Every document at /legal that names a purpose uses the address and subject below.
+
+| Purpose                                          | Address               | Subject line   |
+| ------------------------------------------------ | --------------------- | -------------- |
+| Legal notices, trademark and license requests    | support@ghxstship.pro | Legal Notice   |
+| Privacy, data subject requests and complaints    | support@ghxstship.pro | Privacy        |
+| Appeal of a refused privacy request              | support@ghxstship.pro | Privacy Appeal |
+| Security reports                                 | support@ghxstship.pro | Security       |
+| Accessibility feedback and review requests       | support@ghxstship.pro | Accessibility  |
+| Abuse and illegal content reports                | support@ghxstship.pro | Abuse Report   |
+| Appeal of a moderation decision                  | support@ghxstship.pro | Appeal         |
+| Copyright notices and counter-notices            | support@ghxstship.pro | Copyright      |
+| Return of data an organization's export left out | support@ghxstship.pro | Return of Data |
+| Account, plans, invoices and cancellations       | sos@ghxstship.pro     | Account        |
+| Refunds                                          | sos@ghxstship.pro     | Refund         |
+| Service credits (Service Level Agreement)        | sos@ghxstship.pro     | Service Credit |
+| Help with Atlas, Gateway, Compass or the API     | support@ghxstship.pro | Support        |
 
 ## Appointed People
 
-| Role                                                                                  | Value                                      |
-| ------------------------------------------------------------------------------------- | ------------------------------------------ |
-| DMCA designated agent (name, address, as registered with the US Copyright Office)     | Pending owner input (OWNER_INPUTS item 7)  |
-| Privacy officer (PIPEDA) and person in charge of personal information (Quebec Law 25) | Pending owner input (OWNER_INPUTS item 8)  |
-| Data Protection Officer (GDPR Article 37), if designated                              | Pending owner input (OWNER_INPUTS item 8)  |
-| EU representative (GDPR Article 27)                                                   | Pending owner input (OWNER_INPUTS item 9)  |
-| UK representative (UK GDPR Article 27)                                                | Pending owner input (OWNER_INPUTS item 9)  |
-| Swiss representative (nFADP Article 14)                                               | Pending owner input (OWNER_INPUTS item 9)  |
-| Grievance officer (India DPDP Act 2023)                                               | Pending owner input (OWNER_INPUTS item 10) |
-| Single point of contact for authorities and users (EU Digital Services Act)           | Pending owner input (OWNER_INPUTS item 11) |
+| Role                                                                                  | Value                                                                                                                                                                                                                                                                                                                                                                           |
+| ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| DMCA designated agent (name, address, telephone and email)                            | Julian Clarkson, GHXSTSHIP Industries LLC, 66 W Flagler St, Suite 900, PMB 12524, Miami, FL 33130, United States; telephone +1 (407) 885-6011; support@ghxstship.pro with "Copyright" in the subject line. Registration with the US Copyright Office's DMCA Designated Agent Directory: not yet completed                                                                       |
+| Privacy officer (PIPEDA) and person in charge of personal information (Quebec Law 25) | Julian Clarkson, support@ghxstship.pro with "Privacy" in the subject line                                                                                                                                                                                                                                                                                                       |
+| Data Protection Officer (GDPR Article 37)                                             | None designated                                                                                                                                                                                                                                                                                                                                                                 |
+| EU representative (GDPR Article 27)                                                   | Not yet appointed. XOS is not offered in the EU at launch, and a contract exception for one organization does not open it. Correspondence about the EU goes to support@ghxstship.pro, with "Privacy" in the subject line, and is handled from London, United Kingdom; a representative established in an EU Member State is appointed before XOS is offered to people in the EU |
+| UK representative (UK GDPR Article 27)                                                | Not yet appointed. XOS is not offered in the UK at launch. A representative in London is appointed before it is. Until then, write to support@ghxstship.pro with "Privacy" in the subject line                                                                                                                                                                                  |
+| Swiss representative (nFADP Article 14)                                               | Not yet appointed. XOS is not offered in Switzerland at launch. Write to support@ghxstship.pro with "Privacy" in the subject line                                                                                                                                                                                                                                               |
+| Outside reviewer of moderation appeals                                                | None appointed                                                                                                                                                                                                                                                                                                                                                                  |
+| Data protection officer (encarregado, Brazil LGPD Article 41)                         | Not yet appointed. Write to support@ghxstship.pro with "Privacy" in the subject line                                                                                                                                                                                                                                                                                            |
+| Grievance officer (India DPDP Act 2023)                                               | Julian Clarkson, support@ghxstship.pro with "Privacy" in the subject line                                                                                                                                                                                                                                                                                                       |
+| Legal representative (EU Digital Services Act Article 13)                             | Not yet appointed. Write to support@ghxstship.pro with "Legal Notice" in the subject line                                                                                                                                                                                                                                                                                       |
+| Single point of contact for authorities and users (EU Digital Services Act)           | support@ghxstship.pro with "Legal Notice" in the subject line, in English. We review the languages when a legal representative is appointed, because Article 11 also calls for an official language of the Member State where that representative is established                                                                                                                |

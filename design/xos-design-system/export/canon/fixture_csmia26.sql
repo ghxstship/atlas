@@ -10,4 +10,4 @@ INSERT INTO organization (organization_id, name, organization_type) VALUES
   ('GHXSTSHIP', 'GHXSTSHIP Industries LLC', 'For-Profit');
 
 INSERT INTO project (project_id, name, organization_id, venue_id) VALUES
-  ('CSMIA26', 'Casa Spotify Miami', 'GHXSTSHIP', 'mana-wynwood');
+  ('CSMIA26', 'Brand House Miami', 'GHXSTSHIP', 'mana-wynwood');

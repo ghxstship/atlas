@@ -8,17 +8,31 @@ import { lighthouseTargets, type LighthouseApp } from "./lighthouse.ts";
 /**
  * Route JavaScript from a production build, without a browser (Section 18, gate 10). For one page
  * it adds the root main files to every chunk the page's client reference manifest lists for its
- * segments (layouts, page, error and not-found boundaries), then gzips each chunk once. That is
- * what the browser downloads on a cold load of the route, as Lighthouse's
- * `resource-summary:script:size` counts it, without the lazy chunks a click fetches later.
+ * segments (layouts, page, error and not-found boundaries) and counts each chunk's bytes on the
+ * wire, as Lighthouse's `resource-summary:script:size` does: `next start` gzips at zlib's default
+ * level, and every response carries its headers and chunked framing (transferBytes). It cannot see
+ * the chunks a page fetches after hydration on its own (a module loaded on mount); served-budget.ts
+ * measures those in a browser, and the nightly Lighthouse run counts them too.
  */
 
 export interface RouteBundle {
   readonly path: string;
   readonly route: string;
   readonly files: readonly string[];
-  readonly gzipBytes: number;
+  /** Bytes on the wire for the route's chunks, as Lighthouse counts them (transferBytes). */
+  readonly transferBytes: number;
 }
+
+/**
+ * What `next start` adds to each script response besides the gzip body: the status line and
+ * headers (Cache-Control, ETag, Content-Type, Vary, Content-Encoding, Date, Keep-Alive and
+ * Transfer-Encoding come to 395 bytes) and the chunked framing, about 12 bytes per 16 KiB the
+ * compressor writes. Measured against Lighthouse 12.6.1 on Next 16.4.2 (A144, 2026-10-28): within
+ * 6 bytes of each script's transferSize on the Atlas key pages.
+ */
+export const RESPONSE_HEADER_BYTES = 395;
+export const CHUNK_FRAMING_BYTES = 12;
+const FRAME = 16 * 1024;
 
 /** Matches a URL path to an app route such as `/[org]/home/page`; static segments win. */
 export function matchRoute(routes: readonly string[], path: string): string | null {
@@ -59,18 +73,27 @@ function readClientManifest(nextDir: string, route: string): ClientManifest {
   return manifest;
 }
 
-const gzipCache = new Map<string, number>();
+const sizeCache = new Map<string, number>();
 
-function gzipBytes(file: string): number {
-  let size = gzipCache.get(file);
+/**
+ * One script's bytes on the wire from `next start`: its body gzipped at zlib's default level, as
+ * Next's compression sends it, plus the response's headers and framing.
+ */
+export function transferBytes(body: Buffer): number {
+  const gzip = gzipSync(body).length;
+  return gzip + RESPONSE_HEADER_BYTES + CHUNK_FRAMING_BYTES * Math.ceil(gzip / FRAME);
+}
+
+function fileTransferBytes(file: string): number {
+  let size = sizeCache.get(file);
   if (size === undefined) {
-    size = gzipSync(readFileSync(file), { level: 9 }).length;
-    gzipCache.set(file, size);
+    size = transferBytes(readFileSync(file));
+    sizeCache.set(file, size);
   }
   return size;
 }
 
-/** The chunks one route loads on a cold visit and their total gzip size. */
+/** The chunks one route loads on a cold visit and their total bytes on the wire. */
 export function routeBundle(nextDir: string, path: string): RouteBundle {
   const routes = Object.keys(
     JSON.parse(readFileSync(join(nextDir, "server/app-paths-manifest.json"), "utf8")) as Record<
@@ -88,8 +111,8 @@ export function routeBundle(nextDir: string, path: string): RouteBundle {
     for (const chunk of chunks) files.add(chunk.replace(/^\/_next\//, ""));
   }
   const sorted = [...files].filter((f) => f.endsWith(".js")).sort();
-  const total = sorted.reduce((sum, f) => sum + gzipBytes(join(nextDir, f)), 0);
-  return { path, route, files: sorted, gzipBytes: total };
+  const total = sorted.reduce((sum, f) => sum + fileTransferBytes(join(nextDir, f)), 0);
+  return { path, route, files: sorted, transferBytes: total };
 }
 
 /** An app whose key pages carry the route JavaScript budget. */
@@ -143,7 +166,7 @@ export function checkRouteBudgets(
         webBudgets.routeJavaScriptGzipBytes,
         ceilings[`${app}${path}`] ?? 0,
       );
-      rows.push({ ...bundle, app, budgetBytes, pass: bundle.gzipBytes <= budgetBytes });
+      rows.push({ ...bundle, app, budgetBytes, pass: bundle.transferBytes <= budgetBytes });
     }
   }
   return rows;

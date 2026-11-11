@@ -113,6 +113,25 @@ describe("component styles on Tailwind 4.3.3 with the token preset", () => {
     expect(css).toContain("@media print");
   });
 
+  it("animates route view transitions from the motion tokens and turns them off under reduced motion", () => {
+    const rule = (selector: string) =>
+      new RegExp(`${selector.replace(/[().*[\]"]/g, (c) => `\\${c}`)}\\s*\\{([^}]*)\\}`).exec(
+        css,
+      )?.[1] ?? "";
+    expect(rule("::view-transition-old(.xos-route)")).toContain("var(--motion-duration-fast)");
+    expect(rule("::view-transition-new(.xos-route)")).toContain(
+      "var(--motion-duration-deliberate)",
+    );
+    expect(rule("::view-transition")).toContain("pointer-events: none");
+    // The device's setting unless me.reduced_motion is full, and me.reduced_motion reduce always.
+    const reduced =
+      /@media \(prefers-reduced-motion: reduce\)\s*\{\s*:root:not\(\[data-motion="full"\]\)::view-transition-group\(\*\)[^{]*\{\s*animation: none !important/;
+    expect(css).toMatch(reduced);
+    expect(css).toMatch(
+      /:root\[data-motion="reduce"\]::view-transition-new\(\*\)\s*\{\s*animation: none !important/,
+    );
+  });
+
   it("defines every component dimension it reads", () => {
     const defined = new Set([...css.matchAll(/(--ui-[\w-]+)\s*:/g)].map((m) => m[1]));
     const read = new Set<string>();

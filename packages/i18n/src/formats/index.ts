@@ -17,8 +17,12 @@ export {
   addressProblems,
   formatPostalAddress,
   isValidPostalCode,
+  normalizePostalCode,
+  POSTAL_CODE_COUNTRIES,
+  postalCodePattern,
   requiredAddressFields,
   type AddressField,
   type PostalAddress,
 } from "./address.ts";
+export { COUNTRY_CODES, countryName, countryOptions, isCountryCode } from "./countries.ts";
 export { formatPhone, phoneCountry, phoneHref, regionFromLocale, toE164 } from "./phone.ts";

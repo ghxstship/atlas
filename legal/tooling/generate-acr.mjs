@@ -246,13 +246,13 @@ for (const key of Object.keys(products)) {
   const doc = `---
 title: ${p.title}
 version: 1.0.0-draft
-effective_date: The date this version is published at /legal
-status: Draft for review by counsel before launch; every criterion Not Evaluated until Wave 6
+effective_date: The date GHXSTSHIP states when it makes this version final
+status: Draft before launch; every criterion Not Evaluated until Wave 6
 ---
 
 # ${p.title}
 
-> **Draft for review by counsel before launch.** This report is a draft. No criterion has been evaluated yet. It takes effect only when GHXSTSHIP Industries LLC publishes it at /legal with completed evaluation results, and its effective date is that date of publication.
+> **Draft before launch.** This report is a draft. No criterion has been evaluated yet. Showing it at /legal does not put it in effect. It takes effect only on the effective date that GHXSTSHIP Industries LLC states at the top of a final version with completed evaluation results.
 
 This Accessibility Conformance Report follows the structure of the ITI VPAT 2.5 International edition (VPAT 2.5Rev INT), which reports against WCAG 2.x, the Revised Section 508 Standards and EN 301 549 together. Template instructions from the VPAT form are not reproduced here.
 
@@ -270,7 +270,7 @@ ${p.desc}
 
 ## Contact Information
 
-GHXSTSHIP Industries LLC. Accessibility questions go to the accessibility mailbox listed on our contact page at /legal/contact, with a response within 5 business days as our Accessibility Statement commits.
+GHXSTSHIP Industries LLC. Accessibility questions go to support@ghxstship.pro with "Accessibility" in the subject line, with a response within 5 business days as our Accessibility Statement commits.
 
 ## Notes
 

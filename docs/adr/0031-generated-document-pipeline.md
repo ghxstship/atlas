@@ -69,3 +69,123 @@ Before this ADR, only report runs rendered PDFs, untagged, with pdfkit 0.20.2 (A
 - Gate 19 needs the CI job that runs `documents:verapdf` (the YAML is in the A49 report for the orchestrator).
 - Gateway does not offer the signed agreement certificate: Gateway signing runs on a token page without a session, and the signer's certificate is downloaded from Atlas by the org. Day sheets, call sheets, BEOs, inspections, incidents and the final cost report are offered in Atlas only, because Gateway's tabs do not list them as records.
 - A tenant logo stored as SVG prints as the brand name until a PNG or JPEG logo is uploaded.
+
+## Amendment (2026-10-30, R7, RRR-187): the radio hand-out
+
+- **A thirteenth record document.** `radio-handout` is added beyond Section 11.9's twelve.
+  - It is keyed by the project id, so it is served at `/{org}/documents/radio-handout/{projectId}`.
+  - Its loader reads `app.radio_handout`, as the caller and for a project of the org.
+  - It lists one row per radio allocation, sorted by party and then person: the person, the party, the radio, the
+    tags issued, the channels and the status, plus blank Signature and Returned columns for the hand-out table.
+- **Classification and version.** It prints names, asset tags and channel numbers, so it is Internal. It is computed
+  live, so like the final cost report it renders with the version in force at generation time.
+- **Delivery.** It is offered in Atlas only, from the allocations page. Its QR code opens that page filtered to the
+  project's assets.
+- **veraPDF.** The gate now renders thirteen templates. With the two papers and two locales that is 52 record files
+  (48 before).
+
+## Amendment (P5, G-144): card sizes, the badge photo and batch printing
+
+The owner approved the competitor parity audit on 2026-10-28; gap G-144 asks for printable photo badges. These decisions extend the pipeline for the credential badge only.
+
+1. **Card papers, for the badge only.** `PrintSize` adds A6 (297.64 by 419.53 pt) and CR80, the ID-1 card (153.01 by 242.65 pt, portrait), to Letter and A4. `printSizesFor("credential-badge")` is all four; every other kind keeps `PAPERS`, and `Paper` and `isPaper` still mean Letter or A4, so compliance forms and Gateway accept only those. The Atlas document route parses `?paper=` with `isPrintSizeFor`: a card size on any other kind prints on Letter, and Gateway documents stay Letter and A4. `renderDocumentPdf` refuses a card paper for any other kind.
+2. **The card layout** (`render-card.ts`) is one tagged PDF/UA-1 page: brand logo `Figure` or name, a row with the portrait `Figure` and the scan code `Figure`, the holder's name as `H1` (12 pt shrinking to 9 pt on CR80, 18 to 12 on A6, wrapping past three lines rather than truncating), compact paragraphs for the category, number and validity window, on A6 a fields `Table` with row headers, and a facts line (record key, template version, generation time). The border and accent rule are artifacts. The template builds the blocks in card order when the context's paper is a card; the layout places blocks by kind and never reads a label.
+3. **One QR on a card.** On A6 and CR80 the only QR is the badge's gate code, `XOSCR1:<credential number>`, the wallet pass form (ADR 0049) that Compass reads as the credential. Two codes on a 54 mm card send gate staff to the wrong one, so the record link QR of decision 2 is left out on card papers only. Letter and A4 keep the header with the record link QR, as Section 11.9 requires; badge version 2 adds the gate code in the body there too.
+4. **Template versions are chosen by paper.** A version may name the papers it prints on (`papers`, Letter and A4 when absent). `templateFor(versions, issuedAt, paper)` considers only those versions, takes the latest whose `effectiveFrom` is not after the issue time, or the earliest of them. Credential badge version 2 (portrait, name, gate code, fields, scan note) takes effect at `BADGE_V2_FROM = 2027-02-01T00:00:00Z`, a fixed instant after the planned release that ships it (4.2b), so a credential issued on production before that release keeps version 1 on Letter and A4 (decision 3). A6 and CR80 never existed under version 1, so every credential renders version 2 there. Atlas dates a badge by the credential's creation; Gateway's `api_external.credentials` view exposes no creation time, so Gateway dates it by the start of its validity window. A credential created before `BADGE_V2_FROM` whose window starts after it therefore downloads as version 2 on Letter and A4 in Gateway and version 1 in Atlas. Both carry the same credential details, and only version 2 adds the photo and the gate code; exposing the creation time on that view (an additive API change) would close the difference and is left to a later package.
+5. **The badge photo.** The badge prints, in resolution order computed at read time (`app.credential_photo_states`, 5822): the org's badge photo for the holder once its object scanned Clean; else the holder's profile photo when the caller may see the photo section of the profile, no block stands between them (ADR 0033 decision 57), and it is a JPEG or PNG of at most 2 MiB; else an empty photo frame reading "No photo on file". The holder gives the badge photo in Gateway (Profile, Badge photos), from an upload they crop by hand or their own profile photo, with a `credential_photo` consent record, and withdraws it there; an issuer may ask for one (`credential_photo.requested`) or remove it. There is no capture at a desk. The photo is Internal, like the badge it prints on (no Section 8.6 watermark), and no machine learning reads it.
+6. **Batch printing.** `GET /{org}/documents/badges?id=…&paper=…` prints 1 to 100 credentials in one file: one `Document` root, a `Sect` per badge starting on a new page, each with its own facts and page numbers. Credentials the viewer cannot read, of another org (ADR 0003), revoked or expired are left out and counted in `X-Badges-Skipped`. A run of 100 badges with photos is larger than Vercel's 4.5 MB buffered function response, so the route streams the PDF: each badge's pages are written as soon as it is drawn. If streaming is found not to lift the cap on the deployed functions, the batch maximum is lowered until the worst case fits, and this amendment and the print panel notice record the new cap.
+7. **veraPDF** also renders, per locale, CR80 and A6 badges with and without a photo, version 2 on Letter and A4 with a photo, and 3-badge batches on CR80 and Letter (16 more files); the per-kind loop keeps the version 1 badge, issued before `BADGE_V2_FROM`.
+
+## Amendment (B1, G-19 and G-24)
+
+The owner approved the competitor parity audit and its deferred themes on 2026-10-28. Gaps G-19 (a site plan export
+with a configurable legend) and G-24 (a signage build sheet) add two record kinds; ADR 0140 records the plan and
+signage decisions behind them.
+
+1. **Two kinds.** `DOCUMENT_KINDS` appends `site-plan` and `signage-build-sheet`, both Internal: they embed only a
+   drawing or artwork whose attachment is Public or Internal, and treat any other as not stored (ADR 0140 D3). Both are
+   computed from live records when generated, so their issue time is the generation time, as for the final cost
+   report, and version 1 takes effect at `V1`. Gateway offers neither.
+2. **The plan block.** `DocumentBlock` adds `plan`: PNG or JPEG bytes (or none), the drawing's pixel size, alternative
+   text, overlays and a note. The renderer fits the drawing to the content box without cropping and draws the overlays
+   as vectors (numbered pins, routes, dashed and heavier barriers, translucent areas, labels on a white ground) inside
+   one `Figure` with its alternative text, so the overlays can never drift from the drawing. Overlay colors are the
+   light theme's values of the design tokens a shape tone names, each at least 3:1 on the white frame. With no stored
+   drawing it draws a ruled frame of the drawing's proportions (16:10 for a legacy plan, whose pins were placed on
+   that frame) and prints the note, "Drawing not stored in XOS" or that the drawing is classified or removed, as a
+   paragraph. The legend is a separate `Table` with a `Caption` and `TH` cells scoped to their column. An `image`
+   block may name a `maxHeight`, so the build sheet prints artwork as thumbnails.
+3. **Orientation after the loader.** `DESCRIBE[kind]` runs after the loader and may return an orientation, which wins
+   over the route's: the site plan is landscape for a stored drawing at least as wide as it is tall and portrait
+   otherwise and for legacy plans; the build sheet is landscape for its nine columns. Every other kind returns none.
+4. **Options.** `GenerateInput.options` carries the request's search params to the template context
+   (`TemplateContext.options`); kinds other than these two ignore them. The site plan reads
+   `layers=pins,routes,barriers,areas,labels`, `legend=kinds|items|none` and `pins=0|1`
+   (`parseSitePlanExportOptions`); the build sheet reads `state=to-order|ordered|printed|placed|all`, by default every
+   sign not yet placed (`parseBuildSheetOptions`). Unknown values take the defaults. The Atlas route adds the viewer's
+   unit system (locale.units), so lengths, areas and sizes print in feet and inches or meters and centimeters.
+5. **Content.** The site plan prints its project, venue, level, state and scale, the plan block, the legend (one row
+   per kind with counts and totals, or every pin and shape numbered with its label, length or area and the signs at
+   each pin) and an optional pin table. The build sheet lists signs grouped by plan and pin, then location in words,
+   then unlocated, with key, title, type, size, quantity, material, location, state and a blank "Placed (initials)"
+   column; one plan figure per plan with sign-bearing pins, numbered to match; and artwork as a thumbnail when it is a
+   Clean PNG or JPEG of at most 2 MiB classified Public or Internal, otherwise its file name. The record link opens
+   the plan's peek, or the project's signage page.
+6. **veraPDF** also renders, per locale, site plans with a landscape and a portrait drawing and a legacy plan without
+   one, with the kinds and items legends, and build sheets with and without artwork, on Letter and A4.
+
+## Amendment (B7, ADR 0146): the wrap-up report and books
+
+The owner approved the deferred parity themes on 2026-10-28; package B7 (RRR-231) adds a thirteenth record document and
+compiled books.
+
+1. **Thirteen record documents.** `DOCUMENT_KINDS` adds `wrap-up-report`, so decision 6's per-kind loop renders thirteen
+   templates. Its row in decision 3's table: issue time the debrief's `completed_at`, else the generation time
+   (computed live, like the final cost report). Each of its sections is read only when the reader holds its capability
+   and otherwise prints "Not included" (ADR 0146 decision 5).
+2. **Books are compiled documents.** `COMPILED_DOCUMENT_KINDS` holds `document-book`, classified Internal: a book's cover
+   with its contents, rendered by `streamBookPdf` over the per-document drawing P5's batch file uses. Its row in decision
+   3's table: issue time the book's `created_at`, which picks the version of `BOOK_COVER_TEMPLATES`; each document in a
+   book keeps the version its own issue time picks. A book has one `Document` root, the cover `Sect` with a `TOC` and a
+   `TOCI` per document, a `Sect` per document and an outline item per section; footers number the whole book (ADR 0146
+   decision 4).
+3. **A version may print for an audience.** `TemplateVersion.audiences` marks a version that prints a copy for a team or
+   a department; `templateFor` considers only such versions when one is asked for, so a filtered day sheet always renders
+   day sheet version 2 (ADR 0146 decision 3).
+
+## Amendment (B8, RRR-232, G-68 and G-71): the guest pass
+
+ADR 0147 decision 6 gives guests passes, not credentials. These decisions extend the pipeline for the guest pass only.
+
+1. **A new kind, `guest-pass`.** It is keyed by the guest list entry, so it is served at
+   `/{org}/documents/guest-pass/{id}` through the existing `[kind]/[id]` route. Its loader reads the entry as the
+   caller (`advancing.packet.read` through row level security) and answers not found unless the guest is Approved or
+   Checked In, so a Requested or Declined guest has no pass.
+2. **Card papers, as the badge.** `printSizesFor("guest-pass")` is the badge's four sizes with A6 as the default; the
+   guest-email worker attaches the A6 pass. The card layout (`render-card.ts`) places its blocks by kind: the guest's
+   name as the heading, the scan code `XOSGP1:<pass code>` as the only QR, and compact paragraphs for the pass type,
+   the show and its date in the project's time zone, "Admits {n} more" when plus-ones are over 0, and the table.
+   There is no portrait.
+3. **Classification and version.** It prints a name, a pass code and a table, so it is Internal. Version 1 takes
+   effect at a fixed instant no earlier than the planned release of the package that ships it, as P5's
+   `BADGE_V2_FROM`; the record key in its facts line is the pass code.
+4. **veraPDF** renders the guest pass on A6 and CR80 in en-US and es-US (four more files).
+
+## Amendment (2026-11-06, B13, RRR-237): the client quote
+
+- **A fourteenth record document.** `quote` is keyed by the quote version id, so it is served at
+  `/{org}/documents/quote/{quoteVersionId}` and, for a client, `/documents/quote/{quoteVersionId}?engagement={key}`.
+- **Classification and version.** Internal. Its issue time is `sent_at`; a Draft preview uses the version's `created_at`,
+  prints "Draft: not sent" in its facts and has no fingerprint (ADR 0152).
+- **Sources.** Atlas reads as the viewer with `finance.budget.read`: a Draft reads live prices, Sent and later the frozen
+  capture. Gateway reads `api_external.quote_versions` and `quote_version_lines`. A signing link's Download PDF is built
+  only from what `api_public.token_quote` returned, after it re-resolves the link and code, posted in the form body. Its
+  printed record link and QR code open Gateway's Documents page, never the link: the token is one of the link's two secrets
+  and the PDF is meant to be forwarded.
+- **Brand.** Externals and anon cannot read `app.org_brands`, so a quote's readers build the brand from fields the view and
+  the token reader carry: legal entity, accent and logo path. The org-brand bucket is public, so anon can fetch the logo.
+- **Delivery.** Atlas's quote peek and Gateway's engagement Documents tab. The QR code opens the quote or that tab.
+- **Certificate.** An accepted quote's PDF carries a Signature block: name as signed, date and time in the project's zone,
+  how signed, the content fingerprint and the statement (S14.5-01). It has no ledger table, because reasons are internal.
+- **veraPDF.** The gate now renders fourteen templates. With the two papers and two locales that is 56 record files (52
+  before).

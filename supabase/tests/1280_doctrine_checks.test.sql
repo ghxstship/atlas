@@ -9,7 +9,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 
-select plan(5);
+select plan(4);
 
 -- Section 7.1: comments on every table and column -------------------------------------------------------------------
 select is(
@@ -48,39 +48,8 @@ select is(
      and t.typcategory = 'A' and t.typelem = 'uuid'::regtype),
   '', 'no table column holds an array of uuids: relationships use junction tables (Section 3.15)');
 
--- Any other array column is a reviewed exception. A new array column fails here until it is reviewed and added,
--- with its reason, to this list.
---   app.api_keys.scopes, app.oauth_grants.scopes: scope group names checked against the capability registry (0936)
---   app.scim_identities.groups: group display names as the identity provider sent them (provider payload, ADR 0024)
---   app.survey_questions.choices, app.training_quiz_questions.options: the ordered answer texts of one question,
---     reviewed in gate 29 (1042: the quiz key follows its option)
---   app.person_work_details.dietary_needs, app.person_work_details.accessibility_needs: sets of fixed enum values a
---     person picks (app.dietary_need, app.accessibility_need), never joined on; a free-text note carries the rest (1340)
---   app.work_detail_shares.categories, app.work_detail_events.categories: the set of app.work_detail_category values a
---     share grants or an access touched, read whole (1340)
---   app.work_detail_events.changed_columns: column names an edit changed, in the person's append-only access log; a
---     log payload, never a relationship (1340)
-select is(
-  (select coalesce(string_agg(n.nspname || '.' || c.relname || '.' || a.attname, ', ' order by n.nspname, c.relname, a.attnum), '')
-   from pg_attribute a
-   join pg_class c on c.oid = a.attrelid
-   join pg_namespace n on n.oid = c.relnamespace
-   join pg_type t on t.oid = a.atttypid
-   where n.nspname in ('app', 'xpms', 'private') and c.relkind in ('r', 'p') and not c.relispartition
-     and a.attnum > 0 and not a.attisdropped
-     and t.typcategory = 'A'
-     and (n.nspname || '.' || c.relname || '.' || a.attname) not in (
-       'app.api_keys.scopes',
-       'app.oauth_grants.scopes',
-       'app.scim_identities.groups',
-       'app.survey_questions.choices',
-       'app.training_quiz_questions.options',
-       'app.person_work_details.dietary_needs',
-       'app.person_work_details.accessibility_needs',
-       'app.work_detail_shares.categories',
-       'app.work_detail_events.categories',
-       'app.work_detail_events.changed_columns')),
-  '', 'every array column in a table is a reviewed exception (Section 3.15 schema lint)');
+-- Any other array column is a reviewed exception listed in the denormalization register, checked with the JSON,
+-- restated-column and stored-total lints in 1282_normalization_lints (A108).
 
 select * from finish();
 rollback;

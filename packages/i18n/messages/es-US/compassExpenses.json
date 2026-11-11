@@ -7,6 +7,7 @@
     "title": "Agregar un gasto"
   },
   "aurora": {
+    "declined": "Las funciones de IA están desactivadas, como elegiste. Ingresa los datos tú mismo. Puedes cambiarlo en Configuración.",
     "failed": "Aurora no pudo leer este recibo. Ingresa los datos tú mismo.",
     "fieldMissing": "No aparece en el recibo. Ingrésalo tú mismo.",
     "fieldRead": "Leído por Aurora, con {percent} % de certeza. Revísalo.",
@@ -35,12 +36,15 @@
     "lineChosen": "{number}. {line} ({budget})",
     "photo": "La foto del recibo",
     "retake": "Volver a tomar la foto",
-    "save": "Guardar gasto"
+    "save": "Guardar gasto",
+    "paidMyself": "Lo pagué yo",
+    "paidMyselfHelp": "Actívalo si salió de tu bolsillo, para que finanzas te lo reembolse."
   },
   "list": {
     "empty": "Todavía no hay gastos. Agrega uno a partir de un recibo.",
     "title": "Tus gastos",
-    "waiting": "Pendiente de subir"
+    "waiting": "Pendiente de subir",
+    "credit": "Crédito"
   },
   "problem": {
     "amount": "Ingresa un importe mayor que cero.",
@@ -56,5 +60,11 @@
     "paid": "Pagado",
     "proposed": "Enviado",
     "rejected": "Rechazado"
+  },
+  "reimbursement": {
+    "recorded": "Registrado",
+    "owed": "Te lo deben",
+    "paid": "Te lo pagaron",
+    "notOwed": "No adeudado"
   }
 }

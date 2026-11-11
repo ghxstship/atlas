@@ -5,13 +5,30 @@ import type { Route } from "next";
 import NextLink from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { Fragment } from "react";
 import type { ActivityDescription } from "./describe";
-import { peekHref as shellPeekHref } from "@/lib/shell/peek";
+import { useRecordKeyHovers } from "@/components/hover/use-hover-cards";
+import { shellPeekHref } from "@/lib/shell/peek-link";
+
+/**
+ * What an entry acted on, each value its own text node (a key, a name, a role, a start), never one string built from
+ * them: the en-XA check (gate 16) then reads each value as the data it is, even one holding a separator itself.
+ */
+export function ActivityTarget({ parts }: { parts: readonly string[] }) {
+  return (
+    <>
+      {parts.map((part, i) => (
+        <Fragment key={i}>{part}</Fragment>
+      ))}
+    </>
+  );
+}
 
 /**
  * One activity line (A59-030): who, the verb, and the thing acted on, named in the body font (a record
  * by its key and title, as a link that opens it in the peek), never a monospace kind. A run of identical
- * events reads once with a count. Section 11.10 item 2 keeps monospace for codes.
+ * events reads once with a count. Section 11.10 item 2 keeps monospace for codes. The record's link
+ * previews it after 400 ms (Section 11.7), read by its key.
  */
 export function ActivityLine({
   description,
@@ -26,10 +43,13 @@ export function ActivityLine({
   const pathname = usePathname();
   const search = useSearchParams();
   const org = pathname.split("/")[1] ?? "";
-  // A peek where the shell opens it, else the record page (lib/shell/peek).
-  const peekHref = (key: string) => shellPeekHref(org, pathname, search.toString(), key) as Route;
+  // The record opens in the shell's peek: the feeds sit on pages that do not peek their own rows
+  // (Home, project Overview, the activity pages; test/shell-peek.test.ts holds it), so this needs no
+  // sitemap, which would load with every page that shows a feed (ADR 0027).
+  const peekHref = (key: string) => shellPeekHref(pathname, search.toString(), key) as Route;
+  const hover = useRecordKeyHovers(org);
   return (
-    <article className="flex max-w-(--layout-peek) items-start gap-12">
+    <article className="flex max-w-(--layout-peek) items-start gap-12" {...hover.hoverProps}>
       <Avatar name={description.actor} />
       <div className="flex min-w-0 flex-1 flex-col gap-4">
         <p className="m-0">
@@ -39,12 +59,16 @@ export function ActivityLine({
             <NextLink
               href={peekHref(description.recordKey)}
               scroll={false}
+              data-item={description.recordKey}
+              data-column="key"
               className="font-medium text-accent-text no-underline hover:underline"
             >
-              {description.target}
+              <ActivityTarget parts={description.targetParts} />
             </NextLink>
           ) : (
-            <span className="font-medium">{description.target}</span>
+            <span className="font-medium">
+              <ActivityTarget parts={description.targetParts} />
+            </span>
           )}
           {count > 1 ? <span className="text-text-secondary"> {t("times", { count })}</span> : null}{" "}
           <time className="text-text-secondary">{time}</time>
@@ -55,6 +79,7 @@ export function ActivityLine({
           </div>
         ) : null}
       </div>
+      {hover.card}
     </article>
   );
 }

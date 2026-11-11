@@ -3,11 +3,16 @@
  * and loyalty programs, per-engagement shares, what an engaging org reads, and the access log.
  * Every call runs as the caller, so the owner-only policies, the share RPCs and the capability
  * checks of app.shared_work_details decide. The Restricted passport number is written through its
- * encrypting RPC, always read masked, and shown only by the logged reveal actions.
+ * encrypting RPC, always read masked, and shown only by the logged reveal actions. Allergies are
+ * Restricted too (R6a, 4663): the column is not selectable, so the owner's come from
+ * app.my_allergies. The retired uniform size and travel preference fields (4664) still pass through,
+ * so the database refuses a value with 422 work_detail_field_moved. v1's category enum is frozen, so
+ * R6a's Contact category leaves the category lists and travels as share_contact, contact_shared and
+ * includes_contact.
  */
 import type { Components } from "../../contract/operations.generated.ts";
 import { notFound, refused } from "../../problem.ts";
-import { requirePerson } from "../../runtime/context.ts";
+import { requireOrg, requirePerson } from "../../runtime/context.ts";
 import type { RequestContext } from "../../runtime/context.ts";
 import { assertIfMatch } from "../../runtime/etag.ts";
 import type { HandlerSet } from "../../runtime/handler.ts";
@@ -27,7 +32,31 @@ const ownRow = (_body: Row, context: RequestContext): Row => ({
 
 const workDetails = tableResource("workDetails", {
   verbs: ["list", "get", "delete"],
-  derived: ["passport_number"],
+  derived: [
+    "passport_number",
+    "allergies",
+    "dietary_needs",
+    "dietary_notes",
+    "accessibility_needs",
+    "accessibility_notes",
+  ],
+  // The caller holds one row, so one read of their Restricted needs serves the page (R6a, ADR 0164).
+  enrich: async (rows, context) => {
+    if (rows.length === 0) return rows;
+    const [allergies, needs] = await Promise.all([
+      run<string | null>(rpc(context.db, "my_allergies")),
+      run<Row[]>(rpc(context.db, "my_work_detail_needs")),
+    ]);
+    const own = needs[0] ?? {};
+    return rows.map((row) => ({
+      ...row,
+      allergies,
+      dietary_needs: own["dietary_needs"] ?? [],
+      dietary_notes: own["dietary_notes"] ?? null,
+      accessibility_needs: own["accessibility_needs"] ?? [],
+      accessibility_notes: own["accessibility_notes"] ?? null,
+    }));
+  },
   toContract: (row) => ({ ...row, passport_number: masked(PASSPORT_REASON) }),
 });
 
@@ -64,9 +93,58 @@ async function setPassportNumber(context: RequestContext, value: unknown): Promi
 
 type WorkDetails = Components["WorkDetails"];
 
+// Contact (R6a) -----------------------------------------------------------------------------------------
+
+const CONTACT = "Contact";
+
+/** A category list as v1 returns it: without Contact, which has its own field. */
+function v1Categories(value: unknown): string[] {
+  return Array.isArray(value) ? value.filter((c) => c !== CONTACT) : [];
+}
+
+const namesContact = (value: unknown) => Array.isArray(value) && value.includes(CONTACT);
+
+/** The categories to share: the body's, with Contact when the caller shares their contact. */
+function shareCategories(categories: unknown, shareContact: boolean): string[] {
+  const listed = v1Categories(categories);
+  return shareContact ? [...listed, CONTACT] : listed;
+}
+
 // Shares ------------------------------------------------------------------------------------------------
 
-const shares = tableResource("workDetailShares", { orgColumn: false });
+const shares = tableResource("workDetailShares", {
+  orgColumn: false,
+  derived: ["contact_shared"],
+  extraColumns: ["categories"],
+  toContract: (row) => ({
+    ...row,
+    categories: v1Categories(row["categories"]),
+    contact_shared: namesContact(row["categories"]),
+  }),
+});
+
+const events = tableResource("workDetailEvents", {
+  softDelete: false,
+  key: "id",
+  derived: ["includes_contact"],
+  extraColumns: ["categories"],
+  toContract: (row) => ({
+    ...row,
+    categories: v1Categories(row["categories"]),
+    includes_contact: namesContact(row["categories"]),
+  }),
+});
+
+const sensitiveConsents = tableResource("sensitiveConsents", {
+  orgColumn: false,
+  softDelete: false,
+  key: "id",
+});
+const sensitiveFieldRecords = tableResource("sensitiveFieldRecords", {
+  orgColumn: false,
+  softDelete: false,
+  key: "id",
+});
 
 async function liveShare(context: RequestContext, id: string): Promise<Row> {
   const share = await shares.read(context, id);
@@ -138,7 +216,7 @@ export const workDetailHandlers = {
     const id = await run<string>(
       rpc(context.db, "share_work_details", {
         p_engagement_id: body.engagement_id,
-        p_categories: body.categories,
+        p_categories: shareCategories(body.categories, body.share_contact === true),
       }),
     );
     return created((await shares.read(context, id)) as WorkDetailShare);
@@ -146,11 +224,14 @@ export const workDetailHandlers = {
   "workDetailShares.update": async ({ params, body, ifMatch }, context) => {
     const current = await liveShare(context, params.id);
     assertIfMatch(ifMatch ?? "*", current);
-    if (body.categories !== undefined) {
+    if (body.categories !== undefined || body.share_contact !== undefined) {
       await run(
         rpc(context.db, "share_work_details", {
           p_engagement_id: current["engagement_id"],
-          p_categories: body.categories,
+          p_categories: shareCategories(
+            body.categories ?? current["categories"],
+            body.share_contact ?? current["contact_shared"] === true,
+          ),
         }),
       );
     }
@@ -161,23 +242,88 @@ export const workDetailHandlers = {
     await run(rpc(context.db, "revoke_work_detail_share", { p_work_detail_share_id: params.id }));
     return ok((await shares.read(context, params.id)) as WorkDetailShare);
   },
+  // Shares key on a roster entry since R4 (2638); a share from before then reads by its engagement.
   "workDetailShares.details": async ({ params }, context) => {
-    const share = await shares.read(context, params.id, ["id", "engagement_id"]);
+    const share = await shares.read(context, params.id, ["id", "engagement_id", "roster_entry_id"]);
     const details = await run<Components["SharedWorkDetails"]>(
-      rpc(context.db, "shared_work_details", { p_engagement_id: share["engagement_id"] }),
+      share["roster_entry_id"]
+        ? rpc(context.db, "roster_shared_work_details", {
+            p_roster_entry_id: share["roster_entry_id"],
+          })
+        : rpc(context.db, "shared_work_details", { p_engagement_id: share["engagement_id"] }),
     );
-    return ok(details);
+    return ok({
+      ...details,
+      categories: v1Categories(details.categories),
+      readable: v1Categories(details.readable),
+    } as Components["SharedWorkDetails"]);
   },
   "workDetailShares.revealPassport": async ({ params, body }, context) => {
-    const share = await shares.read(context, params.id, ["id", "engagement_id"]);
+    const share = await shares.read(context, params.id, ["id", "engagement_id", "roster_entry_id"]);
     const value = await run<string>(
-      rpc(context.db, "reveal_shared_passport_number", {
-        p_engagement_id: share["engagement_id"],
-        p_reason: body.reason,
-      }),
+      share["roster_entry_id"]
+        ? rpc(context.db, "reveal_roster_passport_number", {
+            p_roster_entry_id: share["roster_entry_id"],
+            p_reason: body.reason,
+          })
+        : rpc(context.db, "reveal_shared_passport_number", {
+            p_engagement_id: share["engagement_id"],
+            p_reason: body.reason,
+          }),
     );
     return ok({ passport_number: value });
   },
 
-  ...handlersFor("Identity", tableResource("workDetailEvents", { softDelete: false, key: "id" })),
+  ...handlersFor("Identity", events),
+
+  ...handlersFor("Identity", sensitiveConsents),
+  ...handlersFor("Identity", sensitiveFieldRecords),
+  "sensitiveConsents.create": async ({ body }, context) => {
+    requirePerson(context);
+    const input = body as Row;
+    const id = await run<string>(
+      rpc(context.db, "give_sensitive_consent", {
+        p_category: input["category"],
+        p_notice_version: input["notice_version"],
+        p_locale: input["locale"],
+        p_surface: "API",
+        ...(input["account_id"] ? { p_account_id: input["account_id"] } : {}),
+        ...(input["authority_confirmed"] === true ? { p_authority_confirmed: true } : {}),
+        ...(input["notice_confirmed"] === true ? { p_notice_confirmed: true } : {}),
+      }),
+    );
+    return created((await sensitiveConsents.read(context, id)) as never);
+  },
+  "sensitiveConsents.withdraw": async ({ params }, context) => {
+    const me = requirePerson(context);
+    const grant = await sensitiveConsents.read(context, params.id);
+    if (grant["withdrawn_at"] === null) {
+      if (grant["basis"] === "Attested Authority" && grant["account_id"] === null) {
+        await run(rpc(context.db, "remove_sensitive_entry", { p_consent_id: params.id }));
+      } else if (grant["account_id"] !== null || grant["given_by"] === me) {
+        await run(
+          rpc(context.db, "withdraw_sensitive_consent", {
+            p_category: grant["category"],
+            ...(grant["account_id"] ? { p_account_id: grant["account_id"] } : {}),
+          }),
+        );
+      } else {
+        throw notFound("No consent with this identifier is yours.");
+      }
+    }
+    return ok((await sensitiveConsents.read(context, params.id)) as never);
+  },
+  "sensitiveConsents.disown": async ({ params }, context) => {
+    requirePerson(context);
+    // Read first: once the entry no longer names the caller, the row is no longer theirs to read.
+    const grant = await sensitiveConsents.read(context, params.id);
+    await run(rpc(context.db, "disown_sensitive_entry", { p_consent_id: params.id }));
+    return ok(grant as never);
+  },
+  "sensitiveConsents.report": async (_, context) => {
+    const rows = await run<Row[]>(
+      rpc(context.db, "sensitive_consent_report", { p_org_id: requireOrg(context).id }),
+    );
+    return ok({ data: rows, next_cursor: null } as never);
+  },
 } satisfies HandlerSet<"Identity">;

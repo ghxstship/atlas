@@ -16,42 +16,33 @@ supabase functions deploy integration-worker integration-inbound import-run --pr
 `integration-inbound` runs with `verify_jwt = false` (`supabase/config.toml`): providers authenticate by signature.
 
 Schedule the two workers every minute from the database, as the other workers (`webhook-dispatch`,
-`notification-dispatch`, `upload-scan`, `report-run`) are scheduled, reading the service key from Vault
-(`xos_worker_key`):
+`notification-dispatch`, `upload-scan`, `report-run`) are scheduled. `private.worker_request` (migration 904090001,
+ADR 0168) sends the secret API key from Vault (`xos_worker_key`, an `sb_secret_` key, never the legacy service_role
+JWT) on the `apikey` header to the functions URL in Vault (`xos_functions_url`):
 
 ```sql
-select cron.schedule('xos_worker_integration', '* * * * *', $$
-  select net.http_post(
-    url := 'https://<project-ref>.supabase.co/functions/v1/integration-worker',
-    headers := jsonb_build_object('Authorization', 'Bearer ' ||
-      (select decrypted_secret from vault.decrypted_secrets where name = 'xos_worker_key')));
-$$);
-select cron.schedule('xos_worker_import_run', '* * * * *', $$
-  select net.http_post(
-    url := 'https://<project-ref>.supabase.co/functions/v1/import-run',
-    headers := jsonb_build_object('Authorization', 'Bearer ' ||
-      (select decrypted_secret from vault.decrypted_secrets where name = 'xos_worker_key')));
-$$);
+select cron.schedule('xos_worker_integration', '* * * * *', $$select private.worker_request('integration-worker')$$);
+select cron.schedule('xos_worker_import_run', '* * * * *', $$select private.worker_request('import-run')$$);
 ```
 
 Until `import-run` runs, imports stay at "Reading your spreadsheet". Until `integration-worker` runs, sync runs,
 change notices, Slack unfurls and warehouse deliveries stay queued. The nightly warehouse scheduler itself is a
 migration-created pg_cron job (`xos_queue_due_warehouse_deliveries`, hourly at minute 7).
 
-Verify: `select jobname, schedule from cron.job order by 1;` lists both; calling either function with the
-service key answers 200 with a JSON summary; `select job_kind, job_status, count(*) from app.job_queue where
+Verify: `select jobname, schedule from cron.job order by 1;` lists both; calling either function with a
+secret key on the `apikey` header answers 200 with a JSON summary; `select job_kind, job_status, count(*) from app.job_queue where
 job_kind in ('integration.sync', 'integration.inbound', 'warehouse.deliver', 'import.fetch', 'import.detect')
 group by 1, 2;` shows no growing Queued count.
 
 ## 2. Edge Function secrets
 
-| Secret                          | Format                                       | Used by                                                                 |
-| ------------------------------- | -------------------------------------------- | ----------------------------------------------------------------------- |
-| `XOS_API_JWT_SIGNING_KEY`       | The project's JWT secret (already set)       | One-minute chat sessions for slash commands, Teams messages and unfurls |
-| `XOS_APP_URL`                   | `https://atlas.ghxstship.tech` (already set) | Which record links Slack unfurls                                        |
-| `XOS_SLACK_SIGNING_SECRET`      | `<32 hex characters>` from the Slack app     | `/integration-inbound/slack/*`                                          |
-| `XOS_XERO_WEBHOOK_KEY`          | `<webhook key>` from the Xero app            | `/integration-inbound/xero`                                             |
-| `XOS_QUICKBOOKS_VERIFIER_TOKEN` | `<verifier token>` from the Intuit app       | `/integration-inbound/quickbooks_online`                                |
+| Secret                          | Format                                                                                   | Used by                                                                 |
+| ------------------------------- | ---------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| `XOS_API_JWT_SIGNING_KEY`       | XOS's own signing key, a private JWK (ADR 0168, `infra/production/signing-key-setup.sh`) | One-minute chat sessions for slash commands, Teams messages and unfurls |
+| `XOS_APP_URL`                   | `https://atlas.ghxstship.tech` (already set)                                             | Which record links Slack unfurls                                        |
+| `XOS_SLACK_SIGNING_SECRET`      | `<32 hex characters>` from the Slack app                                                 | `/integration-inbound/slack/*`                                          |
+| `XOS_XERO_WEBHOOK_KEY`          | `<webhook key>` from the Xero app                                                        | `/integration-inbound/xero`                                             |
+| `XOS_QUICKBOOKS_VERIFIER_TOKEN` | `<verifier token>` from the Intuit app                                                   | `/integration-inbound/quickbooks_online`                                |
 
 An endpoint whose secret is unset answers 503 and records nothing, so a provider keeps retrying until it is set.
 
@@ -88,8 +79,30 @@ from the calendar connector is a follow-up; until then, calendars sync on the sc
 Sheets API and the Google Drive API enabled, and the OAuth consent screen must list
 `https://www.googleapis.com/auth/spreadsheets.readonly` (or `drive.readonly`). A customer connects Drive in Atlas;
 the import worker reads a pasted Sheets link with that connection's token, so the sheet must be shared with the
-Google account that connected Drive. Connections store an access token without a refresh flow today, so a token
-that expired fails the import with "reconnect Google Drive" until the OAuth refresh flow lands.
+Google account that connected Drive. The import worker still reads the stored access token without renewing it, so
+a Sheets import after the token expired fails with "reconnect Google Drive"; the storage connectors renew it (below).
+
+**Google Drive and OneDrive sign-in (B16, ADR 0155 D5).** Connect with Google and Connect with Microsoft run the
+authorization code flow with PKCE S256 on the platform's own OAuth apps, and keep a refresh token in Vault; the
+integration worker and the `storage-browse` Edge Function renew the access token 5 minutes before it expires and
+store the rotated tokens. A refresh the provider answers `invalid_grant` moves the connection to Error with
+`credential_revoked` and "Reconnect Google Drive" (or OneDrive).
+
+- Google Cloud (the platform project): create an OAuth web client. Redirect URI
+  `<ATLAS_SITE_URL>/oauth/integrations/callback`. Enable the Google Drive API and the Google Sheets API, and add
+  `https://www.googleapis.com/auth/drive.readonly` to the consent screen. That scope is restricted: start Google's
+  verification, including the security assessment. Until it passes the app runs in Testing mode, with at most 100
+  listed test users and refresh tokens that expire after 7 days.
+- Microsoft Entra: register a multi-tenant app (accounts in any directory and personal accounts), web redirect URI
+  `<ATLAS_SITE_URL>/oauth/integrations/callback`, delegated permissions `offline_access`, `Files.Read.All` and
+  `User.Read`, and complete publisher verification. Some tenants need an admin to consent to `Files.Read.All`.
+- Put each pair only into `XOS_GOOGLE_STORAGE_CLIENT_ID` and `XOS_GOOGLE_STORAGE_CLIENT_SECRET`, and
+  `XOS_MICROSOFT_STORAGE_CLIENT_ID` and `XOS_MICROSOFT_STORAGE_CLIENT_SECRET`: in Vercel (Atlas) and in the Edge
+  Function secrets (`integration-worker`, `storage-browse`). Without a pair, its button is disabled with "not set up
+  on this XOS yet". Then deploy: `supabase functions deploy storage-browse integration-worker stripe-webhook
+--project-ref <ref>`.
+- After connecting, an Admin chooses the connection's linking folder in Settings, Integrations. Document writers
+  browse and link only inside it, so nobody browses the Admin's own files. Dropbox stays on pasted tokens.
 
 ## 4. Warehouse delivery (Enterprise)
 

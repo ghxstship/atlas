@@ -1,5 +1,15 @@
-import { buildTimeline, latestBaselinePlan, listDependencies } from "@xos/data/schedule";
+import { draftedListIsEmpty } from "@xos/data/ai";
+import { parseArchived } from "@xos/data/archive";
+import {
+  buildTimeline,
+  latestBaselinePlan,
+  listDependencies,
+  lockedRecordIds,
+  scheduleWindow,
+} from "@xos/data/schedule";
 import { listRecords, sortRecords, type ProjectRef, type RecordSort } from "@xos/data/work";
+import { getProjectAnchor } from "@xos/data/anchor";
+import { dayTagsByDate, dayTypeSlug, listProjectDays } from "@xos/data/schedule-days";
 import { todayIn } from "@xos/data/calendar";
 import { getNode } from "@xos/ia";
 import type { ReactNode } from "react";
@@ -10,6 +20,9 @@ import { getTranslate } from "@/lib/shell/translate";
 import type { BulkConfig } from "@/components/bulk/types";
 import { LiveRefresh } from "@/components/live/live-refresh";
 import { collectionPeek } from "@/components/shell/collection-peek";
+import { CustomFieldList } from "@/components/custom-fields/list";
+import { ListDraftEntry } from "@/components/aurora/entry/list-draft-entry";
+import { customFieldList } from "@/lib/custom-fields/server";
 import { CreateRecordDialog } from "./create-record";
 import {
   capabilitySet,
@@ -18,6 +31,7 @@ import {
   must,
   nodeViews,
   param,
+  recordBulkConfig,
   type SearchParams,
 } from "./load";
 import { RecordCollection } from "./record-collection";
@@ -59,7 +73,11 @@ export async function RecordsPage({
 }) {
   const t = await getTranslate();
   const db = ctx.viewer.db;
-  const [meta, caps] = await Promise.all([loadRecordMeta(ctx), capabilitySet(ctx)]);
+  const [meta, caps, custom] = await Promise.all([
+    loadRecordMeta(ctx),
+    capabilitySet(ctx),
+    customFieldList(ctx, "app.records", search),
+  ]);
   const { views, defaultView } = nodeViews(node);
   const requested = param(search, "view");
   const view = requested && views.includes(requested) ? requested : defaultView;
@@ -90,28 +108,110 @@ export async function RecordsPage({
       ...(kinds.length > 0 ? { kinds } : {}),
       ...(states.length > 0 ? { states } : {}),
       ...(q ? { search: q } : {}),
+      archived: parseArchived(param(search, "archived")),
     }),
   ]);
-  const records = sortRecords(must(filtered, "records"), sort, meta.states);
+  const records = sortRecords(
+    must(filtered, "records").filter((r) => custom.keep(r.id)),
+    sort,
+    meta.states,
+  );
   const total = must(all, "records").length;
 
   const timeZone =
     project?.timeZone ?? records[0]?.projectTimeZone ?? meta.projects[0]?.timeZone ?? "UTC";
+  // People who may change the timeline drag its bars to reschedule (A133).
+  const canReschedule = view === "timeline" && caps.has("schedule.timeline.write");
+  // P8: beside their timeline, the records with no dates wait in an Unscheduled list to be placed.
+  // Schedule pages load dated records only, so the backlog is its own read with the same filters. The
+  // database picks the undated, open records, so dated and closed ones never use up the read's limit.
+  let backlog: { id: string; label: string }[] = [];
+  if (canReschedule) {
+    const undated = await listRecords(db, {
+      orgId: ctx.org.id,
+      ...(projectId ? { projectId } : {}),
+      ...(fixedKinds ? { kinds: fixedKinds } : kinds.length > 0 ? { kinds } : {}),
+      ...(states.length > 0 ? { states } : {}),
+      ...(q ? { search: q } : {}),
+      undatedOnly: true,
+      excludeStates: ["Canceled", "Complete"],
+    });
+    backlog = must(undated, "records")
+      .filter((r) => custom.keep(r.id))
+      .map((r) => ({ id: r.id, label: `${r.key} ${r.title}` }));
+  }
   let timeline = null;
-  if (view === "timeline" && records.length > 0) {
+  if (view === "timeline" && (records.length > 0 || backlog.length > 0)) {
     const ids = records.map((r) => r.id);
-    const [deps, plan] = await Promise.all([
+    const [deps, plan, locked] = await Promise.all([
       listDependencies(db, ids),
       projectId
         ? latestBaselinePlan(db, projectId)
         : Promise.resolve({ ok: true as const, data: new Map() }),
+      canReschedule
+        ? lockedRecordIds(db, records)
+        : Promise.resolve({ ok: true as const, data: new Set<string>() }),
     ]);
+    // With nothing dated, the project's days (or the next four weeks) still draw, to place onto.
+    const drawn =
+      backlog.length > 0 ? must(await scheduleWindow(db, projectId, today), "window") : null;
     timeline = buildTimeline({
       records,
       dependencies: must(deps, "dependencies"),
       baseline: must(plan, "baseline"),
+      locked: must(locked, "locked records"),
       timeZone,
+      ...(drawn ? { window: drawn } : {}),
+      // A week of room on each side to drag bars into.
+      ...(canReschedule ? { pad: 7 } : {}),
     });
+  }
+
+  // Day types on the calendar and the timeline (B4): one project's by name, several prefixed with their keys.
+  let dayTypes:
+    | {
+        date: string;
+        tags: { label: string; category: 1 | 2 | 3 | 4 | 5 | 6 | 7; icon: string }[];
+      }[]
+    | undefined;
+  let anchor: { day: string; label: string } | null = null;
+  // Only the dates the view draws: the month on the calendar, the timeline's first to last day.
+  const drawnDays =
+    view === "calendar"
+      ? { from: month, to: lastOfMonth(month) }
+      : view === "timeline" && timeline && timeline.days.length > 0
+        ? { from: timeline.days[0]?.day ?? today, to: timeline.days.at(-1)?.day ?? today }
+        : null;
+  if (drawnDays) {
+    const ids = projectId ? [projectId] : meta.projects.map((p) => p.id);
+    const days = await listProjectDays(db, { orgId: ctx.org.id, projectIds: ids, ...drawnDays });
+    if (days.ok) {
+      const byDate = dayTagsByDate(
+        days.data,
+        (d) => d.label ?? t(`schedule.days.types.${dayTypeSlug(d.dayType)}`),
+        { prefixKeys: !projectId },
+      );
+      dayTypes = [...byDate].map(([date, v]) => ({
+        date,
+        tags: [
+          ...v.tags.map((tag) => ({ label: tag.label, category: tag.category, icon: tag.icon })),
+          ...(v.more > 0
+            ? [
+                {
+                  label: t("schedule.days.more", { n: v.more }),
+                  category: 7 as const,
+                  icon: "Ellipsis",
+                },
+              ]
+            : []),
+        ],
+      }));
+    }
+    if (project && view === "timeline") {
+      const anchorOn = await getProjectAnchor(db, project.id);
+      if (anchorOn.ok && anchorOn.data)
+        anchor = { day: anchorOn.data, label: t("schedule.anchor.gate") };
+    }
   }
 
   const peekKey = param(search, "peek");
@@ -135,42 +235,40 @@ export async function RecordsPage({
   }
 
   const canCreate = caps.has("work.record.write");
-  // Bulk edit (Section 11.7): state, owner and phase across a selection. Blocked and Deferred need
-  // a blocker or a reason per record, so they stay single edits.
+  // Bulk edit (Section 11.7) for people who may change records, with Shift time (P8) for those who
+  // may also change the timeline.
   const bulk: BulkConfig | null = canCreate
-    ? {
-        org: ctx.org.slug,
-        resource: "records",
-        fields: [
-          {
-            key: "record_state",
-            label: t("work.columns.state"),
-            reason: true,
-            options: meta.states
-              .filter((s) => s.state !== "Blocked" && s.state !== "Deferred")
-              .map((s) => ({ value: s.state, label: t(`work.states.${s.state}`) })),
-          },
-          {
-            key: "owner_party_id",
-            label: t("work.columns.owner"),
-            options: [
-              { value: null, label: t("work.values.unassigned") },
-              ...meta.people.map((p) => ({ value: p.personId, label: p.name ?? p.personId })),
-            ],
-          },
-          {
-            key: "phase_code",
-            label: t("work.fields.phase"),
-            options: [
-              { value: null, label: t("work.values.notSet") },
-              ...meta.phases.map((p) => ({ value: p.value, label: p.label })),
-            ],
-          },
-        ],
-      }
+    ? recordBulkConfig(ctx.org.slug, meta, t, { shift: caps.has("schedule.timeline.write") })
     : null;
   const label = title ?? t(getNode(sitemap, node).node.label);
   const visibleKinds = fixedKinds ?? meta.kinds.map((k) => k.kind);
+  // Quick add (Section 11.7): a line lands in the page's project (its tab or its filter), as the New
+  // record sheet does, is read on that project's calendar or the org's, and creates the page's kind.
+  const landing = meta.projects.find((p) => p.id === projectId);
+  const quickAdd =
+    canCreate && meta.projects.length > 0
+      ? {
+          org: ctx.org.slug,
+          timeZone: landing ? landing.timeZone : await getOrgTimeZone(ctx),
+          projectId: projectId ?? null,
+          kinds: fixedKinds ?? null,
+          defaultKind: fixedKinds?.[0] ?? (kinds.length === 1 ? kinds[0] : undefined) ?? "Task",
+        }
+      : null;
+
+  // Aurora's risk assessment (P6): on a project tab filtered to exactly Risk, with no other filter
+  // and no Risk record shown. The database answers whether the viewer may write the project's
+  // records and whether its risk list is truly empty (Risk records the viewer cannot see, and
+  // Canceled ones, count), so an assigned-reach member never sees a button that ends in a refusal.
+  const riskList =
+    project &&
+    kinds.length === 1 &&
+    kinds[0] === "Risk" &&
+    states.length === 0 &&
+    q === "" &&
+    records.length === 0
+      ? await draftedListIsEmpty(db, "risk_assessment", project.id).then((r) => r.ok && r.data)
+      : false;
 
   // Records update live (Section 11.7, ADR 0044): the project's when on a project tab, else the org's.
   const live = [
@@ -181,7 +279,7 @@ export async function RecordsPage({
   ];
 
   return (
-    <>
+    <CustomFieldList value={await custom.view(records.map((r) => r.id))}>
       <LiveRefresh topics={live} />
       <RecordCollection
         org={ctx.org.slug}
@@ -207,8 +305,13 @@ export async function RecordsPage({
         today={today}
         timeZone={timeZone}
         timeline={timeline}
+        canReschedule={canReschedule}
+        backlog={backlog}
         canCreate={canCreate}
         bulk={bulk}
+        quickAdd={quickAdd}
+        {...(dayTypes ? { dayTypes } : {})}
+        anchor={anchor}
         hideKindFilter={fixedKinds !== undefined && fixedKinds.length <= 1}
         create={
           <CreateRecordDialog
@@ -225,7 +328,24 @@ export async function RecordsPage({
           />
         }
         peek={collectionPeek(peekKey, peek)}
+        {...(riskList && project
+          ? {
+              emptyAction: (
+                <ListDraftEntry
+                  kind="risk_assessment"
+                  target={{ collection: "projects", id: project.id, label: project.key }}
+                  context={[]}
+                />
+              ),
+            }
+          : {})}
       />
-    </>
+    </CustomFieldList>
   );
+}
+
+/** The last day of the month that `month` (YYYY-MM-01) starts, as YYYY-MM-DD. */
+function lastOfMonth(month: string): string {
+  const [y, m] = month.split("-").map(Number) as [number, number];
+  return new Date(Date.UTC(y, m, 0)).toISOString().slice(0, 10);
 }

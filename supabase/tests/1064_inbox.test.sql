@@ -55,7 +55,7 @@ select throws_ok('select 1 from app.inbox_items', '42501', null, 'anon cannot re
 -- Acting from the Inbox --------------------------------------------------------------------------------------
 select pg_temp.as_user('bob');
 select throws_ok($$select app.act_on_notification((select id from world where key = 'n1'), 'escalate')$$, 'XR001',
-  'inbox_action_unknown: An Inbox item is approved, rejected or marked Done.', 'an unknown action is refused');
+  'inbox_action_unknown: An Inbox item is approved, rejected, accepted, declined, answered or marked Done.', 'an unknown action is refused');
 select throws_ok($$select app.act_on_notification((select id from world where key = 'n2'), 'reject')$$, 'XR001',
   'approval_rejection_reason: Say why when you reject an approval.', 'a rejection needs a reason, and the item stays');
 select is((select count(*)::int from app.inbox_items where id = pg_temp.id('n2')), 1, 'the refused item is still in the Inbox');
