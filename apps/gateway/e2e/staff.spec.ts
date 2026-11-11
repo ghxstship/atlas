@@ -348,8 +348,10 @@ test("journey 42: slate, award, roster, training before positions, slots, placem
     const sheetFor = async (entry: string) => {
       const [row] = await sql<{ id: string }>(
         `insert into app.timesheets (project_id, roster_entry_id, period_start, period_end)
-         values ($1, $2, $3::date, $3::date) returning id`,
-        [PROJECT, entry, projectDay()],
+         values ($1, $2, $3::date, $4::date) returning id`,
+        // From the project day two hours ago, so a run just after local midnight still holds the shift's punches
+        // (the supervisor's clock-in is 20 minutes back, the shift started an hour back).
+        [PROJECT, entry, local(new Date(Date.now() - 2 * 60 * 60_000)).slice(0, 10), projectDay()],
         PEOPLE.owner,
       );
       return row?.id as string;
