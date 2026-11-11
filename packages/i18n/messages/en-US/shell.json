@@ -1472,5 +1472,12 @@
   },
   "systemBanner": {
     "details": "Details"
+  },
+  "crisisBanner": {
+    "title": "{title} is in force",
+    "titleOnProject": "{title} is in force on {project}",
+    "untitled": "Crisis alert",
+    "open": "Open emergency codes",
+    "more": "{count, plural, one {# more crisis alert is in force} other {# more crisis alerts are in force}}"
   }
 }

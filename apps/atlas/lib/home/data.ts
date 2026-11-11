@@ -1,5 +1,6 @@
 import { labelActivity, listActivity, type ActivityEntry } from "@xos/data/activity";
 import { addCalendarDays, startOfDayIn, todayIn } from "@xos/data/calendar";
+import { listActiveCrisisAlerts } from "@xos/data/crisis-alerts";
 import {
   buildAlerts,
   type Alert,
@@ -56,7 +57,11 @@ export async function loadReadiness(ctx: OrgContext): Promise<GateReadiness[]> {
   return (await loadReadinessBoard(ctx)).readiness;
 }
 
-/** Everything the alert list needs, read for the viewer. */
+/**
+ * Everything the alert list needs, read for the viewer: crisis alerts in force first (app.crisis_alerts and the
+ * viewer's own crisis_alert.issued notifications, listActiveCrisisAlerts), then gate readiness, blocked and overdue
+ * records.
+ */
 export async function loadAlerts(
   ctx: OrgContext,
   now: Date = new Date(),
@@ -64,17 +69,19 @@ export async function loadAlerts(
 ): Promise<Alert[]> {
   const db = ctx.viewer.db;
   const personId = ctx.viewer.person?.id ?? null;
-  const [readiness, blocked, overdue] = await Promise.all([
+  const [readiness, blocked, overdue, crisis] = await Promise.all([
     known ? Promise.resolve([...known]) : loadReadiness(ctx),
     listBlockedRecords(db, ctx.org.id),
     personId
       ? listMyOverdueRecords(db, { orgId: ctx.org.id, personId, now })
       : Promise.resolve({ ok: true as const, data: [] }),
+    listActiveCrisisAlerts(db, { orgId: ctx.org.id, personId, now }),
   ]);
   return buildAlerts({
     readiness,
     blocked: must(blocked, "blocked records"),
     overdue: must(overdue, "overdue records"),
+    crisis: must(crisis, "crisis alerts"),
     today: todayIn(await getOrgTimeZone(ctx), now),
   });
 }

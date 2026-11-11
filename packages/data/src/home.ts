@@ -1,5 +1,6 @@
 import type { Database, XosClient } from "./client.ts";
 import type { CriterionStatus, GateCriterion, Phase, ProjectSummary } from "./projects.ts";
+import type { ActiveCrisisAlert } from "./crisis-alerts.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 
 /**
@@ -205,34 +206,58 @@ export function summarizeReadiness(
 // Alerts -----------------------------------------------------------------------------------------
 
 export type AlertKind =
-  "blockedProject" | "blockedRecord" | "overdue" | "gateGap" | "noJurisdiction";
+  "crisisAlert" | "blockedProject" | "blockedRecord" | "overdue" | "gateGap" | "noJurisdiction";
 
 export interface Alert {
   readonly id: string;
   readonly kind: AlertKind;
-  readonly severity: "high" | "medium";
+  /** Critical is a crisis alert in force: it sorts above everything else. */
+  readonly severity: "critical" | "high" | "medium";
   readonly values: Readonly<Record<string, string | number>>;
-  /** Project key the alert opens, with the tab. */
+  /** Project key the alert opens, with the tab; a crisis alert opens the project's emergency codes. */
   readonly projectKey: string | null;
-  readonly tab: "overview" | "gates" | "settings";
+  readonly tab: "overview" | "gates" | "settings" | "emergencyCodes";
   /** Sort time: the instant the alert concerns, newest concern first within a severity. */
   readonly at: string;
 }
 
 const GAP_WINDOW_DAYS = 30;
 
+const SEVERITY_ORDER: Readonly<Record<Alert["severity"], number>> = {
+  critical: 0,
+  high: 1,
+  medium: 2,
+};
+
 /**
- * The alerts Home raises (Section 4.2 Home): blocked projects and records, the person's overdue
- * records, projects whose first production day is within 30 days with blocking criteria open at the
- * current gate, and projects past Scope with no jurisdiction. Derived at read time, never stored.
+ * The alerts Home raises (Section 4.2 Home): crisis alerts in force (crawl 4.9; listActiveCrisisAlerts), blocked
+ * projects and records, the person's overdue records, projects whose first production day is within 30 days with
+ * blocking criteria open at the current gate, and projects past Scope with no jurisdiction. Derived at read time,
+ * never stored.
  */
 export function buildAlerts(input: {
   readiness: readonly GateReadiness[];
   blocked: readonly HomeRecord[];
   overdue: readonly HomeRecord[];
   today: string;
+  crisis?: readonly ActiveCrisisAlert[];
 }): Alert[] {
   const alerts: Alert[] = [];
+  for (const c of input.crisis ?? []) {
+    alerts.push({
+      id: `ca:${c.id}`,
+      kind: "crisisAlert",
+      severity: "critical",
+      values: {
+        title: c.title,
+        project: c.projectKey ?? c.projectName ?? "",
+        message: c.message,
+      },
+      projectKey: c.projectKey,
+      tab: "emergencyCodes",
+      at: c.issuedAt,
+    });
+  }
   const horizon = new Date(Date.parse(`${input.today}T00:00:00Z`) + GAP_WINDOW_DAYS * 86_400_000)
     .toISOString()
     .slice(0, 10);
@@ -301,7 +326,11 @@ export function buildAlerts(input: {
     });
   }
   return alerts.sort((a, b) =>
-    a.severity !== b.severity ? (a.severity === "high" ? -1 : 1) : a.at < b.at ? 1 : -1,
+    a.severity !== b.severity
+      ? SEVERITY_ORDER[a.severity] - SEVERITY_ORDER[b.severity]
+      : a.at < b.at
+        ? 1
+        : -1,
   );
 }
 

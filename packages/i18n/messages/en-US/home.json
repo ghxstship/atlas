@@ -93,7 +93,9 @@
     "open": "Open",
     "severity": "Severity",
     "high": "Needs action",
-    "medium": "Watch"
+    "medium": "Watch",
+    "crisisAlert": "{title} on {project}: {message}",
+    "critical": "Emergency"
   },
   "recent": {
     "title": "Recent",
