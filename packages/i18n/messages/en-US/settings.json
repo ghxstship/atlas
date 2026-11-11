@@ -770,7 +770,7 @@
       "addLabel": "Add a legal entity",
       "legalName": "Legal name",
       "country": "Country",
-      "countryHelp": "Two letters, like US or GB.",
+      "countryChoose": "Choose a country",
       "fiscalYearStart": "Fiscal year starts",
       "baseCurrency": "Base currency",
       "taxIdentifier": "Tax identifier (optional)",
