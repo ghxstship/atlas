@@ -378,6 +378,14 @@ describe("billing once the key is set", () => {
     }
   });
 
+  it("shows no failure alert on load for a refusal it does not explain", async () => {
+    data.account = { ...(data.account as object), checkoutRefusal: "billing_org_unknown" };
+    const tree = await page();
+    expect(ofType(tree, InlineAlert).map(textOf)).not.toContain("refusals.other");
+    expect(ofType(tree, InlineAlert).map(textOf)).not.toContain("refusals.billing_org_unknown");
+    expect(reviewLinks(tree)).toEqual([]);
+  });
+
   it("sends an overdue org with no Stripe customer to support, without saying payment is not connected", async () => {
     data.banner = {
       trialPlan: null,
@@ -411,8 +419,9 @@ describe("billing once the key is set", () => {
     };
     const alerts = async (checkout: string) =>
       ofType(await page({ checkout }), InlineAlert).map(textOf);
+    // The trial's message goes on with the renewal terms too (ADR 0161): the card is charged when the trial ends.
     expect(await alerts("trial")).toContain(
-      "checkoutTrialDone(Northwind Live,shell.plans.pro.name)",
+      "checkoutTrialDone(Northwind Live,shell.plans.pro.name) checkoutTerms",
     );
     // A paid Checkout's message goes on with the renewal terms (ADR 0161): "checkoutDone(...) checkoutTerms".
     const paidDone = (texts: string[]) =>

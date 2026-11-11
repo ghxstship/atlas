@@ -101,8 +101,9 @@ export default async function BillingSettingsPage({
   // The rule that refuses every plan's Checkout for the org now (904100201); paying and awaiting are among its rules.
   const refusal = stripe?.checkoutRefusal ?? null;
   const buying = billing.open && stripe !== null && refusal === null;
-  const blocked = billing.open && refusal !== null && !paid && !awaiting;
-  const standing = STANDING_REFUSALS.find((r) => r === refusal);
+  // Only a standing refusal is explained here; any other (an org that no longer exists) shows no alert before a click.
+  const standing =
+    billing.open && !paid && !awaiting ? STANDING_REFUSALS.find((r) => r === refusal) : undefined;
   const current = subscription.data.planCode;
   const trialing = subscription.data.state === "trialing";
   const term = search["term"] === "annual" ? "Annual" : "Monthly";
@@ -156,18 +157,14 @@ export default async function BillingSettingsPage({
       <p className="m-0 text-text-14">{t("current", { org: ctx.org.name, plan: name(current) })}</p>
       <StripeCancellationNotice ctx={ctx} />
       {billing.open ? null : <InlineAlert tone="info">{t("notAvailable")}</InlineAlert>}
-      {blocked ? (
-        <InlineAlert tone="info">
-          {standing ? t(`refusals.${standing}`) : t("refusals.other")}
-        </InlineAlert>
-      ) : null}
+      {standing ? <InlineAlert tone="info">{t(`refusals.${standing}`)}</InlineAlert> : null}
       {checkout === "done" && paid ? (
         <InlineAlert tone="success">
           {t("checkoutDone", { org: ctx.org.name, plan: name(current) })} {t("checkoutTerms")}
         </InlineAlert>
       ) : checkout === "trial" && paid ? (
         <InlineAlert tone="success">
-          {t("checkoutTrialDone", { org: ctx.org.name, plan: name(current) })}
+          {t("checkoutTrialDone", { org: ctx.org.name, plan: name(current) })} {t("checkoutTerms")}
         </InlineAlert>
       ) : checkout === "done" || checkout === "trial" || awaiting ? (
         <InlineAlert tone="success">{t("checkoutPending")}</InlineAlert>

@@ -145,6 +145,8 @@ test("an Owner on the Pro trial pays for Core in Checkout and manages it in the 
       `Your card is saved. ${name} is on the Core plan, and nothing is charged until the trial ends.`,
     ),
   ).toBeVisible();
+  // The renewal terms follow it, as after a Checkout that charged (ADR 0161).
+  await expect(page.getByText("It renews automatically until you end it.")).toBeVisible();
   await expect(page.getByText(/^Payment received/)).toHaveCount(0);
   await expect(page.getByTestId("billing-lifecycle")).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Billing portal" })).toBeVisible();
