@@ -58,7 +58,7 @@ function trackRouter(page: Page): Set<Request> {
  * page still runs, and its fallback then aborts the navigation (NS_BINDING_ABORTED) or interrupts
  * it, and a retried navigation aborts the next fallback in turn (nightly run 42927680948).
  */
-async function routerIdle(page: Page): Promise<void> {
+export async function routerIdle(page: Page): Promise<void> {
   const inFlight = trackRouter(page);
   // A click resolves once it is dispatched; a frame later the server action or navigation it starts has sent its
   // request, and that request's event reaches this process before the evaluation's answer does.
