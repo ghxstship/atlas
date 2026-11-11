@@ -187,6 +187,32 @@ export class IdentityError extends Error {
   }
 }
 
+/**
+ * A sign-in that nothing has opened yet: no membership in any org and no engagement that is open to the person (a new
+ * sign-up, or a roster member whose engagement is still being set up). The read worked, so it is no failure and Try
+ * Again cannot change it; Compass says who can open access instead (C-12).
+ */
+export class NoAccessYet extends IdentityError {
+  constructor() {
+    super("none", "This sign-in has no organization membership and no engagement.");
+  }
+}
+
+/** What the launch shows when the person's identity did not resolve. */
+export type IdentityOutcome =
+  | { readonly kind: "no-access" }
+  | { readonly kind: "identity-failed"; readonly step: string; readonly message: string };
+
+export function identityOutcome(error: unknown): IdentityOutcome {
+  if (error instanceof NoAccessYet) return { kind: "no-access" };
+  const message = error instanceof Error ? error.message : String(error);
+  return {
+    kind: "identity-failed",
+    step: error instanceof IdentityError ? error.step : "access",
+    message,
+  };
+}
+
 /** The person with the given org active; an unknown or missing org falls back to the first context. */
 export function activateOrg(
   contexts: readonly OrgContext[],
@@ -485,10 +511,6 @@ export async function resolveIdentity(
     ...members,
     ...engagedContexts(personId, displayName, summaries, new Set(members.map((c) => c.orgId))),
   ];
-  if (contexts.length === 0)
-    throw new IdentityError(
-      "engagements",
-      "This sign-in has no organization membership and no engagement.",
-    );
+  if (contexts.length === 0) throw new NoAccessYet();
   return activateOrg(contexts, preferredOrgId);
 }

@@ -5,7 +5,9 @@ import {
   engagementSummaries,
   externalAudience,
   IdentityError,
+  identityOutcome,
   internalAudience,
+  NoAccessYet,
   resolveIdentity,
   scopeFor,
 } from "../src/data/identity";
@@ -281,10 +283,43 @@ describe("resolveIdentity", () => {
         fake({
           "app.people": { data: { id: "p", full_name: null }, error: null },
           "app.memberships": { data: [], error: null },
-          "api_external.engagements": { data: [], error: null },
+          "api_external.engagements": { data: null, error: { message: "permission denied" } },
         }),
         "u",
       ),
     ).rejects.toMatchObject({ step: "engagements" });
+  });
+
+  it("reads a sign-in with no membership and no engagement as nothing open yet, not a failure (C-12)", async () => {
+    const empty = resolveIdentity(
+      fake({
+        "app.people": { data: { id: "p", full_name: null }, error: null },
+        "app.memberships": { data: [], error: null },
+        "api_external.engagements": { data: [], error: null },
+        "api_external.my_roster_engagements": { data: [], error: null },
+      }),
+      "u",
+    );
+    await expect(empty).rejects.toBeInstanceOf(NoAccessYet);
+    const error = await empty.catch((e: unknown) => e);
+    expect(identityOutcome(error)).toEqual({ kind: "no-access" });
+  });
+
+  it("keeps every other identity error a failure that names its step", () => {
+    expect(identityOutcome(new IdentityError("roles", "permission denied"))).toEqual({
+      kind: "identity-failed",
+      step: "roles",
+      message: "permission denied",
+    });
+    expect(identityOutcome(new Error("boom"))).toEqual({
+      kind: "identity-failed",
+      step: "access",
+      message: "boom",
+    });
+    expect(identityOutcome("odd")).toEqual({
+      kind: "identity-failed",
+      step: "access",
+      message: "odd",
+    });
   });
 });

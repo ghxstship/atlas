@@ -41,7 +41,7 @@ import { secondFactorGate, type ChallengeFactor, type SecondFactorGate } from ".
 import {
   activateOrg,
   cachedContexts,
-  IdentityError,
+  identityOutcome,
   internalAudience,
   isServerUnreachable,
   projectOrgs,
@@ -161,6 +161,8 @@ export type Phase =
   /** Those questions need the server, and nothing shows this person has ever answered them. */
   | { readonly kind: "legal-connection" }
   | { readonly kind: "identity-failed"; readonly step: string; readonly message: string }
+  /** The sign-in works, but no org has made the person a member and no engagement is open to them yet. */
+  | { readonly kind: "no-access" }
   | { readonly kind: "ready" };
 
 export interface CompassContextValue {
@@ -628,8 +630,8 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
           await open(activateOrg(cached, storedOrg), false);
           return;
         }
-        const step = error instanceof IdentityError ? error.step : "access";
-        setPhase({ kind: "identity-failed", step, message });
+        // A sign-in that nothing has opened yet is no failure: it shows who can open access (C-12).
+        setPhase(identityOutcome(error));
       });
     return () => {
       live = false;

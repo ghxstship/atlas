@@ -11,7 +11,7 @@ name: Store screenshots (RRR-113), the Demo Field Tech on the field screens
     stopApp: true
 - extendedWaitUntil:
     visible:
-      id: "sign-in|tab-bar|identity-failed"
+      id: "sign-in|tab-bar|identity-failed|no-access"
     timeout: 120000
 # A sign-in left from an account a reset removed lands on the access screen; sign out of it.
 - runFlow:
@@ -21,6 +21,17 @@ name: Store screenshots (RRR-113), the Demo Field Tech on the field screens
     commands:
       - tapOn:
           id: "identity-failed-sign-out"
+      - extendedWaitUntil:
+          visible:
+            id: "sign-in"
+          timeout: 20000
+- runFlow:
+    when:
+      visible:
+        id: "no-access"
+    commands:
+      - tapOn:
+          id: "no-access-sign-out"
       - extendedWaitUntil:
           visible:
             id: "sign-in"

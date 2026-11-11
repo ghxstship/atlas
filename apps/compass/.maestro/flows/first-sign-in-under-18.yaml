@@ -14,7 +14,7 @@ name: first-sign-in-under-18
     file: ../subflows/open-dev-bundle.yaml
 - extendedWaitUntil:
     visible:
-      id: "sign-in|tab-bar|identity-failed|legal-gate-age"
+      id: "sign-in|tab-bar|identity-failed|no-access|legal-gate-age"
     timeout: 120000
 - runFlow:
     when:
@@ -28,6 +28,13 @@ name: first-sign-in-under-18
     commands:
       - tapOn:
           id: "identity-failed-sign-out"
+- runFlow:
+    when:
+      visible:
+        id: "no-access"
+    commands:
+      - tapOn:
+          id: "no-access-sign-out"
 - tapOn:
     id: "sign-in-toggle"
 - tapOn:
