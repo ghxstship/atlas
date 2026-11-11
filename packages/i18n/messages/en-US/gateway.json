@@ -346,7 +346,12 @@
       "hours": "{n} hours",
       "submitted": "Submitted {date}",
       "submit": "Submit",
-      "entries": "Time entries"
+      "entries": "Time entries",
+      "submitTitle": "Submit this timesheet?",
+      "submitSentence": "You confirm the hours for {period} are the hours you worked. The organization reviews them and pays from them.",
+      "submitConfirm": "Submit timesheet",
+      "warningEmpty": "This timesheet has no hours. Submit it only if you worked none in this period.",
+      "warningFuture": "This period has not ended yet (it ends {date}). Hours you work after you submit are not on it."
     },
     "time": {
       "empty": "No time recorded yet. Clock in from Compass when you start.",

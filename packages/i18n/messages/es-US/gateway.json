@@ -346,7 +346,12 @@
       "hours": "{n} horas",
       "submitted": "Enviada el {date}",
       "submit": "Enviar",
-      "entries": "Registros de tiempo"
+      "entries": "Registros de tiempo",
+      "submitTitle": "¿Enviar esta hoja de horas?",
+      "submitSentence": "Confirmas que las horas de {period} son las que trabajaste. La organización las revisa y paga según ellas.",
+      "submitConfirm": "Enviar hoja de horas",
+      "warningEmpty": "Esta hoja de horas no tiene horas. Envíala solo si no trabajaste en este periodo.",
+      "warningFuture": "Este periodo aún no termina (termina el {date}). Las horas que trabajes después de enviarla no estarán en ella."
     },
     "time": {
       "empty": "Aún no hay tiempo registrado. Marca tu entrada desde Compass al empezar.",

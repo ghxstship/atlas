@@ -6,6 +6,7 @@ import {
   rosterTrainingSummary,
   type ExternalRow,
 } from "@xos/data/gateway";
+import { todayIn } from "@xos/data/calendar";
 import dynamic from "next/dynamic";
 import { ActionButton } from "@/components/actions/action-button";
 import { RegionError, Section } from "@/components/page/page";
@@ -27,6 +28,8 @@ import {
 } from "@/lib/format";
 import { enumLabelKey } from "@/lib/shell/translate";
 import { toneFor } from "@/lib/states";
+import { timesheetWarnings } from "@/lib/timesheets";
+import { InlineAlert } from "@/components/ui";
 import { LocalContactsSection, readTransfers } from "./ground-and-contacts";
 import { ItinerarySections, loadItinerary } from "./itinerary";
 import { AreaClosed, RowList, TabEmpty } from "./rows";
@@ -368,6 +371,7 @@ export async function TimesheetsTab({ view, t, locale, engagementKey }: TabProps
     readView(view.ctx.db, "time_entries", { eq: worker, order: ["clock_in", "desc"] }),
   ]);
   if (!sheets.ok || !entries.ok) return <RegionError />;
+  const today = todayIn(view.engagement.projectTimeZone);
   return (
     <div className="flex flex-col gap-16">
       {sheets.data.length === 0 ? (
@@ -404,14 +408,35 @@ export async function TimesheetsTab({ view, t, locale, engagementKey }: TabProps
                   },
                 }
               : {}),
+            // Submitting certifies the hours, so it is confirmed, naming an empty or unfinished period first.
             ...((s.timesheet_state === "Proposed" || s.timesheet_state === "Rejected") && s.id
               ? {
                   action: (
-                    <ActionButton
+                    <ConfirmButton
                       action={submitTimesheetAction.bind(null, s.id)}
                       label={t("gateway.engagement.timesheets.submit")}
-                      variant="secondary"
-                    />
+                      title={t("gateway.engagement.timesheets.submitTitle")}
+                      sentence={t("gateway.engagement.timesheets.submitSentence", {
+                        period: formatDateRange(locale, s.period_start, s.period_end),
+                      })}
+                      confirm={t("gateway.engagement.timesheets.submitConfirm")}
+                      cancel={t("gateway.common.cancel")}
+                      triggerVariant="secondary"
+                      confirmVariant="primary"
+                    >
+                      {timesheetWarnings(
+                        { workedMinutes: s.worked_minutes, periodEnd: s.period_end },
+                        today,
+                      ).map((w) => (
+                        <InlineAlert key={w} tone="warning">
+                          {w === "empty"
+                            ? t("gateway.engagement.timesheets.warningEmpty")
+                            : t("gateway.engagement.timesheets.warningFuture", {
+                                date: s.period_end ? formatDate(locale, s.period_end) : "",
+                              })}
+                        </InlineAlert>
+                      ))}
+                    </ConfirmButton>
                   ),
                 }
               : {}),
