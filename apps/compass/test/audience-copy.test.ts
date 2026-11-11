@@ -30,6 +30,8 @@ describe("C-17: copy fits who is reading it", () => {
         /open shift|turnos abiertos/i,
       );
     }
+    // Spanish that fits whoever reads it, not a masculine participle.
+    expect(message("es-US", "compass.today.noShiftsExternal")).not.toMatch(/contratad[oa]/);
   });
 
   it("offers approving from the alert only to a timesheet approver", () => {

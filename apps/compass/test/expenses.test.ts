@@ -695,4 +695,27 @@ describe("C-13: the Expenses intro follows the person's AI choice", () => {
       expect(add["sentenceManual"], locale).not.toContain("Aurora");
     }
   });
+
+  it("leaves why and where to change it to the declined alert in the same form, and names Compass's Ajustes", () => {
+    for (const locale of ["en-US", "es-US"] as const) {
+      const { add, aurora } = (
+        getMessages(locale) as {
+          compassExpenses: { add: Record<string, string>; aurora: Record<string, string> };
+        }
+      ).compassExpenses;
+      const declinedSentences = String(aurora["declined"]).split(". ");
+      for (const sentence of declinedSentences)
+        expect(add["sentenceManual"], locale).not.toContain(sentence.replace(/\.$/, ""));
+    }
+    const es = (
+      getMessages("es-US") as {
+        compassExpenses: { add: Record<string, string>; aurora: Record<string, string> };
+      }
+    ).compassExpenses;
+    for (const text of [es.add["sentenceManual"], es.aurora["declined"]]) {
+      expect(text).not.toContain("Configuración");
+      expect(text).not.toMatch(/tú mismo|tú misma/);
+    }
+    expect(es.aurora["declined"]).toContain("Ajustes");
+  });
 });
