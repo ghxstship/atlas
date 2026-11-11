@@ -1190,6 +1190,8 @@
         "days": "{count, plural, one {# day} other {# days}}",
         "submit": "Create invite",
         "created": "Invitation created for {email}. Send them this link; it works once and expires {expires}.",
+        "replaces": "An invitation to this email is already waiting. Creating a new one stops the earlier link from working, and the role you choose now applies.",
+        "replaced": "The earlier invitation link for this email no longer works.",
         "link": "Invitation link",
         "copy": "Copy link",
         "copied": "Link copied."

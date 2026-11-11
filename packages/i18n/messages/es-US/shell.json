@@ -1190,6 +1190,8 @@
         "days": "{count, plural, one {# día} other {# días}}",
         "submit": "Crear invitación",
         "created": "Invitación creada para {email}. Envíale este enlace; funciona una sola vez y vence {expires}.",
+        "replaces": "Ya hay una invitación pendiente para este correo. Si creas una nueva, el enlace anterior deja de funcionar y se aplica el rol que elijas ahora.",
+        "replaced": "El enlace de invitación anterior para este correo ya no funciona.",
         "link": "Enlace de invitación",
         "copy": "Copiar enlace",
         "copied": "Enlace copiado."
