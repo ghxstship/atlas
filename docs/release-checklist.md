@@ -10,6 +10,40 @@ Statuses:
 - **Blocked on owner (OWNER)**: needs a decision, an account, a secret or a paid service that only the owner can provide. Named in the last section.
 - **Not started**.
 
+## XOS 4.9 release (2026-11-10)
+
+4.9 is 4.8 plus the 4.9 set (#84 to #88):
+
+- workers on secret keys and Supabase CLI 3.1;
+- the 25 public legal documents in effect as 1.0.0;
+- the Compass Today blocks (904090002);
+- every org email in its white label (904090003);
+- the XOS Supabase Auth templates;
+- no age rule beyond the 18 minimum;
+- the live Stripe catalogue setup.
+
+The release adds the nightly and journey fixes found on the way, and the budget read fix (904090004). As on 4.2, the owner's standing choice skips the staging observation window.
+
+| Step                     | Status | Evidence                                                                                                                                                                                                                                                                                                                  |
+| ------------------------ | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| CI on the release commit | Done   | Every check of PR #89 passed at `abbb92c5`, merged as `b62264d1`                                                                                                                                                                                                                                                          |
+| Release drill            | Done   | `infra/drills/release-drill.sh` on `abbb92c5`: 995 tables' row counts and 25 key-table checksums match; restore 27 s against the 4 h RTO                                                                                                                                                                                  |
+| Migrations, staging      | Done   | `rmrzfolncwhnhygmfxnw`: 904090002, 904090003, 904090004 and 904090099 (715 applied, none pending, none only remote); `private.ensure_realtime_channel_policies()` run; advisors: passed, 1,197 accepted                                                                                                                   |
+| Migrations, production   | Done   | `fquuqnzlpobaawucczgq`: point-in-time target 2026-11-10T23:54:55Z, key-table fingerprints taken before the push (read-only); the same four migrations (715 applied, none pending, none only remote); `private.ensure_realtime_channel_policies()` created none; advisors: passed, 1,197 accepted; all 56 cron jobs active |
+| Edge Functions           | Done   | All 26 deployed from `abbb92c5` to staging and production with local bundling                                                                                                                                                                                                                                             |
+| Apps                     | Done   | PR #89 merged into `main` (`b62264d1`), which Vercel deployed to production: atlas, gateway, docs and console READY; `main` merged into `batch-c` (`9885238b`)                                                                                                                                                            |
+| Packages                 | OWNER  | `@ghxstship/xos-sdk`, `@ghxstship/xos-cli` and `xos-sdk` say 4.9.0; tag `v4.9.0` started `publish-packages.yml`, which waits for the owner's approval of 4.9.0                                                                                                                                                            |
+| Compass                  | OWNER  | Compass ships on its own cadence                                                                                                                                                                                                                                                                                          |
+
+The journey 34 paste failed intermittently on CI since 4.7. The cause was a statement timeout, which the new server log named (57014). After a large paste, the planner estimated one line and recomputed every line of the budget for each line, three times per page. 904090004 computes each line on its own and fences the per-line reads (OFFSET 0). A fresh 60-line budget now aggregates 362 rows instead of 13,622.
+
+Nightly fixes in 4.9:
+
+- Firefox and WebKit run with service workers blocked. Playwright's WebKit reloads a page when any worker registers, and the page then hangs.
+- Gate 10 holds a page that misses only on lab timings to the median of three runs.
+- Compass Maestro on iOS boots the simulator during the build and warms its driver.
+- The Android field flows scroll to their More row.
+
 ## XOS 4.8 release (2026-11-09)
 
 4.8 is 4.7 plus merge train 11, the last launch release: the legal launch blockers (RRR-248), the safety fixes (RRR-247), the public legal documents (RRR-246, still marked draft until the owner puts them in effect), the pause months fix, and seven launch polish branches (RRR-243). As on 4.2, the owner's standing choice skips the staging observation window.
