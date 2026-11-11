@@ -21312,7 +21312,7 @@
           "type": "app.budget_line_type"
         },
         {
-          "comment": "Dimension 2: canon discipline or category the line spends on. Its class gives the GL account when the priced item carries no explicit GL default; the counterparty type's default applies only when neither gives one.",
+          "comment": "Dimension 2: canon discipline or category the line spends on. Its class gives the GL account when the priced item carries no explicit GL default.",
           "name": "urid",
           "nullable": false,
           "references": null,
@@ -21452,7 +21452,7 @@
           "type": "bigint"
         }
       ],
-      "comment": "Budget lines (Section 7.4). The unit price is NULL when unpriced and never defaulted to zero; the extended amount is derived. The GL account is derived, never stored: the priced item's explicit GL default first, then the URID's class account, then the counterparty type's default (decision D13 as owner decision 39 reads it, private.gl_account_for_line).",
+      "comment": "Budget lines (Section 7.4). The unit price is NULL when unpriced and never defaulted to zero; the extended amount is derived. The GL account is derived, never stored: the priced item's explicit GL default first, then the URID's class account (decision D13 as owner decision 39 reads it, private.gl_account_for_line). A budget line has no counterparty; an expense or invoice drawn on it adds its counterparty type's default as the last step.",
       "kind": "table",
       "name": "budget_lines",
       "partitioned": false,
