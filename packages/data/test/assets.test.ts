@@ -919,13 +919,26 @@ describe("maintenance and damage", () => {
     expect(calls[0]?.steps).toContainEqual(["eq", ["project_id", "p1"]]);
     expect((await listAssetDamage(db, "o1")).ok).toBe(false);
     expect(
-      await reportAssetDamage(db, {
-        orgId: "o1",
-        unitId: "u1",
-        projectId: null,
-        description: " Bent. ",
-      }),
+      await reportAssetDamage(
+        db,
+        {
+          orgId: "o1",
+          unitId: "u1",
+          projectId: null,
+          description: " Bent. ",
+        },
+        "d3",
+      ),
     ).toEqual({ ok: true, data: { id: "d3" } });
+    // The insert carries its own id and reads nothing back: reading damage takes assets.asset.read org-wide, which a
+    // Field lead reporting on their own project does not hold (crawl 4.9).
+    const insert = calls.find(
+      (c) => c.target === "from:asset_damage" && c.steps[0]?.[0] === "insert",
+    );
+    expect(insert?.steps[0]?.[1]).toEqual([
+      { id: "d3", org_id: "o1", asset_unit_id: "u1", project_id: null, description: "Bent." },
+    ]);
+    expect(insert?.steps.map(([step]) => step)).toEqual(["insert"]);
     expect(
       (
         await reportAssetDamage(db, {
