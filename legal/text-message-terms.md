@@ -1,7 +1,7 @@
 ---
 title: Text Message Terms
-version: 1.0.0
-effective_date: 2026-11-10
+version: 1.1.0
+effective_date: 2026-11-11
 status: In effect
 ---
 
@@ -35,7 +35,7 @@ In your personal settings in XOS, you can agree to get work notifications from a
 
 ## 5. Privacy
 
-Mobile information is not shared with third parties or affiliates for marketing or promotional purposes. We do not sell or share text messaging opt-in data or consent with anyone for those purposes. Twilio delivers the messages as our service provider and receives your number, the message and its delivery status for that purpose only. We keep records of consent and opt-outs for 5 years. Our Privacy Policy, Section 17, has more.
+Mobile information is not shared with third parties or affiliates for marketing or promotional purposes. We do not sell or share text messaging opt-in data or consent with anyone for those purposes. Sent, Inc., through its sent.dm platform, delivers the messages by SMS as our service provider and receives your number, the message and its delivery status for that purpose only. We do not send them on WhatsApp. We keep records of consent and opt-outs for 5 years. Our Privacy Policy, Section 17, has more.
 
 ## 6. Changes
 

@@ -1,7 +1,7 @@
 ---
 title: Privacy Policy
-version: 1.0.0
-effective_date: 2026-11-10
+version: 1.1.0
+effective_date: 2026-11-11
 status: In effect
 ---
 
@@ -202,7 +202,7 @@ The AI Features Notice describes each feature, Anthropic's own retention, and ot
 
 We share personal data only:
 
-- with the subprocessors and service providers listed on our Subprocessor List, and with the hosts named in this Policy, to provide the Service, including our email provider for moderation results and legal alerts. Each provider's data processing terms set how it may use the data and how it must protect it. The providers include hosting and database (Supabase on Amazon Web Services, Vercel), malware scanning of uploaded files on a server hosted by Fly.io, error monitoring and logs (Sentry, Better Stack), email (Resend), text messages (Twilio), push notifications (Expo, Apple, Google and browser push services), and, once the weekly job is running, encrypted backups (GitHub)
+- with the subprocessors and service providers listed on our Subprocessor List, and with the hosts named in this Policy, to provide the Service, including our email provider for moderation results and legal alerts. Each provider's data processing terms set how it may use the data and how it must protect it. The providers include hosting and database (Supabase on Amazon Web Services, Vercel), malware scanning of uploaded files on a server hosted by Fly.io, error monitoring and logs (Sentry, Better Stack), email (Resend), text messages (Sent, Inc., through sent.dm), push notifications (Expo, Apple, Google and browser push services), and, once the weekly job is running, encrypted backups (GitHub)
 - with Anthropic, when AI features are on (Section 5)
 - with an organization you join, apply to or work with, and with a company that rosters you, limited to what you submit to it and the profile fields and Work Details you choose to share with it
 - with anyone who can see your public profile, at the visibility you set. Search engines can index it only if you allow that. An organization's rating of you is shown on your profile only if you opt in, and then never to anyone with hiring, booking or staffing access in XOS (Section 1). Ratings of a company or vendor, and ratings of an organization, can be read by signed-in XOS users
@@ -357,7 +357,7 @@ The Google Drive connection and Sheets import are not yet open to customers: Goo
 
 Text messages are off unless an organization uses them and you agree. The program is XOS notifications: updates about your work from the organizations you belong to. In your personal settings you can agree to get work notifications from that organization at a phone number you have verified, and we record your agreement for that organization. Message frequency varies. Message and data rates may apply. Carriers are not liable for delayed or undelivered messages. **Reply STOP to stop or HELP for help.** We also accept QUIT, END, REVOKE, OPT OUT, CANCEL, UNSUBSCRIBE or STOPALL as a request to stop, and INFO as a request for help, when the word is the whole message. For support, write to support@ghxstship.pro with "Support" in the subject line. A request to stop applies to every organization that had your consent for that number, and START, YES or UNSTOP turns messages back on. We hold messages during quiet hours, 21:00 to 08:00 by default, except for safety messages, a change to your sign-in security, a recovery code used on your account, emergency access taken in your organization, and a shift assigned or changed that starts within 12 hours. Texts are about your work and are not marketing. Our Text Message Terms at /legal/text-message-terms set out the program.
 
-**Mobile information is not shared with third parties or affiliates for marketing or promotional purposes. We do not sell or share text messaging opt-in data or consent with anyone for those purposes.** Twilio delivers the messages as our service provider and receives your number, the message and delivery status for that purpose only. We keep records of consent and opt-outs for 5 years.
+**Mobile information is not shared with third parties or affiliates for marketing or promotional purposes. We do not sell or share text messaging opt-in data or consent with anyone for those purposes.** Sent, Inc., through its sent.dm platform, delivers the messages by SMS as our service provider and receives your number, the message and delivery status for that purpose only. We do not send them on WhatsApp. We keep records of consent and opt-outs for 5 years.
 
 ## 18. Automated Processing and Ranking
 

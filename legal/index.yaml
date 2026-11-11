@@ -37,8 +37,11 @@ documents:
     owner_inputs: [1, 2, 3, 6]
   - slug: privacy-policy
     title: Privacy Policy
-    version: 1.0.0
+    version: 1.1.0
     history:
+      - version: 1.1.0
+        effective_date: 2026-11-11
+        summary: "Sent, Inc. (sent.dm) delivers text messages in place of Twilio, by SMS only. Not a material change: the purpose and the data are the same."
       - version: 1.0.0
         effective_date: 2026-11-10
         summary: First version.
@@ -79,8 +82,11 @@ documents:
     owner_inputs: [2, 4, 5, 6]
   - slug: subprocessors
     title: Subprocessor List
-    version: 1.0.0
+    version: 1.1.0
     history:
+      - version: 1.1.0
+        effective_date: 2026-11-11
+        summary: "Sent, Inc. (sent.dm) replaces Twilio Inc. for SMS; Twilio never processed Customer Personal Data. Sent, Inc. processes none until 30 days after the change notice."
       - version: 1.0.0
         effective_date: 2026-11-10
         summary: First version.
@@ -303,8 +309,11 @@ documents:
     owner_inputs: [6]
   - slug: text-message-terms
     title: Text Message Terms
-    version: 1.0.0
+    version: 1.1.0
     history:
+      - version: 1.1.0
+        effective_date: 2026-11-11
+        summary: "Sent, Inc. (sent.dm) delivers text messages in place of Twilio, by SMS only. Not a material change: the purpose and the data are the same."
       - version: 1.0.0
         effective_date: 2026-11-10
         summary: First version.
