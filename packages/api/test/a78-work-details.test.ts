@@ -29,7 +29,17 @@ describe("Identity: work details", () => {
       ? [
           globalRow(DETAILS, {
             person_id: ME,
-            // The uniform size and travel preference columns are gone (R6b, 904100101).
+            // Retired in R6a (4664): the columns stay, always null, until R6b's drop (4.11).
+            shirt_size: null,
+            jacket_size: null,
+            pants_size: null,
+            shoe_size: null,
+            glove_size: null,
+            hat_size: null,
+            uniform_notes: null,
+            seat_preference: null,
+            meal_preference: null,
+            home_airport: null,
             dietary_needs: ["Vegan"],
             allergies: "Peanuts, severe",
             dietary_notes: null,
@@ -160,8 +170,65 @@ describe("Identity: work details", () => {
     "home_airport",
   ];
 
-  it("reads the retired uniform size and travel preference fields as null (R6b)", async () => {
+  /** Records every column list the handlers select from person_work_details. */
+  function selectsOf(db: ReturnType<typeof world>["db"]): string[] {
+    const selected: string[] = [];
+    const from = db.from.bind(db);
+    (db as { from: (table: string) => unknown }).from = (table: string) => {
+      const q = from(table) as { select: (columns: string, opts?: unknown) => unknown };
+      if (table === "person_work_details") {
+        const select = q.select;
+        q.select = (columns: string, opts?: unknown) => {
+          selected.push(columns);
+          return select(columns, opts);
+        };
+      }
+      return q;
+    };
+    return selected;
+  }
+
+  it("never selects a retired column, so the API keeps working once R6b drops them (4.11)", async () => {
+    const { db, http } = world();
+    const selected = selectsOf(db);
+    await success(http.get("/work-details"));
+    await success(http.get(`/work-details/${DETAILS}?fields=id,shirt_size,home_airport`));
+    await success(http.get("/work-details?sort=-shirt_size&filter[home_airport][is_null]=true"));
+    await success(http.patch(`/work-details/${DETAILS}`, { dietary_notes: "No dairy." }));
+    expect(selected.length).toBeGreaterThan(0);
+    for (const columns of selected) {
+      for (const field of RETIRED) expect(columns.split(","), columns).not.toContain(field);
+    }
+  });
+
+  it("treats a sort or filter on a retired field as a no-op, as when every value was null (R6b)", async () => {
     const { http } = world();
+    const count = async (path: string) => {
+      const page = (await expectContract(await success(http.get(path)), "workDetails.list")) as {
+        data: unknown[];
+      };
+      return page.data.length;
+    };
+    expect(await count("/work-details?sort=shirt_size")).toBe(1);
+    expect(await count("/work-details?sort=-home_airport,created_at")).toBe(1);
+    expect(await count("/work-details?filter[home_airport][is_null]=true")).toBe(1);
+    // A retired field is always null, so any other filter on one matches no row.
+    expect(await count("/work-details?filter[shirt_size][eq]=M")).toBe(0);
+    expect(await count("/work-details?filter[meal_preference][is_null]=false")).toBe(0);
+    // The rest of the query is still checked.
+    expect((await http.get("/work-details?filter[shirt_size][is_null]=maybe")).status).toBe(400);
+    expect(
+      (await http.get("/work-details?filter[shirt_size][eq]=M&sort=no_such_field")).status,
+    ).toBe(400);
+  });
+
+  it("reads the retired uniform size and travel preference fields as null (R6b)", async () => {
+    const { db, http } = world();
+    // Even a value the column should never hold does not reach v1.
+    Object.assign(db.tables["person_work_details"]?.[0] as Row, {
+      shirt_size: "M",
+      home_airport: "MIA",
+    });
     const read = (await expectContract(
       await success(http.get(`/work-details/${DETAILS}`)),
       "workDetails.get",
