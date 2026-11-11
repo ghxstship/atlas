@@ -5,7 +5,7 @@ import { PaymentSteps } from "@/components/engagement/payment-steps";
 import { PageTitle, RegionError, Section } from "@/components/page/page";
 import { DestinationTabs } from "@/components/page/work-tabs";
 import { Card, EmptyStateLink } from "@/components/ui";
-import { Chart } from "@/components/ui-chart";
+import { ChartWhenVisible } from "@/components/chart-when-visible";
 import { formatMoney } from "@/lib/format";
 import { personToday } from "@/lib/time-zone";
 import { moneyOverview, paidByMonth } from "@/lib/money";
@@ -86,7 +86,7 @@ export default async function MoneyOverviewPage() {
           ) : null}
           {chart && currency && chart.paid ? (
             <Section title={t("gateway.money.overview.chartTitle")}>
-              <Chart
+              <ChartWhenVisible
                 type="bar"
                 title={t("gateway.money.overview.chartTitle")}
                 subtitle={t("gateway.money.overview.chartSubtitle", { currency })}
