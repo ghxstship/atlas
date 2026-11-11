@@ -2918,7 +2918,11 @@
         "from": "Propuesta por",
         "accept": "Aceptar oferta",
         "decline": "Rechazar",
-        "waiting": "Tu contraoferta está con la organización. Recibirás una notificación cuando respondan."
+        "waiting": "Tu contraoferta está con la organización. Recibirás una notificación cuando respondan.",
+        "declineTitle": "¿Rechazar esta oferta?",
+        "declineSentence": "Se avisa a la organización y la postulación se cierra como Rechazada. Después no puedes recuperar la oferta.",
+        "declineReason": "Motivo para la organización (opcional)",
+        "declineConfirm": "Rechazar oferta"
       },
       "counter": {
         "open": "Contraofertar",

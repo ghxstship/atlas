@@ -2918,7 +2918,11 @@
         "from": "Proposed by",
         "accept": "Accept offer",
         "decline": "Decline",
-        "waiting": "Your counter is with the organization. You will get a notification when they answer."
+        "waiting": "Your counter is with the organization. You will get a notification when they answer.",
+        "declineTitle": "Decline this offer?",
+        "declineSentence": "The organization is told, and the application closes as Declined. You cannot take the offer back afterwards.",
+        "declineReason": "Reason for the organization (optional)",
+        "declineConfirm": "Decline offer"
       },
       "counter": {
         "open": "Counter",
