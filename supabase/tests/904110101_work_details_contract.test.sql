@@ -1,16 +1,17 @@
--- pgTAP: migration 904100101 (R6b, 4.10), the contract half of R6a. The ten retired profile columns are gone and the
+-- pgTAP: migration 904110101 (R6b, 4.11), the contract half of R6a. The ten retired profile columns are gone and the
 -- rest of the row stays. Ivy shares her dietary needs and her travel profile with her crew engagement; the Owner reads
 -- uniform as null and a travel object that keeps seat_preference, meal_preference and home_airport, null, beside her
 -- loyalty programs, and her allergies as R6a and ADR 0164 left them. Dietary and passport writes still pass the guard,
 -- the erasure still erases, Uniform Sizes stays a category that no live share may name while the access log rows naming
--- it still read, and R6a's move function is gone. The migration's guard refuses while a retired value or a live Uniform
--- Sizes share remains (its query run again here, in this transaction).
+-- it still read, and R6a's move function is gone. The migration's own guard, private.work_details_contract_guard, passes
+-- now and refuses while a retired column (re-added here, in this transaction) holds a value or a live Uniform Sizes
+-- share remains.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0700_engagement_world.psql
 
-select plan(32);
+select plan(36);
 
 create function pg_temp.read(p_who text, p_engagement text) returns jsonb
 language plpgsql as $$
@@ -20,19 +21,6 @@ begin
   v := app.shared_work_details(pg_temp.id(p_engagement));
   perform pg_temp.as_platform();
   return v;
-end $$;
-
--- The migration's guard, as it ran: raises while a retired value or a live Uniform Sizes share remains.
-create function pg_temp.contract_guard(p_retired_check text) returns void
-language plpgsql as $$
-begin
-  if p_retired_check is not null then
-    execute p_retired_check;
-  end if;
-  if exists (select 1 from app.work_detail_shares s
-             where 'Uniform Sizes' = any (s.categories) and s.revoked_at is null and s.deleted_at is null) then
-    raise exception using errcode = 'P0001', message = 'R6b: a live work detail share still names Uniform Sizes';
-  end if;
 end $$;
 
 -- Schema ---------------------------------------------------------------------------------------------------------------------------
@@ -92,18 +80,20 @@ select is((select count(*)::int from app.work_detail_events where person_id = pg
   'an access log row naming Uniform Sizes still reads');
 
 -- The migration's guard ----------------------------------------------------------------------------------------------------------------
-alter table app.person_work_details add column shirt_size text;
+select has_function('private', 'work_details_contract_guard', array[]::text[], 'the migration keeps its guard');
+select lives_ok($$select private.work_details_contract_guard()$$, 'the guard passes once the columns are gone');
+alter table app.person_work_details add column shirt_size text, add column home_airport text;
+select lives_ok($$select private.work_details_contract_guard()$$, 'and while the retired columns exist but are empty');
 update app.person_work_details set shirt_size = 'M' where person_id = pg_temp.id('ivy');
-select throws_ok($$select pg_temp.contract_guard($q$
-  do $g$ begin
-    if exists (select 1 from app.person_work_details where shirt_size is not null) then
-      raise exception using errcode = 'P0001', message = 'R6b: a retired work detail column still holds a value';
-    end if;
-  end $g$ $q$)$$, 'P0001', 'R6b: a retired work detail column still holds a value', 'the guard refuses while a retired value remains');
-alter table app.person_work_details drop column shirt_size;
+select throws_ok($$select private.work_details_contract_guard()$$, 'P0001',
+  'R6b: a retired work detail column still holds a value; R6a''s move (4664) has not run', 'it refuses while a retired value remains');
+update app.person_work_details set shirt_size = null, home_airport = 'MIA' where person_id = pg_temp.id('ivy');
+select throws_ok($$select private.work_details_contract_guard()$$, 'P0001',
+  'R6b: a retired work detail column still holds a value; R6a''s move (4664) has not run', 'in any of the retired columns');
+alter table app.person_work_details drop column shirt_size, drop column home_airport;
 alter table app.work_detail_shares drop constraint work_detail_shares_no_retired_category;
 update app.work_detail_shares set categories = '{Uniform Sizes,Dietary Needs}' where engagement_id = pg_temp.id('eng_ivy_a') and revoked_at is null;
-select throws_ok($$select pg_temp.contract_guard(null)$$, 'P0001', 'R6b: a live work detail share still names Uniform Sizes',
+select throws_ok($$select private.work_details_contract_guard()$$, 'P0001', 'R6b: a live work detail share still names Uniform Sizes',
   'and while a live share names Uniform Sizes');
 
 -- The erasure ------------------------------------------------------------------------------------------------------------------------

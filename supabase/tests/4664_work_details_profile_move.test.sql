@@ -1,5 +1,5 @@
 -- pgTAP: migration 4664 (R6a, ADR 0102 decision 2), what stays after uniform sizes and travel preferences left the
--- profile. R6a's one-time move and the ten profile columns it emptied are gone since R6b (904100101, whose test covers
+-- profile. R6a's one-time move and the ten profile columns it emptied are gone since R6b (904110101, whose test covers
 -- the dropped columns): what remains here is R6a's sharing rules. Uniform Sizes cannot be shared, no live share names
 -- it, Contact is never shared alone, and a person's own dietary details still save.
 begin;

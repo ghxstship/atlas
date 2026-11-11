@@ -1,8 +1,12 @@
--- R6b (4.10): the contract half of R6a's expand and contract (4660 to 4664, applied in production). It drops the ten
+-- R6b (4.11): the contract half of R6a's expand and contract (4660 to 4664, applied in production). It drops the ten
 -- retired profile columns from app.person_work_details: shirt_size, jacket_size, pants_size, shoe_size, glove_size,
 -- hat_size and uniform_notes, and seat_preference, meal_preference and home_airport. Uniform sizes and travel preferences
 -- are entered per roster entry (R5's app.roster_uniform_sizes and app.roster_travel_requests, which keep their own
 -- columns of these names). API v1 stays additive: WorkDetails and SharedWorkDetails keep the fields, always null.
+--
+-- Expand and contract: R6b's API half shipped in 4.10, so no deployed API v1 selects or writes these columns any more
+-- (packages/api, tableResource `retired`); 4.10 kept the columns so the 4.9 API it replaced kept working during its
+-- rollout. Dropping them now breaks neither 4.10 nor a rollback to it.
 --
 -- The enum value 'Uniform Sizes' stays on app.work_detail_category: app.work_detail_events, the seven-year append-only
 -- access log (1340), holds it, and the API enum keeps it. R6a's constraint work_detail_shares_no_retired_category and the
@@ -10,13 +14,33 @@
 --
 -- Functions start from their latest definitions: 6851_sensitive_data_restricted_reads.sql for
 -- app.roster_shared_work_details, 6850_sensitive_data_consent.sql for private.guard_person_work_details and
--- 4664_work_details_profile_move.sql for private.log_work_detail_change. app.shared_work_details (4663) and
--- private.empty_work_details read none of the columns.
+-- 4664_work_details_profile_move.sql for private.log_work_detail_change. app.shared_work_details (last defined in
+-- 2638_roster_work_detail_shares.sql) and private.empty_work_details (last defined in 4663_allergies_restricted.sql)
+-- read none of the columns.
 
--- 1. Guard: R6a's move is complete and no live share names the retired category, or nothing changes.
-do $guard$
+-- 1. Guard: R6a's move is complete and no live share names the retired category, or nothing changes. The check is a
+-- function so its pgTAP test runs this code; it reads whichever of the ten columns still exist, so it stays valid after
+-- the drop and passes trivially once they are gone.
+create function private.work_details_contract_guard()
+returns void
+language plpgsql
+stable
+set search_path = ''
+as $$
+declare
+  v_columns text;
+  v_held boolean := false;
 begin
-  if exists (select 1 from app.person_work_details where num_nonnulls(shirt_size, jacket_size, pants_size, shoe_size, glove_size, hat_size, uniform_notes, seat_preference, meal_preference, home_airport) > 0) then
+  select string_agg(format('%I', a.attname), ', ' order by a.attnum) into v_columns
+  from pg_catalog.pg_attribute a
+  where a.attrelid = 'app.person_work_details'::regclass and a.attnum > 0 and not a.attisdropped
+    and a.attname = any (array['shirt_size', 'jacket_size', 'pants_size', 'shoe_size', 'glove_size', 'hat_size',
+      'uniform_notes', 'seat_preference', 'meal_preference', 'home_airport']);
+  if v_columns is not null then
+    execute format('select exists (select 1 from app.person_work_details where num_nonnulls(%s) > 0)', v_columns)
+      into v_held;
+  end if;
+  if v_held then
     raise exception using errcode = 'P0001',
       message = 'R6b: a retired work detail column still holds a value; R6a''s move (4664) has not run';
   end if;
@@ -25,7 +49,12 @@ begin
     raise exception using errcode = 'P0001', message = 'R6b: a live work detail share still names Uniform Sizes';
   end if;
 end;
-$guard$;
+$$;
+
+comment on function private.work_details_contract_guard() is 'R6b''s precondition (904110101): raises P0001 while any of the ten retired uniform size and travel preference columns that still exist on app.person_work_details holds a value, or while a live work detail share names Uniform Sizes. The migration calls it before dropping the columns; once they are gone only the share check remains.';
+revoke all on function private.work_details_contract_guard() from public, anon, authenticated;
+
+select private.work_details_contract_guard();
 
 -- 2. The roster read: uniform is null, and the travel object keeps its three keys, null, beside loyalty_programs.
 create or replace function app.roster_shared_work_details(p_roster_entry_id uuid)
