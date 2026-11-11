@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Image, View } from "react-native";
 import { formatCalendarDay, todayOn } from "../src/domain/dates";
 import {
+  expenseIntroKey,
   applyProposal,
   buildReceiptSave,
   draftProblems,
@@ -359,7 +360,7 @@ function ReceiptForm({
 function ExpensesBody(): ReactElement {
   const { t, i18n } = useTranslation();
   const theme = useTheme();
-  const { resolved, projectId } = useCompass();
+  const { resolved, projectId, aiChoice } = useCompass();
   const personId = resolved?.identity.personId ?? null;
   const { rows: allLines } = useRows<BudgetLineRow & Row>("budget_lines");
   const { rows: expenses } = useRows<ExpenseRow & Row>("expenses");
@@ -428,7 +429,9 @@ function ExpensesBody(): ReactElement {
         />
       ) : null}
       <Card title={t("compassExpenses.add.title")}>
-        <Text tone="secondary">{t("compassExpenses.add.sentence")}</Text>
+        <Text testID="expense-intro" tone="secondary">
+          {t(expenseIntroKey(aiChoice))}
+        </Text>
         {lines.length === 0 ? (
           <InlineAlert
             testID="expense-no-lines"

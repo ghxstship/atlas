@@ -4,6 +4,7 @@
     "library": "Choose a photo",
     "noLines": "No budget lines you can post to on this project. Ask your producer to add you to the budget.",
     "sentence": "Photograph the receipt. Aurora fills in what it can read; you check every field before saving.",
+    "sentenceManual": "Photograph the receipt and enter its details yourself.",
     "title": "Add an expense"
   },
   "aurora": {

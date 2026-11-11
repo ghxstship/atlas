@@ -210,3 +210,14 @@ export function buildSignOff(inspectionId: string, nowMs: number): MutationInput
     policy: "guarded",
   };
 }
+
+export type FailGap = "note" | "photo";
+
+/**
+ * What a failed item still needs before it saves: a note saying what failed and a photo of it. The walk reads this
+ * from the current note and photo each render, so an error clears as soon as the person fixes it; the errors were a
+ * snapshot taken at Save Fail and stayed red under a filled note and an added photo (C-14).
+ */
+export function failGaps(note: string, photo: string | null): FailGap[] {
+  return [...(note.trim() ? [] : (["note"] as const)), ...(photo ? [] : (["photo"] as const))];
+}

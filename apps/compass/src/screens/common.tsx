@@ -6,7 +6,7 @@ import { useRouter } from "expo-router";
 import { useEffect, useRef, useState, type ReactElement, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { View } from "react-native";
-import { access, type Denial, type Feature } from "../domain/access";
+import { access, refusalFor, type Denial, type Feature } from "../domain/access";
 import { queueAnnouncement } from "../domain/announce";
 import { useCompass, useRows } from "../runtime/CompassProvider";
 import { countKey } from "../runtime/i18n";
@@ -19,6 +19,7 @@ import {
   ListRow,
   OfflineBanner,
   RefusalNotice,
+  Screen,
   Sheet,
   Skeleton,
   useTheme,
@@ -54,23 +55,50 @@ export function DenialNotice({ reason }: { readonly reason: Denial }): ReactElem
   );
 }
 
-/** Renders children only when the signed-in person may use the feature on the current project. */
+/**
+ * Renders children only when the signed-in person may use the feature on the current project.
+ *
+ * A Gate that is the whole route passes the route's `title`: the skeleton and the refusal then draw in a
+ * Screen, which clears the native large-title header and names the page there. Without it a refused
+ * route was a blank page under the back button, the refusal card hidden behind the header (C-07). A Gate
+ * nested in a Screen (Expenses, Clock Team) leaves `title` out and draws in place.
+ */
 export function Gate({
   feature,
+  title,
   children,
 }: {
   readonly feature: Feature;
+  readonly title?: string;
   readonly children: ReactNode;
 }): ReactElement {
   const { resolved, projectId } = useCompass();
-  if (!resolved) return <Skeleton lines={3} />;
+  const framed = (body: ReactElement): ReactElement =>
+    title === undefined ? (
+      body
+    ) : (
+      <Screen testID={`gate-${feature}`} title={title}>
+        {body}
+      </Screen>
+    );
+  if (!resolved) return framed(<Skeleton lines={3} />);
   const decision = access(resolved.identity, feature, projectId);
-  return decision.allowed ? <>{children}</> : <DenialNotice reason={decision.reason} />;
+  return decision.allowed ? <>{children}</> : framed(<DenialNotice reason={decision.reason} />);
 }
 
 export function useAllowed(feature: Feature): boolean {
   const { resolved, projectId } = useCompass();
   return resolved ? access(resolved.identity, feature, projectId).allowed : false;
+}
+
+/**
+ * Why a screen made of these features is refused, or null when one is allowed (see refusalFor). While the person's
+ * identity still loads it is "loading": the screen shows a skeleton, as a route-level Gate does, never a refusal that
+ * may not be theirs (an internal supervisor was briefly told the screen is not part of their role).
+ */
+export function useRefusal(features: readonly Feature[]): Denial | "loading" | null {
+  const { resolved, projectId } = useCompass();
+  return resolved ? refusalFor(resolved.identity, features, projectId) : "loading";
 }
 
 /** The project and scope picker in every tab's header (Section 4.5.7). */

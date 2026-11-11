@@ -29,7 +29,7 @@ select is(pg_temp.requests('frank', 'ts'), 0, 'the worker who submitted it is ne
 select is(pg_temp.requests('dave', 'ts'), 0, 'a Member who cannot approve timesheets is not asked');
 select is((select message_args ->> 'title' from app.notifications
            where recipient_person_id = pg_temp.id('carol') and subject_id = pg_temp.id('ts')),
-  format('Timesheet %s, 2027-07-05 to 2027-07-11', (select full_name from app.people where id = pg_temp.id('frank'))),
+  format('Timesheet %s, Jul 5 to Jul 11', (select full_name from app.people where id = pg_temp.id('frank'))),
   'the request names the worker and the period, so nothing needs opening');
 insert into world select 'n_carol', id from app.notifications
   where recipient_person_id = pg_temp.id('carol') and subject_id = pg_temp.id('ts');

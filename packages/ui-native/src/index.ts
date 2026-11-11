@@ -50,6 +50,8 @@ export {
 } from "./components/xos.tsx";
 export {
   Screen,
+  NativeScreenHeaderContext,
+  type NativeScreenHeader,
   Dialog,
   DaySheetView,
   SignaturePad,

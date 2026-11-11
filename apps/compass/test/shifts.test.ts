@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
   actionFor,
@@ -8,6 +10,7 @@ import {
   currentShift,
   shiftCountdown,
   startsIn,
+  todayShiftList,
   type ShiftRow,
 } from "../src/domain/shifts";
 
@@ -117,5 +120,32 @@ describe("my shifts (simulator defect: Today listed open and colleagues' shifts)
     expect(isMine(shift("d", 1, { membership_id: "m2" }), me)).toBe(false);
     expect(isMine(shift("e", 1, { membership_id: null, engagement_id: "e9" }), me)).toBe(false);
     expect(isMine(shift("f", 1), { membershipId: null, engagementIds: [] })).toBe(false);
+  });
+});
+
+describe("C-20: Today lists the shift being worked once", () => {
+  const working = shift("w", -1);
+  const later = [shift("a", 3), shift("b", 6), shift("c", 9)];
+  const upcoming = [working, ...later];
+
+  it("leaves the worked shift to the clock card while the person is on shift", () => {
+    expect(todayShiftList(upcoming, working, true).map((s) => s.id)).toEqual(["a", "b", "c"]);
+  });
+
+  it("lists it with the rest once the person is clocked out", () => {
+    expect(todayShiftList(upcoming, working, false).map((s) => s.id)).toEqual(["w", "a", "b"]);
+  });
+
+  it("lists every shift when none is being worked", () => {
+    expect(todayShiftList(later, null, true).map((s) => s.id)).toEqual(["a", "b", "c"]);
+  });
+
+  it("names no venue on the live clock card, whose place line is the geofence", () => {
+    const today = readFileSync(
+      fileURLToPath(new URL("../app/(tabs)/today.tsx", import.meta.url)),
+      "utf8",
+    );
+    expect(today).toContain("todayShiftList(upcoming, working, onShiftNow)");
+    expect(today).not.toContain("nextPlace");
   });
 });

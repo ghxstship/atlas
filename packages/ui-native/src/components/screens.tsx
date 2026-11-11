@@ -1,4 +1,12 @@
-import { useMemo, useRef, useState, type ReactElement } from "react";
+import {
+  createContext,
+  useContext,
+  useMemo,
+  useRef,
+  useState,
+  type ReactElement,
+  type ReactNode,
+} from "react";
 import { Modal, PanResponder, RefreshControl, ScrollView, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
 import { useHaptic, useTheme } from "../theme/index.ts";
@@ -17,6 +25,24 @@ import { Icon, IconInk, Text } from "./foundations.tsx";
 import { Avatar } from "./forms.tsx";
 import { Button, IconButton } from "./primitives.tsx";
 
+/**
+ * Provided by an app whose navigator draws a native large-title header above each pushed screen (Compass's root stack).
+ * A Screen under it lets its scroll view inset below that header and hands its title to the header, which collapses it
+ * on scroll, instead of drawing the title again in the body. Without it the Workforce screens drew from the top of the
+ * window, so their title and first controls sat under the header and could not be scrolled into view (C-06).
+ */
+export interface NativeScreenHeader {
+  /** Puts the screen's title in the native header; rendered once inside the screen. */
+  readonly title: (title: string) => ReactNode;
+  /**
+   * False when the header would cut the title short (a one-line large title): the screen then draws the title in its
+   * body, where it wraps, and `title` leaves it out of the header. Every title fits when this is left out.
+   */
+  readonly fits?: (title: string) => boolean;
+}
+
+export const NativeScreenHeaderContext = createContext<NativeScreenHeader | null>(null);
+
 /** A screen body: title announced as a heading, scrolling content, pull to refresh and a pinned footer. */
 export function Screen({
   title,
@@ -28,9 +54,11 @@ export function Screen({
   testID,
 }: ScreenProps): ReactElement {
   const theme = useTheme();
+  const nativeHeader = useContext(NativeScreenHeaderContext);
+  const inHeader = nativeHeader !== null && (nativeHeader.fits?.(title ?? "") ?? true);
   const body = (
     <View style={{ gap: theme.space["16"], padding: theme.space["16"] }}>
-      {title ? (
+      {title && !inHeader ? (
         <Text variant="heading24" heading>
           {title}
         </Text>
@@ -43,8 +71,10 @@ export function Screen({
       {...(testID === undefined ? {} : { testID })}
       style={{ flex: 1, backgroundColor: theme.color.bgCanvas }}
     >
+      {nativeHeader ? nativeHeader.title(title ?? "") : null}
       {scroll ? (
         <ScrollView
+          contentInsetAdjustmentBehavior={nativeHeader ? "automatic" : "never"}
           {...(onRefresh
             ? {
                 refreshControl: (

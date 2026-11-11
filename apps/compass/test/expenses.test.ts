@@ -11,6 +11,7 @@ import {
   buildReceiptSave,
   reimbursementStatusOf,
   draftProblems,
+  expenseIntroKey,
   formatMoney,
   isIsoDay,
   myExpenses,
@@ -673,5 +674,48 @@ describe("an expense the person paid themselves (6542)", () => {
     expect(status("Canceled")).toBe("notOwed");
     expect(status("Approved", false)).toBeNull();
     expect(reimbursementStatusOf({ expense_state: "Paid", is_reimbursable: null })).toBeNull();
+  });
+});
+
+describe("C-13: the Expenses intro follows the person's AI choice", () => {
+  it("says the details are typed by hand after Don't Allow", () => {
+    expect(expenseIntroKey("Declined")).toBe("compassExpenses.add.sentenceManual");
+  });
+
+  it("names Aurora while the choice is Allowed or not yet made", () => {
+    expect(expenseIntroKey("Allowed")).toBe("compassExpenses.add.sentence");
+    expect(expenseIntroKey("unknown")).toBe("compassExpenses.add.sentence");
+  });
+
+  it("has the manual intro in every locale, without Aurora's name", () => {
+    for (const locale of ["en-US", "es-US"] as const) {
+      const add = (getMessages(locale) as { compassExpenses: { add: Record<string, string> } })
+        .compassExpenses.add;
+      expect(add["sentenceManual"], locale).toBeTruthy();
+      expect(add["sentenceManual"], locale).not.toContain("Aurora");
+    }
+  });
+
+  it("leaves why and where to change it to the declined alert in the same form, and names Compass's Ajustes", () => {
+    for (const locale of ["en-US", "es-US"] as const) {
+      const { add, aurora } = (
+        getMessages(locale) as {
+          compassExpenses: { add: Record<string, string>; aurora: Record<string, string> };
+        }
+      ).compassExpenses;
+      const declinedSentences = String(aurora["declined"]).split(". ");
+      for (const sentence of declinedSentences)
+        expect(add["sentenceManual"], locale).not.toContain(sentence.replace(/\.$/, ""));
+    }
+    const es = (
+      getMessages("es-US") as {
+        compassExpenses: { add: Record<string, string>; aurora: Record<string, string> };
+      }
+    ).compassExpenses;
+    for (const text of [es.add["sentenceManual"], es.aurora["declined"]]) {
+      expect(text).not.toContain("Configuración");
+      expect(text).not.toMatch(/tú mismo|tú misma/);
+    }
+    expect(es.aurora["declined"]).toContain("Ajustes");
   });
 });

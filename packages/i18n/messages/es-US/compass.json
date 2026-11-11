@@ -322,6 +322,7 @@
     "title": "Hoy",
     "search": "Buscar en Compass",
     "noShifts": "No tienes turnos hoy. Los turnos abiertos aparecen en Agenda.",
+    "noShiftsExternal": "Hoy no tienes nada programado. En Agenda ves para qué te contrataron.",
     "openSchedule": "Abrir Agenda",
     "noTasks": "No hay tareas para hoy.",
     "noDaySheet": "Aún no hay hoja del día.",
@@ -614,11 +615,12 @@
     "new": "Reportar incidente",
     "empty": "No hay incidentes en este proyecto. Repórtalo en el momento en que ocurra.",
     "emergencyFirst": "En una emergencia, llama primero a tu número local de emergencias. XOS no avisa a los servicios de emergencia.",
-    "nearMiss": "¿Casi accidente? Si pudo lastimar a alguien o causar daños, pero no lo hizo, elige Level 5 - Advisory y empieza Qué pasó con las palabras Near miss, para encontrarlo después.",
+    "nearMiss": "¿Casi accidente? Si pudo lastimar a alguien o causar daños, pero no lo hizo, elige “Level 5 - Advisory”, como aparece en la lista, y empieza Qué pasó con las palabras “Near miss”, en inglés, para que todo el equipo lo encuentre con una sola búsqueda.",
     "step": "Paso {step} de 3",
     "severity": "¿Qué tan grave es?",
     "location": "Ubicación",
     "locationAuto": "Cerca de {latitude}, {longitude} (a {accuracy})",
+    "locationSite": "{site} (cerca de {latitude}, {longitude}, a {accuracy})",
     "locationUnknown": "No se encontró la ubicación. Describe dónde en el título.",
     "change": "Cambiar",
     "titleLabel": "Qué pasó",
@@ -782,7 +784,9 @@
     "updateFrom": "Novedad de {org}",
     "new": "Nuevo",
     "crisisAlert": "Alerta de crisis en {project}: {code}",
-    "crisisAllClear": "Fin de alerta en {project}: {code}"
+    "crisisAllClear": "Fin de alerta en {project}: {code}",
+    "timesheetRequest": "Hoja de horas de {worker}, {period}",
+    "timesheetRequestUnnamed": "Hoja de horas, {period}"
   },
   "more": {
     "title": "Más",
@@ -1182,8 +1186,11 @@
     "failed": "No se hizo: Compass no pudo conectar con el servidor. Inténtalo de nuevo desde la bandeja.",
     "signedOut": "No se hizo: inicia sesión en Compass e inténtalo de nuevo desde la bandeja.",
     "promptTitle": "Aprobar desde notificaciones",
+    "promptTitleGeneral": "Recibe notificaciones",
     "prompt": "Activa las notificaciones para aprobar hojas de horas y otras solicitudes desde la alerta.",
+    "promptGeneral": "Activa las notificaciones para enterarte de los cambios en tu trabajo y responder solicitudes desde la alerta.",
     "denied": "Las notificaciones de Compass están desactivadas. Actívalas en Ajustes para aprobar desde la alerta.",
+    "deniedGeneral": "Las notificaciones de Compass están desactivadas. Actívalas en Ajustes para enterarte de los cambios en tu trabajo.",
     "turnOn": "Activar notificaciones"
   },
   "offerActions": {

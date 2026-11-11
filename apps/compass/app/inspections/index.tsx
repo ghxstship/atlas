@@ -119,8 +119,9 @@ function Inspections(): ReactElement {
 }
 
 export default function InspectionsScreen(): ReactElement {
+  const { t } = useTranslation();
   return (
-    <Gate feature="inspections.perform">
+    <Gate feature="inspections.perform" title={t("compass.inspections.title")}>
       <Inspections />
     </Gate>
   );

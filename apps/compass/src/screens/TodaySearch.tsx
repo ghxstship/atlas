@@ -65,7 +65,13 @@ export function TodaySearch(): ReactElement {
           maxFontSizeMultiplier={2}
           style={[
             typography(theme, "text16"),
-            { flex: 1, paddingVertical: theme.space["8"], color: theme.color.textPrimary },
+            // The field itself is the touch target, so it is never shorter than the minimum (C-25: it was 39 pt).
+            {
+              flex: 1,
+              minHeight: theme.density.touchMin,
+              paddingVertical: theme.space["8"],
+              color: theme.color.textPrimary,
+            },
           ]}
         />
         {query !== "" ? (

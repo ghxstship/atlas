@@ -4,7 +4,7 @@ import { useMemo, useState, type ReactElement } from "react";
 import { useTranslation } from "react-i18next";
 import { View } from "react-native";
 import { formatMeasure } from "@xos/i18n/units";
-import { samplingPlan } from "../../src/domain/geo";
+import { parseGeoShape, samplingPlan, siteAt, type Geofence } from "../../src/domain/geo";
 import { unitSystemOf } from "../../src/domain/settings";
 import {
   buildReport,
@@ -56,10 +56,24 @@ function Report(): ReactElement {
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [photoOpen, setPhotoOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { rows: shapes } = useRows<Row & { name: string; boundary_geojson: unknown }>(
+    "geofence_shapes",
+  );
+  const geofences = useMemo(
+    () =>
+      shapes.flatMap((s): Geofence[] => {
+        const boundary = parseGeoShape(s.boundary_geojson);
+        return boundary ? [{ id: s.id, name: s.name, boundary }] : [];
+      }),
+    [shapes],
+  );
   const withFix = { ...draft, fix: draft.fix ?? fix };
   const problems = draftProblems(withFix);
+  // The site the person is at comes first, the coordinates after it (C-19).
+  const site = siteAt(withFix.fix, geofences);
   const location = withFix.fix
-    ? t("compass.incidents.locationAuto", {
+    ? t(site ? "compass.incidents.locationSite" : "compass.incidents.locationAuto", {
+        ...(site ? { site: site.name } : {}),
         latitude: withFix.fix.latitude.toFixed(5),
         longitude: withFix.fix.longitude.toFixed(5),
         // Measured in meters, shown in the person's units (locale.units).
@@ -190,8 +204,9 @@ function Report(): ReactElement {
 }
 
 export default function NewIncident(): ReactElement {
+  const { t } = useTranslation();
   return (
-    <Gate feature="incidents.report">
+    <Gate feature="incidents.report" title={t("compass.incidents.new")}>
       <Report />
     </Gate>
   );

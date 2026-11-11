@@ -42,6 +42,8 @@ tags:
 - tapOn: "Level 2 - Major"
 - assertVisible:
     id: "incident-location"
+# The location names the site the person is in, the coordinates after it (C-19).
+- assertVisible: "Pier Site \\(near .*"
 - tapOn:
     id: "incident-next"
 - tapOn:
