@@ -10,7 +10,7 @@ set search_path = extensions, public;
 select plan(8);
 
 create function pg_temp.items(p_engagement text, p_requirement text) returns integer
-language sql stable security definer as $$
+language sql stable as $$
   select count(*)::int from app.onboarding_items i
   where i.engagement_id = pg_temp.id(p_engagement) and i.onboarding_requirement_id = pg_temp.id(p_requirement) and i.deleted_at is null
 $$;
@@ -35,13 +35,11 @@ select throws_like($$select app.transition_engagement((select id from world wher
   '%Working at Height Card%', 'it blocks activation, and now the worker can see and complete it');
 
 -- A changed requirement, a restored one, and a finished engagement.
-update app.onboarding_requirements set role_type = 'Crew' where id = pg_temp.id('req_vehicle');
 select pg_temp.as_platform();
+update app.onboarding_requirements set role_type = 'Crew' where id = pg_temp.id('req_vehicle');
 select is(pg_temp.items('eng_ivy_a', 'req_vehicle'), 1, 'a requirement changed to apply to Crew reaches the engagement then');
-select pg_temp.as_user('carol');
 update app.onboarding_requirements set deleted_at = now() where id = pg_temp.id('req_height');
 update app.onboarding_requirements set deleted_at = null where id = pg_temp.id('req_height');
-select pg_temp.as_platform();
 select is(pg_temp.items('eng_ivy_a', 'req_height'), 1, 'restoring a requirement never duplicates an item');
 select pg_temp.move_engagement('eng_ivy_a', 'Onboarding', 'Canceled');
 with r as (insert into app.onboarding_requirements (org_id, name, item_kind, role_type, verification_method)

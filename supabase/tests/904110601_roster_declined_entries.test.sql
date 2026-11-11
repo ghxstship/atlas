@@ -9,14 +9,26 @@ set search_path = extensions, public;
 
 select plan(9);
 
+-- As 2633: read as the platform, whoever the caller is, then restore the caller.
 create function pg_temp.membership(p_account text, p_person text) returns uuid
-language sql stable security definer as $$
-  select m.id from app.account_memberships m
+language plpgsql as $$
+declare
+  v_role text := current_setting('role');
+  v_claims text := current_setting('request.jwt.claims', true);
+  v uuid;
+begin
+  perform set_config('role', 'postgres', true);
+  select m.id into v from app.account_memberships m
   where m.org_id = pg_temp.id(p_account) and m.person_id = pg_temp.id(p_person) and m.deleted_at is null
-$$;
+    and (m.valid_to is null or m.valid_to > now());
+  perform set_config('role', v_role, true);
+  perform set_config('request.jwt.claims', coalesce(v_claims, ''), true);
+  return v;
+end $$;
 
+-- Read as the platform; called only from it.
 create function pg_temp.state(p_key text) returns text
-language sql stable security definer as $$
+language sql stable as $$
   select r.entry_state::text || '/' || r.person_response::text from app.engagement_roster_entries r where r.id = pg_temp.id(p_key)
 $$;
 
