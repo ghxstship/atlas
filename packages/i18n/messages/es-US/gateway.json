@@ -24,6 +24,7 @@
       "tax_form_payee": "Las empresas presentan un W-8BEN-E y las personas un W-8BEN; cualquiera presenta un W-9 si es persona de EE. UU.",
       "sod_self_grant": "No puedes darte un rol a ti mismo. Pídelo a otro propietario o administrador de la cuenta.",
       "account_role_band": "Solo un propietario de la cuenta puede dar o quitar el rol de propietario.",
+      "invoice_unpaid_role": "La organización nunca paga una contratación de cliente o patrocinador, así que no recibe facturas de ella. Las facturas que te envía aparecen en la pestaña Facturas de la contratación.",
       "slug_taken": "Esa dirección web ya está en uso. Elige otra.",
       "slug_reserved": "Esa dirección web está reservada. Elige otra.",
       "cross_org_reference": "Ese documento pertenece a otra organización. Vuelve a subirlo para esta.",
@@ -311,7 +312,7 @@
       },
       "signHint": "Fírmalo en Documentos; el paso se completa cuando la organización firme.",
       "backgroundHint": "El proveedor de verificación de la organización te envía un enlace seguro para tu consentimiento y datos. Aquí solo se guarda el resultado.",
-      "payoutHint": "Agrega tus datos de pago en Configuración, Pagos e impuestos. Solo se muestran los últimos cuatro dígitos."
+      "payoutHint": "La organización recoge tus datos de pago con su proveedor de pagos, no en esta página. Sigue la invitación de su proveedor o pídesela a la organización en Mensajes. Solo se muestran los últimos cuatro dígitos."
     },
     "messages": {
       "empty": "Aún no hay conversaciones. Empieza una abajo; la organización responde aquí.",
@@ -320,6 +321,7 @@
     },
     "invoices": {
       "empty": "Aún no hay facturas. Envía una abajo cuando termines tu trabajo.",
+      "emptyUnpaid": "Aún no hay facturas. Las facturas que te envía la organización aparecen aquí.",
       "submitTitle": "Enviar una factura",
       "selfBilling": "Autofacturación",
       "selfBillingBody": "Con la autofacturación activa, la organización genera tus facturas a partir de las hojas de horas aprobadas. Puedes detenerla cuando quieras.",
@@ -500,6 +502,8 @@
       "uploadPassed": "{names}: revisado y aprobado. Si es tu certificado de seguro, la organización todavía tiene que registrarlo aquí.",
       "current": "Vigente",
       "expired": "Vencido",
+      "startsOn": "Empieza el {date}",
+      "expiresOn": "Vence el {date}",
       "prequalification": "Precalificación",
       "validTo": "Vigente hasta {date}",
       "items": "Pasos de cumplimiento",
@@ -1271,7 +1275,7 @@
       "outbound": "Salida"
     },
     "invoiceState": {
-      "proposed": "Borrador",
+      "proposed": "Propuesta",
       "issued": "Enviada",
       "approved": "Aprobada",
       "disputed": "En disputa",
@@ -1948,6 +1952,7 @@
     },
     "invoices": {
       "empty": "Aún no hay facturas. Envía una desde la pestaña Facturas de una contratación.",
+      "emptyUnpaid": "Aún no hay facturas. Las facturas que la organización te envía por tus contrataciones aparecen aquí.",
       "emptyAction": "Ver contrataciones",
       "tracker": "Rastreador de pago de la factura {number}",
       "balance": "Saldo {amount}",
@@ -1963,6 +1968,15 @@
         "approved": "Aprobada",
         "scheduled": "Programada",
         "paid": "Pagada"
+      },
+      "status": {
+        "submitted": "Enviada",
+        "issued": "Emitida",
+        "approved": "Aprobada",
+        "scheduled": "Programada",
+        "paid": "Pagada",
+        "disputed": "En disputa",
+        "canceled": "Cancelada"
       }
     },
     "timesheets": {
@@ -1976,7 +1990,12 @@
       "emptyAction": "Ver facturas",
       "paidOn": "Pagado el",
       "amount": "Monto",
-      "reference": "Referencia"
+      "reference": "Referencia",
+      "status": {
+        "scheduled": "Programado",
+        "paid": "Pagado",
+        "canceled": "Cancelado"
+      }
     },
     "tax": {
       "yearEnd": "Quienes cobran en EE. UU. reciben los datos 1099-NEC de cada organización al cierre del año; quienes cobran desde el extranjero ven aquí su indicador de retención.",
@@ -1991,7 +2010,7 @@
       "yes": "Sí",
       "no": "No",
       "payouts": "Destinos de pago",
-      "noPayouts": "Aún no hay destinos de pago. Agrega uno en Configuración, Pagos e impuestos."
+      "noPayouts": "Aún no hay destinos de pago. Cada organización configura dónde te paga con su proveedor de pagos, normalmente durante la incorporación. Si alguna aún no te lo ha pedido, escríbele."
     }
   },
   "profile": {
@@ -2498,7 +2517,11 @@
       "about": "Acerca de",
       "website": "Sitio web",
       "email": "Correo de contacto",
-      "profileUnavailable": "El perfil de la empresa lo administran los administradores de Atlas de la organización. Pide a un propietario de la cuenta que lo configure.",
+      "profileUnavailable": "Esta empresa aún no tiene perfil público. Un propietario o administrador de la cuenta lo configura aquí.",
+      "profileReadOnly": "Solo un propietario o administrador de la cuenta edita el perfil de la empresa.",
+      "indexed": "Los buscadores pueden indexar el perfil público",
+      "notIndexed": "Los buscadores no indexan el perfil público",
+      "notGiven": "Sin indicar",
       "remove": "Quitar",
       "inviteNote": "La persona invitada inicia sesión en Gateway con la dirección que invitaste y acepta en Inicio. Hasta entonces no figura en ninguna lista del equipo ni tiene contrataciones asignadas, y no se comparte nada sobre ella.",
       "noInsurance": "No hay certificados de seguro registrados. Las organizaciones los piden en una contratación; abre la contratación y súbelos en su pestaña Cumplimiento.",

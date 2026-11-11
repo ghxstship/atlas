@@ -24,6 +24,7 @@
       "tax_form_payee": "Companies file a W-8BEN-E and individuals a W-8BEN; either files a W-9 as a US person.",
       "sod_self_grant": "You cannot grant yourself a role. Ask another Account Owner or Admin.",
       "account_role_band": "Only an Account Owner can grant or remove Account Owner.",
+      "invoice_unpaid_role": "The organization never pays a client or sponsor engagement, so it takes no invoice from one. Invoices it sends you appear on the engagement's Invoices tab.",
       "slug_taken": "That web address is already in use. Choose another.",
       "slug_reserved": "That web address is reserved. Choose another.",
       "cross_org_reference": "That document belongs to another organization. Upload it again for this one.",
@@ -311,7 +312,7 @@
       },
       "signHint": "Sign it under Documents; the step completes when the organization countersigns.",
       "backgroundHint": "The organization's screening provider emails you a secure link for consent and details. Nothing about the check is stored here except the result.",
-      "payoutHint": "Add your payout details under Settings, Payout and tax. Only the last four digits are ever shown."
+      "payoutHint": "The organization collects your payout details through its payment provider, not on this page. Follow its provider's invitation, or ask the organization for it in Messages. Only the last four digits are ever shown."
     },
     "messages": {
       "empty": "No conversations yet. Start one below; the organization answers here.",
@@ -320,6 +321,7 @@
     },
     "invoices": {
       "empty": "No invoices yet. Submit one below when your work is done.",
+      "emptyUnpaid": "No invoices yet. Invoices the organization sends you appear here.",
       "submitTitle": "Submit an invoice",
       "selfBilling": "Self-billing",
       "selfBillingBody": "With self-billing on, the organization raises your invoices from approved timesheets. You can stop it at any time.",
@@ -500,6 +502,8 @@
       "uploadPassed": "{names}: reviewed and passed. If this is your insurance certificate, the organization still has to record it here.",
       "current": "Current",
       "expired": "Expired",
+      "startsOn": "Starts {date}",
+      "expiresOn": "Expires {date}",
       "prequalification": "Prequalification",
       "validTo": "Valid to {date}",
       "items": "Compliance steps",
@@ -1948,6 +1952,7 @@
     },
     "invoices": {
       "empty": "No invoices yet. Submit one from an engagement's Invoices tab.",
+      "emptyUnpaid": "No invoices yet. Invoices the organization sends you for your engagements appear here.",
       "emptyAction": "See engagements",
       "tracker": "Payment tracker for invoice {number}",
       "balance": "Balance {amount}",
@@ -1963,6 +1968,15 @@
         "approved": "Approved",
         "scheduled": "Scheduled",
         "paid": "Paid"
+      },
+      "status": {
+        "submitted": "Submitted",
+        "issued": "Issued",
+        "approved": "Approved",
+        "scheduled": "Scheduled",
+        "paid": "Paid",
+        "disputed": "Disputed",
+        "canceled": "Canceled"
       }
     },
     "timesheets": {
@@ -1976,7 +1990,12 @@
       "emptyAction": "See invoices",
       "paidOn": "Paid on",
       "amount": "Amount",
-      "reference": "Reference"
+      "reference": "Reference",
+      "status": {
+        "scheduled": "Scheduled",
+        "paid": "Paid",
+        "canceled": "Canceled"
+      }
     },
     "tax": {
       "yearEnd": "US payees get 1099-NEC data from each organization at year end; foreign payees see their withholding flag here.",
@@ -1991,7 +2010,7 @@
       "yes": "Yes",
       "no": "No",
       "payouts": "Payout destinations",
-      "noPayouts": "No payout destinations yet. Add one under Settings, Payout and tax."
+      "noPayouts": "No payout destinations yet. Each organization sets up where it pays you with its payment provider, usually during onboarding. If one has not asked you yet, message it."
     }
   },
   "profile": {
@@ -2498,7 +2517,11 @@
       "about": "About",
       "website": "Website",
       "email": "Contact email",
-      "profileUnavailable": "The company profile is managed by the organization's Atlas administrators. Ask an Account Owner to set it up.",
+      "profileUnavailable": "This company has no public profile yet. An Account Owner or Admin sets it up here.",
+      "profileReadOnly": "Only an Account Owner or Admin edits the company profile.",
+      "indexed": "Search engines may index the public profile",
+      "notIndexed": "Search engines do not index the public profile",
+      "notGiven": "Not given",
       "remove": "Remove",
       "inviteNote": "An invited person signs in to Gateway with the address you invited and accepts on Home. Until then they are not rostered or assigned, and nothing about them is shared.",
       "noInsurance": "No insurance certificates on file. Organizations ask for them on an engagement; open the engagement and upload them under its Compliance tab.",

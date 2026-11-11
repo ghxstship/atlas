@@ -17,6 +17,6 @@ Un paso muestra su tipo, si es obligatorio, cómo se verifica (automáticamente 
 - **Firma electrónica**: firma en Documentos; el paso se completa cuando la organización también firma.
 - **Confirmación de lectura**: lee la sesión informativa y confirma que la leíste.
 - **Verificación de antecedentes**: el proveedor de verificación de la organización te envía un enlace seguro por correo. Aquí solo se guarda el resultado.
-- **Datos de pago**: agrégalos en [Configuración, Pagos e impuestos](help:settings-payout-and-tax).
+- **Datos de pago**: la organización los recoge con su proveedor de pagos, no en Gateway. Sigue la invitación del proveedor o pídesela a la organización en los Mensajes de la contratación. Una vez configurado, el destino aparece en [Configuración, Pagos e impuestos](help:settings-payout-and-tax).
 
 La organización verifica cada paso después. Los pasos de incorporación también aparecen en Inicio, en Te necesita.

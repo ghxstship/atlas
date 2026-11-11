@@ -69,11 +69,14 @@ export function LinkTable({
   rows,
   caption,
   action,
+  cardFields,
 }: {
   columns: DataTableColumn[];
   rows: Record<string, unknown>[];
   caption: string;
   action?: GatewayActionId;
+  /** The column keys a phone's stacked cards show, the first as the title (DataTable's own default otherwise). */
+  cardFields?: string[];
 }) {
   const router = useRouter();
   const refs = useMemo<BulkRowRef[]>(
@@ -95,6 +98,7 @@ export function LinkTable({
         rows={rows}
         caption={caption}
         density="comfortable"
+        {...(cardFields ? { cardFields } : {})}
         rowId={(row, index) => (typeof row["id"] === "string" ? row["id"] : String(index))}
         {...(bulk.selection ? { selection: bulk.selection } : {})}
         {...(menus

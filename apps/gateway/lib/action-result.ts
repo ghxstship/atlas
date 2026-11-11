@@ -232,6 +232,8 @@ export const KNOWN_REFUSALS = [
   "content_objectionable",
   // ADR 0160: a company account is created only in an offered territory, and the intake wizard asks its country.
   "territory_not_offered",
+  // 4.11: the org never pays a client or sponsor engagement, so it takes no invoice from one (migration 904110702).
+  "invoice_unpaid_role",
 ] as const;
 
 /** The outcome key of a refusal rule: its own copy when it has some, else the generic refusal. */
