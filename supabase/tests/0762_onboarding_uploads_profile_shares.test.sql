@@ -24,11 +24,11 @@ select pg_temp.as_user('carol');
 insert into app.onboarding_requirements (org_id, name, item_kind, role_type, verification_method)
 values (pg_temp.id('org_a'), 'Certificate of Insurance', 'Document Upload', 'Crew', 'Reviewer');
 select pg_temp.as_platform();
-with i as (
-  insert into app.onboarding_items (engagement_id, onboarding_requirement_id)
-  select pg_temp.id('eng_ivy_a'), r.id from app.onboarding_requirements r where r.name = 'Certificate of Insurance' and r.org_id = pg_temp.id('org_a')
-  returning id)
-insert into world select 'item_ivy', id from i;
+-- 904110602 gives the engagement its item when the requirement is added.
+insert into world select 'item_ivy', i.id from app.onboarding_items i
+  join app.onboarding_requirements r on r.id = i.onboarding_requirement_id
+  where i.engagement_id = pg_temp.id('eng_ivy_a') and r.name = 'Certificate of Insurance' and r.org_id = pg_temp.id('org_a')
+    and i.deleted_at is null;
 create function pg_temp.path(p_file text) returns text language sql as $$
   select pg_temp.id('org_a') || '/' || pg_temp.id('eng_ivy_a') || '/' || pg_temp.id('item_ivy') || '/' || p_file;
 $$;

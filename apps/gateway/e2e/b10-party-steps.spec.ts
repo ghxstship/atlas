@@ -57,9 +57,16 @@ test("the crew person signs one agreement and declines another; Atlas countersig
     DEMO.owner,
   );
   await sql(
-    `insert into app.onboarding_items (engagement_id, onboarding_requirement_id) values ($1, $2)`,
+    `insert into app.onboarding_items (engagement_id, onboarding_requirement_id) values ($1, $2)
+     on conflict (engagement_id, onboarding_requirement_id) where deleted_at is null do nothing`,
     [DEMO.crewEngagement, requirement?.id],
     DEMO.owner,
+  );
+  // 904110602 gave the new requirement to every live engagement of the org; only the crew engagement keeps it.
+  await sql(
+    `update app.onboarding_items set deleted_at = now()
+     where onboarding_requirement_id = $1 and engagement_id <> $2 and deleted_at is null`,
+    [requirement?.id, DEMO.crewEngagement],
   );
   await batch(tag, `Sign me ${tag}`, "You work the show days.", requirement?.id as string);
   await batch(tag, `Decline me ${tag}`, "A different arrangement.", null);

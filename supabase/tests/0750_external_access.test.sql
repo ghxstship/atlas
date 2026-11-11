@@ -77,8 +77,10 @@ insert into app.engagement_documents (engagement_id, document_kind, title) value
   (pg_temp.id('eng_art_a'), 'Rider', 'Technical Rider');
 with r as (insert into app.onboarding_requirements (org_id, name, item_kind, role_type, verification_method, is_blocking)
   values (pg_temp.id('org_a'), 'Emergency Contact', 'Form', 'Vendor', 'Reviewer', false) returning id) select 1;
+-- 904110602 already gave the engagement its item; inserting it again is a no-op.
 insert into app.onboarding_items (engagement_id, onboarding_requirement_id)
-  select pg_temp.id('eng_vendor_a'), r.id from app.onboarding_requirements r where r.name = 'Emergency Contact';
+  select pg_temp.id('eng_vendor_a'), r.id from app.onboarding_requirements r where r.name = 'Emergency Contact'
+  on conflict (engagement_id, onboarding_requirement_id) where deleted_at is null do nothing;
 insert into app.onboarding_verifications (onboarding_item_id, outcome, note)
   select i.id, 'Failed', 'Number did not connect.' from app.onboarding_items i where i.engagement_id = pg_temp.id('eng_vendor_a');
 with t as (insert into app.engagement_threads (engagement_id, subject) values (pg_temp.id('eng_vendor_a'), 'Load-In') returning id)

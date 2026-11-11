@@ -329,7 +329,12 @@
     },
     "shifts": {
       "empty": "No shifts yet. Published shifts appear here for you to accept.",
-      "accept": "Accept shift"
+      "accept": "Accept shift",
+      "decline": "Can't work it",
+      "declineTitle": "Decline this shift?",
+      "declineSentence": "The organization is told, and the shift goes back to be staffed again. You cannot undo this; message the organization if you change your mind.",
+      "declineReason": "Reason (optional)",
+      "declineConfirm": "Decline shift"
     },
     "positions": {
       "empty": "No positions assigned yet. They follow once training is done.",
@@ -341,7 +346,12 @@
       "hours": "{n} hours",
       "submitted": "Submitted {date}",
       "submit": "Submit",
-      "entries": "Time entries"
+      "entries": "Time entries",
+      "submitTitle": "Submit this timesheet?",
+      "submitSentence": "You confirm the hours for {period} are the hours you worked. The organization reviews them and pays from them.",
+      "submitConfirm": "Submit timesheet",
+      "warningEmpty": "This timesheet has no hours. Submit it only if you worked none in this period.",
+      "warningFuture": "This period has not ended yet (it ends {date}). Hours you work after you submit are not on it."
     },
     "time": {
       "empty": "No time recorded yet. Clock in from Compass when you start.",
@@ -1049,6 +1059,12 @@
       "awaitingVerification": "Waiting for verification",
       "acknowledge": "I have read and acknowledge this",
       "noShowTag": "No-show"
+    },
+    "projectDetails": {
+      "othersTitle": "What the crew still owes",
+      "othersSentence": "Travel, uniform and vehicle details are each person's own step: they enter theirs in Gateway. This is what the project still needs from them.",
+      "othersCrew": "Enter details for someone on the Crew tab",
+      "someone": "Someone on the roster"
     }
   },
   "enums": {
@@ -1636,7 +1652,8 @@
         "answer": "Answer every required question.",
         "fee": "Enter the fee as a number, or leave it blank.",
         "bidLines": "Add at least one bid line with an item and a quantity above zero.",
-        "slate": "Pick at least one team member for the slate."
+        "slate": "Pick at least one team member for the slate.",
+        "bidLinePrice": "Line {n}: enter a unit price of zero or more, or leave it blank to leave the line unpriced."
       },
       "profileSections": "Also share from your profile with {org}",
       "profileSectionsHelp": "Only the sections you check are shared, as they read today, including ones your profile keeps private. Revoke sharing at any time in Settings.",
@@ -1650,7 +1667,8 @@
         "rates": "Rates",
         "languages": "Languages",
         "links": "Links"
-      }
+      },
+      "applyingAs": "You apply as {account}. The application, and the engagement it becomes if accepted, belong to the company."
     },
     "reportForm": {
       "title": "Report this listing",
@@ -1822,7 +1840,14 @@
         "credentialRevoked": "Your {title} credential for {projectName} was revoked",
         "other": "{title}",
         "untitled": "New update",
-        "shiftNoShow": "Marked as a no-show: {title}"
+        "shiftNoShow": "Marked as a no-show: {title}",
+        "rosterDeclined": "{personName} declined the {partyName} crew for {projectName}",
+        "rosterInvited": "You were put on the {partyName} crew for {projectName}",
+        "allocationDecided": "{decision, select, declined {Declined} other {Approved}}: {itemName} for {projectName}",
+        "allocationAssigned": "{orgName} gave you {itemName} for {projectName}",
+        "allocationIssued": "{itemName} for {projectName} was handed over to you",
+        "allocationWithdrawn": "Withdrawn: {itemName} for {projectName}",
+        "ratingDisputeDecided": "The rating dispute for {project} was {outcome, select, Upheld {upheld} other {not upheld}}"
       }
     },
     "recommended": {
@@ -2346,7 +2371,8 @@
       "accepted": "Shift accepted. Your crew lead sees it now.",
       "noRole": "Crew",
       "forget": "Forget this code",
-      "signIn": "Sign in to see all your work"
+      "signIn": "Sign in to see all your work",
+      "declineSignedIn": "Can't make it? Sign in to decline it with a reason, or tell your crew lead."
     }
   },
   "settings": {
@@ -2903,7 +2929,11 @@
         "from": "Proposed by",
         "accept": "Accept offer",
         "decline": "Decline",
-        "waiting": "Your counter is with the organization. You will get a notification when they answer."
+        "waiting": "Your counter is with the organization. You will get a notification when they answer.",
+        "declineTitle": "Decline this offer?",
+        "declineSentence": "The organization is told, and the application closes as Declined. You cannot take the offer back afterwards.",
+        "declineReason": "Reason for the organization (optional)",
+        "declineConfirm": "Decline offer"
       },
       "counter": {
         "open": "Counter",

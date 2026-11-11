@@ -52,3 +52,69 @@ describe("a blocked vendor", () => {
     expect(esUS.engagement.overview.blockedCompliance).not.toContain("Incorporación");
   });
 });
+
+/**
+ * 4.9 surface crawl: notifications Gateway's people receive read with their own arguments, as their emitters store them
+ * (private.roster_notification_args, 2642; private.allocation_notification_args, 4693; 6821's dispute decision), never
+ * as a bare "New update".
+ */
+const allocation = {
+  personName: "Kai Morgan",
+  partyName: "Bayside Audio",
+  projectName: "Northwind Summer Series",
+  orgName: "Northwind Live",
+  kind: "asset",
+  itemName: "Two-way radios",
+  quantity: "2",
+};
+const roster = {
+  personName: "Demo Staff Two",
+  partyName: "Demo Crew Agency",
+  projectName: "Northwind Summer Series",
+  orgName: "Northwind Live",
+};
+const sent: readonly [string, Record<string, string>, readonly string[]][] = [
+  [
+    "roster_entry.declined",
+    roster,
+    ["Demo Staff Two", "Demo Crew Agency", "Northwind Summer Series"],
+  ],
+  ["roster_entry.invited", roster, ["Demo Crew Agency", "Northwind Summer Series"]],
+  ["allocation.decided", { ...allocation, decision: "declined" }, ["Two-way radios"]],
+  ["allocation.assigned", allocation, ["Northwind Live", "Two-way radios"]],
+  ["allocation.issued", allocation, ["Two-way radios", "Northwind Summer Series"]],
+  ["allocation.withdrawn", { ...allocation, cause: "engagement_ended" }, ["Two-way radios"]],
+  [
+    "rating_dispute.decided",
+    { outcome: "Not Upheld", statement: "On time.", project: "Summer Series" },
+    ["Summer Series"],
+  ],
+];
+
+for (const [locale, messages] of [
+  ["en-US", enUS],
+  ["es-US", esUS],
+] as const) {
+  describe(`notifications to external people in Gateway, ${locale}`, () => {
+    const t = createTranslator({ locale, messages: { gateway: messages } }) as unknown as Translate;
+    const untitled = fyiSentence(t, { kind: "unknown.kind", args: {} });
+
+    it.each(sent)("%s says what happened", (kind, args, names) => {
+      const text = fyiSentence(t, { kind, args });
+      expect(text).not.toBe(untitled);
+      for (const name of names) expect(text).toContain(name);
+    });
+
+    it("tells an approved allocation from a declined one, and an upheld dispute from one that was not", () => {
+      const decided = (decision: string) =>
+        fyiSentence(t, { kind: "allocation.decided", args: { ...allocation, decision } });
+      expect(decided("approved")).not.toBe(decided("declined"));
+      const dispute = (outcome: string) =>
+        fyiSentence(t, {
+          kind: "rating_dispute.decided",
+          args: { outcome, project: "Summer Series" },
+        });
+      expect(dispute("Upheld")).not.toBe(dispute("Not Upheld"));
+    });
+  });
+}

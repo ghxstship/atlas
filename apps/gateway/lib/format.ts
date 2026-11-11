@@ -43,9 +43,12 @@ export function formatPayRange(
   return formatMoney(locale, min ?? max, currency);
 }
 
-/** Major units typed into a form, to minor units; null for a blank field (never zero). */
+/**
+ * Major units typed into a form, to minor units; null for a blank field (never zero) and for a negative amount. The minus
+ * sign is kept while cleaning, so "-5" is refused rather than read as 5 (4.9 surface crawl).
+ */
 export function parseMoneyInput(text: string, currency: string): number | null {
-  const cleaned = text.replace(/[^0-9.]/g, "");
+  const cleaned = text.replace(/[^0-9.-]/g, "");
   if (cleaned.length === 0) return null;
   const value = Number(cleaned);
   if (!Number.isFinite(value) || value < 0) return null;

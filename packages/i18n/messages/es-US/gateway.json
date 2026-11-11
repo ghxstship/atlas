@@ -329,7 +329,12 @@
     },
     "shifts": {
       "empty": "Aún no hay turnos. Los turnos publicados aparecen aquí para que los aceptes.",
-      "accept": "Aceptar turno"
+      "accept": "Aceptar turno",
+      "decline": "No puedo trabajarlo",
+      "declineTitle": "¿Rechazar este turno?",
+      "declineSentence": "Se avisa a la organización y el turno vuelve a quedar por cubrir. No se puede deshacer; escribe a la organización si cambias de opinión.",
+      "declineReason": "Motivo (opcional)",
+      "declineConfirm": "Rechazar turno"
     },
     "positions": {
       "empty": "Aún no tienes puestos asignados. Llegan cuando termines la capacitación.",
@@ -341,7 +346,12 @@
       "hours": "{n} horas",
       "submitted": "Enviada el {date}",
       "submit": "Enviar",
-      "entries": "Registros de tiempo"
+      "entries": "Registros de tiempo",
+      "submitTitle": "¿Enviar esta hoja de horas?",
+      "submitSentence": "Confirmas que las horas de {period} son las que trabajaste. La organización las revisa y paga según ellas.",
+      "submitConfirm": "Enviar hoja de horas",
+      "warningEmpty": "Esta hoja de horas no tiene horas. Envíala solo si no trabajaste en este periodo.",
+      "warningFuture": "Este periodo aún no termina (termina el {date}). Las horas que trabajes después de enviarla no estarán en ella."
     },
     "time": {
       "empty": "Aún no hay tiempo registrado. Marca tu entrada desde Compass al empezar.",
@@ -1049,6 +1059,12 @@
       "awaitingVerification": "Pendiente de verificación",
       "acknowledge": "Lo he leído y lo confirmo",
       "noShowTag": "Ausencia"
+    },
+    "projectDetails": {
+      "othersTitle": "Lo que aún falta del equipo",
+      "othersSentence": "Los datos de viaje, uniforme y vehículo son un paso de cada persona: cada quien ingresa los suyos en Gateway. Esto es lo que el proyecto aún necesita de ellos.",
+      "othersCrew": "Ingresar datos de alguien en la pestaña Equipo",
+      "someone": "Alguien de la lista"
     }
   },
   "enums": {
@@ -1636,7 +1652,8 @@
         "answer": "Responde todas las preguntas obligatorias.",
         "fee": "Escribe la tarifa como número o déjala en blanco.",
         "bidLines": "Agrega al menos una línea con un artículo y una cantidad mayor que cero.",
-        "slate": "Elige al menos un miembro del equipo para la propuesta."
+        "slate": "Elige al menos un miembro del equipo para la propuesta.",
+        "bidLinePrice": "Línea {n}: ingresa un precio unitario de cero o más, o déjalo en blanco para dejar la línea sin precio."
       },
       "profileSections": "Compartir también de su perfil con {org}",
       "profileSectionsHelp": "Solo se comparten las secciones que marque, tal como están hoy, incluidas las que su perfil mantiene privadas. Puede revocar el acceso en cualquier momento en Configuración.",
@@ -1650,7 +1667,8 @@
         "rates": "Tarifas",
         "languages": "Idiomas",
         "links": "Enlaces"
-      }
+      },
+      "applyingAs": "Te postulas como {account}. La postulación, y el contrato que resulte si la aceptan, pertenecen a la empresa."
     },
     "reportForm": {
       "title": "Reportar esta publicación",
@@ -1822,7 +1840,14 @@
         "credentialRevoked": "Se revocó tu credencial {title} para {projectName}",
         "other": "{title}",
         "untitled": "Novedad",
-        "shiftNoShow": "Marcado como ausente: {title}"
+        "shiftNoShow": "Marcado como ausente: {title}",
+        "rosterDeclined": "{personName} rechazó el equipo de {partyName} para {projectName}",
+        "rosterInvited": "Te incluyeron en el equipo de {partyName} para {projectName}",
+        "allocationDecided": "{decision, select, declined {Rechazado} other {Aprobado}}: {itemName} para {projectName}",
+        "allocationAssigned": "{orgName} te asignó {itemName} para {projectName}",
+        "allocationIssued": "Se te entregó {itemName} para {projectName}",
+        "allocationWithdrawn": "Retirado: {itemName} para {projectName}",
+        "ratingDisputeDecided": "La impugnación de la calificación de {project} {outcome, select, Upheld {fue aceptada} other {no fue aceptada}}"
       }
     },
     "recommended": {
@@ -2346,7 +2371,8 @@
       "accepted": "Turno aceptado. Tu jefe de equipo ya lo ve.",
       "noRole": "Equipo",
       "forget": "Olvidar este código",
-      "signIn": "Inicia sesión para ver todo tu trabajo"
+      "signIn": "Inicia sesión para ver todo tu trabajo",
+      "declineSignedIn": "¿No puedes ir? Inicia sesión para rechazarlo con un motivo, o avisa a tu jefe de equipo."
     }
   },
   "settings": {
@@ -2903,7 +2929,11 @@
         "from": "Propuesta por",
         "accept": "Aceptar oferta",
         "decline": "Rechazar",
-        "waiting": "Tu contraoferta está con la organización. Recibirás una notificación cuando respondan."
+        "waiting": "Tu contraoferta está con la organización. Recibirás una notificación cuando respondan.",
+        "declineTitle": "¿Rechazar esta oferta?",
+        "declineSentence": "Se avisa a la organización y la postulación se cierra como Rechazada. Después no puedes recuperar la oferta.",
+        "declineReason": "Motivo para la organización (opcional)",
+        "declineConfirm": "Rechazar oferta"
       },
       "counter": {
         "open": "Contraofertar",

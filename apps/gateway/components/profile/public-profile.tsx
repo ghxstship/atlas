@@ -1,4 +1,4 @@
-import type { PublicPersonProfileFull } from "@xos/data/gateway";
+import { organizationProfilePath, type PublicPersonProfileFull } from "@xos/data/gateway";
 import type { Route } from "next";
 import Link from "next/link";
 import { Section } from "@/components/page/page";
@@ -216,8 +216,11 @@ export function PublicPersonProfile({
         <Section title={t("gateway.profile.public.organizations")}>
           <ul className="m-0 flex list-none flex-wrap gap-8 p-0">
             {data.organizations.map((o) => (
-              <li key={o.handle}>
-                <Link href={`/c/${o.handle}` as Route} className="text-accent-text underline">
+              <li key={o.org_handle}>
+                <Link
+                  href={organizationProfilePath(o) as Route}
+                  className="text-accent-text underline"
+                >
                   {o.name}
                 </Link>
               </li>
