@@ -376,7 +376,11 @@ export async function listGlAccounts(db: XosClient): Promise<Result<GlAccount[]>
   );
 }
 
-/** The account a URID posts to: its class's one account of the type (decision D13), or null. */
+/**
+ * The account a URID's class gives: its one account of the type (decision D13), or null. A budget
+ * line can post elsewhere, because its item's explicit GL default comes first (decision 39); read a
+ * line's account from app.budget_line_amounts (BudgetLine.accountCode), never from this.
+ */
 export function accountForUrid(
   urid: string,
   accounts: readonly GlAccount[],
@@ -1023,11 +1027,14 @@ function toLine(r: Raw, amounts?: Raw, commitment?: Raw, price?: Raw, forecast?:
 /**
  * A line as saved (updateBudgetLine returns only stored columns) merged onto the line it replaces:
  * the stored fields and version come from the save, the extended amount is recomputed from them, and
- * the derived account, actual and committed amounts are kept until the page rereads them.
+ * the derived actual and committed amounts are kept until the page rereads them. So is the account
+ * the line posts to, unless the save changed its URID or item: that account no longer applies, so it
+ * is null until the page rereads it (app.budget_line_amounts, decision 39).
  */
 export function mergeSavedLine(previous: BudgetLine, saved: BudgetLine): BudgetLine {
   return {
     ...previous,
+    accountCode: sameAccountBasis(previous, saved) ? previous.accountCode : null,
     description: saved.description,
     lineType: saved.lineType,
     urid: saved.urid,
@@ -1047,6 +1054,17 @@ export function mergeSavedLine(previous: BudgetLine, saved: BudgetLine): BudgetL
     etcMinor: saved.etcMinor,
     updatedAt: saved.updatedAt,
   };
+}
+
+/**
+ * Whether a line still posts where its account was read for: the account derives from the line's
+ * item and URID (decision 39), so a change to either leaves the account it was read with stale.
+ */
+export function sameAccountBasis(
+  read: Pick<BudgetLine, "urid" | "elementId">,
+  now: Pick<BudgetLine, "urid" | "elementId">,
+): boolean {
+  return read.urid === now.urid && read.elementId === now.elementId;
 }
 
 export interface BudgetCommittedTotal {

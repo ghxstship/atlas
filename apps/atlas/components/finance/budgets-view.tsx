@@ -654,7 +654,6 @@ export async function BudgetsView({ page }: { page: FinancePage }) {
               allLines={detail.data.lines}
               lineFields={lineFields}
               urids={urids.data}
-              accounts={accounts.data}
               costCenters={centers.data.map((c) => ({ id: c.id, code: c.code, name: c.name }))}
               grades={grades.data}
               canWrite={canWrite}

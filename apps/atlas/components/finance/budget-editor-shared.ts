@@ -1,4 +1,4 @@
-import type { BudgetLine, GlAccount, Grade, UridOption } from "@xos/data/finance";
+import type { BudgetLine, Grade, UridOption } from "@xos/data/finance";
 import type { ActionState } from "@/app/[org]/finance/actions";
 import type { PresenceMe } from "@/components/presence/presence";
 
@@ -31,7 +31,6 @@ export interface BudgetEditorProps {
   /** The org has custom fields on budget lines, so Line fields is offered (with finance.budget.write). */
   readonly lineFields?: boolean;
   readonly urids: readonly UridOption[];
-  readonly accounts: readonly GlAccount[];
   readonly costCenters: readonly CostCenterOption[];
   readonly grades: readonly Grade[];
   readonly canWrite: boolean;

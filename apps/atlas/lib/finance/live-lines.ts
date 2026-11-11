@@ -1,6 +1,7 @@
 import {
   extendedMinor,
   mergeSavedLine,
+  sameAccountBasis,
   type BudgetLine,
   type BudgetLineInput,
 } from "@xos/data/finance";
@@ -75,6 +76,8 @@ export function typedLine(
     return {
       ...l,
       ...input,
+      // A typed URID or item changes the account the line posts to; blank until the page rereads it.
+      accountCode: sameAccountBasis(l, input) ? l.accountCode : null,
       markupBp: input.markupBp === undefined ? l.markupBp : input.markupBp,
       clientUnitPriceMinor:
         input.clientUnitPriceMinor === undefined
