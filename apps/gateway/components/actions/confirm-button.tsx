@@ -1,10 +1,12 @@
 "use client";
 
-import { Button, Dialog, Textarea, type ButtonProps } from "@xos/ui";
-import { useRouter } from "next/navigation";
+import { Button, type ButtonProps } from "@xos/ui";
+import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
-import { useId, useState, useTransition, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import type { ActionResult } from "@/lib/action-result";
+
+const ConfirmDialog = dynamic(() => import("./confirm-dialog").then((m) => m.ConfirmDialog));
 
 type Translate = (key: string) => string;
 
@@ -13,7 +15,8 @@ type Translate = (key: string) => string;
  * for one. On success the page refreshes; a refusal says what happened under the trigger. With `reason`,
  * the dialog asks for an optional reason of up to 500 characters and passes it to the action, trimmed,
  * or null when blank (declining an offer or a shift). `confirmVariant` keeps the danger button for what
- * cannot be undone; a certification that can be corrected later confirms with the primary one.
+ * cannot be undone; a certification that can be corrected later confirms with the primary one. The dialog
+ * loads when the trigger is pressed (confirm-dialog.tsx), so a page ships only the button.
  */
 export function ConfirmButton({
   action,
@@ -40,69 +43,35 @@ export function ConfirmButton({
   /** Anything else the person reads before confirming, such as a warning. */
   children?: ReactNode;
 }) {
-  const router = useRouter();
   const t = useTranslations("gateway.outcomes") as unknown as Translate;
-  const reasonId = useId();
   const [open, setOpen] = useState(false);
-  const [text, setText] = useState("");
-  const [pending, start] = useTransition();
   const [result, setResult] = useState<ActionResult | null>(null);
   return (
     <span className="inline-flex flex-col items-start gap-4">
-      <Dialog
-        open={open}
-        onOpenChange={setOpen}
-        trigger={
-          <Button type="button" size="sm" variant={triggerVariant}>
-            {label}
-          </Button>
-        }
-        title={title}
-        description={sentence}
-        actions={
-          <>
-            <Button type="button" onClick={() => setOpen(false)}>
-              {cancel}
-            </Button>
-            <Button
-              type="button"
-              variant={confirmVariant}
-              disabled={pending}
-              aria-busy={pending}
-              onClick={() =>
-                start(async () => {
-                  const next = reason ? await action(text.trim() || null) : await action();
-                  setResult(next);
-                  setOpen(false);
-                  if (next.ok) {
-                    setText("");
-                    router.refresh();
-                  }
-                })
-              }
-            >
-              {confirm}
-            </Button>
-          </>
-        }
+      <Button
+        type="button"
+        size="sm"
+        variant={triggerVariant}
+        aria-haspopup="dialog"
+        onClick={() => setOpen(true)}
       >
-        {children || reason ? (
-          <div className="flex flex-col gap-12">
-            {children}
-            {reason ? (
-              <Textarea
-                id={reasonId}
-                label={reason}
-                value={text}
-                onChange={(e) => setText(e.target.value)}
-                maxLength={500}
-                rows={3}
-                width="100%"
-              />
-            ) : null}
-          </div>
-        ) : null}
-      </Dialog>
+        {label}
+      </Button>
+      {open ? (
+        <ConfirmDialog
+          action={action}
+          title={title}
+          sentence={sentence}
+          confirm={confirm}
+          cancel={cancel}
+          reason={reason}
+          confirmVariant={confirmVariant}
+          setOpen={setOpen}
+          onResult={setResult}
+        >
+          {children}
+        </ConfirmDialog>
+      ) : null}
       {result && !result.ok ? (
         <span role="alert" className="text-text-12 text-danger-text">
           {t(result.outcome)}
