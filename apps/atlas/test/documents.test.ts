@@ -6,6 +6,8 @@ import { atlasRecordPath, documentHref } from "@/lib/documents/links";
 
 const state = vi.hoisted(() => ({ ctx: null as unknown }));
 const gen = vi.hoisted(() => ({ single: vi.fn(), batch: vi.fn(), book: vi.fn() }));
+// Which credentials the viewer may issue (crawl 4.9); every one asked, unless a test says otherwise.
+const access = vi.hoisted(() => ({ issuable: vi.fn() }));
 
 vi.mock("next-intl/server", () => ({ getLocale: async () => "en-US" }));
 vi.mock("@/lib/env", () => ({ env: () => ({ ATLAS_SITE_URL: "https://atlas.example.test" }) }));
@@ -16,6 +18,10 @@ vi.mock("@xos/data/documents/generate", () => ({
   watermarkText: () => "marked",
 }));
 vi.mock("@xos/data/documents/books", () => ({ generateBook: gen.book }));
+vi.mock("@xos/data/credentials", async (original) => ({
+  ...(await original<Record<string, unknown>>()),
+  issuableCredentialIds: access.issuable,
+}));
 vi.mock("@/lib/documents/wrap-up", () => ({
   wrapUpLoadOptions: async () => ({ ledgerRead: false, unitPreference: "metric" }),
 }));
@@ -76,6 +82,12 @@ describe("document routes (P5 sizes and badge batches)", () => {
 
   beforeEach(() => {
     state.ctx = ctx;
+    access.issuable
+      .mockReset()
+      .mockImplementation(async (_db: unknown, _org: string, ids: readonly string[]) => ({
+        ok: true,
+        data: new Set(ids),
+      }));
     gen.single.mockReset().mockResolvedValue({
       ok: true,
       data: { bytes: new Uint8Array([37, 80, 68, 70]), fileName: "f.pdf", templateVersion: 2 },
@@ -137,6 +149,22 @@ describe("document routes (P5 sizes and badge batches)", () => {
     expect(gen.batch.mock.calls[2]?.[0]).toMatchObject({ paper: "cr80" });
   });
 
+  it("prints and downloads badges only on projects where the viewer issues credentials (crawl 4.9)", async () => {
+    access.issuable.mockResolvedValue({ ok: true, data: new Set([ID2]) });
+    const response = await batch(`?id=${ID}&id=${ID2}`);
+    expect(response.status).toBe(200);
+    expect(gen.batch.mock.calls[0]?.[0]).toMatchObject({ ids: [ID2] });
+    // The batch skipped one itself, and the badge the viewer may not issue is counted too.
+    expect(response.headers.get("X-Badges-Skipped")).toBe("2");
+    access.issuable.mockResolvedValue({ ok: true, data: new Set() });
+    expect((await batch(`?id=${ID}`)).status).toBe(404);
+    expect(gen.batch).toHaveBeenCalledTimes(1);
+    expect((await open("credential-badge", "")).status).toBe(404);
+    expect(gen.single).not.toHaveBeenCalled();
+    // Other documents keep their own rules.
+    expect((await open("invoice", "")).status).toBe(200);
+  });
+
   it("answers 400 for no id, a malformed id or more than 100, and 404 when nothing prints", async () => {
     expect((await batch("")).status).toBe(400);
     expect((await batch("?id=not-a-uuid")).status).toBe(400);
@@ -164,6 +192,12 @@ describe("day sheets for an audience and books (B7)", () => {
 
   beforeEach(() => {
     state.ctx = ctx;
+    access.issuable
+      .mockReset()
+      .mockImplementation(async (_db: unknown, _org: string, ids: readonly string[]) => ({
+        ok: true,
+        data: new Set(ids),
+      }));
     gen.single.mockReset().mockResolvedValue({
       ok: true,
       data: { bytes: new Uint8Array([37, 80, 68, 70]), fileName: "f.pdf", templateVersion: 2 },
