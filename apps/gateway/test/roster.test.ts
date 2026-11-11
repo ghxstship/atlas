@@ -4,7 +4,12 @@ import { loadSitemapFile } from "@xos/ia/node";
 import { describe, expect, it } from "vitest";
 import { visibleEngagementTabs } from "../lib/engagement-offerings";
 import { needsYou } from "../lib/home";
-import { engagementRosterable, rosterConditions } from "../lib/roster";
+import {
+  engagementRosterable,
+  rosterConditions,
+  rosterDraftsHeld,
+  rosterEntriesToSubmit,
+} from "../lib/roster";
 import { navContext } from "../lib/shell/standing";
 
 /**
@@ -159,5 +164,39 @@ describe("Home asks for answers first", () => {
         now: new Date("2027-05-01T12:00:00Z"),
       }),
     ).toEqual([]);
+  });
+});
+
+describe("the roster submit (904110601)", () => {
+  type Row = Parameters<typeof rosterEntriesToSubmit>[0][number] & { readonly id: string };
+  const row = (over: Partial<Row>): Row => ({
+    id: "r",
+    isSelf: false,
+    personId: "p",
+    entryState: "Draft",
+    personResponse: "Pending",
+    ...over,
+  });
+  const entries: Row[] = [
+    row({ id: "staff-one", personResponse: "Accepted" }),
+    row({ id: "staff-two", personResponse: "Declined" }),
+    row({ id: "returned", entryState: "Returned" }),
+    row({ id: "returned-declined", entryState: "Returned", personResponse: "Declined" }),
+    row({ id: "self", isSelf: true }),
+    row({ id: "invited", personId: null }),
+    row({ id: "accepted", entryState: "Accepted" }),
+  ];
+
+  it("never counts or submits someone who declined", () => {
+    expect(rosterEntriesToSubmit(entries, false).map((e) => e.id)).toEqual([
+      "staff-one",
+      "returned",
+    ]);
+  });
+
+  it("under a names lock moves only Returned entries, and holds back the Drafts nobody declined", () => {
+    expect(rosterEntriesToSubmit(entries, true).map((e) => e.id)).toEqual(["returned"]);
+    expect(rosterDraftsHeld(entries, true)).toBe(1);
+    expect(rosterDraftsHeld(entries, false)).toBe(0);
   });
 });

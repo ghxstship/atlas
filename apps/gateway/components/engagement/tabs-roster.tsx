@@ -100,17 +100,11 @@ export async function CrewTab({ view, t, locale }: TabProps) {
           : p.fullName,
     }));
   const timeZone = engagement.projectTimeZone;
-  // Under a names lock only Returned entries go back for review (4656); Draft names wait for the lock to move.
-  const toSubmit = entries.filter(
-    (e) =>
-      !e.isSelf &&
-      e.personId !== null &&
-      (e.entryState === "Returned" || (e.entryState === "Draft" && !locked)),
-  );
+  // Under a names lock only Returned entries go back for review (4656); Draft names wait for the lock to move. An entry
+  // its person declined is never submitted (904110601): the lead replaces or withdraws it.
+  const toSubmit = rosterEntriesToSubmit(entries, locked);
   // Drafts the lock holds back: with nothing else to submit, Submit stays on screen, disabled, with the lock sentence.
-  const held = locked
-    ? entries.filter((e) => !e.isSelf && e.personId !== null && e.entryState === "Draft").length
-    : 0;
+  const held = rosterDraftsHeld(entries, locked);
   const local = (iso: string | null) =>
     iso
       ? new Intl.DateTimeFormat("sv-SE", {
