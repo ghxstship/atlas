@@ -183,7 +183,7 @@ export const COMPASS_SEARCH_ACTIONS = [
   { key: "startInspection", feature: "inspections.perform", href: "/inspections" },
   { key: "scan", feature: null, href: "/scan" },
   { key: "addExpense", feature: "expenses.submit", href: "/expenses" },
-  { key: "runOfShow", feature: "show.read", href: "/show" },
+  { key: "runOfShow", feature: "show.read", href: "/run-of-show" },
   { key: "openSchedule", feature: null, href: "/schedule" },
   { key: "openInbox", feature: null, href: "/inbox" },
   { key: "offlineQueue", feature: null, href: "/offline-queue" },

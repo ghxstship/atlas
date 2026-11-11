@@ -191,4 +191,10 @@ describe("groups and actions", () => {
       href: "/incidents/new",
     });
   });
+
+  it("opens the run of show on the screen its feature opens, which a Client can reach", () => {
+    // show.read is the read-only running order (/run-of-show); /show is the live view behind show.live.
+    const action = COMPASS_SEARCH_ACTIONS.find((a) => a.key === "runOfShow");
+    expect(action).toMatchObject({ feature: "show.read", href: "/run-of-show" });
+  });
 });
