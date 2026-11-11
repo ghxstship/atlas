@@ -1,6 +1,5 @@
-import { expect, test } from "@playwright/test";
 import { expectAccessibleInBothThemes } from "./a16-support";
-import { settle } from "./engine-test";
+import { expect, settle, test } from "./engine-test";
 import { DEMO_ORG, signInAs } from "./a36-support";
 
 /**

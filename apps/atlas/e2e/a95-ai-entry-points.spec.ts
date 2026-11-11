@@ -47,6 +47,22 @@ async function setSwitches(page: Page, on: readonly Feature[]) {
 }
 
 /** This month's metered Aurora requests for the org (app.ai_usage through aurora.status). */
+/**
+ * The plain-language filter, once React has hydrated its form: its submit handler opens the panel. WebKit in CI
+ * (nightly run 42927680948) filled the field and pressed Enter while the page's chunks were still loading, and the
+ * panel was never even requested; the test waited a minute for it.
+ */
+async function plainLanguage(page: Page) {
+  const search = page.getByRole("search", { name: "Filter in plain language" });
+  await expect
+    .poll(
+      () => search.evaluate((el) => Object.keys(el).some((key) => key.startsWith("__reactProps"))),
+      { timeout: 60_000 },
+    )
+    .toBe(true);
+  return search;
+}
+
 async function used(page: Page): Promise<number> {
   const response = await page.request.get("/api/v1/aurora/status", { timeout: 120_000 });
   expect(response.status()).toBe(200);
@@ -118,7 +134,7 @@ test.afterAll(async () => {
 
 test("plain_language: a sentence becomes the page's own filters, shown and editable before they apply", async () => {
   await page.goto(`/${ORG}/finance/invoices?view=table`);
-  const search = page.getByRole("search", { name: "Filter in plain language" });
+  const search = await plainLanguage(page);
   await expect(search).toBeVisible();
   const before = await used(page);
 
@@ -158,7 +174,7 @@ test("plain_language: a sentence becomes the page's own filters, shown and edita
 
 test("plain_language: NO ANSWER, a used-up allowance and an unreachable API each say so plainly", async () => {
   await page.goto(`/${ORG}/finance/expenses`);
-  const search = page.getByRole("search", { name: "Filter in plain language" });
+  const search = await plainLanguage(page);
   await search.getByLabel("Filter in plain language").fill("expenses on rainy days");
   await search.getByRole("button", { name: "Build filter" }).click();
   const panel = page.getByRole("dialog", { name: "Filter expenses with Aurora" });
@@ -423,7 +439,7 @@ test("panels pass axe in the light theme too (both themes, gate 8)", async () =>
   await page.context().addCookies([{ name: "xos-theme", value: "light", url: page.url() }]);
   try {
     await page.goto(`/${ORG}/finance/invoices`);
-    const search = page.getByRole("search", { name: "Filter in plain language" });
+    const search = await plainLanguage(page);
     await search.getByLabel("Filter in plain language").fill("overdue invoices from Bluewater");
     await search.getByRole("button", { name: "Build filter" }).click();
     const panel = page.getByRole("dialog", { name: "Filter invoices with Aurora" });

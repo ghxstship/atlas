@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./engine-test";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { expectAccessibleInBothThemes } from "./a16-support";
 import { DEMO_ORG, signInAs } from "./a36-support";
