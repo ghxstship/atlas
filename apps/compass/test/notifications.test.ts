@@ -277,6 +277,19 @@ describe("C-24: a timesheet request's title has the person's dates, never ISO on
     ).toEqual({ worker: "Demo Staff One", periodStart: "2026-11-08", periodEnd: "2026-11-10" });
   });
 
+  it("reads a reminder of the request the same way, so it is not left in the server's English", () => {
+    expect(
+      timesheetRequestOf(
+        request(
+          { workerName: "Demo Staff One", periodStart: "2026-11-08", periodEnd: "2026-11-10" },
+          "approval.reminder",
+        ),
+      ),
+    ).toEqual({ worker: "Demo Staff One", periodStart: "2026-11-08", periodEnd: "2026-11-10" });
+    // A reminder sent before its arguments carried the period keeps its own title.
+    expect(timesheetRequestOf(request({}, "approval.reminder"))).toBeNull();
+  });
+
   it("leaves other notifications and requests without dates to their own title", () => {
     expect(timesheetRequestOf(request({}))).toBeNull();
     expect(

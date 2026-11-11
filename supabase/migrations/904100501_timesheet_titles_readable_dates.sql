@@ -4,13 +4,17 @@
 -- month as three letters, the year only when the range is not in one year); Compass composes the request's title in the
 -- person's own language from workerName, periodStart and periodEnd, which the request has carried since 4755.
 --
--- private.timesheet_approval_requests starts from 4755 and private.pending_approvals from 5862; each changes only the
--- title and keeps its signature, owner, description and grants. Notifications sent before this keep their title.
+-- A timesheet's reminder carries workerName, periodStart and periodEnd as its request does, so Compass writes the
+-- reminder in the person's language too, and its title names a roster-entry worker, whom 5862's two-argument
+-- private.worker_person_id left blank ("Timesheet , Nov 8 to Nov 10").
+--
+-- private.timesheet_approval_requests starts from 4755, private.pending_approvals and private.send_approval_reminder from
+-- 5862; each keeps its signature, owner and grants. Notifications sent before this keep their title and arguments.
 
 create or replace function private.date_range_label(p_start date, p_end date)
 returns text
 language sql
-immutable
+stable
 set search_path = ''
 as $$
   select case
@@ -95,7 +99,8 @@ as $$
     coalesce((select max(x.created_at) from app.timesheet_state_transitions x
               where x.timesheet_id = t.id and x.to_state = 'Submitted'), t.updated_at),
     format('Timesheet %s, %s',
-      coalesce((select p.full_name from app.people p where p.id = private.worker_person_id(t.membership_id, t.engagement_id)), ''),
+      coalesce((select p.full_name from app.people p
+                where p.id = private.worker_person_id(t.membership_id, t.engagement_id, t.roster_entry_id)), ''),
       private.date_range_label(t.period_start, t.period_end))
   from app.timesheets t
   where t.timesheet_state = 'Submitted' and t.deleted_at is null
@@ -109,3 +114,78 @@ $$;
 
 comment on function private.pending_approvals() is 'Every approval waiting on a decision now, for the reminder job and the manual nudge (P9): spend approval instances In Review at their current step, waiting since their last decision or since they were requested; submitted timesheets, waiting since their latest Submitted transition; and subject approvals In Review at their current step (5860). With the requester and a title for the reminder.';
 revoke all on function private.pending_approvals() from public, anon, authenticated;
+
+-- A reminder carries what its request carries (latest: 5862) -----------------------------------------------------------------------
+
+create or replace function private.send_approval_reminder(
+  p_org_id uuid,
+  p_project_id uuid,
+  p_subject_table text,
+  p_subject_id uuid,
+  p_step_order smallint,
+  p_requested_by uuid,
+  p_waiting_since timestamptz,
+  p_title text,
+  p_number smallint,
+  p_limit integer,
+  p_trigger text,
+  p_sent_by uuid,
+  p_at timestamptz
+)
+returns integer
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+declare
+  v_person uuid;
+  v_sent integer := 0;
+  v_args jsonb;
+  v_claimed uuid;
+begin
+  -- The ledger row first: a second run, or a nudge racing the sweep, finds the number taken and sends nothing.
+  insert into app.approval_reminders (org_id, subject_table, subject_id, step_order, reminder_number, trigger, sent_by, sent_at)
+  values (p_org_id, p_subject_table, p_subject_id, p_step_order, p_number, p_trigger, p_sent_by, p_at)
+  on conflict do nothing
+  returning id into v_claimed;
+  if v_claimed is null then
+    return 0;
+  end if;
+  v_args := jsonb_build_object('title', p_title,
+    'actorName', coalesce((select p.full_name from app.people p where p.id = p_requested_by),
+                          (select o.name from app.organizations o where o.id = p_org_id), ''),
+    'waitingSince', to_char(p_waiting_since at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"'),
+    'reminderNumber', p_number, 'reminderLimit', p_limit);
+  if p_subject_table = 'subject_approvals' then
+    v_args := v_args || jsonb_build_object('stepOrder', p_step_order);
+  elsif p_subject_table = 'timesheets' then
+    -- The worker and the period, as the request carries them, for Compass to write in the person's language (C-24).
+    v_args := v_args || coalesce((
+      select jsonb_build_object(
+        'workerName', coalesce((select p.full_name from app.people p
+                                where p.id = private.worker_person_id(t.membership_id, t.engagement_id, t.roster_entry_id)), ''),
+        'periodStart', t.period_start::text, 'periodEnd', t.period_end::text)
+      from app.timesheets t where t.id = p_subject_id), '{}'::jsonb);
+  end if;
+  for v_person in select x from private.approval_step_recipients(p_subject_table, p_subject_id) x loop
+    -- A new reminder replaces the person's earlier one for the same approval, and its links stop working.
+    update private.notification_action_tokens t set revoked_at = now()
+    where t.used_at is null and t.revoked_at is null and t.notification_id in (
+      select n.id from app.notifications n
+      where n.recipient_person_id = v_person and n.kind = 'approval.reminder' and n.subject_table = p_subject_table
+        and n.subject_id = p_subject_id and n.archived_at is null and n.deleted_at is null);
+    update app.notifications n set archived_at = now()
+    where n.recipient_person_id = v_person and n.kind = 'approval.reminder' and n.subject_table = p_subject_table
+      and n.subject_id = p_subject_id and n.archived_at is null and n.deleted_at is null;
+    if private.notify(p_org_id, v_person, 'approval.reminder', p_subject_table, p_subject_id,
+         p_project_id, v_args) is not null then
+      v_sent := v_sent + 1;
+    end if;
+  end loop;
+  return v_sent;
+end;
+$$;
+
+comment on function private.send_approval_reminder(uuid, uuid, text, uuid, smallint, uuid, timestamptz, text, smallint, integer, text, uuid, timestamptz) is 'Records reminder p_number of a pending approval''s step in app.approval_reminders, then sends approval.reminder through private.notify to each of the step''s approvers (private.approval_step_recipients), replacing each person''s earlier open reminder for the approval and revoking its links. Arguments: title, actorName (the requester, or the org), waitingSince (ISO instant), reminderNumber, reminderLimit, stepOrder for a subject approval, and workerName, periodStart and periodEnd (ISO days) for a timesheet (C-24). Sends nothing when the number is already recorded. Returns the notifications created (P9).';
+revoke all on function private.send_approval_reminder(uuid, uuid, text, uuid, smallint, uuid, timestamptz, text, smallint, integer, text, uuid, timestamptz) from public, anon, authenticated;
