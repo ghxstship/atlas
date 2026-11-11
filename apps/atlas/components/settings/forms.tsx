@@ -13,6 +13,7 @@ import {
 } from "@/app/[org]/settings/actions";
 
 import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
+import { replacesPendingInvite } from "@/lib/settings/invite-replace";
 import { useStepUp } from "@/components/auth/security/step-up";
 /** Client forms for the org settings pages; each keeps typed input after a failed submit. */
 
@@ -90,15 +91,23 @@ export function InviteForm({
   org,
   roles,
   defaultRoleId,
+  pendingEmails = [],
 }: {
   org: string;
   roles: readonly RoleOption[];
   defaultRoleId: string;
+  /** Emails with an invitation still waiting: inviting one again voids its earlier link (app.invite_member). */
+  pendingEmails?: readonly string[];
 }) {
   const t = useCopy("shell.settings.members");
   const format = useFormatter();
   const [state, action, pending] = useActionState(inviteMemberAction, INITIAL);
   const [copied, setCopied] = useState(false);
+  const [email, setEmail] = useState("");
+  // Whether the invitation just created replaced one still waiting, read when the form was sent (crawl 4.9).
+  const [replaced, setReplaced] = useState(false);
+  const replacing = replacesPendingInvite(email, pendingEmails);
+  const keep = keepInputOnSubmit(action);
   return (
     <section aria-labelledby="invite-heading" className="flex flex-col gap-12">
       <h2 id="invite-heading" className="m-0 text-heading-16 font-semibold">
@@ -106,7 +115,10 @@ export function InviteForm({
       </h2>
       <form
         action={action}
-        onSubmit={keepInputOnSubmit(action)}
+        onSubmit={(event) => {
+          setReplaced(replacing);
+          keep(event);
+        }}
         className="flex flex-col gap-12"
         noValidate
       >
@@ -120,8 +132,10 @@ export function InviteForm({
           required
           width="100%"
           label={t("invite.email")}
+          onChange={(e) => setEmail(e.target.value)}
           error={state.fieldErrors?.["email"] ? t("errors.email") : ""}
         />
+        {replacing ? <InlineAlert tone="warning">{t("invite.replaces")}</InlineAlert> : null}
         <div className="flex flex-wrap gap-12">
           <Select
             id="invite-role"
@@ -157,6 +171,7 @@ export function InviteForm({
               email: state.invite.email,
               expires: format.relativeTime(new Date(state.invite.expiresAt)),
             })}
+            {replaced ? ` ${t("invite.replaced")}` : ""}
           </p>
           <Input
             id="invite-link"

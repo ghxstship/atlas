@@ -581,7 +581,7 @@
         "action": "Agregar entidad"
       },
       "rolesAndCapabilities": {
-        "empty": "Crea roles personalizados a partir del conjunto de capacidades.",
+        "empty": "Los roles que puede tener un miembro, del que más acceso da al que menos, y las capacidades que concede cada uno. Los roles de la plataforma son fijos; Ver como rol muestra uno.",
         "action": "Nuevo rol"
       },
       "teams": {
@@ -717,7 +717,7 @@
         "action": "Ver miembros"
       },
       "dangerZone": {
-        "empty": "Transfiere la propiedad, archiva o elimina esta organización.",
+        "empty": "Cancela, reactiva o elimina esta organización, o transfiere su propiedad.",
         "action": "Transferir propiedad"
       },
       "general": {
@@ -751,8 +751,8 @@
         "action": "Definir visibilidad"
       },
       "account": {
-        "empty": "Administra tu correo, teléfono, inicios de sesión vinculados y exportación de datos.",
-        "action": "Editar cuenta"
+        "empty": "Tus solicitudes de soporte y certificados de eliminación. Tu nombre, tus métodos de inicio de sesión y la eliminación de la cuenta están en Gateway, donde vive tu cuenta de XOS.",
+        "action": "Abrir la cuenta en Gateway"
       },
       "security": {
         "empty": "Agrega una llave de acceso o MFA y revisa tus sesiones y dispositivos.",
@@ -1194,6 +1194,8 @@
         "days": "{count, plural, one {# día} other {# días}}",
         "submit": "Crear invitación",
         "created": "Invitación creada para {email}. Envíale este enlace; funciona una sola vez y vence {expires}.",
+        "replaces": "Ya hay una invitación pendiente para este correo. Si creas una nueva, el enlace anterior deja de funcionar y se aplica el rol que elijas ahora.",
+        "replaced": "El enlace de invitación anterior para este correo ya no funciona.",
         "link": "Enlace de invitación",
         "copy": "Copiar enlace",
         "copied": "Enlace copiado."
@@ -1248,6 +1250,8 @@
     },
     "billing": {
       "current": "{org} está en el plan {plan}.",
+      "canceled": "Esta organización está cancelada, así que está en el plan Access y es de solo lectura. Reactívala antes de elegir un plan.",
+      "canceledAction": "Reactivar en Zona de peligro",
       "perMonth": "{price} al mes",
       "choose": "Elegir {plan}",
       "chooseAnnual": "Elegir {plan}, con facturación anual",
@@ -1301,6 +1305,7 @@
       "perYear": "{price} al año, dos meses gratis",
       "seats": "Asientos",
       "seatUsage": "{used} de {limit} asientos en uso.",
+      "seatUsageOver": "{used} asientos en uso. El plan incluye {limit}.",
       "seatUsageUnlimited": "{used, plural, one {# asiento} other {# asientos}} en uso. Tu plan tiene asientos ilimitados.",
       "extraSeats": "{count, plural, one {Incluye # asiento adicional comprado} other {Incluye # asientos adicionales comprados}} además del plan.",
       "grandfathered": "Tu suscripción empezó antes de que los planes tuvieran límite de asientos, así que conserva asientos ilimitados. Cambiar de plan aplica los nuevos límites.",
@@ -1392,6 +1397,7 @@
     "NO_ANSWER": "Sin respuesta",
     "UNRATIFIED": "Sin ratificar"
   },
+  "refusalReference": "Referencia para soporte: {code}",
   "commandMenu": {
     "groups": {
       "actions": "Acciones",

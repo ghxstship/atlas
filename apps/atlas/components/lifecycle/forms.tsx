@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { useActionState, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useStepUpForm } from "@/components/auth/security/step-up";
 import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
+import { RefusalReference } from "@/components/refusal-reference";
 import {
   cancelOwnershipAction,
   endStandingGrantAction,
@@ -53,7 +54,7 @@ function Outcome({ state, success }: { state: PlatformActionState; success?: str
     return (
       <InlineAlert tone="warning" title={t("refusedTitle")}>
         {t.has(key) ? t(key) : t("refusals.other")}
-        <span className="block font-mono text-text-11 text-text-tertiary">{state.rule}</span>
+        <RefusalReference rule={state.rule} known={t.has(key)} />
       </InlineAlert>
     );
   }

@@ -49,6 +49,15 @@
     "redacted": "Redacted",
     "service": "Service",
     "systemActor": "System",
+    "person": "A person",
+    "platformTeam": "The platform support team",
+    "supportOpened": "Opened {area} during a support session",
+    "areas": {
+      "Overview": "the overview",
+      "Members": "the members",
+      "Projects": "the projects",
+      "Settings": "the settings"
+    },
     "older": "Show older entries",
     "newest": "Back to newest",
     "changedFieldList": "{count, plural, one {# field} other {# fields}}: {fields}",
@@ -235,6 +244,10 @@
     "access_grid": "an access grid entry",
     "communication_mark": "a communication mark",
     "travel_segment": "a travel segment",
-    "settlement_line": "a settlement line"
+    "settlement_line": "a settlement line",
+    "support_session": "a platform support session",
+    "support_session_access": "a platform support read",
+    "legal_acceptance": "a legal acceptance",
+    "verbiage_term": "a vocabulary term"
   }
 }

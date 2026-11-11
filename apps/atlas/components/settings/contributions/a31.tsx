@@ -8,6 +8,7 @@ import { InlineAlert } from "@/components/ui";
 import { PlatformContact } from "@/components/support/platform-contact";
 import { SupportRequests } from "@/components/support/support-requests";
 import { ToursAndTips } from "@/components/support/tours-tips";
+import { gatewayUrl } from "@/lib/gateway-url";
 import { nodeHref, sitemap } from "@/lib/shell/sitemap";
 import { getTranslate } from "@/lib/shell/translate";
 import { platformChannel } from "@/lib/support/terms";
@@ -150,7 +151,35 @@ async function ToursTipsPanel(props: SettingsPanelProps) {
   );
 }
 
+/**
+ * Me, Account: the XOS account itself (name, sign-in methods, deletion) lives in Gateway (Section 4.5.8), so Atlas says
+ * so and links there instead of promising controls it does not have (crawl 4.9).
+ */
+async function AccountInGatewayPanel() {
+  const t = await getTranslate();
+  return (
+    <section
+      aria-labelledby="account-in-gateway"
+      className="flex flex-col gap-8"
+      data-testid="account-in-gateway"
+    >
+      <Heading
+        id="account-in-gateway"
+        title={t("settings.account.gatewayTitle")}
+        description={t("settings.account.gatewayBody")}
+      />
+      <a
+        href={gatewayUrl("/settings/account")}
+        className="text-text-13 font-medium text-accent-text underline"
+      >
+        {t("settings.account.gatewayLink")}
+      </a>
+    </section>
+  );
+}
+
 export const contributions: readonly SettingsContribution[] = [
+  { node: "me.account", order: 0, Panel: AccountInGatewayPanel },
   { node: "settings.help-and-support", order: 100, Panel: OrgSupportPanel },
   { node: "me.account", order: 100, Panel: MySupportPanel },
   { node: "me.preferences", order: 100, Panel: ToursTipsPanel },

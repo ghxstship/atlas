@@ -57,6 +57,8 @@ export interface ActionState {
 const KNOWN_REFUSALS = new Set([
   "plan_limit_exceeded",
   "plan_limit_read_only",
+  // The whole org is read-only (canceled, deletion pending, dunning or paused): said plainly, never as a raw code.
+  "org_read_only",
   "project_currency_required",
   "time_zone_unknown",
   "gate_criteria_unmet",

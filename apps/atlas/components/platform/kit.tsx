@@ -2,6 +2,7 @@
 
 import { Button, EmptyState, ErrorState, InlineAlert, Skeleton, type ButtonProps } from "@xos/ui";
 import { RefusalNotice } from "@/components/refusal-notice";
+import { RefusalReference } from "@/components/refusal-reference";
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -47,7 +48,7 @@ export function Feedback({ state, success }: { state: PlatformActionState; succe
     return (
       <InlineAlert tone="warning" title={t("common.refusedTitle")}>
         {t.has(key) ? t(key) : t("refusals.other")}
-        <span className="block font-mono text-text-11 text-text-tertiary">{state.rule}</span>
+        <RefusalReference rule={state.rule} known={t.has(key)} />
       </InlineAlert>
     );
   }

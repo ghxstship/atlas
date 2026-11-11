@@ -22,7 +22,7 @@ import {
   revokePersonalTokenAction,
   toggleWebhookAction,
 } from "@/app/[org]/settings/surface-actions";
-import { planHasFeature } from "@/lib/settings/plan";
+import { personalTokensState, planHasFeature } from "@/lib/settings/plan";
 import type { OrgContext } from "@/lib/shell/context";
 import type { SettingsPanelProps } from "../contributions/types";
 import { SurfaceButton, SurfaceForm, type SecretCopy } from "./forms";
@@ -353,10 +353,11 @@ function tokenRows(
 
 /** On the org's API page: every member's personal token, so an admin can revoke one. */
 export async function OrgPersonalTokensPanel({ ctx }: SettingsPanelProps) {
-  const [f, tokens, allowed] = await Promise.all([
+  const [f, tokens, allowed, inPlan] = await Promise.all([
     formatters(ctx),
     listPersonalTokens(ctx.viewer.db, { orgId: ctx.org.id }),
     orgAllowsPersonalTokens(ctx.viewer.db, ctx.org.id),
+    hasPlanFeature(ctx, "api_keys"),
   ]);
   if (!tokens.ok || !allowed.ok) return <LoadFailed t={f.t} />;
   const canEdit = ctx.capabilities.has("org.api_keys.manage");
@@ -371,8 +372,9 @@ export async function OrgPersonalTokensPanel({ ctx }: SettingsPanelProps) {
     <Section
       id="org-personal-tokens"
       title={f.t(`${P}.tokens.orgTitle`)}
-      description={f.t(allowed.data ? `${P}.tokens.orgOn` : `${P}.tokens.orgOff`)}
+      description={f.t(`${P}.tokens.${personalTokensState(allowed.data, inPlan)}`)}
     >
+      {inPlan ? null : <NotInPlan f={f} slug={ctx.org.slug} feature="apiKeys" />}
       {tokens.data.length === 0 ? (
         <Quiet>{f.t(`${P}.tokens.orgNone`)}</Quiet>
       ) : (

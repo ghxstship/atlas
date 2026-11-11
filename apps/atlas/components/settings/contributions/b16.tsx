@@ -8,6 +8,7 @@ import {
   BlocklistAddForm,
   BlocklistRemove,
   McpConnectorForm,
+  PauseArea,
   PauseForm,
   ProposalDecision,
   ResumeForm,
@@ -227,8 +228,13 @@ async function PausePanel({ ctx }: SettingsPanelProps) {
             org={ctx.org.slug}
             label={open.started ? t("resume") : t("cancelScheduled")}
             note={open.started ? t("resumeStarted") : null}
-            done={t("resumed")}
+            done={open.started ? t("resumed") : t("scheduleCanceled")}
             refusals={refusals}
+            confirm={{
+              title: open.started ? t("confirm.resumeTitle") : t("confirm.cancelScheduledTitle"),
+              body: open.started ? t("confirm.resumeBody") : t("confirm.cancelScheduledBody"),
+              cancel: t("confirm.back"),
+            }}
           />
         ) : (
           <p className="m-0 text-text-12 text-text-secondary">{t("ownerOnly")}</p>
@@ -251,6 +257,11 @@ async function PausePanel({ ctx }: SettingsPanelProps) {
           paused: t("paused", { startsOn: day(end) }),
         }}
         refusals={refusals}
+        confirm={{
+          title: t("confirm.pauseTitle"),
+          body: t("confirm.pauseBody"),
+          cancel: t("confirm.back"),
+        }}
       />
     ) : (
       <p className="m-0 text-text-12 text-text-secondary">{t("ownerOnly")}</p>
@@ -267,7 +278,8 @@ async function PausePanel({ ctx }: SettingsPanelProps) {
       description={t("description")}
       testId="pause-panel"
     >
-      {body}
+      {/* Keeps the outcome when a success swaps the form for the other one (crawl 4.9). */}
+      <PauseArea>{body}</PauseArea>
     </Section>
   );
 }

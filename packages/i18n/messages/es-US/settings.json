@@ -676,7 +676,23 @@
   },
   "roles": {
     "system": "Rol de la plataforma, nivel {band}",
-    "custom": "Rol personalizado, nivel {band}"
+    "custom": "Rol personalizado, nivel {band}",
+    "capabilities": "{count, plural, one {# capacidad} other {# capacidades}}",
+    "showCapabilities": "Ver lo que puede hacer {role}",
+    "reach": {
+      "own": "registros propios",
+      "assigned": "trabajo asignado",
+      "organization": "toda la organización"
+    },
+    "descriptions": {
+      "owner": "Todo, incluida la facturación, la eliminación y los derechos sobre los datos.",
+      "admin": "Configuración de la organización, miembros, integraciones y extensiones del canon.",
+      "manager": "Operaciones completas de proyectos y finanzas.",
+      "member": "Crea y edita en los proyectos a los que pertenece, sin aprobar finanzas.",
+      "collaborator": "Edita solo los registros asignados, sin escribir en finanzas ni compras.",
+      "field": "Funciones de campo de Compass, sus propios turnos, su propio tiempo y las tareas asignadas.",
+      "viewer": "Lee dentro de los ámbitos concedidos."
+    }
   },
   "favorites": {
     "pin": "Fijar página",
@@ -754,7 +770,7 @@
       "addLabel": "Agregar una entidad legal",
       "legalName": "Razón social",
       "country": "País",
-      "countryHelp": "Dos letras, como US o GB.",
+      "countryChoose": "Elige un país",
       "fiscalYearStart": "El año fiscal empieza en",
       "baseCurrency": "Moneda base",
       "taxIdentifier": "Identificador fiscal (opcional)",
@@ -1280,5 +1296,10 @@
     }
   },
   "layoutCustom": "Organizaste este panel. Restablecer devuelve sus mosaicos a su ancho predeterminado.",
-  "layoutDefault": "Diseño predeterminado. Organiza los mosaicos en el propio panel."
+  "layoutDefault": "Diseño predeterminado. Organiza los mosaicos en el propio panel.",
+  "account": {
+    "gatewayTitle": "Tu cuenta de XOS",
+    "gatewayBody": "Tu cuenta es la misma en Atlas, Gateway y Compass. Edita tu nombre o elimina tu cuenta en Gateway, en Configuración, Cuenta; tus métodos de inicio de sesión están en Configuración, Seguridad.",
+    "gatewayLink": "Abrir tu cuenta en Gateway"
+  }
 }

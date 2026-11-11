@@ -581,7 +581,7 @@
         "action": "Add entity"
       },
       "rolesAndCapabilities": {
-        "empty": "Build custom roles from the capability set.",
+        "empty": "The roles a member can hold, from most access to least, and the capabilities each one grants. Platform roles are fixed; View as role previews one.",
         "action": "New role"
       },
       "teams": {
@@ -717,7 +717,7 @@
         "action": "View members"
       },
       "dangerZone": {
-        "empty": "Transfer ownership, archive or delete this organization.",
+        "empty": "Cancel, reactivate or delete this organization, or transfer its ownership.",
         "action": "Transfer ownership"
       },
       "general": {
@@ -751,8 +751,8 @@
         "action": "Set visibility"
       },
       "account": {
-        "empty": "Manage your email, phone, linked sign-ins and data export.",
-        "action": "Edit account"
+        "empty": "Your support requests and deletion certificates. Your name, sign-in methods and account deletion are in Gateway, where your XOS account lives.",
+        "action": "Open account in Gateway"
       },
       "security": {
         "empty": "Add a passkey or MFA and review your sessions and devices.",
@@ -1194,6 +1194,8 @@
         "days": "{count, plural, one {# day} other {# days}}",
         "submit": "Create invite",
         "created": "Invitation created for {email}. Send them this link; it works once and expires {expires}.",
+        "replaces": "An invitation to this email is already waiting. Creating a new one stops the earlier link from working, and the role you choose now applies.",
+        "replaced": "The earlier invitation link for this email no longer works.",
         "link": "Invitation link",
         "copy": "Copy link",
         "copied": "Link copied."
@@ -1248,6 +1250,8 @@
     },
     "billing": {
       "current": "{org} is on the {plan} plan.",
+      "canceled": "This organization is canceled, so it is on the Access plan and read-only. Reactivate it before you choose a plan.",
+      "canceledAction": "Reactivate in Danger Zone",
       "perMonth": "{price} per month",
       "choose": "Choose {plan}",
       "chooseAnnual": "Choose {plan}, billed yearly",
@@ -1301,6 +1305,7 @@
       "perYear": "{price} a year, two months free",
       "seats": "Seats",
       "seatUsage": "{used} of {limit} seats in use.",
+      "seatUsageOver": "{used} seats in use. The plan includes {limit}.",
       "seatUsageUnlimited": "{used, plural, one {# seat} other {# seats}} in use. Your plan has unlimited seats.",
       "extraSeats": "{count, plural, one {Includes # extra seat} other {Includes # extra seats}} bought on top of the plan.",
       "grandfathered": "Your subscription started before plans had seat limits, so it keeps unlimited seats. Changing plan applies the new seat limits.",
@@ -1392,6 +1397,7 @@
     "NO_ANSWER": "No answer",
     "UNRATIFIED": "Not ratified"
   },
+  "refusalReference": "Reference for support: {code}",
   "commandMenu": {
     "groups": {
       "actions": "Actions",

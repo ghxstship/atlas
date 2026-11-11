@@ -75,7 +75,7 @@
     "title": "Archivo compartido",
     "intro": "Alguien compartió un archivo contigo. Ábrelo abajo.",
     "accessCode": "Código de acceso",
-    "accessCodeHelp": "Escribe el código de 6 dígitos si lo recibiste con el enlace.",
+    "accessCodeHelp": "Ingresa el código de 6 dígitos que llegó con el enlace. Si no lo tienes, pídeselo a la persona que compartió el archivo.",
     "submit": "Abrir archivo",
     "watermark": "Los PDF y las imágenes confidenciales se descargan como un PDF con tu correo y la hora en cada página.",
     "refusals": {

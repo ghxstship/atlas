@@ -7,6 +7,7 @@ import { useActionState, useCallback, useState } from "react";
 import { restoreAction } from "@/app/[org]/trash/actions";
 import { INITIAL_STATE, type WorkflowActionState } from "@/lib/workflow/state";
 import { Feedback, usePageStatus, useWorkflowT } from "./kit";
+import { tableWords } from "@/lib/activity-audit";
 
 /** Restore one row; the outcome (rows restored, or why not) shows beside the button. */
 export function RestoreButton({
@@ -97,7 +98,7 @@ export function TrashFilters({
         value={table ?? ""}
         options={[
           { value: "", label: t("trash.allKinds") },
-          ...tables.map((x) => ({ value: x, label: x })),
+          ...tables.map((x) => ({ value: x, label: tableWords(x) })),
         ]}
         onChange={(e) => go({ table: e.target.value })}
       />
