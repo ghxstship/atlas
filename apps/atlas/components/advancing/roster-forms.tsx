@@ -8,9 +8,20 @@ import { useCopy } from "./use-copy";
 
 /**
  * Crew roster review controls (R4): Accept, and Return with a reason in a dialog, for a reviewer with
- * advancing.submission.review; the database refuses the entry's creator and its submitter.
+ * advancing.submission.review; the database refuses the entry's creator and its submitter. An entry whose person
+ * declined is never accepted (roster_entry_declined, 904110601), so it offers Return alone, saying why.
  */
-export function RosterReviewActions({ org, id, name }: { org: string; id: string; name: string }) {
+export function RosterReviewActions({
+  org,
+  id,
+  name,
+  declined = false,
+}: {
+  org: string;
+  id: string;
+  name: string;
+  declined?: boolean;
+}) {
   const t = useCopy("advancing.crew");
   const errors = useCopy("advancing.errors");
   const [open, setOpen] = useState(false);
@@ -28,21 +39,26 @@ export function RosterReviewActions({ org, id, name }: { org: string; id: string
   };
   return (
     <div className="flex flex-col items-end gap-4">
+      {declined ? (
+        <p className="text-text-12 text-text-secondary">{t("declinedReturn", { name })}</p>
+      ) : null}
       <div className="flex flex-wrap gap-8">
-        <form action={run} onSubmit={submit}>
-          <input type="hidden" name="org" value={org} />
-          <input type="hidden" name="id" value={id} />
-          <input type="hidden" name="outcome" value="Accepted" />
-          <Button
-            type="submit"
-            size="sm"
-            variant="secondary"
-            disabled={pending}
-            aria-busy={pending}
-          >
-            {t("accept")}
-          </Button>
-        </form>
+        {declined ? null : (
+          <form action={run} onSubmit={submit}>
+            <input type="hidden" name="org" value={org} />
+            <input type="hidden" name="id" value={id} />
+            <input type="hidden" name="outcome" value="Accepted" />
+            <Button
+              type="submit"
+              size="sm"
+              variant="secondary"
+              disabled={pending}
+              aria-busy={pending}
+            >
+              {t("accept")}
+            </Button>
+          </form>
+        )}
         <Dialog
           title={t("returnTitle", { name })}
           open={open}
