@@ -14,6 +14,9 @@ import {
 } from "@xos/data/reports";
 import { listGlAccounts } from "@xos/data/finance";
 import { listGateCriteria } from "@xos/data/projects";
+import { getTranslations } from "next-intl/server";
+import { glAccountName } from "@/lib/finance/gl-account-labels";
+import { localizeCriteria } from "@/lib/projects/gate-criteria";
 import { getNode } from "@xos/ia";
 import { workflowMarker } from "@xos/data/workflow-signal";
 import Link from "next/link";
@@ -149,6 +152,12 @@ const major = (minor: number | null, exponent: number) =>
 
 // Gate readiness ------------------------------------------------------------------------------------------
 
+/** Whether the catalogs hold a key computed at runtime (canon codes), for labels with a canon fallback. */
+async function catalogHas(): Promise<(key: string) => boolean> {
+  const tr = await getTranslations();
+  return (key) => (tr as unknown as { has: (k: string) => boolean }).has(key);
+}
+
 export async function GateReadinessReport({ page }: { page: FinancePage }) {
   const node = "reports.gate-readiness";
   const c = await getFinanceCopy(page.ctx);
@@ -163,8 +172,10 @@ export async function GateReadinessReport({ page }: { page: FinancePage }) {
   const rows = result.data;
   const org = page.ctx.org.slug;
   // Canon codes appear next to their plain name, never alone (Section 11.10 item 2, A59-017).
-  const criteria = await listGateCriteria(page.ctx.viewer.db);
-  const statement = new Map(criteria.ok ? criteria.data.map((c) => [c.id, c.statement]) : []);
+  const [criteria, has] = await Promise.all([listGateCriteria(page.ctx.viewer.db), catalogHas()]);
+  const statement = new Map(
+    criteria.ok ? localizeCriteria(criteria.data, t, has).map((c) => [c.id, c.statement]) : [],
+  );
   const criterionName = (code: string) => {
     const sentence = statement.get(code);
     return sentence ? `${sentence.replace(/\.$/, "")} (${code})` : code;
@@ -404,13 +415,14 @@ export async function BudgetVersusActualReport({ page }: { page: FinancePage }) 
   const dimension = (BUDGET_DIMENSIONS as readonly string[]).includes(page.query.extra["by"] ?? "")
     ? (page.query.extra["by"] as BudgetDimension)
     : "account";
-  const [result, accounts] = await Promise.all([
+  const [result, accounts, has] = await Promise.all([
     budgetVersusActual(page.ctx.viewer.db, {
       orgId: page.ctx.org.id,
       projectId: page.project?.id ?? null,
       dimension,
     }),
     listGlAccounts(page.ctx.viewer.db),
+    catalogHas(),
   ]);
   if (!result.ok || !accounts.ok) return failure(page, node, t);
   const accountName = new Map(accounts.data.map((a) => [a.code, a.name]));
@@ -418,7 +430,7 @@ export async function BudgetVersusActualReport({ page }: { page: FinancePage }) 
     key === ""
       ? t(`reports.bva.unassigned.${dimension}`)
       : dimension === "account"
-        ? `${accountName.get(key) ?? key} · ${key}`
+        ? `${glAccountName(key, accountName.get(key), t, has)} · ${key}`
         : key;
   const { rows, totals } = result.data;
   const org = page.ctx.org.slug;
@@ -1053,9 +1065,10 @@ export async function FinalCostReport({ page }: { page: FinancePage }) {
       </ReportFrame>
     );
   }
-  const [result, accounts] = await Promise.all([
+  const [result, accounts, has] = await Promise.all([
     finalCostReport(page.ctx.viewer.db, { orgId: page.ctx.org.id, projectId: page.project.id }),
     listGlAccounts(page.ctx.viewer.db),
+    catalogHas(),
   ]);
   if (!result.ok || !accounts.ok) return failure(page, node, t);
   const report = result.data;
@@ -1081,7 +1094,9 @@ export async function FinalCostReport({ page }: { page: FinancePage }) {
     c.money(r.varianceMinor, r.currency),
   ];
   const label = (code: string) =>
-    code ? `${accountName.get(code) ?? code} · ${code}` : t("finance.budgets.unmappedAccount");
+    code
+      ? `${glAccountName(code, accountName.get(code), t, has)} · ${code}`
+      : t("finance.budgets.unmappedAccount");
   const csv = report.rows.map((r) => line(r, label(r.accountCode)));
   return (
     <ReportFrame

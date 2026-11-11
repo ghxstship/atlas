@@ -7,7 +7,7 @@ import {
   isMinorField,
 } from "@xos/data/field-history";
 import { getFormatter, getTranslations } from "next-intl/server";
-import { historyLabelKey, historyValue } from "@/lib/history/fields";
+import { historyLabelKey, historyStateKey, historyValue } from "@/lib/history/fields";
 import { historyItems } from "@/lib/history/items";
 import { LazyFieldHistoryList } from "./lazy-field-history-list";
 
@@ -70,8 +70,11 @@ export async function RecordHistory({
           const key = historyLabelKey(field);
           return key !== null && has(key) ? t(key) : null;
         },
-        value: (field, v, at) =>
-          historyValue(
+        value: (field, v, at) => {
+          // A state reads as its label, the way the record's state history words it.
+          const state = historyStateKey(table, field, v);
+          if (state !== null && has(state)) return t(state);
+          return historyValue(
             field,
             v,
             {
@@ -98,7 +101,8 @@ export async function RecordHistory({
                 }),
             },
             currencyOf(at.event.id, at.side),
-          ),
+          );
+        },
       })}
     />
   );
