@@ -97,6 +97,7 @@
     "orgTitle": "Members' personal tokens",
     "orgOn": "Members may create personal tokens. You can revoke any of them.",
     "orgOff": "Personal tokens are off, so none of these work. Turn on Allow personal API tokens above to let members create them.",
+    "orgPlanOff": "Personal tokens stopped working because the organization's plan has no API access. They work again once the plan includes it; Allow personal API tokens stays as it is.",
     "orgNone": "No member has a personal token.",
     "owner": "Held by {name}"
   },

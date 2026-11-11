@@ -97,6 +97,7 @@
     "orgTitle": "Tokens personales de los miembros",
     "orgOn": "Los miembros pueden crear tokens personales. Puede revocar cualquiera de ellos.",
     "orgOff": "Los tokens personales están desactivados, así que ninguno funciona. Active Permitir tokens personales de API arriba para que los miembros puedan crearlos.",
+    "orgPlanOff": "Los tokens personales dejaron de funcionar porque el plan de la organización no incluye acceso a la API. Vuelven a funcionar cuando el plan lo incluya; Permitir tokens personales de API se mantiene como está.",
     "orgNone": "Ningún miembro tiene un token personal.",
     "owner": "Pertenece a {name}"
   },
