@@ -306,7 +306,9 @@ describe("C-24: a timesheet request's title has the person's dates, never ISO on
         .replace("{period}", period);
     };
     expect(words("en-US")).toBe("Timesheet Demo Staff One, Sun, Nov 8 to Tue, Nov 10");
-    expect(words("es-US")).toMatch(/^Hoja de horas de Demo Staff One, dom, 8 de nov.* a mar, 10 de nov/);
+    expect(words("es-US")).toMatch(
+      /^Hoja de horas de Demo Staff One, dom, 8 de nov.* a mar, 10 de nov/,
+    );
     for (const locale of ["en-US", "es-US"] as const)
       expect(words(locale)).not.toMatch(/\d{4}-\d{2}/);
   });
