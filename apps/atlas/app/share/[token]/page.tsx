@@ -40,6 +40,8 @@ export default async function SharePage({ params, searchParams }: PageProps<"/sh
           autoComplete="one-time-code"
           pattern="[0-9]{6}"
           maxLength={6}
+          // Every share link has a code (migration 6281, ADR 0142): the field is required, as the file route is.
+          required
           label={t("accessCode")}
           help={t("accessCodeHelp")}
           autoFocus={askCode}
