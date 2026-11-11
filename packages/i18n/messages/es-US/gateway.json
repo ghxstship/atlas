@@ -1919,7 +1919,8 @@
       "chartTitle": "Pagado por mes",
       "chartSubtitle": "Últimos seis meses, en {currency}",
       "month": "Mes",
-      "paid": "Pagado"
+      "paid": "Pagado",
+      "chartNone": "No se ha pagado nada en {currency} en los últimos seis meses."
     },
     "invoices": {
       "empty": "Aún no hay facturas. Envía una desde la pestaña Facturas de una contratación.",

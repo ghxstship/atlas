@@ -1919,7 +1919,8 @@
       "chartTitle": "Paid by month",
       "chartSubtitle": "Last six months, in {currency}",
       "month": "Month",
-      "paid": "Paid"
+      "paid": "Paid",
+      "chartNone": "Nothing paid in {currency} in the last six months."
     },
     "invoices": {
       "empty": "No invoices yet. Submit one from an engagement's Invoices tab.",
