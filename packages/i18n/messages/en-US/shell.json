@@ -717,7 +717,7 @@
         "action": "View members"
       },
       "dangerZone": {
-        "empty": "Transfer ownership, archive or delete this organization.",
+        "empty": "Cancel, reactivate or delete this organization, or transfer its ownership.",
         "action": "Transfer ownership"
       },
       "general": {

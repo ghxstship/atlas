@@ -717,7 +717,7 @@
         "action": "Ver miembros"
       },
       "dangerZone": {
-        "empty": "Transfiere la propiedad, archiva o elimina esta organización.",
+        "empty": "Cancela, reactiva o elimina esta organización, o transfiere su propiedad.",
         "action": "Transferir propiedad"
       },
       "general": {

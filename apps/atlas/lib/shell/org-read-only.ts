@@ -9,3 +9,12 @@ import type { Result } from "@xos/data";
 export function orgReadOnly(status: Result<OrgBannerStatus>): boolean {
   return status.ok && status.data.readOnlyReason !== null;
 }
+
+/**
+ * Whether plan-limit banners (A107) apply. A canceled org, or one waiting for deletion, is read-only whatever its plan,
+ * and reactivating comes before any plan change, so telling its Owner to upgrade contradicts the read-only banner
+ * beside it (crawl 4.9). During dunning or a pause the limits still matter once billing is current again.
+ */
+export function planLimitBannersApply(status: OrgBannerStatus): boolean {
+  return status.readOnlyReason !== "canceled" && status.readOnlyReason !== "deletion";
+}
