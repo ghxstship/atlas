@@ -1,4 +1,4 @@
-import { isActionableApproval, listInbox } from "@xos/data/inbox";
+import { isActionableApproval, isUrgentInboxItem, listInbox } from "@xos/data/inbox";
 import { personNames } from "@xos/data/person-names";
 import { getMyNotificationTimeZone } from "@xos/data/notification-settings";
 import { inboxItemInLens } from "@xos/data/role-lens";
@@ -84,6 +84,7 @@ export default async function Page({ params }: PageProps<"/[org]/inbox">) {
       href: text.href,
       when: dateTime(item.createdAt),
       approvable: isActionableApproval(item),
+      urgent: isUrgentInboxItem(item),
     };
   });
   const needsYou = rows.filter((r) => r.section === "Needs You").length;

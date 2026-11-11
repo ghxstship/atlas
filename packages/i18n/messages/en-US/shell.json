@@ -1478,6 +1478,7 @@
     "titleOnProject": "{title} is in force on {project}",
     "untitled": "Crisis alert",
     "open": "Open emergency codes",
-    "more": "{count, plural, one {# more crisis alert is in force} other {# more crisis alerts are in force}}"
+    "more": "{count, plural, one {# more crisis alert is in force} other {# more crisis alerts are in force}}",
+    "inboxTag": "Emergency"
   }
 }

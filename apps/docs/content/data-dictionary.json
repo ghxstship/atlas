@@ -42017,7 +42017,7 @@
           "type": "timestamp with time zone"
         },
         {
-          "comment": "Needs You or For Your Information.",
+          "comment": "Needs You or For Your Information. A crisis alert is Needs You until its all-clear reaches the person.",
           "name": "section",
           "nullable": true,
           "references": null,
@@ -42108,7 +42108,7 @@
           "type": "smallint"
         }
       ],
-      "comment": "The signed-in person's Inbox (Section 11.10 rule 5): live notifications that are not Done or snoozed, sorted into Needs You (approval requests and reminders, mentions, assignments) and For Your Information, with the approval an approval request is about: a spend approval's document and the approver of the step it waits on (3211, for the role lens), or a pass, dock booking or equipment approval's computed state (P9). Access-code emails of signed-out approval links never show. Read with the person's own row level security.",
+      "comment": "The signed-in person's Inbox (Section 11.10 rule 5): live notifications that are not Done or snoozed, sorted into Needs You (approval requests and reminders, mentions, assignments, and a crisis alert until its all-clear reaches the person) and For Your Information, with the approval an approval request is about: a spend approval's document and the approver of the step it waits on (3211, for the role lens), or a pass, dock booking or equipment approval's computed state (P9). Access-code emails of signed-out approval links never show. Read with the person's own row level security.",
       "kind": "view",
       "name": "inbox_items",
       "partitioned": false,
