@@ -82,7 +82,7 @@
     "quantity": "Cantidad",
     "unitPrice": "Precio unitario",
     "unitBasis": "Unidad",
-    "unitBasisHelp": "Un alias de unidad del canon, como ea, day o m.",
+    "unitBasisHelp": "Déjelo en blanco o use una unidad del canon: each, hour, day, week, year, event, lot, lump sum, package, cover o sq ft per year.",
     "extended": "Importe",
     "received": "Recibido",
     "addRow": "Agregar otra línea",
@@ -518,7 +518,8 @@
       "country": "Ingrese un código de país de dos letras, por ejemplo US.",
       "countryNeeded": "Ingrese el país de esta dirección.",
       "hireOrder": "El alquiler debe terminar después de empezar.",
-      "tooLong": "Este texto es demasiado largo. Acórtalo e inténtalo de nuevo."
+      "tooLong": "Este texto es demasiado largo. Acórtalo e inténtalo de nuevo.",
+      "unit": "Esa unidad no está en el canon. Use each, hour, day, week, year, event, lot, lump sum, package, cover o sq ft per year, o déjela en blanco."
     },
     "loadError": {
       "title": "No se pudo cargar",

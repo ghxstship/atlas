@@ -82,7 +82,7 @@
     "quantity": "Quantity",
     "unitPrice": "Unit price",
     "unitBasis": "Unit",
-    "unitBasisHelp": "A canon unit alias such as ea, day or m.",
+    "unitBasisHelp": "Leave it blank, or use a canon unit: each, hour, day, week, year, event, lot, lump sum, package, cover or sq ft per year.",
     "extended": "Amount",
     "received": "Received",
     "addRow": "Add another line",
@@ -518,7 +518,8 @@
       "country": "Enter a two-letter country code, for example US.",
       "countryNeeded": "Enter the country of this address.",
       "hireOrder": "The hire must end after it starts.",
-      "tooLong": "This is too long. Shorten it and try again."
+      "tooLong": "This is too long. Shorten it and try again.",
+      "unit": "That unit is not in the canon. Use each, hour, day, week, year, event, lot, lump sum, package, cover or sq ft per year, or leave it blank."
     },
     "loadError": {
       "title": "This did not load",
