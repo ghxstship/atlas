@@ -5,7 +5,9 @@ import {
   lighthouseRc,
   runAssertions,
   lighthouseTargets,
+  medianScore,
   scorePage,
+  timingOnlyMiss,
   SESSION_COOKIES_ENV,
   sessionCookies,
 } from "../src/lighthouse.ts";
@@ -211,5 +213,54 @@ describe("runAssertions", () => {
     expect(budgetOf("http://x/b.c")).toEqual({ maxNumericValue: 230_000 });
     expect(budgetOf("http://x/bxc")).toBeUndefined();
     expect(budgetOf("http://x/d/e")).toBeUndefined();
+  });
+});
+
+describe("retiming a page that missed only on the lab timings", () => {
+  const run = (
+    tbt: number,
+    opts: { lcp?: number; a11y?: number; scripts?: number; finalUrl?: string } = {},
+  ) =>
+    scorePage({
+      requestedUrl: "http://x/journal",
+      ...(opts.finalUrl ? { finalUrl: opts.finalUrl } : {}),
+      categories: {
+        performance: { score: tbt > 200 ? 0.92 : 0.99 },
+        accessibility: { score: opts.a11y ?? 1 },
+      },
+      audits: {
+        "largest-contentful-paint": { numericValue: opts.lcp ?? 800 },
+        "cumulative-layout-shift": { numericValue: 0 },
+        "total-blocking-time": { numericValue: tbt },
+        "resource-summary": {
+          details: { items: [{ resourceType: "script", transferSize: opts.scripts ?? 150_000 }] },
+        },
+      },
+    });
+
+  it("retimes a page over on Total Blocking Time or LCP only", () => {
+    expect(timingOnlyMiss(run(214), 204_800)).toBe(true);
+    expect(timingOnlyMiss(run(80, { lcp: 2600 }), 204_800)).toBe(true);
+  });
+
+  it("does not retime a page within budget, or one over on what a second run cannot change", () => {
+    expect(timingOnlyMiss(run(80), 204_800)).toBe(false);
+    expect(timingOnlyMiss(run(214, { a11y: 0.98 }), 204_800)).toBe(false);
+    expect(timingOnlyMiss(run(214, { scripts: 300_000 }), 204_800)).toBe(false);
+    expect(timingOnlyMiss(run(214, { finalUrl: "http://x/auth/sign-in" }), 204_800)).toBe(false);
+  });
+
+  it("holds the page to the median of its runs", () => {
+    const settled = medianScore([run(214), run(150), run(170)], 204_800);
+    expect(settled).toMatchObject({ tbtMs: 170, performance: 0.99, withinBudget: true });
+    expect(medianScore([run(214), run(230), run(150)], 204_800)).toMatchObject({
+      tbtMs: 214,
+      withinBudget: false,
+    });
+  });
+
+  it("keeps the first run's script bytes and accessibility", () => {
+    const settled = medianScore([run(214, { scripts: 300_000 }), run(150), run(150)], 204_800);
+    expect(settled).toMatchObject({ scriptBytes: 300_000, withinBudget: false });
   });
 });

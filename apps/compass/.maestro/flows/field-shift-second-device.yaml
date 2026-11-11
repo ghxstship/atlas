@@ -59,6 +59,13 @@ name: field-shift-second-device
     timeout: 5000
 - tapOn:
     id: "tab-more"
+# The field menu can be longer than the screen (an Android emulator): bring the row into view first.
+- scrollUntilVisible:
+    element:
+      id: "more-offline-queue"
+    direction: DOWN
+    centerElement: true
+    optional: true
 - tapOn:
     id: "more-offline-queue"
 - extendedWaitUntil:

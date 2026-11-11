@@ -255,16 +255,69 @@ export function scorePage(
     scriptBytes: scripts?.transferSize === undefined ? null : scripts.transferSize - realtimeBytes,
     realtimeBytes,
   };
-  const within = (value: number | null, max: number) => value !== null && value < max;
-  return {
-    ...page,
-    withinBudget:
-      page.accessibility === 1 &&
-      within(page.lcpMs, webBudgets.largestContentfulPaintMs) &&
-      within(page.cls, webBudgets.cumulativeLayoutShift) &&
-      within(page.tbtMs, webBudgets.interactionToNextPaintMs) &&
-      page.scriptBytes !== null &&
-      page.scriptBytes <= scriptBudget &&
-      page.realtimeBytes <= realtimeClientGzipBytes,
+  return { ...page, withinBudget: timingWithin(page) && staticWithin(page, scriptBudget) };
+}
+
+type Measured = Omit<PageScore, "withinBudget">;
+
+const within = (value: number | null, max: number) => value !== null && value < max;
+
+/** The lab timings, which vary run to run on a shared machine: LCP, CLS and Total Blocking Time. */
+function timingWithin(page: Measured): boolean {
+  return (
+    within(page.lcpMs, webBudgets.largestContentfulPaintMs) &&
+    within(page.cls, webBudgets.cumulativeLayoutShift) &&
+    within(page.tbtMs, webBudgets.interactionToNextPaintMs)
+  );
+}
+
+/** What one run settles: the page landed, its accessibility, and the scripts it fetched. */
+function staticWithin(page: Measured, scriptBudget: number): boolean {
+  return (
+    page.landed &&
+    page.accessibility === 1 &&
+    page.scriptBytes !== null &&
+    page.scriptBytes <= scriptBudget &&
+    page.realtimeBytes <= realtimeClientGzipBytes
+  );
+}
+
+/**
+ * A page that missed only on the lab timings is measured again (lighthouse-cli.ts): one Lighthouse run on a shared CI
+ * runner can land a page's Total Blocking Time a few milliseconds either side of the line (run 42831440876: a median of
+ * 80 ms over 272 pages, six between 205 and 222 ms).
+ */
+export function timingOnlyMiss(page: PageScore, scriptBudget: number): boolean {
+  return !page.withinBudget && staticWithin(page, scriptBudget) && !timingWithin(page);
+}
+
+function median(values: readonly (number | null)[]): number | null {
+  const known = values.filter((v): v is number => v !== null).sort((a, b) => a - b);
+  if (known.length === 0) return null;
+  const mid = Math.floor(known.length / 2);
+  return known.length % 2 === 1
+    ? (known[mid] ?? null)
+    : ((known[mid - 1] ?? 0) + (known[mid] ?? 0)) / 2;
+}
+
+/**
+ * One page's runs as the median of each lab timing and of the performance score, as Lighthouse recommends for a noisy
+ * machine; the first run's landing, accessibility and script bytes stand. The budgets are the same as for one run.
+ */
+export function medianScore(runs: readonly PageScore[], scriptBudget: number): PageScore {
+  const first = runs[0];
+  if (!first) throw new Error("medianScore needs at least one run");
+  const page: Measured = {
+    url: first.url,
+    finalUrl: first.finalUrl,
+    landed: first.landed,
+    performance: median(runs.map((r) => r.performance)),
+    accessibility: first.accessibility,
+    lcpMs: median(runs.map((r) => r.lcpMs)),
+    cls: median(runs.map((r) => r.cls)),
+    tbtMs: median(runs.map((r) => r.tbtMs)),
+    scriptBytes: first.scriptBytes,
+    realtimeBytes: first.realtimeBytes,
   };
+  return { ...page, withinBudget: timingWithin(page) && staticWithin(page, scriptBudget) };
 }
