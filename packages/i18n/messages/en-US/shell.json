@@ -751,8 +751,8 @@
         "action": "Set visibility"
       },
       "account": {
-        "empty": "Manage your email, phone, linked sign-ins and data export.",
-        "action": "Edit account"
+        "empty": "Your support requests and deletion certificates. Your name, sign-in methods and account deletion are in Gateway, where your XOS account lives.",
+        "action": "Open account in Gateway"
       },
       "security": {
         "empty": "Add a passkey or MFA and review your sessions and devices.",

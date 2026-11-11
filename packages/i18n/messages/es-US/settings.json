@@ -1296,5 +1296,10 @@
     }
   },
   "layoutCustom": "Organizaste este panel. Restablecer devuelve sus mosaicos a su ancho predeterminado.",
-  "layoutDefault": "Diseño predeterminado. Organiza los mosaicos en el propio panel."
+  "layoutDefault": "Diseño predeterminado. Organiza los mosaicos en el propio panel.",
+  "account": {
+    "gatewayTitle": "Tu cuenta de XOS",
+    "gatewayBody": "Tu cuenta es la misma en Atlas, Gateway y Compass. Edita tu nombre o elimina tu cuenta en Gateway, en Configuración, Cuenta; tus métodos de inicio de sesión están en Configuración, Seguridad.",
+    "gatewayLink": "Abrir tu cuenta en Gateway"
+  }
 }

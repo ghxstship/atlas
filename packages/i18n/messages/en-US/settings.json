@@ -1296,5 +1296,10 @@
     }
   },
   "layoutCustom": "You arranged this dashboard. Reset puts its tiles back to their default widths.",
-  "layoutDefault": "Default layout. Arrange the tiles on the dashboard itself."
+  "layoutDefault": "Default layout. Arrange the tiles on the dashboard itself.",
+  "account": {
+    "gatewayTitle": "Your XOS account",
+    "gatewayBody": "Your account is the same in Atlas, Gateway and Compass. Edit your name or delete your account in Gateway, under Settings, Account; your sign-in methods are under Settings, Security.",
+    "gatewayLink": "Open your account in Gateway"
+  }
 }

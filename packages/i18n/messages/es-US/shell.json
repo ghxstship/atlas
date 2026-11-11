@@ -751,8 +751,8 @@
         "action": "Definir visibilidad"
       },
       "account": {
-        "empty": "Administra tu correo, teléfono, inicios de sesión vinculados y exportación de datos.",
-        "action": "Editar cuenta"
+        "empty": "Tus solicitudes de soporte y certificados de eliminación. Tu nombre, tus métodos de inicio de sesión y la eliminación de la cuenta están en Gateway, donde vive tu cuenta de XOS.",
+        "action": "Abrir la cuenta en Gateway"
       },
       "security": {
         "empty": "Agrega una llave de acceso o MFA y revisa tus sesiones y dispositivos.",
