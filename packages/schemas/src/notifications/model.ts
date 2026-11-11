@@ -72,10 +72,19 @@ export interface KindDeferral {
   readonly decision: string;
 }
 
-/** How a kind reaches people: its emitters, or the recorded reason nothing sends it yet. */
+/** Why nothing sends a kind again: it stays so the notices already delivered still read. */
+export interface KindRetirement {
+  readonly reason: string;
+}
+
+/**
+ * How a kind reaches people: its emitters, the recorded reason nothing sends it yet, or the reason nothing sends it
+ * again.
+ */
 export type KindEmission =
   | { readonly status: "emitted"; readonly by: readonly KindEmitter[] }
-  | { readonly status: "deferred"; readonly deferral: KindDeferral };
+  | { readonly status: "deferred"; readonly deferral: KindDeferral }
+  | { readonly status: "retired"; readonly retirement: KindRetirement };
 
 export interface NotificationKindRegistry {
   readonly version: number;

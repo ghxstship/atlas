@@ -360,9 +360,26 @@ describe("every notification kind is sent or says why not", () => {
       .filter(([, e]) => e.status === "deferred")
       .map(([kind]) => kind)
       .sort();
-    // Deferring a kind is a decision: name it here with its reason in notification-kinds.yaml. R6b retired
-    // account.work_details_moved with R6a's one-time move; the kind stays for the notices already sent.
-    expect(deferred).toEqual(["account.work_details_moved", "export.ready"]);
+    // Deferring a kind is a decision: name it here with its reason in notification-kinds.yaml.
+    expect(deferred).toEqual(["export.ready"]);
+  });
+
+  it("retires only the kinds nothing sends again, and no function still sends one", () => {
+    const retired = [...emission]
+      .filter(([, e]) => e.status === "retired")
+      .map(([kind]) => kind)
+      .sort();
+    // R6b (904110101) dropped R6a's one-time move, the only sender; the kind stays for the notices already sent.
+    expect(retired).toEqual(["account.work_details_moved"]);
+    const defined = privateDefinitions(migrations, migration);
+    for (const kind of retired) {
+      const senders = [...defined]
+        .filter(
+          ([, d]) => d.body.includes(`'${kind}'`) && callsNotify(d.body, migrations, migration),
+        )
+        .map(([symbol, d]) => `${symbol} (${d.file})`);
+      expect(senders, `${kind} is retired but still sent`).toEqual([]);
+    }
   });
 
   it("sends every kind that bypasses quiet hours (ADR 0033 decision 35)", () => {
@@ -392,6 +409,13 @@ describe("every notification kind is sent or says why not", () => {
     expect(error).toBeInstanceOf(NotificationRegistryError);
     expect((error as NotificationRegistryError).issues).toContain(
       "kind mention.created is both emitted and deferred; keep one",
+    );
+    const retiredToo = yaml.replace(
+      "  - kind: mention.created\n",
+      '  - kind: mention.created\n    retired:\n      reason: "Nothing sends mentions again once comments retire."\n',
+    );
+    expect(() => parseNotificationEmission(retiredToo)).toThrow(
+      /kind mention\.created is both emitted and retired; keep one/,
     );
   });
 });

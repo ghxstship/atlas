@@ -58,6 +58,15 @@ async function removeProject(projectId: string): Promise<void> {
   }
 }
 
+/** The crew member's profile work details as stored, or null without a row: what the wizard must not touch. */
+async function profileStamp(personId: string): Promise<string | null> {
+  const [row] = await sql<{ stamp: string | null }>(
+    `select (select to_jsonb(w)::text from app.person_work_details w where w.person_id = $1) as stamp`,
+    [personId],
+  );
+  return row?.stamp ?? null;
+}
+
 async function count(text: string, params: unknown[]): Promise<number> {
   const [row] = await sql<{ n: number }>(text, params);
   return row?.n ?? 0;
@@ -83,6 +92,7 @@ test("project details: a crew member's wizard, and the tab follows the offerings
     const engagementId = engagement?.id as string;
     const key = toDisplayKey("engagement", engagementId);
     const tabs = page.getByRole("navigation", { name: "Engagement sections" });
+    const profileBefore = await profileStamp(DEMO.crew);
 
     await signIn(page, "crew@example.com", `/work/engagements/${key}/project-details`);
     const wizard = page.locator("[data-template=wizard]");
@@ -121,16 +131,9 @@ test("project details: a crew member's wizard, and the tab follows the offerings
       [engagementId],
     );
     expect(rows).toEqual({ travel: 1, uniform: 1, vehicle: 1 });
-    // Nothing reaches the profile: since R6b (904100101) it has no uniform size or travel preference columns at all.
-    expect(
-      await count(
-        `select count(*)::int as n from information_schema.columns
-          where table_schema = 'app' and table_name = 'person_work_details'
-            and column_name in ('shirt_size', 'jacket_size', 'pants_size', 'shoe_size', 'glove_size', 'hat_size',
-              'uniform_notes', 'seat_preference', 'meal_preference', 'home_airport')`,
-        [],
-      ),
-    ).toBe(0);
+    // Nothing reaches the profile: the wizard writes only the roster entry, and the person's work details row,
+    // updated_at included, is as it was before (R6a; R6b dropped its uniform and travel columns in 904110101).
+    expect(await profileStamp(DEMO.crew)).toBe(profileBefore);
 
     // With travel, uniforms and parking off the tab is gone, and its route answers 404.
     for (const k of ["offerings.travel", "offerings.uniforms", "offerings.parking"] as const) {
