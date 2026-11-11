@@ -161,6 +161,7 @@
     "refused": "El cambio fue rechazado ({rule}). Revisa el proyecto e inténtalo de nuevo.",
     "plan_limit_exceeded": "Se alcanzó el límite de proyectos activos de tu plan. Completa o cancela un proyecto, o cambia de plan, para agregar otro.",
     "plan_limit_read_only": "Este proyecto es de solo lectura porque la organización supera el límite de proyectos activos de su plan. El aviso en la parte superior de la página explica cómo levantarlo.",
+    "org_read_only": "Esta organización es de solo lectura, así que no se puede crear ni cambiar ningún proyecto. Su propietario puede reactivarla o reanudar la facturación en Configuración.",
     "time_zone_unknown": "Esa zona horaria no se reconoce. Elige una de la lista.",
     "gate_criteria_unmet": "La compuerta {gate} no puede pasar hasta que cada criterio bloqueante tenga evidencia. Falta: {criteria}.",
     "gate_phase_conflict": "El proyecto pasó a otra fase mientras trabajabas. Vuelve a cargar para ver su compuerta actual.",
@@ -1006,5 +1007,6 @@
     },
     "commit": "Copiar",
     "done": "Se copiaron {copied} elementos; {skipped} omitidos."
-  }
+  },
+  "readOnlyOrg": "Esta organización es de solo lectura, así que no se pueden crear proyectos nuevos."
 }

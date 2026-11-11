@@ -1,3 +1,4 @@
+import { getOrgBannerStatus } from "@xos/data/org-lifecycle";
 import { listMembers } from "@xos/data";
 import { listSharedWithMe } from "@xos/data/access-controls";
 import { getNode } from "@xos/ia";
@@ -16,6 +17,7 @@ import { getTranslations } from "next-intl/server";
 import type { BulkConfig, BulkField } from "@/components/bulk/types";
 import { PROJECT_STATE_ORDER } from "@/lib/projects/state-order";
 import { LimitBanners } from "@/components/plan-limits/banners";
+import { orgReadOnly } from "@/lib/shell/org-read-only";
 import { requireNode } from "@/lib/shell/require-node";
 import { sitemap } from "@/lib/shell/sitemap";
 import { orgToday } from "@/lib/shell/time-zone";
@@ -172,22 +174,32 @@ export async function ProjectsPage({
     monthParam && /^\d{4}-\d{2}-01$/.test(monthParam) ? monthParam : `${today.slice(0, 7)}-01`;
 
   const db = ctx.viewer.db;
-  const [projects, phases, shared, custom] = await Promise.all([
+  const [projects, phases, shared, custom, lifecycle] = await Promise.all([
     listProjects(db, ctx.org.id, { includeArchived }),
     listPhases(db),
     // Projects partner orgs share with this org (A52, Section 8.5), on the main list only.
     node === "projects" ? listSharedWithMe(db) : Promise.resolve({ ok: true as const, data: [] }),
     customFieldList(ctx, "app.projects", searchParams),
+    getOrgBannerStatus(db, ctx.org.id),
   ]);
   if (!projects.ok || !phases.ok) return <LoadError title={translate(entry.label)} />;
-  const canCreate = ctx.capabilities.has("projects.project.create");
+  const mayCreate = ctx.capabilities.has("projects.project.create");
+  // A read-only org (canceled, waiting for deletion, read-only after dunning, or paused) offers no New project: the
+  // database would refuse it with org_read_only (crawl 4.9).
+  const readOnly = orgReadOnly(lifecycle);
+  const canCreate = mayCreate && !readOnly;
   // A reader who cannot create a project and has none shared learns who can share one (A59-014).
-  const sharers = !canCreate && projects.data.length === 0 ? await projectSharers(ctx) : [];
+  const sharers = !mayCreate && projects.data.length === 0 ? await projectSharers(ctx) : [];
   const listed = projects.data.filter((p) => custom.keep(p.id));
 
   return (
     <CustomFieldList value={await custom.view(listed.map((p) => p.id))}>
       <LimitBanners ctx={ctx} limits={["active_projects"]} />
+      {mayCreate && readOnly ? (
+        <p className="m-0 text-text-13 text-text-secondary" data-testid="projects-read-only">
+          {translate("projects.readOnlyOrg")}
+        </p>
+      ) : null}
       <ProjectCollection
         org={ctx.org.slug}
         title={translate(entry.label)}
