@@ -134,15 +134,22 @@ export async function addCrewOnboardingUpload(): Promise<{ name: string }> {
     DEMO.owner,
   );
   await sql(
-    `insert into app.onboarding_items (engagement_id, onboarding_requirement_id) values ($1, $2)`,
+    `insert into app.onboarding_items (engagement_id, onboarding_requirement_id) values ($1, $2)
+     on conflict (engagement_id, onboarding_requirement_id) where deleted_at is null do nothing`,
     [DEMO.crewEngagement, requirement?.id],
     DEMO.owner,
   );
-  // Retired at once so engagements created later (other journeys) do not pick the step up.
+  // Retired at once so engagements created later (other journeys) do not pick the step up, and taken off the other
+  // live crew engagements that 904110602 gave it to when it was added.
   await sql(
     `update app.onboarding_requirements set deleted_at = now() where id = $1`,
     [requirement?.id],
     DEMO.owner,
+  );
+  await sql(
+    `update app.onboarding_items set deleted_at = now()
+     where onboarding_requirement_id = $1 and engagement_id <> $2 and deleted_at is null`,
+    [requirement?.id, DEMO.crewEngagement],
   );
   return { name };
 }
