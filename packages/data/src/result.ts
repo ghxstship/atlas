@@ -23,9 +23,14 @@ export type DataError =
       readonly message: string;
     }
   | {
-      /** The input failed a database check constraint. */
+      /**
+       * The input failed a database check constraint, named a row that does not exist (a foreign key)
+       * or repeated a value a unique key holds where the form owns that value. `field` names the form
+       * field at fault when the constraint maps to one (FIELD_CONSTRAINTS), so a form can say so on it.
+       */
       readonly kind: "invalid";
       readonly message: string;
+      readonly field?: string;
     }
   | {
       /** Anything else: network, configuration or an unexpected database error. */
@@ -62,8 +67,42 @@ function splitRefusal(message: string, hint: string | null | undefined) {
   return { rule, message: sentence };
 }
 
+/**
+ * Constraints whose violation is a problem with one form field, not a concurrent save or a server
+ * fault. A unique key here is a value the person typed (an invoice number repeated for the same
+ * counterparty or payee, 0321 and 1120), so it reads as invalid on that field instead of the
+ * generic conflict; a foreign key to a canon vocabulary (every `unit_basis` references
+ * xpms.dim_unit_alias) is a value outside the vocabulary.
+ */
+const FIELD_CONSTRAINTS: ReadonlyArray<{
+  readonly code: string;
+  readonly constraint: RegExp;
+  readonly field: string;
+}> = [
+  { code: "23505", constraint: /^invoices_(person_)?number_key$/, field: "number" },
+  { code: "23503", constraint: /_unit_basis_fkey$/, field: "unitBasis" },
+];
+
+/** The constraint a Postgres integrity error names in its message (`... constraint "name"`). */
+function constraintOf(error: DatabaseErrorLike): string | null {
+  const match = /constraint "([^"]+)"/.exec(`${error.message} ${error.details ?? ""}`);
+  return match?.[1] ?? null;
+}
+
+/** The form field an integrity error is about, when its constraint maps to one. */
+function fieldOf(error: DatabaseErrorLike): string | null {
+  const constraint = constraintOf(error);
+  if (constraint === null) return null;
+  const known = FIELD_CONSTRAINTS.find(
+    (c) => c.code === error.code && c.constraint.test(constraint),
+  );
+  return known?.field ?? null;
+}
+
 /** Maps a database error to a typed repository error. */
 export function toDataError(error: DatabaseErrorLike): DataError {
+  const field = error.code === "23505" || error.code === "23503" ? fieldOf(error) : null;
+  if (field !== null) return { kind: "invalid", message: error.message, field };
   switch (error.code) {
     case "XR001":
       return { kind: "refusal", ...splitRefusal(error.message, error.hint) };
@@ -73,6 +112,7 @@ export function toDataError(error: DatabaseErrorLike): DataError {
     case "23505":
       return { kind: "conflict", message: error.message };
     case "23514":
+    case "23503":
     case "22023":
     case "22P02":
       return { kind: "invalid", message: error.message };

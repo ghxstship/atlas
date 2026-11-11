@@ -248,7 +248,8 @@
       "validUntil": "Escribe una fecha válida.",
       "terms": "Los términos llegan hasta 4000 caracteres.",
       "email": "Escribe un correo válido.",
-      "label": "Ponle a la instantánea un nombre de 1 a 120 caracteres."
+      "label": "Ponle a la instantánea un nombre de 1 a 120 caracteres.",
+      "numberTaken": "Esta contraparte ya tiene una factura con ese número. Revise el número o abra la factura que lo tiene."
     }
   },
   "refusals": {

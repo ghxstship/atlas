@@ -248,7 +248,8 @@
       "validUntil": "Enter a valid date.",
       "terms": "Terms run up to 4000 characters.",
       "email": "Enter a valid email address.",
-      "label": "Name the snapshot in 1 to 120 characters."
+      "label": "Name the snapshot in 1 to 120 characters.",
+      "numberTaken": "This counterparty already has an invoice with that number. Check the number, or open the invoice that has it."
     }
   },
   "refusals": {
