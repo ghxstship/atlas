@@ -281,3 +281,7 @@ That unblocks the overrides the 2026-11-09 amendment left waiting.
 | Area                                | Package                 | Version |
 | ----------------------------------- | ----------------------- | ------- |
 | Compass build tooling (`@expo/cli`) | `node-forge` (override) | 1.4.3   |
+
+## Amendment (2026-11-11): SMS and WhatsApp through sent.dm (RRR-266)
+
+The owner chose sent.dm for SMS, text and WhatsApp in place of Twilio. The `twilio` pin above was never installed (sending a text is one REST call). sent.dm is called the same way: one POST to its v3 Messages API with fetch, which runs unchanged in Node and the Deno Edge runtime, so no SDK is added (`packages/platform/src/notifications/sms.ts`). Its webhooks are verified with Web Crypto (HMAC-SHA256, Standard Webhooks).

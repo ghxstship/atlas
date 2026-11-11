@@ -172,6 +172,9 @@ On 2026-10-23 the owner was given a second list of 42 open decisions, again each
 63. **Staging names:** `atlas-staging.ghxstship.tech` and `gateway-staging.ghxstship.tech` are kept, which names decision 7's staging subdomains. Vercel previews stay on the persistent staging branch, with no branch per pull request.
 64. **Usability testing:** a small remote round on staging during TestFlight (Section 11.14, validation with people). This is the Section 19.8 approval that recruiting participants needs.
 65. **Texts to real recipients:** on once Twilio approves the 10DLC campaign, with `XOS_SMS_DELIVER_TO_ANY=true` in production only. Until then texts reach only `XOS_SMS_ALLOWLIST`.
+
+- _Amended 2026-11-11:_ texts, SMS and WhatsApp go through sent.dm instead of Twilio (owner decision, RRR-266). The rule is unchanged: real recipients once the 10DLC campaign registered through sent.dm is approved.
+
 66. **Stripe Connect for partners:** not in 4.0 (finding A65-026). Partners invoice their clients themselves, XOS records the partner's prices (`app.partner_client_prices`), and XOS takes no application fee. Payouts to external parties stay under decision 20.
 67. **Product analytics:** the in-house, consented event table A96 built (RRR-141, migration 1532, ADR 0052) is ratified. It adds no subprocessor.
 68. **Semantic search:** Supabase's built-in gte-small model, which A87 runs in the Edge Runtime (RRR-132, migration 1440, ADR 0043), is ratified. It adds no subprocessor.
