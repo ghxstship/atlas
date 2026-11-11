@@ -91,10 +91,14 @@ export function useAllowed(feature: Feature): boolean {
   return resolved ? access(resolved.identity, feature, projectId).allowed : false;
 }
 
-/** Why a screen made of these features is refused, or null when one is allowed (see refusalFor). */
-export function useRefusal(features: readonly Feature[]): Denial | null {
+/**
+ * Why a screen made of these features is refused, or null when one is allowed (see refusalFor). While the person's
+ * identity still loads it is "loading": the screen shows a skeleton, as a route-level Gate does, never a refusal that
+ * may not be theirs (an internal supervisor was briefly told the screen is not part of their role).
+ */
+export function useRefusal(features: readonly Feature[]): Denial | "loading" | null {
   const { resolved, projectId } = useCompass();
-  return resolved ? refusalFor(resolved.identity, features, projectId) : "role";
+  return resolved ? refusalFor(resolved.identity, features, projectId) : "loading";
 }
 
 /** The project and scope picker in every tab's header (Section 4.5.7). */

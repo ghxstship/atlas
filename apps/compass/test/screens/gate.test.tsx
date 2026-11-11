@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 import type { CompassIdentity } from "../../src/domain/access";
@@ -59,7 +59,7 @@ vi.mock("../../src/runtime/CompassProvider", () => ({
   useRows: () => ({ rows: [] }),
 }));
 
-const { Gate } = await import("../../src/screens/common");
+const { Gate, useRefusal } = await import("../../src/screens/common");
 
 const client: CompassIdentity = {
   personId: "x",
@@ -129,5 +129,36 @@ describe("C-07: a refused route shows its refusal in a Screen", () => {
     );
     expect(screen.getByText(/running order/)).toBeTruthy();
     expect(screen.queryByTestId("gate-show.read")).toBeNull();
+  });
+});
+
+describe("useRefusal: a screen of several features waits for the person before refusing", () => {
+  const LOGISTICS = ["logistics.dock", "logistics.yard", "logistics.release"] as const;
+  function Probe() {
+    return <p data-testid="refusal">{String(useRefusal(LOGISTICS))}</p>;
+  }
+  const supervisor: CompassIdentity = {
+    personId: "s",
+    displayName: "Supervisor",
+    audience: "field-supervisor",
+    capabilities: [],
+    membershipId: "m",
+    engagements: [],
+  };
+
+  it("is loading, never the role refusal, while identity loads", () => {
+    h.identity = null;
+    render(<Probe />);
+    expect(screen.getByTestId("refusal").textContent).toBe("loading");
+  });
+
+  it("tells an internal person without the capability so, and an external person the role", () => {
+    h.identity = supervisor;
+    render(<Probe />);
+    expect(screen.getByTestId("refusal").textContent).toBe("capability");
+    cleanup();
+    h.identity = client;
+    render(<Probe />);
+    expect(screen.getByTestId("refusal").textContent).toBe("role");
   });
 });

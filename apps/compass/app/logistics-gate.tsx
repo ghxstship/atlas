@@ -31,6 +31,7 @@ import {
   InlineAlert,
   ListRow,
   Screen,
+  Skeleton,
   Tag,
   Text,
   TextField,
@@ -78,6 +79,13 @@ export default function LogisticsGateScreen(): ReactElement {
   const [plateError, setPlateError] = useState<string | null>(null);
   const [queued, setQueued] = useState<string | null>(null);
 
+  if (refusal === "loading") {
+    return (
+      <Screen testID="logistics-gate" title={t("compass.gateView.title")}>
+        <Skeleton lines={3} />
+      </Screen>
+    );
+  }
   if (refusal) {
     return (
       <Screen testID="logistics-gate" title={t("compass.gateView.title")}>

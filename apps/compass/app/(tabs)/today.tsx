@@ -74,7 +74,6 @@ const REFUSAL_KEY: Readonly<Record<PunchRefusal, string>> = {
   "not-rostered": "compass.clock.refusal.notRostered",
 };
 
-/** The shift being worked as the On Shift card names it: role, times and place. */
 /**
  * The shift named on the live clock card. It has no place line: the card's place is where the geofence puts the
  * person ("You're at Pier Site"), which a "Venue to be confirmed" under it contradicted (C-20).
