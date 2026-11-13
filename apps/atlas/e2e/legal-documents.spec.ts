@@ -8,14 +8,27 @@ import { expectAccessible } from "./support";
  */
 
 const DOCUMENTS = [
-  { slug: "privacy-policy", title: "Privacy Policy", section: "2. Contact Points" },
-  { slug: "terms-of-service", title: "Terms of Service", section: "1. Definitions" },
+  // Privacy Policy 1.1.0 (2026-11-11): Sent, Inc. delivers text messages in place of Twilio.
+  {
+    slug: "privacy-policy",
+    title: "Privacy Policy",
+    section: "2. Contact Points",
+    version: "1.1.0",
+    versions: 2,
+  },
+  {
+    slug: "terms-of-service",
+    title: "Terms of Service",
+    section: "1. Definitions",
+    version: "1.0.0",
+    versions: 1,
+  },
 ];
 
 test.describe("without JavaScript", () => {
   test.use({ javaScriptEnabled: false });
 
-  for (const { slug, title, section } of DOCUMENTS) {
+  for (const { slug, title, section, version, versions } of DOCUMENTS) {
     test(`/legal/${slug} shows its full text under the draft notice`, async ({ page }) => {
       const response = await page.goto(`/legal/${slug}`);
       expect(response?.status()).toBe(200);
@@ -25,11 +38,16 @@ test.describe("without JavaScript", () => {
       // In effect since 2026-11-10 (ADR 0168 sign-off): no draft notice, and the page states the version and its date.
       await expect(page.getByText("Draft before launch.")).toHaveCount(0);
       await expect(page.getByText("Draft, not yet in effect", { exact: true })).toHaveCount(0);
-      await expect(page.getByText(/^Version 1\.0\.0, in effect from /).first()).toBeVisible();
+      await expect(
+        page.getByText(`Version ${version}, in effect from `, { exact: false }).first(),
+      ).toBeVisible();
       // Terms of Service 15: every version, its effective date and a summary of changes.
       const history = page.getByRole("region", { name: "Version history" });
-      await expect(history.getByRole("listitem")).toHaveCount(1);
+      await expect(history.getByRole("listitem")).toHaveCount(versions);
       await expect(history.getByText(/^Version 1\.0\.0: in effect from /)).toBeVisible();
+      await expect(
+        history.getByText(`Version ${version}: in effect from `, { exact: false }),
+      ).toBeVisible();
       await expect(history.getByText("First version.")).toHaveAttribute("lang", "en-US");
       await expect(h1.locator("xpath=ancestor::*[@lang='en-US'][1]")).toHaveCount(1);
     });
@@ -102,7 +120,7 @@ test("Spanish labels the page in Spanish and says the text is in English", async
   await context.addCookies([{ name: "xos-locale", value: "es-US", url: baseURL ?? "" }]);
   await page.goto("/legal/privacy-policy");
   await expect(page.locator("html")).toHaveAttribute("lang", "es-US");
-  await expect(page.getByText(/^Versión 1\.0\.0, vigente desde el /).first()).toBeVisible();
+  await expect(page.getByText(/^Versión 1\.1\.0, vigente desde el /).first()).toBeVisible();
   await expect(page.getByText("Este documento se publica solo en inglés.")).toBeVisible();
   await expect(
     page
