@@ -82,8 +82,11 @@ documents:
     owner_inputs: [2, 4, 5, 6]
   - slug: subprocessors
     title: Subprocessor List
-    version: 1.1.0
+    version: 1.1.1
     history:
+      - version: 1.1.1
+        effective_date: 2026-11-13
+        summary: "No Customers, users, organizations or notice subscribers had ever existed when 1.1.0 took effect, so no change notice was owed or sent. Sent, Inc. delivers texts from when the 10DLC campaign is approved."
       - version: 1.1.0
         effective_date: 2026-11-11
         summary: "Sent, Inc. (sent.dm) replaces Twilio Inc. for SMS; Twilio never processed Customer Personal Data. Sent, Inc. processes none until 30 days after the change notice."
