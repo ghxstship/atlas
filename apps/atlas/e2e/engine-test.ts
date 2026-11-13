@@ -25,8 +25,13 @@ export async function settle(page: Page): Promise<void> {
   await page.waitForLoadState("networkidle", { timeout: QUIET_MS }).catch(() => undefined);
 }
 
-/** The router's requests in flight on each page: RSC fetches and server actions. */
-const routerRequests = new WeakMap<Page, Set<Request>>();
+/**
+ * The router's requests in flight on each page, RSC fetches and server actions, each with the time
+ * it was sent. Playwright reports neither `requestfinished` nor `requestfailed` for a fetch the old
+ * document still had in flight when a navigation unloads it (a Link prefetch cut off by the next
+ * goto, CI run 43081284352), so an entry can outlive its request: see `pending`.
+ */
+const routerRequests = new WeakMap<Page, Map<Request, number>>();
 
 /** Whether a request is Next's router at work: an RSC fetch (a navigation, a refresh, a prefetch) or a server action. */
 function isRouterRequest(request: Request): boolean {
@@ -35,13 +40,13 @@ function isRouterRequest(request: Request): boolean {
 }
 
 /** Starts counting a page's router requests, once per page. */
-function trackRouter(page: Page): Set<Request> {
+function trackRouter(page: Page): Map<Request, number> {
   const known = routerRequests.get(page);
   if (known) return known;
-  const inFlight = new Set<Request>();
+  const inFlight = new Map<Request, number>();
   routerRequests.set(page, inFlight);
   page.on("request", (request) => {
-    if (isRouterRequest(request)) inFlight.add(request);
+    if (isRouterRequest(request)) inFlight.set(request, Date.now());
   });
   const done = (request: Request) => inFlight.delete(request);
   page.on("requestfinished", done);
@@ -66,9 +71,21 @@ export async function routerIdle(page: Page): Promise<void> {
     .evaluate(() => new Promise((done) => requestAnimationFrame(() => setTimeout(done, 0))))
     .catch(() => undefined);
   const until = Date.now() + QUIET_MS;
-  while (inFlight.size > 0 && Date.now() < until && !page.isClosed()) {
+  while (pending(inFlight) > 0 && Date.now() < until && !page.isClosed()) {
     await new Promise((resolve) => setTimeout(resolve, 50));
   }
+}
+
+/**
+ * How many router requests are still in flight. A request sent more than five seconds ago is
+ * dropped: it either finished without an event (its document was unloaded by a navigation a click
+ * started) or would have used up the whole wait anyway, so it holds up at most one step, not every
+ * later one.
+ */
+function pending(inFlight: Map<Request, number>): number {
+  const stale = Date.now() - QUIET_MS;
+  for (const [request, sentAt] of inFlight) if (sentAt < stale) inFlight.delete(request);
+  return inFlight.size;
 }
 
 /** The pages already patched, so a page reached twice (its context's `page` event and a spec) is patched once. */
@@ -91,8 +108,13 @@ export function settledGoto(page: Page): Page {
     for (let attempt = 1; ; attempt += 1) {
       await settle(page);
       await routerIdle(page);
+      const cutOff = [...trackRouter(page).keys()];
       try {
-        return await navigate();
+        const result = await navigate();
+        // The new document has loaded, so the old one's fetches are gone and send no event of their own.
+        const inFlight = trackRouter(page);
+        for (const request of cutOff) inFlight.delete(request);
+        return result;
       } catch (error) {
         if (attempt >= ATTEMPTS || !INTERRUPTED.test(String(error))) throw error;
         await page.waitForLoadState("load").catch(() => undefined);
