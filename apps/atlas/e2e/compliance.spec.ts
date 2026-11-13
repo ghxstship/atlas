@@ -295,6 +295,7 @@ test.describe("share links", () => {
     await panel.getByRole("button", { name: "Revoke" }).click();
     await slow(panel.getByText("Revoked")).toBeVisible();
     await visitor.goto(internalUrl.pathname);
+    await visitor.getByLabel("Access code").fill(internalCode);
     await visitor.getByRole("button", { name: "Open file" }).click({ timeout: 120_000 });
     await slow(visitor.getByText("This link does not work.", { exact: false })).toBeVisible();
 
@@ -325,8 +326,14 @@ test.describe("share links", () => {
     );
 
     await visitor.goto(confidentialUrl.pathname);
+    // The code field is required, so the page itself refuses an empty submit and stays put.
     await visitor.getByRole("button", { name: "Open file" }).click({ timeout: 120_000 });
-    await slow(visitor.getByText("Enter the access code that came with the link.")).toBeVisible();
+    await expect(
+      visitor
+        .getByLabel("Access code")
+        .evaluate((el) => (el as HTMLInputElement).validity.valueMissing),
+    ).resolves.toBe(true);
+    await expect(visitor.getByRole("heading", { level: 1, name: "Shared file" })).toBeVisible();
     await visitor.getByLabel("Access code").fill(code === "000000" ? "111111" : "000000");
     await visitor.getByRole("button", { name: "Open file" }).click({ timeout: 120_000 });
     await slow(visitor.getByText("That code is not right.", { exact: false })).toBeVisible();
