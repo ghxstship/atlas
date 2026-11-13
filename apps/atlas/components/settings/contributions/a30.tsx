@@ -555,7 +555,7 @@ async function RolesPanel({ ctx }: SettingsPanelProps) {
                 <dl className="m-0 flex flex-col gap-8 pt-8">
                   {capabilitiesByModule(reach).map((m) => (
                     <div key={m.group} className="flex flex-col gap-2">
-                      <dt className="font-medium">{m.group}</dt>
+                      <dt className="font-medium">{t(`authSecurity.scopes.${m.group}`)}</dt>
                       <dd className="m-0 flex flex-col gap-2">
                         {m.capabilities.map(([code, r2]) => (
                           <span key={code}>
