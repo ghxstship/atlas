@@ -10,6 +10,28 @@ Statuses:
 - **Blocked on owner (OWNER)**: needs a decision, an account, a secret or a paid service that only the owner can provide. Named in the last section.
 - **Not started**.
 
+## XOS 4.11 release (2026-11-13)
+
+4.11 is 4.10 plus merge train 4.11 (#99):
+
+- the R6b column drop (904110101), by expand and contract after 4.10's API stopped reading the ten columns;
+- 72 of the 82 confirmed 4.9 crawl findings, in seven groups (904110301 to 904110801);
+- the nightly fixes (WebKit's Command key, navigations that wait for Next's router, the Android notice, the iOS build's memory);
+- hono 4.13.18 for five advisories published after 4.10.
+
+CI caught a server component importing `@xos/ui` directly, two route budgets (ConfirmButton's dialog and Money's chart now load on demand), a formatter Intl refuses, and journeys that the crawl fixes' new behavior changed. The 10 crawl findings left are deferred; Trash's table names in es-US are RRR-267.
+
+| Step                     | Status | Evidence                                                                                                                                                                                               |
+| ------------------------ | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| CI on the release commit | Done   | Every check of PR #99 passed at `178966c4`, merged as `62d29617`                                                                                                                                       |
+| Release drill            | Done   | `infra/drills/release-drill.sh` on train 4.11's migrations: 995 tables' row counts and 25 key-table checksums match, the 0001, 0100, 0109 and 9900 smoke suites pass; restore 29 s against the 4 h RTO |
+| Migrations, staging      | Done   | `rmrzfolncwhnhygmfxnw`: 904110101 to 904110801 (10 migrations; 728 applied, none pending); the R6b guard found no retired value and no live Uniform Sizes share; advisors: passed, 1,198 accepted      |
+| Migrations, production   | Done   | `fquuqnzlpobaawucczgq`: the same 10 migrations at 2026-11-13T14:48:58Z, after the same read-only R6b check; advisors: passed, 1,198 accepted                                                           |
+| Edge Functions           | Done   | `integration-worker`, `notification-dispatch`, `org-lifecycle`, `report-run` and `sms-webhook` (their shared chunks changed) deployed to staging and production                                        |
+| Apps                     | Done   | PR #99 merged into `main` (`62d29617`), which Vercel deploys to production; `batch-c` fast-forwarded to `62d29617`                                                                                     |
+| Packages                 | Done   | Tag `v4.11.0` started `publish-packages.yml`, approved under the owner's approval through the 5.0 series                                                                                               |
+| Compass                  | OWNER  | Compass ships on its own cadence                                                                                                                                                                       |
+
 ## XOS 4.10 release (2026-11-11)
 
 4.10 is 4.9 plus merge train 4.10 (#98):
@@ -280,7 +302,7 @@ Cutover to real users, once, with the first production release (each step is in 
 - [ ] Hosted Auth: confirm email on, and the email rate limit at about 100 an hour through Resend, raised after watching the Auth logs (`promote-to-production.md`, steps 6 and 8; decisions 42 and 43).
 - [ ] DMARC at `_dmarc.mail.ghxstship.tech`: `p=none` with reports to the owner's mailbox; `p=quarantine` after two to four clean weeks (production runbook, Email from mail.ghxstship.tech; decision 46).
 - [ ] Email to real recipients: `XOS_EMAIL_DELIVER_TO_ANY=true` in production once `mail.ghxstship.tech` passes Resend's SPF, DKIM and DMARC checks and `XOS_POSTAL_ADDRESS` is set (decision 41).
-- [ ] Texts to real recipients: `XOS_SMS_DELIVER_TO_ANY=true` in production once Twilio approves the 10DLC campaign (decision 65).
+- [ ] Texts to real recipients: `XOS_SMS_DELIVER_TO_ANY=true` in production once the 10DLC campaign registered through sent.dm is approved (decision 65; sent.dm replaces Twilio, owner decision 2026-11-11).
 - [ ] `status.ghxstship.tech` points at the Vercel project `status`, which the synthetics workflow deploys (`infra/ci/README.md`, Repository settings; decision 72, amended 2026-10-24).
 
 ## Section 21: build report contents
@@ -319,7 +341,7 @@ Everything marked **OWNER** above, in one list. Secrets are named, never shown.
 | A Better Stack account and its sources for the log drains and the 1-minute regional uptime checks (ADR 0033, decision 45). PowerSync hosting is not needed: PowerSync is deferred (decision 51)                                                                                                                                                                                        | 3b, Section 20.1 item 11       | `infra/README.md`, Cost rules; `infra/runbooks/production.md`, Monitoring and alerting |
 | The mailbox that receives DMARC aggregate reports, and the move to `p=quarantine` after two to four clean weeks (decision 46)                                                                                                                                                                                                                                                          | 3a                             | `infra/runbooks/production.md`, Email from mail.ghxstship.tech                         |
 | Key rotation moment confirmed by the owner on 2026-10-24: in the cutover window, right after the production smoke test and before anyone is invited (`promote-to-production.md`, step 12; decision 44)                                                                                                                                                                                 | 3a                             | `infra/runbooks/promote-to-production.md`                                              |
-| Twilio account, 10DLC brand and campaign, Messaging Service; `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_MESSAGING_SERVICE_SID`, `XOS_SMS_HELP_CONTACT`; `XOS_SMS_DELIVER_TO_ANY=true` once the campaign is approved (decision 65)                                                                                                                                              | 3a (SMS)                       | `infra/runbooks/production.md`, Push and SMS                                           |
+| sent.dm account and KYC, 10DLC brand and campaign, sender number, the `xos_notification` template, the HELP, STOP and START auto-replies, the `sms-webhook` endpoint; `SENT_DM_API_KEY`, `SENT_DM_WEBHOOK_SECRET`, `XOS_SMS_HELP_CONTACT`; `XOS_SMS_DELIVER_TO_ANY=true` once the campaign is approved (decision 65; sent.dm replaces Twilio, owner decision 2026-11-11)               | 3a (SMS)                       | `infra/runbooks/production.md`, Push and SMS                                           |
 | Resend inbound mail for `inbound.ghxstship.tech`, its MX and DKIM records, the `email.received` webhook, `RESEND_INBOUND_WEBHOOK_SECRET`, `RESEND_RECEIVING_API_KEY` and `XOS_INBOUND_DOMAIN` (decision 60)                                                                                                                                                                            | Project inboxes                | `infra/runbooks/production.md`, Email from mail.ghxstship.tech                         |
 | The Vercel project `status` with the domain `status.ghxstship.tech`, a Vercel token as the GitHub secret `VERCEL_STATUS_TOKEN`, and the variables `VERCEL_ORG_ID` and `VERCEL_STATUS_PROJECT_ID` (decision 72, amended 2026-10-24)                                                                                                                                                     | 3b                             | `infra/ci/README.md`, Repository settings                                              |
 | Stripe sandbox: Stripe Tax on; `stripe:setup` with the sandbox key (`sk_test_` or `rk_test_`), typed only on the owner's machine; the webhook endpoint, `STRIPE_WEBHOOK_SECRET` and `STRIPE_SECRET_KEY` on staging's Edge Functions, `STRIPE_SECRET_KEY` on `atlas` staging (decisions 19 and 59). Billing opens later with the live catalogue and live keys                           | Billing                        | `infra/runbooks/production.md`, Stripe catalogue                                       |

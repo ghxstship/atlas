@@ -3,19 +3,18 @@ import { clip, loadNotificationCopy, localeOf, notificationText } from "./copy.t
 import type { DeliveryOutcome, Recipient } from "./dispatch.ts";
 
 /**
- * SMS through Twilio (Section 5, Section 14.5 TCPA and 10DLC, finding A65-012), behind the SmsProvider
- * port so tests and local runs never reach the network. The database decides who may be texted:
- * app.claim_notification_deliveries hands over only numbers that are verified, have recorded consent in the
- * org, are not suppressed, and are outside quiet hours in the recipient's time zone. Twilio is called over
- * its REST API with fetch, which runs unchanged in Node and the Deno Edge runtime: the `twilio` package
- * would add a Node-only dependency tree for one POST and one HMAC.
+ * SMS, text and WhatsApp through sent.dm (owner decision 2026-11-11; Section 5, Section 14.5 TCPA and 10DLC, finding
+ * A65-012), behind the SmsProvider port so tests and local runs never reach the network. The database decides who
+ * may be texted: app.claim_notification_deliveries hands over only numbers that are verified, have recorded consent
+ * in the org, are not suppressed, and are outside quiet hours in the recipient's time zone. sent.dm is called over
+ * its REST API with fetch, which runs unchanged in Node and the Deno Edge runtime: its SDK would add a dependency
+ * tree for one POST and one HMAC.
  *
- * The inbound webhook (sms-webhook) verifies Twilio's signature, records STOP, START and HELP through
- * app.record_sms_keyword (the existing STOP suppression reason), answers with the catalog's reply, and
- * records status callbacks through app.record_sms_status.
+ * The inbound webhook (sms-webhook) verifies sent.dm's Standard Webhooks signature, records STOP, START and HELP
+ * from message.received through app.record_sms_keyword (the existing STOP suppression reason), and records
+ * delivery events through app.record_sms_status. sent.dm answers the keywords itself with the auto-replies the
+ * owner sets from smsAutoReplies, so the webhook sends no reply.
  */
-
-export const TWILIO_API = "https://api.twilio.com/2010-04-01";
 
 /** An SMS delivery claimed from app.claim_notification_deliveries. */
 export interface ClaimedSms {
@@ -46,7 +45,7 @@ const GSM7_BASIC = new Set(
 );
 /** Its extension table: two septets each (escape plus the character). */
 const GSM7_EXTENDED = new Set("^{}\\[~]|€\f");
-/** Characters Twilio's Smart Encoding sends as their GSM look-alikes, so they never force UCS-2. */
+/** Typographic characters sent as their GSM look-alikes (smartEncode), so they never force UCS-2. */
 const SMART_ENCODING: Readonly<Record<string, string>> = {
   "\u2026": "...", // ellipsis
   "\u2018": "'", // curly single quotes
@@ -139,102 +138,141 @@ export class GuardedSmsProvider implements SmsProvider {
   }
 }
 
-/** Twilio error codes a retry cannot fix: invalid or unreachable numbers, opted-out recipients. */
-const PERMANENT_TWILIO = new Set([
-  "21211",
-  "21408",
-  "21610",
-  "21612",
-  "21614",
-  "30003",
-  "30005",
-  "30006",
-]);
+/** sent.dm's v3 API (https://docs.sent.dm/start/guides/sending-messages). */
+export const SENTDM_API = "https://api.sent.dm/v3";
 
-export interface TwilioOptions {
-  readonly accountSid: string;
-  readonly authToken: string;
-  readonly messagingServiceSid: string;
-  /** URL Twilio posts delivery status to (the sms-webhook function). */
-  readonly statusCallbackUrl?: string | null;
+/**
+ * sent.dm error codes a retry cannot fix (https://docs.sent.dm/reference/api/error-catalog): an opted-out or
+ * suppressed recipient, and CONFLICT_005, a reused idempotency key whose first request succeeded (only 2xx answers
+ * are cached), so the text already went out and a retry must not send it again. Every VALIDATION_ code is permanent
+ * too: the same request is refused the same way.
+ */
+const PERMANENT_SENTDM = new Set(["BUSINESS_004", "CONFLICT_005"]);
+
+function permanentSentdm(code: string, httpStatus: number): boolean {
+  return PERMANENT_SENTDM.has(code) || code.startsWith("VALIDATION_") || httpStatus === 422;
+}
+
+/** The channel a text goes out on: SMS by default; WhatsApp needs approved WhatsApp templates; auto lets sent.dm pick. */
+export type SentdmChannel = "sms" | "whatsapp" | "auto";
+
+export interface SentdmOptions {
+  readonly apiKey: string;
+  /**
+   * The approved sent.dm template business-initiated texts go out on (by name, or by id when it is a UUID). sent.dm
+   * blocks free-form text to a contact who has never replied (CONVERSATION_TEMPLATE_REQUIRED), and most XOS texts
+   * start a conversation, so every text uses this template, its one variable carrying the whole rendered body.
+   */
+  readonly template: string;
+  /** The template's variable that holds the body. */
+  readonly templateVariable: string;
+  readonly channel: SentdmChannel;
+  /** Validate and simulate only (sent.dm sandbox mode): staging and tests. */
+  readonly sandbox?: boolean;
   readonly fetch?: typeof fetch;
 }
 
-function basicAuth(user: string, password: string): string {
-  return `Basic ${btoa(`${user}:${password}`)}`;
+/** Smart typography swapped for its GSM look-alikes, so a text stays GSM-7 (sent.dm sends characters as given). */
+export function smartEncode(body: string): string {
+  return [...body].map((c) => SMART_ENCODING[c] ?? c).join("");
 }
 
-/** Twilio's Messages API over fetch, sending from the 10DLC Messaging Service. */
-export function twilioSmsProvider(options: TwilioOptions): SmsProvider {
+/**
+ * A template variable value as sent.dm takes it (VALIDATION_008): no line breaks or tabs and no run of more than
+ * four spaces.
+ */
+export function templateValue(text: string): string {
+  return text
+    .replace(/[\r\n\t]+/g, " ")
+    .replace(/ {5,}/g, "    ")
+    .trim();
+}
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * sent.dm's Messages API over fetch (POST /v3/messages, x-api-key). Each delivery sends with the Idempotency-Key
+ * `xos-sms-<delivery id>`: a retry after a timeout replays the first answer instead of texting twice, and an error
+ * is not cached, so a retry after one sends again.
+ */
+export function sentdmSmsProvider(options: SentdmOptions): SmsProvider {
   const doFetch = options.fetch ?? fetch;
   return {
-    name: "twilio",
+    name: "sentdm",
     async send(message) {
-      const form = new URLSearchParams({
-        To: message.to,
-        MessagingServiceSid: options.messagingServiceSid,
-        Body: message.body,
-      });
-      if (options.statusCallbackUrl) form.set("StatusCallback", options.statusCallbackUrl);
+      const body = templateValue(smartEncode(message.body));
+      const template = UUID.test(options.template)
+        ? { id: options.template, parameters: { [options.templateVariable]: body } }
+        : { name: options.template, parameters: { [options.templateVariable]: body } };
+      const request = {
+        to: [message.to],
+        template,
+        ...(options.channel === "auto" ? {} : { channel: [options.channel] }),
+        ...(options.sandbox ? { sandbox: true } : {}),
+      };
       let response: Response;
       try {
-        response = await doFetch(`${TWILIO_API}/Accounts/${options.accountSid}/Messages.json`, {
+        response = await doFetch(`${SENTDM_API}/messages`, {
           method: "POST",
           headers: {
-            Authorization: basicAuth(options.accountSid, options.authToken),
-            "Content-Type": "application/x-www-form-urlencoded",
+            "x-api-key": options.apiKey,
+            "Content-Type": "application/json",
             Accept: "application/json",
+            "Idempotency-Key": `xos-sms-${message.deliveryId}`.replace(/[^A-Za-z0-9_-]/g, "-"),
           },
-          body: form.toString(),
+          body: JSON.stringify(request),
         });
       } catch (error) {
         throw new SmsSendError(
-          `Twilio unreachable: ${error instanceof Error ? error.message : String(error)}`,
+          `sent.dm unreachable: ${error instanceof Error ? error.message : String(error)}`,
           "network",
           false,
         );
       }
       const reply = (await response.json().catch(() => ({}))) as {
-        sid?: unknown;
-        code?: unknown;
-        message?: unknown;
-        num_segments?: unknown;
+        success?: unknown;
+        data?: { recipients?: readonly { message_id?: unknown }[] } | null;
+        error?: { code?: unknown; message?: unknown } | null;
       };
-      if (response.ok && typeof reply.sid === "string") {
-        // A Messaging Service may answer before it has split the text ("0"); the sender then counts it.
-        const segments = Number.parseInt(String(reply.num_segments ?? ""), 10);
-        return Number.isInteger(segments) && segments >= 1
-          ? { providerMessageId: reply.sid, segments }
-          : { providerMessageId: reply.sid };
+      const messageId = reply.data?.recipients?.[0]?.message_id;
+      if (response.ok && reply.success !== false && typeof messageId === "string") {
+        return { providerMessageId: messageId, segments: smsSegments(body) };
       }
-      const code = reply.code === undefined ? String(response.status) : String(reply.code);
-      const text = typeof reply.message === "string" ? reply.message : `HTTP ${response.status}`;
+      const code =
+        typeof reply.error?.code === "string" ? reply.error.code : String(response.status);
+      const text =
+        typeof reply.error?.message === "string" ? reply.error.message : `HTTP ${response.status}`;
       throw new SmsSendError(
-        `Twilio refused the message (${code}): ${text}`,
+        `sent.dm refused the message (${code}): ${text}`,
         code,
-        PERMANENT_TWILIO.has(code),
+        permanentSentdm(code, response.status),
       );
     },
   };
 }
 
-const sid = (prefix: string) => new RegExp(`^${prefix}[0-9a-f]{32}$`);
+/** A sent.dm webhook signing secret: whsec_ and the base64 key (https://docs.sent.dm/build/signature-verification). */
+const WEBHOOK_SECRET = /^whsec_[A-Za-z0-9+/]+={0,2}$/;
 
 export const smsEnvSchema = z
   .object({
-    XOS_SMS_TRANSPORT: z.enum(["record", "twilio"]).default("record"),
-    TWILIO_ACCOUNT_SID: z
+    XOS_SMS_TRANSPORT: z.enum(["record", "sentdm"]).default("record"),
+    SENT_DM_API_KEY: z.string().trim().min(16, "SENT_DM_API_KEY looks too short").optional(),
+    SENT_DM_WEBHOOK_SECRET: z
       .string()
-      .regex(sid("AC"), "TWILIO_ACCOUNT_SID is AC followed by 32 hex digits")
+      .regex(WEBHOOK_SECRET, "SENT_DM_WEBHOOK_SECRET is whsec_ followed by the base64 key")
       .optional(),
-    TWILIO_AUTH_TOKEN: z
+    /** The approved template texts go out on (name or id) and its variable; see SentdmOptions.template. */
+    XOS_SENTDM_TEMPLATE: z.string().trim().min(1).max(128).default("xos_notification"),
+    XOS_SENTDM_TEMPLATE_VARIABLE: z
       .string()
-      .regex(/^[0-9a-f]{32}$/, "TWILIO_AUTH_TOKEN is 32 hex digits")
-      .optional(),
-    TWILIO_MESSAGING_SERVICE_SID: z
-      .string()
-      .regex(sid("MG"), "TWILIO_MESSAGING_SERVICE_SID is MG followed by 32 hex digits")
-      .optional(),
+      .regex(/^[A-Za-z_][A-Za-z0-9_]{0,63}$/, "XOS_SENTDM_TEMPLATE_VARIABLE is a variable name")
+      .default("message"),
+    XOS_SENTDM_CHANNEL: z.enum(["sms", "whatsapp", "auto"]).default("sms"),
+    XOS_SENTDM_SANDBOX: z
+      .enum(["true", "false"])
+      .default("false")
+      .transform((v) => v === "true"),
     XOS_SMS_ALLOWLIST: z
       .string()
       .default("")
@@ -248,22 +286,20 @@ export const smsEnvSchema = z
       .enum(["true", "false"])
       .default("false")
       .transform((v) => v === "true"),
-    /** Where HELP replies send people: a support mailbox or page (an owner input, Section 14.5). */
+    /**
+     * Where HELP sends people: a support mailbox or page (an owner input, Section 14.5). sent.dm answers HELP, STOP
+     * and START itself; the owner pastes smsAutoReplies' texts into its auto-replies.
+     */
     XOS_SMS_HELP_CONTACT: z.string().trim().min(3).max(80).optional(),
   })
   .superRefine((env, ctx) => {
-    if (env.XOS_SMS_TRANSPORT !== "twilio") return;
-    for (const name of [
-      "TWILIO_ACCOUNT_SID",
-      "TWILIO_AUTH_TOKEN",
-      "TWILIO_MESSAGING_SERVICE_SID",
-      "XOS_SMS_HELP_CONTACT",
-    ] as const) {
+    if (env.XOS_SMS_TRANSPORT !== "sentdm") return;
+    for (const name of ["SENT_DM_API_KEY", "XOS_SMS_HELP_CONTACT"] as const) {
       if (env[name] === undefined)
         ctx.addIssue({
           code: "custom",
           path: [name],
-          message: `${name} is required for the twilio transport`,
+          message: `${name} is required for the sentdm transport`,
         });
     }
   });
@@ -280,24 +316,19 @@ export function readSmsEnv(source: Readonly<Record<string, string | undefined>>)
   return parsed.data;
 }
 
-/** The provider the environment asks for: Twilio behind the allow-list, or recording. */
+/** The provider the environment asks for: sent.dm behind the allow-list, or recording. */
 export function createSmsProvider(
   env: SmsEnv,
-  options: { statusCallbackUrl?: string | null; fetch?: typeof fetch } = {},
+  options: { fetch?: typeof fetch } = {},
 ): SmsProvider {
-  if (
-    env.XOS_SMS_TRANSPORT !== "twilio" ||
-    !env.TWILIO_ACCOUNT_SID ||
-    !env.TWILIO_AUTH_TOKEN ||
-    !env.TWILIO_MESSAGING_SERVICE_SID
-  )
-    return new RecordingSmsProvider();
+  if (env.XOS_SMS_TRANSPORT !== "sentdm" || !env.SENT_DM_API_KEY) return new RecordingSmsProvider();
   return new GuardedSmsProvider(
-    twilioSmsProvider({
-      accountSid: env.TWILIO_ACCOUNT_SID,
-      authToken: env.TWILIO_AUTH_TOKEN,
-      messagingServiceSid: env.TWILIO_MESSAGING_SERVICE_SID,
-      statusCallbackUrl: options.statusCallbackUrl ?? null,
+    sentdmSmsProvider({
+      apiKey: env.SENT_DM_API_KEY,
+      template: env.XOS_SENTDM_TEMPLATE,
+      templateVariable: env.XOS_SENTDM_TEMPLATE_VARIABLE,
+      channel: env.XOS_SENTDM_CHANNEL,
+      sandbox: env.XOS_SENTDM_SANDBOX,
       ...(options.fetch === undefined ? {} : { fetch: options.fetch }),
     }),
     { allowed: env.XOS_SMS_ALLOWLIST, deliverToAny: env.XOS_SMS_DELIVER_TO_ANY },
@@ -349,7 +380,7 @@ export interface SmsDispatchSummary {
 }
 
 /**
- * Sends claimed SMS deliveries and records each outcome: Sent with Twilio's message SID and the segments the
+ * Sends claimed SMS deliveries and records each outcome: Sent with sent.dm's message id and the segments the
  * text is billed as, Bounced for an error a retry cannot fix (an invalid or opted-out number), Failed
  * otherwise, which retries with backoff.
  */
@@ -503,7 +534,10 @@ export async function dispatchSmsSummaries(
 // eslint-disable-next-line xos/no-restated-enums -- below @xos/data; test/database-enums.test.ts holds it equal
 export type SmsKeywordAction = "Opt Out" | "Opt In" | "Help";
 
-/** Twilio's standard opt-out, opt-in and help keywords (10DLC), matched on the whole trimmed message. */
+/**
+ * The standard opt-out, opt-in and help keywords (10DLC), matched as sent.dm matches them: the whole trimmed message,
+ * case-insensitively (https://docs.sent.dm/start/guides/opt-out-and-consent).
+ */
 const KEYWORDS: Readonly<Record<string, SmsKeywordAction>> = {
   STOP: "Opt Out",
   STOPALL: "Opt Out",
@@ -516,6 +550,7 @@ const KEYWORDS: Readonly<Record<string, SmsKeywordAction>> = {
   START: "Opt In",
   YES: "Opt In",
   UNSTOP: "Opt In",
+  SUBSCRIBE: "Opt In",
   HELP: "Help",
   INFO: "Help",
 };
@@ -530,32 +565,58 @@ export function smsKeyword(body: string): { action: SmsKeywordAction; keyword: s
   return action === undefined ? null : { action, keyword: word };
 }
 
+/**
+ * The texts the owner sets as sent.dm's HELP, STOP and START auto-replies (Compliance in the sent.dm dashboard), in
+ * each language XOS writes: sent.dm answers the keywords, so XOS no longer replies itself.
+ */
+export async function smsAutoReplies(
+  helpContact: string,
+): Promise<Readonly<Record<"en-US" | "es-US", { help: string; stop: string; start: string }>>> {
+  const formatMessage = await loadNotificationCopy();
+  const replies = (locale: "en-US" | "es-US") => ({
+    help: formatMessage(locale, "sms.help", { helpContact }),
+    stop: formatMessage(locale, "sms.stop", {}),
+    start: formatMessage(locale, "sms.start", {}),
+  });
+  return { "en-US": replies("en-US"), "es-US": replies("es-US") };
+}
+
 function toBase64(bytes: ArrayBuffer): string {
   let binary = "";
   for (const b of new Uint8Array(bytes)) binary += String.fromCharCode(b);
   return btoa(binary);
 }
 
+function fromBase64(text: string): Uint8Array<ArrayBuffer> {
+  const binary = atob(text);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
+  return bytes;
+}
+
 /**
- * Twilio's request signature: base64 HMAC-SHA1, keyed with the auth token, of the full webhook URL
- * followed by every POST parameter name and value, sorted by name.
+ * sent.dm's webhook signature (Standard Webhooks; https://docs.sent.dm/build/signature-verification): `v1,` and the
+ * base64 HMAC-SHA256 of `<webhook id>.<timestamp>.<raw body>`, keyed with the secret's base64 key after `whsec_`.
  */
-export async function twilioSignature(
-  url: string,
-  params: Readonly<Record<string, string>>,
-  authToken: string,
+export async function sentdmSignature(
+  webhookId: string,
+  timestamp: string,
+  rawBody: string,
+  secret: string,
 ): Promise<string> {
-  const data = Object.keys(params)
-    .sort()
-    .reduce((acc, key) => acc + key + (params[key] ?? ""), url);
   const key = await crypto.subtle.importKey(
     "raw",
-    new TextEncoder().encode(authToken),
-    { name: "HMAC", hash: "SHA-1" },
+    fromBase64(secret.replace(/^whsec_/, "")),
+    { name: "HMAC", hash: "SHA-256" },
     false,
     ["sign"],
   );
-  return toBase64(await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(data)));
+  const mac = await crypto.subtle.sign(
+    "HMAC",
+    key,
+    new TextEncoder().encode(`${webhookId}.${timestamp}.${rawBody}`),
+  );
+  return `v1,${toBase64(mac)}`;
 }
 
 function constantTimeEqual(a: string, b: string): boolean {
@@ -565,15 +626,33 @@ function constantTimeEqual(a: string, b: string): boolean {
   return diff === 0;
 }
 
-/** True when the X-Twilio-Signature header matches the request. */
-export async function verifyTwilioSignature(
-  url: string,
-  params: Readonly<Record<string, string>>,
-  signature: string | null,
-  authToken: string,
+/** sent.dm signs each attempt when it sends it, and asks receivers to refuse anything older than five minutes. */
+export const SENTDM_REPLAY_WINDOW_SECONDS = 300;
+
+/**
+ * True when a signature in the header (space separated; any one may match) is sent.dm's for this request, and its
+ * timestamp is within the replay window of now.
+ */
+export async function verifySentdmSignature(
+  headers: SentdmWebhookHeaders,
+  rawBody: string,
+  secret: string,
+  nowSeconds: number = Math.floor(Date.now() / 1000),
 ): Promise<boolean> {
-  if (!signature) return false;
-  return constantTimeEqual(await twilioSignature(url, params, authToken), signature);
+  const { id, timestamp, signature } = headers;
+  if (!id || !timestamp || !signature || !/^[0-9]{1,12}$/.test(timestamp)) return false;
+  if (Math.abs(nowSeconds - Number(timestamp)) > SENTDM_REPLAY_WINDOW_SECONDS) return false;
+  let expected: string;
+  try {
+    expected = await sentdmSignature(id, timestamp, rawBody, secret);
+  } catch {
+    return false;
+  }
+  let match = false;
+  for (const candidate of signature.split(" ")) {
+    if (constantTimeEqual(candidate.trim(), expected)) match = true;
+  }
+  return match;
 }
 
 /** What the webhook writes. */
@@ -582,11 +661,29 @@ export interface SmsInboundStore {
   recordStatus(providerMessageId: string, status: string, error: string | null): Promise<boolean>;
 }
 
-export interface TwilioWebhookRequest {
-  /** The public URL Twilio posted to, exactly as configured in Twilio. */
-  readonly url: string;
-  readonly params: Readonly<Record<string, string>>;
+/**
+ * The signing headers: version 2 webhooks send webhook-id, webhook-timestamp and webhook-signature; version 1 sends
+ * x-webhook-id, x-webhook-timestamp and x-webhook-signature.
+ */
+export interface SentdmWebhookHeaders {
+  readonly id: string | null;
+  readonly timestamp: string | null;
   readonly signature: string | null;
+}
+
+/** Reads the signing headers of either webhook version. */
+export function sentdmHeaders(get: (name: string) => string | null): SentdmWebhookHeaders {
+  return {
+    id: get("webhook-id") ?? get("x-webhook-id"),
+    timestamp: get("webhook-timestamp") ?? get("x-webhook-timestamp"),
+    signature: get("webhook-signature") ?? get("x-webhook-signature"),
+  };
+}
+
+export interface SentdmWebhookRequest {
+  readonly headers: SentdmWebhookHeaders;
+  /** The body exactly as received: the signature covers its bytes. */
+  readonly rawBody: string;
 }
 
 export interface WebhookResponse {
@@ -595,62 +692,101 @@ export interface WebhookResponse {
   readonly body: string;
 }
 
-function escapeXml(text: string): string {
-  return text
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;");
-}
-
-function twiml(reply: string | null): WebhookResponse {
-  const inner = reply === null ? "" : `<Message>${escapeXml(reply)}</Message>`;
-  return {
-    status: 200,
-    contentType: "text/xml",
-    body: `<?xml version="1.0" encoding="UTF-8"?><Response>${inner}</Response>`,
-  };
-}
-
 const E164 = /^\+[1-9][0-9]{6,14}$/;
 
 /**
- * Handles one Twilio webhook: refuses a bad signature (403); records a status callback (MessageStatus);
- * records STOP, START and HELP from an inbound message and answers with the catalog's reply (TwiML).
- * Any other inbound text gets no reply: notifications take no SMS replies.
+ * The delivery status app.record_sms_status takes for a sent.dm status: delivered (also read, WhatsApp and RCS), or
+ * failed for a message that will not arrive (failed, filtered, blocked, cancelled). Statuses on the way (queued,
+ * routed, sent, scheduled) change nothing.
  */
-export async function handleTwilioWebhook(
-  request: TwilioWebhookRequest,
+export function smsDeliveryStatus(messageStatus: string): "delivered" | "failed" | null {
+  switch (messageStatus.toUpperCase()) {
+    case "DELIVERED":
+    case "READ":
+      return "delivered";
+    case "FAILED":
+    case "FILTERED":
+    case "BLOCKED":
+    case "CANCELLED":
+      return "failed";
+    default:
+      return null;
+  }
+}
+
+interface SentdmEvent {
+  readonly event?: unknown;
+  readonly payload?: {
+    readonly message_id?: unknown;
+    readonly message_status?: unknown;
+    readonly reason_code?: unknown;
+    readonly reason?: unknown;
+    readonly inbound_number?: unknown;
+    readonly text?: unknown;
+    readonly from?: unknown;
+    readonly source?: unknown;
+  } | null;
+}
+
+const NO_CONTENT: WebhookResponse = { status: 204, contentType: "text/plain", body: "" };
+
+/**
+ * Handles one sent.dm webhook: refuses a bad or stale signature (401). Records a delivery event (message.*) by its
+ * message id; records STOP, START and HELP from an inbound message (message.received) on the sender's number; and
+ * records an opt-out or opt-in the network reported (contact.opt_out and contact.opt_in with source PROVIDER_SIGNAL;
+ * a keyword's own event is message.received, so it is not counted twice). sent.dm sends the replies. Every other
+ * event is acknowledged and ignored. Retries of one event share its webhook id; both writes are idempotent for a
+ * repeated event (a status only moves forward, and a keyword sets the same suppression).
+ */
+export async function handleSentdmWebhook(
+  request: SentdmWebhookRequest,
   store: SmsInboundStore,
-  options: { readonly authToken: string; readonly helpContact: string },
+  options: { readonly webhookSecret: string; readonly nowSeconds?: number },
 ): Promise<WebhookResponse> {
   if (
-    !(await verifyTwilioSignature(
-      request.url,
-      request.params,
-      request.signature,
-      options.authToken,
+    !(await verifySentdmSignature(
+      request.headers,
+      request.rawBody,
+      options.webhookSecret,
+      options.nowSeconds,
     ))
   ) {
-    return { status: 403, contentType: "text/plain", body: "Forbidden" };
+    return { status: 401, contentType: "text/plain", body: "Unauthorized" };
   }
-  const p = request.params;
-  const status = p["MessageStatus"];
-  if (status !== undefined && p["MessageSid"] !== undefined && p["Body"] === undefined) {
-    const error = p["ErrorCode"] ? `${p["ErrorCode"]} ${p["ErrorMessage"] ?? ""}`.trim() : null;
-    await store.recordStatus(p["MessageSid"], status, error);
-    return { status: 204, contentType: "text/plain", body: "" };
+  let event: SentdmEvent;
+  try {
+    event = JSON.parse(request.rawBody) as SentdmEvent;
+  } catch {
+    return { status: 400, contentType: "text/plain", body: "Bad Request" };
   }
-  const from = p["From"] ?? "";
-  const keyword = smsKeyword(p["Body"] ?? "");
-  if (keyword === null || !E164.test(from)) return twiml(null);
-  await store.recordKeyword(from, keyword.action, keyword.keyword);
-  const key =
-    keyword.action === "Opt Out"
-      ? "sms.stop"
-      : keyword.action === "Opt In"
-        ? "sms.start"
-        : "sms.help";
-  const formatMessage = await loadNotificationCopy();
-  return twiml(formatMessage("en-US", key, { helpContact: options.helpContact }));
+  const name = typeof event.event === "string" ? event.event : "";
+  const p = event.payload ?? {};
+  if (name === "message.received") {
+    const from = typeof p.inbound_number === "string" ? p.inbound_number : "";
+    const keyword = smsKeyword(typeof p.text === "string" ? p.text : "");
+    if (keyword !== null && E164.test(from))
+      await store.recordKeyword(from, keyword.action, keyword.keyword);
+    return NO_CONTENT;
+  }
+  if (name === "contact.opt_out" || name === "contact.opt_in") {
+    const from = typeof p.from === "string" ? p.from : "";
+    if (p.source === "PROVIDER_SIGNAL" && E164.test(from))
+      await store.recordKeyword(
+        from,
+        name === "contact.opt_out" ? "Opt Out" : "Opt In",
+        "PROVIDER_SIGNAL",
+      );
+    return NO_CONTENT;
+  }
+  if (name.startsWith("message.") && typeof p.message_id === "string") {
+    const status = smsDeliveryStatus(typeof p.message_status === "string" ? p.message_status : "");
+    if (status !== null) {
+      const code = typeof p.reason_code === "string" ? p.reason_code : "";
+      const reason = typeof p.reason === "string" ? p.reason : "";
+      const error = status === "failed" ? `${code} ${reason}`.trim() || null : null;
+      await store.recordStatus(p.message_id, status, error);
+    }
+    return NO_CONTENT;
+  }
+  return NO_CONTENT;
 }

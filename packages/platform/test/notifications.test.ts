@@ -1,6 +1,6 @@
 /**
- * Push (Expo), SMS (Twilio), the SMS webhook and chat translation (A80, finding A65-012). Every provider
- * runs against a fake transport: nothing here reaches Expo, Twilio or Google.
+ * Push (Expo), SMS (sent.dm), the SMS webhook and chat translation (A80, finding A65-012). Every provider
+ * runs against a fake transport: nothing here reaches Expo, sent.dm or Google.
  */
 import { createHmac } from "node:crypto";
 import { readFileSync } from "node:fs";
@@ -18,7 +18,8 @@ import {
   RecordingSmsProvider,
   SmsRecipientRefusedError,
   SmsSendError,
-  TWILIO_API,
+  SENTDM_API,
+  SENTDM_REPLAY_WINDOW_SECONDS,
   TranslationUnavailableError,
   checkPushReceipts,
   clip,
@@ -32,7 +33,7 @@ import {
   expoPushClient,
   googleLanguage,
   googleMessageTranslator,
-  handleTwilioWebhook,
+  handleSentdmWebhook,
   notificationArgs,
   notificationText,
   outcomeOf,
@@ -41,17 +42,22 @@ import {
   readPushEnv,
   readSmsEnv,
   recipientProfile,
+  sentdmHeaders,
+  sentdmSignature,
+  sentdmSmsProvider,
+  smartEncode,
+  smsAutoReplies,
+  smsDeliveryStatus,
   smsInboundStore,
   smsKeyword,
   smsSegments,
   smsStore,
   staticAccessToken,
+  templateValue,
   translateChatMessage,
   translationOff,
   translationStore,
-  twilioSignature,
-  twilioSmsProvider,
-  verifyTwilioSignature,
+  verifySentdmSignature,
   workloadIdentityToken,
   type ClaimedPush,
   type ClaimedSms,
@@ -468,9 +474,11 @@ describe("push through the Expo push service (ADR 0030)", () => {
 
 // SMS ---------------------------------------------------------------------------------------------------
 
-const ACCOUNT = `AC${"0".repeat(32)}`;
-const SERVICE = `MG${"0".repeat(32)}`;
-const TOKEN = "0".repeat(32);
+/** The em dash, built from its code point because the finish guard keeps the literal out of the source. */
+const EM_DASH = String.fromCharCode(0x2014);
+/** A test-only API key and signing secret: never a real sent.dm credential. */
+const API_KEY = "test-sentdm-key-0000000000000000";
+const WEBHOOK_SECRET = `whsec_${Buffer.from("x".repeat(32)).toString("base64")}`;
 
 const sms = (overrides: Partial<ClaimedSms> = {}): ClaimedSms => ({
   deliveryId: "s1",
@@ -500,7 +508,7 @@ function smsFakeStore(claims: ClaimedSms[]) {
   return { store, records };
 }
 
-describe("SMS through Twilio (Section 14.5)", () => {
+describe("SMS through sent.dm (Section 14.5)", () => {
   it("texts the org, the kind's body, the link and the opt-out line, and records each outcome", async () => {
     const provider = new RecordingSmsProvider();
     const { store, records } = smsFakeStore([
@@ -539,19 +547,19 @@ describe("SMS through Twilio (Section 14.5)", () => {
     expect(smsSegments(`Lo más importante ${"a".repeat(53)}`)).toBe(2);
     expect(smsSegments("á".repeat(134))).toBe(2);
     expect(smsSegments("á".repeat(135))).toBe(3);
-    // Twilio's Smart Encoding sends an ellipsis, curly quotes and odd spaces as their GSM look-alikes.
+    // The sender swaps an ellipsis, curly quotes and odd spaces for their GSM look-alikes (smartEncode).
     expect(smsSegments(`${"a".repeat(157)}…`)).toBe(1);
     expect(smsSegments("\u201cLoad in\u201d \u2014 9:00\u202fAM")).toBe(1);
   });
 
-  it("meters Twilio's own segment count when it gives one", async () => {
+  it("meters the provider's segment count when it gives one", async () => {
     const provider = {
       name: "scripted",
-      send: async () => ({ providerMessageId: "SM-seg", segments: 4 }),
+      send: async () => ({ providerMessageId: "m-seg", segments: 4 }),
     };
     const zero = {
       name: "scripted",
-      send: async () => ({ providerMessageId: "SM-0", segments: 0 }),
+      send: async () => ({ providerMessageId: "m-0", segments: 0 }),
     };
     const { store, records } = smsFakeStore([sms()]);
     await dispatchSms(store, provider);
@@ -565,7 +573,7 @@ describe("SMS through Twilio (Section 14.5)", () => {
       name: "scripted",
       send: async () => {
         n += 1;
-        if (n === 1) throw new SmsSendError("unsubscribed", "21610", true);
+        if (n === 1) throw new SmsSendError("opted out", "BUSINESS_004", true);
         throw new Error("timeout");
       },
     };
@@ -579,95 +587,151 @@ describe("SMS through Twilio (Section 14.5)", () => {
     expect(records.map((r) => r[1])).toEqual(["Bounced", "Failed"]);
   });
 
-  it("posts to the Messages API from the Messaging Service with basic auth and the status callback", async () => {
+  it("keeps a text GSM-7 and a template value on one line", () => {
+    expect(smartEncode(`\u201cLoad in\u201d ${EM_DASH} 9:00\u202fAM\u2026`)).toBe(
+      '"Load in" - 9:00 AM...',
+    );
+    expect(templateValue("Line one\nLine two\t\tend      gap ")).toBe(
+      "Line one Line two end    gap",
+    );
+  });
+
+  it("posts the approved template to the Messages API with the key, the channel and an idempotency key per delivery", async () => {
+    const accepted = (id: string) =>
+      json(
+        {
+          success: true,
+          data: {
+            status: "QUEUED",
+            recipients: [{ message_id: id, to: "+15555550100", channel: "sms" }],
+          },
+          error: null,
+        },
+        202,
+      );
+    const refused = (status: number, code: string, message: string) =>
+      json({ success: false, status, error: { code, message } }, status);
     const { impl, requests } = fakeFetch((_url, _init, n) =>
       n === 1
-        ? json({ sid: "SM-test-1", status: "accepted", num_segments: "0" }, 201)
-        : n === 4
-          ? json({ sid: "SM-test-4", status: "queued", num_segments: "3" }, 201)
-          : n === 2
-            ? json({ code: 21610, message: "Attempt to send to unsubscribed recipient" }, 400)
-            : new Response("oops", { status: 500 }),
+        ? accepted("m-1")
+        : n === 2
+          ? refused(400, "BUSINESS_004", "Recipient has opted out")
+          : n === 3
+            ? refused(422, "CONFLICT_005", "Idempotency key reused with a different body")
+            : n === 4
+              ? refused(429, "RATE_LIMIT_001", "Too many requests")
+              : new Response("oops", { status: 500 }),
     );
-    const provider = twilioSmsProvider({
-      accountSid: ACCOUNT,
-      authToken: TOKEN,
-      messagingServiceSid: SERVICE,
-      statusCallbackUrl: "https://ref.supabase.test/functions/v1/sms-webhook",
+    const provider = sentdmSmsProvider({
+      apiKey: API_KEY,
+      template: "xos_notification",
+      templateVariable: "message",
+      channel: "sms",
       fetch: impl,
     });
     await expect(
-      provider.send({ to: "+15555550100", body: "Hi", deliveryId: "s1" }),
-    ).resolves.toEqual({
-      providerMessageId: "SM-test-1",
-    });
-    expect(requests[0]?.url).toBe(`${TWILIO_API}/Accounts/${ACCOUNT}/Messages.json`);
+      provider.send({ to: "+15555550100", body: `Hi ${EM_DASH} there\nnow`, deliveryId: "s1" }),
+    ).resolves.toEqual({ providerMessageId: "m-1", segments: 1 });
+    expect(requests[0]?.url).toBe(`${SENTDM_API}/messages`);
     const headers = requests[0]?.init.headers as Record<string, string>;
-    expect(headers["Authorization"]).toBe(`Basic ${btoa(`${ACCOUNT}:${TOKEN}`)}`);
-    const form = new URLSearchParams(String(requests[0]?.init.body));
-    expect(Object.fromEntries(form)).toEqual({
-      To: "+15555550100",
-      MessagingServiceSid: SERVICE,
-      Body: "Hi",
-      StatusCallback: "https://ref.supabase.test/functions/v1/sms-webhook",
+    expect(headers["x-api-key"]).toBe(API_KEY);
+    expect(headers["Idempotency-Key"]).toBe("xos-sms-s1");
+    expect(JSON.parse(String(requests[0]?.init.body))).toEqual({
+      to: ["+15555550100"],
+      template: { name: "xos_notification", parameters: { message: "Hi - there now" } },
+      channel: ["sms"],
     });
     await expect(
       provider.send({ to: "+15555550100", body: "Hi", deliveryId: "s2" }),
-    ).rejects.toMatchObject({
-      code: "21610",
-      permanent: true,
-    });
+    ).rejects.toMatchObject({ code: "BUSINESS_004", permanent: true });
+    // A reused key whose first request succeeded: the text went out, so it is never sent again.
     await expect(
       provider.send({ to: "+15555550100", body: "Hi", deliveryId: "s3" }),
-    ).rejects.toMatchObject({
-      code: "500",
-      permanent: false,
-    });
-    // Twilio's segment count, when it has split the text already.
+    ).rejects.toMatchObject({ code: "CONFLICT_005", permanent: true });
     await expect(
       provider.send({ to: "+15555550100", body: "Hi", deliveryId: "s4" }),
-    ).resolves.toEqual({ providerMessageId: "SM-test-4", segments: 3 });
-    const offline = twilioSmsProvider({
-      accountSid: ACCOUNT,
-      authToken: TOKEN,
-      messagingServiceSid: SERVICE,
+    ).rejects.toMatchObject({ code: "RATE_LIMIT_001", permanent: false });
+    await expect(
+      provider.send({ to: "+15555550100", body: "Hi", deliveryId: "s5" }),
+    ).rejects.toMatchObject({ code: "500", permanent: false });
+
+    // A template id, WhatsApp, and sandbox mode.
+    const other = fakeFetch(() => accepted("m-2"));
+    const whatsapp = sentdmSmsProvider({
+      apiKey: API_KEY,
+      template: "7ba7b820-9dad-11d1-80b4-00c04fd430c8",
+      templateVariable: "body",
+      channel: "whatsapp",
+      sandbox: true,
+      fetch: other.impl,
+    });
+    await whatsapp.send({ to: "+15555550100", body: "Hi", deliveryId: "w1" });
+    expect(JSON.parse(String(other.requests[0]?.init.body))).toEqual({
+      to: ["+15555550100"],
+      template: { id: "7ba7b820-9dad-11d1-80b4-00c04fd430c8", parameters: { body: "Hi" } },
+      channel: ["whatsapp"],
+      sandbox: true,
+    });
+    const auto = fakeFetch(() => accepted("m-3"));
+    await sentdmSmsProvider({
+      apiKey: API_KEY,
+      template: "xos_notification",
+      templateVariable: "message",
+      channel: "auto",
+      fetch: auto.impl,
+    }).send({ to: "+15555550100", body: "Hi", deliveryId: "a1" });
+    expect(JSON.parse(String(auto.requests[0]?.init.body))).not.toHaveProperty("channel");
+
+    const offline = sentdmSmsProvider({
+      apiKey: API_KEY,
+      template: "xos_notification",
+      templateVariable: "message",
+      channel: "sms",
       fetch: fakeFetch(() => {
         throw new Error("dns");
       }).impl,
     });
     await expect(offline.send({ to: "+1", body: "x", deliveryId: "s" })).rejects.toMatchObject({
       code: "network",
+      permanent: false,
     });
   });
 
-  it("records unless XOS_SMS_TRANSPORT=twilio with every secret, and guards recipients outside production", async () => {
+  it("records unless XOS_SMS_TRANSPORT=sentdm with the key, and guards recipients outside production", async () => {
     expect(createSmsProvider(readSmsEnv({})).name).toBe("record");
-    expect(() => readSmsEnv({ XOS_SMS_TRANSPORT: "twilio" })).toThrow(
-      /TWILIO_ACCOUNT_SID.*TWILIO_AUTH_TOKEN.*TWILIO_MESSAGING_SERVICE_SID.*XOS_SMS_HELP_CONTACT/,
+    expect(() => readSmsEnv({ XOS_SMS_TRANSPORT: "sentdm" })).toThrow(
+      /SENT_DM_API_KEY.*XOS_SMS_HELP_CONTACT/,
     );
-    expect(() => readSmsEnv({ TWILIO_ACCOUNT_SID: "AC123" })).toThrow(
-      /AC followed by 32 hex digits/,
+    expect(() => readSmsEnv({ XOS_SMS_TRANSPORT: "twilio" })).toThrow(/XOS_SMS_TRANSPORT/);
+    expect(() => readSmsEnv({ SENT_DM_WEBHOOK_SECRET: "secret" })).toThrow(
+      /whsec_ followed by the base64 key/,
+    );
+    // The error names the variable, never its value.
+    expect(() => readSmsEnv({ SENT_DM_API_KEY: "short-key" })).toThrow(
+      expect.objectContaining({ message: expect.not.stringContaining("short-key") }),
     );
     const env = readSmsEnv({
-      XOS_SMS_TRANSPORT: "twilio",
-      TWILIO_ACCOUNT_SID: ACCOUNT,
-      TWILIO_AUTH_TOKEN: TOKEN,
-      TWILIO_MESSAGING_SERVICE_SID: SERVICE,
+      XOS_SMS_TRANSPORT: "sentdm",
+      SENT_DM_API_KEY: API_KEY,
       XOS_SMS_HELP_CONTACT: "help.xos.test",
       XOS_SMS_ALLOWLIST: "+15555550100, +15555550101",
     });
     expect(env.XOS_SMS_ALLOWLIST).toEqual(["+15555550100", "+15555550101"]);
-    const sent = fakeFetch(() => json({ sid: "SM-1" }, 201));
-    const provider = createSmsProvider(env, { fetch: sent.impl, statusCallbackUrl: null });
+    expect(env.XOS_SENTDM_TEMPLATE).toBe("xos_notification");
+    expect(env.XOS_SENTDM_CHANNEL).toBe("sms");
+    expect(env.XOS_SENTDM_SANDBOX).toBe(false);
+    const sent = fakeFetch(() =>
+      json({ success: true, data: { recipients: [{ message_id: "m-1" }] } }, 202),
+    );
+    const provider = createSmsProvider(env, { fetch: sent.impl });
     expect(provider).toBeInstanceOf(GuardedSmsProvider);
+    expect(provider.name).toBe("sentdm");
     await expect(
       provider.send({ to: "+15555550199", body: "x", deliveryId: "s" }),
     ).rejects.toBeInstanceOf(SmsRecipientRefusedError);
     await expect(
       provider.send({ to: "+15555550100", body: "x", deliveryId: "s" }),
-    ).resolves.toEqual({
-      providerMessageId: "SM-1",
-    });
+    ).resolves.toEqual({ providerMessageId: "m-1", segments: 1 });
     const open = new GuardedSmsProvider(new RecordingSmsProvider(), {
       allowed: [],
       deliverToAny: true,
@@ -676,26 +740,45 @@ describe("SMS through Twilio (Section 14.5)", () => {
       open.send({ to: "+15555550199", body: "x", deliveryId: "s" }),
     ).resolves.toBeDefined();
   });
+
+  it("gives the owner the HELP, STOP and START auto-replies in each language", async () => {
+    const replies = await smsAutoReplies("help.xos.test");
+    expect(replies["en-US"].help).toContain("Help: help.xos.test. Reply STOP to opt out.");
+    expect(replies["en-US"].stop).toContain("You will get no more texts from XOS notifications.");
+    expect(replies["en-US"].start).toContain("You will get XOS notifications by text again.");
+    expect(replies["es-US"].stop).toMatch(/START/);
+    expect(replies["es-US"].help).toContain("help.xos.test");
+  });
 });
 
-describe("the SMS webhook: STOP, START, HELP and status callbacks", () => {
-  const url = "https://ref.supabase.test/functions/v1/sms-webhook";
-  const inbound = (
-    store: SmsInboundStore,
-    params: Record<string, string>,
-    signature?: string | null,
-  ) =>
-    (async () =>
-      handleTwilioWebhook(
-        {
-          url,
-          params,
-          signature:
-            signature === undefined ? await twilioSignature(url, params, TOKEN) : signature,
-        },
-        store,
-        { authToken: TOKEN, helpContact: "help.xos.test" },
-      ))();
+describe("the SMS webhook: sent.dm's signed events", () => {
+  const NOW = 1_794_400_000;
+  const signed = async (
+    event: unknown,
+    options: { secret?: string; at?: number; id?: string; version?: 1 | 2 } = {},
+  ) => {
+    const rawBody = JSON.stringify(event);
+    const id = options.id ?? "msg_2LJ0F8sZf3";
+    const timestamp = String(options.at ?? NOW);
+    const signature = await sentdmSignature(
+      id,
+      timestamp,
+      rawBody,
+      options.secret ?? WEBHOOK_SECRET,
+    );
+    const names =
+      options.version === 1
+        ? { id: "x-webhook-id", timestamp: "x-webhook-timestamp", signature: "x-webhook-signature" }
+        : { id: "webhook-id", timestamp: "webhook-timestamp", signature: "webhook-signature" };
+    const sent: Record<string, string> = {
+      [names.id]: id,
+      [names.timestamp]: timestamp,
+      [names.signature]: signature,
+    };
+    return { headers: sentdmHeaders((name) => sent[name] ?? null), rawBody };
+  };
+  const handle = (store: SmsInboundStore, request: Awaited<ReturnType<typeof signed>>) =>
+    handleSentdmWebhook(request, store, { webhookSecret: WEBHOOK_SECRET, nowSeconds: NOW });
 
   function inboundStore() {
     const keywords: [string, string, string][] = [];
@@ -713,71 +796,163 @@ describe("the SMS webhook: STOP, START, HELP and status callbacks", () => {
     return { store, keywords, statuses };
   }
 
-  it("reads Twilio's standard keywords on the whole message", () => {
+  const received = (text: string, from = "+15555550100") => ({
+    field: "message",
+    event: "message.received",
+    payload: {
+      message_id: "in-1",
+      inbound_number: from,
+      outbound_number: "+18005550100",
+      text,
+      channel: "sms",
+    },
+  });
+
+  it("reads the standard keywords on the whole message", () => {
     expect(smsKeyword(" stop ")).toEqual({ action: "Opt Out", keyword: "STOP" });
     expect(smsKeyword("Unsubscribe.")).toEqual({ action: "Opt Out", keyword: "UNSUBSCRIBE" });
     expect(smsKeyword("start")).toEqual({ action: "Opt In", keyword: "START" });
+    expect(smsKeyword("subscribe")).toEqual({ action: "Opt In", keyword: "SUBSCRIBE" });
     expect(smsKeyword("HELP")).toEqual({ action: "Help", keyword: "HELP" });
     expect(smsKeyword("please stop texting me")).toBeNull();
   });
 
-  it("computes Twilio's signature: HMAC-SHA1 of the URL and the sorted parameters", async () => {
-    const params = { From: "+15555550100", Body: "STOP", AccountSid: ACCOUNT };
-    const expected = createHmac("sha1", TOKEN)
-      .update(`${url}AccountSid${ACCOUNT}BodySTOPFrom+15555550100`)
-      .digest("base64");
-    await expect(twilioSignature(url, params, TOKEN)).resolves.toBe(expected);
-    await expect(verifyTwilioSignature(url, params, expected, TOKEN)).resolves.toBe(true);
-    await expect(verifyTwilioSignature(url, params, "nope", TOKEN)).resolves.toBe(false);
-    await expect(verifyTwilioSignature(url, params, null, TOKEN)).resolves.toBe(false);
+  it("computes sent.dm's signature: v1, HMAC-SHA256 of id.timestamp.body with the decoded secret", async () => {
+    const body = '{"event":"message.received"}';
+    const key = Buffer.from(WEBHOOK_SECRET.slice("whsec_".length), "base64");
+    const expected = `v1,${createHmac("sha256", key).update(`msg_1.${NOW}.${body}`).digest("base64")}`;
+    await expect(sentdmSignature("msg_1", String(NOW), body, WEBHOOK_SECRET)).resolves.toBe(
+      expected,
+    );
+    const headers = { id: "msg_1", timestamp: String(NOW), signature: expected };
+    await expect(verifySentdmSignature(headers, body, WEBHOOK_SECRET, NOW)).resolves.toBe(true);
+    // Any one of several space-separated signatures may match (a rotation).
+    await expect(
+      verifySentdmSignature(
+        { ...headers, signature: `v1,old ${expected}` },
+        body,
+        WEBHOOK_SECRET,
+        NOW,
+      ),
+    ).resolves.toBe(true);
+    await expect(verifySentdmSignature(headers, `${body} `, WEBHOOK_SECRET, NOW)).resolves.toBe(
+      false,
+    );
+    await expect(
+      verifySentdmSignature({ ...headers, signature: null }, body, WEBHOOK_SECRET, NOW),
+    ).resolves.toBe(false);
+    // Outside the five-minute window, either way.
+    await expect(
+      verifySentdmSignature(headers, body, WEBHOOK_SECRET, NOW + SENTDM_REPLAY_WINDOW_SECONDS + 1),
+    ).resolves.toBe(false);
+    await expect(
+      verifySentdmSignature(headers, body, WEBHOOK_SECRET, NOW - SENTDM_REPLAY_WINDOW_SECONDS - 1),
+    ).resolves.toBe(false);
   });
 
-  it("refuses an unsigned or forged request", async () => {
+  it("refuses an unsigned, forged or stale request and writes nothing", async () => {
     const { store, keywords } = inboundStore();
+    const good = await signed(received("STOP"));
     await expect(
-      inbound(store, { From: "+15555550100", Body: "STOP" }, null),
-    ).resolves.toMatchObject({ status: 403 });
-    await expect(
-      inbound(store, { From: "+15555550100", Body: "STOP" }, "forged"),
-    ).resolves.toMatchObject({ status: 403 });
+      handle(store, { ...good, headers: { ...good.headers, signature: null } }),
+    ).resolves.toMatchObject({ status: 401 });
+    const forged = await signed(received("STOP"), {
+      secret: `whsec_${Buffer.from("y".repeat(32)).toString("base64")}`,
+    });
+    await expect(handle(store, forged)).resolves.toMatchObject({ status: 401 });
+    const stale = await signed(received("STOP"), { at: NOW - 3600 });
+    await expect(handle(store, stale)).resolves.toMatchObject({ status: 401 });
     expect(keywords).toEqual([]);
   });
 
-  it("records STOP with the STOP suppression and answers each keyword from the catalog", async () => {
+  it("records STOP, HELP and START from message.received, on version 1 and 2 headers, and sends no reply", async () => {
     const { store, keywords } = inboundStore();
-    const stop = await inbound(store, { From: "+15555550100", Body: "Stop" });
-    expect(stop.status).toBe(200);
-    expect(stop.contentType).toBe("text/xml");
-    expect(stop.body).toContain("<Message>You will get no more texts from XOS notifications.");
-    const help = await inbound(store, { From: "+15555550100", Body: "help" });
-    expect(help.body).toContain("Help: help.xos.test. Reply STOP to opt out.");
-    const start = await inbound(store, { From: "+15555550100", Body: "START" });
-    expect(start.body).toContain("You will get XOS notifications by text again.");
+    const stop = await handle(store, await signed(received("Stop")));
+    expect(stop).toEqual({ status: 204, contentType: "text/plain", body: "" });
+    await handle(store, await signed(received("help"), { version: 1 }));
+    await handle(store, await signed(received("START")));
     expect(keywords).toEqual([
       ["+15555550100", "Opt Out", "STOP"],
       ["+15555550100", "Help", "HELP"],
       ["+15555550100", "Opt In", "START"],
     ]);
-    const other = await inbound(store, { From: "+15555550100", Body: "see you there" });
-    expect(other.body).toBe('<?xml version="1.0" encoding="UTF-8"?><Response></Response>');
-    await inbound(store, { From: "not-a-number", Body: "STOP" });
+    await handle(store, await signed(received("see you there")));
+    await handle(store, await signed(received("STOP", "not-a-number")));
     expect(keywords).toHaveLength(3);
   });
 
-  it("records status callbacks by message SID", async () => {
-    const { store, statuses } = inboundStore();
-    const answer = await inbound(store, {
-      MessageSid: "SM-1",
-      MessageStatus: "undelivered",
-      ErrorCode: "30003",
-      ErrorMessage: "Unreachable",
+  it("records a network-reported opt-out, and leaves a keyword's own contact event to message.received", async () => {
+    const { store, keywords } = inboundStore();
+    const contact = (event: string, source: string) => ({
+      field: "contact",
+      event,
+      payload: { from: "+15555550100", to: "+18005550100", source, channel: "sms" },
     });
-    expect(answer.status).toBe(204);
-    await inbound(store, { MessageSid: "SM-2", MessageStatus: "delivered" });
-    expect(statuses).toEqual([
-      ["SM-1", "undelivered", "30003 Unreachable"],
-      ["SM-2", "delivered", null],
+    await handle(store, await signed(contact("contact.opt_out", "INBOUND_KEYWORD")));
+    await handle(store, await signed(contact("contact.opt_out", "PROVIDER_SIGNAL")));
+    await handle(store, await signed(contact("contact.opt_in", "PROVIDER_SIGNAL")));
+    expect(keywords).toEqual([
+      ["+15555550100", "Opt Out", "PROVIDER_SIGNAL"],
+      ["+15555550100", "Opt In", "PROVIDER_SIGNAL"],
     ]);
+  });
+
+  it("records delivery events by message id: delivered and read, or failed with sent.dm's reason", async () => {
+    const { store, statuses } = inboundStore();
+    const status = (event: string, message_status: string, extra: Record<string, string> = {}) => ({
+      field: "message",
+      event,
+      payload: {
+        message_id: `m-${message_status}`,
+        message_status,
+        channel: "sms",
+        body: null,
+        ...extra,
+      },
+    });
+    const answer = await handle(
+      store,
+      await signed(
+        status("message.failed", "FAILED", {
+          reason_code: "DELIVERY_011",
+          reason: "The carrier rejected the message",
+        }),
+      ),
+    );
+    expect(answer.status).toBe(204);
+    await handle(store, await signed(status("message.delivered", "DELIVERED")));
+    await handle(store, await signed(status("message.read", "READ")));
+    await handle(
+      store,
+      await signed(
+        status("message.blocked", "BLOCKED", { reason_code: "CONVERSATION_TEMPLATE_REQUIRED" }),
+      ),
+    );
+    await handle(store, await signed(status("message.sent", "SENT")));
+    await handle(store, await signed(status("message.queued", "QUEUED")));
+    await handle(
+      store,
+      await signed({ field: "templates", event: "templates.approved", payload: {} }),
+    );
+    expect(statuses).toEqual([
+      ["m-FAILED", "failed", "DELIVERY_011 The carrier rejected the message"],
+      ["m-DELIVERED", "delivered", null],
+      ["m-READ", "delivered", null],
+      ["m-BLOCKED", "failed", "CONVERSATION_TEMPLATE_REQUIRED"],
+    ]);
+    expect(smsDeliveryStatus("cancelled")).toBe("failed");
+    expect(smsDeliveryStatus("SCHEDULED")).toBeNull();
+  });
+
+  it("answers 400 to a signed body that is not JSON", async () => {
+    const { store } = inboundStore();
+    const id = "msg_bad";
+    const timestamp = String(NOW);
+    const rawBody = "not json";
+    const signature = await sentdmSignature(id, timestamp, rawBody, WEBHOOK_SECRET);
+    await expect(
+      handle(store, { headers: { id, timestamp, signature }, rawBody }),
+    ).resolves.toMatchObject({ status: 400 });
   });
 });
 

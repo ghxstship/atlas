@@ -14,7 +14,7 @@ export const LEGAL_DOCUMENTS: readonly LegalDocument[] = [
   {
     slug: "privacy-policy",
     title: "Privacy Policy",
-    version: "1.0.0",
+    version: "1.1.0",
     publish: "public",
     requiresAcceptanceAtSignup: false,
     acceptanceBy: [],
@@ -38,7 +38,7 @@ export const LEGAL_DOCUMENTS: readonly LegalDocument[] = [
   {
     slug: "subprocessors",
     title: "Subprocessor List",
-    version: "1.0.0",
+    version: "1.1.0",
     publish: "public",
     requiresAcceptanceAtSignup: false,
     acceptanceBy: [],
@@ -166,7 +166,7 @@ export const LEGAL_DOCUMENTS: readonly LegalDocument[] = [
   {
     slug: "text-message-terms",
     title: "Text Message Terms",
-    version: "1.0.0",
+    version: "1.1.0",
     publish: "public",
     requiresAcceptanceAtSignup: false,
     acceptanceBy: [],

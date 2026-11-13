@@ -32,7 +32,7 @@ export interface GatewayLegalDocument {
  */
 export const GATEWAY_LEGAL_DOCUMENTS: readonly GatewayLegalDocument[] = [
   { slug: "worker-terms", title: "Worker Terms", version: "1.0.0", accept: true },
-  { slug: "privacy-policy", title: "Privacy Policy", version: "1.0.0", accept: false },
+  { slug: "privacy-policy", title: "Privacy Policy", version: "1.1.0", accept: false },
   { slug: "cookie-policy", title: "Cookie Policy", version: "1.0.0", accept: false },
   { slug: "terms-of-service", title: "Terms of Service", version: "1.0.0", accept: false },
   {

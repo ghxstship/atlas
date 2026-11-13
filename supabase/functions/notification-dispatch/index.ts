@@ -9,10 +9,12 @@
 //     (VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_SUBJECT; the apps get the same public key); recorded otherwise.
 //     They ride the Push deliveries, so quiet hours and preferences are A80's. A browser that unsubscribed (404 or
 //     410) is revoked.
-//   * SMS through Twilio when XOS_SMS_TRANSPORT=twilio (TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN,
-//     TWILIO_MESSAGING_SERVICE_SID, XOS_SMS_HELP_CONTACT), limited to XOS_SMS_ALLOWLIST unless
-//     XOS_SMS_DELIVER_TO_ANY=true; recorded otherwise. Twilio posts delivery status to sms-webhook. Texts held by
-//     quiet hours go out as one summary per member and org when the quiet hours end (ADR 0033 decision 35).
+//   * SMS (and WhatsApp) through sent.dm when XOS_SMS_TRANSPORT=sentdm (SENT_DM_API_KEY, XOS_SMS_HELP_CONTACT; the
+//     approved template XOS_SENTDM_TEMPLATE and its variable XOS_SENTDM_TEMPLATE_VARIABLE, the channel
+//     XOS_SENTDM_CHANNEL, sandbox mode with XOS_SENTDM_SANDBOX=true), limited to XOS_SMS_ALLOWLIST unless
+//     XOS_SMS_DELIVER_TO_ANY=true; recorded otherwise. sent.dm posts delivery events to sms-webhook, the endpoint
+//     registered in its dashboard. Texts held by quiet hours go out as one summary per member and org when the quiet
+//     hours end (ADR 0033 decision 35).
 // One channel failing never stops the others: its error is logged and reported in the answer.
 //   * Push and SMS go first and keep sending batch after batch while each comes back full, within a time and batch
 //     budget, so a crisis alert to a whole project (6800) reaches phones within minutes; the claim takes the kinds
@@ -79,10 +81,7 @@ serve(async (request) => {
     checkPushReceipts(pushStore(db), createPushClient(readPushEnv(source))),
   );
 
-  const smsProvider = () =>
-    createSmsProvider(readSmsEnv(source), {
-      statusCallbackUrl: Deno.env.get("XOS_SMS_WEBHOOK_URL") ?? `${functionsUrl}/sms-webhook`,
-    });
+  const smsProvider = () => createSmsProvider(readSmsEnv(source));
   // Texts go one request each: up to 200 a run, within 15 seconds.
   const sms = await channel("sms", () => {
     const provider = smsProvider();
