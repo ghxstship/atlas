@@ -10,8 +10,9 @@
 //     They ride the Push deliveries, so quiet hours and preferences are A80's. A browser that unsubscribed (404 or
 //     410) is revoked.
 //   * SMS (and WhatsApp) through sent.dm when XOS_SMS_TRANSPORT=sentdm (SENT_DM_API_KEY, XOS_SMS_HELP_CONTACT; the
-//     approved template XOS_SENTDM_TEMPLATE and its variable XOS_SENTDM_TEMPLATE_VARIABLE, the channel
-//     XOS_SENTDM_CHANNEL, sandbox mode with XOS_SENTDM_SANDBOX=true), limited to XOS_SMS_ALLOWLIST unless
+//     approved English and Spanish templates XOS_SENTDM_TEMPLATE and XOS_SENTDM_TEMPLATE_ES, which carry the opt-out
+//     line, and their variable XOS_SENTDM_TEMPLATE_VARIABLE, the channel XOS_SENTDM_CHANNEL, sandbox mode with
+//     XOS_SENTDM_SANDBOX=true), limited to XOS_SMS_ALLOWLIST unless
 //     XOS_SMS_DELIVER_TO_ANY=true; recorded otherwise. sent.dm posts delivery events to sms-webhook, the endpoint
 //     registered in its dashboard. Texts held by quiet hours go out as one summary per member and org when the quiet
 //     hours end (ADR 0033 decision 35).
