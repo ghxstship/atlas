@@ -425,7 +425,12 @@ export async function LegalHoldsPanel({ ctx }: SettingsPanelProps) {
               </>
             ),
             meta: [
-              h.tableName ? tableWords(h.tableName) : f.t(`${P}.privacy.allTables`),
+              // The held table's name in words is data, not catalog copy (see Trash's Kind).
+              h.tableName ? (
+                <span data-pseudo-exempt>{tableWords(h.tableName)}</span>
+              ) : (
+                f.t(`${P}.privacy.allTables`)
+              ),
               f.t(`${P}.privacy.placed`, { date: f.day(h.placedAt) }),
               h.releasedAt ? f.t(`${P}.privacy.releasedOn`, { date: f.day(h.releasedAt) }) : null,
             ],

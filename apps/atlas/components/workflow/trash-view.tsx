@@ -103,8 +103,11 @@ export async function TrashView({
                       <th scope="row" className="px-12 py-8 text-left font-medium">
                         {i.title ?? t("trash.untitled")}
                       </th>
-                      {/* The kind in words, never the table's identifier (crawl 4.9). */}
-                      <td className="px-12 py-8">{tableWords(i.table)}</td>
+                      {/* The kind in words, never the table's identifier (crawl 4.9). The words come from the table's
+                          name, which is data, not catalog copy, until a catalog of plural kinds exists. */}
+                      <td className="px-12 py-8">
+                        <span data-pseudo-exempt>{tableWords(i.table)}</span>
+                      </td>
                       <td className="px-12 py-8">
                         {i.projectId
                           ? (projectKey.get(i.projectId) ?? t("common.otherProject"))
