@@ -11,6 +11,7 @@ import { getNode } from "@xos/ia";
 import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { getLocale } from "next-intl/server";
+import dynamic from "next/dynamic";
 import { ActionButton } from "@/components/actions/action-button";
 import { LiveRefresh } from "@/components/live/live-refresh";
 import { LinkBoard, LinkTable } from "@/components/page/collections";
@@ -26,6 +27,10 @@ import { lensApplications } from "@/lib/shell/role-lens";
 import { requireNode, sitemap } from "@/lib/shell/sitemap";
 import { enumLabelKey, getTranslate, type Translate } from "@/lib/shell/translate";
 import { APPLICATION_STATE_STYLE, toneFor } from "@/lib/states";
+
+const ConfirmButton = dynamic(() =>
+  import("@/components/actions/confirm-button").then((m) => m.ConfirmButton),
+);
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslate();
@@ -117,9 +122,16 @@ function OfferPanel({
             label={t("gateway.work.applications.offer.accept")}
             variant="secondary"
           />
-          <ActionButton
+          {/* Declining closes the application for good, so it is confirmed, with an optional reason, and reads
+              differently from Accept. */}
+          <ConfirmButton
             action={declineOfferAction.bind(null, offer.id)}
             label={t("gateway.work.applications.offer.decline")}
+            title={t("gateway.work.applications.offer.declineTitle")}
+            sentence={t("gateway.work.applications.offer.declineSentence")}
+            reason={t("gateway.work.applications.offer.declineReason")}
+            confirm={t("gateway.work.applications.offer.declineConfirm")}
+            cancel={t("gateway.common.cancel")}
           />
           {latest?.currency_code && latest.rate_type ? (
             <CounterForm

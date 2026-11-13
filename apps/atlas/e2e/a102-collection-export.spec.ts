@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import { expect as baseExpect, test, type Page } from "@playwright/test";
+import { expect as baseExpect, test, type Page } from "./engine-test";
 import {
   DEFAULT_EXPORT_COPY,
   runExportRenders,

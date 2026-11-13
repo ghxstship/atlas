@@ -4,8 +4,12 @@ import { listDepartments, listProjects, type ProjectSummary } from "@xos/data/pr
 import { listGroups, type Group } from "@xos/data/workforce-chat";
 import type { Audience } from "@xos/data/workforce-shared";
 import type { FieldSpec } from "@/components/collection-kit/kit";
+import { PageHeader } from "@/components/collection-kit/ui";
+import { CollectionPage } from "@/components/platform/collection-page";
+import { EmptyStateLink } from "@/components/ui";
 import { getCopy, type Copy } from "@/lib/collection-kit/i18n";
 import type { OrgContext } from "@/lib/shell/context";
+import { nodeHref } from "@/lib/shell/sitemap";
 
 /**
  * Shared server helpers of the workforce pages (A29): the copy, the org's projects, teams, roles,
@@ -160,14 +164,56 @@ export function memberName(
   return members.find((m) => m.membershipId === membershipId)?.fullName ?? fallback;
 }
 
-/** The project a site operations page shows: the `project` query key, else the first project. */
+/**
+ * The project a site operations page shows: the `project` query by id or key, else the org's only project. Of several
+ * projects none is picked silently (crawl 4.9): the list holds every project the person can read, and the first could be
+ * one they only see through a shift, where the page offers nothing. Null asks the person to choose.
+ */
 export function chosenProject(
   projects: readonly ProjectSummary[],
   search: Readonly<Record<string, string | string[] | undefined>>,
 ): ProjectSummary | null {
   const raw = search["project"];
-  const id = Array.isArray(raw) ? raw[0] : raw;
-  return projects.find((p) => p.id === id) ?? projects[0] ?? null;
+  const wanted = Array.isArray(raw) ? raw[0] : raw;
+  if (wanted) return projects.find((p) => p.id === wanted || p.key === wanted) ?? null;
+  return projects.length === 1 ? (projects[0] ?? null) : null;
+}
+
+/**
+ * A site operations page with no project in scope: with no projects, the way to create one; otherwise the project
+ * picker, starting on "Choose a project".
+ */
+export function NoSiteProject({
+  ctx,
+  t,
+  title,
+  path,
+  projects,
+}: {
+  ctx: OrgContext;
+  t: Copy;
+  title: string;
+  path: string;
+  projects: readonly ProjectSummary[];
+}) {
+  if (projects.length === 0) {
+    return (
+      <CollectionPage header={<PageHeader title={title} />}>
+        <EmptyStateLink
+          icon="FolderPlus"
+          sentence={t("site.noProjects")}
+          actionLabel={t("site.openProjects")}
+          href={nodeHref("projects.all", { org: ctx.org.slug }) ?? "/"}
+        />
+      </CollectionPage>
+    );
+  }
+  return (
+    <CollectionPage header={<PageHeader title={title} />}>
+      <ProjectPicker t={t} path={path} projects={projects} current={null} />
+      <p className="m-0 text-text-14 text-text-secondary">{t("site.choosePrompt")}</p>
+    </CollectionPage>
+  );
 }
 
 /** A small GET form that switches the project of a site operations page. */
@@ -194,6 +240,7 @@ export function ProjectPicker({
           defaultValue={current?.id ?? ""}
           className="h-control-md max-w-full rounded-control border border-border-control bg-bg-surface px-8 text-text-13"
         >
+          {current === null ? <option value="">{t("site.chooseProject")}</option> : null}
           {projects.map((p) => (
             <option key={p.id} value={p.id}>
               {p.key} {p.name}

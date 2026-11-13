@@ -125,7 +125,13 @@ export interface PublicPersonProfileFull {
     verified: boolean;
     verified_by: string | null;
   }[];
-  readonly organizations: readonly { handle: string; name: string }[];
+  /** api_public.person_profile_organizations returns (org_handle, name), as 0860 declares it. */
+  readonly organizations: readonly { org_handle: string; name: string }[];
+}
+
+/** Where an organization a person worked with opens: its public company profile, /c/{handle}. */
+export function organizationProfilePath(o: { readonly org_handle: string }): string {
+  return `/c/${encodeURIComponent(o.org_handle)}`;
 }
 
 /** One rating on a person's profile, shown because that person chose to (ADR 0158). */

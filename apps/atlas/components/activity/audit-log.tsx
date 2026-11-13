@@ -5,7 +5,7 @@ import { Button, DataTable, EmptyState, Tag } from "@xos/ui";
 import type { Route } from "next";
 import { useFormatter, useTranslations } from "next-intl";
 import { usePathname, useRouter } from "next/navigation";
-import { auditActionText } from "@/lib/activity-audit";
+import { auditActionText, auditActorText, auditDetailText } from "@/lib/activity-audit";
 
 /**
  * Activity > Audit log (Section 4.5.5, Owner and Admin): the compliance ledger as a table, newest
@@ -50,25 +50,16 @@ export function AuditLog({
         ]}
         rows={entries.map((e) => ({
           id: e.id,
-          when: format.dateTime(new Date(e.at), { dateStyle: "medium", timeStyle: "medium" }),
-          actor:
-            e.actor ??
-            (e.actorKind === "Person"
-              ? t("redacted")
-              : e.actorKind === "Service"
-                ? t("service")
-                : t("systemActor")),
+          when: format.dateTime(new Date(e.at), {
+            dateStyle: "medium",
+            timeStyle: "long",
+          }),
+          actor: auditActorText(e, activity),
           // The action in words, its code beside it (A59-017).
           action: auditActionText(e.action, e.subjectTable, activity),
           code: e.action,
-          changes: e.redacted
-            ? t("redacted")
-            : Object.keys(e.diff).length > 0
-              ? t("changedFieldList", {
-                  count: Object.keys(e.diff).length,
-                  fields: Object.keys(e.diff).join(", "),
-                })
-              : "",
+          // The area a platform support read opened, or the fields any other change touched.
+          changes: auditDetailText(e, activity),
         }))}
       />
       <div className="flex gap-8">

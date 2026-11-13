@@ -13,6 +13,7 @@ import {
   Timeline,
   foldSeries,
 } from "../src/index.ts";
+import { niceMax } from "../src/Charts/Chart.tsx";
 import { expectAccessible } from "./a11y.ts";
 
 describe("Gallery and Calendar", () => {
@@ -252,6 +253,27 @@ describe("Chart", () => {
       />,
     );
     expect(screen.getAllByText("Other").length).toBeGreaterThan(0);
+  });
+
+  it("keeps whole-number ticks for an all-zero or small whole series", () => {
+    const { container } = render(
+      <Chart
+        type="bar"
+        title="Paid by month"
+        categoryLabel="Month"
+        format="money"
+        currency="USD"
+        categories={categories}
+        series={[{ name: "Paid", values: [0, 0, 0] }]}
+      />,
+    );
+    const ticks = Array.from(container.querySelectorAll("svg text"))
+      .map((t) => t.textContent)
+      .filter((t) => t?.startsWith("$"));
+    expect(ticks).toEqual(["$0", "$1", "$2", "$3", "$4"]);
+    expect(niceMax(5, true)).toBe(8);
+    expect(niceMax(5000, true)).toBe(5000);
+    expect(niceMax(0.6)).toBe(1);
   });
 });
 

@@ -1,8 +1,9 @@
 "use client";
 
 import { chordOf } from "@xos/schemas/shortcuts/keys";
-import { Button, Kbd } from "@xos/ui";
+import { Button, Kbd, Tag } from "@xos/ui";
 import type { Route } from "next";
+import { useTranslations } from "next-intl";
 import NextLink from "next/link";
 import { useRouter } from "next/navigation";
 import { singleKeyShortcutsEnabled } from "@xos/ui/preferences";
@@ -37,6 +38,8 @@ export interface InboxRow {
   readonly when: string;
   /** True when the item is an approval request that can be decided from here now. */
   readonly approvable: boolean;
+  /** True for a crisis alert in force (isUrgentInboxItem): it shows marked as an emergency. */
+  readonly urgent?: boolean;
 }
 
 type Quick = "approve" | "done" | "snooze";
@@ -106,6 +109,7 @@ async function sendAct(org: string, id: string, action: Quick): Promise<Platform
  */
 export function InboxView({ org, rows }: { org: string; rows: readonly InboxRow[] }) {
   const t = usePlatformT();
+  const shell = useTranslations("shell");
   const keys = useShellKeys();
   const router = useRouter();
   const [hidden, setHidden] = useState<ReadonlySet<string>>(new Set());
@@ -456,8 +460,13 @@ export function InboxView({ org, rows }: { org: string; rows: readonly InboxRow[
                           // Shift+click selects a range, not the text between.
                           if (event.shiftKey) event.preventDefault();
                         }}
+                        data-urgent={row.urgent ? "" : undefined}
                         className={`flex items-start gap-12 rounded-card border p-12 focus-visible:outline-(length:--stroke-width-focus) focus-visible:outline-focus-ring ${
-                          isCurrent ? "border-border-strong bg-bg-selected" : "border-border-subtle"
+                          row.urgent
+                            ? `border-danger border-s-stroke-accent ${isCurrent ? "bg-bg-selected" : ""}`
+                            : isCurrent
+                              ? "border-border-strong bg-bg-selected"
+                              : "border-border-subtle"
                         } ${isPicked ? "ring-(length:--stroke-width-focus) ring-inset ring-accent" : ""}`}
                       >
                         <input
@@ -473,6 +482,11 @@ export function InboxView({ org, rows }: { org: string; rows: readonly InboxRow[
                             the text when both do not fit on one line, as on a phone. */}
                         <div className="flex min-w-0 flex-1 flex-wrap items-start justify-between gap-12">
                           <div className="flex min-w-0 grow flex-col gap-2">
+                            {row.urgent ? (
+                              <span>
+                                <Tag tone="danger">{shell("crisisBanner.inboxTag")}</Tag>
+                              </span>
+                            ) : null}
                             <p className={`m-0 text-text-14 ${row.unread ? "font-semibold" : ""}`}>
                               {row.summary}
                             </p>

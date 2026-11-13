@@ -36,6 +36,7 @@ async function createTask(page: Page, title: string): Promise<string> {
   await sheet.getByLabel("Kind").selectOption("Task");
   await sheet.getByLabel("Subtype").selectOption("Execute");
   await sheet.getByLabel("Title").fill(title);
+  await sheet.getByLabel("Project").selectOption({ label: "NWS · Northwind Summer Series" });
   await sheet.getByRole("button", { name: "Create record" }).click();
   await page.waitForURL(/peek=/);
   return new URL(page.url()).searchParams.get("peek") ?? "";

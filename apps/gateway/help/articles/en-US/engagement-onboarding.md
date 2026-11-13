@@ -17,6 +17,6 @@ A step shows its kind, whether it is required, how it is verified (automatically
 - **Electronic signature**: sign under Documents; the step completes when the organization countersigns.
 - **Acknowledgment**: read the briefing, then acknowledge it.
 - **Background check**: the organization's screening provider emails you a secure link. Only the result is stored here.
-- **Payout details**: add them in [Settings, Payout and tax](help:settings-payout-and-tax).
+- **Payout details**: the organization collects them through its payment provider, not in Gateway. Follow the provider's invitation, or ask the organization for it in the engagement's Messages. Once set up, the destination shows in [Settings, Payout and tax](help:settings-payout-and-tax).
 
 The organization verifies each step next. Onboarding steps also appear on Home under Needs you.

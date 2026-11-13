@@ -81,13 +81,23 @@ export function formatCurrency(locale: string, value: number, currency = "USD"):
   return numberFormat(locale, { style: "currency", currency }).format(value);
 }
 
-/** Compact axis ticks (`notation: compact`), as the data visualization rules require. */
+/**
+ * Compact axis ticks (`notation: compact`), as the data visualization rules require. The minimum of no fraction
+ * digits is explicit: with currency, ICU versions disagree on the default (Node 22's gives "$5.0K", Chromium's "$5K"),
+ * and a server-rendered chart whose ticks differ from the browser's fails hydration.
+ */
 export function formatCompact(locale: string, value: number, currency?: string): string {
   return numberFormat(
     locale,
     currency === undefined
-      ? { notation: "compact", maximumFractionDigits: 1 }
-      : { style: "currency", currency, notation: "compact", maximumFractionDigits: 1 },
+      ? { notation: "compact", minimumFractionDigits: 0, maximumFractionDigits: 1 }
+      : {
+          style: "currency",
+          currency,
+          notation: "compact",
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 1,
+        },
   ).format(value);
 }
 

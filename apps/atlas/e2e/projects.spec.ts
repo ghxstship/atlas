@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "./engine-test";
+import { expect, routerIdle, test, type Page } from "./engine-test";
 import {
   createOrganization,
   endTrial,
@@ -62,6 +62,9 @@ async function attest(page: Page, criterion: string) {
   await dialog.getByLabel("What it shows").fill("Signed off by the accountable party.");
   await dialog.getByRole("button", { name: "Attest" }).click();
   await expect(dialog).toBeHidden();
+  // The attestation refreshes the Gates tab; a click on the next criterion while that refresh renders can land on a
+  // button it replaces, and no dialog opens (Firefox, nightly run 42927680948).
+  await routerIdle(page);
 }
 
 async function passGate(page: Page, gate: number, decision: string) {

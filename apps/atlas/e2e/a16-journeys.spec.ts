@@ -113,14 +113,13 @@ test("journeys 4, 30 and 5: RFQ to purchase order, approval by another person, r
   await expect(page.getByText("Delay tower system, per show day").first()).toBeVisible();
   const orderUrl = page.url();
 
-  // Journey 30: the creator's approval is refused with the rule.
-  await act(page, page.locator("header"), "Approve", "Mine to approve.");
+  // Journey 30: the creator is not offered Approve (sod_po_creator) and is told why (crawl 4.9).
+  await expect(page.locator("header").getByRole("button", { name: "Approve" })).toHaveCount(0);
   await expect(
-    page.getByText(
-      "Separation of duties: the person who created the purchase order cannot approve it.",
-    ),
+    page.getByText("You created this purchase order, so someone else approves it."),
   ).toBeVisible();
-  await page.keyboard.press("Escape");
+  // The order's policy is named on the page, with the way to Approvals.
+  await expect(page.getByText("Approval policy first")).toBeVisible();
 
   // The demo tenant's approval policy (A33, seed 1030) routes every order through Finance review
   // (an Admin) and Owner sign-off before anyone may approve it under spend authority.

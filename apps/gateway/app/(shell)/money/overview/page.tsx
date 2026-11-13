@@ -5,7 +5,7 @@ import { PaymentSteps } from "@/components/engagement/payment-steps";
 import { PageTitle, RegionError, Section } from "@/components/page/page";
 import { DestinationTabs } from "@/components/page/work-tabs";
 import { Card, EmptyStateLink } from "@/components/ui";
-import { Chart } from "@/components/ui-chart";
+import { ChartWhenVisible } from "@/components/chart-when-visible";
 import { formatMoney } from "@/lib/format";
 import { personToday } from "@/lib/time-zone";
 import { moneyOverview, paidByMonth } from "@/lib/money";
@@ -35,7 +35,8 @@ export default async function MoneyOverviewPage() {
     today,
   });
   const currency = overview.earned[0]?.currency ?? overview.pending[0]?.currency ?? null;
-  const chart = currency && payments.ok ? paidByMonth(payments.data, currency, today) : null;
+  const chart =
+    currency && payments.ok ? paidByMonth(payments.data, currency, today, locale) : null;
   const amounts = (rows: { currency: string; amountMinor: number }[]) =>
     rows.length === 0
       ? t("gateway.money.overview.none")
@@ -76,14 +77,21 @@ export default async function MoneyOverviewPage() {
               <PaymentSteps invoice={overview.next} locale={locale} t={t} />
             </Section>
           ) : null}
-          {chart && currency ? (
+          {chart && currency && !chart.paid ? (
             <Section title={t("gateway.money.overview.chartTitle")}>
-              <Chart
+              <p className="text-text-14 text-text-secondary">
+                {t("gateway.money.overview.chartNone", { currency })}
+              </p>
+            </Section>
+          ) : null}
+          {chart && currency && chart.paid ? (
+            <Section title={t("gateway.money.overview.chartTitle")}>
+              <ChartWhenVisible
                 type="bar"
                 title={t("gateway.money.overview.chartTitle")}
                 subtitle={t("gateway.money.overview.chartSubtitle", { currency })}
                 categoryLabel={t("gateway.money.overview.month")}
-                categories={chart.months}
+                categories={chart.labels}
                 series={[{ name: t("gateway.money.overview.paid"), values: chart.values }]}
                 format="money"
                 currency={currency}

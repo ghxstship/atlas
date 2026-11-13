@@ -1,6 +1,6 @@
 import { createHash, randomBytes } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
-import { expect as baseExpect, test, type Browser, type Page } from "@playwright/test";
+import { expect as baseExpect, test, type Browser, type Page } from "./engine-test";
 import pg from "pg";
 import {
   createOrganization,

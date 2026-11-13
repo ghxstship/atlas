@@ -1,5 +1,6 @@
 "use server";
 
+import { isCountryCode } from "@xos/i18n/formats";
 import {
   addAllowedNetwork,
   addLegalEntity,
@@ -114,7 +115,11 @@ const uuid = z.uuid();
 
 const entitySchema = z.object({
   legalName: z.string().min(1).max(200),
-  countryCode: z.string().regex(/^[A-Z]{2}$/),
+  // A real ISO 3166-1 country, not any two letters (crawl 4.9).
+  countryCode: z
+    .string()
+    .regex(/^[A-Z]{2}$/)
+    .refine(isCountryCode),
   fiscalYearStartMonth: z.coerce.number().int().min(1).max(12),
   baseCurrency: z.string().regex(/^[A-Z]{3}$/),
   taxIdentifier: z.string().min(4).max(40).nullable(),

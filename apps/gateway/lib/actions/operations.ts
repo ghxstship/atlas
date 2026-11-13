@@ -3,6 +3,7 @@
 import {
   acceptEngagedShift,
   acknowledgePurchaseOrder,
+  declineEngagedShift,
   agreeSelfBilling,
   APP_ENUMS,
   decideClientApproval,
@@ -42,6 +43,22 @@ function done(result: { ok: boolean; error?: Parameters<typeof outcomeFor>[0] })
 
 export async function acceptShiftAction(shiftId: string): Promise<ActionResult> {
   return toAction(await acceptEngagedShift(await createServerSupabase(), id.parse(shiftId)));
+}
+
+/** The person assigned declines a Published shift, with an optional reason of up to 500 characters (app.decline_shift). */
+export async function declineShiftAction(
+  shiftId: string,
+  reason?: string | null,
+): Promise<ActionResult> {
+  const text = z
+    .string()
+    .trim()
+    .max(500)
+    .safeParse(reason ?? "");
+  if (!text.success) return { ok: false, outcome: "invalid" };
+  return toAction(
+    await declineEngagedShift(await createServerSupabase(), id.parse(shiftId), text.data || null),
+  );
 }
 
 export async function submitTimesheetAction(timesheetId: string): Promise<ActionResult> {

@@ -82,7 +82,7 @@
     "quantity": "Quantity",
     "unitPrice": "Unit price",
     "unitBasis": "Unit",
-    "unitBasisHelp": "A canon unit alias such as ea, day or m.",
+    "unitBasisHelp": "Leave it blank, or use a canon unit: each, hour, day, week, year, event, lot, lump sum, package, cover or sq ft per year.",
     "extended": "Amount",
     "received": "Received",
     "addRow": "Add another line",
@@ -177,7 +177,16 @@
     "addLine": "Add line",
     "removeLine": "Remove line {n}",
     "linesLocked": "Lines are locked after approval. Use a change order to change the order.",
-    "back": "Back to purchase orders"
+    "back": "Back to purchase orders",
+    "submitForApproval": "Submit for approval",
+    "ownOrder": "You created this purchase order, so someone else approves it.",
+    "policyTitle": "Approval policy first",
+    "policySubmit": "The policy {policy} covers this order. Submit it for approval; once the policy approves it, approve the order here.",
+    "policyInReview": "This order is in review under the policy {policy}. Once the policy approves it, approve the order here.",
+    "openApprovals": "Open Approvals",
+    "noSpendAuthorityTitle": "No one can approve this amount",
+    "noSpendAuthority": "No spend authority for purchase orders covers {total} in this currency, so nobody can give this order its final approval. An Owner or Admin sets limits under Settings, Spend authority.",
+    "openSpendAuthority": "Open Spend authority"
   },
   "changes": {
     "title": "Change orders",
@@ -342,8 +351,8 @@
     "purchase_order_use_rpc": "Approve purchase orders with the Approve button.",
     "purchase_order_transition_not_allowed": "That order move is not allowed from the current state.",
     "sod_po_creator": "Separation of duties: the person who created the purchase order cannot approve it.",
-    "spend_authority_missing": "No spend authority lets you approve this document in this currency. Ask a finance approver.",
-    "spend_authority_exceeded": "The amount is above your spend authority. Someone with a higher limit has to approve it.",
+    "spend_authority_missing": "Nobody gave you a spend authority for purchase orders in this currency. Ask an Owner or Admin to set one under Settings, Spend authority, or ask someone who holds one to approve.",
+    "spend_authority_exceeded": "The amount is above your spend authority. Someone whose limit covers it has to approve; an Owner or Admin sets limits under Settings, Spend authority.",
     "spend_approval_duplicate": "You already approved this. A second, different approver is needed.",
     "production_closed": "The production is closed, so it takes no new spend.",
     "vendor_blocked": "A blocked or canceled vendor takes no new purchase orders.",
@@ -429,7 +438,14 @@
     "submittal_files_changes_requested": "A file of this submittal needs changes; review its newest version first.",
     "sod_file_review_uploader": "The person who uploaded a file version cannot review it.",
     "file_review_not_clean": "Only a file that passed its virus scan is reviewed.",
-    "file_review_note_required": "Say what to change in up to 1,000 characters."
+    "file_review_note_required": "Say what to change in up to 1,000 characters.",
+    "approval_policy_pending": "This order goes through its approval policy first. Submit it for approval, then approve it here once the policy approves it.",
+    "spend_unpriced": "Price every line before the order is approved.",
+    "approval_policy_none": "No Active approval policy covers this order, so approve it directly.",
+    "approval_policy_no_steps": "The approval policy has no steps yet. Ask a policy administrator to add one.",
+    "approval_unpriced": "Price every line before submitting the order for approval.",
+    "approval_in_review": "This order is already in review. Follow it on the Approvals page.",
+    "approval_already_approved": "The policy already approved this order for its current total. Approve the order here."
   },
   "kit": {
     "views": "View",
@@ -464,8 +480,9 @@
       "transition": "That move is not allowed from the current state. Choose one of the moves offered.",
       "conflict": "Someone changed this first. Refresh to see the current state, then try again.",
       "separation": "Separation of duties: someone other than the person who started this has to decide it.",
-      "spend": "Spend authority does not cover this amount. Ask an approver with a higher limit.",
-      "other": "The database refused this change. The rule code below explains why."
+      "spend": "Spend authority does not cover this amount. Ask an approver with a higher limit, or ask an Owner or Admin to set one under Settings, Spend authority.",
+      "other": "The database refused this change. Refresh the page and try again; if it keeps happening, give your admin the rule below.",
+      "approval": "This document goes through its approval policy first. Submit it for approval, then approve it here once the policy approves it."
     },
     "errors": {
       "notFound": "This item no longer exists or you no longer have access to it. Refresh the page.",
@@ -518,7 +535,8 @@
       "country": "Enter a two-letter country code, for example US.",
       "countryNeeded": "Enter the country of this address.",
       "hireOrder": "The hire must end after it starts.",
-      "tooLong": "This is too long. Shorten it and try again."
+      "tooLong": "This is too long. Shorten it and try again.",
+      "unit": "That unit is not in the canon. Use each, hour, day, week, year, event, lot, lump sum, package, cover or sq ft per year, or leave it blank."
     },
     "loadError": {
       "title": "This did not load",
@@ -552,7 +570,8 @@
       "created": "Created as {state}",
       "moved": "{from} to {to}",
       "someone": "Someone"
-    }
+    },
+    "refusalRule": "Rule: {rule}"
   },
   "hireWarnings": {
     "title": "Check the hire window",

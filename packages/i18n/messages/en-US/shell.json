@@ -581,7 +581,7 @@
         "action": "Add entity"
       },
       "rolesAndCapabilities": {
-        "empty": "Build custom roles from the capability set.",
+        "empty": "The roles a member can hold, from most access to least, and the capabilities each one grants. Platform roles are fixed; View as role previews one.",
         "action": "New role"
       },
       "teams": {
@@ -717,7 +717,7 @@
         "action": "View members"
       },
       "dangerZone": {
-        "empty": "Transfer ownership, archive or delete this organization.",
+        "empty": "Cancel, reactivate or delete this organization, or transfer its ownership.",
         "action": "Transfer ownership"
       },
       "general": {
@@ -751,8 +751,8 @@
         "action": "Set visibility"
       },
       "account": {
-        "empty": "Manage your email, phone, linked sign-ins and data export.",
-        "action": "Edit account"
+        "empty": "Your support requests and deletion certificates. Your name, sign-in methods and account deletion are in Gateway, where your XOS account lives.",
+        "action": "Open account in Gateway"
       },
       "security": {
         "empty": "Add a passkey or MFA and review your sessions and devices.",
@@ -851,7 +851,11 @@
   },
   "page": {
     "sections": "Pages in {section}",
-    "skipToContent": "Skip to content"
+    "skipToContent": "Skip to content",
+    "noneOpen": {
+      "empty": "None of the pages in {section} are open to the role you are viewing as. Choose All roles in the org switcher to see them.",
+      "action": "Go to Home"
+    }
   },
   "legal": {
     "draftTitle": "Draft, not yet in effect",
@@ -866,7 +870,8 @@
     "versionUpcoming": "Version {version}: takes effect on {date}",
     "contents": "On this page",
     "englishOnly": "This document is published in English.",
-    "action": "Back to Atlas"
+    "action": "Back to Atlas",
+    "indexTitle": "Legal documents"
   },
   "home": {
     "welcome": "Welcome to {org}",
@@ -1103,7 +1108,10 @@
       "closed": "You told us you are under 18, so your account is closed. We deleted your sign-in, your profile and its files, your badge photos, your settings, what you sent our support team, and the answers and personal agreements you gave XOS. Any organization you worked with keeps the records the law requires, such as hours you worked, and a note with your email address that your account was deleted, and XOS keeps a record of that deletion with your account IDs but no name. XOS also keeps a monthly count of people under 18 it turned away, which does not identify you. Deleted data stays in backups until they expire.",
       "held": "You told us you are under 18, but your account cannot be deleted yet: a legal hold, an open shift or being an organization's only owner stands in the way. We signed you out everywhere, you cannot use this account, and we will ask again when you sign in. Contact us and we will finish closing it.",
       "minors": "If you are working or attending an event, the adult or organization responsible for you can keep your details in their own records. You do not need an account for that.",
-      "contact": "Contact us"
+      "contact": "Contact us",
+      "home": "Home",
+      "privacy": "Privacy Policy",
+      "linksLabel": "Where to go next"
     },
     "ageQuestion": {
       "title": "Confirm your age",
@@ -1190,6 +1198,8 @@
         "days": "{count, plural, one {# day} other {# days}}",
         "submit": "Create invite",
         "created": "Invitation created for {email}. Send them this link; it works once and expires {expires}.",
+        "replaces": "An invitation to this email is already waiting. Creating a new one stops the earlier link from working, and the role you choose now applies.",
+        "replaced": "The earlier invitation link for this email no longer works.",
         "link": "Invitation link",
         "copy": "Copy link",
         "copied": "Link copied."
@@ -1244,6 +1254,8 @@
     },
     "billing": {
       "current": "{org} is on the {plan} plan.",
+      "canceled": "This organization is canceled, so it is on the Access plan and read-only. Reactivate it before you choose a plan.",
+      "canceledAction": "Reactivate in Danger Zone",
       "perMonth": "{price} per month",
       "choose": "Choose {plan}",
       "chooseAnnual": "Choose {plan}, billed yearly",
@@ -1297,6 +1309,7 @@
       "perYear": "{price} a year, two months free",
       "seats": "Seats",
       "seatUsage": "{used} of {limit} seats in use.",
+      "seatUsageOver": "{used} seats in use. The plan includes {limit}.",
       "seatUsageUnlimited": "{used, plural, one {# seat} other {# seats}} in use. Your plan has unlimited seats.",
       "extraSeats": "{count, plural, one {Includes # extra seat} other {Includes # extra seats}} bought on top of the plan.",
       "grandfathered": "Your subscription started before plans had seat limits, so it keeps unlimited seats. Changing plan applies the new seat limits.",
@@ -1388,6 +1401,7 @@
     "NO_ANSWER": "No answer",
     "UNRATIFIED": "Not ratified"
   },
+  "refusalReference": "Reference for support: {code}",
   "commandMenu": {
     "groups": {
       "actions": "Actions",
@@ -1436,6 +1450,7 @@
     "prompt": "What do you want to create?",
     "here": "On this page",
     "more": "Everything else",
+    "chooseProject": "Choose a project",
     "kinds": {
       "project": "Project",
       "record": "Record",
@@ -1473,5 +1488,13 @@
   },
   "systemBanner": {
     "details": "Details"
+  },
+  "crisisBanner": {
+    "title": "{title} is in force",
+    "titleOnProject": "{title} is in force on {project}",
+    "untitled": "Crisis alert",
+    "open": "Open emergency codes",
+    "more": "{count, plural, one {# more crisis alert is in force} other {# more crisis alerts are in force}}",
+    "inboxTag": "Emergency"
   }
 }

@@ -29,6 +29,7 @@ import { getOrgContext } from "@/lib/shell/context";
 import { customFieldsOf } from "@/lib/custom-fields/form";
 import { failed, type ActionState } from "@/lib/operations/state";
 import { localToInstant } from "@/lib/operations/time";
+import { uploadIncidentMedia } from "@/lib/incidents/media";
 import * as enums from "@xos/data/enums";
 
 /**
@@ -199,13 +200,26 @@ export async function removePartyAction(_: ActionState, form: FormData): Promise
   return done(ctx.org.slug);
 }
 
+/**
+ * Attaches a photo or video chosen on the desk (crawl 4.9): uploads it to field-media under the incident, as Compass
+ * does, then attaches it with the same id through app.add_incident_media.
+ */
 export async function addMediaAction(_: ActionState, form: FormData): Promise<ActionState> {
   const ctx = await contextFor(form);
-  const parsed = z
-    .object({ incidentId: z.uuid(), mediaUri: z.string().trim().min(1).max(1000) })
-    .safeParse({ incidentId: form.get("incidentId"), mediaUri: form.get("mediaUri") });
-  if (!parsed.success) return { error: "mediaInput" };
-  const result = await addIncidentMedia(ctx.viewer.db, { orgId: ctx.org.id, ...parsed.data });
+  const incidentId = z.uuid().safeParse(form.get("incidentId"));
+  if (!incidentId.success) return { error: "notFound" };
+  const upload = await uploadIncidentMedia(ctx.viewer.db, {
+    orgId: ctx.org.id,
+    incidentId: incidentId.data,
+    file: form.get("file"),
+  });
+  if (!upload.ok) return { error: upload.error };
+  const result = await addIncidentMedia(ctx.viewer.db, {
+    orgId: ctx.org.id,
+    incidentId: incidentId.data,
+    mediaUri: upload.path,
+    id: upload.id,
+  });
   if (!result.ok) return failed(result.error);
   return done(ctx.org.slug);
 }

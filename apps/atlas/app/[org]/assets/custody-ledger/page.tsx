@@ -5,6 +5,7 @@ import type { Route } from "next";
 import { AssetsCollection, type CollectionRow } from "@/components/assets/collection";
 import { CustodyDesk } from "@/components/assets/custody";
 import { PropertyList } from "@/components/assets/ui";
+import { heldCapabilities } from "@/components/places/kit/access";
 import { requireNode } from "@/lib/shell/require-node";
 import { assetCapabilities, custodianName, loadPickers, must } from "@/lib/assets/context";
 import { pageViews } from "@/lib/assets/page";
@@ -25,10 +26,15 @@ export default async function CustodyLedgerPage({
   const t = await getTranslate();
   const format = await getFormatter();
   const can = assetCapabilities(ctx);
-  const [ledgerResult, pickers] = await Promise.all([
+  const [ledgerResult, pickers, held] = await Promise.all([
     listAssetCustody(ctx.viewer.db, ctx.org.id, { limit: 500 }),
     loadPickers(ctx, t("assets.common.unnamed")),
+    heldCapabilities(ctx),
   ]);
+  // The desk moves a unit through app.apply_asset_scan, which takes assets.custody.write org-wide or on the unit's
+  // project; a person who holds it on a project (assigned reach) gets the desk, and the scan refuses another
+  // project's unit with its reason.
+  const canMove = can.custody || held.has("assets.custody.write");
   const ledger = must(ledgerResult, "custody ledger");
   const holder = (e: (typeof ledger)[number]) =>
     custodianName(pickers, e) ?? e.venueName ?? t("assets.common.notRecorded");
@@ -71,7 +77,7 @@ export default async function CustodyLedgerPage({
             projects: pickers.projects,
             venues: pickers.venues,
           }}
-          canMove={can.custody}
+          canMove={canMove}
         />
       }
       columns={[
@@ -83,7 +89,7 @@ export default async function CustodyLedgerPage({
         { key: "note", label: t("assets.fields.note"), wrap: true },
       ]}
       empty={{
-        sentence: t(can.custody ? "assets.custody.empty" : "assets.custody.emptyReadOnly"),
+        sentence: t(canMove ? "assets.custody.empty" : "assets.custody.emptyReadOnly"),
         actionLabel: t("assets.custody.emptyAction"),
         href: `/${ctx.org.slug}/assets/units`,
       }}

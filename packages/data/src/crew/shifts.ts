@@ -413,6 +413,23 @@ export async function acceptShift(
 }
 
 /**
+ * The person assigned declines a Published shift (app.decline_shift, 6511), with their reason or none: a member's shift
+ * returns to Draft for the scheduler to reassign, and their Waiting offer is answered Declined.
+ */
+export async function declineShift(
+  db: XosClient,
+  id: string,
+  reason: string | null,
+): Promise<Result<{ transitionId: string }>> {
+  const { data, error } = await db.rpc("decline_shift", {
+    p_shift_id: id,
+    ...(reason ? { p_reason: reason } : {}),
+  });
+  if (error) return fail(toDataError(error));
+  return ok({ transitionId: data });
+}
+
+/**
  * What a claim on an open shift did under the project's claiming rule (scheduling.open_shift_claiming,
  * migration 1322): first-come gives the claimant the shift at once (the ledger entry of its move to
  * Accepted); approval, the default, and seniority record a claim that waits for a supervisor (its

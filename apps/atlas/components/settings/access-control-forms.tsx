@@ -1,8 +1,9 @@
 "use client";
 
 import { Button, Checkbox, InlineAlert, Input, Select, Textarea } from "@xos/ui";
-import { useTranslations } from "next-intl";
-import { useActionState } from "react";
+import { countryOptions } from "@xos/i18n/formats";
+import { useLocale, useTranslations } from "next-intl";
+import { useActionState, useMemo } from "react";
 import {
   addLegalEntityAction,
   addNetworkAction,
@@ -133,6 +134,8 @@ export function AddLegalEntityForm({
   defaultCurrency: string;
 }) {
   const { state, dispatch, pending, keep, fieldError, t } = useForm(addLegalEntityAction);
+  const locale = useLocale();
+  const countries = useMemo(() => countryOptions(locale), [locale]);
   return (
     <form
       action={dispatch}
@@ -152,15 +155,15 @@ export function AddLegalEntityForm({
         error={fieldError("legalName")}
       />
       <div className="flex flex-wrap items-end gap-12">
-        <Input
+        {/* A picker of real countries by name, in the reader's language: a two-letter box saved "Germany" as GE,
+            Georgia (crawl 4.9). */}
+        <Select
           id="legal-entity-country"
           name="countryCode"
           label={t("legalEntities.country")}
-          help={t("legalEntities.countryHelp")}
-          maxLength={2}
-          width={120}
-          autoComplete="country"
-          error={fieldError("countryCode")}
+          placeholder={t("legalEntities.countryChoose")}
+          options={countries}
+          {...(fieldError("countryCode") ? { error: fieldError("countryCode") } : {})}
         />
         <Select
           id="legal-entity-month"

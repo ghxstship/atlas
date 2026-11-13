@@ -34,7 +34,9 @@ import {
 } from "@/lib/crew/context";
 import { money } from "@/lib/crew/format";
 import { fromMinor } from "@/lib/crew/money";
+import { termsLabel, termsOptionsByRole, termsValue } from "@/lib/people/requisition-terms";
 import { peopleStateIcon } from "@/lib/people/states";
+import { initialProjectId, projectChoiceOptions } from "@/lib/projects/project-choice";
 import { peekRowMissing } from "@/lib/shell/peek-handoff";
 import { nodeHref } from "@/lib/shell/sitemap";
 import { getTranslate } from "@/lib/shell/translate";
@@ -183,10 +185,10 @@ export default async function Page({
               {
                 label: t("people.requisitions.terms"),
                 value: r.payBasis
-                  ? t("people.requisitions.termsValue", {
-                      classification: r.workerClassification ?? "",
-                      basis: r.payBasis,
-                      arrangement: r.arrangement ?? "",
+                  ? termsLabel(t, {
+                      classification: r.workerClassification,
+                      payBasis: r.payBasis,
+                      arrangement: r.arrangement,
                     })
                   : t("people.requisitions.noTerms"),
               },
@@ -251,9 +253,23 @@ export default async function Page({
   if (creating || (editing && search["edit"])) {
     const [canon, currencies] = await Promise.all([getRateCanon(db), listCurrencies(db)]);
     const role = editing?.roleCode ?? search["role"] ?? "";
-    const combos = canon.ok
-      ? canon.data.canonRateCards.filter((c) => role === "" || c.roleCode === role)
-      : [];
+    // The terms follow the Role select: only the chosen role's rate card rows, each combination once.
+    const termsByRole = termsOptionsByRole(t, canon.ok ? canon.data.canonRateCards : []);
+    const heldTerms = editing?.payBasis
+      ? {
+          classification: editing.workerClassification,
+          payBasis: editing.payBasis,
+          arrangement: editing.arrangement,
+        }
+      : null;
+    if (heldTerms && editing) {
+      // The terms a requisition holds always show, so a save never clears them.
+      const held = { value: termsValue(heldTerms), label: termsLabel(t, heldTerms) };
+      const offered = termsByRole[editing.roleCode] ?? [];
+      if (!offered.some((o) => o.value === held.value)) {
+        termsByRole[editing.roleCode] = [...offered, held];
+      }
+    }
     const fields: FieldSpec[] = [
       { kind: "hidden", name: "org", value: crew.slug },
       ...(editing ? [{ kind: "hidden" as const, name: "id", value: editing.id }] : []),
@@ -264,8 +280,11 @@ export default async function Page({
               kind: "select" as const,
               name: "projectId",
               label: t("crew.fields.project"),
-              value: projectFilter?.id ?? projects[0]?.id ?? "",
-              options: projects.map((p) => ({ value: p.id, label: `${p.key} · ${p.name}` })),
+              value: initialProjectId(projects, projectFilter?.id),
+              options: projectChoiceOptions(
+                projects.map((p) => ({ value: p.id, label: `${p.key} · ${p.name}` })),
+                t("shell.create.chooseProject"),
+              ),
             },
           ]),
       {
@@ -273,10 +292,13 @@ export default async function Page({
         name: "roleCode",
         label: t("crew.fields.role"),
         value: role,
-        options: [...roles.values()].map((r) => ({
-          value: r.code,
-          label: `${r.code} · ${r.title}`,
-        })),
+        options: [
+          ...(role === "" ? [{ value: "", label: t("people.requisitions.chooseRole") }] : []),
+          ...[...roles.values()].map((r) => ({
+            value: r.code,
+            label: `${r.code} · ${r.title}`,
+          })),
+        ],
       },
       {
         kind: "number",
@@ -302,23 +324,10 @@ export default async function Page({
         kind: "select",
         name: "rateCard",
         label: t("people.requisitions.terms"),
-        value: editing?.payBasis
-          ? `${editing.workerClassification}|${editing.payBasis}|${editing.arrangement}`
-          : "",
+        value: heldTerms ? termsValue(heldTerms) : "",
         help: t("people.requisitions.termsHelp"),
-        options: [
-          { value: "", label: t("people.requisitions.noTerms") },
-          ...combos.map((c) => ({
-            value: `${c.classification}|${c.payBasis}|${c.arrangement}`,
-            label: t("people.requisitions.comboOption", {
-              id: c.id,
-              role: c.roleCode,
-              classification: c.classification,
-              basis: c.payBasis,
-              arrangement: c.arrangement,
-            }),
-          })),
-        ],
+        options: [{ value: "", label: t("people.requisitions.noTerms") }],
+        dependsOn: { field: "roleCode", optionsBy: termsByRole },
       },
       {
         kind: "number",

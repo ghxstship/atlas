@@ -29,17 +29,7 @@ describe("Identity: work details", () => {
       ? [
           globalRow(DETAILS, {
             person_id: ME,
-            // Retired in R6a (4664): the columns stay, always null, until R6b's drop (4.11).
-            shirt_size: null,
-            jacket_size: null,
-            pants_size: null,
-            shoe_size: null,
-            glove_size: null,
-            hat_size: null,
-            uniform_notes: null,
-            seat_preference: null,
-            meal_preference: null,
-            home_airport: null,
+            // The uniform size and travel preference columns are gone (R6b, 904110101).
             dietary_needs: ["Vegan"],
             allergies: "Peanuts, severe",
             dietary_notes: null,

@@ -21,6 +21,7 @@ const data = vi.hoisted(() => ({
   history: vi.fn(),
   conversation: vi.fn(),
   relations: vi.fn(),
+  crisis: vi.fn(),
 }));
 const report = vi.hoisted(() => vi.fn());
 
@@ -39,6 +40,7 @@ vi.mock("@xos/data/home", async (importOriginal) => ({
 vi.mock("@xos/data/anchor", () => ({
   getRecordAnchorPinned: async () => ({ ok: true, data: false }),
 }));
+vi.mock("@xos/data/crisis-alerts", () => ({ listActiveCrisisAlerts: data.crisis }));
 vi.mock("@xos/data/activity", () => ({
   listActivity: data.activity,
   labelActivity: async (_db: unknown, entries: unknown[]) => entries,
@@ -125,6 +127,7 @@ beforeEach(() => {
   data.overdue.mockResolvedValue(ok([]));
   data.due.mockResolvedValue(ok([{ id: "r1" }, { id: "r2" }]));
   data.activity.mockResolvedValue(ok({ entries: [{ id: "a1", at: "2026-10-30T12:00:00Z" }] }));
+  data.crisis.mockResolvedValue(ok([]));
 });
 
 describe("Home's tiles", () => {
@@ -139,6 +142,28 @@ describe("Home's tiles", () => {
     expect(tiles.alerts.ok).toBe(true);
     expect(tiles.activity).toEqual(ok([{ id: "a1", at: "2026-10-30T12:00:00Z" }]));
     expect(report).not.toHaveBeenCalled();
+  });
+
+  it("list a crisis alert in force first in the alerts tile (crawl 4.9)", async () => {
+    data.crisis.mockResolvedValue(
+      ok([
+        {
+          id: "ca1",
+          projectKey: "P1",
+          projectName: "Project p1",
+          title: "Code Red",
+          message: "Evacuate the north stage.",
+          issuedAt: "2026-10-30T12:00:00Z",
+        },
+      ]),
+    );
+    const tiles = await loadHomeTiles(ctx);
+    expect(tiles.alerts.ok && tiles.alerts.data[0]).toMatchObject({
+      id: "ca:ca1",
+      kind: "crisisAlert",
+      severity: "critical",
+      values: { title: "Code Red", project: "P1", message: "Evacuate the north stage." },
+    });
   });
 
   it("fail only the activity tile when the activity read fails", async () => {

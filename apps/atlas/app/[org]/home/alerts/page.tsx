@@ -7,7 +7,10 @@ import { pickView } from "@/lib/home/views";
 import { nodeHref } from "@/lib/shell/sitemap";
 import { getOrgTimeZone } from "@/lib/shell/time-zone";
 
-/** Home > Alerts (Section 4.5.5): blocked work, overdue records and gate gaps near the show. */
+/**
+ * Home > Alerts (Section 4.5.5): crisis alerts in force first (crawl 4.9), then blocked work, overdue records and gate
+ * gaps near the show.
+ */
 export default async function Page({ params, searchParams }: PageProps<"/[org]/home/alerts">) {
   const routeParams = await params;
   const ctx = await requireNode("home.alerts", routeParams);

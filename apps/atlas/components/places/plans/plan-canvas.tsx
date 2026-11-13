@@ -17,6 +17,7 @@ import Link from "next/link";
 import { useLocale } from "next-intl";
 import { useEffect, useState, type KeyboardEvent } from "react";
 import { addPinAction, movePinAction, saveSitePlanAction } from "@/app/[org]/places/actions";
+import { initialProjectId, projectChoiceOptions } from "@/lib/projects/project-choice";
 import { ActionForm, useCopy } from "../kit/form";
 import { formatLength, formatArea, type PlanUnits } from "./plan-units";
 import type { PlanTool } from "./plan-tools";
@@ -685,6 +686,7 @@ export function SitePlanForm({
   defaultProjectId?: string;
 }) {
   const t = useCopy("places");
+  const shell = useCopy("shell");
   const [venueId, setVenueId] = useState(plan?.venueId ?? "");
   const layoutFixed = plan !== undefined && plan.planState !== "Draft";
   const legacy = plan !== undefined && isLegacyPlan(plan);
@@ -704,8 +706,11 @@ export function SitePlanForm({
               id="plan-project"
               name="projectId"
               label={t("plans.fields.project")}
-              value={defaultProjectId ?? projects[0]?.id ?? ""}
-              options={projects.map((p) => ({ value: p.id, label: p.label }))}
+              value={initialProjectId(projects, defaultProjectId)}
+              options={projectChoiceOptions(
+                projects.map((p) => ({ value: p.id, label: p.label })),
+                shell("create.chooseProject"),
+              )}
               error={error("projectId")}
             />
           )}

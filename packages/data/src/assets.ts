@@ -1012,7 +1012,11 @@ export async function listAssetDamage(
   );
 }
 
-/** Reports damage against a unit, optionally during a project. */
+/**
+ * Reports damage against a unit, optionally during a project. The id is made here and the insert returns nothing:
+ * the insert policy takes assets.damage.write on the report's project, but reading damage back takes assets.asset.read
+ * org-wide, so a Field lead or Collaborator reporting on their own project was refused by the RETURNING (crawl 4.9).
+ */
 export async function reportAssetDamage(
   db: XosClient,
   input: {
@@ -1021,21 +1025,19 @@ export async function reportAssetDamage(
     readonly projectId: string | null;
     readonly description: string;
   },
+  id: string = crypto.randomUUID(),
 ): Promise<Result<{ id: string }>> {
   const description = input.description.trim();
   if (description.length === 0) return invalid("description");
-  const { data, error } = await db
-    .from("asset_damage")
-    .insert({
-      org_id: input.orgId,
-      asset_unit_id: input.unitId,
-      project_id: input.projectId,
-      description,
-    })
-    .select("id")
-    .single();
+  const { error } = await db.from("asset_damage").insert({
+    id,
+    org_id: input.orgId,
+    asset_unit_id: input.unitId,
+    project_id: input.projectId,
+    description,
+  });
   if (error) return fail(toDataError(error));
-  return ok({ id: data.id });
+  return ok({ id });
 }
 
 // Scan resolution (the Compass back end) ---------------------------------------------------------

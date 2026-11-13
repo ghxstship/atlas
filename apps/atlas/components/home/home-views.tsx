@@ -344,7 +344,12 @@ export function AlertsView({
     return <Empty sentence={t("empty")} action={t("emptyAction")} href={projectsHref} />;
   }
   const open = (a: Alert) => {
-    if (a.projectKey) router.push(`/${org}/p/${a.projectKey}/${a.tab}` as Route);
+    if (!a.projectKey) return;
+    router.push(
+      (a.tab === "emergencyCodes"
+        ? `/${org}/safety/emergency-codes?project=${encodeURIComponent(a.projectKey)}`
+        : `/${org}/p/${a.projectKey}/${a.tab}`) as Route,
+    );
   };
   return (
     <div className="flex flex-col gap-12">
@@ -363,9 +368,7 @@ export function AlertsView({
             }`}
           >
             <span className="flex min-w-0 items-center gap-8">
-              <Tag tone={a.severity === "high" ? "danger" : "warning"}>
-                {a.severity === "high" ? t("high") : t("medium")}
-              </Tag>
+              <Tag tone={a.severity === "medium" ? "warning" : "danger"}>{t(a.severity)}</Tag>
               <span className="text-text-14 text-text-primary">{text(a)}</span>
             </span>
             {a.projectKey ? (

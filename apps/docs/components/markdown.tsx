@@ -165,6 +165,12 @@ export function Markdown({
   );
 }
 
+/**
+ * A link in a page's outline (the in-page headings, or a resource's operations). Each is a block of its own, so it is
+ * at least 24 px tall (WCAG 2.2 SC 2.5.8, crawl 4.9) rather than its 19 px line of text.
+ */
+export const outlineLinkClass = "inline-flex min-h-target-fine items-center no-underline";
+
 /** The outline of a page: its h2 headings as in-page links. */
 export function Outline({
   body,
@@ -183,7 +189,7 @@ export function Outline({
           <li key={h.id}>
             <a
               href={`#${h.id}`}
-              className="text-text-secondary hover:text-text-primary no-underline"
+              className={`${outlineLinkClass} text-text-secondary hover:text-text-primary`}
             >
               {h.v}
             </a>

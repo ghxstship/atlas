@@ -15,11 +15,24 @@ export async function acceptOfferAction(offerId: string): Promise<ActionResult> 
   return toAction(await acceptOffer(await createServerSupabase(), z.uuid().parse(offerId)));
 }
 
-export async function declineOfferAction(offerId: string): Promise<ActionResult> {
+/**
+ * The party declines the offer in force, confirmed in a dialog first: their own reason of up to 500 characters goes to the
+ * organization, or the ledger's "Declined from Gateway." when they leave it blank.
+ */
+export async function declineOfferAction(
+  offerId: string,
+  reason?: string | null,
+): Promise<ActionResult> {
+  const text = z
+    .string()
+    .trim()
+    .max(500)
+    .safeParse(reason ?? "");
+  if (!text.success) return { ok: false, outcome: "invalid" };
   return toAction(
     await declineOffer(await createServerSupabase(), {
       offerId: z.uuid().parse(offerId),
-      reason: "Declined from Gateway.",
+      reason: text.data || "Declined from Gateway.",
     }),
   );
 }

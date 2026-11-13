@@ -1403,7 +1403,10 @@ export const HELP_BODIES: HelpBodies = {
           ],
           [
             { t: "strong", v: "Payout details" },
-            { t: "text", v: ": add them in " },
+            {
+              t: "text",
+              v: ": the organization collects them through its payment provider, not in Gateway. Follow the provider's invitation, or ask the organization for it in the engagement's Messages. Once set up, the destination shows in ",
+            },
             { t: "link", v: "Settings, Payout and tax", href: "help:settings-payout-and-tax" },
             { t: "text", v: "." },
           ],
@@ -5679,7 +5682,10 @@ export const HELP_BODIES: HelpBodies = {
           ],
           [
             { t: "strong", v: "Datos de pago" },
-            { t: "text", v: ": agrégalos en " },
+            {
+              t: "text",
+              v: ": la organización los recoge con su proveedor de pagos, no en Gateway. Sigue la invitación del proveedor o pídesela a la organización en los Mensajes de la contratación. Una vez configurado, el destino aparece en ",
+            },
             {
               t: "link",
               v: "Configuración, Pagos e impuestos",

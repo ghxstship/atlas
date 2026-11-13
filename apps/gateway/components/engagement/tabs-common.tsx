@@ -36,6 +36,7 @@ import { PaymentSteps } from "./payment-steps";
 import { signDocumentAction, submitOnboardingItemAction } from "@/lib/actions/engagement";
 import { agreeSelfBillingAction, revokeSelfBillingAction } from "@/lib/actions/operations";
 import { hasArea, tabHref } from "@/lib/engagement";
+import { engagementInvoicesEmptyKey, submitsInvoices } from "@/lib/invoice-status";
 import { onRoster } from "@/lib/roster-member";
 import { engagementTitle, overviewRows, type OverviewRow } from "@/lib/engagement-state";
 import { formatDate, formatDateRange, formatDateTime, formatMoney } from "@/lib/format";
@@ -552,9 +553,21 @@ export async function OnboardingTab({ view, t, locale, engagementKey }: TabProps
                           {t("gateway.engagement.onboarding.backgroundHint")}
                         </p>
                       ) : i.kind === "Payout Details" ? (
-                        <p className="m-0 text-text-13 text-text-secondary">
-                          {t("gateway.engagement.onboarding.payoutHint")}
-                        </p>
+                        // Payout details go through the org's payment provider, never a Gateway form,
+                        // so the step points to the org rather than back to Settings (crawl 4.9).
+                        <div className="flex flex-col gap-8">
+                          <p className="m-0 text-text-13 text-text-secondary">
+                            {t("gateway.engagement.onboarding.payoutHint")}
+                          </p>
+                          <div>
+                            <ButtonLink
+                              href={tabHref(engagementKey, "engagement.messages")}
+                              size="sm"
+                            >
+                              {t("nav.gateway.engagementTabs.messages")}
+                            </ButtonLink>
+                          </div>
+                        </div>
                       ) : (
                         <OnboardingUploadForm
                           orgId={view.engagement.orgId}
@@ -657,7 +670,7 @@ export async function InvoicesTab({ view, t, locale, engagementKey }: TabProps) 
       ) : null}
       {invoices.data.length === 0 ? (
         <p className="m-0 text-text-14 text-text-secondary">
-          {t("gateway.engagement.invoices.empty")}
+          {t(engagementInvoicesEmptyKey(e.roleType))}
         </p>
       ) : (
         <ul className="m-0 flex list-none flex-col gap-12 p-0">
@@ -676,7 +689,8 @@ export async function InvoicesTab({ view, t, locale, engagementKey }: TabProps) 
           ))}
         </ul>
       )}
-      {["Contractor", "Crew", "Staff", "Vendor", "Artist", "Sponsor"].includes(e.roleType) ? (
+      {/* The org never pays a client or sponsor, so neither submits invoices (ADR 0019 decision 69). */}
+      {submitsInvoices(e.roleType) ? (
         <Section title={t("gateway.engagement.invoices.submitTitle")}>
           <InvoiceForm
             engagementId={e.id}

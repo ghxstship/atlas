@@ -4,13 +4,7 @@ import Link from "next/link";
 import { requireNode } from "@/lib/shell/require-node";
 import { EmptyStateLink, PageHeader } from "@/components/ui";
 import { TemplateCollection } from "@/components/platform/client/template-collection";
-import {
-  emptyStateHref,
-  navigableChildren,
-  nodeHref,
-  pageCopyKey,
-  sitemap,
-} from "@/lib/shell/sitemap";
+import { navigableChildren, nodeHref, pageEmptyState, sitemap } from "@/lib/shell/sitemap";
 import { getTranslate } from "@/lib/shell/translate";
 
 type Params = Readonly<Record<string, string>>;
@@ -26,7 +20,9 @@ export async function SitemapPage({ node, params }: { node: string; params: Para
   const t = await getTranslate();
   const entry = getNode(sitemap, node).node;
   const title = t(entry.label);
-  const children = navigableChildren(entry).filter((c) => isNodeVisible(sitemap, c.id, ctx.nav));
+  const children = navigableChildren(entry).filter(
+    (c) => isNodeVisible(sitemap, c.id, ctx.nav) && nodeHref(c.id, params) !== undefined,
+  );
 
   if (children.length > 0) {
     return (
@@ -56,14 +52,14 @@ export async function SitemapPage({ node, params }: { node: string; params: Para
     );
   }
 
-  const copy = pageCopyKey(node);
+  const empty = pageEmptyState(node, params, ctx.nav, title);
   return (
     <TemplateCollection header={<PageHeader title={title} />}>
       <EmptyStateLink
         icon="Inbox"
-        sentence={t(`${copy}.empty`)}
-        actionLabel={t(`${copy}.action`)}
-        href={emptyStateHref(node, params, ctx.nav)}
+        sentence={t(`${empty.copy}.empty`, empty.values)}
+        actionLabel={t(`${empty.copy}.action`, empty.values)}
+        href={empty.href}
       />
     </TemplateCollection>
   );

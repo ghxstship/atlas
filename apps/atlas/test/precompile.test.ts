@@ -98,8 +98,9 @@ describe("precompiled messages", () => {
         const args = argumentsOf(parse(source));
         if ([...args.values()].includes("date")) {
           // The format-only runtime reads named date and time styles from next-intl's `formats`,
-          // which Atlas does not set, so only email copy (formatted by @xos/email with
-          // intl-messageformat; the Inbox reads email kinds without dates) may use them.
+          // which Atlas does not set, so only email copy may use them: @xos/email formats it with
+          // intl-messageformat, and the Inbox through lib/inbox/email-copy.ts, which gives each
+          // style its options (test/inbox-email-copy.test.ts).
           if (!key.startsWith("email.")) mismatches.push(`${key}: date or time argument`);
           continue;
         }

@@ -38,8 +38,9 @@ with e as (insert into app.engagements (project_id, person_id, counterparty_id, 
 insert into world select 'item', i.id from app.onboarding_items i where i.engagement_id = pg_temp.id('eng') and i.onboarding_requirement_id = pg_temp.id('req');
 with r as (insert into app.onboarding_requirements (org_id, name, item_kind, verification_method, is_blocking)
   values (pg_temp.id('org_a'), 'Site induction', 'Acknowledgment', 'Reviewer', false) returning id) insert into world select 'req_any', id from r;
-with i as (insert into app.onboarding_items (engagement_id, onboarding_requirement_id) values (pg_temp.id('eng_ivy_a'), pg_temp.id('req_any')) returning id)
-  insert into world select 'item_crew', id from i;
+-- 904110602 gives the existing crew engagement its item when the requirement is added.
+insert into world select 'item_crew', i.id from app.onboarding_items i
+  where i.engagement_id = pg_temp.id('eng_ivy_a') and i.onboarding_requirement_id = pg_temp.id('req_any') and i.deleted_at is null;
 select pg_temp.as_platform();
 
 -- Insureds a certificate names --------------------------------------------------------------------------------------

@@ -93,7 +93,9 @@
     "open": "Abrir",
     "severity": "Gravedad",
     "high": "Requiere acción",
-    "medium": "En observación"
+    "medium": "En observación",
+    "crisisAlert": "{title} en {project}: {message}",
+    "critical": "Emergencia"
   },
   "recent": {
     "title": "Recientes",

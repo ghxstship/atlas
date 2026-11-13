@@ -152,6 +152,12 @@ describe("format", () => {
   it("formats money, compact values, lists, dates and times", () => {
     expect(formatCurrency("en-US", 1200)).toBe("$1,200.00");
     expect(formatCompact("en-US", 12500, "USD")).toBe("$12.5K");
+    // No trailing ".0": Node's ICU pads compact currency ("$5.0K") where Chromium's does not, and the server and
+    // browser have to render the same chart ticks (crawl 4.9, React hydration error 418 on Gateway Money).
+    expect(["$0", "$5K", "$625", "$1.3K"]).toEqual(
+      [0, 5000, 625, 1250].map((v) => formatCompact("en-US", v, "USD")),
+    );
+    expect(formatCompact("es-US", 5000, "USD")).toBe("$5\u00a0K");
     expect(formatList("en-US", ["A", "B", "C"])).toBe("A, B, and C");
     expect(formatDate("en-US", "2026-10-09")).toBe("Oct 9, 2026");
     expect(formatTimeOfDay("en-US", 14, 30)).toBe("2:30 PM");

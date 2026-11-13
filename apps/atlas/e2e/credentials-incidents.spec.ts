@@ -149,7 +149,9 @@ test.describe("Safety incidents (journey 16, Atlas)", () => {
     await page.goto(`/${ORG}/safety/incidents?project=${PROJECT}&create=1`);
     await expectAccessibleInBothThemes(page);
     await page.locator("#incident-title").fill(title);
-    await page.locator("#incident-severity").selectOption({ index: 0 });
+    // Crawl 4.9: no severity is preselected; index 1 is the first level after the prompt (Level 1 - Critical).
+    await expect(page.locator("#incident-severity")).toHaveValue("");
+    await page.locator("#incident-severity").selectOption({ index: 1 });
     await page
       .locator("#incident-zone")
       .selectOption({ label: "LAWN · Festival Lawn · Bayside Festival Grounds" });
@@ -247,10 +249,12 @@ test.describe("Emergency codes and the radio plan", () => {
       alert.getByText(/Sent to \d+ (person|people), \d+ of them clocked in\./),
     ).toBeVisible();
 
-    // Someone on the project is told: it reaches their Inbox, with the announcement.
+    // Someone on the project is told: it reaches their Inbox, with the announcement, and the crisis banner above
+    // every page carries it until the all-clear.
     const lead = await asPerson(browser, "field@example.com");
     await lead.goto(`/${ORG}/inbox`);
-    await expect(lead.getByText(message)).toBeVisible();
+    await expect(lead.locator("[data-inbox-item]").filter({ hasText: message })).toBeVisible();
+    await expect(lead.getByTestId("crisis-banner")).toContainText(message);
     await lead.context().close();
 
     await alert.getByRole("button", { name: "Give the all-clear" }).click();

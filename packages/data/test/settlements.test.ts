@@ -257,6 +257,7 @@ describe("the all-in cost of an act (6548)", () => {
             currency_code: "USD",
             counterparty_id: null,
             person_id: "art",
+            start_date: "2026-11-03",
             person: null,
           },
         ]),
@@ -267,6 +268,8 @@ describe("the all-in cost of an act (6548)", () => {
     expect(result.ok && result.data[0]).toMatchObject({
       personId: "art",
       personName: "Arturo Bell",
+      // Crawl 4.9: the start date tells apart engagements of one party and role in a picker.
+      startDate: "2026-11-03",
     });
   });
 });

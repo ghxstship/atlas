@@ -20,6 +20,7 @@ import type { Route } from "next";
 import { useLocale } from "next-intl";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState, type ReactNode } from "react";
+import { initialProjectId, projectChoiceOptions } from "@/lib/projects/project-choice";
 import { ActionErrorAlert, useAction, useCopy } from "./action-ui";
 import { formatWhen, fromLocalInput, stateToken, withQuery } from "./format";
 import { createPunchItemAction } from "./work-order-actions";
@@ -254,11 +255,12 @@ function CreatePunchItem({
   open: boolean;
 }) {
   const t = useCopy("work");
+  const shell = useCopy("shell");
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
   const { pending, error, run, clear } = useAction();
-  const [projectId, setProjectId] = useState(projects[0]?.id ?? "");
+  const [projectId, setProjectId] = useState(initialProjectId(projects));
   const [what, setWhat] = useState("");
   const [location, setLocation] = useState("");
   const [owner, setOwner] = useState("");
@@ -299,7 +301,7 @@ function CreatePunchItem({
               <Button
                 variant="primary"
                 loading={pending}
-                disabled={what.trim() === ""}
+                disabled={what.trim() === "" || projectId === ""}
                 onClick={() =>
                   run(
                     () =>
@@ -328,7 +330,10 @@ function CreatePunchItem({
               id="punch-project"
               label={t("fields.project")}
               value={projectId}
-              options={projects.map((p) => ({ value: p.id, label: `${p.key} · ${p.name}` }))}
+              options={projectChoiceOptions(
+                projects.map((p) => ({ value: p.id, label: `${p.key} · ${p.name}` })),
+                shell("create.chooseProject"),
+              )}
               onChange={(e) => setProjectId(e.target.value)}
             />
           ) : null}

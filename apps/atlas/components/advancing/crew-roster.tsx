@@ -280,7 +280,12 @@ export async function CrewRoster({
                       : null}
                   </div>
                   {can.review && e.entryState === "Submitted" ? (
-                    <RosterReviewActions org={ctx.org.slug} id={e.id} name={name(e)} />
+                    <RosterReviewActions
+                      org={ctx.org.slug}
+                      id={e.id}
+                      name={name(e)}
+                      declined={e.personResponse === "Declined"}
+                    />
                   ) : null}
                 </li>
               ))}
@@ -305,7 +310,12 @@ export async function CrewRoster({
             ]}
           >
             {can.review && peek.entryState === "Submitted" ? (
-              <RosterReviewActions org={ctx.org.slug} id={peek.id} name={name(peek)} />
+              <RosterReviewActions
+                org={ctx.org.slug}
+                id={peek.id}
+                name={name(peek)}
+                declined={peek.personResponse === "Declined"}
+              />
             ) : null}
             {peek.personId ? <RosterProfilePeek org={ctx.org.slug} id={peek.id} /> : null}
             {peek.personId && peek.roleType === "Staff" && !peek.isSelf ? (

@@ -11,6 +11,7 @@ import {
   type Representation,
   type SharedRecord,
 } from "@xos/data/gateway";
+import { dateIn, startOfDayIn } from "@xos/data/calendar";
 import { parkingLines } from "./roster-member";
 import type { ParkingPass, RosterEngagement } from "@xos/data/gateway-allocations";
 import {
@@ -221,6 +222,21 @@ export interface UpNextDetails {
   readonly bring: readonly string[];
   /** How many more things to bring than the list shows. */
   readonly bringMore: number;
+}
+
+/**
+ * When the Up Next card of an engagement counts down to (4.9 surface crawl): its next call, the same one the card lists
+ * (a shift, a dock slot or a set), and the engagement's first day only when there is no call. A call whose time is still
+ * to be confirmed counts down to the start of its day in its own zone.
+ */
+export function upNextCountdownAt(
+  engagement: Pick<Engagement, "startDate" | "projectTimeZone">,
+  details: Pick<UpNextDetails, "call"> | null,
+): string {
+  const call = details?.call;
+  if (!call) return startOfDayIn(engagement.startDate, engagement.projectTimeZone);
+  if (!call.tbc) return call.at;
+  return startOfDayIn(dateIn(new Date(call.at), call.timeZone), call.timeZone);
 }
 
 /**

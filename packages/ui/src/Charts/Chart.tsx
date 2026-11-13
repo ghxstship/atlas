@@ -85,11 +85,24 @@ export function foldSeries(
   ];
 }
 
-function niceMax(v: number): number {
-  if (v <= 0) return 1;
+function niceStep(raw: number, whole: boolean): number {
+  if (whole && raw <= 1) return 1;
+  const e = 10 ** Math.floor(Math.log10(raw));
+  const f = raw / e;
+  const m = f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 && !(whole && e < 10) ? 2.5 : f <= 5 ? 5 : 10;
+  return m * e;
+}
+
+/**
+ * The top of the value axis, which has four steps. Whole-number data (counts, whole amounts, or nothing but zeros)
+ * keeps whole-number steps, so an all-zero or small series never reads $0.3 or 1.25 between its ticks.
+ */
+export function niceMax(v: number, whole = false): number {
+  if (v <= 0) return whole ? 4 : 1;
   const e = 10 ** Math.floor(Math.log10(v));
   const f = v / e;
-  return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * e;
+  const max = (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * e;
+  return whole && !Number.isInteger(max / 4) ? 4 * niceStep(v / 4, true) : max;
 }
 
 function Marker({
@@ -193,7 +206,10 @@ export function Chart({
   const all = series.flatMap((s) =>
     s.values.filter((v): v is number => v !== null && v !== undefined),
   );
-  const max = niceMax(Math.max(0, ...all));
+  const max = niceMax(
+    Math.max(0, ...all),
+    all.every((v) => Number.isInteger(v)),
+  );
   const x = scaleBand({ domain: categories, range: [0, innerW], padding: 0.3 });
   const y = scaleLinear({ domain: [0, max], range: [innerH, 0] });
   const ticks = [0, 0.25, 0.5, 0.75, 1].map((f) => f * max);

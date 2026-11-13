@@ -38,8 +38,11 @@ values (:'v_lift', pg_temp.id('frank'), pg_temp.id('carol'), '2026-01-01', priva
 -- Onboarding: ivy (an engaged person) and the vendor account acct_v (victor Owner, fiona Finance, sam Member).
 insert into app.onboarding_requirements (org_id, name, item_kind, role_type, verification_method, is_blocking, valid_for_days, remind_days_before)
 values (pg_temp.id('org_a'), 'Rigging Safety Briefing', 'Acknowledgment', null, 'Reviewer', false, 365, 14) returning id as v_req \gset
-insert into app.onboarding_items (engagement_id, onboarding_requirement_id) values (pg_temp.id('eng_ivy_a'), :'v_req') returning id as v_item_ivy \gset
-insert into app.onboarding_items (engagement_id, onboarding_requirement_id) values (pg_temp.id('eng_vendor_a'), :'v_req') returning id as v_item_vendor \gset
+-- 904110602 gives the existing engagements their items when the requirement is added.
+select i.id as v_item_ivy from app.onboarding_items i
+where i.engagement_id = pg_temp.id('eng_ivy_a') and i.onboarding_requirement_id = :'v_req' and i.deleted_at is null \gset
+select i.id as v_item_vendor from app.onboarding_items i
+where i.engagement_id = pg_temp.id('eng_vendor_a') and i.onboarding_requirement_id = :'v_req' and i.deleted_at is null \gset
 select pg_temp.as_user('carol');
 insert into app.onboarding_verifications (onboarding_item_id, outcome, expires_on) values (:'v_item_ivy', 'Passed', :'org_today'::date + 10);
 insert into app.onboarding_verifications (onboarding_item_id, outcome, expires_on) values (:'v_item_vendor', 'Passed', :'org_today'::date + 3);

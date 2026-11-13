@@ -15,6 +15,16 @@
   "ownerOnly": "Solo el propietario puede pausar o reanudar la facturación.",
   "paused": "La facturación está en pausa. Empieza el {startsOn}.",
   "resumed": "La facturación se reanudó.",
+  "scheduleCanceled": "La pausa programada está cancelada. La facturación continúa como antes.",
+  "confirm": {
+    "pauseTitle": "¿Pausar la facturación?",
+    "pauseBody": "Mientras dure la pausa, la organización será de solo lectura. Puedes reanudarla antes desde esta página.",
+    "resumeTitle": "¿Reanudar la facturación ahora?",
+    "resumeBody": "Hoy empieza un nuevo período de facturación y Stripe lo cobra ahora. La organización puede volver a hacer cambios de inmediato.",
+    "cancelScheduledTitle": "¿Cancelar la pausa programada?",
+    "cancelScheduledBody": "La facturación continúa como antes y la organización sigue permitiendo cambios.",
+    "back": "Volver"
+  },
   "banner": "Esta organización está en pausa hasta el {date}. Todo sigue disponible para leer y exportar; los cambios se reanudan cuando se reanude.",
   "bannerOpen": "Esta organización está en pausa. Todo sigue disponible para leer y exportar; los cambios se reanudan cuando el propietario reanude la facturación.",
   "bannerScheduled": "La facturación se pausa el {startsOn}. La organización será de solo lectura hasta el {resumesOn}.",

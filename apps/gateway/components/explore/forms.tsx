@@ -82,7 +82,7 @@ export interface ApplyFormProps {
   readonly opportunityId: string;
   readonly role: string;
   readonly org: string;
-  readonly mode: "person" | "bid" | "artist" | "slate";
+  readonly mode: "person" | "bid" | "artist" | "slate" | "company";
   readonly personName: string | null;
   readonly email: string | null;
   readonly accountName: string | null;
@@ -132,7 +132,9 @@ export function ApplyForm(props: ApplyFormProps) {
     >
       <input type="hidden" name="opportunityId" value={props.opportunityId} />
       {state.fieldError ? (
-        <InlineAlert tone="danger">{t(`errors.${state.fieldError}`)}</InlineAlert>
+        <InlineAlert tone="danger">
+          {t(`errors.${state.fieldError}`, { n: state.line ?? 0 })}
+        </InlineAlert>
       ) : null}
       <OutcomeAlert outcome={state.outcome} />
 
@@ -152,7 +154,8 @@ export function ApplyForm(props: ApplyFormProps) {
             label={`${t("fieldEmail")}: ${props.email}`}
           />
         ) : null}
-        {props.accountName && (props.mode === "bid" || props.mode === "slate") ? (
+        {props.accountName &&
+        (props.mode === "bid" || props.mode === "slate" || props.mode === "company") ? (
           <Checkbox name="share_company_name" defaultChecked label={props.accountName} />
         ) : null}
         <p className="m-0 text-text-12 text-text-secondary">{t("sharedHelp")}</p>
@@ -196,7 +199,11 @@ export function ApplyForm(props: ApplyFormProps) {
         </fieldset>
       ) : null}
 
-      {props.mode === "artist" || props.mode === "person" ? (
+      {props.mode === "company" && props.accountName ? (
+        <InlineAlert tone="info">{t("applyingAs", { account: props.accountName })}</InlineAlert>
+      ) : null}
+
+      {props.mode === "artist" || props.mode === "person" || props.mode === "company" ? (
         <Input
           id="apply-fee"
           name="fee"
@@ -240,6 +247,9 @@ export function ApplyForm(props: ApplyFormProps) {
                 inputMode="decimal"
                 label={t("bidUnitPrice")}
                 {...(i === 0 ? { help: t("bidUnitPriceHelp") } : {})}
+                {...(state.fieldError === "bidLinePrice" && state.line === i + 1
+                  ? { error: t("errors.bidLinePrice", { n: i + 1 }) }
+                  : {})}
                 width={160}
               />
               {lines.length > 1 ? (

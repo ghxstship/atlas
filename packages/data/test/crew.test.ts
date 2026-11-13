@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   acceptShift,
+  declineShift,
   addPerDiems,
   addRateCardLine,
   approvePayrollRun,
@@ -307,6 +308,23 @@ describe("shifts", () => {
     expect((await trashShift(db, "s1")).ok).toBe(false);
     expect((await restoreShift(db, "s1")).ok).toBe(true);
     expect((await restoreShift(db, "s1")).ok).toBe(false);
+  });
+
+  it("declines a shift with the person's reason or none (app.decline_shift)", async () => {
+    const { db, calls } = client({
+      "rpc:decline_shift": [okResponse("t1"), okResponse("t2"), refused("shift_decline_state")],
+    });
+    expect(await declineShift(db, "s1", "Family emergency.")).toEqual({
+      ok: true,
+      data: { transitionId: "t1" },
+    });
+    expect(calls[0]?.steps[0]?.[1]).toEqual([{ p_shift_id: "s1", p_reason: "Family emergency." }]);
+    expect((await declineShift(db, "s1", null)).ok).toBe(true);
+    expect(calls[1]?.steps[0]?.[1]).toEqual([{ p_shift_id: "s1" }]);
+    expect(await declineShift(db, "s1", null)).toEqual({
+      ok: false,
+      error: { kind: "refusal", rule: "shift_decline_state", message: "Refused." },
+    });
   });
 
   it("calls the lifecycle RPCs and returns refusals", async () => {
@@ -1201,6 +1219,33 @@ describe("per diems", () => {
       amountMinor: 6500,
     });
     expect(calls[0]?.steps).toContainEqual(["eq", ["project_id", "pr1"]]);
+    expect(calls.some((c) => c.target === "rpc:engaged_person_names")).toBe(false);
+    expect((await listPerDiems(db, { orgId: "o1" })).ok).toBe(false);
+  });
+
+  it("names an engaged person who is not a member through engaged_person_names", async () => {
+    // Row level security nulls the people embed for someone outside the org (crawl 4.9: "Unnamed person").
+    const hidden = { ...perDiemRow, engagement: { id: "e1", person_id: "p9", person: null } };
+    const { db, calls } = client({
+      "from:per_diems": [
+        okResponse([hidden, { ...hidden, id: "pd3", day: "2027-06-02" }]),
+        okResponse([hidden]),
+      ],
+      "rpc:engaged_person_names": [
+        okResponse([{ engagement_id: "e1", full_name: "Demo Road Crew" }]),
+        errorResponse("XX000", "down"),
+      ],
+    });
+    const list = await listPerDiems(db, { orgId: "o1" });
+    expect(list.ok && list.data.map((d) => d.personName)).toEqual([
+      "Demo Road Crew",
+      "Demo Road Crew",
+    ]);
+    // One read for the run of days, not one per row.
+    expect(calls.filter((c) => c.target === "rpc:engaged_person_names")).toHaveLength(1);
+    expect(calls.find((c) => c.target === "rpc:engaged_person_names")?.steps[0]?.[1]).toEqual([
+      { p_engagement_ids: ["e1"] },
+    ]);
     expect((await listPerDiems(db, { orgId: "o1" })).ok).toBe(false);
   });
 

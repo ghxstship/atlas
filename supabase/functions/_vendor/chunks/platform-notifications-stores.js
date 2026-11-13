@@ -948,6 +948,7 @@ var kindSchema = z.strictObject({
       decision: z.string().trim().min(5).max(200),
     })
     .optional(),
+  retired: z.strictObject({ reason: z.string().trim().min(20).max(400) }).optional(),
 });
 z.strictObject({
   version: z.literal(1),

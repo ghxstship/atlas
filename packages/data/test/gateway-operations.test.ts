@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   acceptEngagedShift,
+  declineEngagedShift,
   acknowledgeRosterTraining,
   assignRosterShift,
   unassignRosterShift,
@@ -110,6 +111,7 @@ describe("party RPCs", () => {
     ["rpc:revoke_self_billing", (db) => revokeSelfBilling(db, "e1")],
     ["rpc:submit_timesheet", (db) => submitTimesheet(db, "t1")],
     ["rpc:accept_engaged_shift", (db) => acceptEngagedShift(db, "s1")],
+    ["rpc:decline_shift", (db) => declineEngagedShift(db, "s1", "Double booked.")],
     [
       "rpc:acknowledge_roster_training",
       (db) => acknowledgeRosterTraining(db, { rosterEntryId: "re1", requirementId: "q1" }),
@@ -144,6 +146,22 @@ describe("party RPCs", () => {
     });
     expect((await run(db as never)).ok).toBe(true);
     expect((await run(db as never)).ok).toBe(false);
+  });
+
+  it("declines a shift with the person's reason, or leaves the database's default when blank", async () => {
+    const { db, calls } = gatewayClient({
+      "rpc:decline_shift": [okResponse("t1"), okResponse("t2")],
+    });
+    expect(await declineEngagedShift(db, "s1", "Double booked.")).toEqual({
+      ok: true,
+      data: { id: "t1" },
+    });
+    expect(calls[0]?.steps[0]).toEqual([
+      "args",
+      [{ p_shift_id: "s1", p_reason: "Double booked." }],
+    ]);
+    expect((await declineEngagedShift(db, "s1", null)).ok).toBe(true);
+    expect(calls[1]?.steps[0]).toEqual(["args", [{ p_shift_id: "s1" }]]);
   });
 
   it("submits a submittal with the expected state and the note", async () => {

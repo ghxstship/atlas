@@ -203,6 +203,15 @@ test("Trust and Safety upholds a rating dispute without seeing the score", async
   await expect(queue.getByRole("row").first()).toBeVisible();
   await expectAccessibleInBothThemes(page);
   await page.goto(`/rating-disputes/${dispute.id}`);
+  // The record names the dispute, leads back to its queue and marks Moderation, the section it is in (crawl 4.9).
+  await expect(
+    page.getByRole("heading", { level: 1, name: /^Rating Dispute from / }),
+  ).toBeVisible();
+  await expect(page.getByRole("link", { name: "Back to Rating Disputes" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Moderation", exact: true })).toHaveAttribute(
+    "aria-current",
+    "page",
+  );
   await expect(page.getByText(dispute.details, { exact: true })).toBeVisible();
   await expect(page.getByText(dispute.comment, { exact: true })).toBeVisible();
   await expect(page.getByText(/\b2 (of|out of) 5\b/)).toHaveCount(0);

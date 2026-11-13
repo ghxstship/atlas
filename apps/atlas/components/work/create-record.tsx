@@ -5,6 +5,7 @@ import { Button, Checkbox, Drawer, Input, Select } from "@xos/ui";
 import type { Route } from "next";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useRef, useState } from "react";
+import { initialProjectId, projectChoiceOptions } from "@/lib/projects/project-choice";
 import { ActionErrorAlert, useAction, useCopy } from "./action-ui";
 import { createRecordAction } from "./actions";
 import { fromLocalInput, withQuery } from "./format";
@@ -46,6 +47,7 @@ export function CreateRecordDialog({
   label?: string;
 }) {
   const t = useCopy("work");
+  const shell = useCopy("shell");
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
@@ -56,7 +58,7 @@ export function CreateRecordDialog({
   const [title, setTitle] = useState("");
   const projectKey = params.get("project");
   const [projectId, setProjectId] = useState(
-    fixedProjectId ?? projects.find((p) => p.key === projectKey)?.id ?? projects[0]?.id ?? "",
+    fixedProjectId ?? initialProjectId(projects, projects.find((p) => p.key === projectKey)?.id),
   );
   const [owner, setOwner] = useState("");
   const [due, setDue] = useState("");
@@ -199,7 +201,10 @@ export function CreateRecordDialog({
                 id="create-project"
                 label={t("fields.project")}
                 value={projectId}
-                options={projects.map((p) => ({ value: p.id, label: `${p.key} · ${p.name}` }))}
+                options={projectChoiceOptions(
+                  projects.map((p) => ({ value: p.id, label: `${p.key} · ${p.name}` })),
+                  shell("create.chooseProject"),
+                )}
                 onChange={(e) => setProjectId(e.target.value)}
               />
             )}

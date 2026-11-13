@@ -14,6 +14,7 @@ import { OverLimitBanners } from "@/components/plan-limits/banners";
 import { Banner } from "@/components/platform/client/banner";
 import { getFormatters } from "@/lib/platform/format";
 import type { OrgContext } from "@/lib/shell/context";
+import { planLimitBannersApply } from "@/lib/shell/org-read-only";
 import { getOrgTimeZone } from "@/lib/shell/time-zone";
 
 /**
@@ -190,7 +191,8 @@ export async function LifecycleBanners({
     }
   }
 
-  banners.push(...(await OverLimitBanners({ ctx, status })));
+  // A canceled org (or one waiting for deletion) is read-only whatever its plan: no upgrade advice beside that banner.
+  if (planLimitBannersApply(status)) banners.push(...(await OverLimitBanners({ ctx, status })));
 
   return banners.length > 0 ? <>{banners}</> : null;
 }

@@ -12,8 +12,8 @@ import { inBrandScope } from "@/lib/brand/brand";
 import { formatDate, formatMoney } from "@/lib/format";
 import { personalChannel } from "@/lib/live/topics";
 import { requireNode, sitemap } from "@/lib/shell/sitemap";
-import { enumLabelKey, getTranslate } from "@/lib/shell/translate";
-import { toneFor } from "@/lib/states";
+import { partyPaymentStatus, partyPaymentStatusKey, partyPaymentTone } from "@/lib/invoice-status";
+import { getTranslate } from "@/lib/shell/translate";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslate();
@@ -23,6 +23,7 @@ export async function generateMetadata(): Promise<Metadata> {
 /**
  * Money, Payments (Section 4.4.5): what orgs paid the person's accounts, through the org's own
  * rails. Account Finance, Owners and Admins see the account's payments; nothing here holds funds.
+ * An approved payment reads Paid: approval is the org's bookkeeping, payment is what the party sees.
  * The list updates live through the person's private channel.
  */
 export default async function PaymentsPage({ searchParams }: PageProps<"/money/payments">) {
@@ -60,7 +61,10 @@ export default async function PaymentsPage({ searchParams }: PageProps<"/money/p
             id: p.id,
             title: formatMoney(locale, p.amountMinor, p.currency) ?? "",
             meta: [p.orgName, p.paidOn ? formatDate(locale, p.paidOn) : null, p.reference],
-            tag: { label: t(enumLabelKey("paymentState", p.state)), tone: toneFor(p.state) },
+            tag: {
+              label: t(partyPaymentStatusKey(partyPaymentStatus(p.state))),
+              tone: partyPaymentTone(partyPaymentStatus(p.state)),
+            },
           }))}
         />
       ) : (
@@ -78,7 +82,7 @@ export default async function PaymentsPage({ searchParams }: PageProps<"/money/p
             org: p.orgName,
             amount: formatMoney(locale, p.amountMinor, p.currency) ?? "",
             reference: p.reference ?? "",
-            state: t(enumLabelKey("paymentState", p.state)),
+            state: t(partyPaymentStatusKey(partyPaymentStatus(p.state))),
           }))}
         />
       )}

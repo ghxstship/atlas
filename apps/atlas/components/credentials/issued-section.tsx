@@ -19,6 +19,7 @@ import {
 } from "@xos/data/credentials";
 import { badgePhotos, badgePhotoThumbnail } from "@xos/data/credential-photos";
 import { printSizesFor } from "@xos/data/documents/model";
+import { badgeScanPayload } from "@xos/data/documents/templates";
 import type { Route } from "next";
 import { getFormatter } from "next-intl/server";
 import type { ReactNode } from "react";
@@ -55,7 +56,7 @@ import {
   revokeCredentialAction,
   updateWindowAction,
 } from "@/lib/credentials/actions";
-import { can, chooseView, type ModulePage } from "@/lib/operations/context";
+import { can, canOnProject, chooseView, type ModulePage } from "@/lib/operations/context";
 import { instantToLocal } from "@/lib/operations/time";
 import { InlineAlert } from "@/components/collection-kit/ui";
 import { CredentialBadge } from "./client";
@@ -174,6 +175,12 @@ export async function IssuedSection({ page }: { page: ModulePage }) {
   const creating = param(page.search, "create") === "1";
   const printing = param(page.search, "print") === "1";
   const canIssue = can(page, "credentials.credential.issue");
+  // Printing badges belongs to their issuers (crawl 4.9): only credentials on a project where the viewer issues them
+  // print, which the badge routes enforce too.
+  const printable = issued.filter((c) =>
+    canOnProject(page, "credentials.credential.issue", c.projectId),
+  );
+  const canPrint = printable.length > 0;
   const title = t("nav.atlas.pages.credentials.issued");
   const peekHref = (c: IssuedCredential) =>
     sectionHref(page, { peek: c.id, full: undefined, create: undefined, section });
@@ -296,7 +303,7 @@ export async function IssuedSection({ page }: { page: ModulePage }) {
           view={view}
           action={
             <span className="inline-flex flex-wrap items-center gap-8">
-              {issued.length > 0 ? (
+              {canPrint ? (
                 <ButtonLink
                   href={sectionHref(page, {
                     print: "1",
@@ -358,7 +365,9 @@ export async function IssuedSection({ page }: { page: ModulePage }) {
           chooseProjectNotice(page, section)
         )
       ) : null}
-      {printing ? <BadgePrint page={page} credentials={issued} section={section} /> : null}
+      {printing && canPrint ? (
+        <BadgePrint page={page} credentials={printable} section={section} />
+      ) : null}
       {body}
       {peekId ? <CredentialRecord page={page} id={peekId} section={section} /> : null}
     </CollectionPage>
@@ -543,19 +552,21 @@ async function CredentialRecord({
           category={c.categoryCode}
           categoryColor={1}
           credentialKey={c.number}
-          payload={c.number}
+          payload={badgeScanPayload(c.number)}
           zones={zones}
           validFrom={dateTime(format, c.validFrom, timeZone)}
           validTo={
             c.validTo ? dateTime(format, c.validTo, timeZone) : t("credentials.issued.openEnded")
           }
         />
-        <DocumentActions
-          org={page.ctx.org.slug}
-          kind="credential-badge"
-          id={c.id}
-          sizes={printSizesFor("credential-badge")}
-        />
+        {canOnProject(page, "credentials.credential.issue", c.projectId) ? (
+          <DocumentActions
+            org={page.ctx.org.slug}
+            kind="credential-badge"
+            id={c.id}
+            sizes={printSizesFor("credential-badge")}
+          />
+        ) : null}
       </RecordSection>
       <BadgePhotoSection page={page} credential={c} timeZone={timeZone} />
       {canEdit ? (

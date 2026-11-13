@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { ReacceptanceBanner } from "@/components/legal/reacceptance-banner";
 import { AppShell } from "@/components/shell/app-shell";
+import { CrisisBanner } from "@/components/shell/crisis-banner";
 import { ShellPeekGate } from "@/components/shell/shell-peek-gate";
 import { getTranslations } from "next-intl/server";
 import { OrgBanners } from "@/components/platform/org-banners";
@@ -15,7 +16,8 @@ import { getOrgContext } from "@/lib/shell/context";
  * or an org that does not exist, gets 404 (ADR 0003); signed-out visitors were already sent to
  * sign in by the proxy. The shell's `?peek={recordKey}` hook opens a record in the side peek on any
  * route that does not peek its own rows (Section 4.5.3). Those who accept legal terms for the org
- * see the re-acceptance prompt after a material change (Section 14.4, A82).
+ * see the re-acceptance prompt after a material change (Section 14.4, A82). While a crisis alert is in force for the
+ * viewer, its banner sits above every page until the all-clear (crawl 4.9); it streams in, so it never holds the page.
  */
 export default async function OrgLayout({ children, params }: LayoutProps<"/[org]">) {
   const { org } = await params;
@@ -25,6 +27,9 @@ export default async function OrgLayout({ children, params }: LayoutProps<"/[org
   return (
     <AppShell ctx={ctx}>
       <DeferredSystemBanners linkLabel={t("details")} />
+      <Suspense fallback={null}>
+        <CrisisBanner ctx={ctx} />
+      </Suspense>
       <OrgBanners ctx={ctx} />
       <SandboxBanner ctx={ctx} />
       <ReacceptanceBanner ctx={ctx} />

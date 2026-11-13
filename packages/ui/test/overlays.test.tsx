@@ -997,7 +997,16 @@ describe("navigation", () => {
     expect(screen.getByRole("button", { name: /Messages/ })).toBeTruthy();
     expect(screen.getByRole("button", { name: /Today/ }).getAttribute("aria-current")).toBe("page");
     expect(screen.queryAllByRole("link").filter((a) => a.getAttribute("href") === "#")).toEqual([]);
-    expect(screen.getByRole("button", { name: "Account menu for Dana Ortiz" })).toBeTruthy();
+    // The account button opens a drawer, which is a dialog, and reads as the mobile one does (crawl 4.9).
+    expect(
+      screen
+        .getByRole("button", { name: "Open the account menu for Dana Ortiz" })
+        .getAttribute("aria-haspopup"),
+    ).toBe("dialog");
+    // The sideways-scrolling nav clips on both axes, so its list pads the 2px focus outline and its 2px offset in.
+    expect(
+      screen.getByRole("navigation", { name: "Gateway" }).querySelector("ul")?.className,
+    ).toMatch(/(^|\s)p-4(\s|$)/);
     await userEvent.click(screen.getByRole("button", { name: "Command menu" }));
     expect(onSearch).toHaveBeenCalled();
     expect(screen.getByRole("navigation", { name: "Compass" }).className).toContain("xos-compass");

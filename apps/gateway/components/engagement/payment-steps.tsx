@@ -1,12 +1,14 @@
 import { invoiceTrackerStep, type ExternalRow } from "@xos/data/gateway";
 import { Icon } from "@/components/ui";
 import { formatDate, formatMoney } from "@/lib/format";
-import { enumLabelKey, type Translate } from "@/lib/shell/translate";
+import { partyInvoiceStatus, partyInvoiceStatusKey } from "@/lib/invoice-status";
+import type { Translate } from "@/lib/shell/translate";
 
 /**
  * An invoice followed like a package (Section 11.12, Get paid): Submitted, Approved, Scheduled,
- * Paid, each with its date. Amounts are formatted in the invoice's own currency from minor units;
- * a missing amount reads Unpriced, never zero.
+ * Paid, each with its date, and the status in those same words rather than the stored lifecycle
+ * state (crawl 4.9). Amounts are formatted in the invoice's own currency from minor units; a
+ * missing amount reads Unpriced, never zero.
  */
 export function PaymentSteps({
   invoice: inv,
@@ -49,7 +51,7 @@ export function PaymentSteps({
           </strong>
           {inv.invoice_state ? (
             <span className="text-text-12 text-text-secondary">
-              {t(enumLabelKey("invoiceState", inv.invoice_state))}
+              {t(partyInvoiceStatusKey(partyInvoiceStatus(inv)))}
             </span>
           ) : null}
         </div>

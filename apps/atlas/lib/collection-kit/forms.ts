@@ -22,8 +22,19 @@ export interface ActionState {
 
 export const INITIAL_ACTION_STATE: ActionState = {};
 
+/**
+ * The kit validation key (`procurement.kit.validation`) for a value the database refused on one
+ * field (result.ts FIELD_CONSTRAINTS): a unit outside xpms.dim_unit_alias reads on the Unit field
+ * with the units it takes, instead of the generic server error.
+ */
+const FIELD_ERROR_KEYS: Readonly<Record<string, string>> = { unitBasis: "unit" };
+
 /** Maps a repository error to an action state the form can explain. */
 export function fromDataError(error: DataError): ActionState {
+  if (error.kind === "invalid" && error.field !== undefined) {
+    const key = FIELD_ERROR_KEYS[error.field];
+    if (key !== undefined) return { fieldErrors: { [error.field]: key } };
+  }
   switch (error.kind) {
     case "refusal":
       return { rule: error.rule };

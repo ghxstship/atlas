@@ -52,6 +52,8 @@ const kindSchema = z.strictObject({
       decision: z.string().trim().min(5).max(200),
     })
     .optional(),
+  // A kind nothing sends again, kept so the notices already delivered still read.
+  retired: z.strictObject({ reason: z.string().trim().min(20).max(400) }).optional(),
 });
 
 const registrySchema = z.strictObject({
@@ -78,8 +80,8 @@ function duplicates(values: readonly (string | number)[]): (string | number)[] {
 
 /**
  * Parses and checks the registry text: unique codes, kinds and orders, every channel declared once,
- * every kind in a declared category with a declared email template, and every kind either sent by a named
- * emitter or deferred with its reason. The default email template of a kind is `notification`, and a kind
+ * every kind in a declared category with a declared email template, and every kind sent by a named emitter,
+ * deferred with its reason or retired with its reason. The default email template of a kind is `notification`, and a kind
  * reaches every channel unless it names its own.
  */
 export function parseNotificationRegistry(text: string): NotificationKindRegistry {
@@ -133,17 +135,26 @@ function parseRegistryText(text: string): {
   const used = new Set<string>();
   const emission = new Map<string, KindEmission>();
   const kinds: KindDefinition[] = raw.kinds.map((k) => {
-    if (k.emitted_by !== undefined && k.deferred !== undefined)
-      issues.push(`kind ${k.kind} is both emitted and deferred; keep one`);
-    else if (k.emitted_by === undefined && k.deferred === undefined)
+    const statuses = [
+      k.emitted_by === undefined ? null : "emitted",
+      k.deferred === undefined ? null : "deferred",
+      k.retired === undefined ? null : "retired",
+    ].filter((s) => s !== null);
+    if (statuses.length > 1)
       issues.push(
-        `kind ${k.kind} names no emitter: add emitted_by (where private.notify sends it and its test) or a deferred reason`,
+        `kind ${k.kind} is ${statuses.length === 2 ? "both " : ""}${statuses.join(" and ")}; keep one`,
+      );
+    else if (statuses.length === 0)
+      issues.push(
+        `kind ${k.kind} names no emitter: add emitted_by (where private.notify sends it and its test), a deferred reason or a retired reason`,
       );
     emission.set(
       k.kind,
-      k.deferred !== undefined
-        ? { status: "deferred", deferral: { ...k.deferred } }
-        : { status: "emitted", by: (k.emitted_by ?? []).map((e) => ({ ...e })) },
+      k.retired !== undefined
+        ? { status: "retired", retirement: { ...k.retired } }
+        : k.deferred !== undefined
+          ? { status: "deferred", deferral: { ...k.deferred } }
+          : { status: "emitted", by: (k.emitted_by ?? []).map((e) => ({ ...e })) },
     );
     const emailTemplate = k.email_template ?? "notification";
     if (!categories.has(k.category)) issues.push(`kind ${k.kind}: unknown category ${k.category}`);

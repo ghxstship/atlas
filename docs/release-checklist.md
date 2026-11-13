@@ -10,6 +10,29 @@ Statuses:
 - **Blocked on owner (OWNER)**: needs a decision, an account, a secret or a paid service that only the owner can provide. Named in the last section.
 - **Not started**.
 
+## XOS 4.10 release (2026-11-11)
+
+4.10 is 4.9 plus merge train 4.10 (#98):
+
+- the API half of R6b: API v1 no longer reads or writes the retired work detail columns (the drop follows in 4.11, by expand and contract);
+- Checkout offered only where it can open, and a trial's own return page (904100201);
+- the WP18 tail (904100301);
+- the ADR 0033 decision-record port;
+- the Compass access, Show, screen and copy fixes (904100501).
+
+CI found two journey faults, both in the tests: the plan-ending journey still waited for `?checkout=done` after a trial's Checkout, and journey 42 made a one-day timesheet that a run just after midnight in America/New_York missed. As on 4.2, the owner's standing choice skips the staging observation window.
+
+| Step                     | Status | Evidence                                                                                                                                                                                                                |
+| ------------------------ | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| CI on the release commit | Done   | Every check of PR #98 passed at `aa73f618`, merged as `c4d0bc25`                                                                                                                                                        |
+| Release drill            | Done   | `infra/drills/release-drill.sh` on `aa73f618`: 995 tables' row counts and 25 key-table checksums match, the 0001, 0100, 0109 and 9900 smoke suites pass; restore 64 s against the 4 h RTO                               |
+| Migrations, staging      | Done   | `rmrzfolncwhnhygmfxnw`: 904100201, 904100301 and 904100501 (718 applied, none pending); advisors: passed, 1,197 accepted; no migration touches realtime, so `private.ensure_realtime_channel_policies()` was not needed |
+| Migrations, production   | Done   | `fquuqnzlpobaawucczgq`: the same three migrations (718 applied, none pending); key-table fingerprints taken after the push (read-only); advisors: passed, 1,197 accepted; all 56 cron jobs active                       |
+| Edge Functions           | Done   | No function changed between `b62264d1` and `aa73f618`, so none was deployed                                                                                                                                             |
+| Apps                     | Done   | PR #98 merged into `main` (`c4d0bc25`), which Vercel deploys to production (atlas, gateway, docs, console); `batch-c` fast-forwarded to `c4d0bc25`                                                                      |
+| Packages                 | Done   | Tag `v4.10.0` started `publish-packages.yml`; the owner approved npm and PyPI publishing through the 5.0 series on 2026-11-11, and 4.9.0 published the same day                                                         |
+| Compass                  | OWNER  | Compass ships on its own cadence                                                                                                                                                                                        |
+
 ## XOS 4.9 release (2026-11-10)
 
 4.9 is 4.8 plus the 4.9 set (#84 to #88):

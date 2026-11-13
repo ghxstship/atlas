@@ -1,4 +1,5 @@
 import { getSubscription } from "@xos/data";
+import { subscriptionOrAccess } from "@/lib/billing/current-subscription";
 import { PLANS } from "@/lib/plans.generated";
 import type { OrgContext } from "@/lib/shell/context";
 
@@ -22,9 +23,6 @@ export function planFeatures(planCode: string): ReadonlySet<string> {
 
 /** Whether the org's current plan includes a feature; an org without a subscription is on Access. */
 export async function planHasFeature(ctx: OrgContext, feature: string): Promise<boolean> {
-  const subscription = await getSubscription(ctx.viewer.db, ctx.org.id);
-  if (!subscription.ok && subscription.error.kind !== "not-found") {
-    throw new Error(`Cannot read the subscription: ${subscription.error.kind}`);
-  }
-  return planFeatures(subscription.ok ? subscription.data.planCode : "access").has(feature);
+  const { subscription } = subscriptionOrAccess(await getSubscription(ctx.viewer.db, ctx.org.id));
+  return planFeatures(subscription.planCode).has(feature);
 }
