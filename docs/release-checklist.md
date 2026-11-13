@@ -10,6 +10,28 @@ Statuses:
 - **Blocked on owner (OWNER)**: needs a decision, an account, a secret or a paid service that only the owner can provide. Named in the last section.
 - **Not started**.
 
+## XOS 4.12 release (2026-11-13)
+
+4.12 is 4.11 plus merge train 4.12 (#100):
+
+- SMS, text and WhatsApp go through sent.dm instead of Twilio (owner decision 2026-11-11, RRR-266), with `sms-webhook` for sent.dm's signed events;
+- 904120101, whose SMS comments name sent.dm;
+- the Subprocessor List, Privacy Policy and Text Message Terms 1.1.0, which name Sent, Inc. in place of Twilio Inc.;
+- the runbook's sent.dm setup in place of the Twilio steps.
+
+The first CI run failed the legal page specs, which still expected Privacy Policy 1.0.0 and one version. `1ed19cc0` made them read 1.1.0 and its two versions, and the rerun passed.
+
+| Step                     | Status | Evidence                                                                                                                                   |
+| ------------------------ | ------ | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| CI on the release commit | Done   | Every check of PR #100 passed at `1ed19cc0` on the rerun, merged as `3c0e1117`                                                             |
+| Release drill            | Done   | `infra/drills/release-drill.sh` on train 4.12's migrations, latest 904120101: passed; verified restore 303 s against the 4 h RTO           |
+| Migrations, staging      | Done   | `rmrzfolncwhnhygmfxnw`: 904120101; advisors: passed                                                                                        |
+| Migrations, production   | Done   | `fquuqnzlpobaawucczgq`: 904120101; advisors: passed                                                                                        |
+| Edge Functions           | Done   | `sms-webhook` and `notification-dispatch` deployed to staging and production                                                               |
+| Apps                     | Done   | PR #100 merged into `main` (`3c0e1117`), which Vercel deploys to production                                                                |
+| Packages                 | Done   | Tag `v4.12.0` started `publish-packages.yml`, approved under the owner's approval through the 5.0 series; 4.12.0 published to npm and PyPI |
+| Compass                  | OWNER  | Compass ships on its own cadence                                                                                                           |
+
 ## XOS 4.11 release (2026-11-13)
 
 4.11 is 4.10 plus merge train 4.11 (#99):
@@ -341,7 +363,7 @@ Everything marked **OWNER** above, in one list. Secrets are named, never shown.
 | A Better Stack account and its sources for the log drains and the 1-minute regional uptime checks (ADR 0033, decision 45). PowerSync hosting is not needed: PowerSync is deferred (decision 51)                                                                                                                                                                                        | 3b, Section 20.1 item 11       | `infra/README.md`, Cost rules; `infra/runbooks/production.md`, Monitoring and alerting |
 | The mailbox that receives DMARC aggregate reports, and the move to `p=quarantine` after two to four clean weeks (decision 46)                                                                                                                                                                                                                                                          | 3a                             | `infra/runbooks/production.md`, Email from mail.ghxstship.tech                         |
 | Key rotation moment confirmed by the owner on 2026-10-24: in the cutover window, right after the production smoke test and before anyone is invited (`promote-to-production.md`, step 12; decision 44)                                                                                                                                                                                 | 3a                             | `infra/runbooks/promote-to-production.md`                                              |
-| sent.dm account and KYC, 10DLC brand and campaign, sender number, the `xos_notification` template, the HELP, STOP and START auto-replies, the `sms-webhook` endpoint; `SENT_DM_API_KEY`, `SENT_DM_WEBHOOK_SECRET`, `XOS_SMS_HELP_CONTACT`; `XOS_SMS_DELIVER_TO_ANY=true` once the campaign is approved (decision 65; sent.dm replaces Twilio, owner decision 2026-11-11)               | 3a (SMS)                       | `infra/runbooks/production.md`, Push and SMS                                           |
+| sent.dm account and KYC, 10DLC brand and campaign, sender number, the `xos_notification` en and es templates, the HELP, STOP and START auto-replies, the `sms-webhook` endpoint; `SENT_DM_API_KEY`, `SENT_DM_WEBHOOK_SECRET`, `XOS_SMS_HELP_CONTACT`; `XOS_SMS_DELIVER_TO_ANY=true` once the campaign is approved (decision 65; sent.dm replaces Twilio, owner decision 2026-11-11)    | 3a (SMS)                       | `infra/runbooks/production.md`, Push and SMS                                           |
 | Resend inbound mail for `inbound.ghxstship.tech`, its MX and DKIM records, the `email.received` webhook, `RESEND_INBOUND_WEBHOOK_SECRET`, `RESEND_RECEIVING_API_KEY` and `XOS_INBOUND_DOMAIN` (decision 60)                                                                                                                                                                            | Project inboxes                | `infra/runbooks/production.md`, Email from mail.ghxstship.tech                         |
 | The Vercel project `status` with the domain `status.ghxstship.tech`, a Vercel token as the GitHub secret `VERCEL_STATUS_TOKEN`, and the variables `VERCEL_ORG_ID` and `VERCEL_STATUS_PROJECT_ID` (decision 72, amended 2026-10-24)                                                                                                                                                     | 3b                             | `infra/ci/README.md`, Repository settings                                              |
 | Stripe sandbox: Stripe Tax on; `stripe:setup` with the sandbox key (`sk_test_` or `rk_test_`), typed only on the owner's machine; the webhook endpoint, `STRIPE_WEBHOOK_SECRET` and `STRIPE_SECRET_KEY` on staging's Edge Functions, `STRIPE_SECRET_KEY` on `atlas` staging (decisions 19 and 59). Billing opens later with the live catalogue and live keys                           | Billing                        | `infra/runbooks/production.md`, Stripe catalogue                                       |

@@ -7,6 +7,7 @@
  *   ## and ### headings, paragraphs, - and 1. lists, > notes
  *   fenced code blocks with a language, pipe tables with a header separator row
  *   inline **bold**, `code` and [text](href)
+ *   a line that is a whole ![alt](/file.png) is an image served from apps/docs/public
  *   a line that is a whole HTML comment is skipped (a help article's generated-list marker)
  *
  * Links: `help:<slug>`, `guide:<slug>` and `reference:<resource>` point inside the site.
@@ -27,6 +28,14 @@ export type Block =
   | { readonly t: "ul"; readonly items: readonly (readonly Inline[])[] }
   | { readonly t: "ol"; readonly items: readonly (readonly Inline[])[] }
   | { readonly t: "code"; readonly lang: string; readonly v: string }
+  | {
+      readonly t: "img";
+      readonly src: string;
+      readonly alt: string;
+      /** Pixel size, read from the file when the page loads (lib/content.ts); 0 until then. */
+      readonly width: number;
+      readonly height: number;
+    }
   | {
       readonly t: "table";
       readonly head: readonly (readonly Inline[])[];
@@ -120,11 +129,21 @@ export function parseBody(markdown: string): Block[] {
     const bullet = /^- (.+)$/.exec(line);
     const numbered = /^\d+\. (.+)$/.exec(line);
     const quote = /^> ?(.*)$/.exec(line);
+    const image = /^!\[([^\]]+)\]\(([^)\s]+)\)$/.exec(line);
     // A comment line, such as a help article's generated-list marker, ends the block like a blank line.
     if (line === "" || /^<!--.*-->$/.test(line)) flush();
     else if (h) {
       flush();
       heading(h[1] === "##" ? "h2" : "h3", h[2] as string);
+    } else if (image) {
+      flush();
+      blocks.push({
+        t: "img",
+        alt: image[1] as string,
+        src: image[2] as string,
+        width: 0,
+        height: 0,
+      });
     } else if (quote) {
       if (paragraph.length > 0 || list) flush();
       note.push(quote[1] as string);
@@ -171,6 +190,7 @@ export function textOf(body: readonly Block[]): string {
   return body
     .map((b) => {
       if (b.t === "h2" || b.t === "h3" || b.t === "code") return b.v;
+      if (b.t === "img") return b.alt;
       if (b.t === "p" || b.t === "note") return b.c.map((i) => i.v).join("");
       if (b.t === "ul" || b.t === "ol")
         return b.items.map((it) => it.map((i) => i.v).join("")).join(" ");

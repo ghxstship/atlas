@@ -38,7 +38,7 @@ export const LEGAL_DOCUMENTS: readonly LegalDocument[] = [
   {
     slug: "subprocessors",
     title: "Subprocessor List",
-    version: "1.1.0",
+    version: "1.1.1",
     publish: "public",
     requiresAcceptanceAtSignup: false,
     acceptanceBy: [],

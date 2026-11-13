@@ -31,6 +31,8 @@ const PAGES = [
   { path: "/en-US/guides/switching", heading: "Switching providers" },
   { path: "/es-US/guides/full-export", heading: "Exportación completa" },
   { path: "/es-US/guides/switching", heading: "Cambio de proveedor" },
+  { path: "/en-US/guides/text-messages", heading: "Text messages" },
+  { path: "/es-US/guides/text-messages", heading: "Mensajes de texto" },
   { path: "/en-US/reference", heading: "API reference" },
   { path: "/en-US/reference/projects", heading: "projects" },
   { path: "/en-US/reference/projects/list", heading: "List project rows" },

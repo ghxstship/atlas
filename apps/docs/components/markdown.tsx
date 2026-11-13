@@ -1,4 +1,5 @@
 /** Renders the parsed Markdown tree with design-system styles; no HTML strings. */
+import Image from "next/image";
 import type { ReactElement, ReactNode } from "react";
 import type { Locale } from "@/lib/i18n.ts";
 import { isAppPath, resolveHref } from "@/lib/links.ts";
@@ -120,6 +121,19 @@ export function Markdown({
           }
           case "code":
             return <CodeBlock key={i} code={block.v} label={`${codeLabel}: ${block.lang}`} />;
+          case "img":
+            // Served as it is from apps/docs/public, so its address stays the one the page names.
+            return (
+              <Image
+                key={i}
+                src={block.src}
+                alt={block.alt}
+                width={block.width}
+                height={block.height}
+                unoptimized
+                className="max-w-full h-auto rounded-card border border-border-subtle"
+              />
+            );
           case "table":
             return (
               <div

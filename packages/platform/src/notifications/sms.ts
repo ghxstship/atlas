@@ -156,15 +156,36 @@ function permanentSentdm(code: string, httpStatus: number): boolean {
 /** The channel a text goes out on: SMS by default; WhatsApp needs approved WhatsApp templates; auto lets sent.dm pick. */
 export type SentdmChannel = "sms" | "whatsapp" | "auto";
 
+/**
+ * The opt-out sentence every rendered text ends with, per language (packages/i18n/messages/<locale>/email.json,
+ * `sms.message`, `sms.summary` and `sms.summaryCount`; a test holds the catalogs to these). Hardcoded rather than
+ * read from the catalog so the sender stays free of i18n at run time.
+ */
+export const SMS_STOP_EN = "Reply STOP to opt out.";
+export const SMS_STOP_ES = "Responde STOP para cancelar.";
+
+/**
+ * What the default templates put before the variable: `[XOS] {{message}} <STOP sentence>`. Used only to count the
+ * segments of the text as delivered.
+ */
+export const SENTDM_TEMPLATE_PREFIX = "[XOS] ";
+
 export interface SentdmOptions {
   readonly apiKey: string;
   /**
-   * The approved sent.dm template business-initiated texts go out on (by name, or by id when it is a UUID). sent.dm
-   * blocks free-form text to a contact who has never replied (CONVERSATION_TEMPLATE_REQUIRED), and most XOS texts
-   * start a conversation, so every text uses this template, its one variable carrying the whole rendered body.
+   * The approved English sent.dm template business-initiated texts go out on (by name, or by id when it is a UUID).
+   * sent.dm blocks free-form text to a contact who has never replied (CONVERSATION_TEMPLATE_REQUIRED), and most XOS
+   * texts start a conversation, so every text uses a template. sent.dm refuses a template whose variable is at the
+   * very start or end of its body, so the template carries the opt-out line itself:
+   * `[XOS] {{message}} Reply STOP to opt out.` The variable carries the rendered body without that line.
    */
   readonly template: string;
-  /** The template's variable that holds the body. */
+  /**
+   * The approved Spanish template (name or UUID), `[XOS] {{message}} Responde STOP para cancelar.`: a body that
+   * ends with SMS_STOP_ES goes out on it, without that sentence.
+   */
+  readonly templateEs: string;
+  /** The variable that holds the body, the same in both templates. */
   readonly templateVariable: string;
   readonly channel: SentdmChannel;
   /** Validate and simulate only (sent.dm sandbox mode): staging and tests. */
@@ -191,6 +212,27 @@ export function templateValue(text: string): string {
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /**
+ * The template a cleaned body goes out on and the value of its variable: a body ending with the Spanish opt-out
+ * sentence goes on the Spanish template and one ending with the English sentence on the English template, each
+ * without that sentence, because the template adds it. Any other body goes on the English template unchanged, so
+ * the template's opt-out line is the only one.
+ */
+function sentdmTemplate(
+  body: string,
+  options: Pick<SentdmOptions, "template" | "templateEs">,
+): { readonly template: string; readonly value: string; readonly stop: string } {
+  for (const [stop, template] of [
+    [SMS_STOP_ES, options.templateEs],
+    [SMS_STOP_EN, options.template],
+  ] as const) {
+    if (body.endsWith(stop) && body.length > stop.length) {
+      return { template, value: body.slice(0, -stop.length).trimEnd(), stop };
+    }
+  }
+  return { template: options.template, value: body, stop: SMS_STOP_EN };
+}
+
+/**
  * sent.dm's Messages API over fetch (POST /v3/messages, x-api-key). Each delivery sends with the Idempotency-Key
  * `xos-sms-<delivery id>`: a retry after a timeout replays the first answer instead of texting twice, and an error
  * is not cached, so a retry after one sends again.
@@ -200,10 +242,15 @@ export function sentdmSmsProvider(options: SentdmOptions): SmsProvider {
   return {
     name: "sentdm",
     async send(message) {
-      const body = templateValue(smartEncode(message.body));
-      const template = UUID.test(options.template)
-        ? { id: options.template, parameters: { [options.templateVariable]: body } }
-        : { name: options.template, parameters: { [options.templateVariable]: body } };
+      const {
+        template: chosen,
+        value,
+        stop,
+      } = sentdmTemplate(templateValue(smartEncode(message.body)), options);
+      const parameters = { [options.templateVariable]: value };
+      const template = UUID.test(chosen)
+        ? { id: chosen, parameters }
+        : { name: chosen, parameters };
       const request = {
         to: [message.to],
         template,
@@ -236,7 +283,11 @@ export function sentdmSmsProvider(options: SentdmOptions): SmsProvider {
       };
       const messageId = reply.data?.recipients?.[0]?.message_id;
       if (response.ok && reply.success !== false && typeof messageId === "string") {
-        return { providerMessageId: messageId, segments: smsSegments(body) };
+        // Billed as delivered: the template's prefix and opt-out line around the value.
+        return {
+          providerMessageId: messageId,
+          segments: smsSegments(`${SENTDM_TEMPLATE_PREFIX}${value} ${stop}`),
+        };
       }
       const code =
         typeof reply.error?.code === "string" ? reply.error.code : String(response.status);
@@ -262,8 +313,12 @@ export const smsEnvSchema = z
       .string()
       .regex(WEBHOOK_SECRET, "SENT_DM_WEBHOOK_SECRET is whsec_ followed by the base64 key")
       .optional(),
-    /** The approved template texts go out on (name or id) and its variable; see SentdmOptions.template. */
+    /**
+     * The approved English and Spanish templates texts go out on (name or id), and the variable both use; see
+     * SentdmOptions.template and SentdmOptions.templateEs.
+     */
     XOS_SENTDM_TEMPLATE: z.string().trim().min(1).max(128).default("xos_notification"),
+    XOS_SENTDM_TEMPLATE_ES: z.string().trim().min(1).max(128).default("xos_notification_es"),
     XOS_SENTDM_TEMPLATE_VARIABLE: z
       .string()
       .regex(/^[A-Za-z_][A-Za-z0-9_]{0,63}$/, "XOS_SENTDM_TEMPLATE_VARIABLE is a variable name")
@@ -326,6 +381,7 @@ export function createSmsProvider(
     sentdmSmsProvider({
       apiKey: env.SENT_DM_API_KEY,
       template: env.XOS_SENTDM_TEMPLATE,
+      templateEs: env.XOS_SENTDM_TEMPLATE_ES,
       templateVariable: env.XOS_SENTDM_TEMPLATE_VARIABLE,
       channel: env.XOS_SENTDM_CHANNEL,
       sandbox: env.XOS_SENTDM_SANDBOX,
