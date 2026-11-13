@@ -16,6 +16,8 @@ export const APP_DIR = process.cwd().endsWith(join("apps", "docs"))
   ? process.cwd()
   : join(process.cwd(), "apps", "docs");
 export const GUIDES_DIR = join(APP_DIR, "content", "guides");
+/** Files served as they are at the site root, such as /sms-opt-in.png. */
+export const PUBLIC_DIR = join(APP_DIR, "public");
 export const HELP_DIR = join(APP_DIR, "..", "atlas", "help");
 
 /** The shells whose help the help center publishes; Atlas articles keep the top-level paths. */
@@ -64,6 +66,24 @@ function requireString(meta: Readonly<Record<string, unknown>>, key: string, fil
   return value;
 }
 
+const PNG_SIGNATURE = "89504e470d0a1a0a";
+
+/**
+ * A body's images with their pixel size, read from the PNG's header, so the page reserves their space before they
+ * load. An image must be a PNG in apps/docs/public, named by its root path such as /sms-opt-in.png.
+ */
+export function withImageSizes(body: readonly Block[], file: string): readonly Block[] {
+  return body.map((block) => {
+    if (block.t !== "img") return block;
+    if (!/^\/[a-z0-9-]+\.png$/.test(block.src))
+      throw new Error(`${file}: an image must be a PNG at the site root, not ${block.src}.`);
+    const png = readFileSync(join(PUBLIC_DIR, block.src.slice(1)));
+    if (png.subarray(0, 8).toString("hex") !== PNG_SIGNATURE)
+      throw new Error(`${file}: ${block.src} is not a PNG.`);
+    return { ...block, width: png.readUInt32BE(16), height: png.readUInt32BE(20) };
+  });
+}
+
 function readPages<T extends Page>(
   dir: string,
   build: (meta: Readonly<Record<string, unknown>>, file: string) => Omit<T, keyof Page>,
@@ -79,7 +99,7 @@ function readPages<T extends Page>(
         title: requireString(meta, "title", file),
         summary: requireString(meta, "summary", file),
         order: typeof order === "number" ? order : 999,
-        body,
+        body: withImageSizes(body, file),
         ...build(meta, file),
       } as T;
     })

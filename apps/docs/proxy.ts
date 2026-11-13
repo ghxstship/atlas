@@ -88,6 +88,10 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
   return tenant === null ? platformResponse(request) : tenantResponse(request, tenant);
 }
 
+/**
+ * The proxy skips Next's own files, the OpenAPI document and the PNGs in apps/docs/public, which are served as they
+ * are at the site root (such as /sms-opt-in.png, which the 10DLC campaign cites), without a locale prefix.
+ */
 export const config = {
-  matcher: ["/((?!_next/|openapi\\.json$|favicon\\.ico$).*)"],
+  matcher: ["/((?!_next/|openapi\\.json$|favicon\\.ico$|[a-z0-9-]+\\.png$).*)"],
 };

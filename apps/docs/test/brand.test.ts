@@ -15,7 +15,7 @@ import {
 } from "../lib/brand.ts";
 import { brandAssetUrl, docsAccent, fetchDocsBrand } from "../lib/brand-lookup.ts";
 import { activeNavLabel } from "../lib/nav-active.ts";
-import { proxy } from "../proxy.ts";
+import { config, proxy } from "../proxy.ts";
 
 const HOSTS = parseTenantHosts(
   " docs.northwind-live.com=northwind-live, help.harbor.test:443=HARBOR-LIGHTS ,bad, x=Not A Slug,=x",
@@ -258,6 +258,15 @@ describe("proxy", () => {
       accent_hex: "#0B5FFF",
     },
   ];
+
+  it("leaves the PNGs at the site root to be served as they are, without a locale redirect", () => {
+    const matcher = new RegExp(`^${config.matcher[0] as string}$`);
+    expect(matcher.test("/sms-opt-in.png")).toBe(false);
+    expect(matcher.test("/openapi.json")).toBe(false);
+    expect(matcher.test("/en-US/guides/text-messages")).toBe(true);
+    expect(matcher.test("/guides/text-messages")).toBe(true);
+    expect(matcher.test("/o/northwind-live/en-US")).toBe(true);
+  });
 
   it("keeps the platform docs as before: a locale redirect, then the page", async () => {
     const fetchMock = lookup(northwind);

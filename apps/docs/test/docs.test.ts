@@ -11,6 +11,7 @@ import {
   helpPath,
   searchPages,
   whatsNew,
+  withImageSizes,
 } from "../lib/content.ts";
 import {
   LOCALES,
@@ -28,6 +29,7 @@ import {
   parseInline,
   slugify,
   textOf,
+  type Block,
 } from "../lib/markdown.ts";
 import {
   DOCUMENT_FILE,
@@ -132,6 +134,27 @@ describe("markdown", () => {
         ],
       },
     ]);
+  });
+
+  it("parses a whole-line image and reads its size from the PNG in public", () => {
+    const body = parseBody("Before\n![The consent box](/sms-opt-in.png)\nAfter");
+    expect(body.map((b) => b.t)).toEqual(["p", "img", "p"]);
+    expect(body[1]).toEqual({
+      t: "img",
+      alt: "The consent box",
+      src: "/sms-opt-in.png",
+      width: 0,
+      height: 0,
+    });
+    expect(textOf(body)).toContain("The consent box");
+    expect(linksIn(body)).toEqual([]);
+    const [image] = withImageSizes([body[1] as Block], "test.md");
+    expect(image).toMatchObject({ t: "img", src: "/sms-opt-in.png" });
+    expect(image && "width" in image && image.width).toBeGreaterThan(0);
+    expect(image && "height" in image && image.height).toBeGreaterThan(0);
+    expect(() => withImageSizes(parseBody("![x](https://example.com/a.png)"), "test.md")).toThrow(
+      /PNG at the site root/,
+    );
   });
 
   it("reads frontmatter and slugifies accented headings", () => {
