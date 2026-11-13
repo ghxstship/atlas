@@ -249,10 +249,12 @@ test.describe("Emergency codes and the radio plan", () => {
       alert.getByText(/Sent to \d+ (person|people), \d+ of them clocked in\./),
     ).toBeVisible();
 
-    // Someone on the project is told: it reaches their Inbox, with the announcement.
+    // Someone on the project is told: it reaches their Inbox, with the announcement, and the crisis banner above
+    // every page carries it until the all-clear.
     const lead = await asPerson(browser, "field@example.com");
     await lead.goto(`/${ORG}/inbox`);
-    await expect(lead.getByText(message)).toBeVisible();
+    await expect(lead.locator("[data-inbox-item]").filter({ hasText: message })).toBeVisible();
+    await expect(lead.getByTestId("crisis-banner")).toContainText(message);
     await lead.context().close();
 
     await alert.getByRole("button", { name: "Give the all-clear" }).click();
