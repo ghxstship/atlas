@@ -10,6 +10,28 @@ Statuses:
 - **Blocked on owner (OWNER)**: needs a decision, an account, a secret or a paid service that only the owner can provide. Named in the last section.
 - **Not started**.
 
+## XOS 4.11 release (2026-11-13)
+
+4.11 is 4.10 plus merge train 4.11 (#99):
+
+- the R6b column drop (904110101), by expand and contract after 4.10's API stopped reading the ten columns;
+- 72 of the 82 confirmed 4.9 crawl findings, in seven groups (904110301 to 904110801);
+- the nightly fixes (WebKit's Command key, navigations that wait for Next's router, the Android notice, the iOS build's memory);
+- hono 4.13.18 for five advisories published after 4.10.
+
+CI caught a server component importing `@xos/ui` directly, two route budgets (ConfirmButton's dialog and Money's chart now load on demand), a formatter Intl refuses, and journeys that the crawl fixes' new behavior changed. The 10 crawl findings left are deferred; Trash's table names in es-US are RRR-267.
+
+| Step                     | Status | Evidence                                                                                                                                                                                               |
+| ------------------------ | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| CI on the release commit | Done   | Every check of PR #99 passed at `178966c4`, merged as `62d29617`                                                                                                                                       |
+| Release drill            | Done   | `infra/drills/release-drill.sh` on train 4.11's migrations: 995 tables' row counts and 25 key-table checksums match, the 0001, 0100, 0109 and 9900 smoke suites pass; restore 29 s against the 4 h RTO |
+| Migrations, staging      | Done   | `rmrzfolncwhnhygmfxnw`: 904110101 to 904110801 (10 migrations; 728 applied, none pending); the R6b guard found no retired value and no live Uniform Sizes share; advisors: passed, 1,198 accepted      |
+| Migrations, production   | Done   | `fquuqnzlpobaawucczgq`: the same 10 migrations at 2026-11-13T14:48:58Z, after the same read-only R6b check; advisors: passed, 1,198 accepted                                                           |
+| Edge Functions           | Done   | `integration-worker`, `notification-dispatch`, `org-lifecycle`, `report-run` and `sms-webhook` (their shared chunks changed) deployed to staging and production                                        |
+| Apps                     | Done   | PR #99 merged into `main` (`62d29617`), which Vercel deploys to production; `batch-c` fast-forwarded to `62d29617`                                                                                     |
+| Packages                 | Done   | Tag `v4.11.0` started `publish-packages.yml`, approved under the owner's approval through the 5.0 series                                                                                               |
+| Compass                  | OWNER  | Compass ships on its own cadence                                                                                                                                                                       |
+
 ## XOS 4.10 release (2026-11-11)
 
 4.10 is 4.9 plus merge train 4.10 (#98):
