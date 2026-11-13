@@ -194,6 +194,7 @@ test("site plans: add a plan to the demo project and place a pin by keyboard", a
   await signIn(page);
   await page.goto(`/${ORG}/places/site-plans?create=1`);
   const drawer = page.getByRole("dialog", { name: "Add site plan" });
+  await drawer.getByLabel("Project").selectOption({ label: "NWS Northwind Summer Series" });
   await drawer.getByLabel("Title").fill(title);
   await drawer.getByLabel("Drawing").fill(`plans/${id}.png`);
   await drawer.getByRole("button", { name: "Add site plan" }).click();
