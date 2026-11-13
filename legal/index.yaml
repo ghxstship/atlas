@@ -86,7 +86,7 @@ documents:
     history:
       - version: 1.1.0
         effective_date: 2026-11-11
-        summary: "Sent, Inc. (sent.dm) replaces Twilio Inc. for SMS; Twilio never processed Customer Personal Data. Sent, Inc. processes none until 30 days after the change notice. Note added 2026-11-13: production had no Customers, Owners, Admins or notice subscribers when 1.1.0 was published, so no notice was owed and none was sent; Sent, Inc. may process Customer Personal Data once the 10DLC campaign is approved, and every Customer that signs up agrees to the list that names it."
+        summary: "Sent, Inc. (sent.dm) replaces Twilio Inc. for SMS; Twilio never processed Customer Personal Data. Sent, Inc. processes none until 30 days after the change notice."
       - version: 1.0.0
         effective_date: 2026-11-10
         summary: First version.

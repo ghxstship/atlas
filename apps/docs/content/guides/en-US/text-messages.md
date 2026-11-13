@@ -36,18 +36,18 @@ XOS records your agreement for one organization and one phone number, with the t
 - Message frequency varies.
 - Message and data rates may apply.
 - Carriers are not liable for delayed or undelivered messages.
-- Texts wait during quiet hours, 21:00 to 08:00 in your time zone unless you set your own. Safety messages and a shift that starts within 12 hours, among a few others, arrive at once.
+- Texts wait during quiet hours, 21:00 to 08:00 in your time zone unless you set your own. Texts that wait arrive together as one message when quiet hours end. Safety messages and a shift that starts within 12 hours, among a few others, arrive at once.
 - Each text names the organization, links to the update in XOS, and ends with "Reply STOP to opt out."
 
 ## Keywords
 
 Reply with the word alone as the whole message.
 
-| Reply                                                              | What happens                                                             | The reply you get                                                                                                                                                                                  |
-| ------------------------------------------------------------------ | ------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| STOP (or QUIT, END, REVOKE, OPT OUT, CANCEL, UNSUBSCRIBE, STOPALL) | Texts stop for every organization that had your consent for that number. | "You will get no more texts from XOS notifications. Reply START to subscribe again."                                                                                                               |
-| START (or YES, UNSTOP)                                             | Texts start again.                                                       | "You will get XOS notifications by text again. Message frequency varies. Message and data rates may apply. Reply HELP for help, STOP to opt out."                                                  |
-| HELP (or INFO)                                                     | Nothing changes.                                                         | "XOS notifications: updates about your work from the organizations you belong to. Message frequency varies. Message and data rates may apply. Help: support@ghxstship.pro. Reply STOP to opt out." |
+| Reply                                                              | What happens                                                                                                                                              | The reply you get                                                                                                                                                                                  |
+| ------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| STOP (or QUIT, END, REVOKE, OPT OUT, CANCEL, UNSUBSCRIBE, STOPALL) | Texts stop for every organization that had your consent for that number.                                                                                  | "You will get no more texts from XOS notifications. Reply START to subscribe again."                                                                                                               |
+| START (or YES, UNSTOP, SUBSCRIBE)                                  | Texts start again for each organization whose texts you stopped by text. An organization you turned off in settings stays off until you turn it on there. | "You will get XOS notifications by text again. Message frequency varies. Message and data rates may apply. Reply HELP for help, STOP to opt out."                                                  |
+| HELP (or INFO)                                                     | Nothing changes.                                                                                                                                          | "XOS notifications: updates about your work from the organizations you belong to. Message frequency varies. Message and data rates may apply. Help: support@ghxstship.pro. Reply STOP to opt out." |
 
 ## Turn texts off in settings
 

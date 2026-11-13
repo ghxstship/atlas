@@ -7,7 +7,7 @@ order: 15
 
 XOS puede enviar notificaciones de trabajo por mensaje de texto (SMS). El programa se llama **Notificaciones de XOS** (XOS notifications). Los mensajes son novedades sobre tu trabajo de las organizaciones a las que perteneces en XOS, como cambios de turno, aprobaciones y alertas de seguridad. Nunca son publicidad.
 
-Los mensajes de texto están desactivados hasta que tú mismo los activas. Una organización no puede activarlos por ti.
+Los mensajes de texto están desactivados hasta que los activas tú. Una organización no puede activarlos por ti.
 
 ## Quién puede recibirlos
 
@@ -36,18 +36,18 @@ XOS registra tu aceptación para una organización y un número de teléfono, co
 - La frecuencia de los mensajes varía.
 - Pueden aplicarse tarifas de mensajes y datos.
 - Los operadores no son responsables de los mensajes retrasados o no entregados.
-- Los mensajes esperan durante las horas de silencio, de 21:00 a 08:00 en tu zona horaria, salvo que definas las tuyas. Las alertas de seguridad y un turno que empieza en menos de 12 horas, entre algunos otros, llegan de inmediato.
+- Los mensajes esperan durante las horas de silencio, de 21:00 a 08:00 en tu zona horaria, salvo que definas las tuyas. Los mensajes que esperan llegan juntos en un solo mensaje al terminar las horas de silencio. Las alertas de seguridad y un turno que empieza en menos de 12 horas, entre algunos otros, llegan de inmediato.
 - Cada mensaje nombra a la organización, enlaza a la novedad en XOS y termina con "Responde STOP para cancelar."
 
 ## Palabras clave
 
 Responde con la palabra sola como mensaje completo.
 
-| Respuesta                                                         | Qué pasa                                                                                             | La respuesta que recibes                                                                                                                                                                                                                      |
-| ----------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| STOP (o QUIT, END, REVOKE, OPT OUT, CANCEL, UNSUBSCRIBE, STOPALL) | Los mensajes se detienen para todas las organizaciones que tenían tu consentimiento para ese número. | "Ya no recibirás mensajes de texto de las notificaciones de XOS. Responde START para volver a suscribirte."                                                                                                                                   |
-| START (o YES, UNSTOP)                                             | Los mensajes vuelven a empezar.                                                                      | "Volverás a recibir las notificaciones de XOS por mensaje de texto. La frecuencia de los mensajes varía. Pueden aplicarse tarifas de mensajes y datos. Responde HELP para obtener ayuda o STOP para cancelar."                                |
-| HELP (o INFO)                                                     | No cambia nada.                                                                                      | "Notificaciones de XOS: novedades sobre tu trabajo de las organizaciones a las que perteneces. La frecuencia de los mensajes varía. Pueden aplicarse tarifas de mensajes y datos. Ayuda: support@ghxstship.pro. Responde STOP para cancelar." |
+| Respuesta                                                         | Qué pasa                                                                                                                                                                                                | La respuesta que recibes                                                                                                                                                                                                                      |
+| ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| STOP (o QUIT, END, REVOKE, OPT OUT, CANCEL, UNSUBSCRIBE, STOPALL) | Los mensajes se detienen para todas las organizaciones que tenían tu consentimiento para ese número.                                                                                                    | "Ya no recibirás mensajes de texto de las notificaciones de XOS. Responde START para volver a suscribirte."                                                                                                                                   |
+| START (o YES, UNSTOP, SUBSCRIBE)                                  | Los mensajes vuelven a empezar para cada organización cuyos mensajes detuviste por mensaje de texto. Una organización que desactivaste en la configuración sigue desactivada hasta que la activas allí. | "Volverás a recibir las notificaciones de XOS por mensaje de texto. La frecuencia de los mensajes varía. Pueden aplicarse tarifas de mensajes y datos. Responde HELP para obtener ayuda o STOP para cancelar."                                |
+| HELP (o INFO)                                                     | No cambia nada.                                                                                                                                                                                         | "Notificaciones de XOS: novedades sobre tu trabajo de las organizaciones a las que perteneces. La frecuencia de los mensajes varía. Pueden aplicarse tarifas de mensajes y datos. Ayuda: support@ghxstship.pro. Responde STOP para cancelar." |
 
 ## Desactívalos en la configuración
 
