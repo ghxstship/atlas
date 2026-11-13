@@ -47,12 +47,18 @@ export default function ScheduleScreen(): ReactElement {
   const mine = rows.filter((s) => isMine(s, me));
   const open = rows.filter(isOpenShift);
   const [notice, setNotice] = useState<{ tone: "success" | "warning"; text: string } | null>(null);
+  // The notice shows at the top of the screen, while Claim sits under Open Shifts, often below the fold: the
+  // screen scrolls up to it, so the person sees the claim was sent or why it was not.
+  const showNotice = (next: { tone: "success" | "warning"; text: string }) => {
+    setNotice(next);
+    scrollRef.current?.scrollTo({ y: 0, animated: true });
+  };
   const held = mine.filter((s) => s.membership_id === me.membershipId);
   const act = (s: ShiftRow, action: "accept" | "claim") => {
     if (action === "claim") {
       const conflict = claimConflict(s, held);
       if (conflict) {
-        setNotice({
+        showNotice({
           tone: "warning",
           text: t("compass.schedule.claimOverlap", {
             time: `${formatDay(conflict.starts_at, scheduleZone(conflict.time_zone, orgSettings))} ${formatTime(conflict.starts_at, scheduleZone(conflict.time_zone, orgSettings))}`,
@@ -60,7 +66,7 @@ export default function ScheduleScreen(): ReactElement {
         });
         return;
       }
-      setNotice({
+      showNotice({
         tone: "success",
         text: t(
           rule === "first-come" ? "compass.schedule.claimQueued" : "compass.schedule.claimSent",

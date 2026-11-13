@@ -25,6 +25,7 @@ import { useCopy } from "./use-copy";
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useRef, useState, type ReactNode } from "react";
 import type { ActionState } from "@/lib/collection-kit/forms";
+import { refusalCopy } from "@/lib/collection-kit/refusal-copy";
 import { CustomFieldInputs } from "@/components/custom-fields/inputs";
 import type { CustomFieldTable } from "@/lib/custom-fields/types";
 import type { KitState } from "./types";
@@ -84,11 +85,15 @@ export function ActionFeedback({
   const kit = useCopy("procurement.kit");
   const r = useCopy(refusals);
   if (state.rule) {
-    const key = r.has(state.rule) ? state.rule : null;
+    const copy = refusalCopy(state.rule, (key) => r.has(key));
     return (
       <InlineAlert tone="warning" title={kit("refusedTitle")}>
-        {key ? r(key) : kit(`refusalFamily.${familyOf(state.rule)}`)}
-        <span className="block font-mono text-text-11 text-text-tertiary">{state.rule}</span>
+        {copy.from === "module" ? r(copy.key) : kit(copy.key)}
+        {copy.showRule ? (
+          <span className="block font-mono text-text-11 text-text-tertiary">
+            {kit("refusalRule", { rule: state.rule })}
+          </span>
+        ) : null}
       </InlineAlert>
     );
   }
@@ -99,14 +104,6 @@ export function ActionFeedback({
     return <InlineAlert tone="danger">{kit("errors.fields")}</InlineAlert>;
   }
   return null;
-}
-
-function familyOf(rule: string): string {
-  if (rule.endsWith("_transition_not_allowed")) return "transition";
-  if (rule.endsWith("_state_conflict")) return "conflict";
-  if (rule.startsWith("sod_")) return "separation";
-  if (rule.startsWith("spend_")) return "spend";
-  return "other";
 }
 
 // Peek and record page ----------------------------------------------------------------------------

@@ -8,7 +8,7 @@
   "roles": {
     "Support": "Soporte",
     "Trust and Safety": "Confianza y seguridad",
-    "Administrator": "Administración"
+    "Administrator": "Administrador"
   },
   "auth": {
     "title": "Inicia sesión en la consola de operaciones",
@@ -344,6 +344,7 @@
   "flags": {
     "title": "Indicadores de funciones",
     "intro": "Valores predeterminados, requisitos del plan y excepciones por organización. El interruptor de emergencia desactiva una función en todas partes a la vez.",
+    "descriptionsInEnglish": "Las descripciones de los indicadores están escritas en inglés.",
     "flag": "Indicador",
     "default": "Predeterminado",
     "planGate": "Necesita la función del plan",
@@ -533,7 +534,7 @@
   },
   "grounds": {
     "Illegal Content": "Contenido ilegal",
-    "Terms Violation": "Incumplimiento de los términos y políticas",
+    "Terms Violation": "Infracción de términos y políticas",
     "No Violation": "Sin infracción"
   },
   "appealStates": {
@@ -1284,6 +1285,8 @@
     "waiting": "Presentada",
     "decidedAt": "Decidida",
     "detailIntro": "{person} impugna una calificación de {org}, proyecto {project}, dada el {when}.",
+    "detailTitle": "Impugnación de calificación de {person}",
+    "back": "Volver a Impugnaciones de calificaciones",
     "what": "Lo que dice la persona",
     "comment": "El comentario de la calificación",
     "noComment": "La calificación no tiene comentario.",

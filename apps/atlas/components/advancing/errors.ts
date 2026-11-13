@@ -69,6 +69,8 @@ export const KNOWN_ERRORS: ReadonlySet<string> = new Set([
   "roster_entry_not_submitted",
   "roster_review_reason",
   "roster_review_outcome",
+  // 904110601: a reviewer never accepts an entry whose person declined; it goes back to the lead.
+  "roster_entry_declined",
   // R5: the names lock of an engagement (G-142, migration 4656).
   "roster_locked",
   "roster_lock_engagement_closed",

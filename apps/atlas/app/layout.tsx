@@ -8,8 +8,10 @@ import favicon from "@xos/ui/brand/favicon.svg";
 import { themeColors } from "@xos/ui/pwa";
 import { PwaRuntime } from "@/components/pwa/pwa-runtime";
 import { CookieBanner } from "@/components/privacy/cookie-banner";
+import { StyleNonce } from "@/components/shell/style-nonce";
 import { XOSProvider } from "@/components/xos-provider";
 import { localeDirection } from "@/i18n/negotiate";
+import { clientTime } from "@/i18n/client-time";
 import { clientMessages, negotiatedLocale, uiMessages } from "@/i18n/request";
 import { PATH_HEADER } from "@/lib/auth/assurance";
 import { productAnalyticsConsent } from "@/lib/privacy/product-analytics";
@@ -35,12 +37,13 @@ export const viewport: Viewport = { themeColor: themeColors() };
 export default async function RootLayout({ children }: { children: ReactNode }) {
   // The negotiated locale (a pseudo-locale in development) picks the language, direction and messages; next-intl's
   // locale, which XOSProvider formats with, is its formatting locale (i18n/request.ts, A53-001).
-  const [locale, formatting, cookieStore, analytics, requestHeaders] = await Promise.all([
+  const [locale, formatting, cookieStore, analytics, requestHeaders, time] = await Promise.all([
     negotiatedLocale(),
     getLocale(),
     cookies(),
     productAnalyticsConsent(),
     headers(),
+    clientTime(),
   ]);
   // Public live link pages (P1, ADR 0130), stakeholder packs (B2, ADR 0141) and the showcaller portal (B3, ADR 0142) set
   // only the strictly necessary grant cookie and load no product analytics; a display screen and the portal also keep
@@ -52,6 +55,8 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   // The person's display preferences (A65-001), kept in a cookie the shell syncs from their settings.
   const preferences = decodePreferences(cookieStore.get(PREFERENCES_COOKIE)?.value);
   const overrides = uiMessages(locale);
+  // The proxy's per-response CSP nonce, which the dialogs' scroll-lock stylesheet needs (components/shell/style-nonce).
+  const nonce = requestHeaders.get("x-nonce");
   return (
     <html
       lang={locale}
@@ -60,7 +65,12 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
       {...documentAttributes(preferences)}
     >
       <body>
-        <NextIntlClientProvider messages={clientMessages(locale)}>
+        <StyleNonce nonce={nonce} />
+        <NextIntlClientProvider
+          messages={clientMessages(locale)}
+          now={time.now}
+          timeZone={time.timeZone}
+        >
           <XOSProvider locale={formatting} preferences={preferences} messages={overrides}>
             {bannerOff ? null : <CookieBanner />}
             {children}

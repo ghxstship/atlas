@@ -20,6 +20,9 @@ import {
 } from "@xos/data/procurement";
 import dynamic from "next/dynamic";
 import { listTransitionRules, listVendors } from "@xos/data/vendors";
+import { listSpendAuthorities } from "@xos/data/governance";
+import { listApprovalPolicies, listApprovals } from "@xos/data/workflow";
+import { InlineAlert } from "@/components/ui";
 import { getFormatter } from "next-intl/server";
 import {
   addPoLineAction,
@@ -30,6 +33,7 @@ import {
   hireWarningsAction,
   priceChangeOrderAction,
   removePoLineAction,
+  submitPoForApprovalAction,
   transitionPoAction,
 } from "@/app/[org]/procurement/actions";
 import { CollabPanels } from "@/components/collection-kit/collab";
@@ -69,6 +73,7 @@ import { HIRE_WARNING_KEY } from "@/lib/procurement/hire";
 import { CollectionPage } from "@/components/platform/collection-page";
 import { MaterialQuickAddButton } from "@/components/quick-add/material-quick-add-button";
 import { PoLineActSheet, PoLookAlikes, PoPaymentSchedule } from "./po-payment-schedule";
+import { poApprovalState, type PoApprovalState } from "@/lib/procurement/po-approval";
 
 const VIEWS: readonly ViewKind[] = ["table", "list", "board"];
 const REFUSALS = "procurement.refusals";
@@ -130,8 +135,15 @@ export async function PurchaseOrdersSection({
         ctx.capabilities.has(next === "Sent" ? "procurement.po.send" : "procurement.po.write"),
       )
       .map((next) => ({ next, label: t(`poMoves.${next}`), danger: next === "Canceled" }));
+  const selected = state.peek ? orders.find((o) => o.id === state.peek) : undefined;
+  const gate =
+    selected && selected.state === "Proposed"
+      ? await loadPoApproval(ctx, selected, selected.totals.linesTotalMinor)
+      : null;
+  const canApprove = ctx.capabilities.has("finance.po.approve");
+  // The creator never approves their own order (sod_po_creator): Approve is not offered to them.
   const approve = (o: PurchaseOrder) =>
-    o.state === "Proposed" && ctx.capabilities.has("finance.po.approve") ? (
+    o.state === "Proposed" && canApprove && !(o.id === selected?.id && gate?.creator) ? (
       <ActionButton
         action={approvePoAction}
         hidden={{ org: ctx.org.slug, id: o.id }}
@@ -141,8 +153,19 @@ export async function PurchaseOrdersSection({
         refusals={REFUSALS}
       />
     ) : null;
+  const submit = (o: PurchaseOrder) =>
+    o.id === selected?.id && gate?.policy.kind === "submit" && canWrite ? (
+      <ActionButton
+        action={submitPoForApprovalAction}
+        hidden={{ org: ctx.org.slug, id: o.id }}
+        label={t("orders.submitForApproval")}
+        variant="primary"
+        refusals={REFUSALS}
+      />
+    ) : null;
   const controls = (o: PurchaseOrder) => (
     <>
+      {submit(o)}
       {approve(o)}
       <TransitionButtons
         action={transitionPoAction}
@@ -154,7 +177,16 @@ export async function PurchaseOrdersSection({
       />
     </>
   );
-  const selected = state.peek ? orders.find((o) => o.id === state.peek) : undefined;
+  const notes =
+    selected && gate ? (
+      <PoApprovalNotes
+        ctx={ctx}
+        gate={gate}
+        t={t}
+        canApprove={canApprove}
+        total={money(selected.totals.linesTotalMinor, selected.currencyCode)}
+      />
+    ) : null;
   const properties = (o: (typeof orders)[number]) => [
     { label: t("fields.vendor"), value: o.vendorName ?? t("fields.unnamedVendor") },
     { label: t("fields.project"), value: o.projectKey ?? t("fields.hiddenProject") },
@@ -179,6 +211,7 @@ export async function PurchaseOrdersSection({
         backHref={withQuery(path, state)}
         properties={properties(selected)}
         controls={controls(selected)}
+        notes={notes}
         stateLabel={stateLabel}
         money={money}
         canWrite={canWrite}
@@ -275,6 +308,7 @@ export async function PurchaseOrdersSection({
         properties={properties(selected)}
         actions={controls(selected)}
       >
+        {notes}
         <CustomFieldsPanel org={ctx.org.slug} table="app.purchase_orders" id={selected.id} />
         <PresenceFor table="purchase_orders" id={selected.id} />
       </PeekDrawer>
@@ -333,6 +367,7 @@ async function PurchaseOrderRecord({
   backHref,
   properties,
   controls,
+  notes,
   stateLabel,
   money,
   canWrite,
@@ -346,6 +381,8 @@ async function PurchaseOrderRecord({
   backHref: string;
   properties: { label: string; value: string }[];
   controls: React.ReactNode;
+  /** What the order's approval waits on, while it is Proposed (PoApprovalNotes). */
+  notes: React.ReactNode;
   stateLabel: (s: string) => string;
   money: (minor: number | null, currency: string) => string;
   canWrite: boolean;
@@ -435,6 +472,7 @@ async function PurchaseOrderRecord({
         </>
       }
     >
+      {notes}
       <PresenceFor table="purchase_orders" id={order.id} />
       <PoLookAlikes ctx={ctx} order={order} t={t} hrefFor={peekHref} />
       <KitSection id="po-lines" title={t("orders.lines")}>
@@ -723,4 +761,91 @@ function dropKey(query: string, key: string): string {
   const q = new URLSearchParams(query);
   q.delete(key);
   return q.toString();
+}
+
+/**
+ * The approval facts a Proposed order's page words (lib/procurement/po-approval.ts). A read the
+ * viewer may not make leaves its part out: no policy, no approvals, and no spend authority warning.
+ */
+async function loadPoApproval(
+  ctx: OrgContext,
+  order: PurchaseOrder,
+  totalMinor: number | null,
+): Promise<PoApprovalState> {
+  const db = ctx.viewer.db;
+  const [policies, approvals, authorities] = await Promise.all([
+    listApprovalPolicies(db, ctx.org.id),
+    listApprovals(db, ctx.org.id),
+    listSpendAuthorities(db, ctx.org.id),
+  ]);
+  const state = poApprovalState({
+    order,
+    totalMinor,
+    viewerPersonId: ctx.viewer.person?.id ?? null,
+    policies: policies.ok ? policies.data : [],
+    approvals: approvals.ok ? approvals.data : [],
+    authorities: authorities.ok ? authorities.data : [],
+    now: new Date(),
+  });
+  return authorities.ok ? state : { ...state, uncovered: false };
+}
+
+/**
+ * What a Proposed order waits on, in plain words (crawl 4.9): its creator is told someone else
+ * approves it; an order its policy gates is submitted first or is in review on Approvals; and a total
+ * no spend authority covers says nobody can give the final approval until a limit is set.
+ */
+function PoApprovalNotes({
+  ctx,
+  gate,
+  t,
+  canApprove,
+  total,
+}: {
+  ctx: OrgContext;
+  gate: PoApprovalState;
+  t: Copy;
+  canApprove: boolean;
+  total: string;
+}) {
+  const approvalsHref = `/${ctx.org.slug}/approvals`;
+  const settingsHref = `/${ctx.org.slug}/settings/spend-authority`;
+  const policy = gate.policy;
+  return (
+    <div className="flex flex-col gap-8">
+      {gate.creator && canApprove ? (
+        <p className="m-0 text-text-12 text-text-secondary">{t("orders.ownOrder")}</p>
+      ) : null}
+      {policy.kind === "submit" || policy.kind === "inReview" ? (
+        <InlineAlert tone="info" title={t("orders.policyTitle")}>
+          <span className="flex flex-col gap-8">
+            <span>
+              {t(policy.kind === "submit" ? "orders.policySubmit" : "orders.policyInReview", {
+                policy: policy.policyName,
+              })}
+            </span>
+            <span>
+              <KitLink href={approvalsHref} size="sm">
+                {t("orders.openApprovals")}
+              </KitLink>
+            </span>
+          </span>
+        </InlineAlert>
+      ) : null}
+      {gate.uncovered ? (
+        <InlineAlert tone="warning" title={t("orders.noSpendAuthorityTitle")}>
+          <span className="flex flex-col gap-8">
+            <span>{t("orders.noSpendAuthority", { total })}</span>
+            {ctx.capabilities.has("org.spend_authority.write") ? (
+              <span>
+                <KitLink href={settingsHref} size="sm">
+                  {t("orders.openSpendAuthority")}
+                </KitLink>
+              </span>
+            ) : null}
+          </span>
+        </InlineAlert>
+      ) : null}
+    </div>
+  );
 }

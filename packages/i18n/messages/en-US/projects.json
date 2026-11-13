@@ -161,6 +161,7 @@
     "refused": "The change was refused ({rule}). Review the project and try again.",
     "plan_limit_exceeded": "Your plan's active project limit is reached. Complete or cancel a project, or change plans, to add another.",
     "plan_limit_read_only": "This project is read-only because the organization is over its plan's active project limit. The banner at the top of the page says how to lift it.",
+    "org_read_only": "This organization is read-only, so no project can be created or changed. Its Owner can reactivate it or resume billing in Settings.",
     "time_zone_unknown": "That time zone is not recognized. Choose one from the list.",
     "gate_criteria_unmet": "Gate {gate} cannot pass until every blocking criterion has evidence. Missing: {criteria}.",
     "gate_phase_conflict": "The project moved to another phase while you were working. Reload to see its current gate.",
@@ -1006,5 +1007,61 @@
     },
     "commit": "Copy",
     "done": "Copied {copied} items; {skipped} skipped."
-  }
+  },
+  "gateCriteria": {
+    "G1": {
+      "BUDGET_ENVELOPE": "A budget envelope exists and is approved.",
+      "GONOGO": "Go / no-go decision ratified by a named party.",
+      "OBJECTIVES_STATED": "Measurable objectives recorded. Gate 8 measures against these.",
+      "JURISDICTION": "The project jurisdiction is resolved and populated. Without it no compliance rule can be evaluated at any later gate.",
+      "SCOPE_LOCK": "Scope locked; spec drawings and sample approvals complete.",
+      "AMPLIFY_PLANNED": "Capture, rights and measurement requirements for gate 8 are specified. Amplification cannot be retrofitted.",
+      "CAPABILITY_FROZEN": "Venue capability documents are frozen. A capability record still being edited cannot be reconciled against."
+    },
+    "G2": {
+      "CONTRACTS": "Contracts executed; vendors awarded; talent booked; crew recruited.",
+      "ACCOUNTABLE_PARTY": "Every requirement in the locked scope carries a named accountable party. An unassigned requirement is a gap, not a pass."
+    },
+    "G3": {
+      "PERMITS_FILED": "Every permit the jurisdiction requires is filed with lead time in hand.",
+      "NO_CRITICAL_GAPS": "Reconciliation of every requirement against its capability document leaves zero unresolved critical gaps. An UNKNOWN against a critical requirement counts as a gap.",
+      "NO_STALE_DOCS": "No requirement or capability document in the advance set is past its validity window.",
+      "RIGGING_DOCUMENTED": "Where a rigging requirement exists, the venue has a documented point and total load on file. Undocumented capacity is a hard stop.",
+      "PO_BASELINE": "PO baseline set; gate 9 reconciles against it."
+    },
+    "G4": {
+      "AWARDS": "All awards issued; deposits paid; long-lead orders confirmed.",
+      "UNITS_RESOLVED": "Every awarded line carries a resolved unit. An unresolved unit refuses arithmetic rather than guessing.",
+      "BAND_FRESHNESS": "No award rests on a price band whose effective confidence has decayed to EXPIRED."
+    },
+    "G5": {
+      "FAB_QC": "Fabrication complete; QC passed; punch list opened.",
+      "ENGINEERING_STAMPED": "Any load-bearing or occupied structure carries stamped engineering for its jurisdiction. An unstamped structure has no capacity anyone will stand behind.",
+      "MATERIALS_TRACEABLE": "Materials received against purchase orders with variance resolved."
+    },
+    "G6": {
+      "COMMISSIONED": "Installed, commissioned, punch list closed; as-builts filed.",
+      "AHJ_SIGNOFF": "Every permit required by the jurisdiction is inspected and signed off. No rules for an unpopulated jurisdiction means this cannot be evaluated, not that it passes.",
+      "EGRESS_VERIFIED": "Occupant load, egress width and path verified against the adopted code as built, not as drawn."
+    },
+    "G7": {
+      "ACCEPTANCE": "Show closed; strike complete; operating acceptance signed.",
+      "INCIDENTS_CLOSED": "Every incident, injury and near-miss logged and dispositioned.",
+      "CAPTURE_SECURED": "Capture media offloaded, checksummed and backed up before strike."
+    },
+    "G8": {
+      "CAPTURE_DELIVERED": "Capture assets delivered and archived; broadcast masters delivered; media distribution complete.",
+      "RIGHTS_CLEARED": "Every published asset has cleared usage rights. UNKNOWN clearance is a blocker; publishing is irreversible.",
+      "SPONSOR_OBLIGATIONS": "Contracted sponsor deliverables evidenced and the proof-of-performance report issued.",
+      "MEASUREMENT_REPORTED": "Audience, earned-media and sentiment measurement delivered against the objectives set at gate 1.",
+      "ARCHIVE_LODGED": "Master assets lodged in the archive of record with retention terms stated."
+    },
+    "G9": {
+      "RECONCILED": "Financially reconciled; final cost report filed against the gate 3 baseline.",
+      "ASSETS_RETURNED": "Every unit-grain asset accounted for: returned, transferred or written off with a named approver.",
+      "OBLIGATIONS_DISCHARGED": "Permits closed out, bonds released, temporary structures removed, site restored to its documented pre-event state.",
+      "USAGE_RECORDED": "Element usage written to the usage record."
+    }
+  },
+  "readOnlyOrg": "This organization is read-only, so new projects cannot be created."
 }

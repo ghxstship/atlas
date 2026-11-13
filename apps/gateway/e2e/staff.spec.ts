@@ -360,6 +360,10 @@ test("journey 42: slate, award, roster, training before positions, slots, placem
     await one.goto(`/work/engagements/${key}/timesheets`);
     await one.waitForLoadState("networkidle");
     await one.getByRole("button", { name: "Submit", exact: true }).first().click();
+    await one
+      .getByRole("dialog", { name: "Submit this timesheet?" })
+      .getByRole("button", { name: "Submit timesheet" })
+      .click();
     await expect
       .poll(() =>
         value<string>("select timesheet_state::text as v from app.timesheets where id = $1", [

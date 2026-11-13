@@ -8,7 +8,7 @@ import type { ActionError, ActionResult } from "./action-result";
 type Translate = (key: string, values?: Record<string, string | number>) => string;
 
 /** A translator for keys computed at runtime (canon values, view names, error keys). */
-export function useCopy(namespace: "work" | "schedule" | "show"): Translate {
+export function useCopy(namespace: "work" | "schedule" | "show" | "shell"): Translate {
   const t = useTranslations(namespace);
   return useCallback(
     (key: string, values?: Record<string, string | number>) => {

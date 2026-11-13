@@ -1,4 +1,4 @@
-import { listMembers, type DataError, type Result } from "@xos/data";
+import { listMembers, toDataError, type DataError, type Result } from "@xos/data";
 import {
   assetStateKey,
   listAssetConditions,
@@ -34,6 +34,46 @@ export function assetCapabilities(ctx: OrgContext): AssetCapabilities {
     damage: has("assets.damage.write"),
     writeOff: has("assets.write_off.approve"),
   };
+}
+
+/**
+ * The asset writes the database takes on a project as well as org-wide: app.record_asset_custody and
+ * app.apply_asset_scan take assets.custody.write on the custody's project, and app.asset_damage's insert policy
+ * assets.damage.write on the report's project. Field leads, Members and Collaborators hold them at assigned reach,
+ * so the org-wide set alone never offered them Check out, Check in or Report damage, even on their own project's
+ * units (crawl 4.9). Maintenance and edits stay org-wide, as their policies are.
+ */
+export const PROJECT_ASSET_WRITES = ["assets.custody.write", "assets.damage.write"] as const;
+
+/** The org-wide flags with the custody and damage writes held on the unit's project added. */
+export function withProjectReach(
+  can: AssetCapabilities,
+  onProject: ReadonlySet<string>,
+): AssetCapabilities {
+  return {
+    ...can,
+    custody: can.custody || onProject.has("assets.custody.write"),
+    damage: can.damage || onProject.has("assets.damage.write"),
+  };
+}
+
+/**
+ * What the viewer may do to one unit: the org-wide flags, plus the custody and damage writes held on the project of
+ * its current custody (app.my_capabilities_on_project, migration 904110401). A unit no project holds has only the
+ * org-wide flags.
+ */
+export async function unitCapabilities(
+  ctx: OrgContext,
+  projectId: string | null,
+): Promise<AssetCapabilities> {
+  const can = assetCapabilities(ctx);
+  if (projectId === null || (can.custody && can.damage)) return can;
+  const { data, error } = await ctx.viewer.db.rpc("my_capabilities_on_project", {
+    p_project_id: projectId,
+    p_capabilities: [...PROJECT_ASSET_WRITES],
+  });
+  if (error) throw new AssetLoadError("project capabilities", toDataError(error));
+  return withProjectReach(can, new Set(data ?? []));
 }
 
 export interface PickerOption {

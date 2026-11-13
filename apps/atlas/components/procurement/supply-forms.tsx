@@ -131,6 +131,7 @@ export function PoLineForm({
           name="unitBasis"
           label={t("lines.unitBasis")}
           help={t("lines.unitBasisHelp")}
+          error={err("unitBasis")}
         />
         <Input
           id={`po-line-price-${purchaseOrderId}`}

@@ -1,4 +1,10 @@
-import { test as base, type Browser, type BrowserContext, type Page } from "@playwright/test";
+import {
+  test as base,
+  type Browser,
+  type BrowserContext,
+  type Page,
+  type Request,
+} from "@playwright/test";
 
 export * from "@playwright/test";
 
@@ -11,6 +17,9 @@ const ATTEMPTS = 3;
 /** How long a page may take to go quiet before a step goes ahead anyway. */
 const QUIET_MS = 5_000;
 
+/** How long `routerIdle` waits for the page's next frame, which never comes with JavaScript off. */
+const FRAME_MS = 1_000;
+
 /**
  * Waits for the page to go quiet, but no longer than five seconds: a live page (a show run, a
  * realtime list) keeps a request open and never reaches networkidle, and the step goes ahead.
@@ -20,20 +29,107 @@ export async function settle(page: Page): Promise<void> {
 }
 
 /**
- * Makes `page.goto` and `page.reload` the same in every engine (finding A24-008). A server action
- * ends with Next refreshing the route; Chromium lets a following navigation win, while Firefox
- * aborts it (NS_BINDING_ABORTED) and WebKit reports it interrupted. The patched calls first let the
- * page go quiet, then navigate, and try again (up to three times) while that refresh still cuts
- * them off. Any other navigation error is thrown as before. Use it on pages of extra contexts.
+ * The router's requests in flight on each page, RSC fetches and server actions, each with the time
+ * it was sent. Playwright reports neither `requestfinished` nor `requestfailed` for a fetch the old
+ * document still had in flight when a navigation unloads it (a Link prefetch cut off by the next
+ * goto, CI run 43081284352), so an entry can outlive its request: see `pending`.
+ */
+const routerRequests = new WeakMap<Page, Map<Request, number>>();
+
+/** Whether a request is Next's router at work: an RSC fetch (a navigation, a refresh, a prefetch) or a server action. */
+function isRouterRequest(request: Request): boolean {
+  const headers = request.headers();
+  return headers["rsc"] === "1" || headers["next-action"] !== undefined;
+}
+
+/** Starts counting a page's router requests, once per page. */
+function trackRouter(page: Page): Map<Request, number> {
+  const known = routerRequests.get(page);
+  if (known) return known;
+  const inFlight = new Map<Request, number>();
+  routerRequests.set(page, inFlight);
+  page.on("request", (request) => {
+    if (isRouterRequest(request)) inFlight.set(request, Date.now());
+  });
+  const done = (request: Request) => inFlight.delete(request);
+  page.on("requestfinished", done);
+  page.on("requestfailed", done);
+  return inFlight;
+}
+
+/**
+ * Waits, at most five seconds, until no RSC fetch or server action of Next's router is in flight.
+ * When the browser cancels one of them, Next 16 falls back to a browser navigation to that fetch's
+ * URL ("Failed to fetch RSC payload ... Falling back to browser navigation"): it only skips that
+ * on `pagehide`. Chromium cancels the page's fetches when the old page unloads, so the fallback
+ * goes nowhere; Firefox and WebKit cancel them as soon as a new navigation starts, while the old
+ * page still runs, and its fallback then aborts the navigation (NS_BINDING_ABORTED) or interrupts
+ * it, and a retried navigation aborts the next fallback in turn (nightly run 42927680948).
+ */
+export async function routerIdle(page: Page): Promise<void> {
+  const inFlight = trackRouter(page);
+  // A click resolves once it is dispatched; a frame later the server action or navigation it starts has sent its
+  // request, and that request's event reaches this process before the evaluation's answer does. With JavaScript
+  // off (javaScriptEnabled: false) no frame callback ever runs and the evaluation never answers, so the wait for
+  // it ends after a second: such a page has no router requests to wait for.
+  let frameCap: ReturnType<typeof setTimeout> | undefined;
+  await Promise.race([
+    page
+      .evaluate(() => new Promise((done) => requestAnimationFrame(() => setTimeout(done, 0))))
+      .catch(() => undefined),
+    new Promise((resolve) => {
+      frameCap = setTimeout(resolve, FRAME_MS);
+    }),
+  ]);
+  clearTimeout(frameCap);
+  const until = Date.now() + QUIET_MS;
+  while (pending(inFlight) > 0 && Date.now() < until && !page.isClosed()) {
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  }
+}
+
+/**
+ * How many router requests are still in flight. A request sent more than five seconds ago is
+ * dropped: it either finished without an event (its document was unloaded by a navigation a click
+ * started) or would have used up the whole wait anyway, so it holds up at most one step, not every
+ * later one.
+ */
+function pending(inFlight: Map<Request, number>): number {
+  const stale = Date.now() - QUIET_MS;
+  for (const [request, sentAt] of inFlight) if (sentAt < stale) inFlight.delete(request);
+  return inFlight.size;
+}
+
+/** The pages already patched, so a page reached twice (its context's `page` event and a spec) is patched once. */
+const patched = new WeakSet<Page>();
+
+/**
+ * Makes `page.goto` and `page.reload` the same in every engine (finding A24-008). Firefox and
+ * WebKit let a fallback navigation of Next's router cut a navigation off (see `routerIdle`); the
+ * patched calls first let the page go quiet and the router finish, then navigate, and try again (up
+ * to three times, once the page has loaded) while one still cuts them off. Any other navigation
+ * error is thrown as before. In WebKit, `ControlOrMeta` is Meta (see `appleKeys`). Use it on pages
+ * of extra contexts.
  */
 export function settledGoto(page: Page): Page {
+  if (patched.has(page)) return page;
+  patched.add(page);
+  trackRouter(page);
+  appleKeys(page);
   const settled = async <T>(navigate: () => Promise<T>): Promise<T> => {
     for (let attempt = 1; ; attempt += 1) {
       await settle(page);
+      await routerIdle(page);
+      const cutOff = [...trackRouter(page).keys()];
       try {
-        return await navigate();
+        const result = await navigate();
+        // The new document has loaded, so the old one's fetches are gone and send no event of their own.
+        const inFlight = trackRouter(page);
+        for (const request of cutOff) inFlight.delete(request);
+        return result;
       } catch (error) {
         if (attempt >= ATTEMPTS || !INTERRUPTED.test(String(error))) throw error;
+        await page.waitForLoadState("load").catch(() => undefined);
         await page.waitForTimeout(250 * attempt);
       }
     }
@@ -43,6 +139,27 @@ export function settledGoto(page: Page): Page {
   const reload = page.reload.bind(page);
   page.reload = (options) => settled(() => reload(options));
   return page;
+}
+
+/**
+ * In WebKit, `ControlOrMeta` presses Meta. The WebKit projects stand for Safari on macOS, iOS and
+ * iPadOS (their devices send an Apple user agent), so the app reads Command as the primary modifier
+ * there and Control+K as a different chord (packages/schemas/src/shortcuts/keys.ts). Playwright
+ * resolves `ControlOrMeta` by the host instead, Control on the Linux runners, and every WebKit
+ * shortcut journey missed its shortcut in CI while passing on a Mac (nightly run 42927680948).
+ * Playwright's WebKit applies the macOS editing commands to Meta chords on every host, so Meta+A
+ * still selects all.
+ */
+function appleKeys(page: Page): void {
+  if (page.context().browser()?.browserType().name() !== "webkit") return;
+  const meta = (key: string) => key.replace(/\bControlOrMeta\b/g, "Meta");
+  const keyboard = page.keyboard;
+  const press = keyboard.press.bind(keyboard);
+  keyboard.press = (key, options) => press(meta(key), options);
+  const down = keyboard.down.bind(keyboard);
+  keyboard.down = (key) => down(meta(key));
+  const up = keyboard.up.bind(keyboard);
+  keyboard.up = (key) => up(meta(key));
 }
 
 /**

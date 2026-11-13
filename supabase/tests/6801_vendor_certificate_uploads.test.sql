@@ -25,9 +25,9 @@ insert into world select 'vendor_a', id from v;
 with r as (insert into app.onboarding_requirements (org_id, name, item_kind, verification_method)
   values (pg_temp.id('org_a'), 'Proof of Coverage', 'Document Upload', 'Reviewer') returning id)
 insert into world select 'req', id from r;
-with i as (insert into app.onboarding_items (engagement_id, onboarding_requirement_id)
-  values (pg_temp.id('eng_vendor_a'), pg_temp.id('req')) returning id)
-insert into world select 'item_v', id from i;
+-- 904110602 gives the existing engagements their items when the requirement is added.
+insert into world select 'item_v', i.id from app.onboarding_items i
+  where i.engagement_id = pg_temp.id('eng_vendor_a') and i.onboarding_requirement_id = pg_temp.id('req') and i.deleted_at is null;
 with i as (
   select i.id from app.onboarding_items i where i.engagement_id = pg_temp.id('eng_ivy_a') and i.onboarding_requirement_id = pg_temp.id('req')
 ), made as (
@@ -182,7 +182,8 @@ begin
   for g in 1..50 loop
     insert into app.onboarding_requirements (org_id, name, item_kind, verification_method)
     values (pg_temp.id('org_a'), 'Extra ' || g, 'Document Upload', 'Reviewer') returning id into v_req;
-    insert into app.onboarding_items (engagement_id, onboarding_requirement_id) values (pg_temp.id('eng_vendor_a'), v_req) returning id into v_item;
+    select i.id into v_item from app.onboarding_items i
+    where i.engagement_id = pg_temp.id('eng_vendor_a') and i.onboarding_requirement_id = v_req and i.deleted_at is null;
     v_uri := 'storage://onboarding-uploads/' || pg_temp.id('org_a') || '/' || pg_temp.id('eng_vendor_a') || '/' || v_item || '/x.pdf';
     insert into app.documents (org_id, project_id, title) values (pg_temp.id('org_a'), pg_temp.id('prj_a'), 'Extra') returning id into v_doc;
     insert into app.document_versions (document_id, storage_uri, checksum_sha256) values (v_doc, v_uri, repeat('b', 64));

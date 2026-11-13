@@ -11,7 +11,12 @@ import { EmptyStateLink } from "@/components/ui";
 import { formatDate, formatMoney } from "@/lib/format";
 import { personalChannel } from "@/lib/live/topics";
 import { requireNode, sitemap } from "@/lib/shell/sitemap";
-import { enumLabelKey, getTranslate } from "@/lib/shell/translate";
+import {
+  moneyInvoicesEmptyKey,
+  partyInvoiceStatus,
+  partyInvoiceStatusKey,
+} from "@/lib/invoice-status";
+import { getTranslate } from "@/lib/shell/translate";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslate();
@@ -55,7 +60,10 @@ export default async function InvoicesPage({ searchParams }: PageProps<"/money/i
       ) : invoices.data.length === 0 ? (
         <EmptyStateLink
           icon="Receipt"
-          sentence={t("gateway.money.invoices.empty")}
+          sentence={t(
+            // A client or sponsor is never paid, so their invoices come from the org (crawl 4.9).
+            moneyInvoicesEmptyKey([...(ctx.nav.conditions ?? [])].includes("paid-work")),
+          )}
           actionLabel={t("gateway.money.invoices.emptyAction")}
           href="/work/engagements"
         />
@@ -75,6 +83,8 @@ export default async function InvoicesPage({ searchParams }: PageProps<"/money/i
       ) : (
         <LinkTable
           caption={t("nav.gateway.money.invoices")}
+          // On a phone each card keeps what the party asks first: which invoice, owed how much, at what status.
+          cardFields={["number", "org", "balance", "state"]}
           columns={[
             { key: "number", label: t("gateway.money.invoices.number"), type: "code" },
             { key: "org", label: t("gateway.work.engagements.org") },
@@ -97,7 +107,7 @@ export default async function InvoicesPage({ searchParams }: PageProps<"/money/i
             balance:
               formatMoney(locale, inv.balance_minor, inv.currency_code) ??
               t("gateway.common.unpriced"),
-            state: inv.invoice_state ? t(enumLabelKey("invoiceState", inv.invoice_state)) : "",
+            state: inv.invoice_state ? t(partyInvoiceStatusKey(partyInvoiceStatus(inv))) : "",
           }))}
         />
       )}

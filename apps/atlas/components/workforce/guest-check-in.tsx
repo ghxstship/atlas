@@ -13,10 +13,16 @@ import { EmptyStateLink } from "@/components/ui";
 import { checkInGuestAction } from "@/lib/workforce/actions";
 import type { Copy } from "@/lib/collection-kit/i18n";
 import { collectionState, withQuery, type SearchParams } from "@/lib/collection-kit/page";
-import { nodeHref } from "@/lib/shell/sitemap";
 import type { OrgContext } from "@/lib/shell/context";
 import { orgToday } from "@/lib/shell/time-zone";
-import { ProjectPicker, REFUSALS, chosenProject, orgPickers, workforceCopy } from "./shared";
+import {
+  ProjectPicker,
+  REFUSALS,
+  NoSiteProject,
+  chosenProject,
+  orgPickers,
+  workforceCopy,
+} from "./shared";
 import { CollectionPage } from "@/components/platform/collection-page";
 
 const VIEWS: readonly ViewKind[] = ["table", "list"];
@@ -51,16 +57,7 @@ export async function GuestCheckInSection({
   const title = t("guests.title");
   const project = chosenProject(pickers.projects, search);
   if (project === null) {
-    return (
-      <CollectionPage header={<PageHeader title={title} />}>
-        <EmptyStateLink
-          icon="FolderPlus"
-          sentence={t("site.noProjects")}
-          actionLabel={t("site.openProjects")}
-          href={nodeHref("projects.all", { org: ctx.org.slug }) ?? "/"}
-        />
-      </CollectionPage>
-    );
+    return <NoSiteProject ctx={ctx} t={t} title={title} path={path} projects={pickers.projects} />;
   }
   const rawQuery = search["q"];
   const query = (Array.isArray(rawQuery) ? rawQuery[0] : rawQuery)?.trim() ?? "";

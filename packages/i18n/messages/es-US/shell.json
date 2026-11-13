@@ -581,7 +581,7 @@
         "action": "Agregar entidad"
       },
       "rolesAndCapabilities": {
-        "empty": "Crea roles personalizados a partir del conjunto de capacidades.",
+        "empty": "Los roles que puede tener un miembro, del que más acceso da al que menos, y las capacidades que concede cada uno. Los roles de la plataforma son fijos; Ver como rol muestra uno.",
         "action": "Nuevo rol"
       },
       "teams": {
@@ -717,7 +717,7 @@
         "action": "Ver miembros"
       },
       "dangerZone": {
-        "empty": "Transfiere la propiedad, archiva o elimina esta organización.",
+        "empty": "Cancela, reactiva o elimina esta organización, o transfiere su propiedad.",
         "action": "Transferir propiedad"
       },
       "general": {
@@ -751,8 +751,8 @@
         "action": "Definir visibilidad"
       },
       "account": {
-        "empty": "Administra tu correo, teléfono, inicios de sesión vinculados y exportación de datos.",
-        "action": "Editar cuenta"
+        "empty": "Tus solicitudes de soporte y certificados de eliminación. Tu nombre, tus métodos de inicio de sesión y la eliminación de la cuenta están en Gateway, donde vive tu cuenta de XOS.",
+        "action": "Abrir la cuenta en Gateway"
       },
       "security": {
         "empty": "Agrega una llave de acceso o MFA y revisa tus sesiones y dispositivos.",
@@ -851,7 +851,11 @@
   },
   "page": {
     "sections": "Páginas en {section}",
-    "skipToContent": "Ir al contenido"
+    "skipToContent": "Ir al contenido",
+    "noneOpen": {
+      "empty": "Ninguna de las páginas de {section} está disponible para el rol con el que estás viendo. Elige Todos los roles en el selector de organización para verlas.",
+      "action": "Ir a Inicio"
+    }
   },
   "legal": {
     "draftTitle": "Borrador, aún no vigente",
@@ -866,7 +870,8 @@
     "versionUpcoming": "Versión {version}: entra en vigor el {date}",
     "contents": "En esta página",
     "englishOnly": "Este documento se publica solo en inglés.",
-    "action": "Volver a Atlas"
+    "action": "Volver a Atlas",
+    "indexTitle": "Documentos legales"
   },
   "home": {
     "welcome": "Te damos la bienvenida a {org}",
@@ -1103,7 +1108,10 @@
       "closed": "Nos dijiste que tienes menos de 18 años, así que tu cuenta está cerrada. Eliminamos tu inicio de sesión, tu perfil y sus archivos, tus fotos de credencial, tu configuración, lo que enviaste a nuestro equipo de soporte y las respuestas y los acuerdos personales que diste a XOS. Cualquier organización con la que hayas trabajado conserva los registros que exige la ley, como las horas que trabajaste, y una nota con tu correo electrónico que indica que tu cuenta se eliminó, y XOS conserva un registro de esa eliminación con los identificadores de tu cuenta, sin tu nombre. XOS también conserva un recuento mensual de las personas menores de 18 años que rechazó, que no te identifica. Los datos eliminados permanecen en las copias de seguridad hasta que caducan.",
       "held": "Nos dijiste que tienes menos de 18 años, pero tu cuenta aún no se puede eliminar: lo impide una retención legal, un turno abierto o ser el único propietario de una organización. Cerramos tu sesión en todos los dispositivos, no puedes usar esta cuenta y te lo volveremos a preguntar cuando inicies sesión. Contáctanos y terminaremos de cerrarla.",
       "minors": "Si trabajas o asistes a un evento, el adulto o la organización responsable de ti puede guardar tus datos en sus propios registros. No necesitas una cuenta para eso.",
-      "contact": "Contáctanos"
+      "contact": "Contáctanos",
+      "home": "Inicio",
+      "privacy": "Política de privacidad",
+      "linksLabel": "Adónde ir ahora"
     },
     "ageQuestion": {
       "title": "Confirma tu edad",
@@ -1190,6 +1198,8 @@
         "days": "{count, plural, one {# día} other {# días}}",
         "submit": "Crear invitación",
         "created": "Invitación creada para {email}. Envíale este enlace; funciona una sola vez y vence {expires}.",
+        "replaces": "Ya hay una invitación pendiente para este correo. Si creas una nueva, el enlace anterior deja de funcionar y se aplica el rol que elijas ahora.",
+        "replaced": "El enlace de invitación anterior para este correo ya no funciona.",
         "link": "Enlace de invitación",
         "copy": "Copiar enlace",
         "copied": "Enlace copiado."
@@ -1244,6 +1254,8 @@
     },
     "billing": {
       "current": "{org} está en el plan {plan}.",
+      "canceled": "Esta organización está cancelada, así que está en el plan Access y es de solo lectura. Reactívala antes de elegir un plan.",
+      "canceledAction": "Reactivar en Zona de peligro",
       "perMonth": "{price} al mes",
       "choose": "Elegir {plan}",
       "chooseAnnual": "Elegir {plan}, con facturación anual",
@@ -1297,6 +1309,7 @@
       "perYear": "{price} al año, dos meses gratis",
       "seats": "Asientos",
       "seatUsage": "{used} de {limit} asientos en uso.",
+      "seatUsageOver": "{used} asientos en uso. El plan incluye {limit}.",
       "seatUsageUnlimited": "{used, plural, one {# asiento} other {# asientos}} en uso. Tu plan tiene asientos ilimitados.",
       "extraSeats": "{count, plural, one {Incluye # asiento adicional comprado} other {Incluye # asientos adicionales comprados}} además del plan.",
       "grandfathered": "Tu suscripción empezó antes de que los planes tuvieran límite de asientos, así que conserva asientos ilimitados. Cambiar de plan aplica los nuevos límites.",
@@ -1388,6 +1401,7 @@
     "NO_ANSWER": "Sin respuesta",
     "UNRATIFIED": "Sin ratificar"
   },
+  "refusalReference": "Referencia para soporte: {code}",
   "commandMenu": {
     "groups": {
       "actions": "Acciones",
@@ -1436,6 +1450,7 @@
     "prompt": "¿Qué quieres crear?",
     "here": "En esta página",
     "more": "Todo lo demás",
+    "chooseProject": "Elige un proyecto",
     "kinds": {
       "project": "Proyecto",
       "record": "Registro",
@@ -1473,5 +1488,13 @@
   },
   "systemBanner": {
     "details": "Detalles"
+  },
+  "crisisBanner": {
+    "title": "{title} está en vigor",
+    "titleOnProject": "{title} está en vigor en {project}",
+    "untitled": "Alerta de crisis",
+    "open": "Abrir códigos de emergencia",
+    "more": "{count, plural, one {# alerta de crisis más está en vigor} other {# alertas de crisis más están en vigor}}",
+    "inboxTag": "Emergencia"
   }
 }

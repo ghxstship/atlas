@@ -1362,3 +1362,52 @@ export async function myModuleCapabilities(
   if (error) return fail(toDataError(error));
   return ok(new Set((data ?? []) as ModuleCapability[]));
 }
+
+/**
+ * Of these credentials of an org, the ids the signed-in person may issue on their project
+ * (credentials.credential.issue, by app.my_projects_with_capabilities): printing and downloading a badge belongs to its
+ * issuers (crawl 4.9), as issuing does. A credential the person cannot read, or of another org, is left out too.
+ */
+export async function issuableCredentialIds(
+  db: XosClient,
+  orgId: string,
+  ids: readonly string[],
+): Promise<Result<ReadonlySet<string>>> {
+  const unique = [...new Set(ids)];
+  if (unique.length === 0) return ok(new Set());
+  const [rows, projects] = await Promise.all([
+    db.from("credentials").select("id, project_id").eq("org_id", orgId).in("id", unique),
+    db.rpc("my_projects_with_capabilities", {
+      p_org_id: orgId,
+      p_capabilities: ["credentials.credential.issue"],
+    }),
+  ]);
+  if (rows.error) return fail(toDataError(rows.error));
+  if (projects.error) return fail(toDataError(projects.error));
+  const issuing = new Set((projects.data ?? []).map((r) => r.project_id));
+  return ok(new Set(rows.data.filter((r) => issuing.has(r.project_id)).map((r) => r.id)));
+}
+
+/**
+ * For each module capability, the projects of an org on which the signed-in person may use it
+ * (app.my_projects_with_capabilities, 904110302), in one read: an org-level Safety or Credentials page offers a control,
+ * and the projects to choose for it, when one project grants it (crawl 4.9). A capability no project grants is absent.
+ */
+export async function myModuleCapabilityProjects(
+  db: XosClient,
+  orgId: string,
+): Promise<Result<ReadonlyMap<ModuleCapability, ReadonlySet<string>>>> {
+  const { data, error } = await db.rpc("my_projects_with_capabilities", {
+    p_org_id: orgId,
+    p_capabilities: [...MODULE_CAPABILITIES],
+  });
+  if (error) return fail(toDataError(error));
+  const out = new Map<ModuleCapability, Set<string>>();
+  for (const row of data ?? []) {
+    const code = row.capability_code as ModuleCapability;
+    const set = out.get(code) ?? new Set<string>();
+    set.add(row.project_id);
+    out.set(code, set);
+  }
+  return ok(out);
+}

@@ -300,5 +300,30 @@
       "invalid": "Revise los campos e inténtelo de nuevo.",
       "unexpected": "Algo salió mal. Inténtelo de nuevo."
     }
+  },
+  "glAccounts": {
+    "1000": "Efectivo y bancos",
+    "1100": "Cuentas por cobrar",
+    "1200": "Gastos prepagados y depósitos",
+    "1500": "Activos fijos",
+    "2000": "Cuentas por pagar",
+    "2100": "Pasivos acumulados",
+    "2200": "Ingresos diferidos",
+    "2300": "Impuesto sobre ventas por pagar",
+    "3000": "Patrimonio",
+    "4000": "Ingresos · Ejecutivo",
+    "4300": "Ingresos · Marketing",
+    "4700": "Ingresos · Experiencia",
+    "4800": "Ingresos · Hospitalidad",
+    "5000": "Gastos · Ejecutivo",
+    "5100": "Gastos · Creativo",
+    "5200": "Gastos · Talento",
+    "5300": "Gastos · Marketing",
+    "5400": "Gastos · Entorno",
+    "5500": "Gastos · Producción",
+    "5600": "Gastos · Operaciones",
+    "5700": "Gastos · Experiencia",
+    "5800": "Gastos · Hospitalidad",
+    "5900": "Gastos · Tecnología"
   }
 }

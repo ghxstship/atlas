@@ -9,6 +9,7 @@ import { InlineAlert } from "@/components/ui";
 import { GrantPlatformSupportForm, ModerationAppealForm } from "@/components/platform/a90-forms";
 import { EndSupportSessionForm } from "@/components/platform/settings-forms";
 import { getFormatters } from "@/lib/platform/format";
+import { getOrgTimeZone } from "@/lib/shell/time-zone";
 import type { SettingsContribution, SettingsPanelProps } from "./types";
 
 /**
@@ -35,11 +36,25 @@ async function PlatformSupportPanel({ ctx }: SettingsPanelProps) {
   const owner = ctx.capabilities.has("org.support_session.grant");
   const auditor = owner || ctx.capabilities.has("audit.log.read");
   if (!auditor) return null;
-  const { t, dateTime } = await getFormatters(ctx);
-  const [sessions, accesses] = await Promise.all([
+  const [{ t, locale }, zone, sessions, accesses] = await Promise.all([
+    getFormatters(ctx),
+    getOrgTimeZone(ctx),
     listPlatformSupportSessions(ctx.viewer.db, ctx.org.id),
     listSupportAccessLog(ctx.viewer.db, ctx.org.id),
   ]);
+  // Times on the org's calendar with the zone named, as the audit log shows the same reads (crawl 4.9), never in the
+  // server's own zone.
+  const zoned = new Intl.DateTimeFormat(locale, {
+    // dateStyle and timeStyle cannot be combined with timeZoneName (a RangeError), so the fields are named.
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone: zone,
+    timeZoneName: "short",
+  });
+  const dateTime = (iso: string) => zoned.format(new Date(iso));
   const open = sessions.ok ? sessions.data.find((s) => s.open) : undefined;
   return (
     <section

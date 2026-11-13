@@ -9,7 +9,7 @@ import {
 
 /**
  * Per diems (migrations 0341, 0981 and 2603): one allowance a day for a member or for the person of an
- * engagement. Atlas Crew > Per Diems adds a run of days through app.add_per_diems, which needs
+ * engagement. An engaged person outside the org is named through app.engaged_person_names. Atlas Crew > Per Diems adds a run of days through app.add_per_diems, which needs
  * crew.time_entry.write on the project; removing one is a soft delete under the same write policy.
  * A per diem's payment (6544) is a recorded fact: the date and reference a person holding
  * finance.payment.write records, never money XOS moves (decision 20).
@@ -80,7 +80,25 @@ export async function listPerDiems(
   if (filter.projectId) query = query.eq("project_id", filter.projectId);
   const { data, error } = await query;
   if (error) return fail(toDataError(error));
-  return ok((data as unknown as PerDiemRow[]).map(toPerDiem));
+  const perDiems = (data as unknown as PerDiemRow[]).map(toPerDiem);
+  // Row level security hides an engaged person who is not a member from app.people, so the embed reads no name; it
+  // comes from app.engaged_person_names (6524) for readers of the engagement, as the advance packets read it (R9).
+  const unnamed = [
+    ...new Set(
+      perDiems.flatMap((d) => (d.personName === null && d.engagementId ? [d.engagementId] : [])),
+    ),
+  ];
+  if (unnamed.length === 0) return ok(perDiems);
+  const names = await db.rpc("engaged_person_names", { p_engagement_ids: unnamed });
+  if (names.error) return fail(toDataError(names.error));
+  const byEngagement = new Map((names.data ?? []).map((r) => [r.engagement_id, r.full_name]));
+  return ok(
+    perDiems.map((d) =>
+      d.personName === null && d.engagementId && byEngagement.has(d.engagementId)
+        ? { ...d, personName: byEngagement.get(d.engagementId) ?? null }
+        : d,
+    ),
+  );
 }
 
 export interface PerDiemInput {

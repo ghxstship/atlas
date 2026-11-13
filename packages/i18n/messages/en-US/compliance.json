@@ -75,7 +75,7 @@
     "title": "Shared file",
     "intro": "Someone shared a file with you. Open it below.",
     "accessCode": "Access code",
-    "accessCodeHelp": "Enter the 6-digit code if you received one with the link.",
+    "accessCodeHelp": "Enter the 6-digit code that came with the link. If you do not have it, ask the person who shared the file.",
     "submit": "Open file",
     "watermark": "Confidential PDFs and images download as a PDF with your email and the time on every page.",
     "refusals": {

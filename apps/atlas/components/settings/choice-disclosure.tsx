@@ -3,6 +3,10 @@
 import { Icon } from "@xos/ui";
 import { useCallback, useRef, useState, type ReactNode } from "react";
 
+/** The open group's content: its checkboxes sized to the fine-pointer target (24 px), not the 16 px default. */
+export const CHOICES_CLASS =
+  "flex flex-col gap-8 px-12 pb-12 group-not-open/choice:hidden [&_.xos-check-input]:[--ui-check:var(--density-target-fine)]";
+
 /**
  * A group of choices inside a form, closed behind a summary of what is chosen (Section 11.10, Section 18 gate 27: a
  * form shows at most seven fields and puts the rest behind progressive disclosure). Long checkbox lists (departments,
@@ -35,8 +39,9 @@ export function ChoiceDisclosure({
         <span className="text-text-12 text-text-secondary">{summary}</span>
       </summary>
       {/* Not displayed while closed, as the Accordion's kept-mounted content is: a closed details only skips
-          painting its content, which still has a box, so a closed group would still read as shown. */}
-      <div className="flex flex-col gap-8 px-12 pb-12 group-not-open/choice:hidden">{children}</div>
+          painting its content, which still has a box, so a closed group would still read as shown. Its boxes are
+          24 px targets (WCAG 2.5.8): a long list packs them closer than the spacing exception allows (crawl 4.9). */}
+      <div className={CHOICES_CLASS}>{children}</div>
     </details>
   );
 }

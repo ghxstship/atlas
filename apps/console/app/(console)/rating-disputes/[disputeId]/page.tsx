@@ -1,5 +1,6 @@
 import { getRatingDisputeDetail } from "@xos/data/console";
-import type { Metadata } from "next";
+import type { Metadata, Route } from "next";
+import NextLink from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { z } from "zod";
@@ -37,8 +38,15 @@ export default async function RatingDisputePage({
   const person = d.disputantName ?? t("common.unknownPerson");
   return (
     <>
+      {/* The record names the dispute and leads back to its queue, the open or the decided one (crawl 4.9). */}
+      <NextLink
+        href={(d.state === "Open" ? "/rating-disputes" : "/rating-disputes?view=decided") as Route}
+        className="inline-flex min-h-target-fine items-center self-start text-text-13 text-accent-text underline"
+      >
+        {t("ratingDisputes.back")}
+      </NextLink>
       <PageHeader
-        title={t("ratingDisputes.title")}
+        title={t("ratingDisputes.detailTitle", { person })}
         intro={t("ratingDisputes.detailIntro", {
           person,
           org: d.orgName,

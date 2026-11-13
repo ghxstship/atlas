@@ -91,6 +91,7 @@ test("work orders: move two in bulk and undo, then delete a draft and restore it
     await page.goto(`/${DEMO_ORG}/work/work-orders?create=1`);
     const sheet = page.getByRole("dialog", { name: "New work order" });
     await sheet.getByLabel("Title").fill(title);
+    await sheet.getByLabel("Project").selectOption({ label: "NWS · Northwind Summer Series" });
     await sheet.getByRole("button", { name: "Create work order" }).click();
     await page.waitForURL(/peek=/);
   }

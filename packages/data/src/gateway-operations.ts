@@ -310,6 +310,21 @@ export function acceptEngagedShift(
   );
 }
 
+/**
+ * The person assigned to a Published shift declines it (app.decline_shift, 6511): an engaged shift returns to Draft for
+ * the scheduler, a roster shift goes back to its agency's slot. The reason is the person's own words, or the database's
+ * "No reason given." when they leave it blank.
+ */
+export function declineEngagedShift(
+  db: XosClient,
+  shiftId: string,
+  reason: string | null,
+): Promise<Result<{ id: string }>> {
+  return callId(
+    db.rpc("decline_shift", { p_shift_id: shiftId, ...(reason ? { p_reason: reason } : {}) }),
+  );
+}
+
 // Staffing agencies (R12) ------------------------------------------------------------------------------
 // The agency's lead places its roster staff on the slots the production allocated (Positions), and the person on a
 // roster entry acknowledges the training due on it before their first shift (api_external.my_roster_training).

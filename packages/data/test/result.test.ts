@@ -41,6 +41,51 @@ describe("toDataError", () => {
     });
   });
 
+  it("maps a foreign key violation to invalid, and a unit outside the canon to the Unit field", () => {
+    expect(
+      toDataError({
+        code: "23503",
+        message:
+          'insert or update on table "procurement_needs" violates foreign key constraint "procurement_needs_unit_basis_fkey"',
+        details: 'Key (unit_basis)=(ea) is not present in table "dim_unit_alias".',
+      }),
+    ).toEqual({
+      kind: "invalid",
+      message:
+        'insert or update on table "procurement_needs" violates foreign key constraint "procurement_needs_unit_basis_fkey"',
+      field: "unitBasis",
+    });
+    expect(
+      toDataError({
+        code: "23503",
+        message:
+          'insert or update on table "po_lines" violates foreign key constraint "po_lines_vendor_fkey"',
+      }),
+    ).toEqual({
+      kind: "invalid",
+      message:
+        'insert or update on table "po_lines" violates foreign key constraint "po_lines_vendor_fkey"',
+    });
+  });
+
+  it("maps a repeated invoice number to invalid on the number field, not a conflict", () => {
+    for (const constraint of ["invoices_number_key", "invoices_person_number_key"]) {
+      const message = `duplicate key value violates unique constraint "${constraint}"`;
+      expect(toDataError({ code: "23505", message })).toEqual({
+        kind: "invalid",
+        message,
+        field: "number",
+      });
+    }
+    // Any other unique key stays a conflict.
+    expect(
+      toDataError({
+        code: "23505",
+        message: 'duplicate key value violates unique constraint "projects_key_key"',
+      }).kind,
+    ).toBe("conflict");
+  });
+
   it("keeps everything else as unexpected, with or without a code", () => {
     expect(toDataError({ code: "08006", message: "down" })).toEqual({
       kind: "unexpected",

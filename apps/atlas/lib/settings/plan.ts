@@ -17,3 +17,16 @@ export function planHasFeature(planCode: string, feature: string): boolean {
   }
   return false;
 }
+
+/**
+ * Why members' personal tokens work or not (app.org_allows_personal_tokens needs both developer.personal_tokens and
+ * the api_keys plan feature): on, off by the setting, or off because the plan has no API access. A plan that dropped
+ * API access must never tell the Owner to turn on a setting that is already on (crawl 4.9).
+ */
+export function personalTokensState(
+  allowed: boolean,
+  planIncludesApi: boolean,
+): "orgOn" | "orgOff" | "orgPlanOff" {
+  if (allowed) return "orgOn";
+  return planIncludesApi ? "orgOff" : "orgPlanOff";
+}

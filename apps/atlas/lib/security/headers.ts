@@ -34,7 +34,9 @@ export function realtimeOrigin(supabaseOrigin: string): string {
 /**
  * A strict policy: scripts run only with this response's nonce ('strict-dynamic' lets them load
  * their own chunks), styles come from the site or carry the nonce, and nothing may frame Atlas.
- * Style attributes stay allowed because React and Radix position overlays with them. Development
+ * Style attributes stay allowed because React and Radix position overlays with them; the <style> a dialog injects to
+ * lock the page's scroll carries the nonce, which the root layout hands to get-nonce (components/shell/style-nonce).
+ * Development
  * adds what the Next.js dev server needs: eval for error overlays, inline styles and the HMR socket.
  */
 export function buildCsp({ nonce, development, supabaseOrigin, secureSite }: CspInput): string {

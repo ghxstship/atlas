@@ -36,7 +36,9 @@ export function TopNav({
           aria-label={label}
           className="min-w-0 overflow-x-auto max-md:hidden [scrollbar-width:none]"
         >
-          <ul className="flex gap-4 m-0 p-0 list-none">
+          {/* The nav scrolls sideways, which clips on both axes: the list's padding holds the 2px focus outline and
+              its 2px offset inside the scroll box, so a focused link keeps its whole ring. */}
+          <ul className="flex gap-4 m-0 p-4 list-none">
             {items.map((item) => (
               <li key={item.label}>
                 <ItemAction
@@ -69,7 +71,7 @@ export function TopNav({
         <IconButton icon="CircleHelp" label={t("help.title")} shortcut="?" onClick={onHelp} />
         <button
           type="button"
-          aria-haspopup="menu"
+          aria-haspopup="dialog"
           aria-label={t("nav.account", { name: person })}
           onClick={onAccount}
           className="xos-hit grid place-items-center size-(--ui-avatar-lg) p-0 rounded-full border-0 bg-transparent cursor-pointer"

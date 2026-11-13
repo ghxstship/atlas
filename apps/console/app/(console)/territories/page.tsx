@@ -21,6 +21,7 @@ import {
   setTerritoryOfferedAction,
 } from "@/lib/actions/territories";
 import { getConsoleFormat } from "@/lib/format";
+import { territoryName } from "@/lib/localized";
 import { requirePermission } from "@/lib/operator";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -77,12 +78,14 @@ export default async function TerritoriesPage({
               cells: [
                 <span key="name" className="flex flex-col gap-4">
                   <code className="font-mono">{territory.code}</code>
-                  <span className="text-text-12 text-text-secondary">{territory.nameEn}</span>
+                  <span className="text-text-12 text-text-secondary">
+                    {territoryName(territory, locale)}
+                  </span>
                   {write ? (
                     <NextLink
                       href={`/territories?edit=${territory.code}#territories-add` as Route}
                       aria-label={t("territories.editTitle", { code: territory.code })}
-                      className="text-accent-text underline"
+                      className="inline-flex min-h-target-fine items-center self-start text-accent-text underline"
                     >
                       {t("territories.edit")}
                     </NextLink>

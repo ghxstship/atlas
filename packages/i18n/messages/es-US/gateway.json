@@ -24,6 +24,7 @@
       "tax_form_payee": "Las empresas presentan un W-8BEN-E y las personas un W-8BEN; cualquiera presenta un W-9 si es persona de EE. UU.",
       "sod_self_grant": "No puedes darte un rol a ti mismo. Pídelo a otro propietario o administrador de la cuenta.",
       "account_role_band": "Solo un propietario de la cuenta puede dar o quitar el rol de propietario.",
+      "invoice_unpaid_role": "La organización nunca paga una contratación de cliente o patrocinador, así que no recibe facturas de ella. Las facturas que te envía aparecen en la pestaña Facturas de la contratación.",
       "slug_taken": "Esa dirección web ya está en uso. Elige otra.",
       "slug_reserved": "Esa dirección web está reservada. Elige otra.",
       "cross_org_reference": "Ese documento pertenece a otra organización. Vuelve a subirlo para esta.",
@@ -311,7 +312,7 @@
       },
       "signHint": "Fírmalo en Documentos; el paso se completa cuando la organización firme.",
       "backgroundHint": "El proveedor de verificación de la organización te envía un enlace seguro para tu consentimiento y datos. Aquí solo se guarda el resultado.",
-      "payoutHint": "Agrega tus datos de pago en Configuración, Pagos e impuestos. Solo se muestran los últimos cuatro dígitos."
+      "payoutHint": "La organización recoge tus datos de pago con su proveedor de pagos, no en esta página. Sigue la invitación de su proveedor o pídesela a la organización en Mensajes. Solo se muestran los últimos cuatro dígitos."
     },
     "messages": {
       "empty": "Aún no hay conversaciones. Empieza una abajo; la organización responde aquí.",
@@ -320,6 +321,7 @@
     },
     "invoices": {
       "empty": "Aún no hay facturas. Envía una abajo cuando termines tu trabajo.",
+      "emptyUnpaid": "Aún no hay facturas. Las facturas que te envía la organización aparecen aquí.",
       "submitTitle": "Enviar una factura",
       "selfBilling": "Autofacturación",
       "selfBillingBody": "Con la autofacturación activa, la organización genera tus facturas a partir de las hojas de horas aprobadas. Puedes detenerla cuando quieras.",
@@ -329,7 +331,12 @@
     },
     "shifts": {
       "empty": "Aún no hay turnos. Los turnos publicados aparecen aquí para que los aceptes.",
-      "accept": "Aceptar turno"
+      "accept": "Aceptar turno",
+      "decline": "No puedo trabajarlo",
+      "declineTitle": "¿Rechazar este turno?",
+      "declineSentence": "Se avisa a la organización y el turno vuelve a quedar por cubrir. No se puede deshacer; escribe a la organización si cambias de opinión.",
+      "declineReason": "Motivo (opcional)",
+      "declineConfirm": "Rechazar turno"
     },
     "positions": {
       "empty": "Aún no tienes puestos asignados. Llegan cuando termines la capacitación.",
@@ -341,7 +348,12 @@
       "hours": "{n} horas",
       "submitted": "Enviada el {date}",
       "submit": "Enviar",
-      "entries": "Registros de tiempo"
+      "entries": "Registros de tiempo",
+      "submitTitle": "¿Enviar esta hoja de horas?",
+      "submitSentence": "Confirmas que las horas de {period} son las que trabajaste. La organización las revisa y paga según ellas.",
+      "submitConfirm": "Enviar hoja de horas",
+      "warningEmpty": "Esta hoja de horas no tiene horas. Envíala solo si no trabajaste en este periodo.",
+      "warningFuture": "Este periodo aún no termina (termina el {date}). Las horas que trabajes después de enviarla no estarán en ella."
     },
     "time": {
       "empty": "Aún no hay tiempo registrado. Marca tu entrada desde Compass al empezar.",
@@ -490,6 +502,8 @@
       "uploadPassed": "{names}: revisado y aprobado. Si es tu certificado de seguro, la organización todavía tiene que registrarlo aquí.",
       "current": "Vigente",
       "expired": "Vencido",
+      "startsOn": "Empieza el {date}",
+      "expiresOn": "Vence el {date}",
       "prequalification": "Precalificación",
       "validTo": "Vigente hasta {date}",
       "items": "Pasos de cumplimiento",
@@ -1049,6 +1063,12 @@
       "awaitingVerification": "Pendiente de verificación",
       "acknowledge": "Lo he leído y lo confirmo",
       "noShowTag": "Ausencia"
+    },
+    "projectDetails": {
+      "othersTitle": "Lo que aún falta del equipo",
+      "othersSentence": "Los datos de viaje, uniforme y vehículo son un paso de cada persona: cada quien ingresa los suyos en Gateway. Esto es lo que el proyecto aún necesita de ellos.",
+      "othersCrew": "Ingresar datos de alguien en la pestaña Equipo",
+      "someone": "Alguien de la lista"
     }
   },
   "enums": {
@@ -1255,7 +1275,7 @@
       "outbound": "Salida"
     },
     "invoiceState": {
-      "proposed": "Borrador",
+      "proposed": "Propuesta",
       "issued": "Enviada",
       "approved": "Aprobada",
       "disputed": "En disputa",
@@ -1636,7 +1656,8 @@
         "answer": "Responde todas las preguntas obligatorias.",
         "fee": "Escribe la tarifa como número o déjala en blanco.",
         "bidLines": "Agrega al menos una línea con un artículo y una cantidad mayor que cero.",
-        "slate": "Elige al menos un miembro del equipo para la propuesta."
+        "slate": "Elige al menos un miembro del equipo para la propuesta.",
+        "bidLinePrice": "Línea {n}: ingresa un precio unitario de cero o más, o déjalo en blanco para dejar la línea sin precio."
       },
       "profileSections": "Compartir también de su perfil con {org}",
       "profileSectionsHelp": "Solo se comparten las secciones que marque, tal como están hoy, incluidas las que su perfil mantiene privadas. Puede revocar el acceso en cualquier momento en Configuración.",
@@ -1650,7 +1671,8 @@
         "rates": "Tarifas",
         "languages": "Idiomas",
         "links": "Enlaces"
-      }
+      },
+      "applyingAs": "Te postulas como {account}. La postulación, y el contrato que resulte si la aceptan, pertenecen a la empresa."
     },
     "reportForm": {
       "title": "Reportar esta publicación",
@@ -1822,7 +1844,14 @@
         "credentialRevoked": "Se revocó tu credencial {title} para {projectName}",
         "other": "{title}",
         "untitled": "Novedad",
-        "shiftNoShow": "Marcado como ausente: {title}"
+        "shiftNoShow": "Marcado como ausente: {title}",
+        "rosterDeclined": "{personName} rechazó el equipo de {partyName} para {projectName}",
+        "rosterInvited": "Te incluyeron en el equipo de {partyName} para {projectName}",
+        "allocationDecided": "{decision, select, declined {Rechazado} other {Aprobado}}: {itemName} para {projectName}",
+        "allocationAssigned": "{orgName} te asignó {itemName} para {projectName}",
+        "allocationIssued": "Se te entregó {itemName} para {projectName}",
+        "allocationWithdrawn": "Retirado: {itemName} para {projectName}",
+        "ratingDisputeDecided": "La impugnación de la calificación de {project} {outcome, select, Upheld {fue aceptada} other {no fue aceptada}}"
       }
     },
     "recommended": {
@@ -1919,10 +1948,12 @@
       "chartTitle": "Pagado por mes",
       "chartSubtitle": "Últimos seis meses, en {currency}",
       "month": "Mes",
-      "paid": "Pagado"
+      "paid": "Pagado",
+      "chartNone": "No se ha pagado nada en {currency} en los últimos seis meses."
     },
     "invoices": {
       "empty": "Aún no hay facturas. Envía una desde la pestaña Facturas de una contratación.",
+      "emptyUnpaid": "Aún no hay facturas. Las facturas que la organización te envía por tus contrataciones aparecen aquí.",
       "emptyAction": "Ver contrataciones",
       "tracker": "Rastreador de pago de la factura {number}",
       "balance": "Saldo {amount}",
@@ -1938,6 +1969,15 @@
         "approved": "Aprobada",
         "scheduled": "Programada",
         "paid": "Pagada"
+      },
+      "status": {
+        "submitted": "Enviada",
+        "issued": "Emitida",
+        "approved": "Aprobada",
+        "scheduled": "Programada",
+        "paid": "Pagada",
+        "disputed": "En disputa",
+        "canceled": "Cancelada"
       }
     },
     "timesheets": {
@@ -1951,7 +1991,12 @@
       "emptyAction": "Ver facturas",
       "paidOn": "Pagado el",
       "amount": "Monto",
-      "reference": "Referencia"
+      "reference": "Referencia",
+      "status": {
+        "scheduled": "Programado",
+        "paid": "Pagado",
+        "canceled": "Cancelado"
+      }
     },
     "tax": {
       "yearEnd": "Quienes cobran en EE. UU. reciben los datos 1099-NEC de cada organización al cierre del año; quienes cobran desde el extranjero ven aquí su indicador de retención.",
@@ -1966,7 +2011,7 @@
       "yes": "Sí",
       "no": "No",
       "payouts": "Destinos de pago",
-      "noPayouts": "Aún no hay destinos de pago. Agrega uno en Configuración, Pagos e impuestos."
+      "noPayouts": "Aún no hay destinos de pago. Cada organización configura dónde te paga con su proveedor de pagos, normalmente durante la incorporación. Si alguna aún no te lo ha pedido, escríbele."
     }
   },
   "profile": {
@@ -2346,7 +2391,8 @@
       "accepted": "Turno aceptado. Tu jefe de equipo ya lo ve.",
       "noRole": "Equipo",
       "forget": "Olvidar este código",
-      "signIn": "Inicia sesión para ver todo tu trabajo"
+      "signIn": "Inicia sesión para ver todo tu trabajo",
+      "declineSignedIn": "¿No puedes ir? Inicia sesión para rechazarlo con un motivo, o avisa a tu jefe de equipo."
     }
   },
   "settings": {
@@ -2472,7 +2518,11 @@
       "about": "Acerca de",
       "website": "Sitio web",
       "email": "Correo de contacto",
-      "profileUnavailable": "El perfil de la empresa lo administran los administradores de Atlas de la organización. Pide a un propietario de la cuenta que lo configure.",
+      "profileUnavailable": "Esta empresa aún no tiene perfil público. Un propietario o administrador de la cuenta lo configura aquí.",
+      "profileReadOnly": "Solo un propietario o administrador de la cuenta edita el perfil de la empresa.",
+      "indexed": "Los buscadores pueden indexar el perfil público",
+      "notIndexed": "Los buscadores no indexan el perfil público",
+      "notGiven": "Sin indicar",
       "remove": "Quitar",
       "inviteNote": "La persona invitada inicia sesión en Gateway con la dirección que invitaste y acepta en Inicio. Hasta entonces no figura en ninguna lista del equipo ni tiene contrataciones asignadas, y no se comparte nada sobre ella.",
       "noInsurance": "No hay certificados de seguro registrados. Las organizaciones los piden en una contratación; abre la contratación y súbelos en su pestaña Cumplimiento.",
@@ -2840,7 +2890,10 @@
       "closed": "Nos dijiste que tienes menos de 18 años, así que tu cuenta está cerrada. Eliminamos tu inicio de sesión, tu perfil y sus archivos, tus fotos de credencial, tu configuración, lo que enviaste a nuestro equipo de soporte y las respuestas y los acuerdos personales que diste a XOS. Cualquier organización con la que hayas trabajado conserva los registros que exige la ley, como las horas que trabajaste, y una nota con tu correo electrónico que indica que tu cuenta se eliminó, y XOS conserva un registro de esa eliminación con los identificadores de tu cuenta, sin tu nombre. XOS también conserva un recuento mensual de las personas menores de 18 años que rechazó, que no te identifica. Los datos eliminados permanecen en las copias de seguridad hasta que caducan.",
       "held": "Nos dijiste que tienes menos de 18 años, pero tu cuenta aún no se puede eliminar: lo impide una retención legal, un turno abierto o ser el único propietario de una organización. Cerramos tu sesión en todos los dispositivos, no puedes usar esta cuenta y te lo volveremos a preguntar cuando inicies sesión. Contáctanos y terminaremos de cerrarla.",
       "minors": "Si trabajas o asistes a un evento, el adulto o la organización responsable de ti puede guardar tus datos en sus propios registros. No necesitas una cuenta para eso.",
-      "contact": "Contáctanos"
+      "contact": "Contáctanos",
+      "home": "Inicio",
+      "privacy": "Política de privacidad",
+      "linksLabel": "Adónde ir ahora"
     },
     "ageQuestion": {
       "title": "Confirma tu edad",
@@ -2903,7 +2956,11 @@
         "from": "Propuesta por",
         "accept": "Aceptar oferta",
         "decline": "Rechazar",
-        "waiting": "Tu contraoferta está con la organización. Recibirás una notificación cuando respondan."
+        "waiting": "Tu contraoferta está con la organización. Recibirás una notificación cuando respondan.",
+        "declineTitle": "¿Rechazar esta oferta?",
+        "declineSentence": "Se avisa a la organización y la postulación se cierra como Rechazada. Después no puedes recuperar la oferta.",
+        "declineReason": "Motivo para la organización (opcional)",
+        "declineConfirm": "Rechazar oferta"
       },
       "counter": {
         "open": "Contraofertar",
@@ -2946,7 +3003,10 @@
     "versionUpcoming": "Versión {version}: entra en vigor el {date}",
     "contents": "En esta página",
     "englishOnly": "Este documento se publica solo en inglés.",
-    "back": "Ir a Gateway"
+    "back": "Ir a Gateway",
+    "indexTitle": "Documentos legales",
+    "indexOnAtlas": "Los demás documentos públicos, como el Acuerdo de procesamiento de datos y la Lista de subencargados, están en Atlas.",
+    "indexOnAtlasLink": "Ver todos los documentos en Atlas"
   },
   "diversity": {
     "title": "Diversidad de proveedores",

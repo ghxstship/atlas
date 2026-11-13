@@ -49,6 +49,15 @@
     "redacted": "Oculto",
     "service": "Servicio",
     "systemActor": "Sistema",
+    "person": "Una persona",
+    "platformTeam": "El equipo de soporte de la plataforma",
+    "supportOpened": "Abrió {area} durante una sesión de soporte",
+    "areas": {
+      "Overview": "el resumen",
+      "Members": "los miembros",
+      "Projects": "los proyectos",
+      "Settings": "la configuración"
+    },
     "older": "Mostrar entradas anteriores",
     "newest": "Volver a lo más reciente",
     "changedFieldList": "{count, plural, one {# campo} other {# campos}}: {fields}",
@@ -235,6 +244,10 @@
     "access_grid": "una entrada de la matriz de acceso",
     "communication_mark": "una marca de comunicación",
     "travel_segment": "un tramo de viaje",
-    "settlement_line": "una línea de liquidación"
+    "settlement_line": "una línea de liquidación",
+    "support_session": "una sesión de soporte de la plataforma",
+    "support_session_access": "una consulta del soporte de la plataforma",
+    "legal_acceptance": "una aceptación legal",
+    "verbiage_term": "un término del vocabulario"
   }
 }

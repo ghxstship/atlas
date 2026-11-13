@@ -676,7 +676,23 @@
   },
   "roles": {
     "system": "Platform role, band {band}",
-    "custom": "Custom role, band {band}"
+    "custom": "Custom role, band {band}",
+    "capabilities": "{count, plural, one {# capability} other {# capabilities}}",
+    "showCapabilities": "Show what {role} can do",
+    "reach": {
+      "own": "own records",
+      "assigned": "assigned work",
+      "organization": "the whole organization"
+    },
+    "descriptions": {
+      "owner": "Everything, including billing, deletion and data rights.",
+      "admin": "Org configuration, members, integrations and canon extensions.",
+      "manager": "Full project and finance operations.",
+      "member": "Creates and edits within projects they belong to, with no finance approval.",
+      "collaborator": "Edits assigned records only, with no finance or procurement writes.",
+      "field": "Compass field functions, own shifts, own time and assigned tasks.",
+      "viewer": "Reads within granted scopes."
+    }
   },
   "favorites": {
     "pin": "Pin page",
@@ -754,7 +770,7 @@
       "addLabel": "Add a legal entity",
       "legalName": "Legal name",
       "country": "Country",
-      "countryHelp": "Two letters, like US or GB.",
+      "countryChoose": "Choose a country",
       "fiscalYearStart": "Fiscal year starts",
       "baseCurrency": "Base currency",
       "taxIdentifier": "Tax identifier (optional)",
@@ -1280,5 +1296,10 @@
     }
   },
   "layoutCustom": "You arranged this dashboard. Reset puts its tiles back to their default widths.",
-  "layoutDefault": "Default layout. Arrange the tiles on the dashboard itself."
+  "layoutDefault": "Default layout. Arrange the tiles on the dashboard itself.",
+  "account": {
+    "gatewayTitle": "Your XOS account",
+    "gatewayBody": "Your account is the same in Atlas, Gateway and Compass. Edit your name or delete your account in Gateway, under Settings, Account; your sign-in methods are under Settings, Security.",
+    "gatewayLink": "Open your account in Gateway"
+  }
 }

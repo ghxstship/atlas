@@ -1,6 +1,8 @@
 "use client";
 
 import { Button, InlineAlert, Input, Tag } from "@xos/ui";
+import type { Route } from "next";
+import NextLink from "next/link";
 import { useTranslations } from "next-intl";
 import { useActionState } from "react";
 import { keepInputOnSubmit } from "@/components/forms/keep-input";
@@ -74,7 +76,7 @@ const TONES: Readonly<Record<string, "success" | "warning" | "neutral">> = {
 
 /**
  * The worker's shifts grouped by day. Accept is secondary, because a worker may have several Published shifts and a screen
- * has at most one primary. The confirmation is the row's tag and a message at the top of the page, never text inside the
+ * has at most one primary. Declining needs a sign-in (ADR 0149 decision 2), so a Published row links there instead. The confirmation is the row's tag and a message at the top of the page, never text inside the
  * row's control, which leaves once the row is Accepted.
  */
 export function CrewShiftList({ token, rows }: { token: string; rows: readonly CrewShiftRow[] }) {
@@ -114,18 +116,27 @@ export function CrewShiftList({ token, rows }: { token: string; rows: readonly C
                     <Tag tone={TONES[r.state] ?? "neutral"}>{r.stateLabel}</Tag>
                   </div>
                   {r.state === "Published" ? (
-                    <form action={formAction} onSubmit={keepInputOnSubmit(formAction)}>
-                      <input type="hidden" name="token" value={token} />
-                      <input type="hidden" name="shiftId" value={r.id} />
-                      <Button
-                        type="submit"
-                        variant="secondary"
-                        disabled={pending}
-                        aria-busy={pending}
+                    <div className="flex flex-wrap items-center gap-12">
+                      <form action={formAction} onSubmit={keepInputOnSubmit(formAction)}>
+                        <input type="hidden" name="token" value={token} />
+                        <input type="hidden" name="shiftId" value={r.id} />
+                        <Button
+                          type="submit"
+                          variant="secondary"
+                          disabled={pending}
+                          aria-busy={pending}
+                        >
+                          {t("accept")}
+                        </Button>
+                      </form>
+                      {/* Declining stays signed in, with a reason (ADR 0149 decision 2): the link says where. */}
+                      <NextLink
+                        href={"/auth/sign-in" as Route}
+                        className="text-text-13 text-accent-text underline"
                       >
-                        {t("accept")}
-                      </Button>
-                    </form>
+                        {t("declineSignedIn")}
+                      </NextLink>
+                    </div>
                   ) : null}
                 </li>
               ))}

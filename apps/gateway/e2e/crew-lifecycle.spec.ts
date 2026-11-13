@@ -175,6 +175,10 @@ test("journey 41: requisition to credential loss, one crew person through every 
     await page.goto(`/work/engagements/${key}/timesheets?view=list`);
     await page.waitForLoadState("networkidle");
     await page.getByRole("button", { name: "Submit", exact: true }).click();
+    await page
+      .getByRole("dialog", { name: "Submit this timesheet?" })
+      .getByRole("button", { name: "Submit timesheet" })
+      .click();
     await expect
       .poll(
         async () =>

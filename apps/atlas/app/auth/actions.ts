@@ -19,7 +19,7 @@ import {
 import { refuseMinimumAge } from "@xos/data/account-deletion";
 import { acceptInviteLink } from "@xos/data/profiles";
 import { untyped } from "@xos/data/untyped";
-import { recordLegalAcceptances } from "@xos/data/settings";
+import { recordLegalAcceptances, setSetting } from "@xos/data/settings";
 import { isCountryCode } from "@xos/i18n/formats";
 import type { Route } from "next";
 import { headers } from "next/headers";
@@ -33,6 +33,7 @@ import { enabledProviders, isOAuthProvider, providerQueryParams } from "@/lib/au
 import { notOfferedValues } from "@/lib/auth/territory";
 import { safeNext, signInErrorPath, siteUrl } from "@/lib/auth/redirect";
 import { ssoLanding } from "@/lib/auth/sso-landing";
+import { signupTimeZone } from "@/lib/auth/time-zone";
 import { env } from "@/lib/env";
 import { createServerSupabase } from "@/lib/supabase/server";
 
@@ -346,6 +347,18 @@ export async function createOrganizationAction(_: FormState, form: FormData): Pr
   });
   if (!recorded.ok) {
     throw new Error(`Legal acceptance was not recorded: ${JSON.stringify(recorded.error)}`);
+  }
+  // The org's calendar starts in the creator's zone, not UTC (crawl 4.9). Best effort: the org exists either way, and
+  // the Owner can set the zone in Settings, Localization.
+  const zone = signupTimeZone(form.get("orgTimeZone"));
+  if (zone !== null) {
+    await setSetting(db, {
+      orgId: created.data.orgId,
+      key: "locale.time_zone",
+      scopeKind: "Organization",
+      scopeId: created.data.orgId,
+      value: zone,
+    });
   }
   redirect(`/${parsed.data.orgSlug}/home`);
 }

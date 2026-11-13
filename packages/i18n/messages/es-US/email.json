@@ -354,7 +354,7 @@
     "listing": {
       "moderated": {
         "subject": "{action, select, Removed {Retiramos tu anuncio {title}} Restricted {Restringimos tu anuncio {title}} Restored {Restablecimos tu anuncio {title}} other {Revisamos tu anuncio {title}}}",
-        "body": "{action, select, Removed {{statement} Puedes apelar esta decisión en un plazo de seis meses desde Oportunidades, Configuración del mercado en Atlas.} Restricted {{statement} Puedes apelar esta decisión en un plazo de seis meses desde Oportunidades, Configuración del mercado en Atlas.} other {{statement}}}"
+        "body": "{action, select, Removed {{statement} Puedes apelar esta decisión en un plazo de seis meses en Atlas, en Configuración, Gateway y mercado, Decisiones de moderación.} Restricted {{statement} Puedes apelar esta decisión en un plazo de seis meses en Atlas, en Configuración, Gateway y mercado, Decisiones de moderación.} other {{statement}}}"
       }
     },
     "listing_report": {

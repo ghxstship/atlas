@@ -337,23 +337,18 @@ jobs:
       # SUPABASE_URL, SUPABASE_ANON_KEY, a registered kiosk and the Field Tech's kiosk PIN.
       - name: Prepare the Maestro run against the CI stack
         run: apps/compass/scripts/maestro-ci-env.sh >> "$GITHUB_ENV"
-      # The simulator's first boot spends about five minutes migrating data (run 42831440876): it boots now, while
-      # Compass builds, and is settled by the time Maestro starts its driver.
-      - name: Boot the simulator
-        run: |
-          sudo xcode-select -s /Applications/Xcode_26.3.app
-          UDID=$(xcrun simctl list devices available -j | python3 -c "
-          import json, re, sys
-          devices = json.load(sys.stdin)['devices']
-          runtimes = [k for k, v in devices.items() if '.iOS-' in k and any(d['name'].startswith('iPhone') for d in v)]
-          newest = max(runtimes, key=lambda k: [int(n) for n in re.findall(r'\d+', k.split('.iOS-')[1])])
-          print(next(d['udid'] for d in devices[newest] if d['name'].startswith('iPhone')))
-          ")
-          echo "UDID=$UDID" >> "$GITHUB_ENV"
-          xcrun simctl boot "$UDID"
+      # The Intel runner has 4 CPUs and 14 GB. With the Colima VM (2 CPUs, 6 GB) and the stack running, the Release build
+      # ran the runner out of memory: run 42846435211 stalled in PrecompileModule from 17:22 until the 150-minute limit,
+      # and run 42927680948 lost the runner ("The hosted runner lost communication with the server") an hour into the
+      # build, with the simulator booting beside it. The stack is ready and its keys are read, so the VM stops for the
+      # build and starts again after it; its containers restart with the VM (restart policy unless-stopped), the
+      # database with the kiosk the step above registered.
+      - name: Stop the Colima VM for the build
+        run: colima stop || colima stop --force
       - name: Build Compass for the simulator against the CI stack
         working-directory: apps/compass
         run: |
+          sudo xcode-select -s /Applications/Xcode_26.3.app
           export EXPO_PUBLIC_SUPABASE_URL=http://127.0.0.1:55421
           export EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY="$SUPABASE_ANON_KEY"
           # The runner has no audio input, so the simulator could never record a voice note: this test
@@ -363,11 +358,33 @@ jobs:
           export EXPO_PUBLIC_XOS_FAKE_NFC=1
           pnpm exec expo prebuild --platform ios --no-install
           (cd ios && pod install)
-          # The Intel runner's simulator is x86_64; one architecture instead of two halves the build.
+          # The Intel runner's simulator is x86_64; one architecture instead of two halves the build. No index store:
+          # nothing reads it here.
           xcodebuild -workspace ios/Compass.xcworkspace -scheme Compass -configuration Release \
-            -sdk iphonesimulator -derivedDataPath build ARCHS=x86_64 ONLY_ACTIVE_ARCH=YES
+            -sdk iphonesimulator -derivedDataPath build ARCHS=x86_64 ONLY_ACTIVE_ARCH=YES \
+            COMPILER_INDEX_STORE_ENABLE=NO
+      # The simulator's first boot spends about five minutes migrating data (run 42831440876): it boots now, while the
+      # VM and the stack come back, and is settled by the time Maestro starts its driver.
+      - name: Boot the simulator
+        run: |
+          UDID=$(xcrun simctl list devices available -j | python3 -c "
+          import json, re, sys
+          devices = json.load(sys.stdin)['devices']
+          runtimes = [k for k, v in devices.items() if '.iOS-' in k and any(d['name'].startswith('iPhone') for d in v)]
+          newest = max(runtimes, key=lambda k: [int(n) for n in re.findall(r'\d+', k.split('.iOS-')[1])])
+          print(next(d['udid'] for d in devices[newest] if d['name'].startswith('iPhone')))
+          ")
+          echo "UDID=$UDID" >> "$GITHUB_ENV"
+          xcrun simctl boot "$UDID"
+      - name: Start the Colima VM and the stack again
+        run: |
+          colima start
+          docker ps -aq --filter "label=com.supabase.cli.project=xos4" | xargs docker start > /dev/null
+          infra/ci/supabase-wait-healthy.sh 600
+      - name: Install Compass on the simulator
+        run: |
           xcrun simctl bootstatus "$UDID" -b
-          xcrun simctl install "$UDID" build/Build/Products/Release-iphonesimulator/Compass.app
+          xcrun simctl install "$UDID" apps/compass/build/Build/Products/Release-iphonesimulator/Compass.app
           for service in location-always camera microphone; do
             xcrun simctl privacy "$UDID" grant "$service" pro.ghxstship.compass || true
           done

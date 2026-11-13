@@ -146,6 +146,7 @@ test("journey 17: run an inspection template, fail an item, see the punch record
 
   await page.goto(`/${ORG}/safety/inspections?create=1`);
   const start = page.getByRole("dialog", { name: "Start inspection" });
+  await start.getByLabel("Project").selectOption({ label: "NWS Northwind Summer Series" });
   await start.getByLabel("Template").selectOption({ label: template });
   await start.getByRole("button", { name: "Start inspection" }).click();
   await expect(page.getByRole("heading", { level: 1, name: template })).toBeVisible();

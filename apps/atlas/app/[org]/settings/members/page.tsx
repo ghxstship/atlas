@@ -54,6 +54,7 @@ export default async function MembersSettingsPage({
           org={ctx.org.slug}
           roles={assignable}
           defaultRoleId={viewer?.id ?? assignable.at(-1)?.id ?? ""}
+          pendingEmails={invites.ok ? invites.data.map((i) => i.email) : []}
         />
       ) : null}
       <section aria-labelledby="members-heading" className="flex flex-col gap-8">

@@ -6,9 +6,15 @@ import {
   rosterTrainingSummary,
   type ExternalRow,
 } from "@xos/data/gateway";
+import { todayIn } from "@xos/data/calendar";
+import dynamic from "next/dynamic";
 import { ActionButton } from "@/components/actions/action-button";
 import { RegionError, Section } from "@/components/page/page";
-import { acceptShiftAction, submitTimesheetAction } from "@/lib/actions/operations";
+import {
+  acceptShiftAction,
+  declineShiftAction,
+  submitTimesheetAction,
+} from "@/lib/actions/operations";
 import { acknowledgeRosterTrainingAction, unassignRosterShiftAction } from "@/lib/actions/staffing";
 import { hasArea, tabHref } from "@/lib/engagement";
 import { onRoster } from "@/lib/roster-member";
@@ -22,12 +28,19 @@ import {
 } from "@/lib/format";
 import { enumLabelKey } from "@/lib/shell/translate";
 import { toneFor } from "@/lib/states";
+import { timesheetWarnings } from "@/lib/timesheets";
+import { InlineAlert } from "@/components/ui";
 import { LocalContactsSection, readTransfers } from "./ground-and-contacts";
 import { ItinerarySections, loadItinerary } from "./itinerary";
 import { AreaClosed, RowList, TabEmpty } from "./rows";
 import type { TabProps } from "./tab-context";
 import { DocumentActions } from "@/components/documents/document-actions";
 import { AssignRosterShiftForm, MarkNoShowForm } from "./staffing-forms";
+
+// Declining a shift and certifying a timesheet are confirmed in a dialog whose code loads on demand.
+const ConfirmButton = dynamic(() =>
+  import("@/components/actions/confirm-button").then((m) => m.ConfirmButton),
+);
 
 /**
  * Crew and staff tabs (Section 4.4.4: shifts, timesheets, travel and lodging, credentials,
@@ -134,14 +147,26 @@ export async function ShiftsTab({ view, t, locale, engagementKey }: TabProps) {
               },
             }
           : {}),
+        // The person on the shift accepts it or declines it with a reason (app.decline_shift), as in Compass.
         ...(s.shift_state === "Published" && s.id && !agencyLead(view)
           ? {
               action: (
-                <ActionButton
-                  action={acceptShiftAction.bind(null, s.id)}
-                  label={t("gateway.engagement.shifts.accept")}
-                  variant="secondary"
-                />
+                <span className="flex flex-wrap items-start gap-8">
+                  <ActionButton
+                    action={acceptShiftAction.bind(null, s.id)}
+                    label={t("gateway.engagement.shifts.accept")}
+                    variant="secondary"
+                  />
+                  <ConfirmButton
+                    action={declineShiftAction.bind(null, s.id)}
+                    label={t("gateway.engagement.shifts.decline")}
+                    title={t("gateway.engagement.shifts.declineTitle")}
+                    sentence={t("gateway.engagement.shifts.declineSentence")}
+                    reason={t("gateway.engagement.shifts.declineReason")}
+                    confirm={t("gateway.engagement.shifts.declineConfirm")}
+                    cancel={t("gateway.common.cancel")}
+                  />
+                </span>
               ),
             }
           : {}),
@@ -346,6 +371,7 @@ export async function TimesheetsTab({ view, t, locale, engagementKey }: TabProps
     readView(view.ctx.db, "time_entries", { eq: worker, order: ["clock_in", "desc"] }),
   ]);
   if (!sheets.ok || !entries.ok) return <RegionError />;
+  const today = todayIn(view.engagement.projectTimeZone);
   return (
     <div className="flex flex-col gap-16">
       {sheets.data.length === 0 ? (
@@ -382,14 +408,35 @@ export async function TimesheetsTab({ view, t, locale, engagementKey }: TabProps
                   },
                 }
               : {}),
+            // Submitting certifies the hours, so it is confirmed, naming an empty or unfinished period first.
             ...((s.timesheet_state === "Proposed" || s.timesheet_state === "Rejected") && s.id
               ? {
                   action: (
-                    <ActionButton
+                    <ConfirmButton
                       action={submitTimesheetAction.bind(null, s.id)}
                       label={t("gateway.engagement.timesheets.submit")}
-                      variant="secondary"
-                    />
+                      title={t("gateway.engagement.timesheets.submitTitle")}
+                      sentence={t("gateway.engagement.timesheets.submitSentence", {
+                        period: formatDateRange(locale, s.period_start, s.period_end),
+                      })}
+                      confirm={t("gateway.engagement.timesheets.submitConfirm")}
+                      cancel={t("gateway.common.cancel")}
+                      triggerVariant="secondary"
+                      confirmVariant="primary"
+                    >
+                      {timesheetWarnings(
+                        { workedMinutes: s.worked_minutes, periodEnd: s.period_end },
+                        today,
+                      ).map((w) => (
+                        <InlineAlert key={w} tone="warning">
+                          {w === "empty"
+                            ? t("gateway.engagement.timesheets.warningEmpty")
+                            : t("gateway.engagement.timesheets.warningFuture", {
+                                date: s.period_end ? formatDate(locale, s.period_end) : "",
+                              })}
+                        </InlineAlert>
+                      ))}
+                    </ConfirmButton>
                   ),
                 }
               : {}),

@@ -161,6 +161,7 @@
     "refused": "El cambio fue rechazado ({rule}). Revisa el proyecto e inténtalo de nuevo.",
     "plan_limit_exceeded": "Se alcanzó el límite de proyectos activos de tu plan. Completa o cancela un proyecto, o cambia de plan, para agregar otro.",
     "plan_limit_read_only": "Este proyecto es de solo lectura porque la organización supera el límite de proyectos activos de su plan. El aviso en la parte superior de la página explica cómo levantarlo.",
+    "org_read_only": "Esta organización es de solo lectura, así que no se puede crear ni cambiar ningún proyecto. Su propietario puede reactivarla o reanudar la facturación en Configuración.",
     "time_zone_unknown": "Esa zona horaria no se reconoce. Elige una de la lista.",
     "gate_criteria_unmet": "La compuerta {gate} no puede pasar hasta que cada criterio bloqueante tenga evidencia. Falta: {criteria}.",
     "gate_phase_conflict": "El proyecto pasó a otra fase mientras trabajabas. Vuelve a cargar para ver su compuerta actual.",
@@ -1006,5 +1007,61 @@
     },
     "commit": "Copiar",
     "done": "Se copiaron {copied} elementos; {skipped} omitidos."
-  }
+  },
+  "gateCriteria": {
+    "G1": {
+      "BUDGET_ENVELOPE": "Existe un techo presupuestario y está aprobado.",
+      "GONOGO": "Una parte designada ratificó la decisión de seguir o no seguir.",
+      "OBJECTIVES_STATED": "Objetivos medibles registrados. La compuerta 8 mide contra ellos.",
+      "JURISDICTION": "La jurisdicción del proyecto está resuelta y cargada. Sin ella no se puede evaluar ninguna regla de cumplimiento en ninguna compuerta posterior.",
+      "SCOPE_LOCK": "Alcance cerrado; planos de especificación y aprobaciones de muestras completos.",
+      "AMPLIFY_PLANNED": "Los requisitos de captura, derechos y medición para la compuerta 8 están especificados. La amplificación no se puede agregar después.",
+      "CAPABILITY_FROZEN": "Los documentos de capacidad del recinto están congelados. Un registro de capacidad que aún se edita no se puede conciliar."
+    },
+    "G2": {
+      "CONTRACTS": "Contratos firmados; proveedores adjudicados; talento reservado; equipo de trabajo reclutado.",
+      "ACCOUNTABLE_PARTY": "Cada requisito del alcance cerrado tiene una parte responsable designada. Un requisito sin asignar es una brecha, no un aprobado."
+    },
+    "G3": {
+      "PERMITS_FILED": "Cada permiso que exige la jurisdicción está presentado con el plazo de anticipación cubierto.",
+      "NO_CRITICAL_GAPS": "La conciliación de cada requisito con su documento de capacidad deja cero brechas críticas sin resolver. Un DESCONOCIDO frente a un requisito crítico cuenta como brecha.",
+      "NO_STALE_DOCS": "Ningún requisito ni documento de capacidad del conjunto de avance está vencido.",
+      "RIGGING_DOCUMENTED": "Donde hay un requisito de rigging, el recinto tiene documentada la carga por punto y la carga total. Una capacidad sin documentar detiene todo.",
+      "PO_BASELINE": "Línea base de órdenes de compra fijada; la compuerta 9 concilia contra ella."
+    },
+    "G4": {
+      "AWARDS": "Todas las adjudicaciones emitidas; depósitos pagados; pedidos de largo plazo confirmados.",
+      "UNITS_RESOLVED": "Cada línea adjudicada tiene una unidad resuelta. Una unidad sin resolver rechaza la aritmética en lugar de adivinar.",
+      "BAND_FRESHNESS": "Ninguna adjudicación depende de una banda de precios cuya confianza efectiva decayó a VENCIDA."
+    },
+    "G5": {
+      "FAB_QC": "Fabricación completa; control de calidad aprobado; lista de pendientes abierta.",
+      "ENGINEERING_STAMPED": "Toda estructura portante u ocupada tiene ingeniería sellada para su jurisdicción. Una estructura sin sello no tiene una capacidad que alguien respalde.",
+      "MATERIALS_TRACEABLE": "Materiales recibidos contra órdenes de compra con las variaciones resueltas."
+    },
+    "G6": {
+      "COMMISSIONED": "Instalado, puesto en marcha, lista de pendientes cerrada; planos as-built archivados.",
+      "AHJ_SIGNOFF": "Cada permiso que exige la jurisdicción está inspeccionado y aprobado. Sin reglas para una jurisdicción no cargada, esto no se puede evaluar; no significa que se cumple.",
+      "EGRESS_VERIFIED": "Carga de ocupantes, ancho de evacuación y recorrido verificados contra el código adoptado según lo construido, no según lo dibujado."
+    },
+    "G7": {
+      "ACCEPTANCE": "Show cerrado; desmontaje completo; aceptación operativa firmada.",
+      "INCIDENTS_CLOSED": "Cada incidente, lesión y casi accidente registrado y resuelto.",
+      "CAPTURE_SECURED": "Material de captura descargado, verificado con checksum y respaldado antes del desmontaje."
+    },
+    "G8": {
+      "CAPTURE_DELIVERED": "Recursos de captura entregados y archivados; másters de transmisión entregados; distribución de medios completa.",
+      "RIGHTS_CLEARED": "Cada recurso publicado tiene sus derechos de uso liberados. Una liberación DESCONOCIDA es bloqueante; publicar es irreversible.",
+      "SPONSOR_OBLIGATIONS": "Entregables contratados con patrocinadores evidenciados y el informe de prueba de cumplimiento emitido.",
+      "MEASUREMENT_REPORTED": "Medición de audiencia, medios ganados y sentimiento entregada contra los objetivos fijados en la compuerta 1.",
+      "ARCHIVE_LODGED": "Recursos máster depositados en el archivo oficial con los plazos de conservación indicados."
+    },
+    "G9": {
+      "RECONCILED": "Conciliado financieramente; informe de costo final presentado contra la línea base de la compuerta 3.",
+      "ASSETS_RETURNED": "Cada activo de grano unitario rendido: devuelto, transferido o dado de baja con un aprobador designado.",
+      "OBLIGATIONS_DISCHARGED": "Permisos cerrados, fianzas liberadas, estructuras temporales retiradas, sitio restaurado a su estado previo documentado.",
+      "USAGE_RECORDED": "Uso de elementos escrito en el registro de uso."
+    }
+  },
+  "readOnlyOrg": "Esta organización es de solo lectura, así que no se pueden crear proyectos nuevos."
 }

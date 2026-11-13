@@ -11,16 +11,14 @@ import { redirect } from "next/navigation";
 import { getFormatter } from "next-intl/server";
 import { EmptyRefresh, ErrorPanel } from "@/components/collection-kit/kit";
 import { InlineAlert, PageHeader } from "@/components/collection-kit/ui";
-import { EmptyStateLink } from "@/components/ui";
 import type { SearchParams } from "@/lib/collection-kit/page";
 import type { OrgContext } from "@/lib/shell/context";
-import { nodeHref } from "@/lib/shell/sitemap";
 import { CollectionPage } from "@/components/platform/collection-page";
 import { CollectionViews } from "@/components/views/collection-views";
 import { MusterLastRead } from "./muster-last-read";
 import { MusterRefresh } from "./muster-refresh";
 import { PrintButton } from "./print-button";
-import { ProjectPicker, chosenProject, orgPickers, workforceCopy } from "./shared";
+import { ProjectPicker, NoSiteProject, chosenProject, orgPickers, workforceCopy } from "./shared";
 
 const SOURCE_KEY = {
   Scan: "Scan",
@@ -56,19 +54,18 @@ export async function MusterSection({
   const title = t("muster.title");
   const project = chosenProject(pickers.projects, search);
   if (project === null) {
-    return (
-      <CollectionPage header={<PageHeader title={title} />}>
-        <EmptyStateLink
-          icon="FolderPlus"
-          sentence={t("site.noProjects")}
-          actionLabel={t("site.openProjects")}
-          href={nodeHref("projects.all", { org: ctx.org.slug }) ?? "/"}
-        />
-      </CollectionPage>
-    );
+    return <NoSiteProject ctx={ctx} t={t} title={title} path={path} projects={pickers.projects} />;
   }
-  // The export reads the URL, so the project on screen is always in it.
-  if (search["project"] === undefined) redirect(`${path}?project=${project.id}` as Route);
+  // The export reads the URL, so the project on screen is always in it, by id (a key or the only project is
+  // rewritten, keeping the rest of the query).
+  if (search["project"] !== project.id) {
+    const query = new URLSearchParams();
+    for (const [k, v] of Object.entries(search)) {
+      for (const one of Array.isArray(v) ? v : v === undefined ? [] : [v]) query.append(k, one);
+    }
+    query.set("project", project.id);
+    redirect(`${path}?${query.toString()}` as Route);
+  }
   const db = ctx.viewer.db;
   const picker = <ProjectPicker t={t} path={path} projects={pickers.projects} current={project} />;
   const access = await musterAccess(db, project.id);

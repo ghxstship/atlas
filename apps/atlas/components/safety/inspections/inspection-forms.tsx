@@ -4,6 +4,7 @@ import type { CanonEnumValue, InspectionItem } from "@xos/data/safety-permits";
 import { Input, Select, Textarea } from "@xos/ui";
 import { recordResultAction, startInspectionAction } from "@/app/[org]/safety/actions";
 import { ActionForm, useCopy } from "@/components/places/kit/form";
+import { initialProjectId, projectChoiceOptions } from "@/lib/projects/project-choice";
 
 /** Starts an inspection of a project from a template; the inspector is the person signed in. */
 export function StartInspectionForm({
@@ -18,6 +19,7 @@ export function StartInspectionForm({
   defaultProjectId?: string;
 }) {
   const t = useCopy("permits");
+  const shell = useCopy("shell");
   return (
     <ActionForm
       action={startInspectionAction}
@@ -31,8 +33,11 @@ export function StartInspectionForm({
             id="inspection-project"
             name="projectId"
             label={t("inspections.fields.project")}
-            value={defaultProjectId ?? projects[0]?.id ?? ""}
-            options={projects.map((p) => ({ value: p.id, label: p.label }))}
+            value={initialProjectId(projects, defaultProjectId)}
+            options={projectChoiceOptions(
+              projects.map((p) => ({ value: p.id, label: p.label })),
+              shell("create.chooseProject"),
+            )}
             error={error("projectId")}
           />
           <Select

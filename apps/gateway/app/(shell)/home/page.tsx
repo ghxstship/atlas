@@ -10,7 +10,6 @@ import {
   searchMarketplace,
   type Engagement,
 } from "@xos/data/gateway";
-import { startOfDayIn } from "@xos/data/calendar";
 import {
   listMyParkingPasses,
   listMyRosterEngagements,
@@ -56,6 +55,7 @@ import { getScheduleView } from "@/lib/time-zone";
 import {
   needsYou,
   pickUpNext,
+  upNextCountdownAt,
   upNextDetails,
   UP_NEXT_KINDS,
   type FeedItem,
@@ -414,7 +414,7 @@ function UpNextCardView({
         title={engagementTitle(e, (r) => t(enumLabelKey("externalRoleType", r)))}
         meta={
           <span className="font-semibold text-accent-text">
-            {formatCountdown(locale, startOfDayIn(e.startDate, e.projectTimeZone), now)}
+            {formatCountdown(locale, upNextCountdownAt(e, details), now)}
           </span>
         }
         footer={

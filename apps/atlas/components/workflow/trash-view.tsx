@@ -2,6 +2,7 @@ import { listProjects } from "@xos/data/finance";
 import { listTrash } from "@xos/data/workflow";
 import { getLocale, getTranslations } from "next-intl/server";
 import { PageHeader, TemplateCollection } from "@/components/finance/ui";
+import { tableWords } from "@/lib/activity-audit";
 import type { OrgContext } from "@/lib/shell/context";
 import { EmptyPanel, ErrorPanel, PageStatus } from "./kit";
 import { RestoreButton, TrashFilters } from "./trash-client";
@@ -48,7 +49,9 @@ export async function TrashView({
       new Date(iso),
     );
   const projectKey = new Map(projects.data.map((p) => [p.id, p.key]));
-  const tables = [...new Set(all.data.map((i) => i.table))].sort();
+  const tables = [...new Set(all.data.map((i) => i.table))].sort((a, b) =>
+    tableWords(a).localeCompare(tableWords(b), locale),
+  );
   const filtered = table !== null || (q ?? "") !== "";
 
   return (
@@ -100,7 +103,11 @@ export async function TrashView({
                       <th scope="row" className="px-12 py-8 text-left font-medium">
                         {i.title ?? t("trash.untitled")}
                       </th>
-                      <td className="px-12 py-8 font-mono text-text-12">{i.table}</td>
+                      {/* The kind in words, never the table's identifier (crawl 4.9). The words come from the table's
+                          name, which is data, not catalog copy, until a catalog of plural kinds exists. */}
+                      <td className="px-12 py-8">
+                        <span data-pseudo-exempt>{tableWords(i.table)}</span>
+                      </td>
                       <td className="px-12 py-8">
                         {i.projectId
                           ? (projectKey.get(i.projectId) ?? t("common.otherProject"))
@@ -113,7 +120,7 @@ export async function TrashView({
                           org={org}
                           table={i.table}
                           id={i.id}
-                          title={i.title ?? i.table}
+                          title={i.title ?? tableWords(i.table)}
                         />
                       </td>
                     </tr>

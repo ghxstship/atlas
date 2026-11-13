@@ -114,9 +114,8 @@ select pg_temp.as_platform();
 
 -- Automatic verification
 select pg_temp.as_user('carol');
-select throws_ok(format($$insert into app.onboarding_verifications (onboarding_item_id, outcome) values (%L, 'Passed')$$, pg_temp.item('eng_vendor_a', 'req_auto')),
-  '23502', null, 'requirements added after creation have no item until the org adds one');
-insert into app.onboarding_items (engagement_id, onboarding_requirement_id) values (pg_temp.id('eng_vendor_a'), pg_temp.id('req_auto'));
+-- 904110602: a requirement added after an engagement exists gets its item there at once, so the party can complete it.
+select ok(pg_temp.item('eng_vendor_a', 'req_auto') is not null, 'requirements added after creation reach the engagement''s onboarding');
 select throws_ok(format($$insert into app.onboarding_verifications (onboarding_item_id, outcome) values (%L, 'Passed')$$, pg_temp.item('eng_vendor_a', 'req_auto')),
   'XR001', 'verification_automatic: This item is verified automatically by its integration.', 'an automatic item is not passed by a person');
 select throws_ok(format($$select app.verify_onboarding_item_automatically(%L, 'Passed')$$, pg_temp.item('eng_vendor_a', 'req_auto')),

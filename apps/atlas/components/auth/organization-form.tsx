@@ -3,17 +3,11 @@
 import { slugFromName } from "@xos/data/slug";
 import { Checkbox, InlineAlert, Input, Select } from "@xos/ui";
 import { useTranslations } from "next-intl";
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { createOrganizationAction } from "@/app/auth/actions";
 import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
-import {
-  AgeConfirmation,
-  errorMessage,
-  fieldError,
-  INITIAL,
-  Submit,
-  useAuthCopy,
-} from "@/components/auth/forms";
+import { errorMessage } from "@/components/auth/error-message";
+import { AgeConfirmation, fieldError, INITIAL, Submit, useAuthCopy } from "@/components/auth/forms";
 
 /**
  * The organization step (app.create_organization). Its own module, because its country question needs Select and
@@ -39,6 +33,12 @@ export function OrganizationForm({
   const [slug, setSlug] = useState(state.values?.["orgSlug"] ?? "");
   const [slugEdited, setSlugEdited] = useState(Boolean(state.values?.["orgSlug"]));
   const shownSlug = slugEdited ? slug : slugFromName(name);
+  // The creator's time zone, written into the form in the browser after hydration, so the org's calendar starts where
+  // they are (crawl 4.9). The server render has no browser zone to give.
+  const zoneRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (zoneRef.current) zoneRef.current.value = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  }, []);
   return (
     <form
       action={action}
@@ -49,6 +49,7 @@ export function OrganizationForm({
       {state.error ? (
         <InlineAlert tone="danger">{errorMessage(t, state.error, state.errorValues)}</InlineAlert>
       ) : null}
+      <input ref={zoneRef} type="hidden" name="orgTimeZone" defaultValue="" />
       <Input
         width="100%"
         id="org-name"

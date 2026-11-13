@@ -1,3 +1,4 @@
+import { issuableCredentialIds } from "@xos/data/credentials";
 import { generateDocument, watermarkText } from "@xos/data/documents/generate";
 import type { LoadOptions } from "@xos/data/documents/sources";
 import {
@@ -24,7 +25,7 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 /**
  * A generated document as tagged PDF/UA-1 (Section 11.9, ADR 0031): the record is read with the
  * viewer's own row level security and must belong to this org, so anyone who cannot open the record
- * gets 404 (ADR 0003). `?paper=a4` prints on A4, and the credential badge (P5) and the guest pass (B8) also on `a6`
+ * gets 404 (ADR 0003); a credential badge also needs credentials.credential.issue on its project (crawl 4.9). `?paper=a4` prints on A4, and the credential badge (P5) and the guest pass (B8) also on `a6`
  * and `cr80` cards; any other size prints on the kind's default, US Letter, or A6 for the guest pass. The site plan and
  * the signage build sheet also read their layers, legend and state filter from the query, and print lengths and sizes
  * in the viewer's units (locale.units, B1). Rendered on the server only.
@@ -43,6 +44,19 @@ export async function GET(
   if (!isDocumentKind(kind)) return new Response(null, { status: 404 });
   const ctx = await getOrgContext(org);
   if (!ctx) return new Response(null, { status: 404 });
+  // A badge downloads only for someone who may issue it on its project (crawl 4.9), as Print badges does.
+  if (kind === "credential-badge") {
+    const issuable = await issuableCredentialIds(
+      ctx.viewer.db,
+      ctx.org.id,
+      UUID.test(id) ? [id.toLowerCase()] : [],
+    );
+    if (!issuable.ok) {
+      observability.logger.error("badge access failed", { error: issuable.error });
+      return new Response(null, { status: 500 });
+    }
+    if (!issuable.data.has(id.toLowerCase())) return new Response(null, { status: 404 });
+  }
   const search = new URL(request.url).searchParams;
   const audience = kind === "day-sheet" ? daySheetAudience(search) : null;
   if (audience === "bad") return new Response(null, { status: 400 });

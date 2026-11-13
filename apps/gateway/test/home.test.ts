@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { BRING_LIMIT, upNextDetails } from "../lib/home";
+import { BRING_LIMIT, upNextCountdownAt, upNextDetails } from "../lib/home";
 
 /**
  * What the Up Next card adds for an engagement (R2): the next call, where, whom to ask and what to
@@ -112,5 +112,34 @@ describe("upNextDetails", () => {
       "Flashlight (FL-9)",
     ]);
     expect(details.bringMore).toBe(1);
+  });
+});
+
+describe("upNextCountdownAt (4.9 surface crawl)", () => {
+  const engagement = { startDate: "2027-06-04", projectTimeZone: "America/New_York" };
+  const call = (over: Partial<NonNullable<UpNext["call"]>>) => ({
+    call: {
+      at: "2026-11-12T15:00:00Z",
+      timeZone: "America/New_York",
+      kind: "shift" as const,
+      tbc: false,
+      ...over,
+    },
+  });
+  type UpNext = ReturnType<typeof upNextDetails>;
+
+  it("counts down to the next call the card lists, not the engagement's first day", () => {
+    expect(upNextCountdownAt(engagement, call({}))).toBe("2026-11-12T15:00:00Z");
+  });
+
+  it("counts down to the start of a to-be-confirmed call's day in its zone", () => {
+    expect(upNextCountdownAt(engagement, call({ at: "2026-11-12T15:00:00Z", tbc: true }))).toBe(
+      "2026-11-12T05:00:00.000Z",
+    );
+  });
+
+  it("falls back to the engagement's first day when there is no call", () => {
+    expect(upNextCountdownAt(engagement, { call: null })).toBe("2027-06-04T04:00:00.000Z");
+    expect(upNextCountdownAt(engagement, null)).toBe("2027-06-04T04:00:00.000Z");
   });
 });

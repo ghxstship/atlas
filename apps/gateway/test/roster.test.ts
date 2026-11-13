@@ -4,7 +4,13 @@ import { loadSitemapFile } from "@xos/ia/node";
 import { describe, expect, it } from "vitest";
 import { visibleEngagementTabs } from "../lib/engagement-offerings";
 import { needsYou } from "../lib/home";
-import { engagementRosterable, rosterConditions } from "../lib/roster";
+import {
+  engagementRosterable,
+  othersOwedFacts,
+  rosterConditions,
+  rosterDraftsHeld,
+  rosterEntriesToSubmit,
+} from "../lib/roster";
 import { navContext } from "../lib/shell/standing";
 
 /**
@@ -158,6 +164,112 @@ describe("Home asks for answers first", () => {
         personId: "me",
         now: new Date("2027-05-01T12:00:00Z"),
       }),
+    ).toEqual([]);
+  });
+});
+
+describe("the roster submit (904110601)", () => {
+  type Row = Parameters<typeof rosterEntriesToSubmit>[0][number] & { readonly id: string };
+  const row = (over: Partial<Row>): Row => ({
+    id: "r",
+    isSelf: false,
+    personId: "p",
+    entryState: "Draft",
+    personResponse: "Pending",
+    ...over,
+  });
+  const entries: Row[] = [
+    row({ id: "staff-one", personResponse: "Accepted" }),
+    row({ id: "staff-two", personResponse: "Declined" }),
+    row({ id: "returned", entryState: "Returned" }),
+    row({ id: "returned-declined", entryState: "Returned", personResponse: "Declined" }),
+    row({ id: "self", isSelf: true }),
+    row({ id: "invited", personId: null }),
+    row({ id: "accepted", entryState: "Accepted" }),
+  ];
+
+  it("never counts or submits someone who declined", () => {
+    expect(rosterEntriesToSubmit(entries, false).map((e) => e.id)).toEqual([
+      "staff-one",
+      "returned",
+    ]);
+  });
+
+  it("under a names lock moves only Returned entries, and holds back the Drafts nobody declined", () => {
+    expect(rosterEntriesToSubmit(entries, true).map((e) => e.id)).toEqual(["returned"]);
+    expect(rosterDraftsHeld(entries, true)).toBe(1);
+    expect(rosterDraftsHeld(entries, false)).toBe(0);
+  });
+});
+
+describe("what the rest of the roster owes (Project details, 4.9 surface crawl)", () => {
+  const offered = { travel: true, lodging: false, uniforms: false, parking: true };
+  const status = (rosterEntryId: string, travel: boolean) => ({
+    rosterEntryId,
+    offered,
+    present: { travel, uniform: false, vehicle: false },
+  });
+  const entry = (
+    id: string,
+    personId: string | null,
+    over: Partial<Parameters<typeof othersOwedFacts>[0][number]> = {},
+  ) => ({
+    id,
+    personId,
+    fullName: id === "artist" ? "Demo Artist" : null,
+    entryState: "Accepted" as const,
+    personResponse: "Accepted" as const,
+    ...over,
+  });
+
+  it("shows a representative what the artist still owes, each offered kind on file or missing", () => {
+    expect(
+      othersOwedFacts(
+        [entry("artist", "artist-person")],
+        [status("artist", false)],
+        "agent-person",
+      ),
+    ).toEqual([
+      {
+        rosterEntryId: "artist",
+        name: "Demo Artist",
+        kinds: [
+          { kind: "travel", chip: "missing" },
+          { kind: "vehicle", chip: "missing" },
+        ],
+      },
+    ]);
+  });
+
+  it("leaves out the viewer's own entry, entries without standing, declined and withdrawn ones", () => {
+    expect(
+      othersOwedFacts(
+        [
+          entry("mine", "agent-person"),
+          entry("hidden", "someone"),
+          entry("declined", "someone-else", { personResponse: "Declined" }),
+          entry("withdrawn", "another", { entryState: "Withdrawn" }),
+        ],
+        [status("mine", false), status("declined", false), status("withdrawn", false)],
+        "agent-person",
+      ),
+    ).toEqual([]);
+  });
+
+  it("asks nothing when the project offers none of the kinds", () => {
+    const none = { travel: false, lodging: false, uniforms: false, parking: false };
+    expect(
+      othersOwedFacts(
+        [entry("artist", "artist-person")],
+        [
+          {
+            rosterEntryId: "artist",
+            offered: none,
+            present: { travel: false, uniform: false, vehicle: false },
+          },
+        ],
+        "agent-person",
+      ),
     ).toEqual([]);
   });
 });

@@ -5,6 +5,7 @@ import { ReasonField } from "@/components/fields";
 import { Empty, PageHeader, Table } from "@/components/page";
 import { setKillSwitchAction } from "@/lib/actions/tenants";
 import { getConsoleFormat } from "@/lib/format";
+import { englishOnly } from "@/lib/localized";
 import { requirePermission } from "@/lib/operator";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -15,7 +16,9 @@ export async function generateMetadata(): Promise<Metadata> {
 /** Feature flags (Section 5.1): defaults, plan requirements, live per-org overrides and the kill switch. */
 export default async function FlagsPage() {
   const ctx = await requirePermission("tenants.read");
-  const { t, label } = await getConsoleFormat();
+  const { t, label, locale } = await getConsoleFormat();
+  // Flag descriptions are the platform team's, written in English: marked so, on a console in another language.
+  const lang = englishOnly(locale);
   const result = await listFlags(ctx.db);
   const kill = can(ctx.operator, "flags.kill_switch");
   if (!result.ok) {
@@ -28,7 +31,13 @@ export default async function FlagsPage() {
   }
   return (
     <>
-      <PageHeader title={t("flags.title")} intro={t("flags.intro")} />
+      <PageHeader title={t("flags.title")} intro={t("flags.intro")}>
+        {lang ? (
+          <p className="m-0 max-w-prose text-text-13 text-text-secondary">
+            {t("flags.descriptionsInEnglish")}
+          </p>
+        ) : null}
+      </PageHeader>
       <Table
         caption={t("flags.title")}
         testId="flags"
@@ -44,7 +53,9 @@ export default async function FlagsPage() {
           cells: [
             <span key="flag" className="flex flex-col gap-4">
               <code className="font-mono">{flag.flagKey}</code>
-              <span className="text-text-12 text-text-secondary">{flag.description}</span>
+              <span lang={lang} className="text-text-12 text-text-secondary">
+                {flag.description}
+              </span>
             </span>,
             flag.defaultEnabled ? t("common.on") : t("common.off"),
             flag.requiredPlanFeature

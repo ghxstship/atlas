@@ -65,8 +65,6 @@
   "markArrived": "Marcar llegada",
   "mediaAdded": "Archivo adjuntado.",
   "mediaHeading": "Fotos y video",
-  "mediaUri": "Ruta del archivo guardado",
-  "mediaUriHelp": "La ruta de una foto o video ya subido desde Compass, como org/incidents/gate.jpg.",
   "medicalHeading": "Atenciones médicas",
   "medicalNotice": "Las notas médicas son restringidas: solo las ven personas con el permiso de registros médicos y nunca salen de Atlas en exportaciones ni funciones de IA.",
   "moveHeading": "Siguiente paso",
@@ -139,5 +137,8 @@
   "withdraw": "Retirar",
   "zone": "Zona",
   "chooseProject": "Elige el proyecto donde ocurrió el incidente y luego repórtalo.",
-  "noProjects": "Todavía no hay proyectos que puedas abrir. Crea un proyecto y vuelve para reportar incidentes."
+  "noProjects": "Todavía no hay proyectos que puedas abrir. Crea un proyecto y vuelve para reportar incidentes.",
+  "mediaFile": "Foto o video",
+  "mediaFileHelp": "Una foto JPEG, PNG, HEIC o WebP, o un video MP4 o MOV, de hasta 50 MB.",
+  "chooseSeverity": "Elige una gravedad"
 }
