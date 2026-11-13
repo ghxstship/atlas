@@ -17,6 +17,9 @@ const ATTEMPTS = 3;
 /** How long a page may take to go quiet before a step goes ahead anyway. */
 const QUIET_MS = 5_000;
 
+/** How long `routerIdle` waits for the page's next frame, which never comes with JavaScript off. */
+const FRAME_MS = 1_000;
+
 /**
  * Waits for the page to go quiet, but no longer than five seconds: a live page (a show run, a
  * realtime list) keeps a request open and never reaches networkidle, and the step goes ahead.
@@ -66,10 +69,19 @@ function trackRouter(page: Page): Map<Request, number> {
 export async function routerIdle(page: Page): Promise<void> {
   const inFlight = trackRouter(page);
   // A click resolves once it is dispatched; a frame later the server action or navigation it starts has sent its
-  // request, and that request's event reaches this process before the evaluation's answer does.
-  await page
-    .evaluate(() => new Promise((done) => requestAnimationFrame(() => setTimeout(done, 0))))
-    .catch(() => undefined);
+  // request, and that request's event reaches this process before the evaluation's answer does. With JavaScript
+  // off (javaScriptEnabled: false) no frame callback ever runs and the evaluation never answers, so the wait for
+  // it ends after a second: such a page has no router requests to wait for.
+  let frameCap: ReturnType<typeof setTimeout> | undefined;
+  await Promise.race([
+    page
+      .evaluate(() => new Promise((done) => requestAnimationFrame(() => setTimeout(done, 0))))
+      .catch(() => undefined),
+    new Promise((resolve) => {
+      frameCap = setTimeout(resolve, FRAME_MS);
+    }),
+  ]);
+  clearTimeout(frameCap);
   const until = Date.now() + QUIET_MS;
   while (pending(inFlight) > 0 && Date.now() < until && !page.isClosed()) {
     await new Promise((resolve) => setTimeout(resolve, 50));
