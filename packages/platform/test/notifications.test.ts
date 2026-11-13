@@ -20,6 +20,8 @@ import {
   SmsSendError,
   SENTDM_API,
   SENTDM_REPLAY_WINDOW_SECONDS,
+  SMS_STOP_EN,
+  SMS_STOP_ES,
   TranslationUnavailableError,
   checkPushReceipts,
   clip,
@@ -625,6 +627,7 @@ describe("SMS through sent.dm (Section 14.5)", () => {
     const provider = sentdmSmsProvider({
       apiKey: API_KEY,
       template: "xos_notification",
+      templateEs: "xos_notification_es",
       templateVariable: "message",
       channel: "sms",
       fetch: impl,
@@ -660,6 +663,7 @@ describe("SMS through sent.dm (Section 14.5)", () => {
     const whatsapp = sentdmSmsProvider({
       apiKey: API_KEY,
       template: "7ba7b820-9dad-11d1-80b4-00c04fd430c8",
+      templateEs: "8ca8c931-9dad-11d1-80b4-00c04fd430c8",
       templateVariable: "body",
       channel: "whatsapp",
       sandbox: true,
@@ -676,6 +680,7 @@ describe("SMS through sent.dm (Section 14.5)", () => {
     await sentdmSmsProvider({
       apiKey: API_KEY,
       template: "xos_notification",
+      templateEs: "xos_notification_es",
       templateVariable: "message",
       channel: "auto",
       fetch: auto.impl,
@@ -685,6 +690,7 @@ describe("SMS through sent.dm (Section 14.5)", () => {
     const offline = sentdmSmsProvider({
       apiKey: API_KEY,
       template: "xos_notification",
+      templateEs: "xos_notification_es",
       templateVariable: "message",
       channel: "sms",
       fetch: fakeFetch(() => {
@@ -694,6 +700,106 @@ describe("SMS through sent.dm (Section 14.5)", () => {
     await expect(offline.send({ to: "+1", body: "x", deliveryId: "s" })).rejects.toMatchObject({
       code: "network",
       permanent: false,
+    });
+  });
+
+  it("ends every rendered text with its language's opt-out sentence, so the sender can strip it", () => {
+    const stops = { "en-US": SMS_STOP_EN, "es-US": SMS_STOP_ES } as const;
+    for (const [locale, stop] of Object.entries(stops)) {
+      const catalog = JSON.parse(
+        readFileSync(new URL(`../../i18n/messages/${locale}/email.json`, import.meta.url), "utf8"),
+      ) as { sms: Record<string, string> };
+      for (const key of ["message", "summary", "summaryCount"]) {
+        expect(catalog.sms[key]?.endsWith(` ${stop}`), `${locale} sms.${key}`).toBe(true);
+      }
+    }
+  });
+
+  it("sends an English text on the English template and a Spanish one on the Spanish template, each without its opt-out line", async () => {
+    const accepted = () =>
+      json({ success: true, data: { recipients: [{ message_id: "m-1" }] } }, 202);
+    const { impl, requests } = fakeFetch(accepted);
+    const provider = sentdmSmsProvider({
+      apiKey: API_KEY,
+      template: "xos_notification",
+      templateEs: "xos_notification_es",
+      templateVariable: "message",
+      channel: "sms",
+      fetch: impl,
+    });
+    const sent = (n: number) =>
+      JSON.parse(String(requests[n]?.init.body)) as {
+        template: { name?: string; id?: string; parameters: Record<string, string> };
+      };
+    const url = "https://atlas.xos.test/northwind-live/inbox";
+
+    await provider.send({
+      to: "+15555550100",
+      body: `Northwind Live: Load in moved. ${url} ${SMS_STOP_EN}`,
+      deliveryId: "en",
+    });
+    expect(sent(0).template).toEqual({
+      name: "xos_notification",
+      parameters: { message: `Northwind Live: Load in moved. ${url}` },
+    });
+
+    // Cleaned first: a line break before the opt-out line still strips it.
+    await expect(
+      provider.send({
+        to: "+15555550100",
+        body: `Northwind Live: tu turno cambi\u00f3 ${EM_DASH} revisa. ${url}\n${SMS_STOP_ES}`,
+        deliveryId: "es",
+      }),
+    ).resolves.toMatchObject({ providerMessageId: "m-1" });
+    expect(sent(1).template).toEqual({
+      name: "xos_notification_es",
+      parameters: { message: `Northwind Live: tu turno cambi\u00f3 - revisa. ${url}` },
+    });
+
+    // No opt-out line: the English template, the body as is, so the template's line is the only one.
+    await provider.send({ to: "+15555550100", body: "Northwind Live: hello", deliveryId: "none" });
+    expect(sent(2).template).toEqual({
+      name: "xos_notification",
+      parameters: { message: "Northwind Live: hello" },
+    });
+    // The sentence alone is not stripped to an empty value.
+    await provider.send({ to: "+15555550100", body: SMS_STOP_EN, deliveryId: "bare" });
+    expect(sent(3).template.parameters).toEqual({ message: SMS_STOP_EN });
+
+    // A Spanish template id is sent as an id.
+    const byId = fakeFetch(accepted);
+    await sentdmSmsProvider({
+      apiKey: API_KEY,
+      template: "xos_notification",
+      templateEs: "8ca8c931-9dad-11d1-80b4-00c04fd430c8",
+      templateVariable: "body",
+      channel: "sms",
+      fetch: byId.impl,
+    }).send({ to: "+15555550100", body: `Hola ${SMS_STOP_ES}`, deliveryId: "id" });
+    expect(JSON.parse(String(byId.requests[0]?.init.body)).template).toEqual({
+      id: "8ca8c931-9dad-11d1-80b4-00c04fd430c8",
+      parameters: { body: "Hola" },
+    });
+  });
+
+  it("counts segments as the text is delivered, with the template's prefix and opt-out line", async () => {
+    const { impl } = fakeFetch(() =>
+      json({ success: true, data: { recipients: [{ message_id: "m-1" }] } }, 202),
+    );
+    const provider = sentdmSmsProvider({
+      apiKey: API_KEY,
+      template: "xos_notification",
+      templateEs: "xos_notification_es",
+      templateVariable: "message",
+      channel: "sms",
+      fetch: impl,
+    });
+    // 160 septets as rendered, more once the template adds "[XOS] ".
+    const body = `${"a".repeat(160 - SMS_STOP_EN.length - 1)} ${SMS_STOP_EN}`;
+    expect(smsSegments(body)).toBe(1);
+    await expect(provider.send({ to: "+15555550100", body, deliveryId: "long" })).resolves.toEqual({
+      providerMessageId: "m-1",
+      segments: 2,
     });
   });
 
@@ -718,6 +824,8 @@ describe("SMS through sent.dm (Section 14.5)", () => {
     });
     expect(env.XOS_SMS_ALLOWLIST).toEqual(["+15555550100", "+15555550101"]);
     expect(env.XOS_SENTDM_TEMPLATE).toBe("xos_notification");
+    expect(env.XOS_SENTDM_TEMPLATE_ES).toBe("xos_notification_es");
+    expect(env.XOS_SENTDM_TEMPLATE_VARIABLE).toBe("message");
     expect(env.XOS_SENTDM_CHANNEL).toBe("sms");
     expect(env.XOS_SENTDM_SANDBOX).toBe(false);
     const sent = fakeFetch(() =>
