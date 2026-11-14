@@ -7,7 +7,7 @@ import appIcon from "@xos/ui/brand/app-icon.svg";
 import favicon from "@xos/ui/brand/favicon.svg";
 import { themeColors } from "@xos/ui/pwa";
 import { PwaRuntime } from "@/components/pwa/pwa-runtime";
-import { CookieBanner } from "@/components/privacy/cookie-banner";
+import { ConsentBanner } from "@/components/privacy/consent-banner";
 import { StyleNonce } from "@/components/shell/style-nonce";
 import { XOSProvider } from "@/components/xos-provider";
 import { localeDirection } from "@/i18n/negotiate";
@@ -72,7 +72,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
           timeZone={time.timeZone}
         >
           <XOSProvider locale={formatting} preferences={preferences} messages={overrides}>
-            {bannerOff ? null : <CookieBanner />}
+            {bannerOff ? null : <ConsentBanner />}
             {children}
             <PwaRuntime analytics={analytics && !publicLive} />
           </XOSProvider>

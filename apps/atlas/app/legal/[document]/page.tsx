@@ -14,7 +14,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { getFormatter, getLocale, getTranslations } from "next-intl/server";
-import { CookieSettings } from "@/components/privacy/cookie-settings";
+import { ConsentSettings } from "@/components/privacy/consent-settings";
 import { SubprocessorNotices } from "@/components/privacy/subprocessor-notices";
 import { ButtonLink, InlineAlert, TemplateDocument } from "@/components/ui";
 import { LEGAL_HISTORY, LEGAL_SLUGS, LEGAL_TEXT } from "@/lib/legal-text.generated";
@@ -64,7 +64,7 @@ function param(value: string | string[] | undefined): string | undefined {
 
 export default async function LegalPage({ params, searchParams }: PageProps<"/legal/[document]">) {
   const slug = (await params).document;
-  if (slug === COOKIE_SETTINGS) return <CookieSettings />;
+  if (slug === COOKIE_SETTINGS) return <ConsentSettings />;
   const doc = publicDocument(slug);
   const text = LEGAL_TEXT[slug];
   if (!doc || text === undefined) notFound();
