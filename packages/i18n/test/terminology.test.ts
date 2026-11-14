@@ -46,7 +46,7 @@ describe("es-US gate terminology", () => {
 
   it("finds the gate messages", () => {
     expect(gateKeys.length).toBeGreaterThan(40);
-    expect(PHYSICAL_GATE_KEYS.size).toBe(26);
+    expect(PHYSICAL_GATE_KEYS.size).toBe(27);
   });
 
   it.each(gateKeys.filter((key) => !PHYSICAL_GATE_KEYS.has(key)))(

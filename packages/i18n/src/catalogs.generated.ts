@@ -69,6 +69,7 @@ import enUS_storageLinks from "../messages/en-US/storageLinks.json" with { type:
 import enUS_subscribeAccount from "../messages/en-US/subscribeAccount.json" with { type: "json" };
 import enUS_subscriptionPause from "../messages/en-US/subscriptionPause.json" with { type: "json" };
 import enUS_support from "../messages/en-US/support.json" with { type: "json" };
+import enUS_trash from "../messages/en-US/trash.json" with { type: "json" };
 import enUS_ui from "../messages/en-US/ui.json" with { type: "json" };
 import enUS_vendors from "../messages/en-US/vendors.json" with { type: "json" };
 import enUS_views from "../messages/en-US/views.json" with { type: "json" };
@@ -144,6 +145,7 @@ import esUS_storageLinks from "../messages/es-US/storageLinks.json" with { type:
 import esUS_subscribeAccount from "../messages/es-US/subscribeAccount.json" with { type: "json" };
 import esUS_subscriptionPause from "../messages/es-US/subscriptionPause.json" with { type: "json" };
 import esUS_support from "../messages/es-US/support.json" with { type: "json" };
+import esUS_trash from "../messages/es-US/trash.json" with { type: "json" };
 import esUS_ui from "../messages/es-US/ui.json" with { type: "json" };
 import esUS_vendors from "../messages/es-US/vendors.json" with { type: "json" };
 import esUS_views from "../messages/es-US/views.json" with { type: "json" };
@@ -221,6 +223,7 @@ export const enUS = {
   subscribeAccount: enUS_subscribeAccount,
   subscriptionPause: enUS_subscriptionPause,
   support: enUS_support,
+  trash: enUS_trash,
   ui: enUS_ui,
   vendors: enUS_vendors,
   views: enUS_views,
@@ -299,6 +302,7 @@ export const esUS = {
   subscribeAccount: esUS_subscribeAccount,
   subscriptionPause: esUS_subscriptionPause,
   support: esUS_support,
+  trash: esUS_trash,
   ui: esUS_ui,
   vendors: esUS_vendors,
   views: esUS_views,

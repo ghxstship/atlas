@@ -21,7 +21,13 @@ import {
   saveDepartmentsAction,
   saveLocationDefaultsAction,
 } from "@/app/[org]/settings/surface-actions";
-import { auditActionText, auditActorText, auditDetailText, tableWords } from "@/lib/activity-audit";
+import {
+  auditActionText,
+  auditActorText,
+  auditDetailText,
+  tableWords,
+  type KindsT,
+} from "@/lib/activity-audit";
 import { getOrgTimeZone } from "@/lib/shell/time-zone";
 import type { SettingsPanelProps } from "../contributions/types";
 import { SaveBarFields, SaveBarForm, SurfaceButton, SurfaceForm } from "./forms";
@@ -394,11 +400,13 @@ export async function SensitiveConsentPanel({ ctx }: SettingsPanelProps) {
 }
 
 export async function LegalHoldsPanel({ ctx }: SettingsPanelProps) {
-  const [f, holds, policies] = await Promise.all([
+  const [f, holds, policies, kindsT] = await Promise.all([
     formatters(ctx),
     listLegalHolds(ctx.viewer.db, ctx.org.id),
     listRetentionPolicies(ctx.viewer.db),
+    getTranslations("trash"),
   ]);
+  const kinds = kindsT as unknown as KindsT;
   const canEdit = ctx.capabilities.has("data.legal_hold.manage");
   if (!holds.ok || !policies.ok) return <LoadFailed t={f.t} />;
   return (
@@ -425,12 +433,8 @@ export async function LegalHoldsPanel({ ctx }: SettingsPanelProps) {
               </>
             ),
             meta: [
-              // The held table's name in words is data, not catalog copy (see Trash's Kind).
-              h.tableName ? (
-                <span data-pseudo-exempt>{tableWords(h.tableName)}</span>
-              ) : (
-                f.t(`${P}.privacy.allTables`)
-              ),
+              // The held table's kind in words from the catalog trash.kinds, as Trash's Kind reads it.
+              h.tableName ? tableWords(h.tableName, kinds) : f.t(`${P}.privacy.allTables`),
               f.t(`${P}.privacy.placed`, { date: f.day(h.placedAt) }),
               h.releasedAt ? f.t(`${P}.privacy.releasedOn`, { date: f.day(h.releasedAt) }) : null,
             ],
@@ -477,7 +481,7 @@ export async function LegalHoldsPanel({ ctx }: SettingsPanelProps) {
                   { value: "", label: f.t(`${P}.privacy.allTables`) },
                   // Each table by name in words, in alphabetical order, never its identifier (crawl 4.9).
                   ...policies.data
-                    .map((p) => ({ value: p.tableName, label: tableWords(p.tableName) }))
+                    .map((p) => ({ value: p.tableName, label: tableWords(p.tableName, kinds) }))
                     .sort((a, b) => a.label.localeCompare(b.label, f.locale)),
                 ],
                 defaultValue: "",

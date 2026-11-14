@@ -7,7 +7,6 @@ import { useActionState, useCallback, useState } from "react";
 import { restoreAction } from "@/app/[org]/trash/actions";
 import { INITIAL_STATE, type WorkflowActionState } from "@/lib/workflow/state";
 import { Feedback, usePageStatus, useWorkflowT } from "./kit";
-import { tableWords } from "@/lib/activity-audit";
 
 /** Restore one row; the outcome (rows restored, or why not) shows beside the button. */
 export function RestoreButton({
@@ -59,13 +58,16 @@ export function RestoreButton({
   );
 }
 
-/** Filter by kind of row and title; both live in the query string. */
+/**
+ * Filter by kind of row and title; both live in the query string. The kinds come named and sorted from the server,
+ * which reads the catalog trash.kinds (a server-only namespace, so its 700 names stay out of the browser bundle).
+ */
 export function TrashFilters({
-  tables,
+  kinds,
   table,
   q,
 }: {
-  tables: readonly string[];
+  kinds: readonly { readonly value: string; readonly label: string }[];
   table: string | null;
   q: string | null;
 }) {
@@ -96,10 +98,7 @@ export function TrashFilters({
       <Select
         label={t("trash.kind")}
         value={table ?? ""}
-        options={[
-          { value: "", label: t("trash.allKinds") },
-          ...tables.map((x) => ({ value: x, label: tableWords(x) })),
-        ]}
+        options={[{ value: "", label: t("trash.allKinds") }, ...kinds]}
         onChange={(e) => go({ table: e.target.value })}
       />
       <Input
