@@ -320,7 +320,9 @@
 .xos-mkt-nav-panel[hidden] {
   display: none;
 }
-.xos-mkt-nav-panel a {
+/* The row style is for the section links only. The export writes this rule for every link in the
+   panel, which also restyled the action buttons repeated below the list. */
+.xos-mkt-nav-panel ul a {
   display: flex;
   align-items: center;
   min-block-size: var(--density-target-coarse);

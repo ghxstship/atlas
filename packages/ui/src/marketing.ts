@@ -4,12 +4,14 @@
  * they render on the server and send no JavaScript, and the five that hold state (MarketingNav,
  * PersonaSwitcher, PricingTable, CodeSample and MarketingFooter) are client modules of their own
  * (ADR 0027). The server-rendered ones that print a shared string or format a number take the
- * page's `locale` and `messages`; the five client ones read the nearest XOSProvider.
+ * page's `locale` and `messages` (`flattenMessages` turns a locale's nested `ui` catalog into that
+ * form); the five client ones read the nearest XOSProvider.
  *
  * Styles: import "@xos/ui/marketing.css" after "@xos/ui/styles.css".
  */
 export type * from "./Marketing/Marketing.types.ts";
 export { marketingCopy, type MarketingCopy } from "./Marketing/marketing-copy.ts";
+export { flattenMessages, type Messages } from "./lib/i18n.ts";
 export { ButtonLink } from "./Marketing/ButtonLink.tsx";
 export { MarketingSection } from "./Marketing/MarketingSection.tsx";
 export { MarketingHero } from "./Marketing/MarketingHero.tsx";

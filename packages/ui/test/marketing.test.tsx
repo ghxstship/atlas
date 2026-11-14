@@ -137,6 +137,7 @@ describe("Marketing layer boundaries", () => {
     expect(marketingCopy({ locale: undefined, messages: undefined }).t("mk.skip")).toBe(
       "Skip to content",
     );
+    expect(Marketing.flattenMessages(esUS)).toEqual(es);
     const copy = marketingCopy({ locale: "es-US", messages: es });
     expect(copy.locale).toBe("es-US");
     expect(copy.t("mk.proof.source", { label: "Canon" })).toBe("Fuente: Canon");
