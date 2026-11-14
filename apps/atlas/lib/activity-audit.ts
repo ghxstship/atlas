@@ -23,11 +23,19 @@ function bareTable(subjectTable: string): string {
   return subjectTable.replace(/^[a-z_]+\./, "");
 }
 
+/** A translator of the `trash` namespace, whose `kinds` name each table in words (RRR-267). */
+export type KindsT = ((key: string) => string) & { has: (key: string) => boolean };
+
 /**
- * A table's name in words for a label that has no catalog noun (Trash's Kind, the legal-hold table picker):
- * `app.onboarding_requirements` reads "Onboarding requirements", never the identifier itself.
+ * A table's kind in words (Trash's Kind column and filter, the legal-hold table picker): `app.onboarding_requirements`
+ * reads "Onboarding requirements" in en-US and "Requisitos de incorporación" in es-US, from the catalog
+ * `trash.kinds.<table>`. test/table-kinds.test.ts holds that catalog to every Trash and retention table. A table the
+ * catalog does not know yet reads as its name in words, never the identifier, and nothing is logged: `t.has` is
+ * asked first.
  */
-export function tableWords(subjectTable: string): string {
+export function tableWords(subjectTable: string, t: KindsT): string {
+  const key = `kinds.${bareTable(subjectTable)}`;
+  if (t.has(key)) return t(key);
   const words = bareTable(subjectTable).replaceAll("_", " ").trim();
   return words.length === 0 ? subjectTable : `${words.charAt(0).toUpperCase()}${words.slice(1)}`;
 }

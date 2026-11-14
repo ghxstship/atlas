@@ -2,6 +2,8 @@ import { createTranslator } from "next-intl";
 import { describe, expect, it } from "vitest";
 import enUS from "../../../packages/i18n/messages/en-US/activity.json";
 import esUS from "../../../packages/i18n/messages/es-US/activity.json";
+import trashEn from "../../../packages/i18n/messages/en-US/trash.json";
+import trashEs from "../../../packages/i18n/messages/es-US/trash.json";
 import {
   auditActionText,
   auditActorText,
@@ -39,10 +41,37 @@ const supportRead = {
   redacted: false,
 };
 
+function kindsT(locale: "en-US" | "es-US", onError: () => void = () => {}) {
+  const t = createTranslator({
+    locale,
+    messages: { trash: locale === "en-US" ? trashEn : trashEs },
+    onError,
+  });
+  return Object.assign((key: string) => (t as unknown as (k: string) => string)(`trash.${key}`), {
+    has: (key: string) => t.has(`trash.${key}` as never),
+  });
+}
+
 describe("table names in words", () => {
-  it("reads a table without its schema or underscores", () => {
-    expect(tableWords("app.onboarding_requirements")).toBe("Onboarding requirements");
-    expect(tableWords("projects")).toBe("Projects");
+  it("reads a table's kind from the catalog, without its schema", () => {
+    expect(tableWords("app.onboarding_requirements", kindsT("en-US"))).toBe(
+      "Onboarding requirements",
+    );
+    expect(tableWords("projects", kindsT("en-US"))).toBe("Projects");
+    // RRR-267: Spanish readers see Spanish, not the English words of the table's name.
+    expect(tableWords("app.onboarding_requirements", kindsT("es-US"))).toBe(
+      "Requisitos de incorporación",
+    );
+    expect(tableWords("projects", kindsT("es-US"))).toBe("Proyectos");
+  });
+
+  it("reads a table the catalog does not know as its name in words, and logs nothing", () => {
+    let errors = 0;
+    const t = kindsT("es-US", () => {
+      errors += 1;
+    });
+    expect(tableWords("app.brand_new_things", t)).toBe("Brand new things");
+    expect(errors).toBe(0);
   });
 });
 

@@ -272,6 +272,7 @@
       "keys": [
         "activity.subjects.gate_queue",
         "compass.sync.tables.gate_queue",
+        "trash.kinds.gate_queue",
         "compass.queue.kinds.gate_queue",
         "compass.queue.summary.gateArrival",
         "compass.queue.summary.vehicleRelease",

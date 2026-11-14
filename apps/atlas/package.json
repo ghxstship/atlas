@@ -13,6 +13,8 @@
     "typecheck": "next typegen && NODE_OPTIONS=--max-old-space-size=8192 tsc --noEmit",
     "test": "vitest run",
     "generate:routes": "XOS_WRITE_GENERATED=1 vitest run test/routes.test.ts",
+    "table-kinds:generate": "node --experimental-strip-types --no-warnings scripts/generate-table-kinds.ts",
+    "table-kinds:check": "node --experimental-strip-types --no-warnings scripts/generate-table-kinds.ts --check",
     "e2e": "playwright test",
     "test:a11y": "playwright test -c e2e/a11y/playwright.a11y.config.ts"
   },
