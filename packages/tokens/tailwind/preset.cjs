@@ -1,14 +1,14 @@
-/* XOS Design System: Tailwind CSS preset for packages/config.
+/* XOS Design System: Tailwind CSS preset, shipped with the tokens it reads.
    Generated from project/tokens.json; every value reads a CSS variable emitted by packages/tokens
    (Style Dictionary), so white-label overrides and theme switches need no rebuild.
    No raw color, size or radius appears in class output. Stroke widths carry a stroke- prefix (border-stroke-accent,
    outline-stroke-focus) so a width class never collides with a color class such as border-accent.
    Tailwind 4.3.3 (the repo pin) loads it from a config file named in CSS:
-     tailwind.config.cjs:  module.exports = { presets: [require("@xos/config/tailwind/preset.js")] };
+     tailwind.config.cjs:  module.exports = { presets: [require("@xos/tokens/tailwind/preset.cjs")] };
      app CSS:              @import "tailwindcss"; @config "./tailwind.config.cjs";
    Verified on 4.3.3 and 3.4.17; packages/tokens/test/tailwind-preset.test.ts compiles it on 4.3.3 against the token build.
-   This folder is CommonJS (tailwind/package.json) so the require() pattern above works unchanged. */
-/* global module */
+   The file is CommonJS by extension so the require() pattern above works unchanged. It lives in @xos/tokens, not
+   @xos/config, because @xos/ui publishes to npm and its stylesheet loads this preset (ADR 0024, 2026-11-14). */
 module.exports = {
   darkMode: ["selector", '[data-theme="dark"]'],
   theme: {

@@ -18,9 +18,6 @@ const here = dirname(fileURLToPath(import.meta.url));
 const source = join(here, "../../../design/xos-design-system/components");
 const target = join(here, "../stories/generated");
 const HAND_WRITTEN = new Set(["Cover", "ControlStates"]);
-/* Previews of reference-only exports, which @xos/ui does not port (design handoff section 10): public
-   pages use the shared cookie banner in place of the export's consent banner. */
-const REFERENCE_ONLY = new Set(["ConsentBanner"]);
 
 function story(name, html) {
   const card = /@dsCard(?:\s+group="([^"]+)")?(?:\s+height=(\d+))?/.exec(html);
@@ -58,7 +55,7 @@ ${body}
 const outputs = new Map();
 for (const name of readdirSync(source).sort()) {
   const file = join(source, name, "preview.html");
-  if (HAND_WRITTEN.has(name) || REFERENCE_ONLY.has(name) || !existsSync(file)) continue;
+  if (HAND_WRITTEN.has(name) || !existsSync(file)) continue;
   const code = story(name, readFileSync(file, "utf8"));
   if (!code) continue;
   const path = join(target, `${name}.stories.js`);

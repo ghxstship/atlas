@@ -122,15 +122,17 @@ afterEach(() => {
 });
 
 describe("Marketing layer boundaries", () => {
-  it("exports the 19 ported components from both entries and leaves the consent banner out", () => {
+  it("exports the 19 ported components from both entries; the consent banner has its own folder", () => {
     const names = [...SERVER, ...CLIENT];
     expect(names).toHaveLength(19);
     for (const entry of [Ui, Marketing] as Record<string, unknown>[]) {
       expect(names.filter((name) => typeof entry[name] !== "function")).toEqual([]);
-      expect(Object.keys(entry).filter((name) => /consentbanner|cookiebanner/i.test(name))).toEqual(
-        [],
-      );
     }
+    // The export's consent banner is reference only: the shared banner is src/ConsentBanner, on the main entry.
+    expect(
+      Object.keys(Marketing).filter((name) => /consentbanner|cookiebanner/i.test(name)),
+    ).toEqual([]);
+    expect(typeof (Ui as Record<string, unknown>).ConsentBanner).toBe("function");
   });
 
   it("resolves shared strings from props first, then from configure", () => {

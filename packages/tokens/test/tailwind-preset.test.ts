@@ -11,7 +11,7 @@ interface Preset {
   darkMode: unknown;
   theme: Record<string, Scale> & { extend: Record<string, Scale> };
 }
-const preset = createRequire(import.meta.url)("@xos/config/tailwind/preset.js") as Preset;
+const preset = createRequire(import.meta.url)("@xos/tokens/tailwind/preset.cjs") as Preset;
 
 const fixture = fileURLToPath(new URL("./fixtures/tailwind/", import.meta.url));
 
