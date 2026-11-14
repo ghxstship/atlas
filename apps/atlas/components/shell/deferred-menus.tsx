@@ -119,6 +119,14 @@ export function DeferredDropdownMenu({
 }) {
   const short = compact && icon !== undefined;
   const { loaded, wrapper, trigger, openOnLoad } = useDeferredMenu(onOpen, onWanted);
+  // The menu module is shared, so a menu that mounts after another menu loaded it renders the real
+  // menu at once and its deferred trigger, which reports the reach, never shows. Opening it reports
+  // the reach too: otherwise such a saved-views menu opened on "Loading saved views" and stayed there
+  // (budget-line-tags in Firefox, nightly run 43452754701).
+  const opened = () => {
+    onWanted?.();
+    onOpen?.();
+  };
   return (
     <Slot wrapper={wrapper}>
       {loaded ? (
@@ -128,7 +136,7 @@ export function DeferredDropdownMenu({
           items={items}
           compact={compact}
           {...(openOnLoad ? { defaultOpen: true } : {})}
-          {...(onOpen ? { onOpenChange: (open: boolean) => (open ? onOpen() : undefined) } : {})}
+          {...(onOpen || onWanted ? { onOpenChange: (open: boolean) => open && opened() } : {})}
         />
       ) : (
         <button {...trigger} className={buttonClass()}>
