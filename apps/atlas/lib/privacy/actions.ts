@@ -15,17 +15,24 @@ import { atlasConsentAdapter, CONSENT_CATEGORIES } from "./consent-adapter";
  * Atlas's consent adapter, to the server-side consent log and the consent cookie. A browser sending
  * Global Privacy Control refuses every non-essential category whatever was ticked: the signal is the
  * `Sec-GPC` header, or the `gpc` field the banner posts when only `navigator.globalPrivacyControl`
- * reports it. Plain forms, so the banner works before any script loads.
+ * reports it. The banner and Cookie settings each post that field once per mount, so a post that
+ * carries it does nothing when the consent cookie already holds a refusal from the signal: the
+ * signal is recorded once, as the proxy records the header once. Plain forms, so the banner works
+ * before any script loads.
  */
 export async function saveCookieChoice(form: FormData): Promise<void> {
   const posted = form.get("choice");
   const choice: ConsentChoice = posted === "all" || posted === "save" ? posted : "none";
-  const [state, store, db] = await Promise.all([consentState(), cookies(), createServerSupabase()]);
+  const state = await consentState();
+  const browserSignal = form.get("gpc") === "1";
+  // Under the signal every choice is the same refusal, and this browser's is already recorded.
+  if (browserSignal && state.consent?.gpc === true) return;
+  const [store, db] = await Promise.all([cookies(), createServerSupabase()]);
   const decision = decideConsent({
     choice,
     categories: CONSENT_CATEGORIES,
     selected: CONSENT_CATEGORIES.filter((name) => form.get(name) === "on"),
-    gpc: state.gpc || form.get("gpc") === "1",
+    gpc: state.gpc || browserSignal,
     policyVersion: CONSENT_BANNER_VERSION,
   });
   const adapter = atlasConsentAdapter({
