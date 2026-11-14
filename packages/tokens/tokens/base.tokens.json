@@ -60,6 +60,21 @@
       "$type": "dimension",
       "$value": "64px",
       "$description": "Page top spacing on Auth and System templates."
+    },
+    "80": {
+      "$type": "dimension",
+      "$value": "80px",
+      "$description": "Hero top spacing on public pages from bp-lg."
+    },
+    "96": {
+      "$type": "dimension",
+      "$value": "96px",
+      "$description": "Section rhythm on public pages from bp-lg."
+    },
+    "128": {
+      "$type": "dimension",
+      "$value": "128px",
+      "$description": "Closing call to action on public pages from bp-lg."
     }
   },
   "radius": {
@@ -611,6 +626,50 @@
         "fontWeight": "{font.weight.semibold}"
       },
       "$description": "Dashboard figures, show mode cues, auth headings."
+    },
+    "display-40": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": "40px",
+        "lineHeight": 1.1,
+        "fontWeight": "{font.weight.semibold}",
+        "letterSpacing": "-0.02em"
+      },
+      "$description": "Section headings on public pages. Fluid from heading-24 at bp-sm to 40 px at 1440 px."
+    },
+    "display-48": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": "48px",
+        "lineHeight": 1.1,
+        "fontWeight": "{font.weight.semibold}",
+        "letterSpacing": "-0.02em"
+      },
+      "$description": "Compact hero and closing call to action; proof figures from bp-lg. Fluid from heading-32."
+    },
+    "display-56": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": "56px",
+        "lineHeight": 1.1,
+        "fontWeight": "{font.weight.semibold}",
+        "letterSpacing": "-0.02em"
+      },
+      "$description": "Hero heading on comparison and campaign sub-pages. Fluid from heading-32."
+    },
+    "display-64": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": "64px",
+        "lineHeight": 1.1,
+        "fontWeight": "{font.weight.semibold}",
+        "letterSpacing": "-0.02em"
+      },
+      "$description": "The landing page hero heading, once per page. Fluid from display-40."
     },
     "mono-12": {
       "$type": "typography",
