@@ -4,8 +4,9 @@ Claude Design exports for agent A05 (ADR 0004 path ownership, ADR 0005 item 5). 
 
 | Path | Contents |
 | --- | --- |
-| `tokens.json` | The token export Section 11.5 names: 169 tokens, usage notes and the Dark, Light and Sunlight themes. Identical to `xos-design-system/tokens.json`. |
+| `tokens.json` | The token export Section 11.5 names: 172 tokens, usage notes and the Dark, Light and Sunlight themes. Identical to `xos-design-system/tokens.json`. |
 | `xos-design-system/` | The XOS Design System: components with previews and READMEs, token exports, ICU catalogs, the canon reference model and the QA audit. Start with `xos-design-system/HANDOFF.md`. |
 | `xos-screens/` | The XOS 4.0 Screens canvas: the Section 11.5 items 2 to 6 boards (`*.dc.html`) and `canvas.json`. `xos-screens/ds/xos/` is the design system copy the boards render with. |
+| `MARKETING_LOCKSTEP.md` | The Atlas side of the contract with `ghxstship/atlas-marketing`, the private repository that builds the public Atlas landing page from the Marketing group of the design system. |
 
 The finish guard and Prettier skip this folder, because the exports carry design tool markup and vendored libraries. Anything copied out of it into `packages/` or `supabase/` must pass both.

@@ -1,0 +1,16 @@
+<!-- @dsCard group="Marketing" height=330 -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>ComparisonTable</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h(X.ComparisonTable,{caption:'Atlas and three alternatives',verified:'November 14, 2026',columns:[{name:'Atlas',highlight:true},{name:'Product A'},{name:'Product B'},{name:'Product C'}],rows:[
+    {feature:'Gated lifecycle with evidence',cells:[{value:'yes'},{value:'unpublished'},{value:'unpublished'},{value:'unpublished'}]},
+    {feature:'Free plan and free external users',cells:[{value:'yes'},{value:'unpublished'},{value:'partial',source:{label:'Pricing page',href:'#source-b'}},{value:'no',source:{label:'Pricing page',href:'#source-c'}}]},
+    {feature:'Public pricing',cells:[{value:'yes'},{value:'no'},{value:'yes',source:{label:'Pricing page',href:'#source-b'}},{value:'yes',source:{label:'Pricing page',href:'#source-c'}}]}],
+    footnote:'Unpublished means the product does not state the feature on its public pages. It does not mean the feature is absent.'}));
+</script>
+</body>
+</html>

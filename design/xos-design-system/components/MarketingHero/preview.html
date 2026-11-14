@@ -1,0 +1,15 @@
+<!-- @dsCard group="Marketing" height=520 -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>MarketingHero</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h(X.MarketingHero,{eyebrow:'Atlas 4.0',title:'Run every production from scope to close in one system.',lead:'Plan, budget, staff, advance and run live productions in one workspace. Your team works in Atlas and your vendors, crew and clients join free.',
+    actions:[h(X.ButtonLink,{key:'a',href:'#start',variant:'primary',size:'xl'},'Start Free'),h(X.ButtonLink,{key:'b',href:'#trial',size:'xl'},'Start Free Trial')],
+    note:'Access is free for one seat and one active project. Paid plans start with a 14-day trial.',
+    media:h(X.ScreenshotFrame,{title:'Northwind Live',alt:'Atlas gate readiness for Gate 3, Advance, on a Northwind Live project: three blocking criteria are met with evidence and one permit criterion is open.'},h(X.GateReadinessPanel,{gate:3,code:'ADV',name:'Advance',nextLabel:'Enter Gate 4',criteria:[{code:'G3.PERMITS_FILED',label:'Every permit the jurisdiction requires is filed with lead time in hand.',result:'gap',blocking:true,action:'Open Permits'},{code:'G3.NO_STALE_DOCS',label:'No requirement or capability document in the advance set is past its validity window.',result:'met',blocking:true,evidence:'14 documents'},{code:'G3.RIGGING_DOCUMENTED',label:'Where a rigging requirement exists, the venue has a documented point and total load on file.',result:'met',blocking:true,evidence:'Rigging plot v2'},{code:'G3.PO_BASELINE',label:'PO baseline set; gate 9 reconciles against it.',result:'met',blocking:true,evidence:'PO baseline v1'}]}))}));
+</script>
+</body>
+</html>
