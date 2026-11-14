@@ -2,7 +2,7 @@ import { listProjects } from "@xos/data/finance";
 import { listTrash } from "@xos/data/workflow";
 import { getLocale, getTranslations } from "next-intl/server";
 import { PageHeader, TemplateCollection } from "@/components/finance/ui";
-import { tableWords } from "@/lib/activity-audit";
+import { tableWords, type KindsT } from "@/lib/activity-audit";
 import type { OrgContext } from "@/lib/shell/context";
 import { EmptyPanel, ErrorPanel, PageStatus } from "./kit";
 import { RestoreButton, TrashFilters } from "./trash-client";
@@ -26,6 +26,8 @@ export async function TrashView({
     key: string,
     values?: Record<string, string | number>,
   ) => string;
+  const kinds = (await getTranslations("trash")) as unknown as KindsT;
+  const kind = (table: string) => tableWords(table, kinds);
   const org = ctx.org.slug;
   const title = t("trash.title");
   const db = ctx.viewer.db;
@@ -49,15 +51,15 @@ export async function TrashView({
       new Date(iso),
     );
   const projectKey = new Map(projects.data.map((p) => [p.id, p.key]));
-  const tables = [...new Set(all.data.map((i) => i.table))].sort((a, b) =>
-    tableWords(a).localeCompare(tableWords(b), locale),
-  );
+  const kindOptions = [...new Set(all.data.map((i) => i.table))]
+    .map((value) => ({ value, label: kind(value) }))
+    .sort((a, b) => a.label.localeCompare(b.label, locale));
   const filtered = table !== null || (q ?? "") !== "";
 
   return (
     <TemplateCollection
       header={<PageHeader title={title} count={items.data.length} />}
-      filters={<TrashFilters tables={tables} table={table} q={q} />}
+      filters={<TrashFilters kinds={kindOptions} table={table} q={q} />}
     >
       <PageStatus>
         <div className="flex flex-col gap-12">
@@ -103,11 +105,8 @@ export async function TrashView({
                       <th scope="row" className="px-12 py-8 text-left font-medium">
                         {i.title ?? t("trash.untitled")}
                       </th>
-                      {/* The kind in words, never the table's identifier (crawl 4.9). The words come from the table's
-                          name, which is data, not catalog copy, until a catalog of plural kinds exists. */}
-                      <td className="px-12 py-8">
-                        <span data-pseudo-exempt>{tableWords(i.table)}</span>
-                      </td>
+                      {/* The kind in words from the catalog trash.kinds, never the table's identifier (crawl 4.9). */}
+                      <td className="px-12 py-8">{kind(i.table)}</td>
                       <td className="px-12 py-8">
                         {i.projectId
                           ? (projectKey.get(i.projectId) ?? t("common.otherProject"))
@@ -120,7 +119,7 @@ export async function TrashView({
                           org={org}
                           table={i.table}
                           id={i.id}
-                          title={i.title ?? tableWords(i.table)}
+                          title={i.title ?? kind(i.table)}
                         />
                       </td>
                     </tr>

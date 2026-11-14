@@ -1,4 +1,4 @@
-import { expect as baseExpect, test } from "./engine-test";
+import { expect as baseExpect, selectAllText, test } from "./engine-test";
 import { expectAccessible } from "./support";
 import { createProject, newOwnerOrg } from "./b4-support";
 
@@ -43,7 +43,7 @@ test("journey: type a day's records into the grid, see a refusal in place, then 
 
   // Fixed, the preview lists one new record, and Apply writes it.
   await grid.getByRole("gridcell", { name: /Installing the truss/ }).dblclick();
-  await page.keyboard.press("ControlOrMeta+a");
+  await selectAllText(page);
   await page.keyboard.type("Hang the truss");
   await page.keyboard.press("Enter");
   await drawer.getByRole("button", { name: "Save" }).click();

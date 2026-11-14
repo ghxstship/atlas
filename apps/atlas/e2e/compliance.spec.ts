@@ -528,8 +528,8 @@ test.describe("compliance forms", () => {
 
     const summary = page.waitForEvent("download", { timeout: 120_000 });
     await card
-      .locator("form", { hasText: `Form 300A summary, ${year}` })
-      .getByRole("button", { name: "PDF" })
+      .getByRole("group", { name: `Form 300A summary, ${year}` })
+      .getByRole("link", { name: "PDF" })
       .click();
     const pdf = await summary;
     expect(pdf.suggestedFilename()).toMatch(new RegExp(`^osha-300a-${year}-northwind-shop-`));
@@ -575,8 +575,8 @@ test.describe("compliance forms", () => {
     await page
       .locator("li", { hasText: name })
       .first()
-      .locator("form", { hasText: `Form 300 log, ${year}` })
-      .getByRole("button", { name: "CSV" })
+      .getByRole("group", { name: `Form 300 log, ${year}` })
+      .getByRole("link", { name: "CSV" })
       .click();
     const csv = readFileSync((await (await log).path()) as string, "utf8");
     expect(csv.startsWith("(A) Case no.,(B) Employee's name")).toBe(true);

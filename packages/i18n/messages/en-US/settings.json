@@ -1001,7 +1001,8 @@
       "digestHelp": "Gathers email that is not urgent into one message.",
       "digestHour": "Digest time",
       "smsNoPhone": "Add and verify a phone number on your account to receive texts.",
-      "smsConsent": "Text me notifications from this organization at {phone}. Message frequency varies. Message and data rates may apply. Reply STOP to stop or HELP for help."
+      "smsConsent": "Text me notifications from this organization at {phone}. Message frequency varies. Message and data rates may apply. Reply STOP to stop or HELP for help.",
+      "smsConsentLinks": "See our <terms>Text Message Terms</terms> and <privacy>Privacy Policy</privacy>."
     },
     "org": {
       "formLabel": "Organization notification defaults",

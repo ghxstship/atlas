@@ -1,6 +1,8 @@
 "use client";
 
 import { Button, Checkbox, InlineAlert, Input, Select } from "@xos/ui";
+import type { Route } from "next";
+import Link from "next/link";
 import { useFormatter, useTranslations } from "next-intl";
 import { useActionState, useState, type ReactNode } from "react";
 import {
@@ -9,6 +11,7 @@ import {
   type NotificationFormState,
 } from "@/app/[org]/settings/notification-actions";
 import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
+import { SMS_CONSENT_LINKS } from "@/lib/legal-links";
 import { MATRIX_CHANNELS } from "@/lib/settings/notification-matrix";
 import { ChoiceDisclosure } from "./choice-disclosure";
 import * as enums from "@xos/data/enums";
@@ -21,6 +24,40 @@ import * as enums from "@xos/data/enums";
  * channels would put 60 boxes on the page, past gate 27's seven fields (Section 18). A group offers only
  * the channels its category's kinds reach (A104).
  */
+
+/**
+ * A link inside the consent to texts (RRR-266). It opens in a new tab, as the legal links in Gateway's
+ * sign-up do, so the unsaved form stays. A link inside the label does not toggle the box: a click on
+ * interactive content in a label does not activate its control.
+ */
+/** The consent to texts with its links, all inside the label the box is named by. */
+function SmsConsentLabel({ phone }: { readonly phone: string }) {
+  const t = useTranslations("settings.notifications.mine");
+  return (
+    <span>
+      {t("smsConsent", { phone })}{" "}
+      {t.rich("smsConsentLinks", {
+        terms: smsConsentLink(SMS_CONSENT_LINKS.terms),
+        privacy: smsConsentLink(SMS_CONSENT_LINKS.privacy),
+      })}
+    </span>
+  );
+}
+
+function smsConsentLink(href: string) {
+  return function SmsConsentLink(chunks: ReactNode) {
+    return (
+      <Link
+        href={href as Route}
+        target="_blank"
+        rel="noopener"
+        className="text-accent-text underline"
+      >
+        {chunks}
+      </Link>
+    );
+  };
+}
 
 type Translate = (key: string, values?: Record<string, string | number>) => string;
 type Option = { readonly value: string; readonly label: string };
@@ -247,7 +284,7 @@ export function MyNotificationsForm({
             <Checkbox
               name="smsConsent"
               defaultChecked={sms.mayText}
-              label={t("mine.smsConsent", { phone: sms.phone })}
+              label={<SmsConsentLabel phone={sms.phone} />}
             />
           </>
         )}

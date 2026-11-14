@@ -99,7 +99,8 @@ test("a vendor's upload is received, waits for review and becomes a certificate"
     const policy = POLICY();
     const drawer = atlas.page.getByRole("dialog");
     await expect(drawer.getByText(`: ${name}.`)).toBeVisible();
-    const today = new Date().toISOString().slice(0, 10);
+    // Valid from two days back: "Current" is judged by the org's local date, which can trail the UTC date.
+    const today = new Date(Date.now() - 2 * 86_400_000).toISOString().slice(0, 10);
     const nextYear = `${Number(today.slice(0, 4)) + 1}${today.slice(4)}`;
     await drawer.getByLabel("Insurer", { exact: true }).fill("Atlantic Mutual");
     await drawer.getByLabel("Policy number", { exact: true }).fill(policy);

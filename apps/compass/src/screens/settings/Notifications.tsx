@@ -20,7 +20,8 @@ import { getMyQuietHours, listMyNotificationPreferences } from "@xos/data/party-
 import type { Row } from "@xos/sync";
 import { useCallback, useMemo, useState, type ReactElement } from "react";
 import { useTranslation } from "react-i18next";
-import { View } from "react-native";
+import * as Linking from "expo-linking";
+import { Text as NativeText, View } from "react-native";
 import { useCompass } from "../../runtime/CompassProvider";
 import {
   CHANNEL_KEYS,
@@ -40,6 +41,8 @@ import {
   quietHoursOf,
   quietHoursRow,
   quietHoursWrite,
+  SMS_CONSENT_PATHS,
+  smsConsentParts,
   withSmsConsent,
   type QuietHours,
   type QuietHoursInput,
@@ -207,7 +210,8 @@ function QuietHoursCard({
 /** Consent to texts in one org: recorded online only, when the person reads the wording (TCPA, Section 14.5). */
 function TextsCard({ orgId, row }: { readonly orgId: string; readonly row: Row }): ReactElement {
   const { t } = useTranslation();
-  const { client, store, network } = useCompass();
+  const theme = useTheme();
+  const { client, config, store, network } = useCompass();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const settings = orgSettingsOf(row);
@@ -239,13 +243,33 @@ function TextsCard({ orgId, row }: { readonly orgId: string; readonly row: Row }
         {t(`${N}.mine.smsNote`)}
       </Text>
       {settings?.phoneLast4 ? (
-        <Switch
-          testID="notify-texts-consent"
-          label={t(`${N}.mine.smsConsent`, { phone: `•••${settings.phoneLast4}` })}
-          value={settings.mayText}
-          disabled={!online || busy}
-          onChange={(consent) => void record(consent)}
-        />
+        <>
+          <Switch
+            testID="notify-texts-consent"
+            label={t(`${N}.mine.smsConsent`, { phone: `•••${settings.phoneLast4}` })}
+            value={settings.mayText}
+            disabled={!online || busy}
+            onChange={(consent) => void record(consent)}
+          />
+          <Text variant="text13" tone="secondary" testID="notify-texts-links">
+            {smsConsentParts(t(`${N}.mine.smsConsentLinks`)).map((part, i) =>
+              "link" in part ? (
+                <NativeText
+                  key={i}
+                  accessibilityRole="link"
+                  onPress={() =>
+                    void Linking.openURL(`${config.atlasUrl}${SMS_CONSENT_PATHS[part.link]}`)
+                  }
+                  style={{ color: theme.color.accentText, textDecorationLine: "underline" }}
+                >
+                  {part.text}
+                </NativeText>
+              ) : (
+                <NativeText key={i}>{part.text}</NativeText>
+              ),
+            )}
+          </Text>
+        </>
       ) : (
         <Text tone="secondary">{t(`${N}.mine.smsNoPhone`)}</Text>
       )}

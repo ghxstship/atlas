@@ -19,13 +19,13 @@ Aceptar es opcional. No es una condición para trabajar con ninguna organizació
 
 1. Inicia sesión en Atlas y abre **Configuración personal** y luego **Notificaciones**.
 2. Asegúrate de que tu cuenta tenga un número de teléfono verificado. Mientras no lo tenga, la página dice "Agrega y verifica un número de teléfono en tu cuenta para recibir mensajes de texto." y no muestra la casilla de consentimiento.
-3. En **Qué te llega**, marca la casilla que dice: "Envíame notificaciones de esta organización por mensaje de texto al {phone}. La frecuencia de los mensajes varía. Pueden aplicarse tarifas de mensajes y datos. Responde STOP para detenerlos o HELP para obtener ayuda." En lugar de {phone}, la casilla muestra los últimos cuatro dígitos de tu número verificado.
+3. En **Qué te llega**, marca la casilla que dice: "Envíame notificaciones de esta organización por mensaje de texto al {phone}. La frecuencia de los mensajes varía. Pueden aplicarse tarifas de mensajes y datos. Responde STOP para detenerlos o HELP para obtener ayuda. Consulta nuestros Términos de mensajes de texto y nuestra Política de privacidad." En lugar de {phone}, la casilla muestra los últimos cuatro dígitos de tu número verificado. "Términos de mensajes de texto" y "Política de privacidad" son enlaces a esos documentos. Se abren en una pestaña nueva y no marcan la casilla.
 4. En la misma lista, elige qué tipos de notificaciones te llegan por **Mensaje de texto (SMS)**.
 5. Selecciona **Guardar configuración de notificaciones**.
 
 La casilla está sin marcar hasta que la marcas. Aparece marcada solo si ya aceptaste para esa organización y ese número.
 
-![La página Notificaciones de la Configuración personal de Atlas. Bajo el encabezado What reaches you (Qué te llega), una casilla sin marcar dice: Text me notifications from this organization at, seguido de un número de teléfono oculto. Message frequency varies. Message and data rates may apply. Reply STOP to stop or HELP for help.](/sms-opt-in.png)
+![La página Notificaciones de la Configuración personal de Atlas. Bajo el encabezado What reaches you (Qué te llega), una casilla sin marcar dice: Text me notifications from this organization at, seguido de un número de teléfono oculto. Message frequency varies. Message and data rates may apply. Reply STOP to stop or HELP for help. See our Text Message Terms and Privacy Policy. Text Message Terms (Términos de mensajes de texto) y Privacy Policy (Política de privacidad) son enlaces.](/sms-opt-in.png)
 
 ## El consentimiento es por organización
 

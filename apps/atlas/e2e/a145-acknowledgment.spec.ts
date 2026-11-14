@@ -1,7 +1,7 @@
 import { latencyOf } from "@xos/testing";
 import { expectAcknowledged, watchFor } from "@xos/testing/playwright";
 import { apiPost, DEMO_ORG, signInAs } from "./a36-support";
-import { expect as baseExpect, settle, test, type Page } from "./engine-test";
+import { expect as baseExpect, selectAllText, settle, test, type Page } from "./engine-test";
 import { uniqueId } from "./support";
 
 /**
@@ -95,7 +95,7 @@ test("inline edit: a budget grid cell shows its new value within 100 ms", async 
 
   const grid = page.getByRole("grid", { name: "Budget lines" });
   await grid.getByRole("gridcell", { name: new RegExp(`Delay towers ${id}`) }).dblclick();
-  await page.keyboard.press("ControlOrMeta+a");
+  await selectAllText(page);
   await page.keyboard.type(`Delay towers, two sets ${id}`);
   await expectAcknowledged(page, "Budget cell edit", () => page.keyboard.press("Enter"), {
     selector: '[role="gridcell"]',

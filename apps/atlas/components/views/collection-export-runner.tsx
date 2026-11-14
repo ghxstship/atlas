@@ -3,7 +3,7 @@
 import { Toast, ToastRegion } from "@xos/ui";
 import { useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useStepUp } from "@/components/auth/security/step-up";
 import {
   collectionExportDownloadAction,
@@ -139,8 +139,12 @@ export function ExportRunner({
 
   const busy = requesting || following !== null;
   useEffect(() => onBusy(busy), [busy, onBusy]);
-  // Each new ask from the menu starts an export.
+  // Each new ask from the menu starts an export, once: React's development double run of effects
+  // queued a second export for the same ask.
+  const asked = useRef<typeof ask | null>(null);
   useEffect(() => {
+    if (asked.current === ask) return;
+    asked.current = ask;
     request(ask.format);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- one export per ask
   }, [ask]);

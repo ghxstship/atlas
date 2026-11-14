@@ -63,6 +63,9 @@ jobs:
       # The data dictionary in the docs site is generated from the catalog comments (Sections 3.15 and 7.1).
       - name: Data dictionary matches the migrations
         run: pnpm --filter @xos/docs dictionary:check
+      # Trash's kinds and the legal-hold table picker are named from the catalog trash.kinds (RRR-267).
+      - name: Table kinds match the migrations
+        run: pnpm --filter @xos/atlas table-kinds:check
       # Section 9: a backup restores and verifies (row counts, key-table checksums, pgTAP smoke).
       - name: Backup and restore drill
         run: infra/ci/restore-drill.sh

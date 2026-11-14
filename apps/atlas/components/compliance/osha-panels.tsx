@@ -13,7 +13,7 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { ActionForm } from "@/components/operations/action-form";
 import { SelectField, TextAreaField, TextField } from "@/components/operations/fields";
-import { Button, DownloadLink } from "@/components/ui";
+import { DownloadLink } from "@/components/ui";
 import {
   createEstablishmentAction,
   recordOshaCaseAction,
@@ -52,21 +52,22 @@ function DownloadForm({
   label: string;
   t: T;
 }) {
+  // Plain links with `download`, as every route-handler file is (DownloadLink, ADR 0031): the page stays put, and
+  // the browser saves the file even where it could show it. A form's GET to the CSV made WebKit on Linux show the
+  // log in the tab instead (nightly run 43452754701).
+  const href = (format: "pdf" | "csv") =>
+    `/${org}/forms/${form}/${id}?year=${year}&format=${format}`;
+  const labelId = `${form}-${id}-label`;
   return (
-    <form
-      method="get"
-      action={`/${org}/forms/${form}/${id}`}
-      className="flex flex-wrap items-end gap-8"
-    >
-      <input type="hidden" name="year" value={year} />
-      <span className="text-text-13 font-medium">{label}</span>
-      <Button type="submit" name="format" value="pdf" variant="secondary">
-        {t("pdf")}
-      </Button>
-      <Button type="submit" name="format" value="csv" variant="ghost">
+    <div role="group" aria-labelledby={labelId} className="flex flex-wrap items-end gap-8">
+      <span id={labelId} className="text-text-13 font-medium">
+        {label}
+      </span>
+      <DownloadLink href={href("pdf")}>{t("pdf")}</DownloadLink>
+      <DownloadLink href={href("csv")} variant="ghost">
         {t("csv")}
-      </Button>
-    </form>
+      </DownloadLink>
+    </div>
   );
 }
 

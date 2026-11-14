@@ -25,6 +25,8 @@ import {
   quietHoursRow,
   quietHoursWrite,
   reachedChannels,
+  SMS_CONSENT_PATHS,
+  smsConsentParts,
   withSmsConsent,
 } from "../src/settings/notifications";
 
@@ -305,6 +307,25 @@ describe("the member's quiet hours, digest and texts in an org", () => {
   it("show consent to texts once the server recorded it", () => {
     const row = orgSettingsRow(ORG, null, null, "UTC", { phone: "+13055550142", mayText: false });
     expect(orgSettingsOf(withSmsConsent(row, true))?.mayText).toBe(true);
+  });
+
+  it("split the consent's link sentence into text and the two legal links", () => {
+    expect(
+      smsConsentParts(
+        "See our <terms>Text Message Terms</terms> and <privacy>Privacy Policy</privacy>.",
+      ),
+    ).toEqual([
+      { text: "See our " },
+      { text: "Text Message Terms", link: "terms" },
+      { text: " and " },
+      { text: "Privacy Policy", link: "privacy" },
+      { text: "." },
+    ]);
+    expect(smsConsentParts("No links.")).toEqual([{ text: "No links." }]);
+    expect(SMS_CONSENT_PATHS).toEqual({
+      terms: "/legal/text-message-terms",
+      privacy: "/legal/privacy-policy#section-17",
+    });
   });
 });
 

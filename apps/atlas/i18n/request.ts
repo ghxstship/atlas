@@ -61,6 +61,8 @@ const SERVER_ONLY_NAMESPACES: readonly Namespace[] = [
   "memberBlocklist",
   "storageLinks",
   "subscriptionPause",
+  // RRR-267: the kind of every table in words, read on the server by Trash and the legal-hold picker.
+  "trash",
   "ui",
 ];
 

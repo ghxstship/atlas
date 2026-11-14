@@ -1,5 +1,12 @@
 import { readFileSync } from "node:fs";
-import { expect as baseExpect, settle, test, type Browser, type Page } from "./engine-test";
+import {
+  expect as baseExpect,
+  selectAllText,
+  settle,
+  test,
+  type Browser,
+  type Page,
+} from "./engine-test";
 import { act, ORG, signIn } from "./a16-support";
 import { expectAccessible, uniqueId } from "./support";
 
@@ -166,7 +173,7 @@ test("two people on one budget see each other, and each other's edits live", asy
   await grid(owner)
     .getByRole("gridcell", { name: new RegExp(lineName) })
     .dblclick();
-  await owner.keyboard.press("ControlOrMeta+a");
+  await selectAllText(owner);
   await owner.keyboard.type(`${lineName}, two rows`);
   await owner.keyboard.press("Enter");
   await expect(grid(page)).toContainText(`${lineName}, two rows`);

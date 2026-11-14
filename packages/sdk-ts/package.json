@@ -1,6 +1,6 @@
 {
   "name": "@ghxstship/xos-sdk",
-  "version": "4.13.0",
+  "version": "4.14.0",
   "description": "TypeScript SDK for the XOS public API, generated from the OpenAPI v1 document.",
   "license": "MIT",
   "author": "GHXSTSHIP Industries LLC",
