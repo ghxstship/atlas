@@ -64,6 +64,22 @@ jobs:
           SDK_RANGE="$(tar -xzOf "$RUNNER_TEMP/npm/ghxstship-xos-cli-${VERSION}.tgz" package/package.json \
             | node -e 'let s="";process.stdin.on("data",(c)=>(s+=c)).on("end",()=>console.log(JSON.parse(s).dependencies["@ghxstship/xos-sdk"]))')"
           [ "$SDK_RANGE" = "$VERSION" ] || { echo "::error::the packed CLI depends on @ghxstship/xos-sdk ${SDK_RANGE}, not ${VERSION}"; exit 1; }
+      # tokens, icons, i18n, schemas and ui are @xos/* and private in the workspace; the script packs each as
+      # @ghxstship/xos-<name> at the tag's version and fails when an archive would not stand on its own.
+      - name: Build and pack the design packages
+        run: |
+          VERSION="${TAG#v}"
+          pnpm turbo run test --filter=@xos/tokens --filter=@xos/icons --filter=@xos/i18n --filter=@xos/schemas --filter=@xos/ui
+          pnpm --filter @xos/tokens build
+          node infra/ci/pack-design-packages.mjs "$VERSION" "$RUNNER_TEMP/npm"
+          for name in tokens icons i18n schemas ui; do
+            test -s "$RUNNER_TEMP/npm/ghxstship-xos-${name}-${VERSION}.tgz"
+          done
+          tar -tzf "$RUNNER_TEMP/npm/ghxstship-xos-schemas-${VERSION}.tgz" | grep -qx package/plans.yaml
+          # The packed ui must depend on these exact sibling versions through npm aliases, never workspace:*.
+          TOKENS_RANGE="$(tar -xzOf "$RUNNER_TEMP/npm/ghxstship-xos-ui-${VERSION}.tgz" package/package.json \
+            | node -e 'let s="";process.stdin.on("data",(c)=>(s+=c)).on("end",()=>console.log(JSON.parse(s).dependencies["@xos/tokens"]))')"
+          [ "$TOKENS_RANGE" = "npm:@ghxstship/xos-tokens@${VERSION}" ] || { echo "::error::the packed ui depends on @xos/tokens ${TOKENS_RANGE}"; exit 1; }
       - name: Build Python distributions
         run: |
           python -m pip install build==1.3.0 twine==6.2.0
@@ -103,8 +119,9 @@ jobs:
         with:
           name: npm-packages
           path: npm
-      # The SDK first: the CLI depends on the exact SDK version.
-      - name: Publish @ghxstship/xos-sdk and @ghxstship/xos-cli
+      # The SDK first: the CLI depends on the exact SDK version. Then the design packages, ui last: it
+      # depends on the exact tokens, icons and i18n versions.
+      - name: Publish the SDK, the CLI and the design packages
         env:
           # Only the first publish uses NPM_TOKEN: npm adds a trusted publisher to a package that exists, and
           # the owner then deletes the secret, after which npm exchanges this job's OIDC token instead
@@ -117,7 +134,7 @@ jobs:
               echo "$1@${VERSION} is already published; skipping."
             else
               # No --provenance: npm signs provenance only for packages built in a public repository, and
-              # this one is private (owner decision, 2026-10-24). Both manifests also set publishConfig.provenance
+              # this one is private (owner decision, 2026-10-24). Every manifest also sets publishConfig.provenance
               # to false, since npm reads publishConfig from the archive.
               npm publish "$2" --access public
             fi
@@ -125,6 +142,9 @@ jobs:
           # "./" keeps npm from reading "npm/<file>.tgz" as a GitHub owner/repo shorthand.
           publish @ghxstship/xos-sdk "./npm/ghxstship-xos-sdk-${VERSION}.tgz"
           publish @ghxstship/xos-cli "./npm/ghxstship-xos-cli-${VERSION}.tgz"
+          for name in tokens icons i18n schemas ui; do
+            publish "@ghxstship/xos-${name}" "./npm/ghxstship-xos-${name}-${VERSION}.tgz"
+          done
 
   pypi:
     name: Publish to PyPI
