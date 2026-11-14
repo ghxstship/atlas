@@ -115,12 +115,14 @@ type PublicRpc = {
 /**
  * Stores a decision server-side (api_public.record_cookie_consent). A Global Privacy Control signal
  * is recorded in app.privacy_signals and refuses every non-essential category. Answers false when
- * the database refused it (rate limit or malformed visitor id).
+ * the database refused it (rate limit or malformed visitor id). `bannerVersion` is the policy
+ * version the visitor saw; the database stamps the time of the decision itself.
  */
 export async function recordCookieConsent(
   db: XosClient,
   consent: CookieConsent,
   orgSlug: string | null = null,
+  bannerVersion: string = CONSENT_BANNER_VERSION,
 ): Promise<Result<boolean>> {
   const api = (db as unknown as { schema(name: "api_public"): PublicRpc }).schema("api_public");
   const { data, error } = await api.rpc("record_cookie_consent", {
@@ -129,7 +131,7 @@ export async function recordCookieConsent(
     p_functional: consent.preferences,
     p_analytics: consent.performance,
     p_marketing: false,
-    p_banner_version: CONSENT_BANNER_VERSION,
+    p_banner_version: bannerVersion,
     p_global_privacy_control: consent.gpc,
   });
   if (error) return fail(toDataError(error));

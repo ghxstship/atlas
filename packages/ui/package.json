@@ -11,6 +11,7 @@
   "exports": {
     ".": "./src/index.ts",
     "./legal-text": "./src/LegalText/index.ts",
+    "./consent": "./src/ConsentBanner/index.ts",
     "./static": "./src/static.ts",
     "./preferences": "./src/lib/preferences.ts",
     "./shortcut-targets": "./src/lib/shortcut-targets.ts",
