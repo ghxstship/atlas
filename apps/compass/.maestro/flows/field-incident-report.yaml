@@ -95,6 +95,12 @@ tags:
     direction: DOWN
     timeout: 15000
 - assertVisible: "Guest slipped near Gate A"
+- scrollUntilVisible:
+    element:
+      text: ".*changes waiting to upload.*"
+    direction: UP
+    visibilityPercentage: 100
+    timeout: 15000
 # Filed on the device only: the report and its three files wait to upload.
 - extendedWaitUntil:
     visible: ".*changes waiting to upload.*"
