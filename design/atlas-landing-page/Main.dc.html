@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="en-US">
+<head>
+<meta charset="utf-8">
+<title>Atlas Landing Page</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/xos/tokens.css">
+<link rel="stylesheet" href="ds/xos/components/bundle.css">
+<script src="ds/xos/components/lib/react-alias.js"></script>
+<script src="ds/xos/components/lib/lucide-react.min.js"></script>
+<script src="ds/xos/components/lib/qrcode-generator.js"></script>
+<script src="ds/xos/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400..700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+html body{margin:0;padding:0}
+a{color:var(--accent-text)}a:hover{color:var(--accent-text)}
+</style>
+</helmet>
+<div data-theme="{{theme}}" style="background: var(--bg-canvas); color: var(--text-primary); font-family: var(--font-sans); font-size: 14px; line-height: 1.45">
+
+<header class="xos-mkt-nav">
+<div class="xos-mkt-wrap xos-mkt-nav-bar">
+<a class="xos-mkt-nav-brand" href="#top"><x-import component-from-global-scope="XOS.BrandMark" name="Atlas"></x-import></a>
+<nav class="xos-mkt-nav-links" aria-label="Main">
+<ul>
+<li><a href="#lifecycle">Lifecycle</a></li>
+<li><a href="#surfaces">Surfaces</a></li>
+<li><a href="#compare">Compare</a></li>
+<li><a href="#open">Developers</a></li>
+<li><a href="#pricing">Pricing</a></li>
+<li><a href="#faq">Questions</a></li>
+</ul>
+</nav>
+<div class="xos-mkt-nav-actions">
+<div class="xos-mkt-nav-secondary"><x-import component-from-global-scope="XOS.ButtonLink" href="#sign-in" variant="ghost" size="lg">Sign In</x-import></div>
+<x-import component-from-global-scope="XOS.ButtonLink" href="#pricing" variant="primary" size="lg">Start Free</x-import>
+</div>
+</div>
+</header>
+
+<main id="top">
+
+<section class="xos-mkt-hero">
+<div class="xos-mkt-wrap xos-mkt-hero-grid">
+<div class="xos-mkt-hero-copy">
+<p class="xos-mkt-eyebrow">Atlas 4.0</p>
+<h1 class="xos-mkt-display-64">Run every production from scope to close in one system.</h1>
+<p class="xos-mkt-lead">Atlas is event production management software for teams that plan, budget, staff, advance and run live productions. Your team works in one workspace, and your vendors, crew and clients join free.</p>
+<div class="xos-mkt-actions">
+<x-import component-from-global-scope="XOS.ButtonLink" href="#pricing" variant="primary" size="xl">Start Free</x-import>
+<x-import component-from-global-scope="XOS.ButtonLink" href="#pricing" size="xl">Start Free Trial</x-import>
+</div>
+<p class="xos-mkt-note">Access is free for one seat and one active project. Paid plans start with a 14-day trial.</p>
+</div>
+<div class="xos-mkt-hero-media">
+<x-import component-from-global-scope="XOS.ScreenshotFrame" title="Northwind Live" alt="Atlas gate readiness for Gate 3, Advance, on a Northwind Live project: three blocking criteria are met with evidence and one permit criterion is open." caption="Gate readiness in Atlas, shown with preview data.">
+<x-import component-from-global-scope="XOS.GateReadinessPanel" gate="{{three}}" code="ADV" name="Advance" next-label="Enter Gate 4" criteria="{{criteria}}"></x-import>
+</x-import>
+</div>
+</div>
+</section>
+
+<section id="roles" class="xos-mkt-section xos-mkt-section-surface" aria-labelledby="roles-title">
+<div class="xos-mkt-wrap">
+<header class="xos-mkt-section-head">
+<p class="xos-mkt-eyebrow">Built for Every Role</p>
+<h2 id="roles-title" class="xos-mkt-display-40">One record for the office, the field and your partners.</h2>
+<p class="xos-mkt-lead">Atlas gives each role its own view of the same production. Producers see gate readiness, finance sees commitments against purchase orders, coordinators see advancing and logistics, and field crew see the day. External parties work through Gateway at no cost.</p>
+</header>
+<x-import component-from-global-scope="XOS.PersonaSwitcher" label="Choose your role" hash="{{no}}" personas="{{personas}}"></x-import>
+</div>
+</section>
+
+<section id="lifecycle" class="xos-mkt-section" aria-labelledby="lifecycle-title">
+<div class="xos-mkt-wrap">
+<header class="xos-mkt-section-head">
+<p class="xos-mkt-eyebrow">One Lifecycle, Nine Gates</p>
+<h2 id="lifecycle-title" class="xos-mkt-display-40">Every production moves through nine gates.</h2>
+<p class="xos-mkt-lead">Atlas runs each production through nine gates in three acts: Plan, Build and Show. Each gate lists its criteria, and a blocking criterion without evidence stops the gate from opening. The database enforces that rule, so the state of a project is a record, not an opinion.</p>
+</header>
+<div style="display: flex; flex-direction: column; gap: 40px">
+<x-import component-from-global-scope="XOS.ProofStatStrip" label="Atlas by the numbers" items="{{proof}}"></x-import>
+<x-import component-from-global-scope="XOS.GateLifecycleRail" label="The nine gates" acts="{{acts}}"></x-import>
+</div>
+</div>
+</section>
+
+<section id="surfaces" class="xos-mkt-section xos-mkt-section-surface" aria-labelledby="surfaces-title">
+<div class="xos-mkt-wrap">
+<header class="xos-mkt-section-head">
+<p class="xos-mkt-eyebrow">Three Surfaces, One Record</p>
+<h2 id="surfaces-title" class="xos-mkt-display-40">Your team, your partners and your crew on one record.</h2>
+<p class="xos-mkt-lead">XOS serves three surfaces from one backend, one database and one API. Atlas is the workspace for your team, Gateway is the portal for the companies and people you engage, and Compass is the field app. A change made in one is the same record in the others.</p>
+</header>
+<x-import component-from-global-scope="XOS.SurfaceTriptych" items="{{surfaces}}"></x-import>
+</div>
+</section>
+
+<section id="workspace" class="xos-mkt-section" aria-labelledby="workspace-title">
+<div class="xos-mkt-wrap">
+<header class="xos-mkt-section-head">
+<p class="xos-mkt-eyebrow">One Workspace</p>
+<h2 id="workspace-title" class="xos-mkt-display-40">Every department works in the same project.</h2>
+<p class="xos-mkt-lead">Atlas organizes work under ten departments, from Executive to Technology, and groups its modules into Production, Operations, People, Commercial and Knowledge. Each discipline works in its own module, and every module reads and writes the same project.</p>
+</header>
+<div style="display: flex; flex-direction: column; gap: 24px">
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<x-import component-from-global-scope="XOS.DepartmentChip" code="0000" name="Executive"></x-import>
+<x-import component-from-global-scope="XOS.DepartmentChip" code="1000" name="Creative"></x-import>
+<x-import component-from-global-scope="XOS.DepartmentChip" code="2000" name="Talent"></x-import>
+<x-import component-from-global-scope="XOS.DepartmentChip" code="3000" name="Marketing"></x-import>
+<x-import component-from-global-scope="XOS.DepartmentChip" code="4000" name="Environment"></x-import>
+<x-import component-from-global-scope="XOS.DepartmentChip" code="5000" name="Production"></x-import>
+<x-import component-from-global-scope="XOS.DepartmentChip" code="6000" name="Operations"></x-import>
+<x-import component-from-global-scope="XOS.DepartmentChip" code="7000" name="Experience"></x-import>
+<x-import component-from-global-scope="XOS.DepartmentChip" code="8000" name="Hospitality"></x-import>
+<x-import component-from-global-scope="XOS.DepartmentChip" code="9000" name="Technology"></x-import>
+</div>
+<x-import component-from-global-scope="XOS.FeatureGrid" columns="{{five}}" items="{{modules}}"></x-import>
+</div>
+</div>
+</section>
+
+<section id="compare" class="xos-mkt-section xos-mkt-section-surface" aria-labelledby="compare-title">
+<div class="xos-mkt-wrap">
+<header class="xos-mkt-section-head">
+<p class="xos-mkt-eyebrow">How Atlas Compares</p>
+<h2 id="compare-title" class="xos-mkt-display-40">One system where others sell the parts.</h2>
+<p class="xos-mkt-lead">Atlas combines a gated production lifecycle, procurement with three-way match, a free plan with free external users and an open source license. The table compares Atlas with three alternatives on features each company states on its public pages, and every cell from another company links to its source.</p>
+</header>
+<x-import component-from-global-scope="XOS.ComparisonTable" caption="Atlas and three alternatives" verified="November 14, 2026" columns="{{cmpColumns}}" rows="{{cmpRows}}" footnote="Unpublished means the product does not state the feature on its public pages. It does not mean the feature is absent. Product names are trademarks of their owners."></x-import>
+</div>
+</section>
+
+<section id="open" class="xos-mkt-section" aria-labelledby="open-title">
+<div class="xos-mkt-wrap">
+<header class="xos-mkt-section-head">
+<p class="xos-mkt-eyebrow">Open by Design</p>
+<h2 id="open-title" class="xos-mkt-display-40">Open source platform. Documented API. Your data stays yours.</h2>
+<p class="xos-mkt-lead">Atlas is open source. The platform is licensed under AGPL-3.0, and the SDKs, command line tool, MCP server, design tokens and UI libraries are licensed under MIT. A public API is documented in OpenAPI 3.1, so your integrations build on a published contract.</p>
+</header>
+<div style="display: flex; flex-direction: column; gap: 24px">
+<x-import component-from-global-scope="XOS.FeatureGrid" columns="{{threeCols}}" items="{{developer}}"></x-import>
+<div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start">
+<div style="flex: 1 1 360px; min-width: 0; max-width: 560px">
+<x-import component-from-global-scope="XOS.CodeSample" label="Install the SDK" code="{{sdkCode}}"></x-import>
+</div>
+<div style="flex: 1 1 280px; display: flex; flex-direction: column; gap: 12px; align-items: flex-start">
+<div class="xos-mkt-actions">
+<x-import component-from-global-scope="XOS.ButtonLink" href="#api" size="xl">Read API Docs</x-import>
+<x-import component-from-global-scope="XOS.ButtonLink" href="https://github.com/ghxstship/atlas" variant="ghost" size="xl" trailing-icon="ArrowRight">View Source</x-import>
+</div>
+<p class="xos-mkt-note">API keys and webhooks are included from the Pro plan.</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+
+<section id="aurora" class="xos-mkt-section xos-mkt-section-surface" aria-labelledby="aurora-title">
+<div class="xos-mkt-wrap">
+<header class="xos-mkt-section-head">
+<p class="xos-mkt-eyebrow">Aurora AI</p>
+<h2 id="aurora-title" class="xos-mkt-display-40">AI that stays off until an Admin turns it on.</h2>
+<p class="xos-mkt-lead">Aurora is the set of AI features in Atlas. Every feature is off until an organization Admin turns it on, and each of the six features has its own switch. Aurora uses Anthropic Claude models. AI output can be wrong, so check it before you rely on it.</p>
+<x-import component-from-global-scope="XOS.AIDisclosureBadge" provider="Aurora uses Anthropic Claude models." href="#ai-notice" link-label="Read AI Features Notice"></x-import>
+</header>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px">
+<div class="xos-card" style="padding: 20px; display: flex; flex-direction: column; gap: 12px">
+<p class="xos-label" style="margin: 0">Six switches, each off by default</p>
+<ul class="xos-mkt-points">
+<li><x-import component-from-global-scope="XOS.Icon" name="ToggleLeft" size="{{sixteen}}" color="var(--text-secondary)"></x-import><span>Assistant</span></li>
+<li><x-import component-from-global-scope="XOS.Icon" name="ToggleLeft" size="{{sixteen}}" color="var(--text-secondary)"></x-import><span>Ask in Plain Language</span></li>
+<li><x-import component-from-global-scope="XOS.Icon" name="ToggleLeft" size="{{sixteen}}" color="var(--text-secondary)"></x-import><span>Document Extraction</span></li>
+<li><x-import component-from-global-scope="XOS.Icon" name="ToggleLeft" size="{{sixteen}}" color="var(--text-secondary)"></x-import><span>Drafting</span></li>
+<li><x-import component-from-global-scope="XOS.Icon" name="ToggleLeft" size="{{sixteen}}" color="var(--text-secondary)"></x-import><span>Summaries</span></li>
+<li><x-import component-from-global-scope="XOS.Icon" name="ToggleLeft" size="{{sixteen}}" color="var(--text-secondary)"></x-import><span>Mapping Help</span></li>
+</ul>
+</div>
+<div class="xos-card" style="padding: 20px; display: flex; flex-direction: column; gap: 12px">
+<p class="xos-label" style="margin: 0">Monthly allowance by plan</p>
+<dl class="xos-mkt-plan-limits">
+<div><dt>Access</dt><dd class="xos-num">Not included</dd></div>
+<div><dt>Core</dt><dd class="xos-num">500 requests</dd></div>
+<div><dt>Pro</dt><dd class="xos-num">2,000 requests</dd></div>
+<div><dt>Team</dt><dd class="xos-num">10,000 requests</dd></div>
+<div><dt>Enterprise</dt><dd class="xos-num">Set by contract</dd></div>
+</dl>
+</div>
+</div>
+</div>
+</section>
+
+<section id="trust" class="xos-mkt-section" aria-labelledby="trust-title">
+<div class="xos-mkt-wrap">
+<header class="xos-mkt-section-head">
+<p class="xos-mkt-eyebrow">Security, Privacy &amp; Accessibility</p>
+<h2 id="trust-title" class="xos-mkt-display-40">Security, privacy and accessibility, documented in public.</h2>
+<p class="xos-mkt-lead">Atlas publishes its Security Overview, Privacy Policy, Subprocessor List, Accessibility Statement and Service Level Agreement. SOC 2 Type II and ISO/IEC 27001 programs are in readiness, and Atlas holds no certification today. The accessibility target is WCAG 2.2 Level AA.</p>
+</header>
+<x-import component-from-global-scope="XOS.FeatureGrid" columns="{{threeCols}}" items="{{trust}}"></x-import>
+</div>
+</section>
+
+<section id="pricing" class="xos-mkt-section xos-mkt-section-surface" aria-labelledby="pricing-title">
+<div class="xos-mkt-wrap">
+<header class="xos-mkt-section-head">
+<p class="xos-mkt-eyebrow">Pricing</p>
+<h2 id="pricing-title" class="xos-mkt-display-40">Start free. Upgrade when the show grows.</h2>
+<p class="xos-mkt-lead">Atlas pricing is public. Access is free, Core is USD 149 a month, Pro is USD 399 a month and Team is USD 899 a month, and Enterprise is quoted from USD 2,500 a month. Annual billing costs ten times the monthly price, and paid plans start with a 14-day trial.</p>
+</header>
+<x-import component-from-global-scope="XOS.PricingTable" currency="USD" tax-mode="exclusive" periods="{{periods}}" plans="{{plans}}" terms="Paid plans start with a 14-day trial. A plan renews each month or each year at the price shown until you cancel. You cancel online in Billing and Plan, and the plan runs to the end of the paid period. Viewers, field crew and external parties never take a seat. Founding customers take 30 percent off the first year with the code FOUNDING30, which the first 50 customers can redeem."></x-import>
+</div>
+</section>
+
+<section id="faq" class="xos-mkt-section" aria-labelledby="faq-title">
+<div class="xos-mkt-wrap">
+<header class="xos-mkt-section-head">
+<p class="xos-mkt-eyebrow">Questions &amp; Answers</p>
+<h2 id="faq-title" class="xos-mkt-display-40">Answers before you start.</h2>
+</header>
+<x-import component-from-global-scope="XOS.FAQ" items="{{faqs}}"></x-import>
+</div>
+</section>
+
+<section class="xos-mkt-hero xos-mkt-hero-compact xos-mkt-hero-solo">
+<div class="xos-mkt-wrap xos-mkt-hero-grid">
+<div class="xos-mkt-hero-copy">
+<h2 class="xos-mkt-display-48">Start your first production today.</h2>
+<p class="xos-mkt-lead">Access is free for one seat and one active project, and your vendors, crew and clients join free.</p>
+<div class="xos-mkt-actions">
+<x-import component-from-global-scope="XOS.ButtonLink" href="#pricing" variant="primary" size="xl">Start Free</x-import>
+<x-import component-from-global-scope="XOS.ButtonLink" href="#sales" size="xl">Talk to Sales</x-import>
+</div>
+</div>
+</div>
+</section>
+
+</main>
+
+<x-import component-from-global-scope="XOS.MarketingFooter" brand="{{brand}}" tagline="Atlas is part of XOS, the Experiential Operating System, published by GHXSTSHIP Industries LLC." label="Footer" columns="{{footerColumns}}" locales="{{locales}}" locale="en-US" theme="{{theme}}" on-theme="{{setTheme}}" legal="© 2026 GHXSTSHIP Industries LLC. Prices are in USD and exclude applicable taxes. Atlas is offered to organizations in the United States."></x-import>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light","sunlight"],"default":"dark"},"$preview":{"width":1440,"height":9400}}'>
+class Component extends DCLogic {
+renderVals() {
+var REPO = 'https://github.com/ghxstship/atlas/blob/main/';
+var theme = (this.state && this.state.theme) || this.props.theme || 'dark';
+var self = this;
+return {
+theme: theme,
+setTheme: function (v) { self.setState({ theme: v }); },
+no: false, three: 3, five: 5, threeCols: 3, sixteen: 16,
+brand: React.createElement(window.XOS.BrandMark, { name: 'Atlas' }),
+sdkCode: 'npm install @ghxstship/xos-sdk\npip install xos-sdk',
+criteria: [
+{ code: 'G3.PERMITS_FILED', label: 'Every permit the jurisdiction requires is filed with lead time in hand.', result: 'gap', blocking: true, action: 'Open Permits' },
+{ code: 'G3.NO_STALE_DOCS', label: 'No requirement or capability document in the advance set is past its validity window.', result: 'met', blocking: true, evidence: '14 documents' },
+{ code: 'G3.RIGGING_DOCUMENTED', label: 'Where a rigging requirement exists, the venue has a documented point and total load on file.', result: 'met', blocking: true, evidence: 'Rigging plot v2' },
+{ code: 'G3.PO_BASELINE', label: 'PO baseline set; gate 9 reconciles against it.', result: 'met', blocking: true, evidence: 'PO baseline v1' }
+],
+personas: [
+{ value: 'producers', label: 'Producers', icon: 'Clapperboard', title: 'Know where every show stands.', body: 'Each project moves through nine gates, and each gate lists its criteria with the evidence behind them. You see what is open before it becomes a surprise.', pointsTitle: 'What you get', points: ['Gate readiness with evidence for every project', 'Budget versions and forecasts beside the schedule', 'Approval rules with separation of duties'], primary: { label: 'Start Free Trial', href: '#pricing' }, secondary: { label: 'Start Free', href: '#pricing' } },
+{ value: 'finance', label: 'Finance', icon: 'Landmark', title: 'Commit spend only against a purchase order.', body: 'Requests become RFQs, RFQs become purchase orders, and receipts close the loop with a three-way match before anything reaches the ledger.', pointsTitle: 'What you get', points: ['RFQs, purchase orders, receipts and three-way match', 'An immutable ledger with period close', 'One posting export for your accounting system'], primary: { label: 'Start Free Trial', href: '#pricing' }, secondary: { label: 'See Pricing', href: '#pricing' } },
+{ value: 'coordinators', label: 'Coordinators', icon: 'ClipboardList', title: 'Advance every show from one packet.', body: 'Advance packets, riders, travel, lodging and dock slots sit on the project they belong to, so the show you advance is the show finance budgets and the crew works.', pointsTitle: 'What you get', points: ['Advance packets, riders and reconciliation', 'Lodging, catering, travel and ground transport', 'Shipments, dock slots and delivery windows'], primary: { label: 'Start Free Trial', href: '#pricing' }, secondary: { label: 'Start Free', href: '#pricing' } },
+{ value: 'field', label: 'Field Teams', icon: 'HardHat', title: 'Give the crew one place for the day.', body: 'Shifts, day sheets, credentials and incident reports sit on the same record the office works from. Field crew never take a paid seat.', pointsTitle: 'What you get', points: ['Shifts, swaps and timesheets with overtime rules', 'Credentials and an access grid by zone', 'An incident log with a dispatch board'], primary: { label: 'Start Free', href: '#pricing' }, secondary: { label: 'See Pricing', href: '#pricing' } },
+{ value: 'partners-crew', label: 'Vendors & Crew', icon: 'Handshake', title: 'Join the productions that invite you. Free.', body: 'Gateway is the portal for vendors, contractors, crew, staff, artists, representatives, clients and sponsors. You work with every producer that uses Atlas from one account, at no cost on any plan.', pointsTitle: 'What you get', points: ['Bids, purchase orders and invoices for vendors', 'Offers, shifts and timesheets for crew', 'Onboarding, documents and messages in one place'], primary: { label: 'Join as Crew', href: '#gateway' }, secondary: { label: 'Join as Vendor', href: '#gateway' } },
+{ value: 'resellers', label: 'Partners', icon: 'Store', title: 'Resell Atlas under your brand.', body: 'White label gives your clients Atlas on your domain with your mark, and the Partner Console manages their organizations. Partners buy at a wholesale discount of 30 percent off list price.', pointsTitle: 'What you get', points: ['White label, custom domain and branded email', 'A Partner Console for client organizations', '30 percent wholesale discount off list price'], primary: { label: 'Become a Partner', href: '#partners' }, secondary: { label: 'See Pricing', href: '#pricing' } }
+],
+proof: [
+{ value: 9, label: 'Gates from scope to close', source: { label: 'Build specification', href: REPO + 'docs/spec/XOS_4.0_Build_Prompt.md' } },
+{ value: 35, label: 'Gate criteria in the canon', source: { label: 'Canon seed', href: REPO + 'supabase/migrations/0150_xpms_canon_seed.sql' } },
+{ value: 10, label: 'Departments', source: { label: 'Build specification', href: REPO + 'docs/spec/XOS_4.0_Build_Prompt.md' } },
+{ value: 1211, label: 'Catalog items', source: { label: 'Build specification', href: REPO + 'docs/spec/XOS_4.0_Build_Prompt.md' } },
+{ value: 61, label: 'Workforce roles', source: { label: 'Build specification', href: REPO + 'docs/spec/XOS_4.0_Build_Prompt.md' } }
+],
+acts: [
+{ name: 'Plan', range: 'Gates 1 to 3', gates: [
+{ n: 1, code: 'SCP', name: 'Scope', summary: 'Lock the scope, the budget envelope and the jurisdiction.', evidence: 'A budget envelope exists and is approved.' },
+{ n: 2, code: 'ENG', name: 'Engage', summary: 'Execute contracts and name an accountable party for every requirement.', evidence: 'Every requirement in the locked scope carries a named accountable party.' },
+{ n: 3, code: 'ADV', name: 'Advance', summary: 'Reconcile every requirement against the venue and file permits.', evidence: 'Every permit the jurisdiction requires is filed with lead time in hand.' }] },
+{ name: 'Build', range: 'Gates 4 to 6', gates: [
+{ n: 4, code: 'PRC', name: 'Procure', summary: 'Issue awards, pay deposits and confirm long-lead orders.', evidence: 'Every awarded line carries a resolved unit.' },
+{ n: 5, code: 'BLD', name: 'Build', summary: 'Complete fabrication and pass quality control.', evidence: 'Materials received against purchase orders with variance resolved.' },
+{ n: 6, code: 'INS', name: 'Install', summary: 'Install, commission and pass inspection.', evidence: 'Occupant load, egress width and path verified against the adopted code as built, not as drawn.' }] },
+{ name: 'Show', range: 'Gates 7 to 9', gates: [
+{ n: 7, code: 'OPR', name: 'Operate', summary: 'Run the show, strike and sign acceptance.', evidence: 'Every incident, injury and near-miss logged and dispositioned.' },
+{ n: 8, code: 'AMP', name: 'Amplify', summary: 'Deliver capture, clear rights and report measurement.', evidence: 'Contracted sponsor deliverables evidenced and the proof-of-performance report issued.' },
+{ n: 9, code: 'CLS', name: 'Close', summary: 'Reconcile finances, return assets and discharge obligations.', evidence: 'Financially reconciled; final cost report filed against the gate 3 baseline.' }] }
+],
+surfaces: [
+{ name: 'Atlas', icon: 'LayoutDashboard', audience: 'Your team', body: 'The workspace where producers, finance and coordinators plan, budget, procure, staff, advance and close productions.', status: { label: 'Available', tone: 'success' }, points: ['Projects, schedule, show and advancing', 'Finance, procurement and vendors', 'Crew, credentials and safety'], link: { label: 'See Pricing', href: '#pricing' } },
+{ name: 'Gateway', icon: 'DoorOpen', audience: 'Your partners', body: 'The portal where vendors, contractors, crew, staff, artists, representatives, clients and sponsors work with you.', status: { label: 'Available', tone: 'success' }, points: ['Free for every external party', 'One account across every producer', 'Bids, onboarding, documents and invoices'], link: { label: 'Read Gateway Guide', href: '#gateway' } },
+{ name: 'Compass', icon: 'Compass', audience: 'Your field crew', body: 'The offline-first field app for shifts, clock in, scanning, inspections and incidents on iOS and Android.', status: { label: 'In Progress', tone: 'warning' }, points: ['Built in the same repository', 'Not yet in the App Store or Google Play'] }
+],
+modules: [
+{ title: 'Production', icon: 'Clapperboard', body: 'Projects, schedule, work orders, run of show and advancing.' },
+{ title: 'Operations', icon: 'Truck', body: 'Places, logistics, hospitality, assets, credentials, safety and site operations.' },
+{ title: 'People', icon: 'Users', body: 'People, opportunities and crew, from requisition to timesheet.' },
+{ title: 'Commercial', icon: 'Landmark', body: 'Finance, procurement and vendors, from budget to ledger.' },
+{ title: 'Knowledge', icon: 'BookOpen', body: 'Procedures, documents, reports and the canon browser.' }
+],
+cmpColumns: [{ name: 'Atlas', highlight: true }, { name: 'LASSO' }, { name: 'Master Tour' }, { name: 'Rentman' }],
+cmpRows: [
+{ feature: 'Gated lifecycle with evidence', cells: [{ value: 'yes' }, { value: 'unpublished' }, { value: 'unpublished' }, { value: 'unpublished' }] },
+{ feature: 'Procurement with three-way match', cells: [{ value: 'yes' }, { value: 'unpublished' }, { value: 'unpublished' }, { value: 'unpublished' }] },
+{ feature: 'Run of show and show calling', cells: [{ value: 'yes' }, { value: 'yes', source: { label: 'lasso.io', href: 'https://www.lasso.io/press-releases/lasso-acquires-shoflo/' } }, { value: 'unpublished' }, { value: 'unpublished' }] },
+{ feature: 'Advancing', cells: [{ value: 'yes' }, { value: 'unpublished' }, { value: 'yes', source: { label: 'eventric.com', href: 'https://www.eventric.com/pricing/' } }, { value: 'unpublished' }] },
+{ feature: 'Free plan and free external users', cells: [{ value: 'yes' }, { value: 'unpublished' }, { value: 'partial', source: { label: 'eventric.com', href: 'https://www.eventric.com/pricing/' } }, { value: 'no', source: { label: 'capterra.com', href: 'https://www.capterra.com/p/144616/Rentman/' } }] },
+{ feature: 'Public pricing', cells: [{ value: 'yes' }, { value: 'no', source: { label: 'lasso.io', href: 'https://www.lasso.io/faqs/' } }, { value: 'yes', source: { label: 'eventric.com', href: 'https://www.eventric.com/pricing/' } }, { value: 'yes', source: { label: 'capterra.com', href: 'https://www.capterra.com/p/144616/Rentman/' } }] },
+{ feature: 'Open source license', cells: [{ value: 'yes' }, { value: 'unpublished' }, { value: 'unpublished' }, { value: 'unpublished' }] }
+],
+developer: [
+{ title: 'Public API', icon: 'Braces', body: 'The API is documented in OpenAPI 3.1 and versioned at /api/v1.', link: { label: 'Read API Docs', href: '#api' } },
+{ title: 'SDKs & CLI', icon: 'Terminal', body: 'TypeScript and Python SDKs and a command line tool, licensed under MIT.', link: { label: 'View Source', href: 'https://github.com/ghxstship/atlas' } },
+{ title: 'MCP Server', icon: 'Bot', body: 'Connect AI agents to your workspace through the hosted MCP server.', link: { label: 'Read MCP Guide', href: '#mcp' } }
+],
+trust: [
+{ title: 'Security', icon: 'Lock', body: 'Passkeys and multi-factor sign-in on every plan. SAML single sign-on and SCIM on Enterprise.', link: { label: 'Read Security Overview', href: '#security' } },
+{ title: 'Privacy', icon: 'ShieldCheck', body: 'Atlas honors Global Privacy Control and sets no advertising or tracking cookies.', link: { label: 'Read Privacy Policy', href: '#privacy' } },
+{ title: 'Accessibility', icon: 'Accessibility', body: 'The target is WCAG 2.2 Level AA, with a public statement and a feedback channel.', link: { label: 'Read Accessibility Statement', href: '#accessibility' } }
+],
+periods: [{ value: 'monthly', label: 'Monthly', unit: 'month' }, { value: 'annual', label: 'Annual', unit: 'year', note: 'Annual billing is ten times the monthly price.' }],
+plans: [
+{ name: 'Access', blurb: 'Atlas Lite for one person and one production.', prices: { monthly: 0, annual: 0 }, cta: { label: 'Start Free', href: '#start' }, limits: [{ label: 'Seats', value: '1' }, { label: 'Active projects', value: '1' }, { label: 'Field members', value: '10' }, { label: 'Engagements a month', value: '25' }] },
+{ name: 'Core', blurb: 'For a small team running productions end to end.', prices: { monthly: 149, annual: 1490 }, cta: { label: 'Start Free Trial', href: '#core' }, limits: [{ label: 'Seats', value: '5' }, { label: 'Active projects', value: 'Unlimited' }, { label: 'Field members', value: 'Unlimited' }, { label: 'Engagements a month', value: '250' }], featuresTitle: 'Adds', features: ['Approvals', 'Advancing', 'Procurement', 'Accounting export', 'Aurora AI'] },
+{ name: 'Pro', blurb: 'For teams that hire in public and run under their own brand.', prices: { monthly: 399, annual: 3990 }, cta: { label: 'Start Free Trial', href: '#pro' }, recommended: true, limits: [{ label: 'Seats', value: '15' }, { label: 'Active projects', value: 'Unlimited' }, { label: 'Field members', value: 'Unlimited' }, { label: 'Engagements a month', value: '2,500' }], featuresTitle: 'Adds', features: ['White label and custom domain', 'Automations', 'API keys and webhooks', 'Public marketplace listings'] },
+{ name: 'Team', blurb: 'For larger organizations with custom roles and audit needs.', prices: { monthly: 899, annual: 8990 }, cta: { label: 'Start Free Trial', href: '#team' }, limits: [{ label: 'Seats', value: '40' }, { label: 'Active projects', value: 'Unlimited' }, { label: 'Field members', value: 'Unlimited' }, { label: 'Engagements a month', value: 'Unlimited' }], featuresTitle: 'Adds', features: ['Custom roles', 'IP allowlist', 'Audit export', 'Payroll export', 'Priority support'] },
+{ name: 'Enterprise', blurb: 'For organizations that need single sign-on and a contract.', quoteFrom: 2500, note: 'Annual contract.', cta: { label: 'Talk to Sales', href: '#sales' }, limits: [{ label: 'Seats', value: 'Unlimited' }, { label: 'Active projects', value: 'Unlimited' }, { label: 'Field members', value: 'Unlimited' }, { label: 'Engagements a month', value: 'Unlimited' }], featuresTitle: 'Adds', features: ['SAML single sign-on and SCIM', 'Branded Compass build', 'Service credits'] }
+],
+faqs: [
+{ q: 'What is Atlas?', a: 'Atlas is event production management software published by GHXSTSHIP Industries LLC. Teams use it to plan, budget, procure, staff, advance and close live productions in one workspace.', open: true },
+{ q: 'What does Atlas cost?', a: 'Access is free for one seat and one active project. Core is USD 149 a month, Pro is USD 399 a month and Team is USD 899 a month, excluding applicable taxes. Enterprise is quoted from USD 2,500 a month on an annual contract.' },
+{ q: 'Do vendors, crew and clients pay?', a: 'No. External parties join through Gateway at no cost on every plan, and viewers and field crew never take a seat.' },
+{ q: 'What are the nine gates?', a: 'The nine gates are Scope, Engage, Advance, Procure, Build, Install, Operate, Amplify and Close. A gate opens only when its blocking criteria carry evidence.' },
+{ q: 'Is Atlas open source?', a: 'Yes. The platform is licensed under AGPL-3.0. The SDKs, design tokens, UI libraries, schemas, command line tool and MCP server are licensed under MIT, and the canon data is licensed under CC BY 4.0.' },
+{ q: 'Does Atlas have an API?', a: 'Yes. The public API is documented in OpenAPI 3.1, with TypeScript and Python SDKs, a command line tool and an MCP server. API keys and webhooks are included from the Pro plan.' },
+{ q: 'How does Atlas use AI?', a: 'Aurora is the set of AI features in Atlas, and it uses Anthropic Claude models. Every feature is off until an organization Admin turns it on. AI output can be wrong, so check it before you rely on it.' },
+{ q: 'Is there a mobile app?', a: 'Compass, the field app for iOS and Android, is in progress. It is not yet in the App Store or Google Play.' },
+{ q: 'Does Atlas hold security certifications?', a: 'No. SOC 2 Type II and ISO/IEC 27001 programs are in readiness, and Atlas holds no certification today.' },
+{ q: 'Where is Atlas available?', a: 'Atlas is offered to organizations in the United States, in English and Spanish, with prices in USD.' }
+],
+footerColumns: [
+{ title: 'Product', links: [{ label: 'Lifecycle', href: '#lifecycle' }, { label: 'Surfaces', href: '#surfaces' }, { label: 'Compare', href: '#compare' }, { label: 'Pricing', href: '#pricing' }] },
+{ title: 'Developers', links: [{ label: 'API Reference', href: '#api' }, { label: 'Source Code', href: 'https://github.com/ghxstship/atlas' }, { label: 'MCP Server', href: '#mcp' }] },
+{ title: 'Trust', links: [{ label: 'Security Overview', href: '#security' }, { label: 'Accessibility Statement', href: '#accessibility' }, { label: 'AI Features Notice', href: '#ai-notice' }, { label: 'Subprocessors', href: '#subprocessors' }] },
+{ title: 'Legal', links: [{ label: 'Terms of Service', href: '#terms' }, { label: 'Privacy Policy', href: '#privacy' }, { label: 'Cookie Policy', href: '#cookie-policy' }, { label: 'Cookie Settings', href: '#cookie-settings' }] }
+],
+locales: [{ value: 'en-US', label: 'English' }, { value: 'es-US', label: 'Español' }]
+};
+}
+}
+</script>
+</body>
+</html>
