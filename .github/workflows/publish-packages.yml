@@ -69,6 +69,11 @@ jobs:
       - name: Build and pack the design packages
         run: |
           VERSION="${TAG#v}"
+          # A tag before v4.16.0 has no design packages to publish; its SDK, CLI and Python package still do.
+          if [ ! -f infra/ci/pack-design-packages.mjs ]; then
+            echo "${TAG} predates the design packages; skipping them."
+            exit 0
+          fi
           pnpm turbo run test --filter=@xos/tokens --filter=@xos/icons --filter=@xos/i18n --filter=@xos/schemas --filter=@xos/ui
           pnpm --filter @xos/tokens build
           node infra/ci/pack-design-packages.mjs "$VERSION" "$RUNNER_TEMP/npm"
@@ -143,6 +148,8 @@ jobs:
           publish @ghxstship/xos-sdk "./npm/ghxstship-xos-sdk-${VERSION}.tgz"
           publish @ghxstship/xos-cli "./npm/ghxstship-xos-cli-${VERSION}.tgz"
           for name in tokens icons i18n schemas ui; do
+            # Absent for a tag before v4.16.0, which has no design packages.
+            [ -f "./npm/ghxstship-xos-${name}-${VERSION}.tgz" ] || { echo "No ${name} archive for ${TAG}; skipping."; continue; }
             publish "@ghxstship/xos-${name}" "./npm/ghxstship-xos-${name}-${VERSION}.tgz"
           done
 

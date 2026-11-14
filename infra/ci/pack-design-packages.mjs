@@ -8,7 +8,7 @@
  * tracked files, writes a publish manifest beside them and packs that.
  *
  * A published package depends on its siblings through npm aliases (`"@xos/tokens": "npm:@ghxstship/xos-tokens@X.Y.Z"`),
- * so the source inside the archive keeps importing `@xos/*` and is byte for byte what the tag holds. A consumer
+ * so the source inside the archive keeps importing `@xos/*`, unchanged from the tag. A consumer
  * installs them the same way and transpiles them as the Atlas apps do (infra/ci/README.md, section 5).
  *
  * Usage: node infra/ci/pack-design-packages.mjs <version> <output directory>
@@ -84,8 +84,7 @@ const RESOLVE_SUFFIXES = [
 const BUILTINS = new Set(builtinModules);
 
 function fail(message) {
-  console.error(`pack-design-packages: ${message}`);
-  process.exit(1);
+  throw new Error(message);
 }
 
 function trackedFiles(pkg) {
@@ -151,7 +150,7 @@ export function publishManifest(manifest, pkg, version) {
   return out;
 }
 
-function readme(manifest, pkg, version) {
+function readme(manifest, pkg, version, thirdParty) {
   const name = publishedName(pkg);
   const siblings = Object.keys(manifest.dependencies ?? {}).filter((dep) =>
     dep.startsWith("@xos/"),
@@ -165,7 +164,7 @@ function readme(manifest, pkg, version) {
     manifest.description ?? "",
     "",
     `This is \`${manifest.name}\` from the Atlas repository at release v${version}, published under the \`${SCOPE}\` scope.`,
-    "The archive holds the package's TypeScript source exactly as the release tag does.",
+    "The archive holds the package's TypeScript source as the release tag does.",
     "",
     "## Install",
     "",
@@ -179,11 +178,25 @@ function readme(manifest, pkg, version) {
     "}",
     "```",
     "",
-    "The package ships TypeScript, so the consuming build transpiles it. In Next.js, list each alias in `transpilePackages`.",
+    "## Build",
+    "",
+    "The package ships TypeScript, so the consuming build transpiles it.",
+    "",
+    `- In Next.js, list both names of every installed package in \`transpilePackages\`, for example \`"${manifest.name}"\` and \`"${name}"\`. pnpm resolves an alias to the published name, so the alias alone is not enough.`,
+    "- The source imports its own files with `.ts` and `.tsx` extensions, so the consumer's `tsconfig.json` sets `allowImportingTsExtensions` (with `noEmit` and bundler module resolution).",
+    ...(manifest.peerDependencies
+      ? [
+          `- Peer dependencies are exact, as in Atlas at this release: ${Object.entries(
+            manifest.peerDependencies,
+          )
+            .map(([dep, range]) => `\`${dep}\` ${range}`)
+            .join(", ")}.`,
+        ]
+      : []),
     "",
     "## License",
     "",
-    `${manifest.license}. See \`LICENSE\`.`,
+    `${manifest.license}. See \`LICENSE\`${thirdParty ? " and `THIRD_PARTY_NOTICES`" : ""}.`,
     "",
   ].join("\n");
 }
@@ -219,6 +232,16 @@ function packageOf(specifier) {
   return specifier.startsWith("@") ? parts.slice(0, 2).join("/") : parts[0];
 }
 
+/** Every specifier a stylesheet loads: imports, and Tailwind's config, plugin, reference and source files. */
+function cssSpecifiers(source) {
+  const found = new Set();
+  for (const match of source.matchAll(
+    /@(?:import|config|plugin|reference)\s+(?:url\()?["']([^"']+)["']/g,
+  ))
+    found.add(match[1]);
+  return [...found];
+}
+
 /** Problems that would stop the staged package from standing on its own; empty when it does. */
 export function problems(dir, files, manifest, workspaceName) {
   const staged = new Set(files);
@@ -239,9 +262,17 @@ export function problems(dir, files, manifest, workspaceName) {
     ...Object.keys(manifest.peerDependencies ?? {}),
     ...Object.keys(manifest.optionalDependencies ?? {}),
   ]);
+  // Everything under src/ and every file an export names directly: a consumer can load any of them.
+  const exported = new Set(
+    exportTargets(manifest.exports).map((target) => target.replace(/^\.\//, "")),
+  );
   for (const file of files) {
-    if (!SOURCE.test(file) || !file.startsWith("src/")) continue;
-    for (const specifier of specifiers(readFileSync(join(dir, file), "utf8"))) {
+    const css = file.endsWith(".css");
+    if (!css && !SOURCE.test(file)) continue;
+    if (!file.startsWith("src/") && !exported.has(file)) continue;
+    const text = readFileSync(join(dir, file), "utf8");
+    for (const specifier of css ? cssSpecifiers(text) : specifiers(text)) {
+      if (/^https?:\/\//.test(specifier)) continue;
       if (specifier.startsWith(".")) {
         if (!resolvesRelative(staged, file, specifier))
           found.push(`${file} imports ${specifier}, which is not in the archive`);
@@ -274,7 +305,10 @@ function pack(pkg, version, outDir, stageRoot) {
   const published = publishManifest(manifest, pkg, version);
   writeFileSync(join(dir, "package.json"), `${JSON.stringify(published, null, 2)}\n`);
   if (!files.includes("README.md")) {
-    writeFileSync(join(dir, "README.md"), readme(manifest, pkg, version));
+    writeFileSync(
+      join(dir, "README.md"),
+      readme(manifest, pkg, version, files.includes("THIRD_PARTY_NOTICES")),
+    );
     files.push("README.md");
   }
   const found = problems(dir, files, published, manifest.name);
@@ -311,10 +345,17 @@ function main() {
   const stageRoot = mkdtempSync(join(tmpdir(), "xos-design-packages-"));
   try {
     const results = PACKAGES.map((pkg) => pack(pkg, version, outDir, stageRoot));
-    if (results.includes(false)) process.exit(1);
+    if (results.includes(false)) process.exitCode = 1;
   } finally {
     rmSync(stageRoot, { recursive: true, force: true });
   }
 }
 
-if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) main();
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  try {
+    main();
+  } catch (error) {
+    console.error(`pack-design-packages: ${error.message}`);
+    process.exitCode = 1;
+  }
+}
