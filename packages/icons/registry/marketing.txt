@@ -1,0 +1,7 @@
+# Icons the Marketing layer of packages/ui draws by name (design handoff section 10): the comparison
+# cell marks and the surface icons of its previews. One lucide-react name per line.
+CircleDashed
+CircleDot
+CircleMinus
+DoorOpen
+LayoutDashboard
