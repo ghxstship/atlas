@@ -1,7 +1,12 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { parse } from "yaml";
-import { LEGAL_LINK_DOCUMENTS, legalLinks, servesLegalPage } from "@/lib/legal-links";
+import {
+  LEGAL_LINK_DOCUMENTS,
+  legalLinks,
+  servesLegalPage,
+  SMS_CONSENT_LINKS,
+} from "@/lib/legal-links";
 
 /**
  * The public legal links (RRR-248) link only pages Atlas's /legal/[document] serves: a document
@@ -40,5 +45,24 @@ describe("public legal links", () => {
   it("never serves an internal document or an unknown slug", () => {
     expect(servesLegalPage("compliance-matrix")).toBe(false);
     expect(servesLegalPage("no-such-document")).toBe(false);
+  });
+});
+
+describe("the consent to texts links", () => {
+  it("links the Text Message Terms and the Privacy Policy's text message section, both served", () => {
+    expect(SMS_CONSENT_LINKS).toEqual({
+      terms: "/legal/text-message-terms",
+      privacy: "/legal/privacy-policy#section-17",
+    });
+    expect(servesLegalPage("text-message-terms")).toBe(true);
+    expect(servesLegalPage("privacy-policy")).toBe(true);
+  });
+
+  it("points the privacy link at the section headed Text Messages", () => {
+    const policy = readFileSync(
+      new URL("../../../legal/privacy-policy.md", import.meta.url),
+      "utf8",
+    );
+    expect(policy).toMatch(/^## 17\. Text Messages$/m);
   });
 });

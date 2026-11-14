@@ -42,3 +42,13 @@ export function legalLinks(): { key: LegalLinkKey; href: `/legal/${string}` }[] 
     href: `/legal/${d.slug}`,
   }));
 }
+
+/**
+ * The pages the consent to texts links in Personal settings, Notifications (RRR-266): the Text
+ * Message Terms and the Privacy Policy's section on text messages. US carriers review the consent
+ * statement for both links.
+ */
+export const SMS_CONSENT_LINKS = {
+  terms: "/legal/text-message-terms",
+  privacy: "/legal/privacy-policy#section-17",
+} as const;

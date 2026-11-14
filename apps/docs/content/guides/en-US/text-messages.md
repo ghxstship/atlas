@@ -19,13 +19,13 @@ Agreeing is optional. It is not a condition of working with any organization or 
 
 1. Sign in to Atlas and open **Personal settings**, then **Notifications**.
 2. Make sure your account has a verified phone number. Until it does, the page says "Add and verify a phone number on your account to receive texts." and shows no consent box.
-3. Under **What reaches you**, tick the box that reads: "Text me notifications from this organization at {phone}. Message frequency varies. Message and data rates may apply. Reply STOP to stop or HELP for help." In place of {phone}, the box shows the last four digits of your verified number.
+3. Under **What reaches you**, tick the box that reads: "Text me notifications from this organization at {phone}. Message frequency varies. Message and data rates may apply. Reply STOP to stop or HELP for help. See our Text Message Terms and Privacy Policy." In place of {phone}, the box shows the last four digits of your verified number. "Text Message Terms" and "Privacy Policy" are links to those documents. They open in a new tab and do not tick the box.
 4. Choose which kinds of notifications reach you by **Text (SMS)** in the same list.
 5. Select **Save notification settings**.
 
 The box is unchecked until you tick it. It shows checked only when you already agreed for that organization and number.
 
-![The Notifications page in Atlas Personal settings. Under the heading What reaches you, an unchecked box reads: Text me notifications from this organization at a masked phone number. Message frequency varies. Message and data rates may apply. Reply STOP to stop or HELP for help.](/sms-opt-in.png)
+![The Notifications page in Atlas Personal settings. Under the heading What reaches you, an unchecked box reads: Text me notifications from this organization at a masked phone number. Message frequency varies. Message and data rates may apply. Reply STOP to stop or HELP for help. See our Text Message Terms and Privacy Policy. Text Message Terms and Privacy Policy are links.](/sms-opt-in.png)
 
 ## Consent is per organization
 
