@@ -5,6 +5,7 @@ import "@xos/tokens/css/theme.sunlight.css";
 import "../src/styles/index.css";
 import "../src/styles/base.css";
 import "../src/styles/components.css";
+import "../src/styles/marketing.css";
 import "../stories/preview.css";
 import { useEffect, type ReactElement } from "react";
 import type { Decorator, Preview } from "@storybook/react-vite";

@@ -128,6 +128,11 @@ export function useLocale(): string {
   return useLocaleState().locale;
 }
 
+/** The message overrides of the nearest provider, for components that take messages as a prop. */
+export function useMessages(): Messages {
+  return useLocaleState().messages;
+}
+
 export type Translate = (key: string, vars?: MessageVars) => string;
 
 /** A `t` bound to the provider's locale and messages. */

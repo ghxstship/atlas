@@ -77,7 +77,10 @@ let css = "";
 
 beforeAll(async () => {
   const entry = join(stylesDir, "index.css");
-  const compiler = await compile(readFileSync(entry, "utf8"), {
+  // The Marketing sheet is a separate entry (@xos/ui/marketing.css) that public pages add after the
+  // main one, so the product shells do not carry it; it compiles here the way such a page loads it.
+  const sheet = `${readFileSync(entry, "utf8")}\n@import "./marketing.css";\n`;
+  const compiler = await compile(sheet, {
     base: stylesDir,
     from: entry,
     onDependency: () => undefined,
