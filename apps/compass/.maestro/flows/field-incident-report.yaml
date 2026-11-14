@@ -88,7 +88,19 @@ tags:
     visible:
       id: "incident-filed"
     timeout: 10000
+# On the small Android emulator the new report sits below the fold, under the seeded incidents.
+- scrollUntilVisible:
+    element:
+      text: "Guest slipped near Gate A"
+    direction: DOWN
+    timeout: 15000
 - assertVisible: "Guest slipped near Gate A"
+- scrollUntilVisible:
+    element:
+      text: ".*changes waiting to upload.*"
+    direction: UP
+    visibilityPercentage: 100
+    timeout: 15000
 # Filed on the device only: the report and its three files wait to upload.
 - extendedWaitUntil:
     visible: ".*changes waiting to upload.*"

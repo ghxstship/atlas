@@ -350,7 +350,7 @@ jobs:
       # write at shutdown.
       - name: Stop the Colima VM for the build
         run: |
-          docker exec supabase_db_xos4 psql -U postgres -d postgres -c CHECKPOINT
+          docker exec supabase_db_xos4 psql -U supabase_admin -d postgres -c CHECKPOINT
           dependents=$(docker ps --filter "label=com.supabase.cli.project=xos4" --format '{{.Names}}' \
             | grep -v '^supabase_db_xos4$' || true)
           [ -z "$dependents" ] || echo "$dependents" | xargs docker stop -t 30 > /dev/null
