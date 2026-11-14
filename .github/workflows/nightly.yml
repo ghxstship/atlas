@@ -343,8 +343,19 @@ jobs:
       # build, with the simulator booting beside it. The stack is ready and its keys are read, so the VM stops for the
       # build and starts again after it; its containers restart with the VM (restart policy unless-stopped), the
       # database with the kiosk the step above registered.
+      # The stack stops before the VM does, the database last and with time to finish. Stopped with the VM, the
+      # daemon's ten seconds were too few for Postgres in the slow VM: it was killed, came back in crash recovery
+      # ("FATAL 57P03 the database system is not accepting connections", run 43607341920) and stayed unhealthy past
+      # the ten-minute wait, with Auth, Realtime and Storage failing against it. A checkpoint first leaves little to
+      # write at shutdown.
       - name: Stop the Colima VM for the build
-        run: colima stop || colima stop --force
+        run: |
+          docker exec supabase_db_xos4 psql -U postgres -d postgres -c CHECKPOINT
+          dependents=$(docker ps --filter "label=com.supabase.cli.project=xos4" --format '{{.Names}}' \
+            | grep -v '^supabase_db_xos4$' || true)
+          [ -z "$dependents" ] || echo "$dependents" | xargs docker stop -t 30 > /dev/null
+          docker stop -t 300 supabase_db_xos4
+          colima stop || colima stop --force
       - name: Build Compass for the simulator against the CI stack
         working-directory: apps/compass
         run: |
@@ -392,27 +403,44 @@ jobs:
           ")
           echo "UDID=$UDID" >> "$GITHUB_ENV"
           xcrun simctl boot "$UDID"
-      # The containers carry restart policy unless-stopped, so the daemon starts them itself as the VM boots. In run
-      # 43553805418 a docker start sent while it did so raced its own start of the same container and failed
-      # ("AlreadyExists: task ... already exists"). Only containers still exited or created are started, and a
-      # failed start is checked again after a pause: by then the daemon's start has usually landed. A task that stays
-      # stale past that is cleared by restarting the daemon in the VM, which keeps the containers and their volumes.
+      # The database comes up first and alone. The step above stopped the stack by hand, so the daemon does not start
+      # it as the VM boots (restart policy unless-stopped), and no start here races its own (run 43553805418,
+      # "AlreadyExists: task ... already exists"). A start that still fails is tried again after a pause, and a stale
+      # task is cleared by restarting the daemon in the VM, which keeps the containers and their volumes. Auth,
+      # Realtime, Storage and the rest start only once Postgres answers pg_isready inside its container: started
+      # beside a database still in recovery they failed against it (57P03), and Auth could not even resolve
+      # supabase_db_xos4 on the Docker network while that container was not yet running (run 43607341920). Any
+      # dependent already running is restarted, so it connects afresh.
       - name: Start the stack again
         run: |
-          stopped() {
-            docker ps -aq --filter "label=com.supabase.cli.project=xos4" --filter status=exited --filter status=created
+          start() {
+            for attempt in 1 2 3 4 5 6; do
+              ids=$(docker ps -aq --filter "label=com.supabase.cli.project=xos4" --filter status=exited \
+                --filter status=created "$@")
+              [ -z "$ids" ] && return 0
+              [ "$attempt" = 6 ] && { docker ps -a --filter "label=com.supabase.cli.project=xos4"; return 1; }
+              if [ "$attempt" = 4 ]; then
+                colima ssh -- sudo systemctl restart docker
+                sleep 15
+                continue
+              fi
+              echo "$ids" | xargs docker start > /dev/null || sleep 15
+            done
           }
-          for attempt in 1 2 3 4 5 6; do
-            ids=$(stopped)
-            [ -z "$ids" ] && break
-            [ "$attempt" = 6 ] && { docker ps -a --filter "label=com.supabase.cli.project=xos4"; exit 1; }
-            if [ "$attempt" = 4 ]; then
-              colima ssh -- sudo systemctl restart docker
-              sleep 15
-              continue
+          start --filter "name=^supabase_db_xos4$"
+          deadline=$(($(date +%s) + 900))
+          until docker exec supabase_db_xos4 pg_isready -U postgres -h 127.0.0.1 -q; do
+            if [ "$(date +%s)" -ge "$deadline" ]; then
+              echo "Postgres did not accept connections within 900 s." >&2
+              docker logs --tail 80 supabase_db_xos4 >&2 2>&1 || true
+              exit 1
             fi
-            echo "$ids" | xargs docker start > /dev/null || sleep 15
+            sleep 5
           done
+          running=$(docker ps --filter "label=com.supabase.cli.project=xos4" --format '{{.Names}}' \
+            | grep -v '^supabase_db_xos4$' || true)
+          [ -z "$running" ] || echo "$running" | xargs docker restart -t 30 > /dev/null
+          start
           infra/ci/supabase-wait-healthy.sh 600
       - name: Install Compass on the simulator
         run: |

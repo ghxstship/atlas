@@ -48,7 +48,7 @@ tags:
 # screen readers hear it as words. With only the server gone (iOS) the device is still online, so the
 # queued banner alone tells the person, below.
 # The notice sits under the On Shift card and the shift card. On the CI emulator's 640 dp screen it is
-# below the fold, so the flow scrolls to it and back up to the banner (run 43452754701).
+# below the fold, so the flow scrolls to it and back up to the banner's count (run 43452754701).
 - runFlow:
     when:
       platform: Android
@@ -61,10 +61,12 @@ tags:
           timeout: 15000
       - assertVisible:
           id: "clock-notice"
+      # Back up to the queued count in the banner itself, wholly on screen: scrolled up only until the banner
+      # showed, a sliver of it was enough, the count and its label still above the top edge (run 43607341920).
       - scrollUntilVisible:
-          element:
-            id: "sync-offline"
+          element: "1 change waiting to upload"
           direction: UP
+          visibilityPercentage: 100
           timeout: 15000
 # The punch waits on the device: offline on Android, failing against the absent server on iOS.
 - extendedWaitUntil:
