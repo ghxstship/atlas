@@ -120,7 +120,10 @@ module.exports = {
    "32": "var(--space-32)",
    "40": "var(--space-40)",
    "48": "var(--space-48)",
-   "64": "var(--space-64)"
+   "64": "var(--space-64)",
+   "80": "var(--space-80)",
+   "96": "var(--space-96)",
+   "128": "var(--space-128)"
   },
   "borderRadius": {
    "none": "0px",
@@ -252,6 +255,34 @@ module.exports = {
     "32px",
     {
      "lineHeight": "1.2"
+    }
+   ],
+   "display-40": [
+    "40px",
+    {
+     "lineHeight": "1.1",
+     "letterSpacing": "-0.02em"
+    }
+   ],
+   "display-48": [
+    "48px",
+    {
+     "lineHeight": "1.1",
+     "letterSpacing": "-0.02em"
+    }
+   ],
+   "display-56": [
+    "56px",
+    {
+     "lineHeight": "1.1",
+     "letterSpacing": "-0.02em"
+    }
+   ],
+   "display-64": [
+    "64px",
+    {
+     "lineHeight": "1.1",
+     "letterSpacing": "-0.02em"
     }
    ],
    "mono-12": [

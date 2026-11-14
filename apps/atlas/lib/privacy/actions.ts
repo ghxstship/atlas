@@ -1,64 +1,47 @@
 "use server";
 
-import {
-  CONSENT_COOKIE,
-  consentCookieOptions,
-  newVisitorId,
-  preferenceCookieOptions,
-  recordCookieConsent,
-  serializeConsent,
-} from "@xos/data/consent";
+import { CONSENT_BANNER_VERSION } from "@xos/data/consent";
+import { decideConsent, type ConsentChoice } from "@xos/ui/consent";
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
-import { LOCALE_COOKIE } from "@/i18n/negotiate";
-import { LAST_ORG_COOKIE } from "@/lib/shell/last-org";
-import { WORKSPACE_COOKIE } from "@/lib/shell/workspace";
 import { createServerSupabase } from "@/lib/supabase/server";
-import { THEME_COOKIE } from "@/lib/theme";
-import { consentState, secureCookies } from "./consent";
 import { observability } from "@/lib/observability";
-
-/** The Preferences cookies Atlas sets (legal/cookie-policy.md section 3). */
-const PREFERENCE_COOKIES = [
-  LOCALE_COOKIE,
-  THEME_COOKIE,
-  WORKSPACE_COOKIE,
-  LAST_ORG_COOKIE,
-] as const;
+import { consentState, secureCookies } from "./consent";
+import { atlasConsentAdapter, CONSENT_CATEGORIES } from "./consent-adapter";
 
 /**
- * Saves the visitor's cookie choice from the banner or the Cookie settings page (Section 14.3): the
- * decision goes to the server-side consent log (api_public.record_cookie_consent) with the visitor id
- * the consent cookie holds, then the consent cookie is set. Refusing Preferences turns the existing
- * Preferences cookies into cookies that end with the visit. A browser sending Global Privacy Control
- * refuses every non-essential category whatever was ticked. Plain forms, so the banner works before
- * any script loads.
+ * Saves the visitor's cookie choice from the banner or the Cookie settings page (Section 14.3). The
+ * forms are the shared ConsentBanner and ConsentSettings of @xos/ui; the decision is written through
+ * Atlas's consent adapter, to the server-side consent log and the consent cookie. A browser sending
+ * Global Privacy Control refuses every non-essential category whatever was ticked: the signal is the
+ * `Sec-GPC` header, or the `gpc` field Cookie settings posts when only `navigator.globalPrivacyControl`
+ * reports it. The banner and Cookie settings each post that field once per mount, so a post that
+ * carries it does nothing when the consent cookie already holds a refusal from the signal: the
+ * signal is recorded once, as the proxy records the header once. Plain forms, so the banner works
+ * before any script loads.
  */
 export async function saveCookieChoice(form: FormData): Promise<void> {
-  const choice = form.get("choice");
+  const posted = form.get("choice");
+  const choice: ConsentChoice = posted === "all" || posted === "save" ? posted : "none";
   const state = await consentState();
-  const all = choice === "all";
-  const custom = choice === "save";
-  const preferences = !state.gpc && (all || (custom && form.get("preferences") === "on"));
-  const performance = !state.gpc && (all || (custom && form.get("performance") === "on"));
-  const consent = {
-    visitorId: state.consent?.visitorId ?? newVisitorId(),
-    preferences,
-    performance,
-    gpc: state.gpc,
-  };
-  const recorded = await recordCookieConsent(await createServerSupabase(), consent);
-  if (!recorded.ok)
-    observability.logger.error("cookie consent was not recorded", { error: recorded.error });
-
-  const store = await cookies();
-  const secure = secureCookies();
-  store.set(CONSENT_COOKIE, serializeConsent(consent), consentCookieOptions(secure));
-  if (!preferences) {
-    for (const name of PREFERENCE_COOKIES) {
-      const value = store.get(name)?.value;
-      if (value !== undefined) store.set(name, value, preferenceCookieOptions(false, secure));
-    }
-  }
+  const browserSignal = form.get("gpc") === "1";
+  // Under the signal every choice is the same refusal, and this browser's is already recorded.
+  if (browserSignal && state.consent?.gpc === true) return;
+  const [store, db] = await Promise.all([cookies(), createServerSupabase()]);
+  const decision = decideConsent({
+    choice,
+    categories: CONSENT_CATEGORIES,
+    selected: CONSENT_CATEGORIES.filter((name) => form.get(name) === "on"),
+    gpc: state.gpc || browserSignal,
+    policyVersion: CONSENT_BANNER_VERSION,
+  });
+  const adapter = atlasConsentAdapter({
+    db,
+    cookies: store,
+    secure: secureCookies(),
+    onUnrecorded: (error) =>
+      observability.logger.error("cookie consent was not recorded", { error }),
+  });
+  await adapter.write(decision);
   revalidatePath("/", "layout");
 }

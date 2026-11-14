@@ -1,0 +1,1260 @@
+/* Marketing layer of the XOS Design System (decision D20, design handoff section 10). Public pages
+   built from the product tokens: the display type steps display-40 to display-64, the section rhythm
+   space-80 to space-128, and the components under src/Marketing. The class names keep the export's
+   xos-mkt- prefix, so a page author can use the display, wrap, eyebrow, lead, note and actions classes
+   directly. Layout uses logical properties only.
+
+   This sheet is separate from index.css so the product shells do not carry it. A public page imports
+   it after the main sheet:
+     @import "@xos/ui/styles.css";
+     @import "@xos/ui/marketing.css"; */
+
+/* Display type is fluid between bp-sm and 1440 px, and each step starts and ends on a step of the
+   type scale (heading-24 to display-40, heading-32 to display-48 and display-56, display-40 to
+   display-64). The clamp expressions are the export's, kept exactly: the scale has no token for the
+   slope and intercept between two steps, so these four lines are the only raw lengths here. */
+.xos-mkt-display-40,
+.xos-mkt-display-48,
+.xos-mkt-display-56,
+.xos-mkt-display-64 {
+  margin: 0;
+  font-family: var(--font-family-sans);
+  font-weight: var(--font-weight-semibold);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+  color: var(--color-text-primary);
+}
+.xos-mkt-display-40 {
+  /* stylelint-disable-next-line unit-disallowed-list -- fluid display step, exactly as exported */
+  font-size: clamp(24px, 11.2px + 2vw, 40px);
+}
+.xos-mkt-display-48 {
+  /* stylelint-disable-next-line unit-disallowed-list -- fluid display step, exactly as exported */
+  font-size: clamp(32px, 19.2px + 2vw, 48px);
+}
+.xos-mkt-display-56 {
+  /* stylelint-disable-next-line unit-disallowed-list -- fluid display step, exactly as exported */
+  font-size: clamp(32px, 12.8px + 3vw, 56px);
+}
+.xos-mkt-display-64 {
+  /* stylelint-disable-next-line unit-disallowed-list -- fluid display step, exactly as exported */
+  font-size: clamp(40px, 20.8px + 3vw, 64px);
+}
+.xos-mkt-wrap {
+  box-sizing: border-box;
+  inline-size: 100%;
+  max-inline-size: calc(var(--layout-wide) + 2 * var(--space-24));
+  margin-inline: auto;
+  padding-inline: var(--space-16);
+}
+.xos-mkt-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-6);
+  margin: 0;
+  color: var(--color-accent-text);
+  font: var(--typography-label-13);
+}
+.xos-mkt-lead {
+  margin: 0;
+  max-inline-size: var(--layout-reading);
+  color: var(--color-text-secondary);
+  font: var(--typography-text-16);
+  text-wrap: pretty;
+}
+.xos-mkt-note {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font: var(--typography-text-12);
+}
+.xos-mkt-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-12);
+}
+.xos-mkt-tile {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  inline-size: var(--density-control-lg);
+  block-size: var(--density-control-lg);
+  border: var(--stroke-width-hairline) solid var(--color-border-subtle);
+  border-radius: var(--radius-control);
+  background: var(--color-bg-hover);
+  color: var(--color-text-primary);
+}
+.xos-mkt-points {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  font: var(--typography-text-14);
+}
+.xos-mkt-points li {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-8);
+}
+.xos-mkt-points svg {
+  margin-block-start: var(--space-2);
+  color: var(--color-success);
+}
+
+/* Shared marks. The label and the tag are the product label and tag without their context: a public
+   page renders them on the server, where the product components' provider is not available. */
+.xos-mkt-label {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font: var(--typography-text-12);
+  font-weight: var(--font-weight-medium);
+}
+.xos-mkt-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-4);
+  block-size: var(--space-20);
+  padding-inline: var(--space-6);
+  border-radius: var(--radius-chip);
+  background: var(--color-bg-hover);
+  color: var(--color-accent-text);
+  font: var(--typography-text-12);
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap;
+}
+.xos-mkt-persona,
+.xos-mkt-pricing,
+.xos-mkt-act {
+  min-inline-size: 0;
+}
+
+.xos-mkt-section {
+  padding-block: var(--space-64);
+  border-block-start: var(--stroke-width-hairline) solid var(--color-border-subtle);
+  background: var(--color-bg-canvas);
+  color: var(--color-text-primary);
+  font-family: var(--font-family-sans);
+}
+.xos-mkt-section-surface {
+  background: var(--color-bg-surface);
+}
+.xos-mkt-section-head {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-16);
+  max-inline-size: var(--layout-reading);
+  margin-block-end: var(--space-40);
+}
+.xos-mkt-center .xos-mkt-section-head {
+  align-items: center;
+  margin-inline: auto;
+  text-align: center;
+}
+
+.xos-mkt-hero {
+  padding-block: var(--space-48) var(--space-64);
+  background: var(--color-bg-canvas);
+  color: var(--color-text-primary);
+  font-family: var(--font-family-sans);
+}
+.xos-mkt-hero-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-40);
+  align-items: center;
+}
+.xos-mkt-hero-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-20);
+  min-inline-size: 0;
+}
+.xos-mkt-hero-media {
+  min-inline-size: 0;
+}
+.xos-mkt-hero-compact {
+  border-block-start: var(--stroke-width-hairline) solid var(--color-border-subtle);
+  padding-block: var(--space-64);
+}
+.xos-mkt-hero-compact .xos-mkt-hero-copy {
+  align-items: center;
+  max-inline-size: var(--layout-reading);
+  margin-inline: auto;
+  text-align: center;
+}
+.xos-mkt-hero-compact .xos-mkt-actions {
+  justify-content: center;
+}
+
+.xos-mkt-shot {
+  margin: 0;
+  overflow: hidden;
+  border: var(--stroke-width-hairline) solid var(--color-border-strong);
+  border-radius: var(--radius-dialog);
+  background: var(--color-bg-surface);
+}
+.xos-mkt-shot-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  block-size: var(--density-control-lg);
+  padding-inline: var(--space-12);
+  border-block-end: var(--stroke-width-hairline) solid var(--color-border-subtle);
+}
+.xos-mkt-shot-bar i {
+  inline-size: var(--space-8);
+  block-size: var(--space-8);
+  border-radius: var(--radius-pill);
+  background: var(--color-border-strong);
+}
+.xos-mkt-shot-bar span {
+  margin-inline-start: var(--space-8);
+  color: var(--color-text-tertiary);
+  font: var(--typography-text-12);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.xos-mkt-shot-view {
+  background: var(--color-bg-canvas);
+}
+.xos-mkt-shot-view img {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+}
+.xos-mkt-shot-live {
+  box-sizing: border-box;
+  overflow: hidden;
+  padding: var(--space-16);
+  font: var(--typography-text-13);
+}
+.xos-mkt-shot figcaption {
+  padding-block: var(--space-8);
+  padding-inline: var(--space-12);
+  border-block-start: var(--stroke-width-hairline) solid var(--color-border-subtle);
+  color: var(--color-text-secondary);
+  font: var(--typography-text-12);
+}
+
+.xos-mkt-nav {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: var(--z-header);
+  border-block-end: var(--stroke-width-hairline) solid var(--color-border-subtle);
+  background: var(--color-bg-canvas);
+  color: var(--color-text-primary);
+  font-family: var(--font-family-sans);
+}
+.xos-mkt-nav-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-24);
+  min-block-size: calc(var(--space-48) + var(--space-8));
+}
+.xos-mkt-nav-brand {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--density-control-lg);
+  color: inherit;
+  text-decoration: none;
+}
+.xos-mkt-nav ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.xos-mkt-nav-links {
+  display: none;
+}
+.xos-mkt-nav-links ul {
+  display: flex;
+  gap: var(--space-4);
+}
+.xos-mkt-nav-links a {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--density-control-lg);
+  padding-inline: var(--space-12);
+  border-radius: var(--radius-control);
+  color: var(--color-text-secondary);
+  font: var(--typography-label-13);
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.xos-mkt-nav-links a:hover,
+.xos-mkt-nav-links a[aria-current="page"] {
+  color: var(--color-text-primary);
+}
+.xos-mkt-nav-links a:hover {
+  background: var(--color-bg-hover);
+}
+.xos-mkt-nav-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  margin-inline-start: auto;
+}
+.xos-mkt-nav-secondary {
+  display: none;
+  align-items: center;
+  gap: var(--space-8);
+}
+.xos-mkt-nav-toggle {
+  inline-size: var(--density-control-lg);
+  block-size: var(--density-control-lg);
+  padding: 0;
+  justify-content: center;
+}
+.xos-mkt-nav-panel {
+  padding-block: var(--space-8) var(--space-16);
+  padding-inline: var(--space-16);
+  border-block-start: var(--stroke-width-hairline) solid var(--color-border-subtle);
+}
+.xos-mkt-nav-panel[hidden] {
+  display: none;
+}
+/* The row style is for the section links only. The export writes this rule for every link in the
+   panel, which also restyled the action buttons repeated below the list. */
+.xos-mkt-nav-panel ul a {
+  display: flex;
+  align-items: center;
+  min-block-size: var(--density-target-coarse);
+  border-block-end: var(--stroke-width-hairline) solid var(--color-border-subtle);
+  color: var(--color-text-primary);
+  font: var(--typography-text-16);
+  text-decoration: none;
+}
+.xos-mkt-nav-panel .xos-mkt-actions {
+  margin-block-start: var(--space-16);
+}
+.xos-mkt-skip {
+  position: absolute;
+  inset-inline-start: var(--space-8);
+  inset-block-start: var(--space-8);
+  z-index: var(--z-tooltip);
+  padding-block: var(--space-8);
+  padding-inline: var(--space-12);
+  border: var(--stroke-width-hairline) solid var(--color-border-control);
+  border-radius: var(--radius-control);
+  background: var(--color-bg-raised);
+  color: var(--color-text-primary);
+  font: var(--typography-label-13);
+  text-decoration: none;
+  transform: translateY(-200%);
+}
+.xos-mkt-skip:focus {
+  transform: none;
+}
+
+.xos-mkt-persona-tabs {
+  display: flex;
+  gap: var(--space-4);
+  overflow-x: auto;
+  padding: var(--space-4);
+  border: var(--stroke-width-hairline) solid var(--color-border-subtle);
+  border-radius: var(--radius-card);
+  background: var(--color-bg-surface);
+  scrollbar-width: thin;
+}
+.xos-mkt-persona-tab {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-6);
+  min-block-size: var(--density-control-lg);
+  padding-inline: var(--space-12);
+  border: 0;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font: var(--typography-label-13);
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.xos-mkt-persona-tab:hover {
+  color: var(--color-text-primary);
+}
+.xos-mkt-persona-tab[aria-selected="true"] {
+  background: var(--color-bg-hover);
+  color: var(--color-text-primary);
+  box-shadow: 0 0 0 var(--stroke-width-hairline) var(--color-border-strong);
+}
+.xos-mkt-persona-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-24);
+  align-items: start;
+  margin-block-start: var(--space-24);
+}
+.xos-mkt-persona-panel[hidden] {
+  display: none;
+}
+.xos-mkt-persona-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-16);
+}
+.xos-mkt-persona-copy h3 {
+  margin: 0;
+  font: var(--typography-heading-24);
+  text-wrap: balance;
+}
+.xos-mkt-persona-copy p {
+  margin: 0;
+  max-inline-size: var(--layout-form);
+  color: var(--color-text-secondary);
+  font: var(--typography-text-16);
+}
+.xos-mkt-persona-points {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  padding: var(--space-20);
+}
+
+.xos-mkt-proof {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--stroke-width-hairline);
+  overflow: hidden;
+  border: var(--stroke-width-hairline) solid var(--color-border-subtle);
+  border-radius: var(--radius-card);
+  background: var(--color-border-subtle);
+}
+.xos-mkt-proof li {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding-block: var(--space-20);
+  padding-inline: var(--space-24);
+  background: var(--color-bg-surface);
+}
+.xos-mkt-proof-value {
+  font: var(--typography-heading-32);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--color-text-primary);
+}
+.xos-mkt-proof-label {
+  color: var(--color-text-secondary);
+  font: var(--typography-text-14);
+}
+.xos-mkt-proof-src {
+  align-self: flex-start;
+  color: var(--color-accent-text);
+  font: var(--typography-text-12);
+  line-height: var(--density-target-fine);
+  text-decoration: none;
+}
+.xos-mkt-proof-src:hover {
+  text-decoration: underline;
+  text-underline-offset: var(--space-2);
+}
+
+.xos-mkt-rail,
+.xos-mkt-gates {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.xos-mkt-rail {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-32);
+}
+.xos-mkt-act-name {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-8);
+  margin: 0;
+  margin-block-end: var(--space-12);
+  padding-block-end: var(--space-12);
+  border-block-end: var(--stroke-width-focus) solid var(--color-border-strong);
+  font: var(--typography-text-16);
+  line-height: 1.2;
+}
+.xos-mkt-act-name strong {
+  font-weight: var(--font-weight-semibold);
+}
+.xos-mkt-act-name span {
+  color: var(--color-text-secondary);
+  font: var(--typography-text-12);
+}
+.xos-mkt-gates {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+.xos-mkt-gate {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  padding: var(--space-16);
+  border: var(--stroke-width-hairline) solid var(--color-border-subtle);
+  border-radius: var(--radius-card);
+  background: var(--color-bg-raised);
+}
+.xos-mkt-gate-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+}
+.xos-mkt-gate-name {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-6);
+  color: var(--color-text-secondary);
+  font: var(--typography-text-13);
+}
+.xos-mkt-gate-name strong {
+  color: var(--color-text-primary);
+  font: var(--typography-heading-16);
+}
+.xos-mkt-sep {
+  color: var(--color-text-tertiary);
+}
+.xos-mkt-gate p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font: var(--typography-text-14);
+}
+.xos-mkt-gate .xos-mkt-gate-evidence {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-6);
+  font: var(--typography-text-12);
+}
+.xos-mkt-gate-evidence svg {
+  margin-block-start: var(--space-2);
+  color: var(--color-success);
+}
+
+.xos-mkt-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-16);
+}
+.xos-mkt-feature {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-12);
+  padding: var(--space-20);
+}
+.xos-mkt-feature-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-8) var(--space-12);
+  align-self: stretch;
+}
+.xos-mkt-feature-head :is(h2, h3, h4) {
+  margin: 0;
+  font: var(--typography-heading-16);
+}
+.xos-mkt-feature-status {
+  display: inline-flex;
+  margin-inline-start: auto;
+}
+.xos-mkt-feature > p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font: var(--typography-text-14);
+}
+.xos-mkt-feature > .xos-mkt-feature-aud {
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-medium);
+}
+.xos-mkt-feature > .xos-mkt-feature-link {
+  margin-block-start: auto;
+  font: var(--typography-label-13);
+}
+
+.xos-mkt-cmp {
+  overflow: hidden;
+  border: var(--stroke-width-hairline) solid var(--color-border-subtle);
+  border-radius: var(--radius-card);
+  background: var(--color-bg-canvas);
+}
+.xos-mkt-cmp-table {
+  inline-size: 100%;
+  min-inline-size: calc(var(--space-80) * 11);
+  border-collapse: collapse;
+  font: var(--typography-text-13);
+}
+.xos-mkt-cmp-table caption {
+  padding-block: var(--space-12);
+  padding-inline: var(--space-16);
+  border-block-end: var(--stroke-width-hairline) solid var(--color-border-subtle);
+  color: var(--color-text-secondary);
+  text-align: start;
+}
+.xos-mkt-cmp-table caption span:first-child {
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-medium);
+}
+.xos-mkt-cmp-verified {
+  margin-inline-start: var(--space-8);
+}
+.xos-mkt-cmp-table th,
+.xos-mkt-cmp-table td {
+  padding-block: var(--space-12);
+  padding-inline: var(--space-16);
+  border-block-end: var(--stroke-width-hairline) solid var(--color-border-subtle);
+  text-align: start;
+  vertical-align: top;
+}
+.xos-mkt-cmp-table tbody tr:last-child > * {
+  border-block-end: 0;
+}
+.xos-mkt-cmp-table thead th {
+  background: var(--color-bg-surface);
+  color: var(--color-text-secondary);
+  font: var(--typography-text-12);
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap;
+}
+.xos-mkt-cmp-table tbody th {
+  position: sticky;
+  inset-inline-start: 0;
+  min-inline-size: calc(var(--space-40) * 5);
+  background: var(--color-bg-canvas);
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-medium);
+}
+.xos-mkt-cmp-table thead .xos-mkt-cmp-own {
+  color: var(--color-text-primary);
+  box-shadow: inset 0 calc(-1 * var(--stroke-width-focus)) 0 var(--color-accent-default);
+}
+.xos-mkt-cmp-table td.xos-mkt-cmp-own {
+  background: var(--color-bg-surface);
+}
+.xos-mkt-cmp-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-6);
+  white-space: nowrap;
+}
+.xos-mkt-cmp-yes svg {
+  color: var(--color-success);
+}
+.xos-mkt-cmp-partial svg {
+  color: var(--color-warning);
+}
+.xos-mkt-cmp-no,
+.xos-mkt-cmp-unpublished {
+  color: var(--color-text-secondary);
+}
+.xos-mkt-cmp-src {
+  display: block;
+  inline-size: fit-content;
+  color: var(--color-accent-text);
+  font: var(--typography-text-12);
+  line-height: var(--density-target-fine);
+  text-decoration: none;
+}
+.xos-mkt-cmp-src:hover {
+  text-decoration: underline;
+  text-underline-offset: var(--space-2);
+}
+.xos-mkt-cmp > .xos-mkt-note {
+  padding-block: var(--space-12);
+  padding-inline: var(--space-16);
+  border-block-start: var(--stroke-width-hairline) solid var(--color-border-subtle);
+}
+
+.xos-mkt-pricing-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-12);
+  margin-block-end: var(--space-24);
+}
+.xos-mkt-plans {
+  list-style: none;
+  margin: 0;
+  padding-block: 0 var(--space-8);
+  padding-inline: 0;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(calc(var(--space-20) * 13), 86%);
+  gap: var(--space-16);
+  overflow-x: auto;
+  scroll-snap-type: inline mandatory;
+  scrollbar-width: thin;
+}
+.xos-mkt-plan {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  padding: var(--space-20);
+  scroll-snap-align: start;
+}
+.xos-mkt-plan-rec {
+  border-color: var(--color-accent-default);
+}
+.xos-mkt-plan-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-8);
+}
+.xos-mkt-plan-head h3 {
+  margin: 0;
+  font: var(--typography-heading-20);
+}
+.xos-mkt-plan-blurb {
+  margin: 0;
+  min-block-size: calc(3 * 1.45em);
+  color: var(--color-text-secondary);
+  font: var(--typography-text-13);
+}
+.xos-mkt-price {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: var(--space-6);
+  margin: 0;
+}
+.xos-mkt-price-amount {
+  color: var(--color-text-primary);
+  font: var(--typography-heading-32);
+  letter-spacing: -0.02em;
+}
+.xos-mkt-price-period {
+  color: var(--color-text-secondary);
+  font: var(--typography-text-13);
+}
+.xos-mkt-price-tax {
+  flex-basis: 100%;
+  color: var(--color-text-secondary);
+  font: var(--typography-text-12);
+}
+.xos-mkt-plan-cta {
+  align-self: stretch;
+}
+.xos-mkt-plan-limits {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  font: var(--typography-text-13);
+}
+.xos-mkt-plan-limits div {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-8);
+  padding-block: var(--space-6);
+  border-block-end: var(--stroke-width-hairline) solid var(--color-border-subtle);
+}
+.xos-mkt-plan-limits dt {
+  color: var(--color-text-secondary);
+}
+.xos-mkt-plan-limits dd {
+  margin: 0;
+  font-weight: var(--font-weight-medium);
+  text-align: end;
+}
+.xos-mkt-plan-features {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+.xos-mkt-plan-features .xos-mkt-points {
+  font: var(--typography-text-13);
+}
+.xos-mkt-pricing-terms {
+  margin-block-start: var(--space-16);
+  max-inline-size: var(--layout-reading);
+}
+
+.xos-mkt-faq {
+  max-inline-size: var(--layout-reading);
+  border: var(--stroke-width-hairline) solid var(--color-border-subtle);
+  border-radius: var(--radius-card);
+  background: var(--color-bg-raised);
+}
+.xos-mkt-faq details + details {
+  border-block-start: var(--stroke-width-hairline) solid var(--color-border-subtle);
+}
+.xos-mkt-faq summary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  box-sizing: border-box;
+  min-block-size: var(--space-48);
+  padding-block: var(--space-12);
+  padding-inline: var(--space-16);
+  cursor: pointer;
+  list-style: none;
+}
+.xos-mkt-faq summary::-webkit-details-marker {
+  display: none;
+}
+.xos-mkt-faq summary svg {
+  color: var(--color-text-secondary);
+}
+.xos-mkt-faq details[open] > summary svg {
+  transform: rotate(90deg);
+}
+[dir="rtl"] .xos-mkt-faq details[open] > summary svg {
+  transform: rotate(-90deg) scaleX(-1);
+}
+.xos-mkt-faq summary :is(h2, h3, h4) {
+  margin: 0;
+  font: var(--typography-text-16);
+  font-weight: var(--font-weight-medium);
+}
+.xos-mkt-faq-body {
+  padding-block: 0 var(--space-16);
+  color: var(--color-text-secondary);
+  padding-inline-start: calc(var(--space-16) + var(--icon-size-14) + var(--space-6));
+  padding-inline-end: var(--space-16);
+  font: var(--typography-text-14);
+}
+.xos-mkt-faq-body p {
+  margin: 0;
+}
+
+.xos-mkt-quote {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  margin: 0;
+  padding: var(--space-24);
+}
+.xos-mkt-quote blockquote {
+  margin: 0;
+}
+.xos-mkt-quote blockquote p {
+  margin: 0;
+  font: var(--typography-text-16);
+  text-wrap: pretty;
+}
+.xos-mkt-quote figcaption {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+}
+.xos-mkt-quote-who {
+  display: flex;
+  flex-direction: column;
+  color: var(--color-text-secondary);
+  font: var(--typography-text-12);
+}
+.xos-mkt-quote-who strong {
+  color: var(--color-text-primary);
+  font: var(--typography-label-13);
+}
+.xos-mkt-quote-disclosure {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-6);
+  margin: 0;
+  padding-block-start: var(--space-12);
+  border-block-start: var(--stroke-width-hairline) solid var(--color-border-subtle);
+  color: var(--color-text-secondary);
+  font: var(--typography-text-12);
+}
+.xos-mkt-quote-disclosure svg {
+  margin-block-start: var(--space-2);
+}
+.xos-mkt-logos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+}
+.xos-mkt-logos ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--space-24);
+}
+
+.xos-mkt-ai {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-8);
+  font: var(--typography-text-13);
+}
+.xos-mkt-ai-provider {
+  color: var(--color-text-secondary);
+}
+
+.xos-mkt-code {
+  overflow: hidden;
+  border: var(--stroke-width-hairline) solid var(--color-border-subtle);
+  border-radius: var(--radius-card);
+  background: var(--color-bg-surface);
+}
+.xos-mkt-code-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-8);
+  padding-block: var(--space-6);
+  padding-inline: var(--space-16) var(--space-8);
+  border-block-end: var(--stroke-width-hairline) solid var(--color-border-subtle);
+}
+.xos-mkt-code pre {
+  margin: 0;
+  padding: var(--space-16);
+  overflow-x: auto;
+  color: var(--color-text-primary);
+  font: var(--typography-mono-13);
+  tab-size: 2;
+}
+.xos-mkt-code pre:focus-visible {
+  outline-offset: calc(-1 * var(--stroke-width-focus));
+}
+.xos-mkt-code code {
+  font: inherit;
+}
+
+.xos-mkt-footer {
+  padding-block: var(--space-64) var(--space-32);
+  border-block-start: var(--stroke-width-hairline) solid var(--color-border-subtle);
+  background: var(--color-bg-canvas);
+  color: var(--color-text-primary);
+  font-family: var(--font-family-sans);
+}
+.xos-mkt-footer-top {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-40);
+}
+.xos-mkt-footer-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-12);
+}
+.xos-mkt-footer-brand p {
+  margin: 0;
+  max-inline-size: var(--layout-property-column);
+  color: var(--color-text-secondary);
+  font: var(--typography-text-13);
+}
+.xos-mkt-footer-cols {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-32) var(--space-24);
+}
+.xos-mkt-footer-cols h2 {
+  margin: 0;
+  margin-block-end: var(--space-8);
+  font: var(--typography-label-13);
+}
+.xos-mkt-footer-cols ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+.xos-mkt-footer-cols a {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--density-control-md);
+  color: var(--color-text-secondary);
+  font: var(--typography-text-13);
+  text-decoration: none;
+}
+.xos-mkt-footer-cols a:hover {
+  color: var(--color-text-primary);
+  text-decoration: underline;
+  text-underline-offset: var(--space-2);
+}
+.xos-mkt-footer-base {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-16) var(--space-24);
+  margin-block-start: var(--space-40);
+  padding-block-start: var(--space-24);
+  border-block-start: var(--stroke-width-hairline) solid var(--color-border-subtle);
+}
+.xos-mkt-footer-base > p {
+  margin: 0;
+  max-inline-size: var(--layout-form);
+  color: var(--color-text-secondary);
+  font: var(--typography-text-12);
+}
+.xos-mkt-footer-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-16);
+}
+.xos-mkt-footer-controls > div {
+  inline-size: auto;
+  min-inline-size: calc(var(--space-40) * 4);
+}
+.xos-mkt-footer-controls > .xos-mkt-footer-theme {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-inline-size: 0;
+}
+
+@media (min-width: 640px) {
+  .xos-mkt-nav-secondary {
+    display: flex;
+  }
+  .xos-mkt-nav-panel .xos-mkt-actions {
+    display: none;
+  }
+  .xos-mkt-proof {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .xos-mkt-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .xos-mkt-footer-cols {
+    grid-template-columns: repeat(auto-fit, minmax(calc(var(--space-20) * 7), 1fr));
+  }
+}
+@media (min-width: 1024px) {
+  .xos-mkt-wrap {
+    padding-inline: var(--space-24);
+  }
+  .xos-mkt-section {
+    padding-block: var(--space-96);
+  }
+  .xos-mkt-section-head {
+    margin-block-end: var(--space-48);
+  }
+  .xos-mkt-hero {
+    padding-block: var(--space-80) var(--space-96);
+  }
+  .xos-mkt-hero-grid {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    gap: var(--space-48);
+  }
+  .xos-mkt-hero-solo .xos-mkt-hero-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .xos-mkt-hero-compact {
+    padding-block: var(--space-128);
+  }
+  .xos-mkt-nav-links {
+    display: block;
+  }
+  .xos-mkt-nav-toggle,
+  .xos-mkt-nav-panel {
+    display: none;
+  }
+  .xos-mkt-persona-panel {
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    gap: var(--space-48);
+  }
+  .xos-mkt-proof {
+    grid-template-columns: repeat(var(--xos-mkt-n, 4), minmax(0, 1fr));
+  }
+  .xos-mkt-proof-value {
+    font: var(--typography-display-48);
+  }
+  .xos-mkt-rail {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-24);
+  }
+  .xos-mkt-grid-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .xos-mkt-grid-4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .xos-mkt-grid-5 {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+  .xos-mkt-plans {
+    grid-auto-flow: row;
+    grid-template-columns: repeat(var(--xos-mkt-n, 4), minmax(0, 1fr));
+    overflow: visible;
+    padding: 0;
+  }
+  .xos-mkt-footer-top {
+    grid-template-columns: minmax(0, 4fr) minmax(0, 8fr);
+    gap: var(--space-48);
+  }
+}
+/* Below bp-md the comparison stacks: one card per feature, each competitor on its own labeled line. */
+@media (max-width: 767.98px) {
+  .xos-mkt-cmp {
+    border: 0;
+    border-radius: 0;
+    background: none;
+    overflow: visible;
+  }
+  .xos-mkt-cmp-table {
+    min-inline-size: 0;
+  }
+  .xos-mkt-cmp-table,
+  .xos-mkt-cmp-table caption,
+  .xos-mkt-cmp-table tbody,
+  .xos-mkt-cmp-table tr,
+  .xos-mkt-cmp-table th,
+  .xos-mkt-cmp-table td {
+    display: block;
+  }
+  .xos-mkt-cmp-table thead {
+    position: absolute;
+    inline-size: var(--stroke-width-hairline);
+    block-size: var(--stroke-width-hairline);
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+  .xos-mkt-cmp-table caption {
+    padding-inline: 0;
+    border: 0;
+  }
+  .xos-mkt-cmp-table caption span {
+    display: block;
+    margin: 0;
+  }
+  .xos-mkt-cmp-table tbody tr {
+    margin-block-end: var(--space-12);
+    padding-block: var(--space-12);
+    padding-inline: var(--space-16);
+    border: var(--stroke-width-hairline) solid var(--color-border-subtle);
+    border-radius: var(--radius-card);
+    background: var(--color-bg-raised);
+  }
+  .xos-mkt-cmp-table tbody th {
+    position: static;
+    min-inline-size: 0;
+    padding-block: 0 var(--space-8);
+    padding-inline: 0;
+    border: 0;
+    background: none;
+    font: var(--typography-text-14);
+    font-weight: var(--font-weight-medium);
+  }
+  .xos-mkt-cmp-table td,
+  .xos-mkt-cmp-table td.xos-mkt-cmp-own {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4) var(--space-12);
+    padding-block: var(--space-6);
+    padding-inline: 0;
+    border: 0;
+    border-block-start: var(--stroke-width-hairline) solid var(--color-border-subtle);
+    background: none;
+  }
+  .xos-mkt-cmp-table td::before {
+    content: attr(data-label);
+    color: var(--color-text-secondary);
+    font-weight: var(--font-weight-medium);
+    margin-inline-end: auto;
+  }
+  .xos-mkt-cmp-table td .xos-mkt-cmp-src {
+    flex-basis: 100%;
+    inline-size: auto;
+    text-align: end;
+  }
+  .xos-mkt-cmp-table td.xos-mkt-cmp-own::before {
+    color: var(--color-text-primary);
+  }
+  .xos-mkt-cmp > .xos-mkt-note {
+    padding-inline: 0;
+    border: 0;
+  }
+}
+@media (pointer: coarse) {
+  .xos-mkt-persona-tab,
+  .xos-mkt-nav-links a,
+  .xos-mkt-footer-cols a,
+  .xos-mkt-nav-brand {
+    min-block-size: var(--density-target-coarse);
+  }
+  .xos-mkt-nav-toggle {
+    inline-size: var(--density-target-coarse);
+    block-size: var(--density-target-coarse);
+  }
+  .xos-mkt-proof-src,
+  .xos-mkt-cmp-src {
+    line-height: var(--density-target-coarse);
+  }
+  .xos-mkt-faq summary {
+    min-block-size: var(--density-target-coarse);
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .xos-mkt-nav-links a,
+  .xos-mkt-persona-tab {
+    transition:
+      background var(--motion-duration-fast) var(--motion-easing-standard),
+      color var(--motion-duration-fast) var(--motion-easing-standard);
+  }
+}
+@media (forced-colors: active) {
+  :where(a, summary):focus-visible {
+    outline-color: Highlight;
+  }
+  .xos-mkt-shot,
+  .xos-mkt-gate,
+  .xos-mkt-proof,
+  .xos-mkt-cmp,
+  .xos-mkt-code,
+  .xos-mkt-persona-tabs,
+  .xos-mkt-tile,
+  .xos-mkt-tag,
+  .xos-mkt-faq {
+    border: var(--stroke-width-hairline) solid CanvasText;
+  }
+  .xos-mkt-proof {
+    background: CanvasText;
+  }
+  .xos-mkt-proof li {
+    background: Canvas;
+  }
+  .xos-mkt-persona-tab[aria-selected="true"] {
+    forced-color-adjust: none;
+    background: Highlight;
+    color: HighlightText;
+  }
+  .xos-mkt-plan-rec {
+    border-color: Highlight;
+  }
+  .xos-mkt-cmp-table thead .xos-mkt-cmp-own {
+    box-shadow: inset 0 calc(-1 * var(--stroke-width-focus)) 0 Highlight;
+  }
+}
+@media print {
+  .xos-mkt-nav,
+  .xos-mkt-footer-controls {
+    display: none !important;
+  }
+  .xos-mkt-section,
+  .xos-mkt-hero {
+    padding-block: var(--space-24);
+    break-inside: avoid;
+  }
+  .xos-mkt-persona-panel[hidden] {
+    display: grid;
+  }
+}

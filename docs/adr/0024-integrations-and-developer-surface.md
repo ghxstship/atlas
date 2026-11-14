@@ -63,3 +63,21 @@ The following are still open:
 ## Amendment (2026-10-28): the npm scope (A151)
 
 `@xos` on npm belongs to someone else, so the two npm packages publish under the owner's scope: `@xos/sdk` is `@ghxstship/xos-sdk` and `@xos/cli` is `@ghxstship/xos-cli`. The names in item 1 and item 5 read accordingly, and the generator runs as `pnpm --filter @ghxstship/xos-sdk generate`. The other workspace packages keep `@xos/*`, because they are private and never published. The PyPI package stays `xos-sdk`.
+
+## Amendment (2026-11-14): the design packages publish too
+
+The owner approved publishing the design packages on 2026-11-14 so the Atlas marketing site, built in `ghxstship/atlas-marketing`, installs them at exact versions instead of vendoring an export (`design/MARKETING_LOCKSTEP.md`). Five packages publish with every release tag, at the tag's version:
+
+| Workspace name | npm name                 |
+| -------------- | ------------------------ |
+| `@xos/tokens`  | `@ghxstship/xos-tokens`  |
+| `@xos/icons`   | `@ghxstship/xos-icons`   |
+| `@xos/i18n`    | `@ghxstship/xos-i18n`    |
+| `@xos/schemas` | `@ghxstship/xos-schemas` |
+| `@xos/ui`      | `@ghxstship/xos-ui`      |
+
+`@xos/icons` is on the list because `@xos/ui` depends on it. The workspace keeps the `@xos/*` names, `private: true` and version 0.0.0, so no import in the monorepo changes: `infra/ci/pack-design-packages.mjs` stages each package's tracked files, writes a publish manifest with the npm name and the release version, and packs that. Sibling dependencies become npm aliases (`"@xos/tokens": "npm:@ghxstship/xos-tokens@X.Y.Z"`), so the source in each archive imports `@xos/*` exactly as the tag does, and a consumer installs each package under its workspace name the same way. The archives hold TypeScript source, as the Atlas apps consume it; the consumer transpiles it. Tests, stories, tool configuration, the generator command lines of `@xos/schemas` and the translation pipeline of `@xos/i18n` stay out; everything else git tracks in each package ships. `@xos/icons` carries `THIRD_PARTY_NOTICES` with the lucide license, since its sprite redistributes lucide artwork.
+
+The packages are public on npm, like the SDK and the CLI, under the MIT license each already carries.
+
+The Tailwind preset moved from `packages/config/tailwind/preset.js` to `packages/tokens/tailwind/preset.cjs` (`@xos/tokens/tailwind/preset.cjs`), because the stylesheet `@xos/ui` exports loads it and `@xos/config` does not publish. `@xos/ui` declares `tailwindcss` as a peer dependency for the same reason. The design handoff still names the old path; the port of `export/tailwind.preset.js` lands in the new one.

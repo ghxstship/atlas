@@ -1,4 +1,4 @@
-/* @ds-bundle: {"format":4,"namespace":"XOS","components":[{"name":"Button"},{"name":"IconButton"},{"name":"Kbd"},{"name":"Input"},{"name":"CurrencyInput"},{"name":"Money"},{"name":"Checkbox"},{"name":"Switch"},{"name":"SegmentedControl"},{"name":"Tabs"},{"name":"Breadcrumbs"},{"name":"Icon"},{"name":"StateIcon"},{"name":"StateChip"},{"name":"PhaseChip"},{"name":"DepartmentChip"},{"name":"URIDChip"},{"name":"PropertyChip"},{"name":"Tag"},{"name":"ProvenanceBadge"},{"name":"AssertionRankBadge"},{"name":"RefusalNotice"},{"name":"InlineAlert"},{"name":"Toast"},{"name":"EmptyState"},{"name":"ProgressBar"},{"name":"Skeleton"},{"name":"Avatar"},{"name":"AvatarStack"},{"name":"Tooltip"},{"name":"DataTable"},{"name":"CommandMenu"},{"name":"Dialog"},{"name":"Sidebar"},{"name":"ClockButton"},{"name":"DepartmentGlyph"},{"name":"PhaseGlyph"},{"name":"RecordKindGlyph"},{"name":"RecordKindChip"},{"name":"BrandMark"},{"name":"BrandSlot"},{"name":"WhiteLabelPreview"},{"name":"Link"},{"name":"Textarea"},{"name":"Select"},{"name":"Combobox"},{"name":"MultiSelect"},{"name":"Radio"},{"name":"Slider"},{"name":"NumberInput"},{"name":"DatePicker"},{"name":"DateRangePicker"},{"name":"TimePicker"},{"name":"FileDrop"},{"name":"Banner"},{"name":"ErrorState"},{"name":"DropdownMenu"},{"name":"ContextMenu"},{"name":"Popover"},{"name":"HoverCard"},{"name":"Drawer"},{"name":"SidePeek"},{"name":"ShortcutSheet"},{"name":"Pagination"},{"name":"PageHeader"},{"name":"Card"},{"name":"Divider"},{"name":"Accordion"},{"name":"Stepper"},{"name":"ResizablePanel"},{"name":"SplitView"},{"name":"AppShell"},{"name":"Badge"},{"name":"PresenceIndicator"},{"name":"Board"},{"name":"Timeline"},{"name":"Calendar"},{"name":"TreeView"},{"name":"RichTextEditor"},{"name":"SpreadsheetGrid"},{"name":"FilterBuilder"},{"name":"QuickAdd"},{"name":"ColorPicker"},{"name":"BulkActionBar"},{"name":"DiffViewer"},{"name":"ActivityFeedItem"},{"name":"FilePreviewer"},{"name":"MapView"},{"name":"GateReadinessPanel"},{"name":"CoordinateMatrix"},{"name":"BudgetGrid"},{"name":"StalenessIndicator"},{"name":"ReconciliationTable"},{"name":"RunOfShowLive"},{"name":"AccessGridMatrix"},{"name":"EmergencyCodeCard"},{"name":"RadioChannelTable"},{"name":"UndoToast"},{"name":"NotificationCenter"},{"name":"OnboardingChecklist"},{"name":"WhatsNew"},{"name":"FeedbackWidget"},{"name":"ShortcutEditor"},{"name":"ScanSheet"},{"name":"OfflineBanner"},{"name":"QuickIncidentSheet"},{"name":"ChecklistRunner"},{"name":"ShiftCard"},{"name":"DaySheetView"},{"name":"SignaturePad"},{"name":"PhotoCapture"},{"name":"LiveActivity"},{"name":"ForceUpdateScreen"},{"name":"SyncConflictSheet"},{"name":"OpportunityCard"},{"name":"OpportunityFilters"},{"name":"ApplicationForm"},{"name":"BidSheet"},{"name":"AgencySlate"},{"name":"ProfileEditor"},{"name":"EPKViewer"},{"name":"AvailabilityCalendar"},{"name":"OnboardingPacket"},{"name":"EngagementTimeline"},{"name":"RatingDialog"},{"name":"PayoutDetailsForm"},{"name":"OrgSwitcher"},{"name":"RecordRow"},{"name":"RecordList"},{"name":"Gallery"},{"name":"ResourceSchedule"},{"name":"OrgChart"},{"name":"Chart"},{"name":"StatTile"},{"name":"HelpPanel"},{"name":"QRCode"},{"name":"CredentialBadge"},{"name":"UpNextCard"},{"name":"PaymentTracker"},{"name":"TabBar"},{"name":"TopNav"},{"name":"ScrollRegion"}]} */
+/* @ds-bundle: {"format":4,"namespace":"XOS","components":[{"name":"Button"},{"name":"IconButton"},{"name":"Kbd"},{"name":"Input"},{"name":"CurrencyInput"},{"name":"Money"},{"name":"Checkbox"},{"name":"Switch"},{"name":"SegmentedControl"},{"name":"Tabs"},{"name":"Breadcrumbs"},{"name":"Icon"},{"name":"StateIcon"},{"name":"StateChip"},{"name":"PhaseChip"},{"name":"DepartmentChip"},{"name":"URIDChip"},{"name":"PropertyChip"},{"name":"Tag"},{"name":"ProvenanceBadge"},{"name":"AssertionRankBadge"},{"name":"RefusalNotice"},{"name":"InlineAlert"},{"name":"Toast"},{"name":"EmptyState"},{"name":"ProgressBar"},{"name":"Skeleton"},{"name":"Avatar"},{"name":"AvatarStack"},{"name":"Tooltip"},{"name":"DataTable"},{"name":"CommandMenu"},{"name":"Dialog"},{"name":"Sidebar"},{"name":"ClockButton"},{"name":"DepartmentGlyph"},{"name":"PhaseGlyph"},{"name":"RecordKindGlyph"},{"name":"RecordKindChip"},{"name":"BrandMark"},{"name":"BrandSlot"},{"name":"WhiteLabelPreview"},{"name":"Link"},{"name":"Textarea"},{"name":"Select"},{"name":"Combobox"},{"name":"MultiSelect"},{"name":"Radio"},{"name":"Slider"},{"name":"NumberInput"},{"name":"DatePicker"},{"name":"DateRangePicker"},{"name":"TimePicker"},{"name":"FileDrop"},{"name":"Banner"},{"name":"ErrorState"},{"name":"DropdownMenu"},{"name":"ContextMenu"},{"name":"Popover"},{"name":"HoverCard"},{"name":"Drawer"},{"name":"SidePeek"},{"name":"ShortcutSheet"},{"name":"Pagination"},{"name":"PageHeader"},{"name":"Card"},{"name":"Divider"},{"name":"Accordion"},{"name":"Stepper"},{"name":"ResizablePanel"},{"name":"SplitView"},{"name":"AppShell"},{"name":"Badge"},{"name":"PresenceIndicator"},{"name":"Board"},{"name":"Timeline"},{"name":"Calendar"},{"name":"TreeView"},{"name":"RichTextEditor"},{"name":"SpreadsheetGrid"},{"name":"FilterBuilder"},{"name":"QuickAdd"},{"name":"ColorPicker"},{"name":"BulkActionBar"},{"name":"DiffViewer"},{"name":"ActivityFeedItem"},{"name":"FilePreviewer"},{"name":"MapView"},{"name":"GateReadinessPanel"},{"name":"CoordinateMatrix"},{"name":"BudgetGrid"},{"name":"StalenessIndicator"},{"name":"ReconciliationTable"},{"name":"RunOfShowLive"},{"name":"AccessGridMatrix"},{"name":"EmergencyCodeCard"},{"name":"RadioChannelTable"},{"name":"UndoToast"},{"name":"NotificationCenter"},{"name":"OnboardingChecklist"},{"name":"WhatsNew"},{"name":"FeedbackWidget"},{"name":"ShortcutEditor"},{"name":"ScanSheet"},{"name":"OfflineBanner"},{"name":"QuickIncidentSheet"},{"name":"ChecklistRunner"},{"name":"ShiftCard"},{"name":"DaySheetView"},{"name":"SignaturePad"},{"name":"PhotoCapture"},{"name":"LiveActivity"},{"name":"ForceUpdateScreen"},{"name":"SyncConflictSheet"},{"name":"OpportunityCard"},{"name":"OpportunityFilters"},{"name":"ApplicationForm"},{"name":"BidSheet"},{"name":"AgencySlate"},{"name":"ProfileEditor"},{"name":"EPKViewer"},{"name":"AvailabilityCalendar"},{"name":"OnboardingPacket"},{"name":"EngagementTimeline"},{"name":"RatingDialog"},{"name":"PayoutDetailsForm"},{"name":"OrgSwitcher"},{"name":"RecordRow"},{"name":"RecordList"},{"name":"Gallery"},{"name":"ResourceSchedule"},{"name":"OrgChart"},{"name":"Chart"},{"name":"StatTile"},{"name":"HelpPanel"},{"name":"QRCode"},{"name":"CredentialBadge"},{"name":"UpNextCard"},{"name":"PaymentTracker"},{"name":"TabBar"},{"name":"TopNav"},{"name":"ButtonLink"},{"name":"MarketingNav"},{"name":"MarketingSection"},{"name":"MarketingHero"},{"name":"ScreenshotFrame"},{"name":"PersonaSwitcher"},{"name":"ProofStatStrip"},{"name":"GateLifecycleRail"},{"name":"SurfaceTriptych"},{"name":"FeatureGrid"},{"name":"ComparisonTable"},{"name":"PriceDisplay"},{"name":"PricingTable"},{"name":"FAQ"},{"name":"Testimonial"},{"name":"LogoSlotWall"},{"name":"AIDisclosureBadge"},{"name":"CodeSample"},{"name":"ConsentBanner"},{"name":"MarketingFooter"},{"name":"ScrollRegion"}]} */
 (function () {
 
   var React = window.React;
@@ -178,6 +178,35 @@
      "matrix.empty": "{row}, {col}: none",
      "menu.actions": "Actions",
      "menu.more": "More Actions",
+     "mk.ai.badge": "AI feature",
+     "mk.cmp.feature": "Feature",
+     "mk.cmp.no": "No",
+     "mk.cmp.partial": "Partial",
+     "mk.cmp.unpublished": "Unpublished",
+     "mk.cmp.verified": "Last verified {date}.",
+     "mk.cmp.yes": "Yes",
+     "mk.code.copied": "Copied",
+     "mk.code.copy": "Copy",
+     "mk.consent.gpc": "Opt-Out Request Honored",
+     "mk.footer.language": "Language",
+     "mk.footer.theme": "Theme",
+     "mk.logo.slot": "Logo Slot {n}",
+     "mk.nav.close": "Close Menu",
+     "mk.nav.menu": "Menu",
+     "mk.price.from": "From {price}",
+     "mk.price.perMonth": "per month",
+     "mk.price.perYear": "per year",
+     "mk.price.quoted": "Quoted",
+     "mk.price.taxExclusive": "{currency}, excluding applicable taxes.",
+     "mk.price.taxInclusive": "{currency}, including applicable taxes.",
+     "mk.pricing.changed": "Prices now show {period} billing.",
+     "mk.pricing.period": "Billing Period",
+     "mk.pricing.recommended": "Recommended",
+     "mk.proof.source": "Source: {label}",
+     "mk.skip": "Skip to content",
+     "mk.theme.dark": "Dark",
+     "mk.theme.light": "Light",
+     "mk.theme.sunlight": "Sunlight",
      "money.blankHelp": "Blank means unpriced. Enter 0 only for a confirmed zero.",
      "money.rateOnRequest": "Rate on Request",
      "money.unpriced": "Unpriced",
@@ -1872,6 +1901,355 @@
   }
 
   Object.assign(EXPORTS, { RecordRow: RecordRow, RecordList: RecordList, Gallery: Gallery, ResourceSchedule: ResourceSchedule, OrgChart: OrgChart, Chart: Chart, StatTile: StatTile, HelpPanel: HelpPanel, QRCode: QRCode, CredentialBadge: CredentialBadge, UpNextCard: UpNextCard, PaymentTracker: PaymentTracker, TabBar: TabBar, TopNav: TopNav });
+
+
+  /* Marketing layer (2026-11-14). Page-level components for public pages such as the Atlas landing page, built from the
+     product tokens. Every label a page author controls arrives through props, so each page supplies its own catalog;
+     the few shared strings live in the catalog under mk.*. Content is always in the DOM: nothing a search engine or an
+     answer engine needs is hidden behind script. */
+  function ButtonLink(props) {
+    var other = rest(props, ["variant", "size", "icon", "trailingIcon", "className", "children", "external"]);
+    return h("a", Object.assign({}, other, props.external ? { target: "_blank", rel: "noopener noreferrer" } : {}, { className: cx("xos-btn", "xos-btn-link", "xos-btn-" + (props.variant || "secondary"), props.size && props.size !== "md" && "xos-btn-" + props.size, props.className) }),
+      props.icon ? h(Icon, { name: props.icon, size: 14 }) : null,
+      props.children,
+      props.trailingIcon ? h(Icon, { name: props.trailingIcon, size: 14 }) : null);
+  }
+
+  function mkNavLinks(links) {
+    return h("ul", null, links.map(function (l) {
+      return h("li", { key: l.label }, h("a", { href: l.href, "aria-current": l.current ? "page" : undefined }, l.label));
+    }));
+  }
+  function MarketingNav(props) {
+    var open = React.useState(false), id = React.useId();
+    return h("header", { className: "xos-mkt-nav" },
+      h("a", { className: "xos-mkt-skip", href: props.skipHref || "#main" }, t("mk.skip")),
+      h("div", { className: "xos-mkt-wrap xos-mkt-nav-bar" },
+        h("a", { className: "xos-mkt-nav-brand", href: props.homeHref || "/" }, props.brand),
+        h("nav", { className: "xos-mkt-nav-links", "aria-label": props.label || t("nav.main") }, mkNavLinks(props.links)),
+        h("div", { className: "xos-mkt-nav-actions" },
+          props.secondaryActions ? h("div", { className: "xos-mkt-nav-secondary" }, props.secondaryActions) : null,
+          props.actions,
+          h("button", { type: "button", className: "xos-btn xos-btn-ghost xos-iconbtn xos-mkt-nav-toggle", "aria-expanded": open[0] ? "true" : "false", "aria-controls": id, "aria-label": t(open[0] ? "mk.nav.close" : "mk.nav.menu"), onClick: function () { open[1](!open[0]); } }, h(Icon, { name: open[0] ? "X" : "Menu" })))),
+      h("nav", { id: id, className: "xos-mkt-nav-panel", hidden: !open[0], "aria-label": t("mk.nav.menu") },
+        mkNavLinks(props.links),
+        props.secondaryActions ? h("div", { className: "xos-mkt-actions" }, props.secondaryActions) : null));
+  }
+
+  function MarketingSection(props) {
+    var H = "h" + (props.headingLevel || 2), hid = props.id ? props.id + "-title" : undefined;
+    return h("section", { id: props.id, className: cx("xos-mkt-section", props.tone === "surface" && "xos-mkt-section-surface", props.align === "center" && "xos-mkt-center"), "aria-labelledby": hid },
+      h("div", { className: "xos-mkt-wrap" },
+        h("header", { className: "xos-mkt-section-head" },
+          props.eyebrow ? h("p", { className: "xos-mkt-eyebrow" }, props.glyph ? h(Icon, { name: props.glyph, size: 14 }) : null, props.eyebrow) : null,
+          h(H, { id: hid, className: "xos-mkt-display-40" }, props.title),
+          props.lead ? h("p", { className: "xos-mkt-lead" }, props.lead) : null,
+          props.badge || null),
+        props.children));
+  }
+
+  function MarketingHero(props) {
+    var compact = props.variant === "compact", H = "h" + (props.headingLevel || (compact ? 2 : 1));
+    return h("section", { id: props.id, className: cx("xos-mkt-hero", compact && "xos-mkt-hero-compact", !props.media && "xos-mkt-hero-solo") },
+      h("div", { className: "xos-mkt-wrap xos-mkt-hero-grid" },
+        h("div", { className: "xos-mkt-hero-copy" },
+          props.eyebrow ? h("p", { className: "xos-mkt-eyebrow" }, props.eyebrow) : null,
+          h(H, { className: compact ? "xos-mkt-display-48" : "xos-mkt-display-64" }, props.title),
+          props.lead ? h("p", { className: "xos-mkt-lead" }, props.lead) : null,
+          props.actions ? h("div", { className: "xos-mkt-actions" }, props.actions) : null,
+          props.note ? h("p", { className: "xos-mkt-note" }, props.note) : null),
+        props.media ? h("div", { className: "xos-mkt-hero-media" }, props.media) : null));
+  }
+
+  /* A product image, or live XOS components standing in for one. Live content is inert and exposed as one image with
+     the alt text, so it adds no tab stops and reads as a picture. */
+  function ScreenshotFrame(props) {
+    var live = !props.src;
+    return h("figure", { className: "xos-mkt-shot" },
+      props.chrome === false ? null : h("div", { className: "xos-mkt-shot-bar", "aria-hidden": "true" }, h("i", null), h("i", null), h("i", null), props.title ? h("span", null, props.title) : null),
+      live
+        ? h("div", { className: "xos-mkt-shot-view xos-mkt-shot-live", role: "img", "aria-label": props.alt, style: props.height ? { blockSize: props.height } : undefined }, h("div", { inert: "true", "aria-hidden": "true" }, props.children))
+        : h("div", { className: "xos-mkt-shot-view", style: { aspectRatio: props.ratio || "16 / 10" } }, h("img", { src: props.src, alt: props.alt, width: props.width, height: props.height, loading: props.eager ? "eager" : "lazy", decoding: "async" })),
+      props.caption ? h("figcaption", null, props.caption) : null);
+  }
+
+  function mkPoints(points) {
+    return h("ul", { className: "xos-mkt-points" }, points.map(function (p) {
+      return h("li", { key: p }, h(Icon, { name: "Check", size: 16 }), h("span", null, p));
+    }));
+  }
+
+  /* Tabs by audience. Every panel is rendered, so each audience's copy is in the document; the hash keeps the choice
+     linkable (#for-finance). Arrow keys, Home and End move between tabs. */
+  function PersonaSwitcher(props) {
+    var ps = props.personas, base = React.useId(), prefix = props.hashPrefix || "for-", useHash = props.hash !== false;
+    var s = React.useState(props.value || ps[0].value), refs = React.useRef({});
+    React.useEffect(function () {
+      if (!useHash) return undefined;
+      function read() {
+        var v = decodeURIComponent((window.location.hash || "").replace(/^#/, ""));
+        ps.forEach(function (p) { if (prefix + p.value === v) s[1](p.value); });
+      }
+      read();
+      window.addEventListener("hashchange", read);
+      return function () { window.removeEventListener("hashchange", read); };
+    }, []);
+    function pick(v, focus) {
+      s[1](v);
+      if (useHash) { try { window.history.replaceState(null, "", "#" + prefix + v); } catch (e) { /* sandboxed frames refuse history writes */ } }
+      if (props.onChange) props.onChange(v);
+      if (focus && refs.current[v]) refs.current[v].focus();
+    }
+    function onKey(e, i) {
+      var n = ps.length, rtl = e.currentTarget.closest("[dir]") && e.currentTarget.closest("[dir]").getAttribute("dir") === "rtl";
+      var step = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
+      var j = e.key === "Home" ? 0 : e.key === "End" ? n - 1 : step ? (i + (rtl ? -step : step) + n) % n : -1;
+      if (j < 0) return;
+      e.preventDefault();
+      pick(ps[j].value, true);
+    }
+    return h("div", { className: "xos-mkt-persona" },
+      h("div", { className: "xos-mkt-persona-tabs", role: "tablist", "aria-label": props.label },
+        ps.map(function (p, i) {
+          var on = s[0] === p.value;
+          return h("button", { key: p.value, type: "button", role: "tab", id: base + "t" + i, className: "xos-mkt-persona-tab", "aria-selected": on ? "true" : "false", "aria-controls": base + "p" + i, tabIndex: on ? 0 : -1, ref: function (el) { refs.current[p.value] = el; }, onClick: function () { pick(p.value); }, onKeyDown: function (e) { onKey(e, i); } },
+            p.icon ? h(Icon, { name: p.icon, size: 14 }) : null, p.label);
+        })),
+      ps.map(function (p, i) {
+        return h("div", { key: p.value, role: "tabpanel", id: base + "p" + i, "aria-labelledby": base + "t" + i, className: "xos-mkt-persona-panel", hidden: s[0] !== p.value, tabIndex: 0 },
+          h("div", { className: "xos-mkt-persona-copy" },
+            h("h3", null, p.title),
+            h("p", null, p.body),
+            p.primary || p.secondary ? h("div", { className: "xos-mkt-actions" },
+              p.primary ? h(ButtonLink, { href: p.primary.href, variant: "primary", size: "xl" }, p.primary.label) : null,
+              p.secondary ? h(ButtonLink, { href: p.secondary.href, size: "xl" }, p.secondary.label) : null) : null),
+          p.points ? h("div", { className: "xos-card xos-mkt-persona-points" }, p.pointsTitle ? h("p", { className: "xos-label" }, p.pointsTitle) : null, mkPoints(p.points)) : null);
+      }));
+  }
+
+  /* Verifiable figures. Each one links to the file that proves it. */
+  function ProofStatStrip(props) {
+    return h("ul", { className: "xos-mkt-proof", "aria-label": props.label, style: { "--xos-mkt-n": props.items.length } }, props.items.map(function (it) {
+      return h("li", { key: it.label },
+        h("strong", { className: "xos-mkt-proof-value xos-num" }, typeof it.value === "number" ? fmtNumber(it.value) : it.value),
+        h("span", { className: "xos-mkt-proof-label" }, it.label),
+        it.source ? h("a", { className: "xos-mkt-proof-src", href: it.source.href }, t("mk.proof.source", { label: it.source.label })) : null);
+    }));
+  }
+
+  /* The nine gates in three acts. Gates read "Gate 3 · Advance": the number never stands alone. */
+  function GateLifecycleRail(props) {
+    return h("ol", { className: "xos-mkt-rail", "aria-label": props.label }, props.acts.map(function (act) {
+      return h("li", { key: act.name, className: "xos-mkt-act" },
+        h("p", { className: "xos-mkt-act-name" }, h("strong", null, act.name), act.range ? h("span", null, act.range) : null),
+        h("ol", { className: "xos-mkt-gates", start: act.gates[0].n }, act.gates.map(function (g) {
+          return h("li", { key: g.n, className: "xos-mkt-gate" },
+            h("div", { className: "xos-mkt-gate-head" },
+              h("span", { className: "xos-mkt-tile", "aria-hidden": "true" }, h(PhaseGlyph, { code: g.code, size: 16 })),
+              h("span", { className: "xos-mkt-gate-name" }, h("span", null, t("phase.gate", { n: g.n })), h("span", { className: "xos-sep", "aria-hidden": "true" }, "·"), h("strong", null, g.name))),
+            g.summary ? h("p", null, g.summary) : null,
+            g.evidence ? h("p", { className: "xos-mkt-gate-evidence" }, h(Icon, { name: "FileCheck", size: 14 }), h("span", null, g.evidence)) : null);
+        })));
+    }));
+  }
+
+  function SurfaceTriptych(props) {
+    return h("ul", { className: "xos-mkt-grid xos-mkt-grid-3" }, props.items.map(function (it) {
+      return h("li", { key: it.name, className: "xos-card xos-mkt-feature" },
+        h("div", { className: "xos-mkt-feature-head" },
+          it.icon ? h("span", { className: "xos-mkt-tile", "aria-hidden": "true" }, h(Icon, { name: it.icon, size: 16 })) : null,
+          h("h3", null, it.name),
+          it.status ? h(Tag, { tone: it.status.tone }, it.status.label) : null),
+        it.audience ? h("p", { className: "xos-mkt-feature-aud" }, it.audience) : null,
+        h("p", null, it.body),
+        it.points ? mkPoints(it.points) : null,
+        it.link ? h(Link, { href: it.link.href }, it.link.label) : null);
+    }));
+  }
+
+  /* Cards in a grid. An item with a department code draws that department's glyph and prints the code beside the name. */
+  function FeatureGrid(props) {
+    var H = "h" + (props.headingLevel || 3);
+    return h("ul", { className: cx("xos-mkt-grid", "xos-mkt-grid-" + (props.columns || 3)) }, props.items.map(function (it) {
+      return h("li", { key: it.title, className: "xos-card xos-mkt-feature" },
+        h("div", { className: "xos-mkt-feature-head" },
+          it.code || it.icon ? h("span", { className: "xos-mkt-tile", "aria-hidden": "true" }, it.code ? h(DepartmentGlyph, { code: it.code, size: 16 }) : h(Icon, { name: it.icon, size: 16 })) : null,
+          h(H, null, it.title),
+          it.code ? h("span", { className: "xos-chip-code" }, it.code) : null),
+        it.body ? h("p", null, it.body) : null,
+        it.link ? h(Link, { href: it.link.href, external: it.link.external }, it.link.label) : null);
+    }));
+  }
+
+  /* Like-for-like comparison. Every cell carries a word beside its icon, the caption states when the cells were last
+     verified, and a cell may link to its source. Explicit roles keep the table a table when it stacks on phones. */
+  var MK_CMP = {
+    yes: { icon: "CircleCheck", key: "mk.cmp.yes" },
+    partial: { icon: "CircleDot", key: "mk.cmp.partial" },
+    no: { icon: "CircleMinus", key: "mk.cmp.no" },
+    unpublished: { icon: "CircleDashed", key: "mk.cmp.unpublished" }
+  };
+  function ComparisonTable(props) {
+    var cols = props.columns;
+    return h("div", { className: "xos-mkt-cmp" },
+      h(ScrollRegion, { label: props.caption },
+        h("table", { className: "xos-mkt-cmp-table", role: "table" },
+          h("caption", null, h("span", null, props.caption), props.verified ? h("span", { className: "xos-mkt-cmp-verified" }, t("mk.cmp.verified", { date: props.verified })) : null),
+          h("thead", { role: "rowgroup" }, h("tr", { role: "row" },
+            h("th", { scope: "col", role: "columnheader" }, props.featureLabel || t("mk.cmp.feature")),
+            cols.map(function (c) { return h("th", { key: c.name, scope: "col", role: "columnheader", className: c.highlight ? "xos-mkt-cmp-own" : undefined }, c.name); }))),
+          h("tbody", { role: "rowgroup" }, props.rows.map(function (r) {
+            return h("tr", { key: r.feature, role: "row" },
+              h("th", { scope: "row", role: "rowheader" }, r.feature),
+              r.cells.map(function (c, i) {
+                var m = MK_CMP[c.value] || MK_CMP.unpublished;
+                return h("td", { key: i, role: "cell", "data-label": cols[i].name, className: cols[i].highlight ? "xos-mkt-cmp-own" : undefined },
+                  h("span", { className: "xos-mkt-cmp-cell xos-mkt-cmp-" + c.value }, h(Icon, { name: m.icon, size: 14 }), h("span", null, c.text || t(m.key))),
+                  c.source ? h("a", { className: "xos-mkt-cmp-src", href: c.source.href }, c.source.label) : null);
+              }));
+          })))),
+      props.footnote ? h("p", { className: "xos-mkt-note" }, props.footnote) : null);
+  }
+
+  /* One price. A null amount is unpriced and never renders as zero; a quoted plan shows its starting price with "From". */
+  function PriceDisplay(props) {
+    var cur = props.currency || "USD", unpriced = props.amount === null || props.amount === undefined;
+    var whole = !unpriced && Math.round(props.amount) === props.amount;
+    var money = unpriced ? null : new Intl.NumberFormat(LOCALE, { style: "currency", currency: cur, minimumFractionDigits: whole ? 0 : 2, maximumFractionDigits: whole ? 0 : 2 }).format(props.amount);
+    return h("p", { className: "xos-mkt-price" },
+      h("span", { className: "xos-mkt-price-amount xos-num" }, unpriced ? h("span", { className: "xos-unpriced" }, t("mk.price.quoted")) : props.from ? t("mk.price.from", { price: money }) : money),
+      !unpriced && props.period ? h("span", { className: "xos-mkt-price-period" }, t(props.period === "year" ? "mk.price.perYear" : "mk.price.perMonth")) : null,
+      props.taxMode ? h("span", { className: "xos-mkt-price-tax" }, t(props.taxMode === "inclusive" ? "mk.price.taxInclusive" : "mk.price.taxExclusive", { currency: cur })) : null);
+  }
+
+  /* Plans side by side. The billing toggle announces its change, terms sit above the buttons, and no plan is preselected. */
+  function PricingTable(props) {
+    var periods = props.periods, s = React.useState(props.period || periods[0].value), live = React.useState("");
+    var current = periods.filter(function (p) { return p.value === s[0]; })[0] || periods[0];
+    function change(v) {
+      s[1](v);
+      periods.forEach(function (p) { if (p.value === v) live[1](t("mk.pricing.changed", { period: p.label })); });
+      if (props.onChange) props.onChange(v);
+    }
+    return h("div", { className: "xos-mkt-pricing" },
+      h("div", { className: "xos-mkt-pricing-bar" },
+        h(SegmentedControl, { label: t("mk.pricing.period"), value: s[0], options: periods.map(function (p) { return { value: p.value, label: p.label }; }), onChange: change }),
+        periods.map(function (p) { return p.note ? h("span", { key: p.value, className: "xos-mkt-note" }, p.note) : null; }),
+        h("span", { className: "xos-sr", role: "status", "aria-live": "polite" }, live[0])),
+      h("ul", { className: "xos-mkt-plans", style: { "--xos-mkt-n": props.plans.length } }, props.plans.map(function (pl) {
+        var amount = pl.quoteFrom !== undefined ? pl.quoteFrom : pl.prices ? pl.prices[s[0]] : null, free = amount === 0;
+        return h("li", { key: pl.name, className: cx("xos-card", "xos-mkt-plan", pl.recommended && "xos-mkt-plan-rec") },
+          h("div", { className: "xos-mkt-plan-head" }, h("h3", null, pl.name), pl.recommended ? h("span", { className: "xos-tag xos-tag-accent" }, t("mk.pricing.recommended")) : null),
+          h("p", { className: "xos-mkt-plan-blurb" }, pl.blurb),
+          h(PriceDisplay, { amount: amount, from: pl.quoteFrom !== undefined, currency: props.currency, period: free ? null : pl.quoteFrom !== undefined ? "month" : current.unit, taxMode: free ? null : props.taxMode }),
+          pl.note ? h("p", { className: "xos-mkt-note" }, pl.note) : null,
+          pl.cta ? h(ButtonLink, { href: pl.cta.href, variant: pl.recommended ? "primary" : "secondary", size: "xl", className: "xos-mkt-plan-cta" }, pl.cta.label) : null,
+          pl.limits ? h("dl", { className: "xos-mkt-plan-limits" }, pl.limits.map(function (l) {
+            return h("div", { key: l.label }, h("dt", null, l.label), h("dd", { className: "xos-num" }, l.value));
+          })) : null,
+          pl.features ? h("div", { className: "xos-mkt-plan-features" }, pl.featuresTitle ? h("p", { className: "xos-label" }, pl.featuresTitle) : null, mkPoints(pl.features)) : null);
+      })),
+      props.terms ? h("p", { className: "xos-mkt-note xos-mkt-pricing-terms" }, props.terms) : null);
+  }
+
+  /* Questions and answers. Answers stay in the document while closed. */
+  function FAQ(props) {
+    var H = "h" + (props.headingLevel || 3);
+    return h("div", { className: "xos-accordion xos-mkt-faq" }, props.items.map(function (it) {
+      return h("details", { key: it.q, open: it.open },
+        h("summary", null, h(Icon, { name: "ChevronRight", size: 14, className: "xos-acc-chev" }), h(H, null, it.q)),
+        h("div", { className: "xos-acc-body" }, typeof it.a === "string" ? h("p", null, it.a) : it.a));
+    }));
+  }
+
+  /* A customer's words. The disclosure line is required: it states the speaker's connection to the publisher. */
+  function Testimonial(props) {
+    return h("figure", { className: "xos-card xos-mkt-quote" },
+      h("blockquote", null, h("p", null, props.quote)),
+      h("figcaption", null, h(Avatar, { name: props.name }), h("span", { className: "xos-mkt-quote-who" }, h("strong", null, props.name), h("span", null, props.role), props.org ? h("span", null, props.org) : null)),
+      h("p", { className: "xos-mkt-quote-disclosure" }, h(Icon, { name: "Info", size: 12 }), h("span", null, props.disclosure)));
+  }
+
+  /* Customer marks. With no logos and no slots it renders nothing, so a page ships without it until consent exists. */
+  function LogoSlotWall(props) {
+    var logos = props.logos || [], slots = props.slots || 0, tiles = [], i;
+    if (!logos.length && !slots) return null;
+    for (i = 0; i < slots; i++) tiles.push(h("li", { key: "slot" + i }, h(BrandSlot, { label: t("mk.logo.slot", { n: i + 1 }), width: 160, height: 40, formats: "SVG" })));
+    return h("div", { className: "xos-mkt-logos" },
+      props.title ? h("p", { className: "xos-label" }, props.title) : null,
+      h("ul", { "aria-label": props.label }, logos.map(function (l) {
+        return h("li", { key: l.name }, h(BrandMark, { name: l.name, logoLight: l.logoLight, logoDark: l.logoDark, size: "lg" }));
+      }), tiles),
+      props.disclosure ? h("p", { className: "xos-mkt-note" }, props.disclosure) : null);
+  }
+
+  /* Marks a feature as AI, names the provider and links the notice. */
+  function AIDisclosureBadge(props) {
+    return h("span", { className: "xos-mkt-ai" },
+      h("span", { className: "xos-tag xos-tag-accent" }, h(Icon, { name: "Sparkles", size: 12 }), props.label || t("mk.ai.badge")),
+      props.provider ? h("span", { className: "xos-mkt-ai-provider" }, props.provider) : null,
+      props.href ? h(Link, { href: props.href }, props.linkLabel) : null);
+  }
+
+  function CodeSample(props) {
+    var done = React.useState(false);
+    function copy() {
+      function ok() { done[1](true); setTimeout(function () { done[1](false); }, 2000); }
+      try { navigator.clipboard.writeText(props.code).then(ok, function () { /* clipboard refused: the text stays selectable */ }); } catch (e) { /* no clipboard in this frame */ }
+    }
+    return h("div", { className: "xos-mkt-code" },
+      h("div", { className: "xos-mkt-code-bar" },
+        h("span", { className: "xos-label" }, props.label),
+        h(Button, { size: "sm", variant: "ghost", icon: done[0] ? "Check" : "Copy", onClick: copy }, t("mk.code.copy")),
+        h("span", { className: "xos-sr", role: "status", "aria-live": "polite" }, done[0] ? t("mk.code.copied") : "")),
+      h("pre", { tabIndex: 0, role: "region", "aria-label": props.label }, h("code", null, props.code)));
+  }
+
+  /* The cookie banner as shipped in the shells (apps/atlas/components/privacy/cookie-banner.tsx): Accept and Reject at
+     equal weight, categories behind Choose. A browser sending Global Privacy Control sees the confirmation instead. */
+  function ConsentBanner(props) {
+    var id = React.useId();
+    if (props.gpc) {
+      return h("section", { className: "xos-mkt-consent", "aria-label": props.title },
+        h("div", { className: "xos-mkt-consent-in" }, h("p", { className: "xos-mkt-consent-gpc", role: "status" }, h(Icon, { name: "ShieldCheck", size: 16 }), h("span", null, t("mk.consent.gpc")))));
+    }
+    return h("section", { className: "xos-mkt-consent", "aria-labelledby": id },
+      h("div", { className: "xos-mkt-consent-in" },
+        h("h2", { id: id }, props.title),
+        h("p", null, props.body, " ", h(Link, { href: props.policy.href }, props.policy.label)),
+        h("div", { className: "xos-row" },
+          h(Button, { size: "lg", onClick: function () { if (props.onChoice) props.onChoice("all"); } }, props.acceptLabel),
+          h(Button, { size: "lg", onClick: function () { if (props.onChoice) props.onChoice("none"); } }, props.rejectLabel)),
+        props.categories ? h("details", null,
+          h("summary", null, props.chooseLabel),
+          h("div", { className: "xos-mkt-consent-cats" },
+            props.necessary ? h("p", null, props.necessary) : null,
+            props.categories.map(function (c) { return h(Checkbox, { key: c.name, name: c.name, label: c.label }); }),
+            h("div", null, h(Button, { onClick: function () { if (props.onChoice) props.onChoice("save"); } }, props.saveLabel)))) : null));
+  }
+
+  function MarketingFooter(props) {
+    var theme = React.useState(props.theme || "dark");
+    function setTheme(v) { theme[1](v); if (props.onTheme) props.onTheme(v); else document.documentElement.setAttribute("data-theme", v); }
+    return h("footer", { className: "xos-mkt-footer" },
+      h("div", { className: "xos-mkt-wrap" },
+        h("div", { className: "xos-mkt-footer-top" },
+          h("div", { className: "xos-mkt-footer-brand" }, props.brand, props.tagline ? h("p", null, props.tagline) : null),
+          h("nav", { className: "xos-mkt-footer-cols", "aria-label": props.label }, props.columns.map(function (c) {
+            return h("div", { key: c.title },
+              h("h2", null, c.title),
+              h("ul", null, c.links.map(function (l) { return h("li", { key: l.label }, h("a", { href: l.href }, l.label)); })));
+          }))),
+        h("div", { className: "xos-mkt-footer-base" },
+          h("p", null, props.legal),
+          h("div", { className: "xos-mkt-footer-controls" },
+            props.locales ? h(Select, { label: t("mk.footer.language"), value: props.locale, options: props.locales, onChange: props.onLocale }) : null,
+            props.themes === false ? null : h("div", { className: "xos-field xos-mkt-footer-theme" },
+              h("span", { className: "xos-label" }, t("mk.footer.theme")),
+              h(SegmentedControl, { label: t("mk.footer.theme"), value: theme[0], onChange: setTheme, options: [{ value: "dark", label: t("mk.theme.dark") }, { value: "light", label: t("mk.theme.light") }, { value: "sunlight", label: t("mk.theme.sunlight") }] }))))));
+  }
+
+  Object.assign(EXPORTS, { ButtonLink: ButtonLink, MarketingNav: MarketingNav, MarketingSection: MarketingSection, MarketingHero: MarketingHero, ScreenshotFrame: ScreenshotFrame, PersonaSwitcher: PersonaSwitcher, ProofStatStrip: ProofStatStrip, GateLifecycleRail: GateLifecycleRail, SurfaceTriptych: SurfaceTriptych, FeatureGrid: FeatureGrid, ComparisonTable: ComparisonTable, PriceDisplay: PriceDisplay, PricingTable: PricingTable, FAQ: FAQ, Testimonial: Testimonial, LogoSlotWall: LogoSlotWall, AIDisclosureBadge: AIDisclosureBadge, CodeSample: CodeSample, ConsentBanner: ConsentBanner, MarketingFooter: MarketingFooter });
 
 
   /* Responsive layer. Wide data components scroll inside a labeled region instead of widening the page.
