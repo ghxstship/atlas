@@ -29,6 +29,16 @@ Facts the page states today, each of which is a lockstep change when it moves:
 - The platform brand marks are not set; the page shows the BrandMark monogram.
 - The integration connectors, API areas and Aurora features the page names.
 
+## Where each site lives
+
+Owner decision, 2026-11-14.
+
+- `https://ghxstship.tech`, the apex, is the marketing landing page, deployed on Vercel from `ghxstship/atlas-marketing`. Nothing in this repository serves the apex.
+- The product subdomains hold every sign-in, sign-up and onboarding sequence: `https://atlas.ghxstship.tech` for Atlas and `https://gateway.ghxstship.tech` for Gateway. The landing page links to them and never hosts an account form, a session or a password field of its own.
+- The other subdomains keep their owners here: `api`, `docs`, `console`, `status`, `atlas-staging` and `gateway-staging` (`infra/runbooks/production.md`).
+- The sign-in and sign-up addresses the landing page links to are product facts. A change to one is a lockstep change and gets an issue in `ghxstship/atlas-marketing` before the tag.
+- If Compass ever offers native passkeys, the apex must serve the apple-app-site-association file (`infra/runbooks/hosted-security-settings.md`). That becomes a request to the marketing site through an issue there.
+
 ## What this repository receives
 
 The marketing session opens issues here labeled `lockstep`, titled `Marketing request: <need>`. The owning agent under ADR 0004 answers each one. The marketing repository never edits a design system file; a need for a new token or component arrives as a request and is made in Claude Design first, exported to `design/`, then ported to `packages/`.
