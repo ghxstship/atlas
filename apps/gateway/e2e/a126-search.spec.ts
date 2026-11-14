@@ -1,6 +1,22 @@
-import { expect, settle, test } from "./engine-test";
+import { expect, selectAllText, settle, test, type Locator, type Page } from "./engine-test";
 import { sendCrewAgreement } from "./fixtures";
 import { DEMO, expectAccessible, signIn } from "./support";
+
+/**
+ * Opens the command menu with Cmd or Ctrl+K. Signing in lands on Home by a client-side navigation, so
+ * the page's load state is already idle while Home's scripts still load, and a shortcut pressed before
+ * the frame has its key listener is lost: in WebKit on Linux, Meta+K went 1 ms after the wait and
+ * fetched no menu, while Home's chunks were still arriving. The shortcut is pressed again only while
+ * the menu is closed, since a second press of one that arrived would close it.
+ */
+async function openMenu(page: Page): Promise<Locator> {
+  const menu = page.getByRole("dialog").filter({ has: page.getByRole("combobox") });
+  await expect(async () => {
+    if (!(await menu.isVisible())) await page.keyboard.press("ControlOrMeta+k");
+    await expect(menu).toBeVisible({ timeout: 5_000 });
+  }).toPass({ timeout: 30_000 });
+  return menu;
+}
 
 /**
  * Search first in Gateway (Section 11.10 item 1, trace S11.10-02, A126): Cmd or Ctrl+K finds the person's
@@ -13,9 +29,7 @@ test("Cmd or Ctrl+K finds a document and a message, and opens each", async ({ pa
   await signIn(page, "crew@example.com");
   await settle(page);
 
-  await page.keyboard.press("ControlOrMeta+k");
-  const menu = page.getByRole("dialog").filter({ has: page.getByRole("combobox") });
-  await expect(menu).toBeVisible();
+  const menu = await openMenu(page);
   await page.keyboard.type(agreement.title);
   const document = menu.getByRole("option", {
     name: new RegExp(`^${agreement.title} · Agreement`),
@@ -29,8 +43,7 @@ test("Cmd or Ctrl+K finds a document and a message, and opens each", async ({ pa
   );
   await expect(page.getByText(agreement.title).first()).toBeVisible();
 
-  await page.keyboard.press("ControlOrMeta+k");
-  await expect(menu).toBeVisible();
+  await openMenu(page);
   await page.keyboard.type("open most weekends");
   const message = menu.getByRole("option", { name: /Availability for the Fall Season: / });
   await expect(message).toBeVisible();
@@ -42,14 +55,12 @@ test("Cmd or Ctrl+K finds a document and a message, and opens each", async ({ pa
 test("the menu finds a setting and an action by their words", async ({ page }) => {
   await signIn(page, "crew@example.com");
   await settle(page);
-  await page.keyboard.press("ControlOrMeta+k");
-  const menu = page.getByRole("dialog").filter({ has: page.getByRole("combobox") });
-  await expect(menu).toBeVisible();
+  const menu = await openMenu(page);
   await page.keyboard.type("time zone");
   await expect(
     menu.getByRole("group", { name: "Settings" }).getByRole("option").first(),
   ).toBeVisible({ timeout: 15_000 });
-  await page.keyboard.press("ControlOrMeta+a");
+  await selectAllText(page);
   await page.keyboard.type("sign documents");
   await expect(menu.getByRole("option", { name: "Sign documents" })).toBeVisible();
 });

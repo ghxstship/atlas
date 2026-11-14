@@ -1,9 +1,11 @@
+import { readFile } from "node:fs/promises";
 import {
   test as base,
   type Browser,
   type BrowserContext,
   type Page,
   type Request,
+  type Route,
 } from "@playwright/test";
 
 export * from "@playwright/test";
@@ -26,6 +28,77 @@ const FRAME_MS = 1_000;
  */
 export async function settle(page: Page): Promise<void> {
   await page.waitForLoadState("networkidle", { timeout: QUIET_MS }).catch(() => undefined);
+}
+
+/**
+ * Selects all the text of the field that has focus, so the next typing replaces it. ControlOrMeta+A
+ * is Meta+A in WebKit (see `appleKeys`), and Playwright selects with it by sending the macOS editing
+ * command selectAll, which only WebKit on macOS performs. In WebKit on Linux, where the nightly
+ * journeys run, nothing was selected and the typed text landed after the old value ("Delay
+ * towersDelay towers, one set", nightly run 43452754701).
+ */
+export async function selectAllText(page: Page): Promise<void> {
+  await page.locator(":focus").selectText();
+}
+
+/** The name a Content-Disposition header gives its file, as the browser would suggest it. */
+function attachmentName(disposition: string): string {
+  const encoded = /filename\*=UTF-8''([^;]+)/i.exec(disposition)?.[1];
+  if (encoded) return decodeURIComponent(encoded.trim());
+  return /filename="?([^";]+)"?/i.exec(disposition)?.[1]?.trim() ?? "";
+}
+
+/**
+ * The file that `step` makes the page save, from a response whose URL matches `url`: its name and
+ * bytes. Playwright's WebKit on Linux, where the nightly journeys run it, shows a text/csv response
+ * in the tab even when its Content-Disposition is attachment, so no download event comes and the
+ * page is gone; a PDF, which it cannot show, downloads (probed in the Playwright 1.64 Linux image
+ * after nightly run 43452754701). Safari saves both. So in WebKit the response is taken at the
+ * network, must be an attachment, and its navigation is stopped, which leaves the page as a saved
+ * download would. A fulfilled route never downloads in WebKit, so the route cannot hand it on.
+ */
+export async function savedFile(
+  page: Page,
+  url: RegExp,
+  step: () => Promise<unknown>,
+  timeout = 60_000,
+): Promise<{ name: string; body: Buffer }> {
+  if (page.context().browser()?.browserType().name() !== "webkit") {
+    const download = page.waitForEvent("download", { timeout });
+    await step();
+    const file = await download;
+    return { name: file.suggestedFilename(), body: await readFile(await file.path()) };
+  }
+  let taken: (file: { disposition: string; body: Buffer }) => void = () => undefined;
+  const caught = new Promise<{ disposition: string; body: Buffer }>((resolve) => (taken = resolve));
+  const handler = async (route: Route) => {
+    const response = await route.fetch();
+    taken({
+      disposition: response.headers()["content-disposition"] ?? "",
+      body: await response.body(),
+    });
+    await route.abort();
+  };
+  await page.route(url, handler);
+  try {
+    await step();
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const file = await Promise.race([
+      caught,
+      new Promise<never>((_, fail) => {
+        timer = setTimeout(
+          () => fail(new Error(`No response matched ${url} in ${timeout} ms.`)),
+          timeout,
+        );
+      }),
+    ]).finally(() => clearTimeout(timer));
+    if (!/^\s*attachment/i.test(file.disposition)) {
+      throw new Error(`${url} answered "${file.disposition}", not an attachment.`);
+    }
+    return { name: attachmentName(file.disposition), body: file.body };
+  } finally {
+    await page.unroute(url, handler);
+  }
 }
 
 /**
@@ -147,8 +220,9 @@ export function settledGoto(page: Page): Page {
  * there and Control+K as a different chord (packages/schemas/src/shortcuts/keys.ts). Playwright
  * resolves `ControlOrMeta` by the host instead, Control on the Linux runners, and every WebKit
  * shortcut journey missed its shortcut in CI while passing on a Mac (nightly run 42927680948).
- * Playwright's WebKit applies the macOS editing commands to Meta chords on every host, so Meta+A
- * still selects all.
+ * Playwright sends the macOS editing commands with Meta chords on every host, but only WebKit on
+ * macOS performs them: on Linux, Meta+A selects nothing, so a step that replaces a field's text
+ * uses `selectAllText`.
  */
 function appleKeys(page: Page): void {
   if (page.context().browser()?.browserType().name() !== "webkit") return;

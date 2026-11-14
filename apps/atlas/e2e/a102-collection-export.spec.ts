@@ -1,6 +1,5 @@
-import { readFileSync } from "node:fs";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import { expect as baseExpect, test, type Page } from "./engine-test";
+import { expect as baseExpect, savedFile, test, type Page } from "./engine-test";
 import {
   DEFAULT_EXPORT_COPY,
   runExportRenders,
@@ -35,6 +34,9 @@ function localStack(): SupabaseClient {
   }
   return createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
 }
+
+/** The signed Storage link a ready export downloads from. */
+const SIGNED_FILE = /\/storage\/v1\/object\/sign\/export-files\//;
 
 /** One worker pass after the export was queued: runs the worker until it has rendered one export. */
 async function renderQueuedExport(client: SupabaseClient): Promise<void> {
@@ -115,11 +117,9 @@ test("export a list as CSV, and a Restricted column only after step-up", async (
   await expect(
     page.getByText("Preparing your export. It downloads when it is ready."),
   ).toBeVisible();
-  const venues = page.waitForEvent("download");
-  await renderQueuedExport(client);
-  const venuesFile = await venues;
-  expect(venuesFile.suggestedFilename()).toMatch(/\.csv$/);
-  const csv = readFileSync(await venuesFile.path(), "utf8");
+  const venuesFile = await savedFile(page, SIGNED_FILE, () => renderQueuedExport(client));
+  expect(venuesFile.name).toMatch(/\.csv$/);
+  const csv = venuesFile.body.toString("utf8");
   expect(csv.split("\n")[0]).toBe("Name,Jurisdiction,Time zone,Street address,City,Postal code");
   expect(csv).toContain(`Harborfront Hall ${id},US-FL-MIAMI-DADE,America/New_York,,Key West,`);
   await expect(page.getByText("Your export is ready: 1 row.")).toBeVisible();
@@ -137,10 +137,8 @@ test("export a list as CSV, and a Restricted column only after step-up", async (
   await expect(
     page.getByText("Preparing your export. It downloads when it is ready."),
   ).toBeVisible();
-  const rates = page.waitForEvent("download");
-  await renderQueuedExport(client);
-  const ratesFile = await rates;
-  const rateCsv = readFileSync(await ratesFile.path(), "utf8");
+  const ratesFile = await savedFile(page, SIGNED_FILE, () => renderQueuedExport(client));
+  const rateCsv = ratesFile.body.toString("utf8");
   expect(rateCsv.split("\n")[0]).toBe(
     "Role,Classification,Pay basis,Arrangement,Overtime rule,Rate (minor units)",
   );

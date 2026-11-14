@@ -1,5 +1,12 @@
 import { readFileSync } from "node:fs";
-import { expect as baseExpect, settle, test, type Browser, type Page } from "./engine-test";
+import {
+  expect as baseExpect,
+  selectAllText,
+  settle,
+  test,
+  type Browser,
+  type Page,
+} from "./engine-test";
 import { expectAccessible, uniqueId } from "./support";
 
 /**
@@ -185,11 +192,11 @@ test.describe("Budgets (journeys 3, 33, 34 and 37)", () => {
     // The grid is live (P4): an idle grid takes the other person's value as it lands, so the
     // producer opens the cell and types before the owner's save.
     await description(page).dblclick();
-    await page.keyboard.press("ControlOrMeta+a");
+    await selectAllText(page);
     await page.keyboard.type("Delay towers, one set");
 
     await description(other).dblclick();
-    await other.keyboard.press("ControlOrMeta+a");
+    await selectAllText(other);
     await other.keyboard.type("Delay towers, two sets");
     // The grid shows the edit before the save lands; the conflict needs the save committed first.
     const committed = other.waitForResponse((r) => r.request().method() === "POST");
@@ -220,7 +227,7 @@ test.describe("Budgets (journeys 3, 33, 34 and 37)", () => {
     const grid = (p: Page) => p.getByRole("grid", { name: "Budget lines" });
     const edit = async (p: Page, from: RegExp, to: string) => {
       await grid(p).getByRole("gridcell", { name: from }).dblclick();
-      await p.keyboard.press("ControlOrMeta+a");
+      await selectAllText(p);
       await p.keyboard.type(to);
       await p.keyboard.press("Enter");
       await expect(grid(p)).toContainText(to);
@@ -265,7 +272,7 @@ test.describe("Budgets (journeys 3, 33, 34 and 37)", () => {
       await grid(p)
         .getByRole("gridcell", { name: /Delay towers/ })
         .dblclick();
-      await p.keyboard.press("ControlOrMeta+a");
+      await selectAllText(p);
       await p.keyboard.type(to);
     };
     await settle(other);
@@ -398,11 +405,11 @@ test.describe("Invoice and settlement lines (A118)", () => {
         .getByRole("gridcell")
         .nth(7);
     await clientPrice(page).dblclick();
-    await page.keyboard.press("ControlOrMeta+a");
+    await selectAllText(page);
     await page.keyboard.type("1800");
 
     await clientPrice(other).dblclick();
-    await other.keyboard.press("ControlOrMeta+a");
+    await selectAllText(other);
     await other.keyboard.type("2100");
     await other.keyboard.press("Enter");
     await settle(other);
