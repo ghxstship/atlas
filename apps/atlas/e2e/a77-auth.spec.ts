@@ -153,6 +153,13 @@ test("an org that requires a second factor sends a member without one to set it 
 
   // Saved, the page itself now asks the Owner for a factor; so does every other page of the org.
   await page.waitForURL("**/auth/mfa?**");
+  // It settles there: no refetch loop rewriting history (Firefox refuses the later redirect after one).
+  let refetches = 0;
+  page.on("request", (r) => {
+    if (r.url().includes("/auth/mfa") && r.headers()["rsc"] !== undefined) refetches += 1;
+  });
+  await page.evaluate(() => new Promise((done) => setTimeout(done, 1_000)));
+  expect(refetches).toBeLessThan(3);
   await page.goto(`/${slug}/home`);
   await page.waitForURL("**/auth/mfa?**");
   await expect(page.getByRole("heading", { name: "Set up a second factor" })).toBeVisible();

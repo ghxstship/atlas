@@ -12,11 +12,12 @@ import { regionFromLocale, toE164 } from "@xos/i18n/formats";
 import { getLocale } from "next-intl/server";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+import type { Route } from "next";
 import { z } from "zod";
 import { clientIp } from "@/lib/auth/legal";
 import { parseSettingValue, settingByKey, settingErrorKey } from "@/lib/settings/registry";
-import { getOrgContext } from "@/lib/shell/context";
+import { getOrgContext, orgAuthRedirectAfterAction } from "@/lib/shell/context";
 import { applyDevicePreference } from "@/lib/shell/actions";
 import * as enums from "@xos/data/enums";
 
@@ -164,6 +165,14 @@ export async function saveSettingsAction(
       await applyDevicePreference(def.key, raw.trim());
     }
   }
-  if (saved.length > 0) revalidatePath(`/${ctx.org.slug}`, "layout");
+  if (saved.length > 0) {
+    revalidatePath(`/${ctx.org.slug}`, "layout");
+    // A security setting saved here can ask more of this very session (an MFA policy that now
+    // covers the saver): go verify from the action, not from the page's re-render.
+    if (saved.some((key) => key.startsWith("security."))) {
+      const to = await orgAuthRedirectAfterAction(ctx.org.slug);
+      if (to !== null) redirect(to as Route);
+    }
+  }
   return { errors, values, saved, at };
 }

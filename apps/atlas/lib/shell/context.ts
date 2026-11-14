@@ -81,6 +81,26 @@ export const getMyOrganizations = cache(async (): Promise<MyOrganization[]> => {
 });
 
 /**
+ * Where this session must go now that an action changed what the org asks of it (A77: a second
+ * factor its MFA policy now requires), or null. A server action redirects here itself: a redirect
+ * thrown while the page re-renders after the action reaches the browser as a render error, and the
+ * router then refetches the new page without end (the history update loop Firefox refuses).
+ */
+export async function orgAuthRedirectAfterAction(slug: string): Promise<string | null> {
+  const viewer = await getViewer();
+  if (!viewer?.person) return null;
+  const requestHeaders = await headers();
+  const here = requestHeaders.get(PATH_HEADER) ?? `/${slug}/home`;
+  const owed: { decision: OrgAuthDecision | null } = { decision: null };
+  await resolveMembership(viewer.db, viewer.person.id, slug, requestHeaders, undefined, {
+    onRequired: (decision) => {
+      owed.decision = decision;
+    },
+  });
+  return owed.decision === null ? null : orgAuthRedirect(owed.decision, slug, here, "");
+}
+
+/**
  * The viewer's context in an org by slug, or null when the org does not exist, the viewer is not
  * signed in, or holds no active membership there. Callers answer 404 for null (ADR 0003).
  *
