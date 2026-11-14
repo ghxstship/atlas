@@ -12,6 +12,7 @@
     ".": "./src/index.ts",
     "./legal-text": "./src/LegalText/index.ts",
     "./consent": "./src/ConsentBanner/index.ts",
+    "./consent/static": "./src/ConsentBanner/static.ts",
     "./static": "./src/static.ts",
     "./marketing": "./src/marketing.ts",
     "./preferences": "./src/lib/preferences.ts",

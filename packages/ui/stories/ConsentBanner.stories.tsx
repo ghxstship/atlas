@@ -6,6 +6,7 @@ import {
   type ConsentAdapter,
   type ConsentState,
 } from "../src/index.ts";
+import { ConsentBannerStatic } from "../src/ConsentBanner/static.ts";
 
 /**
  * The states of the shared cookie banner (issue 107): the first visit, a browser that sends Global
@@ -127,4 +128,18 @@ export const SettingsView: StoryObj = {
 export const SettingsUnderGlobalPrivacyControl: StoryObj = {
   name: "Settings Under Global Privacy Control",
   render: () => <Settings gpc />,
+};
+
+/** The script-free banner a server component renders, as Atlas shows it on every route. */
+export const ScriptFree: StoryObj = {
+  render: () => (
+    <ConsentBannerStatic
+      {...COPY}
+      policy={POLICY}
+      settings={{ label: "Cookie settings", href: "#cookie-settings" }}
+      chooseLabel="Choose cookies"
+      categories={CATEGORIES}
+      action="#consent"
+    />
+  ),
 };

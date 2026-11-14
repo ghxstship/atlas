@@ -14,7 +14,7 @@ import { atlasConsentAdapter, CONSENT_CATEGORIES } from "./consent-adapter";
  * forms are the shared ConsentBanner and ConsentSettings of @xos/ui; the decision is written through
  * Atlas's consent adapter, to the server-side consent log and the consent cookie. A browser sending
  * Global Privacy Control refuses every non-essential category whatever was ticked: the signal is the
- * `Sec-GPC` header, or the `gpc` field the banner posts when only `navigator.globalPrivacyControl`
+ * `Sec-GPC` header, or the `gpc` field Cookie settings posts when only `navigator.globalPrivacyControl`
  * reports it. The banner and Cookie settings each post that field once per mount, so a post that
  * carries it does nothing when the consent cookie already holds a refusal from the signal: the
  * signal is recorded once, as the proxy records the header once. Plain forms, so the banner works

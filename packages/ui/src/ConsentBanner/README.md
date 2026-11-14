@@ -1,6 +1,6 @@
 # ConsentBanner
 
-ConsentBanner asks a visitor once which cookies a site may set, and ConsentSettings is the page where the choice is changed. Atlas and the marketing site render the same two components.
+ConsentBanner asks a visitor once which cookies a site may set, and ConsentSettings is the page where the choice is changed. The marketing site renders both. Atlas renders ConsentSettings and, on every route, the script-free ConsentBannerStatic described below.
 
 - Import them from `@xos/ui/consent`, or from `@xos/ui` on the client. Both components are client modules; the adapter contract in `consent.ts` has no React and runs anywhere.
 - Accept and Reject are the same Button at the same size, side by side. Neither is primary, and neither has focus when the banner opens. No category behind Choose starts ticked.
@@ -9,9 +9,17 @@ ConsentBanner asks a visitor once which cookies a site may set, and ConsentSetti
 - A category `name` is a letter followed by letters, digits, underscores or hyphens, 64 characters at most (`CONSENT_CATEGORY_NAME`): `preferences`, `analytics_storage` and `Marketing` fit. The cookie adapter rejects a write with any other name, and reads nothing from a cookie that holds one.
 - The links are plain anchors. An app with a router passes `renderLink` to draw them with its own link component.
 
+## With no script
+
+`ConsentBannerStatic`, from `@xos/ui/consent/static`, is the same banner with no hooks, context or event handlers: a server component that renders it sends no JavaScript for it. Atlas shows it on every route, because the client ConsentBanner adds about 7 KB of script to each page that renders it.
+
+- It takes the same copy props, a required `action` (a URL or a server action) and an optional `renderLink`, which a server component can pass directly because nothing crosses to the client.
+- It reads nothing from the browser. The server decides whether to render it, and passes `gpc` and `gpcLabel` when the request carries `Sec-GPC: 1` to show the confirmation in place of the choices.
+- It keeps no record and does not see `navigator.globalPrivacyControl`. Use ConsentBanner with `record` where the banner keeps the decision through an adapter, as a site with no server does.
+
 ## From a server component
 
-A server component can pass only props that serialize: the copy, `gpc`, `policy`, `settings`, `categories`, `cookies`, a string `status`, and `action` as a URL or a server action. That is how Atlas renders both components.
+A server component can pass only props that serialize: the copy, `gpc`, `policy`, `settings`, `categories`, `cookies`, a string `status`, and `action` as a URL or a server action. That is how Atlas renders ConsentSettings. The rule covers the two client components; ConsentBannerStatic is rendered on the server, so it takes any prop.
 
 `record`, `onChoice`, `renderLink` and a function `status` are functions or hold functions. They must be passed from a file of the consumer's marked `"use client"`; a server component that passes them fails to render.
 
@@ -19,7 +27,7 @@ A server component can pass only props that serialize: the copy, `gpc`, `policy`
 
 The components never touch storage. They work in one of three ways:
 
-1. `action`: plain forms post the choice to a URL or a function (a Next.js server action). The fields are `choice` (`all`, `none` or `save`) and each ticked category by name with the value `on`. The forms work before any script loads. Atlas uses this.
+1. `action`: plain forms post the choice to a URL or a function (a Next.js server action). The fields are `choice` (`all`, `none` or `save`) and each ticked category by name with the value `on`. The forms work before any script loads. Atlas uses this for ConsentSettings.
 2. `record`: an adapter and a policy version. The banner reads the adapter once, stays hidden when a decision exists, and writes each decision with its timestamp, the policy version and the Global Privacy Control flag.
 3. `onChoice` alone: the consumer hears the choice and does the rest.
 

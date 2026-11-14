@@ -114,7 +114,6 @@
     "settingsTitle": "Cookie settings",
     "settingsLead": "Choose which cookies Atlas may set in this browser. Your choice is also kept on our servers as a record.",
     "gpc": "Your browser sends Global Privacy Control. We treat it as a refusal of every cookie that is not strictly necessary, so the choices below stay off while it is on.",
-    "gpcBanner": "Your browser sends Global Privacy Control. We treat it as a refusal of every cookie that is not strictly necessary.",
     "categories": "Categories",
     "current": {
       "none": "You have not chosen yet.",

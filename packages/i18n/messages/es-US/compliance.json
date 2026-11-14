@@ -114,7 +114,6 @@
     "settingsTitle": "Configuración de cookies",
     "settingsLead": "Elige qué cookies puede usar Atlas en este navegador. Tu elección también se guarda en nuestros servidores como registro.",
     "gpc": "Tu navegador envía Global Privacy Control. Lo tratamos como un rechazo de toda cookie que no sea estrictamente necesaria, así que las opciones de abajo quedan desactivadas mientras esté activo.",
-    "gpcBanner": "Tu navegador envía Global Privacy Control. Lo tratamos como un rechazo de toda cookie que no sea estrictamente necesaria.",
     "categories": "Categorías",
     "current": {
       "none": "Todavía no has elegido.",

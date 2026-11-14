@@ -33,3 +33,8 @@ export {
   type ConsentSettingsCategory,
   type ConsentSettingsProps,
 } from "./ConsentSettings.tsx";
+export {
+  ConsentBannerStatic,
+  type ConsentBannerStaticProps,
+  type ConsentStaticLinkRenderer,
+} from "./ConsentBannerStatic.tsx";
