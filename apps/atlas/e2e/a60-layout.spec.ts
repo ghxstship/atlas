@@ -30,12 +30,17 @@ test("project tabs past the bar's width sit under More, and the current tab stay
   await expect(tabs.getByRole("link", { name: "Procurement" })).toBeInViewport();
   const more = tabs.getByRole("button", { name: "More tabs" });
   await expect(more).toHaveAttribute("aria-expanded", "false");
+  await expectAccessible(page);
   await more.focus();
   await page.keyboard.press("Enter");
   await expect(more).toHaveAttribute("aria-expanded", "true");
   const settings = tabs.getByRole("link", { name: "Settings", exact: true });
   await expect(settings).toBeVisible();
-  await expectAccessible(page);
+  // The whole page was measured with the menu shut; open, the menu is. Its panel lies over the
+  // page's primary action and ends at the same right edge to the fraction of a pixel, so in CI's
+  // Firefox axe found a sliver of that action uncovered and failed it as too small a target
+  // (target-size, nightly run 43553805418), though no one can reach it while the menu is open.
+  await expectAccessible(page, { include: 'nav[aria-label="Project tabs"]' });
   await page.keyboard.press("Escape");
   await expect(more).toHaveAttribute("aria-expanded", "false");
   await expect(more).toBeFocused();

@@ -187,6 +187,9 @@ test.describe("Safety incidents (journey 16, Atlas)", () => {
 
     const producer = await asPerson(browser, "producer@example.com");
     await producer.goto(peekUrl.replace(/^https?:\/\/[^/]+/, ""));
+    // A note typed before the page hydrates is gone once React takes the form over, and the close
+    // then asks for one (Firefox, nightly run 43553805418): the page goes quiet first.
+    await settle(producer);
     const signoff = producer.getByRole("dialog");
     await signoff.locator("#signoff-note").fill("Barrier inspected and signed off by production.");
     await signoff.getByRole("button", { name: "Close with sign-off" }).click();
