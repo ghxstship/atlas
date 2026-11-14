@@ -1001,7 +1001,8 @@
       "digestHelp": "Reúne en un solo mensaje el correo que no es urgente.",
       "digestHour": "Hora del resumen",
       "smsNoPhone": "Agrega y verifica un número de teléfono en tu cuenta para recibir mensajes de texto.",
-      "smsConsent": "Envíame notificaciones de esta organización por mensaje de texto al {phone}. La frecuencia de los mensajes varía. Pueden aplicarse tarifas de mensajes y datos. Responde STOP para detenerlos o HELP para obtener ayuda."
+      "smsConsent": "Envíame notificaciones de esta organización por mensaje de texto al {phone}. La frecuencia de los mensajes varía. Pueden aplicarse tarifas de mensajes y datos. Responde STOP para detenerlos o HELP para obtener ayuda.",
+      "smsConsentLinks": "Consulta nuestros <terms>Términos de mensajes de texto</terms> y nuestra <privacy>Política de privacidad</privacy>."
     },
     "org": {
       "formLabel": "Valores predeterminados de notificaciones de la organización",

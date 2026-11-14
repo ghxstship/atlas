@@ -271,6 +271,33 @@ export function withSmsConsent(row: Row, consent: boolean): Row {
   return { ...row, may_text: consent };
 }
 
+/** The pages the consent to texts links, on Atlas (RRR-266): the Text Message Terms and the Privacy Policy's section 17. */
+export const SMS_CONSENT_PATHS = {
+  terms: "/legal/text-message-terms",
+  privacy: "/legal/privacy-policy#section-17",
+} as const;
+
+export type SmsConsentPart =
+  | { readonly text: string }
+  | { readonly text: string; readonly link: keyof typeof SMS_CONSENT_PATHS };
+
+/**
+ * The sentence after the consent to texts split into plain text and its two links. The catalog marks the links with
+ * <terms> and <privacy>, as Atlas's next-intl reads them; i18next leaves the tags in, so Compass splits them here.
+ */
+export function smsConsentParts(message: string): readonly SmsConsentPart[] {
+  const parts: SmsConsentPart[] = [];
+  const tag = /<(terms|privacy)>(.*?)<\/\1>/g;
+  let at = 0;
+  for (const match of message.matchAll(tag)) {
+    if (match.index > at) parts.push({ text: message.slice(at, match.index) });
+    parts.push({ text: match[2] ?? "", link: match[1] as keyof typeof SMS_CONSENT_PATHS });
+    at = match.index + match[0].length;
+  }
+  if (at < message.length) parts.push({ text: message.slice(at) });
+  return parts;
+}
+
 // Quiet hours and the digest: the checks before a save ----------------------------------------------------------------
 
 /** What is wrong with a quiet hours field: not a time, one time without the other, both the same, or no zone. */
