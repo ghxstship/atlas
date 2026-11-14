@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
@@ -234,19 +234,18 @@ describe("the first-party cookie", () => {
 
   it("holds the decision, its timestamp, the policy version and the signal flag", () => {
     const value = serializeConsentDecision(decision);
-    expect(value).toMatch(/^[A-Za-z0-9%._~!*'()-]+$/);
     expect(parseConsentDecision(value)).toEqual(decision);
   });
 
   it("reads nothing from a missing, foreign or damaged value", () => {
-    const encode = (raw: unknown) => encodeURIComponent(JSON.stringify(raw));
+    const encode = (raw: unknown) => JSON.stringify(raw);
     const good = { v: 1, at: decision.decidedAt, policy: POLICY_VERSION, gpc: false };
     for (const value of [
       undefined,
       null,
       "",
       "1.0123456789abcdef0123456789abcdef.10.0",
-      "%E0%A4%A",
+      "{not json",
       encode(null),
       encode({ ...good, categories: {}, v: 2 }),
       encode({ ...good, categories: {}, at: "yesterday" }),
@@ -294,8 +293,8 @@ describe("the first-party cookie", () => {
     const store = documentCookieStore(doc);
     expect(store.get("site-consent")).toBe("abc");
     expect(store.get("consent")).toBeUndefined();
-    store.set("site-consent", "xyz", { path: "/", sameSite: "lax", secure: true, maxAge: 60 });
-    expect(doc.cookie).toBe("site-consent=xyz; Path=/; Max-Age=60; SameSite=Lax; Secure");
+    store.set("site-consent", "x y;z", { path: "/", sameSite: "lax", secure: true, maxAge: 60 });
+    expect(doc.cookie).toBe("site-consent=x%20y%3Bz; Path=/; Max-Age=60; SameSite=Lax; Secure");
     store.set("site-consent", "xyz", { path: "/", sameSite: "lax", secure: false, maxAge: 60 });
     expect(doc.cookie).not.toContain("Secure");
   });
@@ -554,7 +553,10 @@ describe("ConsentBanner", () => {
       <ConsentBanner {...COPY} record={{ adapter: decided, policyVersion: POLICY_VERSION }} />,
     );
     expect(container.innerHTML).toBe("");
-    await read.mock.results[0]?.value;
+    await waitFor(() => expect(read).toHaveBeenCalled());
+    await act(async () => {
+      await read.mock.results[0]?.value;
+    });
     expect(container.innerHTML).toBe("");
   });
 

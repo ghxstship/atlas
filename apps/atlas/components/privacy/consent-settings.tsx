@@ -1,7 +1,7 @@
-import { ConsentSettings as Settings } from "@xos/ui/consent";
 import { getTranslations } from "next-intl/server";
 import { saveCookieChoice } from "@/lib/privacy/actions";
 import { consentState } from "@/lib/privacy/consent";
+import { RoutedConsentSettings as Settings } from "./consent-client";
 
 /** Every cookie Atlas sets, by category (legal/cookie-policy.md section 3 asks for them by name). */
 const COOKIES = [

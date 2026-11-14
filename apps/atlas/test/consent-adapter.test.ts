@@ -1,6 +1,7 @@
 import type { XosClient } from "@xos/data";
 import { CONSENT_BANNER_VERSION } from "@xos/data/consent";
-import { decideConsent } from "@xos/ui/consent";
+import { cookieConsentAdapter, decideConsent, documentCookieStore } from "@xos/ui/consent";
+import { RequestCookies, ResponseCookies } from "next/dist/compiled/@edge-runtime/cookies";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { atlasConsentAdapter, CONSENT_CATEGORIES } from "@/lib/privacy/consent-adapter";
 
@@ -153,6 +154,45 @@ describe("atlasConsentAdapter", () => {
   });
 });
 
+describe("cookieConsentAdapter with Next.js cookie jars", () => {
+  const decision = {
+    ...decideConsent({
+      choice: "save",
+      categories: ["preferences", "analytics_storage"],
+      selected: ["analytics_storage"],
+      gpc: false,
+      policyVersion: "cookie-policy 1.0.0",
+      now: new Date("2026-11-14T09:30:00.000Z"),
+    }),
+  };
+
+  it("a decision the server writes through ResponseCookies is read in the browser", async () => {
+    const jar = new ResponseCookies(new Headers());
+    const server = cookieConsentAdapter({
+      store: {
+        get: (name) => jar.get(name)?.value,
+        set: (name, value, options) => void jar.set(name, value, options),
+      },
+      secure: true,
+    });
+    await server.write(decision);
+    const pair = jar.toString().split("; ")[0] ?? "";
+    expect(pair.startsWith("xos-consent-decision=%7B")).toBe(true);
+    const browser = cookieConsentAdapter({ store: documentCookieStore({ cookie: pair }) });
+    expect(await browser.read()).toEqual(decision);
+  });
+
+  it("a decision the browser writes is read on the server through RequestCookies", async () => {
+    const doc = { cookie: "" };
+    await cookieConsentAdapter({ store: documentCookieStore(doc) }).write(decision);
+    const jar = new RequestCookies(new Headers({ cookie: doc.cookie.split("; ")[0] ?? "" }));
+    const server = cookieConsentAdapter({
+      store: { get: (name) => jar.get(name)?.value, set: () => undefined },
+    });
+    expect(await server.read()).toEqual(decision);
+  });
+});
+
 const request = vi.hoisted(() => ({
   cookies: undefined as unknown,
   headers: new Headers(),
@@ -192,7 +232,11 @@ describe("saveCookieChoice", () => {
     request.db = db;
     const { saveCookieChoice } = await import("@/lib/privacy/actions");
     await saveCookieChoice(form(fields));
-    return { cookie: cookies.sets.get("xos-consent")?.value ?? "", args: calls[0]?.args ?? {} };
+    return {
+      cookie: cookies.sets.get("xos-consent")?.value ?? "",
+      args: calls[0]?.args ?? {},
+      writes: calls.length,
+    };
   }
 
   beforeEach(() => {
@@ -247,5 +291,33 @@ describe("saveCookieChoice", () => {
     expect(saved.cookie).toMatch(/\.00\.1$/);
     expect(saved.args).toMatchObject({ p_global_privacy_control: true });
     expect((await save({ choice: "all", gpc: "0" })).cookie).toMatch(/\.11\.0$/);
+  });
+
+  it("records a browser-only signal once: a repeat post with the flag already stored writes nothing", async () => {
+    const stored = { cookies: { "xos-consent": `1.${VISITOR}.00.1` } };
+    request.revalidated.length = 0;
+    for (const fields of [
+      { choice: "none", gpc: "1" },
+      { choice: "save", preferences: "on", gpc: "1" },
+      { choice: "all", gpc: "1" },
+    ]) {
+      const repeat = await save(fields, stored);
+      expect(repeat.writes).toBe(0);
+      expect(repeat.cookie).toBe("");
+    }
+    expect(request.revalidated).toEqual([]);
+  });
+
+  it("still records the signal over an earlier choice, and a choice made without it", async () => {
+    const accepted = { cookies: { "xos-consent": `1.${VISITOR}.11.0` } };
+    const signalled = await save({ choice: "none", gpc: "1" }, accepted);
+    expect(signalled.writes).toBe(1);
+    expect(signalled.cookie).toBe(`1.${VISITOR}.00.1`);
+    const cleared = await save(
+      { choice: "all" },
+      { cookies: { "xos-consent": `1.${VISITOR}.00.1` } },
+    );
+    expect(cleared.writes).toBe(1);
+    expect(cleared.cookie).toBe(`1.${VISITOR}.11.0`);
   });
 });

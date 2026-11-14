@@ -6,9 +6,13 @@ import { useT } from "../lib/context.tsx";
 import { Button } from "../Button/Button.tsx";
 import { Checkbox } from "../Forms/Checkbox.tsx";
 import { InlineAlert } from "../Feedback/InlineAlert.tsx";
-import { Link } from "../Link/Link.tsx";
 import type { ConsentChoice, ConsentState } from "./consent.ts";
-import type { ConsentCategory, ConsentLink } from "./ConsentBanner.tsx";
+import {
+  ConsentLinkText,
+  type ConsentCategory,
+  type ConsentLink,
+  type ConsentLinkRenderer,
+} from "./ConsentBanner.tsx";
 import {
   tickedCategories,
   useConsent,
@@ -59,9 +63,11 @@ export interface ConsentSettingsProps {
   action?: ConsentAction;
   /** Lets the page keep the decision itself, through an adapter. */
   record?: ConsentRecording;
+  /** Draws the policy link with the app's router link; a plain anchor when omitted. */
+  renderLink?: ConsentLinkRenderer;
 }
 
-const cellClass = cx("py-4 pe-8");
+const cellClass = cx("py-4 pe-8 text-start");
 
 /**
  * The settings view of the cookie banner (Section 14.3): the choice in force, the categories, the
@@ -86,11 +92,12 @@ export function ConsentSettings({
   onChoice,
   action,
   record,
+  renderLink,
 }: ConsentSettingsProps): ReactElement {
   const t = useT();
   const custom = useRef<HTMLFormElement>(null);
   const names = categories.map((c) => c.name);
-  const { signal, stored, choose } = useConsent({
+  const { signal, browserOnly, stored, choose } = useConsent({
     gpc,
     categories: names,
     record,
@@ -102,8 +109,11 @@ export function ConsentSettings({
   const type = posts ? "submit" : "button";
   const allowed = (c: ConsentSettingsCategory): boolean =>
     record === undefined ? (c.checked ?? false) : stored?.categories[c.name] === true;
-  // The boxes are uncontrolled so they work before any script loads; a new stored choice remounts them.
-  const formKey = record === undefined ? "props" : JSON.stringify(stored ?? null);
+  // The boxes are uncontrolled so they work before any script loads; a new stored choice remounts
+  // them, and only them, so the button that was pressed keeps the keyboard focus.
+  const boxesKey = record === undefined ? "props" : JSON.stringify(stored ?? null);
+  // Only the browser reports the signal: tell the server, which saw no Sec-GPC header.
+  const gpcField = browserOnly ? <input type="hidden" name="gpc" value="1" /> : null;
   return (
     <div className="mx-auto flex max-w-layout-reading flex-col gap-16 p-24">
       <Heading className="m-0 text-heading-24 font-semibold">{title}</Heading>
@@ -114,7 +124,6 @@ export function ConsentSettings({
       </p>
       {/* data-keep-input: the save always succeeds and the page renders again from the stored choice. */}
       <form
-        key={formKey}
         ref={custom}
         {...(posts ? { action } : {})}
         onSubmit={posts ? undefined : (event) => event.preventDefault()}
@@ -122,7 +131,8 @@ export function ConsentSettings({
         className="flex flex-col gap-12"
       >
         <input type="hidden" name="choice" value="save" />
-        <fieldset className="m-0 flex flex-col items-start gap-8 border-0 p-0">
+        {gpcField}
+        <fieldset key={boxesKey} className="m-0 flex flex-col items-start gap-8 border-0 p-0">
           <legend className="mb-4 text-text-13 font-medium">{categoriesLabel}</legend>
           <Checkbox label={necessary} checked disabled readOnly />
           {categories.map((c) => (
@@ -150,6 +160,7 @@ export function ConsentSettings({
         onSubmit={posts ? undefined : (event) => event.preventDefault()}
         className="flex flex-wrap gap-8"
       >
+        {gpcField}
         <Button
           type={type}
           name="choice"
@@ -164,8 +175,8 @@ export function ConsentSettings({
         </Button>
       </form>
       {cookies ? (
-        <table className="w-full border-collapse text-left text-text-13">
-          <caption className="mb-8 text-left text-text-13 font-medium">{cookies.caption}</caption>
+        <table className="w-full border-collapse text-start text-text-13">
+          <caption className="mb-8 text-start text-text-13 font-medium">{cookies.caption}</caption>
           <thead>
             <tr className="border-b border-border-subtle">
               <th scope="col" className={cellClass}>
@@ -174,7 +185,7 @@ export function ConsentSettings({
               <th scope="col" className={cellClass}>
                 {cookies.categoryLabel}
               </th>
-              <th scope="col" className="py-4">
+              <th scope="col" className="py-4 text-start">
                 {cookies.purposeLabel}
               </th>
             </tr>
@@ -194,7 +205,7 @@ export function ConsentSettings({
       ) : null}
       {policy ? (
         <p className="m-0 text-text-13 text-text-secondary">
-          <Link href={policy.href}>{policy.label}</Link>
+          <ConsentLinkText link={policy} renderLink={renderLink} />
         </p>
       ) : null}
     </div>

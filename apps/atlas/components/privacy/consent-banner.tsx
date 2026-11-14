@@ -1,15 +1,17 @@
-import { ConsentBanner as Banner } from "@xos/ui/consent";
 import { getTranslations } from "next-intl/server";
 import { saveCookieChoice } from "@/lib/privacy/actions";
 import { consentState } from "@/lib/privacy/consent";
+import { RoutedConsentBanner as Banner } from "./consent-client";
 
 /**
  * The cookie banner (Section 14.3 ePrivacy, legal/cookie-policy.md, finding A65-014): the shared
  * ConsentBanner of @xos/ui with Atlas's copy and its server action. Shown until the visitor chooses,
  * and never to a browser that sends Global Privacy Control, which counts as a refusal the proxy has
- * already recorded; the Cookie settings page tells that visitor why. Plain forms bound to a server
- * action, so the banner works before hydration. Imported from `@xos/ui/consent`, a client module of
- * its own, so the root layout does not bring the rest of the library to every route (ADR 0027).
+ * already recorded; the Cookie settings page tells that visitor why. When only the browser reports
+ * the signal, the banner says so in Atlas's words and posts the refusal. Plain forms bound to a
+ * server action, so the banner works before hydration. The links are next/link, through
+ * consent-client.tsx, which imports `@xos/ui/consent`, a client module of its own, so the root
+ * layout does not bring the rest of the library to every route (ADR 0027).
  */
 export async function ConsentBanner() {
   const state = await consentState();
@@ -30,6 +32,7 @@ export async function ConsentBanner() {
         { name: "performance", label: t("performance") },
       ]}
       saveLabel={t("save")}
+      gpcLabel={t("gpcBanner")}
       action={saveCookieChoice}
     />
   );

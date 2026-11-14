@@ -33,7 +33,12 @@ export interface ConsentAdapter {
   write(decision: ConsentDecision): Promise<void>;
 }
 
-const CATEGORY = /^[a-z][a-zA-Z0-9-]{0,31}$/;
+/**
+ * The rule for a category name, on write and on read alike: a letter, then letters, digits,
+ * underscores or hyphens, 64 characters at most. `preferences`, `analytics_storage` and `Marketing`
+ * fit; a name with a space or a semicolon does not.
+ */
+export const CONSENT_CATEGORY_NAME = /^[A-Za-z][A-Za-z0-9_-]{0,63}$/;
 
 /** True when a request carries Global Privacy Control (`Sec-GPC: 1`). */
 export function sendsGlobalPrivacyControl(headers: { get(name: string): string | null }): boolean {
@@ -98,31 +103,44 @@ export interface ConsentCookieOptions {
   readonly maxAge: number;
 }
 
-/** The two cookie operations the reference adapter needs; a browser or a server response fits. */
+/**
+ * The two cookie operations the reference adapter needs; a browser or a server response fits.
+ * Encoding is the store's job: `get` returns and `set` receives the decoded value, which is JSON
+ * with quotes and commas in it. A framework's cookie jar (Next.js `cookies()`) already encodes on
+ * the way out and decodes on the way in, as `documentCookieStore` does, so a decision one of them
+ * writes is read by the other.
+ */
 export interface ConsentCookieStore {
   get(name: string): string | undefined;
   set(name: string, value: string, options: ConsentCookieOptions): void;
 }
 
-/** The cookie value for a decision: versioned JSON, percent-encoded. */
+/**
+ * The cookie value for a decision: versioned JSON, not encoded. Throws on a category name outside
+ * `CONSENT_CATEGORY_NAME`, which `parseConsentDecision` would refuse to read back.
+ */
 export function serializeConsentDecision(decision: ConsentDecision): string {
-  return encodeURIComponent(
-    JSON.stringify({
-      v: 1,
-      at: decision.decidedAt,
-      policy: decision.policyVersion,
-      gpc: decision.gpc,
-      categories: decision.categories,
-    }),
-  );
+  for (const name of Object.keys(decision.categories)) {
+    if (!CONSENT_CATEGORY_NAME.test(name))
+      throw new TypeError(
+        `Consent category name ${JSON.stringify(name)} must match ${String(CONSENT_CATEGORY_NAME)}.`,
+      );
+  }
+  return JSON.stringify({
+    v: 1,
+    at: decision.decidedAt,
+    policy: decision.policyVersion,
+    gpc: decision.gpc,
+    categories: decision.categories,
+  });
 }
 
-/** The decision a cookie value holds, or null when it is missing or not one this version wrote. */
+/** The decision a decoded cookie value holds, or null when it is missing or not one this version wrote. */
 export function parseConsentDecision(value: string | undefined | null): ConsentDecision | null {
   if (!value) return null;
   let raw: unknown;
   try {
-    raw = JSON.parse(decodeURIComponent(value));
+    raw = JSON.parse(value);
   } catch {
     return null;
   }
@@ -134,7 +152,8 @@ export function parseConsentDecision(value: string | undefined | null): ConsentD
   if (typeof categories !== "object" || categories === null || Array.isArray(categories))
     return null;
   const entries = Object.entries(categories);
-  if (!entries.every(([name, on]) => CATEGORY.test(name) && typeof on === "boolean")) return null;
+  if (!entries.every(([name, on]) => CONSENT_CATEGORY_NAME.test(name) && typeof on === "boolean"))
+    return null;
   return {
     categories: Object.fromEntries(entries) as Record<string, boolean>,
     gpc,
@@ -143,7 +162,10 @@ export function parseConsentDecision(value: string | undefined | null): ConsentD
   };
 }
 
-/** A cookie store over `document.cookie`, for a page with no server of its own. */
+/**
+ * A cookie store over `document.cookie`, for a page with no server of its own. It percent-encodes
+ * the value it writes and decodes the one it reads; a pair it cannot decode reads as missing.
+ */
 export function documentCookieStore(
   doc: { cookie: string } = document as { cookie: string },
 ): ConsentCookieStore {
@@ -151,11 +173,16 @@ export function documentCookieStore(
     get(name) {
       const prefix = `${name}=`;
       const pair = doc.cookie.split("; ").find((entry) => entry.startsWith(prefix));
-      return pair === undefined ? undefined : pair.slice(prefix.length);
+      if (pair === undefined) return undefined;
+      try {
+        return decodeURIComponent(pair.slice(prefix.length));
+      } catch {
+        return undefined;
+      }
     },
     set(name, value, options) {
       doc.cookie = [
-        `${name}=${value}`,
+        `${name}=${encodeURIComponent(value)}`,
         `Path=${options.path}`,
         `Max-Age=${options.maxAge}`,
         "SameSite=Lax",
@@ -179,26 +206,33 @@ export interface CookieConsentAdapterOptions {
 /**
  * The reference `ConsentAdapter` with no database: the decision, its timestamp, the policy version
  * and the Global Privacy Control flag live in one first-party cookie. The cookie is strictly
- * necessary, since it only remembers the choice.
+ * necessary, since it only remembers the choice. `read` and `write` never throw: storage that
+ * cannot be reached (a sandboxed frame, a blocked cookie jar) and a category name outside
+ * `CONSENT_CATEGORY_NAME` reject. On a server with no `store`, `read` resolves null, since there
+ * is no browser to ask, and `write` rejects.
  */
 export function cookieConsentAdapter(options: CookieConsentAdapterOptions = {}): ConsentAdapter {
   const name = options.name ?? CONSENT_DECISION_COOKIE;
   const maxAge = options.maxAge ?? CONSENT_DECISION_MAX_AGE;
-  const store = (): ConsentCookieStore => options.store ?? documentCookieStore();
+  const store = (): ConsentCookieStore | null =>
+    options.store ?? (typeof document === "undefined" ? null : documentCookieStore());
   const secure = (): boolean =>
     options.secure ?? (typeof location !== "undefined" && location.protocol === "https:");
   return {
-    read() {
-      return Promise.resolve(parseConsentDecision(store().get(name)));
+    // Async, so a store that throws becomes a rejection the caller can handle.
+    async read() {
+      return parseConsentDecision(store()?.get(name));
     },
-    write(decision) {
-      store().set(name, serializeConsentDecision(decision), {
+    async write(decision) {
+      const cookies = store();
+      if (cookies === null)
+        throw new Error("cookieConsentAdapter has no cookie store here: pass `store` on a server.");
+      cookies.set(name, serializeConsentDecision(decision), {
         path: "/",
         sameSite: "lax",
         secure: secure(),
         maxAge,
       });
-      return Promise.resolve();
     },
   };
 }

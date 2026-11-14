@@ -529,6 +529,7 @@ export {
 export {
   ConsentBanner,
   ConsentSettings,
+  CONSENT_CATEGORY_NAME,
   CONSENT_DECISION_COOKIE,
   CONSENT_DECISION_MAX_AGE,
   browserGlobalPrivacyControl,
@@ -549,6 +550,7 @@ export {
   type ConsentCookieTable,
   type ConsentDecision,
   type ConsentLink,
+  type ConsentLinkRenderer,
   type ConsentRecording,
   type ConsentSettingsCategory,
   type ConsentSettingsProps,
