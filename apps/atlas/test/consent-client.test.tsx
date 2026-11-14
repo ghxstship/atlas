@@ -4,7 +4,8 @@ import esUS from "@xos/i18n/messages/es-US/compliance.json" with { type: "json" 
 import type { ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
-import { RoutedConsentBanner, RoutedConsentSettings } from "@/components/privacy/consent-client";
+import { RoutedConsentBanner } from "@/components/privacy/consent-banner-routed";
+import { RoutedConsentSettings } from "@/components/privacy/consent-settings-client";
 
 /**
  * Atlas's wiring of the shared cookie banner (issue 107): the links are next/link, so the Cookie

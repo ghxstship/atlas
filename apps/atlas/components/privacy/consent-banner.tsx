@@ -9,9 +9,9 @@ import { RoutedConsentBanner as Banner } from "./consent-client";
  * and never to a browser that sends Global Privacy Control, which counts as a refusal the proxy has
  * already recorded; the Cookie settings page tells that visitor why. When only the browser reports
  * the signal, the banner says so in Atlas's words and posts the refusal. Plain forms bound to a
- * server action, so the banner works before hydration. The links are next/link, through
- * consent-client.tsx, which imports `@xos/ui/consent`, a client module of its own, so the root
- * layout does not bring the rest of the library to every route (ADR 0027).
+ * server action, so the banner works before hydration. The links are next/link. consent-client.tsx
+ * loads the banner's client code as a chunk of its own, so the root layout adds no banner script to
+ * a route's first load (ADR 0027).
  */
 export async function ConsentBanner() {
   const state = await consentState();

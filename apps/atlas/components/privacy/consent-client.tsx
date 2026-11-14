@@ -1,31 +1,14 @@
 "use client";
 
-import {
-  ConsentBanner,
-  ConsentSettings,
-  type ConsentBannerProps,
-  type ConsentLinkRenderer,
-  type ConsentSettingsProps,
-} from "@xos/ui/consent";
-import type { Route } from "next";
-import Link from "next/link";
+import dynamic from "next/dynamic";
 
 /**
- * The shared ConsentBanner and ConsentSettings of @xos/ui with their links drawn by next/link, so
- * the Cookie Policy and Cookie settings open without a full page load. The package draws plain
- * anchors and knows nothing of Next.js; `renderLink` is a function, so it is given here, in a
- * client module of its own that the root layout can load without the rest of the library (ADR 0027).
+ * The banner's client code as a chunk of its own. The root layout shows the banner on every route
+ * until the visitor chooses, so importing it directly would add its script to every page's first
+ * load, including for the visitors who have already chosen and never see it (route JavaScript
+ * budget, ADR 0027). The server still renders the banner's forms, which post to the server action
+ * before any script runs; the chunk arrives after and adds the browser's Global Privacy Control check.
  */
-const routerLink: ConsentLinkRenderer = (link, className) => (
-  <Link href={link.href as Route} className={className}>
-    {link.label}
-  </Link>
+export const RoutedConsentBanner = dynamic(() =>
+  import("./consent-banner-routed").then((m) => m.RoutedConsentBanner),
 );
-
-export function RoutedConsentBanner(props: Omit<ConsentBannerProps, "renderLink">) {
-  return <ConsentBanner {...props} renderLink={routerLink} />;
-}
-
-export function RoutedConsentSettings(props: Omit<ConsentSettingsProps, "renderLink">) {
-  return <ConsentSettings {...props} renderLink={routerLink} />;
-}
