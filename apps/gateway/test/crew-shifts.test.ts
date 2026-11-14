@@ -1,8 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 /**
- * B10: a right code goes in an httpOnly, Secure, Lax cookie scoped to the link's path, for the shorter of 12 hours and the
- * link's life; a wrong code never sets it; accepting reads the code from the cookie; forgetting clears it.
+ * B10: a right code goes in an httpOnly, Lax cookie scoped to the link's path, for the shorter of 12 hours and the link's
+ * life, and Secure whenever Gateway is served over https; a wrong code never sets it; accepting reads the code from the
+ * cookie; forgetting clears it.
  */
 
 const request = vi.hoisted(() => ({
@@ -12,6 +13,7 @@ const request = vi.hoisted(() => ({
   accepted: null as unknown,
   acceptArgs: null as unknown,
   revalidated: [] as string[],
+  site: "https://gateway.example.com",
 }));
 
 vi.mock("next/headers", () => ({
@@ -24,6 +26,7 @@ vi.mock("next/headers", () => ({
 vi.mock("next/cache", () => ({
   revalidatePath: (p: string) => request.revalidated.push(p),
 }));
+vi.mock("@/lib/env", () => ({ env: () => ({ GATEWAY_SITE_URL: request.site }) }));
 vi.mock("@/lib/supabase/server", () => ({ createServerSupabase: async () => ({}) }));
 vi.mock("@xos/data/gateway", () => ({
   openCrewShifts: async () => request.opened,
@@ -49,6 +52,7 @@ describe("the crew access link's code cookie", () => {
     request.set = [];
     request.revalidated = [];
     request.cookie = "123456";
+    request.site = "https://gateway.example.com";
   });
 
   it("keeps a right code for 12 hours on this link's path only", async () => {
@@ -69,6 +73,16 @@ describe("the crew access link's code cookie", () => {
         maxAge: 43_200,
       },
     });
+  });
+
+  it("leaves Secure off on local http, where WebKit would refuse the cookie", async () => {
+    request.site = "http://127.0.0.1:3127";
+    request.opened = {
+      ok: true,
+      data: { refused: false, linkExpiresAt: new Date(Date.now() + 7 * 86_400_000).toISOString() },
+    };
+    await openCrewShiftsAction({}, form({ token: TOKEN, accessCode: "123456" }));
+    expect(request.set[0]?.options["secure"]).toBe(false);
   });
 
   it("keeps it no longer than the link lives", async () => {
