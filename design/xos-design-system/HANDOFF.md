@@ -194,3 +194,17 @@ Every Section 11.5 line maps to boards in the XOS 4.0 Screens canvas. Board name
 An earlier lineage (Poseidon, last commit 2026-09-14) used Discover and Design gates, banned a `status` field and spelled "Cancelled". This system follows v1.6 and the current Bible (Scope, Engage, Advance; Canceled). Compatible Poseidon rules were adopted: logical properties, `color-scheme`, text-on-color tokens, target tokens and never approximating regulated safety symbols.
 
 Platform brand marks are deferred; the white-label slots carry the layout until they are set.
+
+## 10. Marketing layer (2026-11-14, decision D20)
+
+Added for the Atlas landing page. Port it as one package of work, after the product tokens and components are in place.
+
+| Export | Destination | Notes |
+| --- | --- | --- |
+| `tokens.json` type group Display, and `space-80`, `space-96`, `space-128` | `packages/tokens` | Also in `export/tokens/base.tokens.json`, `export/tokens/name-map.json` and `export/tailwind.preset.js`. |
+| The Marketing section of `components/bundle.css`, class prefix `xos-mkt-` | `packages/ui` | Display classes are fluid with `clamp()`; the endpoints are scale steps. |
+| The 20 Marketing components in `components/bundle.js`, typed at the end of `components/index.d.ts` | `packages/ui` | Server components where they hold no state: only MarketingNav, PersonaSwitcher, PricingTable, CodeSample and MarketingFooter need the client. |
+| 29 messages under `mk.*` in `export/i18n/*.json` | `packages/i18n` | es-US is a draft; the repository's translation pipeline (ADR 0037) reviews it. |
+| `ConsentBanner` | None | Reference only. Public pages reuse `apps/atlas/components/privacy/cookie-banner.tsx`, its consent log and its Global Privacy Control handling. |
+
+Gates owed in CI for this layer before it merges: Storybook stories with axe in four modes and three engines, visual baselines in Dark, Light, Sunlight and right to left, pseudo-locale checks, token conformance, and `tsc --strict` on the new types.

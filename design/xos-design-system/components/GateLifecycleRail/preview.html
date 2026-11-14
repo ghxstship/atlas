@@ -1,0 +1,23 @@
+<!-- @dsCard group="Marketing" height=640 -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>GateLifecycleRail</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h(X.GateLifecycleRail,{label:'The nine gates',acts:[{name:'Plan',range:'Gates 1 to 3',gates:[
+      {n:1,code:'SCP',name:'Scope',summary:'Lock the scope, the budget envelope and the jurisdiction.',evidence:'A budget envelope exists and is approved.'},
+      {n:2,code:'ENG',name:'Engage',summary:'Execute contracts and name an accountable party for every requirement.',evidence:'Every requirement in the locked scope carries a named accountable party.'},
+      {n:3,code:'ADV',name:'Advance',summary:'Reconcile every requirement against the venue and file permits.',evidence:'Every permit the jurisdiction requires is filed with lead time in hand.'}]},
+    {name:'Build',range:'Gates 4 to 6',gates:[
+      {n:4,code:'PRC',name:'Procure',summary:'Issue awards, pay deposits and confirm long-lead orders.',evidence:'Every awarded line carries a resolved unit.'},
+      {n:5,code:'BLD',name:'Build',summary:'Complete fabrication and pass quality control.',evidence:'Materials received against purchase orders with variance resolved.'},
+      {n:6,code:'INS',name:'Install',summary:'Install, commission and pass inspection.',evidence:'Occupant load, egress width and path verified against the adopted code as built, not as drawn.'}]},
+    {name:'Show',range:'Gates 7 to 9',gates:[
+      {n:7,code:'OPR',name:'Operate',summary:'Run the show, strike and sign acceptance.',evidence:'Every incident, injury and near-miss logged and dispositioned.'},
+      {n:8,code:'AMP',name:'Amplify',summary:'Deliver capture, clear rights and report measurement.',evidence:'Contracted sponsor deliverables evidenced and the proof-of-performance report issued.'},
+      {n:9,code:'CLS',name:'Close',summary:'Reconcile finances, return assets and discharge obligations.',evidence:'Financially reconciled; final cost report filed against the gate 3 baseline.'}]}]}));
+</script>
+</body>
+</html>
