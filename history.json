@@ -1,0 +1,283 @@
+{
+  "version": 1,
+  "updatedAt": "2026-11-14T21:57:57.665Z",
+  "regions": {
+    "us-east": {
+      "atlas.sign_in_page": {
+        "component": "atlas",
+        "days": {
+          "2026-11-10": {
+            "pass": 0,
+            "degraded": 7,
+            "fail": 0
+          },
+          "2026-11-11": {
+            "pass": 1,
+            "degraded": 6,
+            "fail": 0
+          },
+          "2026-11-12": {
+            "pass": 2,
+            "degraded": 5,
+            "fail": 0
+          },
+          "2026-11-13": {
+            "pass": 1,
+            "degraded": 7,
+            "fail": 0
+          },
+          "2026-11-14": {
+            "pass": 1,
+            "degraded": 7,
+            "fail": 0
+          }
+        },
+        "last": {
+          "id": "atlas.sign_in_page",
+          "component": "atlas",
+          "region": "us-east",
+          "at": "2026-11-14T21:57:50.048Z",
+          "runbook": "infra/runbooks/incident-response.md#atlas-or-gateway-unavailable",
+          "status": "degraded",
+          "latencyMs": 1429,
+          "detail": "over_budget_600ms"
+        },
+        "failStreak": 0
+      },
+      "atlas.sign_in": {
+        "component": "atlas",
+        "days": {},
+        "last": {
+          "id": "atlas.sign_in",
+          "component": "atlas",
+          "region": "us-east",
+          "at": "2026-11-14T21:57:51.477Z",
+          "runbook": "infra/runbooks/incident-response.md#sign-in-failing",
+          "status": "skipped",
+          "latencyMs": null,
+          "detail": "missing_SUPABASE_URL_SUPABASE_ANON_KEY_XOS_SYNTHETIC_EMAIL_XOS_SYNTHETIC_PASSWORD"
+        }
+      },
+      "gateway.home": {
+        "component": "gateway",
+        "days": {
+          "2026-11-10": {
+            "pass": 0,
+            "degraded": 7,
+            "fail": 0
+          },
+          "2026-11-11": {
+            "pass": 0,
+            "degraded": 7,
+            "fail": 0
+          },
+          "2026-11-12": {
+            "pass": 0,
+            "degraded": 7,
+            "fail": 0
+          },
+          "2026-11-13": {
+            "pass": 0,
+            "degraded": 8,
+            "fail": 0
+          },
+          "2026-11-14": {
+            "pass": 0,
+            "degraded": 8,
+            "fail": 0
+          }
+        },
+        "last": {
+          "id": "gateway.home",
+          "component": "gateway",
+          "region": "us-east",
+          "at": "2026-11-14T21:57:51.477Z",
+          "runbook": "infra/runbooks/incident-response.md#atlas-or-gateway-unavailable",
+          "status": "degraded",
+          "latencyMs": 2547,
+          "detail": "over_budget_600ms"
+        },
+        "failStreak": 0
+      },
+      "api.openapi": {
+        "component": "api",
+        "days": {
+          "2026-11-10": {
+            "pass": 6,
+            "degraded": 1,
+            "fail": 0
+          },
+          "2026-11-11": {
+            "pass": 6,
+            "degraded": 1,
+            "fail": 0
+          },
+          "2026-11-12": {
+            "pass": 7,
+            "degraded": 0,
+            "fail": 0
+          },
+          "2026-11-13": {
+            "pass": 8,
+            "degraded": 0,
+            "fail": 0
+          },
+          "2026-11-14": {
+            "pass": 8,
+            "degraded": 0,
+            "fail": 0
+          }
+        },
+        "last": {
+          "id": "api.openapi",
+          "component": "api",
+          "region": "us-east",
+          "at": "2026-11-14T21:57:54.024Z",
+          "runbook": "infra/runbooks/incident-response.md#api-errors-or-latency",
+          "status": "pass",
+          "latencyMs": 319,
+          "detail": null
+        },
+        "failStreak": 0
+      },
+      "api.read": {
+        "component": "api",
+        "days": {},
+        "last": {
+          "id": "api.read",
+          "component": "api",
+          "region": "us-east",
+          "at": "2026-11-14T21:57:54.343Z",
+          "runbook": "infra/runbooks/incident-response.md#api-errors-or-latency",
+          "status": "skipped",
+          "latencyMs": null,
+          "detail": "missing_SUPABASE_URL_SUPABASE_ANON_KEY_XOS_SYNTHETIC_EMAIL_XOS_SYNTHETIC_PASSWORD"
+        }
+      },
+      "realtime.join": {
+        "component": "realtime",
+        "days": {},
+        "last": {
+          "id": "realtime.join",
+          "component": "realtime",
+          "region": "us-east",
+          "at": "2026-11-14T21:57:54.343Z",
+          "runbook": "infra/runbooks/incident-response.md#realtime-or-sync-degraded",
+          "status": "skipped",
+          "latencyMs": null,
+          "detail": "missing_SUPABASE_URL_SUPABASE_ANON_KEY"
+        }
+      },
+      "sync.liveness": {
+        "component": "sync",
+        "days": {},
+        "last": {
+          "id": "sync.liveness",
+          "component": "sync",
+          "region": "us-east",
+          "at": "2026-11-14T21:57:54.343Z",
+          "runbook": "infra/runbooks/incident-response.md#realtime-or-sync-degraded",
+          "status": "skipped",
+          "latencyMs": null,
+          "detail": "missing_XOS_POWERSYNC_URL"
+        }
+      },
+      "notifications.function": {
+        "component": "notifications",
+        "days": {},
+        "last": {
+          "id": "notifications.function",
+          "component": "notifications",
+          "region": "us-east",
+          "at": "2026-11-14T21:57:54.343Z",
+          "runbook": "infra/runbooks/incident-response.md#notifications-delayed",
+          "status": "skipped",
+          "latencyMs": null,
+          "detail": "missing_SUPABASE_URL"
+        }
+      },
+      "api.host_guard": {
+        "component": "api",
+        "days": {
+          "2026-11-10": {
+            "pass": 1,
+            "degraded": 6,
+            "fail": 0
+          },
+          "2026-11-11": {
+            "pass": 0,
+            "degraded": 7,
+            "fail": 0
+          },
+          "2026-11-12": {
+            "pass": 0,
+            "degraded": 7,
+            "fail": 0
+          },
+          "2026-11-13": {
+            "pass": 1,
+            "degraded": 7,
+            "fail": 0
+          },
+          "2026-11-14": {
+            "pass": 0,
+            "degraded": 8,
+            "fail": 0
+          }
+        },
+        "last": {
+          "id": "api.host_guard",
+          "component": "api",
+          "region": "us-east",
+          "at": "2026-11-14T21:57:54.343Z",
+          "runbook": "infra/runbooks/incident-response.md#api-errors-or-latency",
+          "status": "degraded",
+          "latencyMs": 2645,
+          "detail": "over_budget_600ms"
+        },
+        "failStreak": 0
+      },
+      "docs.home": {
+        "component": "docs",
+        "days": {
+          "2026-11-10": {
+            "pass": 6,
+            "degraded": 1,
+            "fail": 0
+          },
+          "2026-11-11": {
+            "pass": 4,
+            "degraded": 3,
+            "fail": 0
+          },
+          "2026-11-12": {
+            "pass": 7,
+            "degraded": 0,
+            "fail": 0
+          },
+          "2026-11-13": {
+            "pass": 8,
+            "degraded": 0,
+            "fail": 0
+          },
+          "2026-11-14": {
+            "pass": 8,
+            "degraded": 0,
+            "fail": 0
+          }
+        },
+        "last": {
+          "id": "docs.home",
+          "component": "docs",
+          "region": "us-east",
+          "at": "2026-11-14T21:57:56.988Z",
+          "runbook": "infra/runbooks/incident-response.md#documentation-unavailable",
+          "status": "pass",
+          "latencyMs": 676,
+          "detail": null
+        },
+        "failStreak": 0
+      }
+    }
+  }
+}
