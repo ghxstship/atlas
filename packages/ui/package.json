@@ -13,6 +13,7 @@
     "./legal-text": "./src/LegalText/index.ts",
     "./consent": "./src/ConsentBanner/index.ts",
     "./static": "./src/static.ts",
+    "./marketing": "./src/marketing.ts",
     "./preferences": "./src/lib/preferences.ts",
     "./shortcut-targets": "./src/lib/shortcut-targets.ts",
     "./undo": "./src/lib/undo-stack.ts",
@@ -25,6 +26,7 @@
     "./pwa/browser-push": "./src/pwa/browser-push.tsx",
     "./pwa/action-outcome": "./src/pwa/action-outcome.tsx",
     "./styles.css": "./src/styles/index.css",
+    "./marketing.css": "./src/styles/marketing.css",
     "./tailwind.config.cjs": "./tailwind.config.cjs",
     "./brand/*": "./src/brand/defaults/*"
   },

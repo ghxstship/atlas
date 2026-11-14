@@ -41,6 +41,8 @@ const SIZE: Record<Size, string> = {
   sm: cx("h-control-sm px-8 text-text-12"),
   md: cx("h-control-md px-12 text-text-13"),
   lg: cx("h-control-lg px-16 text-text-13"),
+  /* The 44 px call to action on public pages (Marketing layer, decision D20). */
+  xl: cx("h-target-coarse px-20 text-text-14"),
 };
 
 /** Shared button classes, for controls that look like a Button but are not one (triggers, steppers). */
