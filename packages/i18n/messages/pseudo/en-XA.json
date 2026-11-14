@@ -615,6 +615,59 @@
       "complete": "[Çöɱþļéţé ····]",
       "deferred": "[Ðéƒéŕŕéð ····]",
       "canceled": "[Çàñçéļéð ····]"
+    },
+    "mk": {
+      "ai": {
+        "badge": "[ÀÎ féàtûré ···]"
+      },
+      "cmp": {
+        "feature": "[Féàtûré ··]",
+        "no": "[Ñö ·]",
+        "partial": "[Pàrtîàl ··]",
+        "unpublished": "[Ûñpûblîsĥéð ····]",
+        "verified": "[Làst vérîfîéð {date}. ········]",
+        "yes": "[Ýés ·]"
+      },
+      "code": {
+        "copied": "[Çöpîéð ··]",
+        "copy": "[Çöpý ·]"
+      },
+      "consent": {
+        "gpc": "[Öpt-Öût Réqûést Höñöréð ········]"
+      },
+      "footer": {
+        "language": "[Làñgûàgé ···]",
+        "theme": "[Tĥémé ·]"
+      },
+      "logo": {
+        "slot": "[Lögö Slöt {n} ·····]"
+      },
+      "nav": {
+        "close": "[Çlösé Méñû ···]",
+        "menu": "[Méñû ·]"
+      },
+      "price": {
+        "from": "[Fröm {price} ····]",
+        "perMonth": "[pér möñtĥ ···]",
+        "perYear": "[pér ýéàr ···]",
+        "quoted": "[Qûötéð ··]",
+        "taxExclusive": "[{currency}, éxçlûðîñg àpplîçàblé tàxés. ···············]",
+        "taxInclusive": "[{currency}, îñçlûðîñg àpplîçàblé tàxés. ···············]"
+      },
+      "pricing": {
+        "changed": "[Prîçés ñöw sĥöw {period} bîllîñg. ············]",
+        "period": "[Bîllîñg Pérîöð ·····]",
+        "recommended": "[Réçömméñðéð ····]"
+      },
+      "proof": {
+        "source": "[Söûrçé: {label} ·····]"
+      },
+      "skip": "[Skîp tö çöñtéñt ·····]",
+      "theme": {
+        "dark": "[Dàrk ·]",
+        "light": "[Lîgĥt ·]",
+        "sunlight": "[Sûñlîgĥt ···]"
+      }
     }
   }
 }

@@ -615,6 +615,59 @@
       "complete": "‮Ɔoɯdlǝʇǝ‬",
       "deferred": "‮ꓷǝɟǝɹɹǝp‬",
       "canceled": "‮Ɔɐuɔǝlǝp‬"
+    },
+    "mk": {
+      "ai": {
+        "badge": "‮∀I ɟǝɐʇnɹǝ‬"
+      },
+      "cmp": {
+        "feature": "‮Ⅎǝɐʇnɹǝ‬",
+        "no": "‮No‬",
+        "partial": "‮Ԁɐɹʇıɐl‬",
+        "unpublished": "‮Ոudnqlısɥǝp‬",
+        "verified": "‮⅂ɐsʇ ʌǝɹıɟıǝp {date}.‬",
+        "yes": "‮⅄ǝs‬"
+      },
+      "code": {
+        "copied": "‮Ɔodıǝp‬",
+        "copy": "‮Ɔodʎ‬"
+      },
+      "consent": {
+        "gpc": "‮Odʇ-Onʇ ꓤǝbnǝsʇ Houoɹǝp‬"
+      },
+      "footer": {
+        "language": "‮⅂ɐuƃnɐƃǝ‬",
+        "theme": "‮ꓕɥǝɯǝ‬"
+      },
+      "logo": {
+        "slot": "‮⅂oƃo Sloʇ {n}‬"
+      },
+      "nav": {
+        "close": "‮Ɔlosǝ Wǝun‬",
+        "menu": "‮Wǝun‬"
+      },
+      "price": {
+        "from": "‮Ⅎɹoɯ {price}‬",
+        "perMonth": "‮dǝɹ ɯouʇɥ‬",
+        "perYear": "‮dǝɹ ʎǝɐɹ‬",
+        "quoted": "‮Ꝺnoʇǝp‬",
+        "taxExclusive": "‮{currency}, ǝxɔlnpıuƃ ɐddlıɔɐqlǝ ʇɐxǝs.‬",
+        "taxInclusive": "‮{currency}, ıuɔlnpıuƃ ɐddlıɔɐqlǝ ʇɐxǝs.‬"
+      },
+      "pricing": {
+        "changed": "‮Ԁɹıɔǝs uoʍ sɥoʍ {period} qıllıuƃ.‬",
+        "period": "‮ꓭıllıuƃ Ԁǝɹıop‬",
+        "recommended": "‮ꓤǝɔoɯɯǝupǝp‬"
+      },
+      "proof": {
+        "source": "‮Sonɹɔǝ: {label}‬"
+      },
+      "skip": "‮Sʞıd ʇo ɔouʇǝuʇ‬",
+      "theme": {
+        "dark": "‮ꓷɐɹʞ‬",
+        "light": "‮⅂ıƃɥʇ‬",
+        "sunlight": "‮Snulıƃɥʇ‬"
+      }
     }
   }
 }
