@@ -89,6 +89,9 @@ begin
     return;
   end if;
 
+  -- Today's shift ends at 23:30 New York time, or eight hours after the seed runs if that is later: the nightly
+  -- suite seeds near 04:00 UTC, which is 23:00 in New York once daylight time ends, and in run 43553805418 the shift
+  -- had ended before the flow that accepts it ran, so Schedule no longer listed it.
   -- Producer: puts the Field Tech on the project crew (Field members reach a project's inspections,
   -- incidents and forms only as its members), then publishes two past shifts and today's.
   perform set_config('request.jwt.claims', json_build_object('sub', c_producer, 'role', 'authenticated')::text, true);
@@ -96,7 +99,7 @@ begin
   insert into app.shifts (id, org_id, project_id, membership_id, role_code, starts_at, ends_at, time_zone) values
     (c_shift_past2, c_org, c_project, c_tech_m, c_role, v_day - interval '2 days' + interval '8 hours', v_day - interval '2 days' + interval '17 hours', 'America/New_York'),
     (c_shift_past1, c_org, c_project, c_tech_m, c_role, v_day - interval '1 day' + interval '8 hours', v_day - interval '1 day' + interval '17 hours', 'America/New_York'),
-    (c_shift_today, c_org, c_project, c_tech_m, c_role, v_day + interval '7 hours', v_day + interval '23 hours 30 minutes', 'America/New_York');
+    (c_shift_today, c_org, c_project, c_tech_m, c_role, v_day + interval '7 hours', greatest(v_day + interval '23 hours 30 minutes', now() + interval '8 hours'), 'America/New_York');
   perform app.publish_shifts(array[c_shift_past2, c_shift_past1, c_shift_today], 'Site prep crew schedule published.');
 
   -- Field Tech: accepts the two past shifts and records the time worked on them. Today's shift stays
