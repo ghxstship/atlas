@@ -32,7 +32,10 @@ export function todayIn(timeZone: string, now: Date = new Date()): string {
 }
 
 /** axe-core on the current page: zero serious or critical findings (Section 18, gate 8). */
-export async function expectAccessible(page: Page): Promise<void> {
+export async function expectAccessible(
+  page: Page,
+  { include }: { include?: string } = {},
+): Promise<void> {
   // axe measures the resting state; a pointer left on a button after a click would measure its hover
   // colors instead (hover contrast is tracked separately, finding A24-004).
   await page.mouse.move(0, 0);
@@ -73,9 +76,14 @@ export async function expectAccessible(page: Page): Promise<void> {
       { timeout: 10_000, polling: 50 },
     )
     .catch(() => undefined);
-  const results = await new AxeBuilder({ page })
-    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
-    .analyze();
+  const builder = new AxeBuilder({ page }).withTags([
+    "wcag2a",
+    "wcag2aa",
+    "wcag21a",
+    "wcag21aa",
+    "wcag22aa",
+  ]);
+  const results = await (include ? builder.include(include) : builder).analyze();
   const blocking = results.violations.filter(
     (v) => v.impact === "serious" || v.impact === "critical",
   );

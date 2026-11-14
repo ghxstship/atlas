@@ -21,21 +21,30 @@ test("approvals: the Owner decides the step a purchase order waits on", async ({
   await signIn(page, "owner@example.com");
   await page.goto(`/${ORG}/approvals`);
   await expect(page.getByRole("heading", { name: "Approvals", level: 1 })).toBeVisible();
+  // Other journeys in the shard can leave their own purchase orders waiting on the Owner (nightly
+  // run 43553805418 had Purchase order 41 there too), so the step is followed by its order's name and
+  // the count by how far it falls, not by its being zero.
+  const waiting = page.getByRole("link", { name: /^Waiting on me \d+$/ });
+  const before = Number((await waiting.textContent())?.match(/(\d+)\s*$/)?.[1]);
+  expect(before).toBeGreaterThan(0);
   const item = page.getByRole("listitem").filter({ hasText: "Owner sign-off" }).first();
   await expect(item.getByText("waiting for a decision")).toBeVisible();
+  const order = (await item.getByRole("heading", { level: 2 }).textContent())?.trim() ?? "";
+  expect(order).not.toBe("");
   await expectAccessibleInBothThemes(page);
   await settled(page);
   await item.getByRole("button", { name: "Approve step" }).click();
   // The decided approval leaves the waiting list; the confirmation stays in the page's status
   // region, which outlives the row (finding A24-001).
-  await expect(page.getByRole("link", { name: /^Waiting on me 0$/ })).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: new RegExp(`^Waiting on me ${before - 1}$`) }),
+  ).toBeVisible();
   await expect(page.getByRole("status").filter({ hasText: "Decision recorded." })).toBeVisible();
   await expectAccessible(page);
   await expect(
-    page
-      .getByRole("listitem")
-      .filter({ hasText: "Owner sign-off" })
-      .getByText("waiting for a decision"),
+    page.getByRole("listitem").filter({
+      has: page.getByRole("heading", { name: order, exact: true, level: 2 }),
+    }),
   ).toHaveCount(0);
 });
 

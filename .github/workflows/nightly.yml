@@ -392,9 +392,27 @@ jobs:
           ")
           echo "UDID=$UDID" >> "$GITHUB_ENV"
           xcrun simctl boot "$UDID"
+      # The containers carry restart policy unless-stopped, so the daemon starts them itself as the VM boots. In run
+      # 43553805418 a docker start sent while it did so raced its own start of the same container and failed
+      # ("AlreadyExists: task ... already exists"). Only containers still exited or created are started, and a
+      # failed start is checked again after a pause: by then the daemon's start has usually landed. A task that stays
+      # stale past that is cleared by restarting the daemon in the VM, which keeps the containers and their volumes.
       - name: Start the stack again
         run: |
-          docker ps -aq --filter "label=com.supabase.cli.project=xos4" | xargs docker start > /dev/null
+          stopped() {
+            docker ps -aq --filter "label=com.supabase.cli.project=xos4" --filter status=exited --filter status=created
+          }
+          for attempt in 1 2 3 4 5 6; do
+            ids=$(stopped)
+            [ -z "$ids" ] && break
+            [ "$attempt" = 6 ] && { docker ps -a --filter "label=com.supabase.cli.project=xos4"; exit 1; }
+            if [ "$attempt" = 4 ]; then
+              colima ssh -- sudo systemctl restart docker
+              sleep 15
+              continue
+            fi
+            echo "$ids" | xargs docker start > /dev/null || sleep 15
+          done
           infra/ci/supabase-wait-healthy.sh 600
       - name: Install Compass on the simulator
         run: |
