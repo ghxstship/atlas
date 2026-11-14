@@ -132,7 +132,7 @@ describe("Marketing layer boundaries", () => {
     expect(
       Object.keys(Marketing).filter((name) => /consentbanner|cookiebanner/i.test(name)),
     ).toEqual([]);
-    expect(typeof (Ui as Record<string, unknown>).ConsentBanner).toBe("function");
+    expect(typeof (Ui as Record<string, unknown>)["ConsentBanner"]).toBe("function");
   });
 
   it("resolves shared strings from props first, then from configure", () => {
