@@ -10,6 +10,26 @@ Statuses:
 - **Blocked on owner (OWNER)**: needs a decision, an account, a secret or a paid service that only the owner can provide. Named in the last section.
 - **Not started**.
 
+## XOS 4.13 release (2026-11-13)
+
+4.13 is 4.12 plus merge train 4.13 (#101):
+
+- sent.dm texts go out on the approved `xos_notification` (en) and `xos_notification_es` (es) templates, which carry the STOP line;
+- 904130101: START opts back in only where a texted STOP opted out;
+- the public text message opt-in guide and screenshot on the docs site, cited by the 10DLC campaign;
+- the Subprocessor List 1.1.1: no notice was owed for Sent, Inc., as production had never had a Customer.
+
+| Step                     | Status | Evidence                                                                                                                                   |
+| ------------------------ | ------ | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| CI on the release commit | Done   | Every check of PR #101 passed at `133ffbaf`, merged as `20a24313`                                                                          |
+| Release drill            | Done   | `infra/drills/release-drill.sh` on train 4.13's migrations, latest 904130101: passed                                                       |
+| Migrations, staging      | Done   | `rmrzfolncwhnhygmfxnw`: 904130101; advisors: passed                                                                                        |
+| Migrations, production   | Done   | `fquuqnzlpobaawucczgq`: 904130101; advisors: passed                                                                                        |
+| Edge Functions           | Done   | `sms-webhook` and `notification-dispatch` deployed to staging and production                                                               |
+| Apps                     | Done   | PR #101 merged into `main` (`20a24313`), which Vercel deploys to production                                                                |
+| Packages                 | Done   | Tag `v4.13.0` started `publish-packages.yml`, approved under the owner's approval through the 5.0 series; 4.13.0 published to npm and PyPI |
+| Compass                  | OWNER  | Compass ships on its own cadence                                                                                                           |
+
 ## XOS 4.12 release (2026-11-13)
 
 4.12 is 4.11 plus merge train 4.12 (#100):
