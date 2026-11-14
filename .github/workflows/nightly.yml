@@ -357,14 +357,30 @@ jobs:
           # A simulator has no NFC radio: the test tag stands in (src/runtime/nfc.ts; refused in EAS builds).
           export EXPO_PUBLIC_XOS_FAKE_NFC=1
           pnpm exec expo prebuild --platform ios --no-install
+          # pod install prints "Cannot find module 'expo-dev-client/package.json'" twice: the expo-updates podspec
+          # asks node whether a dev client is installed, and Compass has none. The probe only sets a Debug flag;
+          # this build is Release.
           (cd ios && pod install)
           # The Intel runner's simulator is x86_64; one architecture instead of two halves the build. No index store:
           # nothing reads it here.
           xcodebuild -workspace ios/Compass.xcworkspace -scheme Compass -configuration Release \
             -sdk iphonesimulator -derivedDataPath build ARCHS=x86_64 ONLY_ACTIVE_ARCH=YES \
             COMPILER_INDEX_STORE_ENABLE=NO
-      # The simulator's first boot spends about five minutes migrating data (run 42831440876): it boots now, while the
-      # VM and the stack come back, and is settled by the time Maestro starts its driver.
+      # The VM boots again before the simulator does. In run 43452754701 the two booted together: the simulator's
+      # first boot (about five minutes of data migration, run 42831440876) competed with it for the 4 CPUs, the
+      # guest never took its usernet address ("usernet unable to resolve IP for SSH forwarding") and colima start
+      # gave up after ten minutes, with the build done. A start that fails is stopped and tried again on the same
+      # disk, which holds the database with the registered kiosk; deleting the VM, as the first start does, would
+      # lose it.
+      - name: Start the Colima VM again
+        run: |
+          for attempt in 1 2 3; do
+            colima start && break
+            [ "$attempt" = 3 ] && exit 1
+            colima stop --force || true
+            sleep $((attempt * 20))
+          done
+      # The simulator boots while the stack comes back, and is settled by the time Maestro starts its driver.
       - name: Boot the simulator
         run: |
           UDID=$(xcrun simctl list devices available -j | python3 -c "
@@ -376,9 +392,8 @@ jobs:
           ")
           echo "UDID=$UDID" >> "$GITHUB_ENV"
           xcrun simctl boot "$UDID"
-      - name: Start the Colima VM and the stack again
+      - name: Start the stack again
         run: |
-          colima start
           docker ps -aq --filter "label=com.supabase.cli.project=xos4" | xargs docker start > /dev/null
           infra/ci/supabase-wait-healthy.sh 600
       - name: Install Compass on the simulator
