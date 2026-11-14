@@ -35,6 +35,14 @@ onFlowComplete:
 # Every entry is a Compass screen now: no row sends the crew member to Gateway.
 - assertNotVisible:
     id: "more-open-gateway"
+# On the 320 by 640 Android emulator this screen runs below the fold; each target is scrolled to first
+# (a no-op where it is already in view).
+- scrollUntilVisible:
+    element:
+      id: "more-timesheets"
+    direction: DOWN
+    visibilityPercentage: 100
+    timeout: 15000
 - tapOn:
     id: "more-timesheets"
 - extendedWaitUntil:

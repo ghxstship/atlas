@@ -113,11 +113,17 @@ export function Screen({
   const nativeHeader = useContext(NativeHeaderContext);
   // A title the large-title header would cut short is drawn in the page, where it wraps (C-23).
   const titleInHeader = nativeHeader && largeTitleFits(title ?? "");
-  // Without scrolling the body fills the screen, so a flex child (the scan sheet's camera) gets the room
-  // left; it collapsed to nothing before, and its Done button drew over the manual entry.
+  // Without scrolling the body fills the screen, so a growing child (the scan sheet's camera) gets the room
+  // left; it collapsed to nothing before, and its Done button drew over the manual entry. The filled body
+  // still scrolls once its content is taller than the screen: on a 320 by 640 phone the scan sheet's
+  // result and Done row sat below the five access points and could not be reached (nightly 43644388625).
   const body = (
     <View
-      style={{ padding: theme.space["16"], gap: theme.space["16"], ...(scroll ? {} : { flex: 1 }) }}
+      style={{
+        padding: theme.space["16"],
+        gap: theme.space["16"],
+        ...(scroll ? {} : { flexGrow: 1 }),
+      }}
     >
       {title && !titleInHeader ? (
         <Text variant="heading24" heading>
@@ -157,7 +163,13 @@ export function Screen({
           {body}
         </ScrollView>
       ) : (
-        <View style={{ flex: 1 }}>{body}</View>
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1 }}
+          keyboardShouldPersistTaps="handled"
+          {...(keyboardDismissMode ? { keyboardDismissMode } : {})}
+        >
+          {body}
+        </ScrollView>
       )}
       {footer ? (
         <View

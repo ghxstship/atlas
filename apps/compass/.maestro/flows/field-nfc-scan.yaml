@@ -16,6 +16,14 @@ name: field-nfc-scan
 - tapOn:
     id: "scan-mode-credential"
 - tapOn: "Main Gate"
+# The scan page scrolls on the 320 by 640 Android emulator: the result row and Done sit below the access
+# points, and the code field and mode chips above them once it has scrolled.
+- scrollUntilVisible:
+    element:
+      id: "scan-sheet-nfc"
+    direction: DOWN
+    visibilityPercentage: 100
+    timeout: 15000
 - tapOn:
     id: "scan-sheet-nfc"
 - extendedWaitUntil:
@@ -27,14 +35,38 @@ name: field-nfc-scan
 - inputText: "XOSCR1:CR-999999"
 - tapOn:
     id: "fake-nfc-present"
+- scrollUntilVisible:
+    element:
+      text: ".*Access denied.*"
+    direction: DOWN
+    visibilityPercentage: 100
+    timeout: 15000
 - extendedWaitUntil:
     visible: ".*Access denied.*"
+    timeout: 15000
+- scrollUntilVisible:
+    element:
+      text: ".*CR-999999.*"
+    direction: DOWN
+    visibilityPercentage: 100
     timeout: 15000
 - assertVisible: ".*CR-999999.*"
 # Lookup reads an asset tag from a tag (AUD-0042, in the Demo Field Lead's custody, seed 0217), then
 # writes it to a blank sticker, so the sticker scans as that unit from then on.
+- scrollUntilVisible:
+    element:
+      id: "scan-mode-lookup"
+    direction: UP
+    visibilityPercentage: 100
+    timeout: 15000
 - tapOn:
     id: "scan-mode-lookup"
+- scrollUntilVisible:
+    element:
+      id: "scan-sheet-nfc"
+    direction: DOWN
+    visibilityPercentage: 100
+    timeout: 15000
 - tapOn:
     id: "scan-sheet-nfc"
 - extendedWaitUntil:
@@ -46,8 +78,20 @@ name: field-nfc-scan
 - inputText: "AUD-0042"
 - tapOn:
     id: "fake-nfc-present"
+- scrollUntilVisible:
+    element:
+      text: "AUD-0042 found"
+    direction: DOWN
+    visibilityPercentage: 100
+    timeout: 15000
 - extendedWaitUntil:
     visible: "AUD-0042 found"
+    timeout: 15000
+- scrollUntilVisible:
+    element:
+      id: "scan-nfc-write"
+    direction: UP
+    visibilityPercentage: 100
     timeout: 15000
 - tapOn:
     id: "scan-nfc-write"
@@ -58,11 +102,23 @@ name: field-nfc-scan
 - assertVisible: "Compass writes AUD-0042 to the tag."
 - tapOn:
     id: "fake-nfc-present"
+- scrollUntilVisible:
+    element:
+      text: "AUD-0042 written to the tag"
+    direction: DOWN
+    visibilityPercentage: 100
+    timeout: 15000
 - extendedWaitUntil:
     visible: "AUD-0042 written to the tag"
     timeout: 15000
 # A chip with no code reads as its serial number. No unit carries it, so it goes to the desk to
 # identify, never mapped automatically (Section 13).
+- scrollUntilVisible:
+    element:
+      id: "scan-sheet-nfc"
+    direction: DOWN
+    visibilityPercentage: 100
+    timeout: 15000
 - tapOn:
     id: "scan-sheet-nfc"
 - extendedWaitUntil:
@@ -74,7 +130,19 @@ name: field-nfc-scan
 - inputText: "serial:04A2249A3C5E80"
 - tapOn:
     id: "fake-nfc-present"
+- scrollUntilVisible:
+    element:
+      text: "Unknown code sent to the desk to identify."
+    direction: DOWN
+    visibilityPercentage: 100
+    timeout: 15000
 - extendedWaitUntil:
     visible: "Unknown code sent to the desk to identify."
+    timeout: 15000
+- scrollUntilVisible:
+    element:
+      text: ".*04A2249A3C5E80.*"
+    direction: DOWN
+    visibilityPercentage: 100
     timeout: 15000
 - assertVisible: ".*04A2249A3C5E80.*"

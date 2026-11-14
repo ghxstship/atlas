@@ -25,6 +25,14 @@ onFlowComplete:
     id: "today"
 - tapOn:
     id: "tab-more"
+# On the 320 by 640 Android emulator this screen runs below the fold; each target is scrolled to first
+# (a no-op where it is already in view).
+- scrollUntilVisible:
+    element:
+      id: "more-travel-and-lodging"
+    direction: DOWN
+    visibilityPercentage: 100
+    timeout: 15000
 - tapOn:
     id: "more-travel-and-lodging"
 - extendedWaitUntil:

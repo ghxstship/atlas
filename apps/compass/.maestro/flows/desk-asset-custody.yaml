@@ -18,27 +18,71 @@ name: desk-asset-custody
 - inputText: "09501101530003"
 - tapOn:
     id: "scan-manual-submit"
+# The scan page scrolls on the 320 by 640 Android emulator: the result row and Done sit below the access
+# points, and the code field and mode chips above them once it has scrolled.
+- scrollUntilVisible:
+    element:
+      text: "AUD-0042 found"
+    direction: DOWN
+    visibilityPercentage: 100
+    timeout: 15000
 - assertVisible: "AUD-0042 found"
 # A bad check digit never resolves to a unit.
+- scrollUntilVisible:
+    element:
+      id: "scan-manual"
+    direction: UP
+    visibilityPercentage: 100
+    timeout: 15000
 - tapOn:
     id: "scan-manual"
 - inputText: "4006381333932"
 - tapOn:
     id: "scan-manual-submit"
+- scrollUntilVisible:
+    element:
+      text: "That barcode did not read correctly. Scan it again."
+    direction: DOWN
+    visibilityPercentage: 100
+    timeout: 15000
 - assertVisible: "That barcode did not read correctly. Scan it again."
 # Asset mode hands the unit over: the first scan checks it out, the second returns it.
+- scrollUntilVisible:
+    element:
+      id: "scan-mode-asset"
+    direction: UP
+    visibilityPercentage: 100
+    timeout: 15000
 - tapOn:
     id: "scan-mode-asset"
+- scrollUntilVisible:
+    element:
+      id: "scan-manual"
+    direction: UP
+    visibilityPercentage: 100
+    timeout: 15000
 - tapOn:
     id: "scan-manual"
 - inputText: "AUD-0042"
 - tapOn:
     id: "scan-manual-submit"
+- scrollUntilVisible:
+    element:
+      text: "AUD-0042 found"
+    direction: DOWN
+    visibilityPercentage: 100
+    timeout: 15000
 - assertVisible: "AUD-0042 found"
 - extendedWaitUntil:
     notVisible:
       id: "sync-queued"
     timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: "scan-manual"
+    direction: UP
+    visibilityPercentage: 100
+    timeout: 15000
 - tapOn:
     id: "scan-manual"
 - inputText: "AUD-0042"

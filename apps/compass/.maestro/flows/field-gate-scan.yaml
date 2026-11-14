@@ -20,4 +20,12 @@ name: field-gate-scan
 - inputText: "CR-999999"
 - tapOn:
     id: "scan-manual-submit"
+# The scan page scrolls on the 320 by 640 Android emulator: the result row and Done sit below the access
+# points, and the code field and mode chips above them once it has scrolled.
+- scrollUntilVisible:
+    element:
+      text: ".*Access denied.*"
+    direction: DOWN
+    visibilityPercentage: 100
+    timeout: 15000
 - assertVisible: ".*Access denied.*"

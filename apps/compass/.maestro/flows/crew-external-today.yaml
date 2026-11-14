@@ -19,8 +19,22 @@ name: crew-external-today
     id: "tab-more"
 # Timesheets, per diem, travel and onboarding are Compass screens (A92); nothing is gathered behind a
 # Gateway row any more, and no internal entry shows.
+# On the 320 by 640 Android emulator this screen runs below the fold; each target is scrolled to first
+# (a no-op where it is already in view).
+- scrollUntilVisible:
+    element:
+      id: "more-timesheets"
+    direction: DOWN
+    visibilityPercentage: 100
+    timeout: 15000
 - assertVisible:
     id: "more-timesheets"
+- scrollUntilVisible:
+    element:
+      id: "more-onboarding"
+    direction: DOWN
+    visibilityPercentage: 100
+    timeout: 15000
 - assertVisible:
     id: "more-onboarding"
 - assertNotVisible:
