@@ -1,12 +1,12 @@
 "use client";
 
-import { useId, useRef, type ReactElement } from "react";
+import { useId, useRef, type ReactElement, type ReactNode } from "react";
 import { cx } from "../lib/cx.ts";
 import { useT } from "../lib/context.tsx";
 import { Button } from "../Button/Button.tsx";
 import { Checkbox } from "../Forms/Checkbox.tsx";
 import { Icon } from "../Icon/Icon.tsx";
-import { Link } from "../Link/Link.tsx";
+import { Link, linkClass } from "../Link/Link.tsx";
 import type { ConsentChoice } from "./consent.ts";
 import {
   tickedCategories,
@@ -21,9 +21,32 @@ export interface ConsentLink {
   href: string;
 }
 
+/**
+ * Draws one of the consent links. An app with a router passes its own link component here, so the
+ * policy and the settings page open without a full page load; `className` is the library's link
+ * style. It is a function, so it comes from a client module.
+ */
+export type ConsentLinkRenderer = (link: ConsentLink, className: string) => ReactNode;
+
+/** A consent link as the default anchor, or as the app's `renderLink` draws it. */
+export function ConsentLinkText({
+  link,
+  renderLink,
+}: {
+  link: ConsentLink;
+  renderLink: ConsentLinkRenderer | undefined;
+}): ReactNode {
+  return renderLink ? renderLink(link, linkClass) : <Link href={link.href}>{link.label}</Link>;
+}
+
 /** An optional cookie category behind Choose. */
 export interface ConsentCategory {
-  /** The field name the category posts under and the key it is recorded by. */
+  /**
+   * The field name the category posts under and the key it is recorded by. It must match
+   * `CONSENT_CATEGORY_NAME`: a letter, then letters, digits, underscores or hyphens, 64 characters
+   * at most (`preferences`, `analytics_storage`). The cookie adapter rejects a write with any
+   * other name.
+   */
   name: string;
   label: string;
 }
@@ -47,6 +70,8 @@ export interface ConsentBannerProps {
   gpcLabel?: string;
   /** Posts the choice as plain forms, which work before any script loads. */
   action?: ConsentAction;
+  /** Draws the policy and settings links with the app's router link; a plain anchor when omitted. */
+  renderLink?: ConsentLinkRenderer;
   /**
    * Lets the banner keep the decision itself: it reads the adapter once, stays hidden when a
    * decision exists, and writes each choice with its timestamp, policy version and signal flag.
@@ -81,6 +106,7 @@ export function ConsentBanner({
   settings,
   gpcLabel,
   action,
+  renderLink,
   record,
 }: ConsentBannerProps): ReactElement | null {
   const t = useT();
@@ -126,13 +152,13 @@ export function ConsentBanner({
             {policy ? (
               <>
                 {" "}
-                <Link href={policy.href}>{policy.label}</Link>
+                <ConsentLinkText link={policy} renderLink={renderLink} />
               </>
             ) : null}
             {settings ? (
               <>
                 {policy ? " · " : " "}
-                <Link href={settings.href}>{settings.label}</Link>
+                <ConsentLinkText link={settings} renderLink={renderLink} />
               </>
             ) : null}
           </p>

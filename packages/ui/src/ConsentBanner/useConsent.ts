@@ -6,6 +6,7 @@ import {
   decideConsent,
   type ConsentAdapter,
   type ConsentChoice,
+  type ConsentDecision,
   type ConsentState,
 } from "./consent.ts";
 
@@ -19,8 +20,13 @@ export interface ConsentRecording {
 /**
  * A form action for the choice: a URL the forms post to, or a function React calls with the form
  * data (a Next.js server action fits). The fields are `choice` (`all`, `none` or `save`), one
- * field per ticked category with the value `on`, and `gpc` with the value `1` when the browser
- * reported Global Privacy Control and the request did not.
+ * field per ticked category with the value `on`, and `gpc` with the value `1` in every form that
+ * is on screen while only the browser reports Global Privacy Control (the request did not).
+ *
+ * That browser-only signal is also reported once without a form: a function action is called with
+ * `choice=none` and `gpc=1`. A URL action receives no such call, because the banner shows no form
+ * under the signal and sends no request of its own; a page that posts to a URL records the refusal
+ * from `onChoice("none")`, or passes `gpc` from the request header.
  */
 export type ConsentAction = string | ((form: FormData) => void | Promise<void>);
 
@@ -35,6 +41,8 @@ interface ConsentOptions {
 interface Consent {
   /** A Global Privacy Control signal is present, from the request (`gpc`) or the browser. */
   readonly signal: boolean;
+  /** Only the browser reports the signal, so the forms say so to the server with a `gpc` field. */
+  readonly browserOnly: boolean;
   /** With an adapter: undefined until it has been read, then the stored consent or null. */
   readonly stored: ConsentState | null | undefined;
   /** Records a choice through the adapter, when there is one, and tells `onChoice`. */
@@ -56,6 +64,8 @@ export function useConsent(options: ConsentOptions): Consent {
   const [stored, setStored] = useState<ConsentState | null | undefined>(undefined);
   const latest = useRef(options);
   const reported = useRef(false);
+  /** A decision was written here, so a read still on its way is out of date. */
+  const wrote = useRef(false);
   const tracked = options.record !== undefined;
 
   useEffect(() => {
@@ -66,14 +76,17 @@ export function useConsent(options: ConsentOptions): Consent {
     const record = latest.current.record;
     if (record === undefined) return undefined;
     let current = true;
-    void record.adapter.read().then(
-      (state) => {
-        if (current) setStored(state);
-      },
-      () => {
-        if (current) setStored(null);
-      },
-    );
+    // Through a promise chain, so an adapter that throws is handled like one that rejects.
+    void Promise.resolve()
+      .then(() => record.adapter.read())
+      .then(
+        (state) => {
+          if (current && !wrote.current) setStored(state);
+        },
+        () => {
+          if (current && !wrote.current) setStored(null);
+        },
+      );
     return () => {
       current = false;
     };
@@ -92,10 +105,7 @@ export function useConsent(options: ConsentOptions): Consent {
         gpc: true,
         policyVersion: record.policyVersion,
       });
-      void record.adapter.write(decision).then(
-        () => setStored(decision),
-        () => undefined,
-      );
+      write(record, decision);
       onChoice?.("none");
       return;
     }
@@ -113,6 +123,17 @@ export function useConsent(options: ConsentOptions): Consent {
     onChoice?.("none");
   }, [signal, stored]);
 
+  /** A failed write, thrown or rejected, leaves the choices on screen so the visitor can choose again. */
+  function write(record: ConsentRecording, decision: ConsentDecision): void {
+    wrote.current = true;
+    void Promise.resolve()
+      .then(() => record.adapter.write(decision))
+      .then(
+        () => setStored(decision),
+        () => undefined,
+      );
+  }
+
   function choose(choice: ConsentChoice, selected?: Iterable<string>): void {
     const { record, categories, onChoice } = latest.current;
     if (record !== undefined) {
@@ -123,16 +144,12 @@ export function useConsent(options: ConsentOptions): Consent {
         gpc: signal,
         policyVersion: record.policyVersion,
       });
-      // A failed write leaves the choices on screen, so the visitor can choose again.
-      void record.adapter.write(decision).then(
-        () => setStored(decision),
-        () => undefined,
-      );
+      write(record, decision);
     }
     onChoice?.(choice);
   }
 
-  return { signal, stored, choose };
+  return { signal, browserOnly: signal && options.gpc !== true, stored, choose };
 }
 
 /** The ticked category names in a form, read when Save is pressed. */

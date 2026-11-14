@@ -1,4 +1,5 @@
 export {
+  CONSENT_CATEGORY_NAME,
   CONSENT_DECISION_COOKIE,
   CONSENT_DECISION_MAX_AGE,
   browserGlobalPrivacyControl,
@@ -24,6 +25,7 @@ export {
   type ConsentBannerProps,
   type ConsentCategory,
   type ConsentLink,
+  type ConsentLinkRenderer,
 } from "./ConsentBanner.tsx";
 export {
   ConsentSettings,
