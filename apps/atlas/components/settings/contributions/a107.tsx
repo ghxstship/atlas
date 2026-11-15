@@ -4,6 +4,7 @@ import {
   type PlanLimitCandidate,
   type PlanLimitUsage,
 } from "@xos/data/plan-limits";
+import { seatCopyKey } from "@xos/i18n/offering";
 import { getTranslations } from "next-intl/server";
 import { PlanLimitChoiceForm, type PlanLimitOption } from "@/components/settings/a107-forms";
 import { Card, InlineAlert } from "@/components/ui";
@@ -95,7 +96,7 @@ async function PlanLimitsPanel({ ctx }: SettingsPanelProps) {
                   <>
                     <p className="m-0 text-text-13">
                       {t("panel.over", { count: u.readOnly })}{" "}
-                      {room > 0 ? t("panel.room", { room }) : t("panel.noRoom")}
+                      {room > 0 ? t("panel.room", { room }) : t(seatCopyKey("panel.noRoom"))}
                     </p>
                     {listed && !listed.ok ? (
                       <InlineAlert tone="danger">{t("errors.unexpected")}</InlineAlert>

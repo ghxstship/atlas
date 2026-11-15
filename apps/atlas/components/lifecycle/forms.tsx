@@ -1,5 +1,6 @@
 "use client";
 
+import { seatCopyKey } from "@xos/i18n/offering";
 import { Button, InlineAlert, Input, Select, Textarea, type ButtonProps } from "@xos/ui";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -50,7 +51,7 @@ const stepUpRefused = (state: PlatformActionState) => state.rule === "step_up_re
 function Outcome({ state, success }: { state: PlatformActionState; success?: string | undefined }) {
   const t = useLifecycleT();
   if (state.rule) {
-    const key = `refusals.${state.rule}`;
+    const key = `refusals.${seatCopyKey(state.rule)}`;
     return (
       <InlineAlert tone="warning" title={t("refusedTitle")}>
         {t.has(key) ? t(key) : t("refusals.other")}

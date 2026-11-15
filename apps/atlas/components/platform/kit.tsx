@@ -1,5 +1,6 @@
 "use client";
 
+import { seatCopyKey } from "@xos/i18n/offering";
 import { Button, EmptyState, ErrorState, InlineAlert, Skeleton, type ButtonProps } from "@xos/ui";
 import { RefusalNotice } from "@/components/refusal-notice";
 import { RefusalReference } from "@/components/refusal-reference";
@@ -44,7 +45,7 @@ export type ServerAction = (
 export function Feedback({ state, success }: { state: PlatformActionState; success?: string }) {
   const t = usePlatformT();
   if (state.rule) {
-    const key = `refusals.${state.rule}`;
+    const key = `refusals.${seatCopyKey(state.rule)}`;
     return (
       <InlineAlert tone="warning" title={t("common.refusedTitle")}>
         {t.has(key) ? t(key) : t("refusals.other")}
