@@ -137,7 +137,20 @@ test("Spanish labels the page in Spanish and says the text is in English", async
   await context.addCookies([{ name: "xos-locale", value: "es-US", url: baseURL ?? "" }]);
   await page.goto("/legal/privacy-policy");
   await expect(page.locator("html")).toHaveAttribute("lang", "es-US");
-  await expect(page.getByText(/^Versión 1\.1\.0, vigente desde el /).first()).toBeVisible();
+  // The same Privacy Policy as above: upcoming until its effective date, in effect from it.
+  const privacy = DOCUMENTS[0];
+  if (privacy === undefined)
+    throw new Error("the Privacy Policy is the first document of this spec");
+  await expect(
+    page
+      .getByText(
+        privacy.effective > today()
+          ? `La versión ${privacy.version} de este documento entra en vigor el `
+          : `Versión ${privacy.version}, vigente desde el `,
+        { exact: false },
+      )
+      .first(),
+  ).toBeVisible();
   await expect(page.getByText("Este documento se publica solo en inglés.")).toBeVisible();
   await expect(
     page
