@@ -291,4 +291,88 @@ export const PLAN_REGISTRY: PlanRegistry = {
       promotionCode: "FOUNDING30",
     },
   ],
+  offering: {
+    features: {
+      approvals: { status: "offered", territory: null, basis: [] },
+      advancing: { status: "offered", territory: null, basis: [] },
+      procurement: { status: "offered", territory: null, basis: [] },
+      upl_export: { status: "offered", territory: null, basis: [] },
+      white_label: { status: "offered", territory: null, basis: [] },
+      custom_domain: { status: "offered", territory: null, basis: [] },
+      automations: { status: "offered", territory: null, basis: [] },
+      api_keys: { status: "offered", territory: null, basis: [] },
+      webhooks: { status: "offered", territory: null, basis: [] },
+      public_marketplace_listings: { status: "offered", territory: null, basis: [] },
+      custom_roles: { status: "offered", territory: null, basis: [] },
+      ip_allowlist: { status: "offered", territory: null, basis: [] },
+      audit_export: { status: "offered", territory: null, basis: [] },
+      payroll_export: { status: "offered", territory: null, basis: [] },
+      priority_support: { status: "offered", territory: null, basis: [] },
+      saml_sso: { status: "offered", territory: null, basis: [] },
+      scim: { status: "offered", territory: null, basis: [] },
+      eu_data_residency: {
+        status: "territory",
+        territory: "EEA",
+        basis: [
+          {
+            file: "docs/adr/0160-offered-territories-united-states-launch.md",
+            text: '"EU data residency" leaves the plan list',
+          },
+          { file: "legal/terms-of-service.md", text: "An EU region is not offered." },
+        ],
+      },
+      branded_compass_build: {
+        status: "not_offered",
+        territory: null,
+        basis: [
+          {
+            file: "legal/terms-of-service.md",
+            text: "A dedicated branded Compass build is not offered at launch",
+          },
+        ],
+      },
+      sla_credits: { status: "offered", territory: null, basis: [] },
+      support_session_controls: { status: "offered", territory: null, basis: [] },
+      aurora_ai: { status: "offered", territory: null, basis: [] },
+      legend_early_access: {
+        status: "not_offered",
+        territory: null,
+        basis: [
+          {
+            file: "docs/adr/0020-plan-packaging.md",
+            text: "No Legend surface is shipped or advertised as available.",
+          },
+          { file: "design/MARKETING_LOCKSTEP.md", text: "Legend is not shipped." },
+        ],
+      },
+    },
+    extraSeats: {
+      status: "not_on_sale",
+      basis: [
+        {
+          file: "docs/adr/0035-pricing-v4-seats-and-add-ons.md",
+          text: "extra seats, Aurora packs and Talk to sales stay as they were",
+        },
+        {
+          file: "legal/terms-of-service.md",
+          text: "Extra seats and Aurora AI request packs can be bought only where Settings, Billing and Plan or an Order offers them.",
+        },
+      ],
+    },
+    addons: {
+      aurora_requests_1000: {
+        status: "not_on_sale",
+        basis: [
+          {
+            file: "docs/adr/0035-pricing-v4-seats-and-add-ons.md",
+            text: "extra seats, Aurora packs and Talk to sales stay as they were",
+          },
+          {
+            file: "legal/terms-of-service.md",
+            text: "Extra seats and Aurora AI request packs can be bought only where Settings, Billing and Plan or an Order offers them.",
+          },
+        ],
+      },
+    },
+  },
 };

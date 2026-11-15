@@ -117,7 +117,9 @@ const { BillingLifecycleNotice } = await import("@/components/lifecycle/billing-
 const { BillingPortalButton, EndPlanForm, RenewalConsentForm } =
   await import("@/components/settings/billing-forms");
 const { Button, ButtonLink, InlineAlert } = await import("@/components/ui");
-const { PLANS } = await import("@/lib/plans.generated");
+const { ADDONS, PLANS } = await import("@/lib/plans.generated");
+const { PLAN_OFFERING, addonOnSale, extraSeatsOnSale } =
+  await import("@xos/schemas/plans/offering");
 
 const TRIAL = {
   trialPlan: "pro",
@@ -225,6 +227,39 @@ describe("billing before the owner sets the Stripe key", () => {
       checkout: false,
     });
     expect(data.getBillingAccount).not.toHaveBeenCalled();
+  });
+
+  it("lists a plan's features only where plans.yaml states them offered", async () => {
+    const listed = elements(await page())
+      .filter((e) => e.type === "li")
+      .map(textOf)
+      .filter((text) => text.startsWith("shell.plans.features."))
+      .map((text) => text.slice("shell.plans.features.".length));
+    const every = PLANS.flatMap((p) => p.adds);
+    // The launch offering has only the United States open, so a territory feature is not offered either.
+    const offered = every.filter((f) => PLAN_OFFERING.features[f]?.status === "offered");
+    expect(listed).toEqual(offered);
+    expect(every.filter((f) => !offered.includes(f))).toEqual([
+      "eu_data_residency",
+      "branded_compass_build",
+      "legend_early_access",
+    ]);
+    for (const withheld of ["eu_data_residency", "branded_compass_build", "legend_early_access"]) {
+      expect(listed).not.toContain(withheld);
+    }
+  });
+
+  it("shows no price and no way to buy for extra seats or a request pack while plans.yaml states them not on sale", async () => {
+    expect(extraSeatsOnSale()).toBe(false);
+    expect(ADDONS.map((a) => addonOnSale(a.code))).toEqual([false]);
+    const tree = await page();
+    const texts = elements(tree).map(textOf);
+    expect(texts.filter((t) => t.startsWith("extraSeat("))).toEqual([]);
+    expect(texts.filter((t) => t.startsWith("auroraPack."))).toEqual([]);
+    expect(ofType(tree, Button).map(textOf)).not.toContain("buySeats");
+    expect(ofType(tree, Button).map(textOf)).not.toContain("auroraPack.buy");
+    // The free plan still says it has no extra seats: that withholds nothing a customer could buy.
+    expect(texts).toContain("noExtraSeats");
   });
 
   it("keeps the trial notice's Add a card disabled, and says how to get it done", async () => {
