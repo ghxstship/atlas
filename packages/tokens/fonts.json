@@ -1,0 +1,37 @@
+{
+  "families": [
+    {
+      "token": "font.family.sans",
+      "family": "Inter",
+      "alsoNamed": ["Inter Variable"],
+      "use": "All interface text.",
+      "weights": [400, 500, 600, 700],
+      "style": "normal",
+      "license": "OFL-1.1",
+      "licenseFile": "LICENSE.txt",
+      "files": {
+        "variable": ["InterVariable.woff2"],
+        "static": [
+          "Inter-Regular.woff2",
+          "Inter-Medium.woff2",
+          "Inter-SemiBold.woff2",
+          "Inter-Bold.woff2"
+        ]
+      }
+    },
+    {
+      "token": "font.family.mono",
+      "family": "JetBrains Mono",
+      "alsoNamed": [],
+      "use": "URIDs, codes, keys and URNs.",
+      "weights": [400, 500],
+      "style": "normal",
+      "license": "OFL-1.1",
+      "licenseFile": "OFL.txt",
+      "files": {
+        "variable": [],
+        "static": ["JetBrainsMono-Regular.woff2", "JetBrainsMono-Medium.woff2"]
+      }
+    }
+  ]
+}
