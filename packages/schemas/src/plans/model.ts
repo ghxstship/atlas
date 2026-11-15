@@ -86,6 +86,47 @@ export interface OfferDefinition {
   readonly promotionCode: string;
 }
 
+/** Whether a price list may show a plan feature today (the offering section of plans.yaml). */
+export const FEATURE_OFFERING_STATUSES = ["offered", "not_offered", "territory"] as const;
+export type FeatureOfferingStatus = (typeof FEATURE_OFFERING_STATUSES)[number];
+
+/** Whether a customer can buy extra seats or an add-on today (the offering section of plans.yaml). */
+export const SALE_STATUSES = ["on_sale", "not_on_sale"] as const;
+export type SaleStatus = (typeof SALE_STATUSES)[number];
+
+/** The text a status rests on: a file, by its path from the repository root, and a sentence quoted from it. */
+export interface OfferingBasis {
+  readonly file: string;
+  readonly text: string;
+}
+
+export interface FeatureOffering {
+  readonly status: FeatureOfferingStatus;
+  /** The private.territories code the feature is offered in; set only when the status is territory. */
+  readonly territory: string | null;
+  /** Empty when the status is offered. */
+  readonly basis: readonly OfferingBasis[];
+}
+
+export interface SaleOffering {
+  readonly status: SaleStatus;
+  /** Empty when the status is on_sale. */
+  readonly basis: readonly OfferingBasis[];
+}
+
+/**
+ * What is offered and on sale today. It decides what a price list shows and nothing else: entitlements stay
+ * in `PlanDefinition.features` and prices in the price books.
+ */
+export interface PlanOffering {
+  /** Every feature of the registry, in registry order. */
+  readonly features: Readonly<Record<string, FeatureOffering>>;
+  /** Extra seats, on every plan that prices them. */
+  readonly extraSeats: SaleOffering;
+  /** Every add-on of the registry, by code. */
+  readonly addons: Readonly<Record<string, SaleOffering>>;
+}
+
 export interface PlanRegistry {
   readonly version: 1;
   readonly limits: readonly string[];
@@ -100,4 +141,6 @@ export interface PlanRegistry {
   readonly plans: readonly PlanDefinition[];
   readonly addons: readonly AddonDefinition[];
   readonly offers: readonly OfferDefinition[];
+  /** What is offered and on sale today. */
+  readonly offering: PlanOffering;
 }

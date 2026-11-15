@@ -26,6 +26,8 @@
 #   - an add-on is a one-time purchase that raises one limit for the calendar month it is bought in,
 #     on the plans it lists, which must have a finite limit for it.
 #   - every Stripe lookup key, coupon id and promotion code is unique.
+#   - offering states every feature and every add-on, in list order, and extra seats; a status other
+#     than offered or on_sale cites the text that says so (see the offering section).
 #
 # Pricing v4 (owner, 2026-10-19; ADR 0035): seat-based plans with a seat allowance, extra seats per
 # month, unlimited projects and field crew on paid plans, local-currency price books, Aurora request
@@ -83,6 +85,89 @@ extra_seat_product_lookup_key: xos_extra_seat_v4
 # Partner wholesale (Section 4.6.1): client orgs billed to a partner cost the partner list price less
 # this discount. It is the default of app.partner_agreements.wholesale_discount_bps.
 partner_wholesale_discount_bps: 3000
+
+# What is offered and on sale today (ADR 0035, 2026-11-15 amendment; ghxstship/atlas issues 108 and 116).
+#
+# The lists above say what each plan entitles an organization to and what each purchase costs. This
+# section says which of those a price list may show today. Atlas (Billing and Plan), the marketing
+# site and every other price list read it and keep no list of their own. It changes no entitlement
+# and no price: private.plan_features and the Stripe catalogue are unaffected.
+#
+# features: one entry per feature, in the order of the features list.
+#   status: offered      The feature is offered wherever the plan is sold. A price list shows it.
+#   status: not_offered  The feature is not offered to anyone today. No price list shows it. The plan
+#                        keeps the entitlement code, so offering it later is a change to this entry.
+#   status: territory    The feature is offered only while the territory named in `territory` is open
+#                        in private.territories (ADR 0160). A price list shows it only then. A reader
+#                        that cannot read the open territories treats it as not_offered.
+#
+# extra_seats, and addons with one entry per add-on, in the order of the addons list:
+#   status: on_sale      A customer can buy it today in Settings, Billing and Plan. A price list shows
+#                        its price.
+#   status: not_on_sale  Nobody can buy it today, in the product or on a price list. Its prices above
+#                        are the approved list prices for the day it goes on sale; a price list does
+#                        not show them. An Enterprise Order may still include it by contract.
+#
+# basis: required for every status other than offered and on_sale. Each item names a file, by its
+# path from the repository root, and a sentence quoted from it exactly, that says so. A test holds
+# every quote to its file, so the status and the text it rests on change together.
+offering:
+  features:
+    approvals: { status: offered }
+    advancing: { status: offered }
+    procurement: { status: offered }
+    upl_export: { status: offered }
+    white_label: { status: offered }
+    custom_domain: { status: offered }
+    automations: { status: offered }
+    api_keys: { status: offered }
+    webhooks: { status: offered }
+    public_marketplace_listings: { status: offered }
+    custom_roles: { status: offered }
+    ip_allowlist: { status: offered }
+    audit_export: { status: offered }
+    payroll_export: { status: offered }
+    priority_support: { status: offered }
+    saml_sso: { status: offered }
+    scim: { status: offered }
+    eu_data_residency:
+      status: territory
+      territory: EEA
+      basis:
+        - file: docs/adr/0160-offered-territories-united-states-launch.md
+          text: '"EU data residency" leaves the plan list'
+        - file: legal/terms-of-service.md
+          text: An EU region is not offered.
+    branded_compass_build:
+      status: not_offered
+      basis:
+        - file: legal/terms-of-service.md
+          text: A dedicated branded Compass build is not offered at launch
+    sla_credits: { status: offered }
+    support_session_controls: { status: offered }
+    aurora_ai: { status: offered }
+    legend_early_access:
+      status: not_offered
+      basis:
+        - file: docs/adr/0020-plan-packaging.md
+          text: No Legend surface is shipped or advertised as available.
+        - file: design/MARKETING_LOCKSTEP.md
+          text: Legend is not shipped.
+  extra_seats:
+    status: not_on_sale
+    basis:
+      - file: docs/adr/0035-pricing-v4-seats-and-add-ons.md
+        text: extra seats, Aurora packs and Talk to sales stay as they were
+      - file: legal/terms-of-service.md
+        text: Extra seats and Aurora AI request packs can be bought only where Settings, Billing and Plan or an Order offers them.
+  addons:
+    aurora_requests_1000:
+      status: not_on_sale
+      basis:
+        - file: docs/adr/0035-pricing-v4-seats-and-add-ons.md
+          text: extra seats, Aurora packs and Talk to sales stay as they were
+        - file: legal/terms-of-service.md
+          text: Extra seats and Aurora AI request packs can be bought only where Settings, Billing and Plan or an Order offers them.
 
 plans:
   - code: access

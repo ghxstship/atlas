@@ -6,11 +6,12 @@ import type {
   AddonDefinition,
   OfferDefinition,
   PlanDefinition,
+  PlanOffering,
   PlanPrice,
   PlanRegistry,
   PriceBookCurrency,
 } from "./model.ts";
-import { PRICE_BOOK_CURRENCIES } from "./model.ts";
+import { FEATURE_OFFERING_STATUSES, PRICE_BOOK_CURRENCIES, SALE_STATUSES } from "./model.ts";
 
 /** Default location of the plan registry: the package root. */
 export const PLANS_YAML_PATH = fileURLToPath(new URL("../../plans.yaml", import.meta.url));
@@ -71,6 +72,34 @@ const offerSchema = z.strictObject({
   }),
 });
 
+/** A path from the repository root: no leading slash, no parent segment. */
+const REPO_PATH = /^(?!\/)(?!.*(?:^|\/)\.\.(?:\/|$))[A-Za-z0-9._/-]+$/;
+
+const basisSchema = z.strictObject({
+  file: z.string().regex(REPO_PATH),
+  text: z.string().trim().min(12),
+});
+
+const featureOfferingSchema = z.strictObject({
+  status: z.enum(FEATURE_OFFERING_STATUSES),
+  territory: z
+    .string()
+    .regex(/^[A-Z]{2,3}$/)
+    .optional(),
+  basis: z.array(basisSchema).default([]),
+});
+
+const saleOfferingSchema = z.strictObject({
+  status: z.enum(SALE_STATUSES),
+  basis: z.array(basisSchema).default([]),
+});
+
+const offeringSchema = z.strictObject({
+  features: z.record(z.string(), featureOfferingSchema),
+  extra_seats: saleOfferingSchema,
+  addons: z.record(z.string(), saleOfferingSchema).default({}),
+});
+
 const registrySchema = z.strictObject({
   version: z.literal(1),
   limits: z.array(z.string().regex(CODE)).min(1),
@@ -82,6 +111,7 @@ const registrySchema = z.strictObject({
   plans: z.array(planSchema).min(1),
   addons: z.array(addonSchema).default([]),
   offers: z.array(offerSchema).default([]),
+  offering: offeringSchema,
 });
 
 /** Raised when the plan registry text is malformed or breaks a registry rule. */
@@ -141,6 +171,21 @@ function checkPriceBook(
     ) {
       issues.push(`${at} must price ${cur} annually at ${String(multiplier)} times monthly`);
     }
+  }
+}
+
+/** A status that withholds something cites the text that says so; one that withholds nothing cites none. */
+function checkBasis(
+  issues: string[],
+  at: string,
+  open: boolean,
+  basis: readonly { file: string; text: string }[],
+): void {
+  if (open && basis.length > 0) {
+    issues.push(`${at} withholds nothing, so it cites no basis`);
+  }
+  if (!open && basis.length === 0) {
+    issues.push(`${at} must cite the text that says so, as a basis`);
   }
 }
 
@@ -271,6 +316,34 @@ export function validatePlans(raw: RawRegistry): string[] {
     }
   }
 
+  if (!sameList(Object.keys(raw.offering.features), raw.features)) {
+    issues.push(`offering.features must state exactly the features, in order`);
+  }
+  for (const [code, feature] of Object.entries(raw.offering.features)) {
+    const at = `offering.features.${code}`;
+    if ((feature.status === "territory") !== (feature.territory !== undefined)) {
+      issues.push(`${at} names a territory exactly when its status is territory`);
+    }
+    checkBasis(issues, at, feature.status === "offered", feature.basis);
+  }
+  checkBasis(
+    issues,
+    "offering.extra_seats",
+    raw.offering.extra_seats.status === "on_sale",
+    raw.offering.extra_seats.basis,
+  );
+  if (
+    !sameList(
+      Object.keys(raw.offering.addons),
+      raw.addons.map((a) => a.code),
+    )
+  ) {
+    issues.push(`offering.addons must state exactly the add-ons, in order`);
+  }
+  for (const [code, addon] of Object.entries(raw.offering.addons)) {
+    checkBasis(issues, `offering.addons.${code}`, addon.status === "on_sale", addon.basis);
+  }
+
   const productKeys = [
     raw.extra_seat_product_lookup_key,
     ...raw.plans.flatMap((p) => (p.stripe === undefined ? [] : [p.stripe.product_lookup_key])),
@@ -371,6 +444,16 @@ function toRegistry(raw: RawRegistry): PlanRegistry {
     couponId: o.stripe.coupon_id,
     promotionCode: o.stripe.promotion_code,
   }));
+  const offering: PlanOffering = {
+    features: Object.fromEntries(
+      Object.entries(raw.offering.features).map(([code, f]) => [
+        code,
+        { status: f.status, territory: f.territory ?? null, basis: f.basis },
+      ]),
+    ),
+    extraSeats: raw.offering.extra_seats,
+    addons: raw.offering.addons,
+  };
   return {
     version: 1,
     limits: raw.limits,
@@ -382,6 +465,7 @@ function toRegistry(raw: RawRegistry): PlanRegistry {
     plans,
     addons,
     offers,
+    offering,
   };
 }
 
