@@ -15,6 +15,7 @@ import {
   STORAGE_NOTICE,
   type OpenedStore,
 } from "../data/localDatabase";
+import { offlineAwareFetch } from "../data/offlineFetch";
 
 export interface CompassConfig {
   readonly supabaseUrl: string;
@@ -56,6 +57,10 @@ export function createSupabase(config: CompassConfig): SupabaseClient {
       persistSession: true,
       autoRefreshToken: true,
       detectSessionInUrl: false,
+    },
+    // Offline, a server call fails at once instead of waiting with no answer (Android airplane mode).
+    global: {
+      fetch: offlineAwareFetch(async () => (await Network.getNetworkStateAsync()).isConnected !== false),
     },
   });
   return client as unknown as SupabaseClient;
