@@ -10,6 +10,19 @@ Statuses:
 - **Blocked on owner (OWNER)**: needs a decision, an account, a secret or a paid service that only the owner can provide. Named in the last section.
 - **Not started**.
 
+## XOS 4.16 release (2026-11-14)
+
+4.16 is 4.15 plus merge train 4.16 (#111), which answers three requests from the Atlas marketing site (`design/MARKETING_LOCKSTEP.md`): the Marketing layer of the design system in `packages/tokens`, `packages/ui` and `packages/i18n` (#105), the shared consent banner in `@xos/ui` with a script-free form that Atlas shows on every route (#107), and the five design packages on npm as `@ghxstship/xos-<name>` (#106). The Tailwind preset moved to `packages/tokens`. No migrations. The first CI run failed the route JavaScript budget and the Storybook baselines for the consent stories, and the second failed the served budget in all four Atlas journey shards, because the client banner added about 7 KB of script to every page; `216badf8` renders the script-free banner, and the third run passed.
+
+| Step                     | Status | Evidence                                                                                                                                                                |
+| ------------------------ | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| CI on the release commit | Done   | PR #111 at `216badf8`: 47 checks passed and 1 was skipped; merged as `96eb54ce`                                                                                         |
+| Migrations               | Done   | None in this train                                                                                                                                                      |
+| Edge Functions           | Done   | `wallet-pass` redeployed to production: its bundle embeds the token chunk, which gained the Display type steps                                                          |
+| Apps                     | Done   | PR #111 merged into `main` (`96eb54ce`), which Vercel deploys to production                                                                                             |
+| Packages                 | OWNER  | Tag `v4.16.0` started `publish-packages.yml`; `verify` passed, including the five design archives. The first publish of the design packages needs `NPM_TOKEN` once more |
+| Compass                  | OWNER  | Compass ships on its own cadence                                                                                                                                        |
+
 ## XOS 4.15 release (2026-11-14)
 
 4.15 is 4.14 plus merge train 4.15 (#103): the MFA policy save loop (the action redirects, where the page threw the redirect during render and `/auth/mfa` refetched itself), the Firefox journey specs for approvals, project tabs and the incident sign-off, the Compass iOS nightly's stack restart and the Compass Android seed's open shift. No migrations and no Edge Function changes.
