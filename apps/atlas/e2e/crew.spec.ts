@@ -490,7 +490,12 @@ test("R12: allocate an agency slot, drag agency staff onto an open shift, and th
       [DEMO_PROJECT_ID, starts.toISOString(), NEW_PROJECT_TIME_ZONE],
       DEMO_OWNER,
     );
-    await page.goto(`/${DEMO_ORG}/crew/schedule`);
+    // The org-wide board shows the demo org's payroll week (Sunday) on its calendar (New York). Two hours from a
+    // Saturday evening is already next week there, so the board opens on the week holding the shift's own day.
+    const shiftDay = new Intl.DateTimeFormat("en-CA", { timeZone: NEW_PROJECT_TIME_ZONE }).format(
+      starts,
+    );
+    await page.goto(`/${DEMO_ORG}/crew/schedule?week=${shiftDay}`);
     const board = page.getByTestId("scheduling-board");
     const meter = board.getByRole("meter", { name: "Fill rate" });
     const target = board.getByTestId("board-open-shift").filter({ hasText: startsAt });
