@@ -614,5 +614,58 @@
     "complete": "Completo",
     "deferred": "Aplazado",
     "canceled": "Cancelado"
+  },
+  "mk": {
+    "ai": {
+      "badge": "Función de IA"
+    },
+    "cmp": {
+      "feature": "Función",
+      "no": "No",
+      "partial": "Parcial",
+      "unpublished": "No publicado",
+      "verified": "Última verificación: {date}.",
+      "yes": "Sí"
+    },
+    "code": {
+      "copied": "Copiado",
+      "copy": "Copiar"
+    },
+    "consent": {
+      "gpc": "Solicitud de exclusión respetada"
+    },
+    "footer": {
+      "language": "Idioma",
+      "theme": "Tema"
+    },
+    "logo": {
+      "slot": "Espacio de logotipo {n}"
+    },
+    "nav": {
+      "close": "Cerrar menú",
+      "menu": "Menú"
+    },
+    "price": {
+      "from": "Desde {price}",
+      "perMonth": "al mes",
+      "perYear": "al año",
+      "quoted": "Cotizado",
+      "taxExclusive": "{currency}, sin incluir los impuestos aplicables.",
+      "taxInclusive": "{currency}, con los impuestos aplicables incluidos."
+    },
+    "pricing": {
+      "changed": "Los precios muestran ahora la facturación: {period}.",
+      "period": "Período de facturación",
+      "recommended": "Recomendado"
+    },
+    "proof": {
+      "source": "Fuente: {label}"
+    },
+    "skip": "Saltar al contenido",
+    "theme": {
+      "dark": "Oscuro",
+      "light": "Claro",
+      "sunlight": "Luz solar"
+    }
   }
 }

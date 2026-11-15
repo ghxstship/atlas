@@ -1,0 +1,14 @@
+<!-- @dsCard group="Marketing" height=120 -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>MarketingNav</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h(X.MarketingNav,{skipHref:'#root',brand:h(X.BrandMark,{name:'Atlas'}),links:[{label:'Product',href:'#lifecycle'},{label:'Compare',href:'#compare'},{label:'Developers',href:'#open'},{label:'Pricing',href:'#pricing'},{label:'Docs',href:'#docs'}],
+    secondaryActions:h(X.ButtonLink,{href:'#sign-in',variant:'ghost',size:'lg'},'Sign In'),
+    actions:h(X.ButtonLink,{href:'#start',variant:'primary',size:'lg'},'Start Free')}));
+</script>
+</body>
+</html>

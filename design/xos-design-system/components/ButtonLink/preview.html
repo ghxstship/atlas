@@ -1,0 +1,16 @@
+<!-- @dsCard group="Marketing" height=96 -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>ButtonLink</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{className:'xos-row',style:{gap:'var(--space-12)'}},
+    h(X.ButtonLink,{href:'#start',variant:'primary',size:'xl'},'Start Free'),
+    h(X.ButtonLink,{href:'#trial',size:'xl'},'Start Free Trial'),
+    h(X.ButtonLink,{href:'#docs',variant:'ghost',size:'xl',trailingIcon:'ArrowRight'},'Read API Docs'),
+    h(X.ButtonLink,{href:'#pricing',size:'lg'},'See Pricing')));
+</script>
+</body>
+</html>

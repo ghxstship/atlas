@@ -96,6 +96,22 @@ describe("recording", () => {
       },
     ]);
   });
+
+  it("records the policy version it is given in place of the current one", async () => {
+    const versions: unknown[] = [];
+    const db = {
+      schema: () => ({
+        rpc: async (_fn: string, args: { p_banner_version: string }) => {
+          versions.push(args.p_banner_version);
+          return { data: true, error: null };
+        },
+      }),
+    } as unknown as XosClient;
+    const consent = { visitorId: VISITOR, preferences: true, performance: false, gpc: false };
+    await recordCookieConsent(db, consent, null, "cookie-policy 0.9.0");
+    await recordCookieConsent(db, consent);
+    expect(versions).toEqual(["cookie-policy 0.9.0", CONSENT_BANNER_VERSION]);
+  });
 });
 
 describe("18 or older", () => {

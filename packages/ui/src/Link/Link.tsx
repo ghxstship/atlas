@@ -3,13 +3,11 @@ import type { LinkProps as ReferenceLinkProps } from "../types/reference";
 import { cx } from "../lib/cx.ts";
 import { useT } from "../lib/context.tsx";
 import { Icon } from "../Icon/Icon.tsx";
+import { linkClass } from "./link-class.ts";
 
 export type LinkProps = ReferenceLinkProps;
 
-export const linkClass = cx(
-  "xos-hit inline-flex items-center gap-2 font-medium text-accent-text no-underline",
-  "hover:underline hover:underline-offset-(length:--space-2)",
-);
+export { linkClass };
 
 /** Navigates; Button acts. External links open in a new tab and say so. */
 export function Link({ external = false, className, children, ...rest }: LinkProps): ReactElement {

@@ -13,7 +13,6 @@
     "./tsconfig/library.json": "./tsconfig/library.json",
     "./tsconfig/nextjs.json": "./tsconfig/nextjs.json",
     "./finish-guard": "./src/finish-guard.ts",
-    "./tailwind/preset.js": "./tailwind/preset.js",
     "./stylelint": "./stylelint/index.mjs",
     "./license-check": "./src/license-check.ts"
   },

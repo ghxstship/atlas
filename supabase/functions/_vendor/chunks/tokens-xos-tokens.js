@@ -106,6 +106,50 @@ var xos_tokens_default = {
         ],
       },
       {
+        name: "Display",
+        family: "sans",
+        styles: [
+          {
+            name: "display-40",
+            fontSize: "40px",
+            lineHeight: 1.1,
+            fontWeight: 600,
+            letterSpacing: "-0.02em",
+            usage:
+              "Section headings on public pages. Fluid from heading-24 at bp-sm to 40 px at 1440 px.",
+            sample: "One lifecycle, nine gates.",
+          },
+          {
+            name: "display-48",
+            fontSize: "48px",
+            lineHeight: 1.1,
+            fontWeight: 600,
+            letterSpacing: "-0.02em",
+            usage:
+              "Compact hero and closing call to action; proof figures from bp-lg. Fluid from heading-32.",
+            sample: "Start your first production today.",
+          },
+          {
+            name: "display-56",
+            fontSize: "56px",
+            lineHeight: 1.1,
+            fontWeight: 600,
+            letterSpacing: "-0.02em",
+            usage: "Hero heading on comparison and campaign sub-pages. Fluid from heading-32.",
+            sample: "Atlas and the alternatives.",
+          },
+          {
+            name: "display-64",
+            fontSize: "64px",
+            lineHeight: 1.1,
+            fontWeight: 600,
+            letterSpacing: "-0.02em",
+            usage: "The landing page hero heading, once per page. Fluid from display-40.",
+            sample: "Run every production in one system.",
+          },
+        ],
+      },
+      {
         name: "Mono",
         family: "mono",
         styles: [
@@ -191,6 +235,21 @@ var xos_tokens_default = {
         name: "space-64",
         value: "64px",
         usage: "Page top spacing on Auth and System templates.",
+      },
+      {
+        name: "space-80",
+        value: "80px",
+        usage: "Hero top spacing on public pages from bp-lg.",
+      },
+      {
+        name: "space-96",
+        value: "96px",
+        usage: "Section rhythm on public pages from bp-lg.",
+      },
+      {
+        name: "space-128",
+        value: "128px",
+        usage: "Closing call to action on public pages from bp-lg.",
       },
     ],
   },
@@ -652,6 +711,8 @@ var xos_tokens_default = {
   meta: {
     source:
       "XOS 4.0 Build Prompt v1.6, Section 11.3; contrast resolutions, Sunlight theme, utility colors and weights ratified 2026-10-08.",
+    marketing:
+      "Display steps display-40 to display-64 and section spacing space-80 to space-128 added 2026-11-14 for public pages (decision D20).",
   },
   fontWeight: {
     note: "Ratified 2026-10-08.",

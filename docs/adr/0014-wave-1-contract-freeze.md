@@ -97,3 +97,13 @@ canon schema), generated from `canon/import/src/schema/governance-tables.ts`. St
 before the regeneration, so migration `1230_canon_decision_25` brings an existing database to the same state. The
 Wave 2 carry-over "CI gains `canon:check` once the owner resolves decision 1" is unblocked; the orchestrator owns the
 workflow change.
+
+## Amendment (2026-11-14): the Marketing layer extends three frozen contracts (decision D20)
+
+The XOS Design System export gained a Marketing layer for public pages (`design/xos-design-system/HANDOFF.md`, section 10, decision D20; GitHub issue 105). Porting it changes three rows of the table above. Every change adds; nothing existing is renamed, removed or given a new value.
+
+- **Tokens:** `packages/tokens/xos.tokens.json` now holds 172 tokens, still equal to `design/tokens.json`. The three new tokens are `space-80`, `space-96` and `space-128`. The type scale gains the Display group (`display-40`, `display-48`, `display-56` and `display-64`), which like every type style is a composite and is not counted as a token.
+- **Component strings:** the `ui` namespace gains 29 keys under `ui.mk`, in en-US and es-US with the same keys and arguments. New i18n keys were already allowed without an ADR.
+- **Component prop contracts:** `components/index.d.ts` gains the Marketing components, and `ButtonProps["size"]` gains `xl`, the 44 px call to action size. `packages/ui` ports 19 of the 20 Marketing components. `ConsentBanner` is a reference only: public pages use the cookie banner the shells already ship, with its consent log and its Global Privacy Control handling. The ported components that print a shared string or format a number also take optional `locale` and `messages` props, so a server component can render them without a provider.
+
+The Marketing styles ship as a separate sheet, `@xos/ui/marketing.css`, and the components as a separate entry, `@xos/ui/marketing`, so the product shells do not carry either (ADR 0027).

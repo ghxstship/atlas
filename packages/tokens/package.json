@@ -8,6 +8,7 @@
   "exports": {
     "./tokens.json": "./xos.tokens.json",
     "./name-map.json": "./tokens/name-map.json",
+    "./tailwind/preset.cjs": "./tailwind/preset.cjs",
     "./contrast": "./scripts/check-contrast.js",
     "./ratio": "./scripts/ratio.js",
     "./contrast-pairs.json": "./scripts/contrast-pairs.json",
@@ -23,6 +24,7 @@
   "files": [
     "dist",
     "scripts",
+    "tailwind",
     "tokens",
     "xos.tokens.json"
   ],

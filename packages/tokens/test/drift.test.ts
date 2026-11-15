@@ -42,9 +42,9 @@ describe("xos.tokens.json, DTCG files and name-map stay consistent", () => {
     expect(source).toEqual(readJson("../../design/xos-design-system/tokens.json"));
   });
 
-  it("holds 169 tokens across its token groups", () => {
-    expect(allTokens).toHaveLength(169);
-    expect(new Set(allTokens.map((t) => t.name)).size).toBe(169);
+  it("holds 172 tokens across its token groups", () => {
+    expect(allTokens).toHaveLength(172);
+    expect(new Set(allTokens.map((t) => t.name)).size).toBe(172);
   });
 
   it("maps every source token one to one onto a unique spec name", () => {

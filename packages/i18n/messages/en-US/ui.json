@@ -614,5 +614,58 @@
     "complete": "Complete",
     "deferred": "Deferred",
     "canceled": "Canceled"
+  },
+  "mk": {
+    "ai": {
+      "badge": "AI feature"
+    },
+    "cmp": {
+      "feature": "Feature",
+      "no": "No",
+      "partial": "Partial",
+      "unpublished": "Unpublished",
+      "verified": "Last verified {date}.",
+      "yes": "Yes"
+    },
+    "code": {
+      "copied": "Copied",
+      "copy": "Copy"
+    },
+    "consent": {
+      "gpc": "Opt-Out Request Honored"
+    },
+    "footer": {
+      "language": "Language",
+      "theme": "Theme"
+    },
+    "logo": {
+      "slot": "Logo Slot {n}"
+    },
+    "nav": {
+      "close": "Close Menu",
+      "menu": "Menu"
+    },
+    "price": {
+      "from": "From {price}",
+      "perMonth": "per month",
+      "perYear": "per year",
+      "quoted": "Quoted",
+      "taxExclusive": "{currency}, excluding applicable taxes.",
+      "taxInclusive": "{currency}, including applicable taxes."
+    },
+    "pricing": {
+      "changed": "Prices now show {period} billing.",
+      "period": "Billing Period",
+      "recommended": "Recommended"
+    },
+    "proof": {
+      "source": "Source: {label}"
+    },
+    "skip": "Skip to content",
+    "theme": {
+      "dark": "Dark",
+      "light": "Light",
+      "sunlight": "Sunlight"
+    }
   }
 }

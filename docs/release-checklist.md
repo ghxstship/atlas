@@ -10,6 +10,19 @@ Statuses:
 - **Blocked on owner (OWNER)**: needs a decision, an account, a secret or a paid service that only the owner can provide. Named in the last section.
 - **Not started**.
 
+## XOS 4.15 release (2026-11-14)
+
+4.15 is 4.14 plus merge train 4.15 (#103): the MFA policy save loop (the action redirects, where the page threw the redirect during render and `/auth/mfa` refetched itself), the Firefox journey specs for approvals, project tabs and the incident sign-off, the Compass iOS nightly's stack restart and the Compass Android seed's open shift. No migrations and no Edge Function changes.
+
+| Step                     | Status | Evidence                                                                                                                                   |
+| ------------------------ | ------ | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| CI on the release commit | Done   | PR #103 at `706111dc`: 43 checks passed and 1 was skipped; merged as `e095286a`                                                            |
+| Migrations               | Done   | None in this train                                                                                                                         |
+| Edge Functions           | Done   | None changed                                                                                                                               |
+| Apps                     | Done   | PR #103 merged into `main` (`e095286a`), which Vercel deploys to production                                                                |
+| Packages                 | Done   | Tag `v4.15.0` started `publish-packages.yml`, approved under the owner's approval through the 5.0 series; 4.15.0 published to npm and PyPI |
+| Compass                  | OWNER  | Compass ships on its own cadence                                                                                                           |
+
 ## XOS 4.14 release (2026-11-14)
 
 4.14 is 4.13 plus merge train 4.14 (#102): the nightly WebKit and Firefox journey fixes (Gateway's crew code cookie, the deferred menu, OSHA log downloads), Compass Maestro CI fixes, Trash and legal-hold table names in en-US and es-US (RRR-267), and links to the Text Message Terms and Privacy Policy in the SMS consent, which the 10DLC review asked for. No migrations and no Edge Function changes. The first CI run failed `vendor-insurance-upload` on a UTC date; `56a34702` starts the certificate two days back, and the rerun passed.

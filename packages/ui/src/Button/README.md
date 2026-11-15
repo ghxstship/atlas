@@ -3,7 +3,7 @@
 Button triggers one action; exactly one primary per screen, everything else secondary, ghost or in overflow.
 
 - Variants: `primary` (accent fill, the one action the screen is for), `secondary` (default), `ghost` (toolbars, dialog cancel), `danger` (destructive, always paired with Undo or a confirmation for irreversible work).
-- Sizes: `sm` 24 px, `md` 28 px (default), `lg` 32 px from `control-*` tokens.
+- Sizes: `sm` 24 px, `md` 28 px (default), `lg` 32 px from `control-*` tokens, and `xl` 44 px from `target-coarse`, the call to action size on public pages.
 - Labels are Title Case and at most three words, verb first: Create Record, Approve, Export.
 - Pass `shortcut` to show the key in a Kbd; every action has one.
 - `loading` sets `aria-busy` and blocks repeat clicks without a blocking spinner elsewhere.
