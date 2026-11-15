@@ -41,7 +41,7 @@ documents:
     history:
       - version: 1.2.0
         effective_date: 2026-12-01
-        summary: "Names the marketing site at ghxstship.tech: the request log its host keeps, and Global Privacy Control there. Not a material change: no new use of personal data."
+        summary: "Names the marketing site at ghxstship.tech: the request log its host keeps, page views counted there by Vercel Web Analytics once it is turned on, and Global Privacy Control there. Not a material change: nothing changes for any account or for data we already hold."
       - version: 1.1.0
         effective_date: 2026-11-11
         summary: "Sent, Inc. (sent.dm) delivers text messages in place of Twilio, by SMS only. Not a material change: the purpose and the data are the same."
@@ -61,7 +61,7 @@ documents:
     history:
       - version: 1.1.0
         effective_date: 2026-12-01
-        summary: "Covers the marketing site at ghxstship.tech: nothing stored today, then the xos-consent-decision cookie once its consent banner shows. Not a material change: no new category."
+        summary: "Covers the marketing site at ghxstship.tech: nothing stored in the browser, page views counted by Vercel Web Analytics once it is turned on and never for a browser that sends Global Privacy Control, then the xos-consent-decision cookie once its consent banner shows. Not a material change: no new cookie category."
       - version: 1.0.0
         effective_date: 2026-11-10
         summary: First version.
@@ -238,7 +238,7 @@ documents:
     history:
       - version: 1.1.0
         effective_date: 2026-12-01
-        summary: "Adds a row for the request log Vercel keeps for the marketing site at ghxstship.tech. Not a material change: no period changes."
+        summary: "Adds rows for the request log and the page view counts Vercel keeps for the marketing site at ghxstship.tech. Not a material change: no period changes."
       - version: 1.0.0
         effective_date: 2026-11-10
         summary: First version.
