@@ -106,7 +106,7 @@ partner_wholesale_discount_bps: 3000
 #                        its price.
 #   status: not_on_sale  Nobody can buy it today, in the product or on a price list. Its prices above
 #                        are the approved list prices for the day it goes on sale; a price list does
-#                        not show them. An Enterprise Order may still include it by contract.
+#                        not show them. An Order may still include it by contract, on the plans that price it.
 #
 # basis: required for every status other than offered and on_sale. Each item names a file, by its
 # path from the repository root, and a sentence quoted from it exactly, that says so. A test holds

@@ -87,6 +87,28 @@ describe("the offering section of plans.yaml", () => {
     }
     expect(comment).toContain("basis:");
   });
+
+  it("promises nothing by contract that the registry rules out", () => {
+    const comment = yamlText
+      .slice(
+        yamlText.indexOf("# What is offered and on sale today"),
+        yamlText.indexOf("\noffering:\n"),
+      )
+      .replace(/\n#\s*/g, " ");
+    // Terms of Service, 5.3: "or an Order offers them". An Order can include an item only on a plan that prices it.
+    expect(comment).toContain(
+      "An Order may still include it by contract, on the plans that price it.",
+    );
+    // A plan sold by quote has unlimited seats and is in no add-on's plans, so the comment never names it.
+    const quoted = registry.plans.filter((p) => p.quote !== null);
+    expect(quoted.map((p) => p.code)).toEqual(["enterprise"]);
+    for (const plan of quoted) {
+      expect(plan.limits["seats"]).toBeNull();
+      expect(plan.extraSeat).toBeNull();
+      expect(registry.addons.filter((a) => a.plans.includes(plan.code))).toEqual([]);
+      expect(comment.toLowerCase()).not.toContain(plan.code);
+    }
+  });
 });
 
 describe("offering helpers", () => {
