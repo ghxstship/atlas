@@ -60,7 +60,9 @@ export function createSupabase(config: CompassConfig): SupabaseClient {
     },
     // Offline, a server call fails at once instead of waiting with no answer (Android airplane mode).
     global: {
-      fetch: offlineAwareFetch(async () => (await Network.getNetworkStateAsync()).isConnected !== false),
+      fetch: offlineAwareFetch(
+        async () => (await Network.getNetworkStateAsync()).isConnected !== false,
+      ),
     },
   });
   return client as unknown as SupabaseClient;
