@@ -438,15 +438,21 @@ jobs:
       - name: Wait for sign-in through the API gateway
         run: |
           docker restart -t 30 supabase_kong_xos4 > /dev/null
+          # The body sits in a file and each status in a variable: the runner's bash 3.2 split the inline,
+          # nested-quoted JSON (run 43678837846: "[: too many arguments", two POSTs a try, GoTrue bad_json).
+          printf '{"email":"field@example.com","password":"%s"}' "${XOS_DEMO_PASSWORD:-xos-demo-2026}" > "$RUNNER_TEMP/signin.json"
           deadline=$(($(date +%s) + 300))
-          until [ "$(curl -s -o /dev/null -w '%{http_code}' -H "apikey: $SUPABASE_ANON_KEY" \
-            "$SUPABASE_URL/auth/v1/health")" = 200 ] \
-            && [ "$(curl -s -o /dev/null -w '%{http_code}' -X POST -H "apikey: $SUPABASE_ANON_KEY" \
-              -H 'Content-Type: application/json' \
-              -d "{\"email\":\"field@example.com\",\"password\":\"${XOS_DEMO_PASSWORD:-xos-demo-2026}\"}" \
-              "$SUPABASE_URL/auth/v1/token?grant_type=password")" = 200 ]; do
+          while :; do
+            health=$(curl -s -o /dev/null -w '%{http_code}' -H "apikey: $SUPABASE_ANON_KEY" "$SUPABASE_URL/auth/v1/health" || true)
+            token=$(curl -s -o "$RUNNER_TEMP/signin.out" -w '%{http_code}' -X POST -H "apikey: $SUPABASE_ANON_KEY" \
+              -H 'Content-Type: application/json' --data-binary "@$RUNNER_TEMP/signin.json" \
+              "$SUPABASE_URL/auth/v1/token?grant_type=password" || true)
+            if [ "$health" = 200 ] && [ "$token" = 200 ]; then break; fi
             if [ "$(date +%s)" -ge "$deadline" ]; then
-              echo "A password sign-in through $SUPABASE_URL did not succeed within 300 s." >&2
+              echo "A password sign-in through $SUPABASE_URL did not succeed within 300 s (health $health, token $token)." >&2
+              echo "Last token response body:" >&2
+              sed -E 's/"(access|refresh)_token":"[^"]*"/"\1_token":"<redacted>"/g' "$RUNNER_TEMP/signin.out" >&2 || true
+              echo >&2
               docker logs --tail 60 supabase_auth_xos4 >&2 2>&1 || true
               docker logs --tail 40 supabase_kong_xos4 >&2 2>&1 || true
               exit 1
