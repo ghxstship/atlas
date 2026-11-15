@@ -302,8 +302,13 @@ export default async function BillingSettingsPage({
         <nav aria-label={t("term.label")} className="flex flex-wrap items-center gap-8">
           {(
             [
-              ["Monthly", page, t("term.monthly")],
-              ["Annual", `${page}?term=annual`, t("term.annual")],
+              // A plan chosen before signing up stays in both, so comparing terms keeps its notice and its mark.
+              ["Monthly", chosen === null ? page : `${page}?plan=${chosen}`, t("term.monthly")],
+              [
+                "Annual",
+                `${page}?term=annual${chosen === null ? "" : `&plan=${chosen}`}`,
+                t("term.annual"),
+              ],
             ] as const
           ).map(([value, href, label]) => (
             <Link

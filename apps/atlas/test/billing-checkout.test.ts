@@ -608,6 +608,32 @@ describe("a plan chosen before signing up", () => {
     untouched();
   });
 
+  it("keeps the plan on the Monthly and Annual links, so comparing terms keeps the notice and the mark", async () => {
+    config.key = "sk_test_abcdefghij";
+    const termLinks = (tree: unknown) =>
+      elements(tree)
+        .filter((e) => e.type === "nav")
+        .flatMap(elements)
+        .map((e) => e.props["href"])
+        .filter((href) => typeof href === "string");
+    const base = "/northwind-live/settings/billing-and-plan";
+    expect(termLinks(await page())).toEqual([base, `${base}?term=annual`]);
+    expect(termLinks(await page({ plan: "core" }))).toEqual([
+      `${base}?plan=core`,
+      `${base}?term=annual&plan=core`,
+    ]);
+    // The address the Annual link opens shows the same notice and mark, and still opens no review.
+    const annual = await page({ term: "annual", plan: "core" });
+    expect(intentAlerts(annual)).toEqual(["intent.choose(Northwind Live,shell.plans.core.name) "]);
+    expect(markedCards(annual)).toEqual(["plan-core"]);
+    expect(ofType(annual, RenewalConsentForm)).toEqual([]);
+    // A value that is not a self-serve plan is written into neither link.
+    for (const value of ["enterprise", "Core", "core&review=core"]) {
+      expect(termLinks(await page({ plan: value }))).toEqual([base, `${base}?term=annual`]);
+    }
+    untouched();
+  });
+
   it("changes nothing for an unknown, free, quoted or malformed value", async () => {
     for (const key of [undefined, "sk_test_abcdefghij"]) {
       config.key = key;

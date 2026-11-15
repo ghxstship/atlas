@@ -7,7 +7,12 @@ import { PasskeySignInButton } from "@/components/auth/security/passkey-sign-in"
 import { LegalLinks } from "@/components/privacy/legal-links";
 import { InlineAlert } from "@/components/ui";
 import { authErrorKey, isAuthNotice } from "@/lib/auth/errors";
-import { planIntent, planIntentEntry } from "@/lib/auth/plan-intent";
+import {
+  planIntent,
+  planIntentEntry,
+  planIntentOfEntry,
+  signUpPlanPath,
+} from "@/lib/auth/plan-intent";
 import { safeNext } from "@/lib/auth/redirect";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -19,7 +24,7 @@ export async function generateMetadata(): Promise<Metadata> {
  * Sign in: OAuth providers, then one Email field whose primary action emails a sign-in link and whose
  * password signs in second (Section 11.10, rule 12; A59-025). The public legal links close the card. A `plan` naming a
  * self-serve plan (docs/sign-up-links.md) continues to the entry page, which opens Billing and Plan for an Owner; a
- * `next` wins over it.
+ * `next` wins over it. A person with no account who goes on to sign-up keeps the plan as `plan`, so sign-up names it.
  */
 export default async function SignInPage({ searchParams }: PageProps<"/auth/sign-in">) {
   const query = await searchParams;
@@ -28,8 +33,13 @@ export default async function SignInPage({ searchParams }: PageProps<"/auth/sign
   const t = await getTranslations("shell.auth");
   const tSecurity = await getTranslations("authSecurity");
   const error = typeof query["error"] === "string" ? authErrorKey({ code: query["error"] }) : null;
+  const carried = planIntentOfEntry(next);
   const signUpHref =
-    next === "/" ? "/auth/sign-up" : `/auth/sign-up?next=${encodeURIComponent(next)}`;
+    carried !== null
+      ? signUpPlanPath(carried)
+      : next === "/"
+        ? "/auth/sign-up"
+        : `/auth/sign-up?next=${encodeURIComponent(next)}`;
   return (
     <div className="flex flex-col gap-16">
       <h1 className="text-heading-20 font-semibold">{t("signIn.title")}</h1>

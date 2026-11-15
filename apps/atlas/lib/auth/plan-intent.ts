@@ -33,6 +33,20 @@ export function planIntentEntry(code: string): string {
   return `/?${PLAN_INTENT_PARAM}=${code}`;
 }
 
+/**
+ * The plan a `next` carries, or null: the code when the path is exactly the entry page with one self-serve plan. A page
+ * that was handed the plan only inside `next` (the sign-in page's link to sign-up, and back) reads it with this, so the
+ * plan is named there too. The code returned is the registry's own string.
+ */
+export function planIntentOfEntry(next: string): string | null {
+  return PLANS.find((plan) => plan.selfServe && planIntentEntry(plan.code) === next)?.code ?? null;
+}
+
+/** The sign-up address that names a plan, as docs/sign-up-links.md documents it. */
+export function signUpPlanPath(code: string): string {
+  return `/auth/sign-up?${PLAN_INTENT_PARAM}=${code}`;
+}
+
 /** The organization step, carrying the intent when there is one. */
 export function organizationStepPath(code: string | null): string {
   return code === null ? "/auth/organization" : `/auth/organization?${PLAN_INTENT_PARAM}=${code}`;

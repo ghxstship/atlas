@@ -329,6 +329,40 @@ describe("the sign-up and sign-in pages", () => {
     const kept = await SignInPage(search({ plan: "team", next: "/acme/home" }));
     expect(ofType(kept, SignInForm)[0]?.props["next"]).toBe("/acme/home");
   });
+  it("keeps the plan visible when a person without an account goes from sign-in to sign-up", async () => {
+    const signUpLink = (tree: unknown) =>
+      elements(tree).find((e) => String(e.props["href"]).startsWith("/auth/sign-up"))?.props[
+        "href"
+      ];
+    const shown = async (href: unknown) => {
+      const url = new URL(String(href), "https://atlas.test");
+      const tree = await SignUpPage(search(Object.fromEntries(url.searchParams)));
+      expect(ofType(tree, SignUpForm)[0]?.props["next"]).toBe("/?plan=pro");
+      return elements(tree).find((e) => e.props["data-testid"] === "plan-intent")?.props[
+        "children"
+      ];
+    };
+    // The documented address, and the address the sign-up page's own "Sign in" link writes.
+    for (const query of [{ plan: "pro" }, { next: "/?plan=pro" }]) {
+      const href = signUpLink(await SignInPage(search(query)));
+      expect(href).toBe("/auth/sign-up?plan=pro");
+      expect(await shown(href)).toBe("planIntent(pro.name)");
+    }
+    // A sign-up address that carries the plan only in next shows it too.
+    expect(await shown("/auth/sign-up?next=%2F%3Fplan%3Dpro")).toBe("planIntent(pro.name)");
+    // Any other next is passed on as before, and a plan it does not sell by Checkout is not named.
+    expect(signUpLink(await SignInPage(search({ plan: "pro", next: "/acme/home" })))).toBe(
+      "/auth/sign-up?next=%2Facme%2Fhome",
+    );
+    expect(signUpLink(await SignInPage(search({})))).toBe("/auth/sign-up");
+    for (const next of ["/?plan=enterprise", "/?plan=Pro", "/?plan=pro&x=1", "/acme?plan=pro"]) {
+      expect(signUpLink(await SignInPage(search({ next })))).toBe(
+        `/auth/sign-up?next=${encodeURIComponent(next)}`,
+      );
+      const tree = await SignUpPage(search({ next }));
+      expect(elements(tree).some((e) => e.props["data-testid"] === "plan-intent")).toBe(false);
+    }
+  });
 });
 
 describe("the entry page", () => {
