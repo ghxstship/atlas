@@ -21,6 +21,7 @@ import {
 import { StripeCancellationNotice } from "@/components/settings/stripe-cancellation-notice";
 import { requireNode } from "@/lib/shell/require-node";
 import { Button, ButtonLink, Card, InlineAlert } from "@/components/ui";
+import { planIntent } from "@/lib/auth/plan-intent";
 import { seatUsageKey, subscriptionOrAccess } from "@/lib/billing/current-subscription";
 import { renewalWording } from "@/lib/billing/renewal-terms";
 import { billingStatus } from "@/lib/billing/stripe";
@@ -52,6 +53,9 @@ const STANDING_REFUSALS = [
  * carried the trial over, the page says the card is saved, since nothing is charged before the trial ends. Until the
  * key is set the page says billing is not open yet, and the buttons answer the same. Buying extra seats and packs
  * stays disabled; Enterprise is sold by quote and never checks out.
+ * A `plan` parameter naming a self-serve plan (docs/sign-up-links.md) is the plan the Owner chose before signing up: the
+ * page says so and marks that plan's card, and does nothing else. It opens no review and no Checkout, and the plan and the
+ * trial stay as they are. Only an Owner reaches this page (requireNode answers 404 to everyone else).
  * Panels other modules contribute follow, such as A107's choice of what stays writable over the plan's limits.
  */
 export default async function BillingSettingsPage({
@@ -121,6 +125,9 @@ export default async function BillingSettingsPage({
     search["checkout"] === "canceled"
       ? search["checkout"]
       : null;
+  // Shown unless there is nothing left to choose: the org already pays for that plan, or must reactivate first.
+  const intent = planIntent(search["plan"]);
+  const chosen = intent !== null && !canceled && !(paid && current === intent) ? intent : null;
   const usage = seats.data;
   const org = ctx.org.slug;
   const page = `/${org}/settings/billing-and-plan`;
@@ -172,6 +179,17 @@ export default async function BillingSettingsPage({
           >
             {t("canceledAction")}
           </Link>
+        </InlineAlert>
+      ) : null}
+      {chosen !== null ? (
+        <InlineAlert tone="info">
+          {t(buying ? "intent.choose" : "intent.later", {
+            org: ctx.org.name,
+            plan: name(chosen),
+          })}{" "}
+          <a href={`#plan-${chosen}`} className="font-medium text-accent-text underline">
+            {t("intent.jump", { plan: name(chosen) })}
+          </a>
         </InlineAlert>
       ) : null}
       <StripeCancellationNotice ctx={ctx} />
@@ -301,7 +319,7 @@ export default async function BillingSettingsPage({
       ) : null}
       <ul className="m-0 grid list-none grid-cols-1 gap-12 p-0">
         {PLANS.map((plan) => (
-          <li key={plan.code}>
+          <li key={plan.code} id={`plan-${plan.code}`} className="scroll-mt-16">
             <Card>
               <div className="flex flex-col gap-8">
                 <div className="flex flex-wrap items-baseline justify-between gap-8">
@@ -368,6 +386,14 @@ export default async function BillingSettingsPage({
                   </div>
                 ) : null}
                 <div className="flex flex-col gap-8">
+                  {plan.code === chosen ? (
+                    <span
+                      className="text-label-13 font-medium text-accent-text"
+                      data-testid="plan-intent-mark"
+                    >
+                      {t("intent.mark")}
+                    </span>
+                  ) : null}
                   {plan.code === current ? (
                     <span className="text-label-13 font-medium text-success-text">
                       {trialing ? t("trialPlan") : tp("current")}

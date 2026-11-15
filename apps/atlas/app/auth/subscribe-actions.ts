@@ -4,16 +4,19 @@ import { subscribeExternalAccount } from "@xos/data/identity";
 import { recordLegalAcceptances } from "@xos/data/settings";
 import { isCountryCode } from "@xos/i18n/formats";
 import { headers } from "next/headers";
+import type { Route } from "next";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { clientIp, signupAcceptances } from "@/lib/auth/legal";
+import { newOrganizationPath, organizationStepPath, planIntent } from "@/lib/auth/plan-intent";
 import { notOfferedValues } from "@/lib/auth/territory";
 import { createServerSupabase } from "@/lib/supabase/server";
 
 /**
  * Journey 60: the Account Owner of an external account starts Atlas with that company
  * (app.subscribe_external_account). The same organization becomes a subscribed org, so its
- * profile, ratings and history carry over; the Owner accepts the signup documents as on create.
+ * profile, ratings and history carry over; the Owner accepts the signup documents as on create. A `plan` field
+ * (lib/auth/plan-intent.ts) only chooses where the Owner lands, as on create.
  */
 export interface SubscribeState {
   readonly error?:
@@ -50,7 +53,10 @@ export async function subscribeAccountAction(
   }
   const db = await createServerSupabase();
   const { data: auth } = await db.auth.getUser();
-  if (!auth.user) redirect("/auth/sign-in?next=%2Fauth%2Forganization");
+  if (!auth.user) {
+    const step = organizationStepPath(planIntent(form.get("plan")));
+    redirect(`/auth/sign-in?next=${encodeURIComponent(step)}` as Route);
+  }
   const subscribed = await subscribeExternalAccount(db, parsed.data.accountId, country);
   if (!subscribed.ok) {
     if (subscribed.error.kind === "refusal" && subscribed.error.rule === "territory_not_offered") {
@@ -76,5 +82,5 @@ export async function subscribeAccountAction(
   if (!recorded.ok) {
     throw new Error(`Legal acceptance was not recorded: ${JSON.stringify(recorded.error)}`);
   }
-  redirect(`/${parsed.data.slug}/home`);
+  redirect(newOrganizationPath(parsed.data.slug, form.get("plan")) as Route);
 }

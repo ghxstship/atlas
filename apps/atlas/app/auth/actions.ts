@@ -28,6 +28,7 @@ import { z } from "zod";
 import { secondFactorRedirect } from "@/lib/auth/assurance";
 import { authErrorKey } from "@/lib/auth/errors";
 import { newPassword, passwordHasContextWords } from "@/lib/auth/password";
+import { newOrganizationPath, organizationStepPath, planIntent } from "@/lib/auth/plan-intent";
 import { clientIp, signupAcceptances } from "@/lib/auth/legal";
 import { enabledProviders, isOAuthProvider, providerQueryParams } from "@/lib/auth/providers";
 import { notOfferedValues } from "@/lib/auth/territory";
@@ -292,8 +293,14 @@ export async function signUp(_: FormState, form: FormData): Promise<FormState> {
 
 // Organization ------------------------------------------------------------------------------------
 
+/**
+ * Creates the organization. A `plan` field (lib/auth/plan-intent.ts) only chooses where the new Owner lands: Billing and
+ * Plan with that plan marked instead of Home. The organization is created the same way with or without it, on the same
+ * plan and trial, and no billing action runs.
+ */
 export async function createOrganizationAction(_: FormState, form: FormData): Promise<FormState> {
-  await stopAccountIfUnderAge(form, "/auth/organization");
+  const step = organizationStepPath(planIntent(form.get("plan")));
+  await stopAccountIfUnderAge(form, step);
   const values = {
     orgName: text(form, "orgName"),
     orgSlug: text(form, "orgSlug").toLowerCase(),
@@ -312,7 +319,7 @@ export async function createOrganizationAction(_: FormState, form: FormData): Pr
 
   const db = await createServerSupabase();
   const { data: auth } = await db.auth.getUser();
-  if (!auth.user) redirect("/auth/sign-in?next=%2Fauth%2Forganization");
+  if (!auth.user) redirect(`/auth/sign-in?next=${encodeURIComponent(step)}` as Route);
   const ageError = await requireAge(db, form);
   if (ageError) return { fieldErrors: ageError, values };
   const created = await createOrganization(db, {
@@ -360,7 +367,7 @@ export async function createOrganizationAction(_: FormState, form: FormData): Pr
       value: zone,
     });
   }
-  redirect(`/${parsed.data.orgSlug}/home`);
+  redirect(newOrganizationPath(parsed.data.orgSlug, form.get("plan")) as Route);
 }
 
 // Invitations -------------------------------------------------------------------------------------

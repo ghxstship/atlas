@@ -546,3 +546,107 @@ describe("billing once the key is set", () => {
     expect(await endPlanAction({}, portal)).toMatchObject({ rule: "billing_no_subscription" });
   });
 });
+
+/**
+ * Issue 115 (docs/sign-up-links.md): `?plan=<code>` on Billing and Plan is the plan the Owner chose before signing up.
+ * The page names it and marks its card. It opens no review, renders no consent form and reaches no billing action.
+ */
+describe("a plan chosen before signing up", () => {
+  const marks = (tree: unknown) =>
+    elements(tree)
+      .filter((e) => e.props["data-testid"] === "plan-intent-mark")
+      .map(textOf);
+  const intentAlerts = (tree: unknown) =>
+    ofType(tree, InlineAlert)
+      .map(textOf)
+      .filter((text) => text.startsWith("intent."));
+  /** The plan whose card carries the mark: the list item that holds it. */
+  const markedCards = (tree: unknown) =>
+    elements(tree)
+      .filter((e) => e.type === "li" && typeof e.props["id"] === "string" && marks(e).length > 0)
+      .map((e) => e.props["id"]);
+  const untouched = () => {
+    expect(platform.createStripeClient).not.toHaveBeenCalled();
+    expect(platform.startPlanCheckout).not.toHaveBeenCalled();
+    expect(platform.openBillingPortal).not.toHaveBeenCalled();
+    expect(data.requestPlanEnd).not.toHaveBeenCalled();
+  };
+
+  beforeEach(() => {
+    data.requestPlanEnd.mockReset();
+  });
+
+  it("is named and marked while billing is closed, with nothing to click through", async () => {
+    const tree = await page({ plan: "core" });
+    expect(intentAlerts(tree)).toEqual(["intent.later(Northwind Live,shell.plans.core.name) "]);
+    expect(marks(tree)).toEqual(["intent.mark"]);
+    expect(markedCards(tree)).toEqual(["plan-core"]);
+    const jump = elements(tree).find((e) => e.type === "a" && e.props["href"] === "#plan-core");
+    expect(jump && textOf(jump)).toBe("intent.jump(shell.plans.core.name)");
+    expect(reviewLinks(tree)).toEqual([]);
+    expect(ofType(tree, RenewalConsentForm)).toEqual([]);
+    untouched();
+  });
+
+  it("starts no checkout once billing is open: the same Choose links, and no review", async () => {
+    config.key = "sk_test_abcdefghij";
+    const plain = await page();
+    for (const code of PLANS.filter((p) => p.selfServe).map((p) => p.code)) {
+      const tree = await page({ plan: code });
+      expect(intentAlerts(tree)).toEqual([
+        `intent.choose(Northwind Live,shell.plans.${code}.name) `,
+      ]);
+      expect(markedCards(tree)).toEqual([`plan-${code}`]);
+      // Exactly what the page offers without the parameter: a review is still the Owner's own click.
+      expect(reviewLinks(tree)).toEqual(reviewLinks(plain));
+      expect(ofType(tree, RenewalConsentForm)).toEqual([]);
+      const [notice] = ofType(tree, BillingLifecycleNotice);
+      expect(notice?.props["billing"]).toEqual(
+        ofType(plain, BillingLifecycleNotice)[0]?.props["billing"],
+      );
+    }
+    untouched();
+  });
+
+  it("changes nothing for an unknown, free, quoted or malformed value", async () => {
+    for (const key of [undefined, "sk_test_abcdefghij"]) {
+      config.key = key;
+      const plain = await page();
+      for (const value of ["enterprise", "access", "Core", "core ", "core&review=core", "", "x"]) {
+        const tree = await page({ plan: value });
+        expect(intentAlerts(tree)).toEqual([]);
+        expect(marks(tree)).toEqual([]);
+        expect(ofType(tree, InlineAlert).map(textOf)).toEqual(
+          ofType(plain, InlineAlert).map(textOf),
+        );
+        expect(reviewLinks(tree)).toEqual(reviewLinks(plain));
+        expect(ofType(tree, RenewalConsentForm)).toEqual([]);
+      }
+      const repeated = await BillingSettingsPage({
+        params: Promise.resolve({ org: "northwind-live" }),
+        searchParams: Promise.resolve({ plan: ["core", "pro"] }),
+      } as never);
+      expect(marks(repeated)).toEqual([]);
+    }
+    untouched();
+  });
+
+  it("is not shown to an org that already pays for that plan", async () => {
+    config.key = "sk_test_abcdefghij";
+    data.account = {
+      paidThroughStripe: true,
+      hasStripeCustomer: true,
+      awaitingSubscription: false,
+      interval: "Monthly",
+      currentPeriodEnd: "2026-12-01T00:00:00Z",
+      checkoutRefusal: "billing_already_subscribed",
+    };
+    expect(intentAlerts(await page({ plan: "pro" }))).toEqual([]);
+    expect(marks(await page({ plan: "pro" }))).toEqual([]);
+    // Another plan is still named, without a Choose link the database would refuse.
+    const other = await page({ plan: "team" });
+    expect(intentAlerts(other)).toEqual(["intent.later(Northwind Live,shell.plans.team.name) "]);
+    expect(reviewLinks(other)).toEqual([]);
+    untouched();
+  });
+});
