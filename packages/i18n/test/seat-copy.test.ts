@@ -16,10 +16,28 @@ import { flatten, icuArguments, type Catalog } from "./icu.ts";
 const messagesRoot = new URL("../messages/", import.meta.url);
 const migrationsRoot = new URL("../../../supabase/migrations/", import.meta.url);
 
-/** How a message offers extra seats, in the languages whose wording the repository writes by hand. */
+/**
+ * How a message offers extra seats, in the languages whose wording the repository writes by hand. English: buy,
+ * purchase or order and then seats, with or without "extra", "more" or "additional"; or add or get and then seats
+ * marked by one of those words, because "upgrade the plan to add seats" and "add a seat" to a crew roster offer no
+ * purchase. Spanish: comprar, adquirir, agregar or añadir and then asientos, puestos, plazas or licencias, marked by
+ * "más" before the noun or "adicionales" or "extra" after it; puestos and plazas are also jobs and places.
+ */
+const EN_MARK = "(extra|more|additional)\\s+";
+const EN_BUY = "buy|buys|buying|bought|purchase[sd]?|purchasing|order|orders|ordering|ordered";
+const EN_ADD = "add|adds|adding|added|get|gets|getting";
+const ES_VERB =
+  "(compr|adquir|adquier|agreg|agregu|añad)(a|e|o|ar|ir|an|en|as|es|amos|imos|emos|ando|iendo)";
+const ES_NOUN = "(asientos?|puestos?|plazas?|licencias?)";
 const OFFERS: Readonly<Record<string, RegExp>> = {
-  en: /\b(buy|buys|buying|purchase|purchases|purchasing)\s+(an?\s+)?(extra|more|additional)\s+seats?\b/i,
-  es: /\bcompr(a|e|ar|an|en|ando)\s+(un\s+)?(asientos?|puestos?|licencias?)\s+(adicional(es)?|extras?)/i,
+  en: new RegExp(
+    `\\b((${EN_BUY})\\s+((an?|the|some)\\s+)?(${EN_MARK})?|(${EN_ADD})\\s+((an?|the|some)\\s+)?${EN_MARK})seats?\\b`,
+    "i",
+  ),
+  es: new RegExp(
+    `(?<!\\p{L})${ES_VERB}\\s+((un|una|unos|unas|los|las)\\s+)?(más\\s+${ES_NOUN}|${ES_NOUN}\\s+(adicional(es)?|extras?))(?!\\p{L})`,
+    "iu",
+  ),
 };
 
 const offersSeats = (folder: string, message: string): boolean | undefined =>
@@ -77,6 +95,49 @@ describe("copy that offers extra seats follows plans.yaml", () => {
     expect(seatCopyKey("seat_limit_reached")).toBe(
       extraSeatsOnSale() ? "seat_limit_reached" : "seat_limit_reached_not_on_sale",
     );
+  });
+
+  it("recognizes an offer however it is worded, and nothing that offers no purchase", () => {
+    for (const offer of [
+      "Buy extra seats in Billing and Plan, or upgrade the plan.",
+      "Buy seats in Billing and Plan.",
+      "Purchase an additional seat.",
+      "Order more seats",
+      "Add extra seats in Billing and Plan, or upgrade the plan.",
+      "Get more seats in Billing and Plan.",
+    ]) {
+      expect(offersSeats("en-US", offer), offer).toBe(true);
+    }
+    for (const plain of [
+      "Upgrade the plan in Billing and Plan, or remove a member to free a seat.",
+      "All seats are in use. Upgrade the plan to add seats.",
+      "No positions yet. Add a seat, then plan shifts and records against it.",
+      "Your seat is read-only.",
+    ]) {
+      expect(offersSeats("en-US", plain), plain).toBe(false);
+    }
+    for (const offer of [
+      "Compra asientos adicionales en Facturación y plan.",
+      "Compra plazas adicionales en Facturación y plan.",
+      "Compra más asientos en Facturación y plan.",
+      "Compre un asiento extra.",
+      "Adquiere asientos adicionales.",
+      "Agrega asientos adicionales en Facturación y plan.",
+      "Añade más plazas.",
+      "Compra licencias adicionales.",
+    ]) {
+      expect(offersSeats("es-US", offer), offer).toBe(true);
+    }
+    for (const plain of [
+      "Tu plan no tiene plazas para ese rol",
+      "Todos los puestos están en uso. Mejore el plan para agregar puestos.",
+      "Todos los asientos de tu plan están en uso y el plan no vende asientos adicionales.",
+      "Mejora el plan o quita a un miembro.",
+    ]) {
+      expect(offersSeats("es-US", plain), plain).toBe(false);
+    }
+    // A language the repository does not write by hand has no pattern, and the suite says so rather than passing it.
+    expect(offersSeats("fr-FR", "Achetez des sièges supplémentaires.")).toBeUndefined();
   });
 
   it.each(folders)("%s: no message outside the listed keys offers extra seats", (folder) => {
