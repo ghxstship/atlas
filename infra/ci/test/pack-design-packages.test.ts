@@ -43,7 +43,7 @@ function check(files: Record<string, string>, manifest: Record<string, unknown> 
 
 describe("published names", () => {
   it("publishes the five design packages under the owner's scope", () => {
-    expect(PACKAGES).toEqual(["tokens", "icons", "i18n", "schemas", "ui"]);
+    expect(PACKAGES).toEqual(["tokens", "icons", "schemas", "i18n", "ui"]);
     expect(publishedName("ui")).toBe("@ghxstship/xos-ui");
     expect(archiveName("ui", "4.17.0")).toBe("ghxstship-xos-ui-4.17.0.tgz");
   });
