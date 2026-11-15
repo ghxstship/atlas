@@ -16,6 +16,7 @@ export interface FontFamily {
   weights: number[];
   style: string;
   license: string;
+  licenseFile: string;
   files: { variable: string[]; static: string[] };
 }
 
@@ -34,6 +35,7 @@ export function publishManifest(
   version: string,
 ): PackageManifest;
 export function fontsSection(fonts: { families: FontFamily[] }, pkg: string): string[];
+export function scanKind(file: string): "stylesheet" | "script" | "markup" | "skipped" | "unknown";
 export function remoteReferences(file: string, source: string): RemoteReference[];
 export function textOnly(pkg: string, file: string, url: string): boolean;
 export function remoteProblems(pkg: string, file: string, source: string): string[];

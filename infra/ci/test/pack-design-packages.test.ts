@@ -13,6 +13,7 @@ import {
   publishedName,
   remoteProblems,
   remoteReferences,
+  scanKind,
   textOnly,
   type FontFamily,
 } from "../pack-design-packages.mjs";
@@ -168,6 +169,56 @@ describe("remote references in scripts, images and data", () => {
     ]);
   });
 
+  it("finds a protocol-relative address anywhere in a string or a template", () => {
+    const font = "//fonts.gstatic.com/s/inter/v1/a.woff2";
+    const sheet = "//fonts.googleapis.com/css2?family=Inter";
+    expect(
+      remoteProblems(
+        "ui",
+        "src/Icon/Icon.tsx",
+        `export const bg = { backgroundImage: "url(${font})" };`,
+      ),
+    ).toEqual([`src/Icon/Icon.tsx loads ${font} from another host through url()`]);
+    expect(
+      remoteReferences(
+        "a.ts",
+        "export const load = () => fetch(`${location.protocol}" + sheet + "`);",
+      ),
+    ).toEqual([{ url: sheet, through: "text" }]);
+    const source = [
+      `const style = "@font-face { src: url('${font}') }";`,
+      `const tag = '<script src=//cdn.test/a.js></script>';`,
+      `const note = "it's loaded from //cdn.test/b.js";`,
+      "const page = `",
+      "  <link rel=stylesheet href= //cdn.test/c.css>",
+      "`;",
+    ].join("\n");
+    expect(remoteReferences("a.ts", source)).toEqual([
+      { url: font, through: "url" },
+      { url: "//cdn.test/a.js", through: "text" },
+      { url: "//cdn.test/b.js", through: "text" },
+      { url: "//cdn.test/c.css", through: "text" },
+    ]);
+  });
+
+  it("fails a url() in a script whatever the text-only list says", () => {
+    const svg = "http://www.w3.org/2000/svg";
+    expect(textOnly("ui", "src/a.tsx", svg)).toBe(true);
+    expect(remoteProblems("ui", "src/a.tsx", `const mask = "url(${svg})";`)).toEqual([
+      `src/a.tsx loads ${svg} from another host through url()`,
+    ]);
+  });
+
+  it("passes a line comment that looks like a host, after code and after a closed string", () => {
+    const source = [
+      `//console.log(value);`,
+      `const a = 1; //todo.md has the rest`,
+      `const b = "it's"; //cdn.test/a.js is not loaded here`,
+      `const c = 'x'; // see //cdn.test/b.js`,
+    ].join("\n");
+    expect(remoteReferences("a.ts", source)).toEqual([]);
+  });
+
   it("passes line comments, paths, regular expressions and a scheme with no host", () => {
     const source = [
       `// see packages/ui/src/index.ts`,
@@ -192,6 +243,39 @@ describe("remote references in scripts, images and data", () => {
       { url: "https://docs.google.com/spreadsheets/d/", through: "text" },
     ]);
     expect(remoteProblems("i18n", "messages/en-US/platform.json", copy)).toEqual([]);
+  });
+});
+
+describe("the types of file the remote check reads", () => {
+  it("reads stylesheets of every dialect, scripts, images, pages and data", () => {
+    for (const file of ["a.css", "a.scss", "a.sass", "a.less", "a.pcss", "a.styl"])
+      expect(scanKind(file)).toBe("stylesheet");
+    for (const file of ["a.ts", "a.tsx", "a.js", "a.mjs", "a.cjs", "a.jsx", "a.d.mts"])
+      expect(scanKind(file)).toBe("script");
+    for (const file of ["a.svg", "a.html", "a.json", "a.xml", "a.webmanifest", "a.vue", "a.js.map"])
+      expect(scanKind(file)).toBe("markup");
+  });
+
+  it("skips prose, tabular data, license files and raster images, and nothing else", () => {
+    for (const file of ["README.md", "a.txt", "a.yaml", "a.csv", "LICENSE", "a/b.png"])
+      expect(scanKind(file)).toBe("skipped");
+    for (const file of ["a.woff2", "a.wasm", "a.pdf", "Makefile", "a.css.bak"])
+      expect(scanKind(file)).toBe("unknown");
+  });
+
+  it("finds a remote import in a Sass, Less and PostCSS stylesheet", () => {
+    expect(remoteProblems("ui", "src/styles/extra.scss", `@import url("${FONTS_HOST}");`)).toEqual([
+      `src/styles/extra.scss imports ${FONTS_HOST} from another host`,
+    ]);
+    expect(remoteReferences("a.scss", `@use "https://cdn.test/a";`)).toEqual([
+      { url: "https://cdn.test/a", through: "import" },
+    ]);
+    expect(remoteReferences("a.less", `@import (css) url("//cdn.test/a.css");`)).toEqual([
+      { url: "//cdn.test/a.css", through: "import" },
+    ]);
+    expect(remoteReferences("a.pcss", `.a { background: url(https://img.test/a.png); }`)).toEqual([
+      { url: "https://img.test/a.png", through: "url" },
+    ]);
   });
 });
 
@@ -284,6 +368,22 @@ describe("the self-check of a staged package", () => {
     ]);
   });
 
+  it("fails a remote import in a stylesheet dialect, and a file of a type it does not know", () => {
+    const found = check(
+      {
+        ...clean,
+        "src/styles/extra.scss": `@import url("${FONTS_HOST}");\n`,
+        "src/fonts/Inter.woff2": "wOF2",
+        "src/brand/defaults/mark.png": "PNG https://img.test/pixels",
+      },
+      manifest,
+    );
+    expect(found).toEqual([
+      `src/styles/extra.scss imports ${FONTS_HOST} from another host`,
+      "src/fonts/Inter.woff2 is of a type the remote check neither reads nor skips; add its extension to a list beside scanKind",
+    ]);
+  });
+
   it("still fails a missing export target, a missing file, an undeclared package and a workspace range", () => {
     const found = check(
       {
@@ -320,6 +420,7 @@ describe("the fonts section of a generated README", () => {
       for (const font of fonts.families) {
         expect(section).toContain(`| ${font.family} |`);
         expect(section).toContain(font.weights.join(", "));
+        expect(section).toContain(`${font.license}, \`${font.licenseFile}\` |`);
         for (const file of [...font.files.variable, ...font.files.static])
           expect(section).toContain(file);
       }
