@@ -29,6 +29,7 @@
     "over": "{count, plural, one {# is} other {# are}} read-only.",
     "room": "Keep up to {room, plural, one {# writable} other {# writable}}. Without a choice, the oldest stay writable.",
     "noRoom": "Owners hold every seat the plan includes, so no other member keeps one. Upgrade or buy extra seats to make room.",
+    "noRoomNotOnSale": "Owners hold every seat the plan includes, so no other member keeps one. Upgrade the plan to make room.",
     "owner": "Owner, always writable",
     "readOnly": "Read-only",
     "writable": "Writable",

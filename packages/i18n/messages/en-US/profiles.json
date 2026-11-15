@@ -27,6 +27,7 @@
     "sod_self_grant": "You cannot approve your own request or change your own role.",
     "plan_limit_exceeded": "Your plan has no seat left for that role. Choose Viewer or Field, or compare plans.",
     "seat_limit_reached": "All seats on your plan are in use. Buy extra seats in Billing and Plan, or upgrade the plan. Viewer and Field roles never take a seat.",
+    "seat_limit_reached_not_on_sale": "All seats on your plan are in use. Upgrade the plan in Billing and Plan, or remove a member to free a seat. If you are not an Owner, ask an Owner to upgrade. Viewer and Field roles never take a seat.",
     "seat_limit_upgrade": "All seats on your plan are in use, and it sells no extra seats. Upgrade the plan in Billing and Plan. Viewer and Field roles never take a seat.",
     "not_member": "Choose someone who still belongs to the organization.",
     "offboarding_open_records": "Reassign every open record before completing the offboarding.",

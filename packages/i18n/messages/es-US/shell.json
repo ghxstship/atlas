@@ -1047,6 +1047,7 @@
         "invite_rate_limited": "Demasiados intentos. Espera 15 minutos y vuelve a abrir el enlace de la invitación.",
         "invite_inviter_inactive": "La persona que te invitó ya no puede agregar miembros. Pide una nueva invitación a un administrador de la organización.",
         "seat_limit_reached": "Esta organización no tiene asientos libres para tu rol. Pide a su propietario que compre asientos adicionales o mejore el plan, y vuelve a abrir la invitación.",
+        "seat_limit_reached_not_on_sale": "Esta organización no tiene asientos libres para tu rol. Pide a su propietario que mejore el plan o quite a un miembro, y vuelve a abrir la invitación.",
         "seat_limit_upgrade": "Esta organización no tiene asientos libres para tu rol. Pide a su propietario que mejore el plan y vuelve a abrir la invitación.",
         "member_blocked": "No puedes unirte a esta organización. Pregunta a uno de sus administradores."
       },
@@ -1229,6 +1230,7 @@
         "sole_owner": "Una organización conserva al menos un propietario. Primero nombra a otra persona propietaria.",
         "plan_limit_exceeded": "Tu plan no tiene asientos libres para ese rol. Elige Observador o Campo, o compara planes.",
         "seat_limit_reached": "Todos los asientos de tu plan están en uso. Compra asientos adicionales en Facturación y plan, o mejora el plan. Los roles Observador y Campo nunca ocupan asiento.",
+        "seat_limit_reached_not_on_sale": "Todos los asientos de tu plan están en uso. Mejora el plan en Facturación y plan, o quita a un miembro para liberar un asiento. Si no eres Propietario, pide a un Propietario que mejore el plan. Los roles Observador y Campo nunca ocupan asiento.",
         "seat_limit_upgrade": "Todos los asientos de tu plan están en uso y el plan no vende asientos adicionales. Mejora el plan en Facturación y plan. Los roles Observador y Campo nunca ocupan asiento.",
         "not_member": "Esa membresía ya terminó.",
         "not-found": "Ese miembro o invitación ya no está aquí. Recarga la página.",

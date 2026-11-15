@@ -27,6 +27,7 @@
     "org_read_only": "Esta organización está en solo lectura, así que esto no puede cambiar ahora.",
     "domain_not_provisioned": "Los dominios verificados se comprueban con su registro TXT.",
     "seat_limit_reached": "Todos los puestos están en uso. Compre puestos adicionales en Facturación y plan o mejore el plan.",
+    "seat_limit_reached_not_on_sale": "Todos los puestos están en uso. Mejore el plan en Facturación y plan o quite a un miembro para liberar un puesto. Si no es Propietario, pida a un Propietario que mejore el plan.",
     "seat_limit_upgrade": "Todos los puestos están en uso. Mejore el plan para agregar puestos.",
     "other": "Las reglas de la organización rechazaron este cambio."
   },
