@@ -274,7 +274,15 @@ export default async function BillingSettingsPage({
           ) : null}
           {full ? (
             <InlineAlert tone="warning">
-              {usage.sellsExtraSeats && seatsOnSale ? t("seatsFull") : t("seatsFullUpgrade")}
+              {
+                // A plan that prices extra seats while they are not on sale gets the upgrade alone: the page neither
+                // offers them nor says the plan sells none, since an Order may include them (Terms of Service, 5.3).
+                !usage.sellsExtraSeats
+                  ? t("seatsFullUpgrade")
+                  : seatsOnSale
+                    ? t("seatsFull")
+                    : t("seatsFullNotOnSale")
+              }
             </InlineAlert>
           ) : null}
           {usage.sellsExtraSeats && seatsOnSale ? (

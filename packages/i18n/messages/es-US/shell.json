@@ -1315,6 +1315,7 @@
       "grandfathered": "Tu suscripción empezó antes de que los planes tuvieran límite de asientos, así que conserva asientos ilimitados. Cambiar de plan aplica los nuevos límites.",
       "seatsFull": "Todos los asientos están en uso. Compra asientos adicionales o mejora el plan para agregar miembros por encima de Campo.",
       "seatsFullUpgrade": "Todos los asientos están en uso y tu plan no vende asientos adicionales. Mejora el plan para agregar miembros por encima de Campo.",
+      "seatsFullNotOnSale": "Todos los asientos están en uso. Mejora el plan para agregar miembros por encima de Campo.",
       "buySeats": "Comprar asientos adicionales",
       "contactSales": "Hablar con ventas",
       "auroraPack": {
