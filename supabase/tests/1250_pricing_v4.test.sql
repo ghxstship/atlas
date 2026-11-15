@@ -41,8 +41,8 @@ select is(private.plan_limit(pg_temp.id('org_b'), 'seats'), 5::bigint, 'a Core o
 select lives_ok($$select private.assert_within_plan_limit(pg_temp.id('org_b'), 'seats', 5)$$,
   'the fifth seat fits on Core');
 select throws_like($$select private.assert_within_plan_limit(pg_temp.id('org_b'), 'seats', 6)$$,
-  'seat_limit_reached: All 5 seats are in use. Buy extra seats in Billing and Plan, or upgrade the plan.',
-  'the sixth seat on Core is told to buy extra seats or upgrade');
+  'seat_limit_reached: All 5 seats are in use. Upgrade the plan in Billing and Plan, or remove a member to free a seat.%',
+  'the sixth seat on Core, a plan that prices extra seats, is refused by its own rule (its message: 904180101)');
 select throws_like($$select private.assert_within_plan_limit(pg_temp.id('org_b'), 'active_external_engagements_per_month', 251)$$,
   'plan_limit_exceeded:%', 'other limits keep their refusal');
 

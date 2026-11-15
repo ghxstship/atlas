@@ -27,6 +27,7 @@
     "org_read_only": "This organization is read-only, so this cannot change now.",
     "domain_not_provisioned": "Verified domains are checked by their TXT record.",
     "seat_limit_reached": "All seats are in use. Buy extra seats in Billing and plan, or upgrade the plan.",
+    "seat_limit_reached_not_on_sale": "All seats are in use. Upgrade the plan in Billing and Plan, or remove a member to free a seat. If you are not an Owner, ask an Owner to upgrade.",
     "seat_limit_upgrade": "All seats are in use. Upgrade the plan to add seats.",
     "other": "The organization's rules refused this change."
   },

@@ -42,6 +42,7 @@
     "plan_limit_exceeded": "Your plan's limit is reached. Upgrade the plan or remove something first.",
     "plan_limit_read_only": "This is read-only because the organization is over its plan's limits. The banner at the top of the page says which limit and how to lift it.",
     "seat_limit_reached": "All seats on your plan are in use. Buy extra seats in Billing and Plan, or upgrade the plan. Viewer and Field roles never take a seat.",
+    "seat_limit_reached_not_on_sale": "All seats on your plan are in use. Upgrade the plan in Billing and Plan, or remove a member to free a seat. If you are not an Owner, ask an Owner to upgrade. Viewer and Field roles never take a seat.",
     "seat_limit_upgrade": "All seats on your plan are in use, and it sells no extra seats. Upgrade the plan in Billing and Plan. Viewer and Field roles never take a seat.",
     "plan_feature_required": "Your plan does not include this. Upgrade the plan to use it.",
     "import_file_type": "Upload a .csv or .xlsx spreadsheet.",
