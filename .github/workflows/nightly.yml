@@ -391,18 +391,6 @@ jobs:
             colima stop --force || true
             sleep $((attempt * 20))
           done
-      # The simulator boots while the stack comes back, and is settled by the time Maestro starts its driver.
-      - name: Boot the simulator
-        run: |
-          UDID=$(xcrun simctl list devices available -j | python3 -c "
-          import json, re, sys
-          devices = json.load(sys.stdin)['devices']
-          runtimes = [k for k, v in devices.items() if '.iOS-' in k and any(d['name'].startswith('iPhone') for d in v)]
-          newest = max(runtimes, key=lambda k: [int(n) for n in re.findall(r'\d+', k.split('.iOS-')[1])])
-          print(next(d['udid'] for d in devices[newest] if d['name'].startswith('iPhone')))
-          ")
-          echo "UDID=$UDID" >> "$GITHUB_ENV"
-          xcrun simctl boot "$UDID"
       # The database comes up first and alone. The step above stopped the stack by hand, so the daemon does not start
       # it as the VM boots (restart policy unless-stopped), and no start here races its own (run 43553805418,
       # "AlreadyExists: task ... already exists"). A start that still fails is tried again after a pause, and a stale
@@ -465,6 +453,21 @@ jobs:
             fi
             sleep 5
           done
+      # The simulator boots once the stack answers, not beside it. Booted together (run 43658348574), the simulator's
+      # first boot took the runner's CPUs from the 2 CPU VM: each `docker ps` of the health wait took 20 to 100 s,
+      # Realtime answered /api/ping in 7.6 s, past its health check's timeout, and it was still
+      # unhealthy at the end of the ten-minute wait. Install waits for the boot to finish (bootstatus -b).
+      - name: Boot the simulator
+        run: |
+          UDID=$(xcrun simctl list devices available -j | python3 -c "
+          import json, re, sys
+          devices = json.load(sys.stdin)['devices']
+          runtimes = [k for k, v in devices.items() if '.iOS-' in k and any(d['name'].startswith('iPhone') for d in v)]
+          newest = max(runtimes, key=lambda k: [int(n) for n in re.findall(r'\d+', k.split('.iOS-')[1])])
+          print(next(d['udid'] for d in devices[newest] if d['name'].startswith('iPhone')))
+          ")
+          echo "UDID=$UDID" >> "$GITHUB_ENV"
+          xcrun simctl boot "$UDID"
       - name: Install Compass on the simulator
         run: |
           xcrun simctl bootstatus "$UDID" -b
