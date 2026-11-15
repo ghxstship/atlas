@@ -144,3 +144,34 @@ describe("component styles on Tailwind 4.3.3 with the token preset", () => {
     expect([...read].filter((v) => !defined.has(v))).toEqual([]);
   });
 });
+
+/** An absolute URL with an authority, or a protocol-relative one: anything a browser would fetch from another host. */
+const REMOTE = /(?:\b[a-z][a-z0-9+.-]*:)?\/\/[^\s"'()]+/gi;
+const withoutComments = (sheet: string) => sheet.replace(/\/\*[\s\S]*?\*\//g, "");
+
+describe("no stylesheet in the package requests another host (issue 110)", () => {
+  const sheets = walk(stylesDir).filter((f) => f.endsWith(".css"));
+
+  it.each(sheets.map((f) => [relative(root, f), f] as const))("%s", (_name, file) => {
+    expect(withoutComments(readFileSync(file, "utf8")).match(REMOTE) ?? []).toEqual([]);
+  });
+
+  it("reference.css is the design export, formatted, minus its one remote font import", () => {
+    const exported = readFileSync(
+      join(root, "../../design/xos-design-system/components/bundle.css"),
+      "utf8",
+    );
+    const lines = exported.split("\n");
+    // The export loads Inter and JetBrains Mono from Google Fonts in its first line and names no other host.
+    expect(lines[0]).toMatch(/^@import url\("https:\/\/fonts\.googleapis\.com\/css2\?[^"]+"\);$/);
+    const local = lines.slice(1).join("\n");
+    expect(withoutComments(local).match(REMOTE) ?? []).toEqual([]);
+    // Prettier formats the copy, so the comparison ignores white space and the final semicolon of a block.
+    const squeeze = (sheet: string) => sheet.replace(/\s+/g, "").replace(/;\}/g, "}");
+    const reference = readFileSync(join(stylesDir, "reference.css"), "utf8").replace(
+      /^\/\*[\s\S]*?\*\/\n/,
+      "",
+    );
+    expect(squeeze(reference)).toBe(squeeze(local));
+  });
+});
