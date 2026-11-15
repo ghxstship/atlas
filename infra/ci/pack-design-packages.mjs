@@ -11,6 +11,10 @@
  * so the source inside the archive keeps importing `@xos/*`, unchanged from the tag. A consumer
  * installs them the same way and transpiles them as the Atlas apps do (infra/ci/README.md, section 5).
  *
+ * No published file may make a browser, a bundler or a runtime ask another host for anything: the self-check
+ * fails on a remote `@import`, a remote `url()`, a remote module specifier and every other remote address that
+ * TEXT_ONLY_REFERENCES does not list (issue 110).
+ *
  * Usage: node infra/ci/pack-design-packages.mjs <version> <output directory>
  * Exits non-zero when an archive would not stand on its own.
  */
@@ -52,13 +56,18 @@ const EXCLUDED = [
 ];
 
 /**
- * Maintainer tooling inside a package's source: generator command lines and the translation pipeline. No
- * export reaches them and they import development dependencies, so they stay out of the archive.
+ * Maintainer files inside a package's source: generator command lines, the translation pipeline, the airports
+ * download (it fetches the OurAirports file from its publisher) and the design export's stylesheet that the
+ * components were ported from. No export reaches them, so they stay out of the archive.
  */
 const TOOLING = {
   i18n: [/^src\/translation\//, /^scripts\//],
-  schemas: [/(^|\/)generate-cli\.ts$/],
+  schemas: [/(^|\/)generate-cli\.ts$/, /^src\/airports\/fetch(-cli)?\.ts$/],
+  ui: [/^src\/styles\/reference\.css$/],
 };
+
+/** Packages whose stylesheets name the font families, so their README says which fonts a consumer serves. */
+const FONT_PACKAGES = ["tokens", "ui"];
 
 /** Build output a package exports but git does not track. The caller builds it before packing. */
 const BUILT = { tokens: ["dist"] };
@@ -67,6 +76,45 @@ const BUILT = { tokens: ["dist"] };
 const DROPPED_FIELDS = ["private", "scripts", "devDependencies", "files", "publishConfig"];
 
 const SOURCE = /\.[cm]?[jt]sx?$/;
+
+/**
+ * Files something loads: stylesheets, scripts, images, pages and data. Prose and tabular data (Markdown, text,
+ * YAML, CSV, license files) are read by people and parsers that follow no address.
+ */
+const LOADED = /\.(?:css|svg|html?|json|[cm]?[jt]sx?)$/;
+
+/**
+ * Remote addresses a published file may hold because no browser, bundler or runtime loads them. Every other
+ * remote address fails the pack, and an `@import`, a `url()` or a module specifier fails whatever this list
+ * says. `files` is matched against `<package>/<path in the archive>`.
+ */
+export const TEXT_ONLY_REFERENCES = [
+  {
+    // An XML namespace name on an svg element. Parsers compare it as a string and never fetch it.
+    url: /^http:\/\/www\.w3\.org\/(?:2000\/svg|1999\/xlink)$/,
+    files: /^(?:icons|ui)\/.+\.(?:svg|mjs|tsx)$/,
+  },
+  {
+    // The `$schema` keyword of a JSON Schema: the name of the dialect, which validators hold built in.
+    url: /^https:\/\/json-schema\.org\/draft\/2020-12\/schema$/,
+    files: /^schemas\/[^/]+\.schema\.json$/,
+  },
+  {
+    // Example values in the API field descriptions, on the `.example` domain RFC 2606 reserves: no host answers.
+    url: /^https:\/\/[a-z0-9-]+\.example\//,
+    files: /^schemas\/src\/common\/fields\.ts$/,
+  },
+  {
+    // Interface copy: the text a pasted Google Sheets link must start with, shown to the person as a sentence.
+    url: /^https:\/\/docs\.google\.com\/spreadsheets\/d\/$/,
+    files: /^i18n\/messages\/[^/]+\/platform\.json$/,
+  },
+  {
+    // The citation beside the translation price the pipeline budgets with; the published package never reads it.
+    url: /^https:\/\/cloud\.google\.com\/translate\/pricing$/,
+    files: /^i18n\/translation\/config\.json$/,
+  },
+];
 const RESOLVE_SUFFIXES = [
   "",
   ".ts",
@@ -150,7 +198,36 @@ export function publishManifest(manifest, pkg, version) {
   return out;
 }
 
-function readme(manifest, pkg, version, thirdParty) {
+/** The README section that says which fonts a consumer serves, from packages/tokens/fonts.json. */
+export function fontsSection(fonts, pkg) {
+  const row = (font) => {
+    const names = [font.family, ...font.alsoNamed].map((name) => `\`${name}\``).join(", then ");
+    const list = (files) => files.map((file) => `\`${file}\``).join(", ");
+    const files =
+      font.files.variable.length > 0
+        ? `${list(font.files.variable)} for every weight, or ${list(font.files.static)}`
+        : list(font.files.static);
+    return `| ${font.family} | \`${font.token}\` | ${names} | ${font.weights.join(", ")} | ${font.style} | ${files} | ${font.license} |`;
+  };
+  return [
+    "## Fonts",
+    "",
+    "No file in this package names another host to load from, and the package ships no font file.",
+    `Its styles name ${fonts.families.length} font families through the tokens. Serve these files from the consuming site's own origin and declare them with \`@font-face\` under the family names below:`,
+    "",
+    "| Family | Token | `font-family` names | Weights | Style | Files, as the upstream release names them | License |",
+    "| --- | --- | --- | --- | --- | --- | --- |",
+    ...fonts.families.map(row),
+    "",
+    "Without the files a browser uses a copy installed on the device, and otherwise the next family in the token's list.",
+    pkg === "tokens"
+      ? "`FONTS.md` in this package has the `@font-face` rules, and `fonts.json` holds this table as data."
+      : `\`FONTS.md\` in \`${publishedName("tokens")}\` has the \`@font-face\` rules, and its \`fonts.json\` holds this table as data.`,
+    "",
+  ];
+}
+
+function readme(manifest, pkg, version, thirdParty, fonts) {
   const name = publishedName(pkg);
   const siblings = Object.keys(manifest.dependencies ?? {}).filter((dep) =>
     dep.startsWith("@xos/"),
@@ -194,6 +271,7 @@ function readme(manifest, pkg, version, thirdParty) {
         ]
       : []),
     "",
+    ...(FONT_PACKAGES.includes(pkg) ? fontsSection(fonts, pkg) : []),
     "## License",
     "",
     `${manifest.license}. See \`LICENSE\`${thirdParty ? " and `THIRD_PARTY_NOTICES`" : ""}.`,
@@ -242,6 +320,71 @@ function cssSpecifiers(source) {
   return [...found];
 }
 
+const withoutCssComments = (source) =>
+  source.replace(/\/\*[\s\S]*?\*\//g, (comment) => " ".repeat(comment.length));
+
+/**
+ * An http, https, ws, wss or ftp address, or a protocol-relative one (`//host/path`). A scheme with no host
+ * after it (copy such as "starts with https://.") is no address. In a script the protocol-relative form counts
+ * only at the start of a string, where `//` is no comment.
+ */
+const ABSOLUTE = String.raw`\b(?:https?|wss?|ftp):\/\/(?=[\w[$\{%@])[^\s"'\`()<>\\]+`;
+const RELATIVE = String.raw`\/\/[a-z0-9-]+(?:\.[a-z0-9-]+)+[^\s"'\`()<>\\]*`;
+const REMOTE_IN_MARKUP = new RegExp(`${ABSOLUTE}|(?<![:\\w/])${RELATIVE}`, "gi");
+const REMOTE_IN_SCRIPT = new RegExp(`${ABSOLUTE}|(?<=["'\`])${RELATIVE}`, "gi");
+
+/** What makes the file load the address: `import` (a stylesheet or module import), `url` (a CSS url()) or nothing. */
+function loadedThrough(file, before) {
+  if (file.endsWith(".css")) {
+    if (/@import\s+(?:url\(\s*)?["']?$/i.test(before)) return "import";
+    if (/@namespace\s[^;]*$/i.test(before)) return "text";
+    if (/url\(\s*["']?$/i.test(before)) return "url";
+    return "text";
+  }
+  if (SOURCE.test(file)) {
+    if (
+      /(?:\bfrom|\bimport|\bimport\s*\(|\brequire\s*\(|\bimportScripts\s*\()\s*["'`]$/.test(before)
+    )
+      return "import";
+  }
+  return "text";
+}
+
+/**
+ * Every remote address in a published file: `{ url, through }`, where `through` is `import`, `url` or `text`.
+ * Comments in a stylesheet are text nobody loads, so they are skipped. A script's comments are not: telling a
+ * comment from a string needs a parser, and an address in one is listed in TEXT_ONLY_REFERENCES or removed.
+ */
+export function remoteReferences(file, source) {
+  const css = file.endsWith(".css");
+  const text = css ? withoutCssComments(source) : source;
+  const pattern = SOURCE.test(file) ? REMOTE_IN_SCRIPT : REMOTE_IN_MARKUP;
+  return [...text.matchAll(pattern)].map((match) => ({
+    // Punctuation that ends a sentence or a list is not part of the address.
+    url: match[0].replace(/[.,;:!?]+$/, ""),
+    through: loadedThrough(file, text.slice(Math.max(0, match.index - 200), match.index)),
+  }));
+}
+
+/** True when the address is on the text-only list for this file of this package. */
+export function textOnly(pkg, file, url) {
+  return TEXT_ONLY_REFERENCES.some(
+    (entry) => entry.url.test(url) && entry.files.test(`${pkg}/${file}`),
+  );
+}
+
+/** One problem for every remote address a published file loads or names without being listed as text only. */
+export function remoteProblems(pkg, file, source) {
+  return remoteReferences(file, source).flatMap(({ url, through }) => {
+    if (through === "import") return [`${file} imports ${url} from another host`];
+    if (through === "url") return [`${file} loads ${url} from another host through url()`];
+    if (textOnly(pkg, file, url)) return [];
+    return [
+      `${file} names the remote address ${url}, which TEXT_ONLY_REFERENCES does not list for it`,
+    ];
+  });
+}
+
 /** Problems that would stop the staged package from standing on its own; empty when it does. */
 export function problems(dir, files, manifest, workspaceName) {
   const staged = new Set(files);
@@ -272,7 +415,8 @@ export function problems(dir, files, manifest, workspaceName) {
     if (!file.startsWith("src/") && !exported.has(file)) continue;
     const text = readFileSync(join(dir, file), "utf8");
     for (const specifier of css ? cssSpecifiers(text) : specifiers(text)) {
-      if (/^https?:\/\//.test(specifier)) continue;
+      // A remote specifier is never skipped: remoteProblems reports it below, with every other remote address.
+      if (/^(?:[a-z][a-z0-9+.-]*:)?\/\//i.test(specifier)) continue;
       if (specifier.startsWith(".")) {
         if (!resolvesRelative(staged, file, specifier))
           found.push(`${file} imports ${specifier}, which is not in the archive`);
@@ -284,6 +428,12 @@ export function problems(dir, files, manifest, workspaceName) {
         found.push(`${file} imports ${specifier}, which is not a declared dependency`);
       }
     }
+  }
+  // The manifest is written by this script; its only address is the repository field, which npm displays.
+  const pkg = workspaceName.replace(/^@xos\//, "");
+  for (const file of files) {
+    if (file === "package.json" || !LOADED.test(file)) continue;
+    found.push(...remoteProblems(pkg, file, readFileSync(join(dir, file), "utf8")));
   }
   if (JSON.stringify(manifest).includes("workspace:"))
     found.push("the manifest still holds a workspace: range");
@@ -305,9 +455,10 @@ function pack(pkg, version, outDir, stageRoot) {
   const published = publishManifest(manifest, pkg, version);
   writeFileSync(join(dir, "package.json"), `${JSON.stringify(published, null, 2)}\n`);
   if (!files.includes("README.md")) {
+    const fonts = JSON.parse(readFileSync(join(ROOT, "packages/tokens/fonts.json"), "utf8"));
     writeFileSync(
       join(dir, "README.md"),
-      readme(manifest, pkg, version, files.includes("THIRD_PARTY_NOTICES")),
+      readme(manifest, pkg, version, files.includes("THIRD_PARTY_NOTICES"), fonts),
     );
     files.push("README.md");
   }
