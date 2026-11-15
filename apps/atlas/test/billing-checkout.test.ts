@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type * as PlatformBilling from "@xos/platform/billing";
 import type * as DataBilling from "@xos/data/billing";
@@ -30,6 +32,7 @@ const data = vi.hoisted(() => ({
   getStripeCancellations: vi.fn(async () => ({ ok: true, data: [] as unknown[] })),
   requestPlanEnd: vi.fn(),
   banner: null as unknown,
+  seats: { used: 2, limit: 10 as number | null, sellsExtraSeats: true },
 }));
 
 vi.mock("server-only", () => ({}));
@@ -64,11 +67,11 @@ vi.mock("@xos/data", () => ({
   getSeatUsage: async () => ({
     ok: true,
     data: {
-      used: 2,
-      limit: 10,
-      planSeats: 10,
+      used: data.seats.used,
+      limit: data.seats.limit,
+      planSeats: data.seats.limit,
       extraSeats: 0,
-      sellsExtraSeats: true,
+      sellsExtraSeats: data.seats.sellsExtraSeats,
       grandfathered: false,
     },
   }),
@@ -117,7 +120,9 @@ const { BillingLifecycleNotice } = await import("@/components/lifecycle/billing-
 const { BillingPortalButton, EndPlanForm, RenewalConsentForm } =
   await import("@/components/settings/billing-forms");
 const { Button, ButtonLink, InlineAlert } = await import("@/components/ui");
-const { PLANS } = await import("@/lib/plans.generated");
+const { ADDONS, PLANS } = await import("@/lib/plans.generated");
+const { PLAN_OFFERING, addonOnSale, extraSeatsOnSale } =
+  await import("@xos/schemas/plans/offering");
 
 const TRIAL = {
   trialPlan: "pro",
@@ -187,6 +192,7 @@ beforeEach(() => {
     checkoutRefusal: null,
   };
   data.banner = TRIAL;
+  data.seats = { used: 2, limit: 10, sellsExtraSeats: true };
 });
 
 describe("billing before the owner sets the Stripe key", () => {
@@ -225,6 +231,71 @@ describe("billing before the owner sets the Stripe key", () => {
       checkout: false,
     });
     expect(data.getBillingAccount).not.toHaveBeenCalled();
+  });
+
+  it("lists a plan's features only where plans.yaml states them offered", async () => {
+    const listed = elements(await page())
+      .filter((e) => e.type === "li")
+      .map(textOf)
+      .filter((text) => text.startsWith("shell.plans.features."))
+      .map((text) => text.slice("shell.plans.features.".length));
+    const every = PLANS.flatMap((p) => p.adds);
+    // The launch offering has only the United States open, so a territory feature is not offered either.
+    const offered = every.filter((f) => PLAN_OFFERING.features[f]?.status === "offered");
+    expect(listed).toEqual(offered);
+    expect(every.filter((f) => !offered.includes(f))).toEqual([
+      "eu_data_residency",
+      "branded_compass_build",
+      "legend_early_access",
+    ]);
+    for (const withheld of ["eu_data_residency", "branded_compass_build", "legend_early_access"]) {
+      expect(listed).not.toContain(withheld);
+    }
+  });
+
+  it("shows no price and no way to buy for extra seats or a request pack while plans.yaml states them not on sale", async () => {
+    expect(extraSeatsOnSale()).toBe(false);
+    expect(ADDONS.map((a) => addonOnSale(a.code))).toEqual([false]);
+    const tree = await page();
+    const texts = elements(tree).map(textOf);
+    expect(texts.filter((t) => t.startsWith("extraSeat("))).toEqual([]);
+    expect(texts.filter((t) => t.startsWith("auroraPack."))).toEqual([]);
+    expect(ofType(tree, Button).map(textOf)).not.toContain("buySeats");
+    expect(ofType(tree, Button).map(textOf)).not.toContain("auroraPack.buy");
+    // The free plan still says it has no extra seats: that withholds nothing a customer could buy.
+    expect(texts).toContain("noExtraSeats");
+  });
+
+  it("tells an Owner whose seats are full nothing about extra seats while they are not on sale", async () => {
+    expect(extraSeatsOnSale()).toBe(false);
+    // A plan that prices extra seats (Core, Pro, Team): the page names the upgrade only. It neither offers extra
+    // seats nor says the plan sells none, since plans.yaml prices them and an Order may include them (Terms 5.3).
+    data.seats = { used: 10, limit: 10, sellsExtraSeats: true };
+    const priced = ofType(await page(), InlineAlert).map(textOf);
+    expect(priced).toContain("seatsFullNotOnSale");
+    expect(priced).not.toContain("seatsFull");
+    expect(priced).not.toContain("seatsFullUpgrade");
+    // A plan that prices none (Access) keeps the sentence that says so.
+    data.seats = { used: 3, limit: 3, sellsExtraSeats: false };
+    const unpriced = ofType(await page(), InlineAlert).map(textOf);
+    expect(unpriced).toContain("seatsFullUpgrade");
+    expect(unpriced).not.toContain("seatsFullNotOnSale");
+  });
+
+  it("words the seats-full notice for a plan that prices extra seats without naming them, in every catalog", () => {
+    for (const locale of ["en-US", "es-US"]) {
+      const catalog = JSON.parse(
+        readFileSync(
+          fileURLToPath(
+            new URL(`../../../packages/i18n/messages/${locale}/shell.json`, import.meta.url),
+          ),
+          "utf8",
+        ),
+      ) as { settings: { billing: Record<string, string> } };
+      const text = catalog.settings.billing["seatsFullNotOnSale"];
+      expect(text, locale).toBeTypeOf("string");
+      expect(text, locale).not.toMatch(/extra seat|asientos adicionales|sells no|no vende/i);
+    }
   });
 
   it("keeps the trial notice's Add a card disabled, and says how to get it done", async () => {

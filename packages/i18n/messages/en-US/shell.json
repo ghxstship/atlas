@@ -1315,6 +1315,7 @@
       "grandfathered": "Your subscription started before plans had seat limits, so it keeps unlimited seats. Changing plan applies the new seat limits.",
       "seatsFull": "Every seat is in use. Buy extra seats or upgrade the plan to add members above Field.",
       "seatsFullUpgrade": "Every seat is in use, and your plan sells no extra seats. Upgrade the plan to add members above Field.",
+      "seatsFullNotOnSale": "Every seat is in use. Upgrade the plan to add members above Field.",
       "buySeats": "Buy extra seats",
       "contactSales": "Talk to sales",
       "auroraPack": {

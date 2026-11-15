@@ -1,30 +1,49 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
+import { format, resolveConfig } from "prettier";
 import { loadPlanRegistry } from "./load.ts";
+import { PLAN_OFFERING_MODULE, renderPlanOfferingModule } from "./offering-module.ts";
 import { PLAN_SEED_MIGRATION, renderPlanSeedSql } from "./sql.ts";
 
 /**
- * Writes the plan seed migration from plans.yaml.
- * With --check, writes nothing and exits 1 when the committed migration is out of date.
+ * Plan registry CLI.
+ *   generate-cli.ts           writes the plan seed migration and the generated offering module from plans.yaml
+ *   generate-cli.ts --check   writes nothing and exits 1 when either is out of date
  */
 const repoRoot = fileURLToPath(new URL("../../../../", import.meta.url));
-const target = `${repoRoot}${PLAN_SEED_MIGRATION}`;
-const sql = renderPlanSeedSql(loadPlanRegistry());
+const packageRoot = fileURLToPath(new URL("../../", import.meta.url));
+const registry = loadPlanRegistry();
+const modulePath = `${packageRoot}${PLAN_OFFERING_MODULE}`;
+const options = (await resolveConfig(modulePath)) ?? {};
 
-if (process.argv.includes("--check")) {
-  let current: string;
-  try {
-    current = readFileSync(target, "utf8");
-  } catch (error) {
-    console.error(`Cannot read ${PLAN_SEED_MIGRATION}: ${String(error)}`);
-    process.exit(1);
+const outputs: [string, string, string][] = [
+  [PLAN_SEED_MIGRATION, `${repoRoot}${PLAN_SEED_MIGRATION}`, renderPlanSeedSql(registry)],
+  [
+    `packages/schemas/${PLAN_OFFERING_MODULE}`,
+    modulePath,
+    await format(renderPlanOfferingModule(registry), { ...options, filepath: modulePath }),
+  ],
+];
+
+const check = process.argv.includes("--check");
+let stale = false;
+for (const [label, path, text] of outputs) {
+  if (check) {
+    let current: string;
+    try {
+      current = readFileSync(path, "utf8");
+    } catch (error) {
+      console.error(`Cannot read ${label}: ${String(error)}`);
+      current = "";
+    }
+    if (current !== text) {
+      console.error(`${label} is out of date. Run generate:plans.`);
+      stale = true;
+    }
+  } else {
+    writeFileSync(path, text);
+    console.log(`Wrote ${label}.`);
   }
-  if (current !== sql) {
-    console.error(`${PLAN_SEED_MIGRATION} is out of date. Run generate:plans.`);
-    process.exit(1);
-  }
-  console.log(`${PLAN_SEED_MIGRATION} matches plans.yaml.`);
-} else {
-  writeFileSync(target, sql);
-  console.log(`Wrote ${PLAN_SEED_MIGRATION}.`);
 }
+if (stale) process.exit(1);
+if (check) console.log("The plan registry outputs match plans.yaml.");

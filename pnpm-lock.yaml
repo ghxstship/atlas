@@ -1045,6 +1045,9 @@ importers:
 
   packages/i18n:
     dependencies:
+      '@xos/schemas':
+        specifier: workspace:*
+        version: link:../schemas
       libphonenumber-js:
         specifier: 1.13.14
         version: 1.13.14

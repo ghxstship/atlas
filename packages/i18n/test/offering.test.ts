@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import { PLAN_OFFERING } from "@xos/schemas/plans/offering";
 import { describe, expect, it, vi } from "vitest";
 import {
   COUNTRY_CODES,
@@ -108,6 +109,36 @@ describe("where XOS is offered (ADR 0160)", () => {
       { code: "EEA", nameEn: "", nameEs: "", countries: [], currencies: [], locales: [] },
     ]);
     expect(planFeatureOffered("eu_data_residency", open)).toBe(true);
+  });
+
+  it("reads each plan feature's status from plans.yaml and keeps no list of its own", () => {
+    const everywhere = offeringFrom(
+      ["US", "EEA", "GB", "CH", "CA", "AU", "BR", "JP"].map((code) => ({
+        code,
+        nameEn: "",
+        nameEs: "",
+        countries: [],
+        currencies: [],
+        locales: [],
+      })),
+    );
+    for (const [feature, stated] of Object.entries(PLAN_OFFERING.features)) {
+      expect(planFeatureOffered(feature, DEFAULT_OFFERING), feature).toBe(
+        stated.status === "offered",
+      );
+      expect(planFeatureOffered(feature, everywhere), feature).toBe(
+        stated.status !== "not_offered",
+      );
+    }
+    expect(planFeatureOffered("branded_compass_build", everywhere)).toBe(false);
+    expect(planFeatureOffered("legend_early_access", everywhere)).toBe(false);
+    expect(planFeatureOffered("teleport", everywhere)).toBe(false);
+    const source = readFileSync(new URL("../src/offering.ts", import.meta.url), "utf8");
+    for (const feature of Object.keys(PLAN_OFFERING.features)) {
+      expect(source.includes(`${feature}:`) || source.includes(`"${feature}"`), feature).toBe(
+        false,
+      );
+    }
   });
 
   it("answers from the last good read while a refresh is under way, so no page waits on it", async () => {
