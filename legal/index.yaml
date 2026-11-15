@@ -234,8 +234,11 @@ documents:
     owner_inputs: [6, 13]
   - slug: data-retention-and-deletion-policy
     title: Data Retention and Deletion Policy
-    version: 1.0.0
+    version: 1.1.0
     history:
+      - version: 1.1.0
+        effective_date: 2026-12-01
+        summary: "Adds a row for the request log Vercel keeps for the marketing site at ghxstship.tech. Not a material change: no period changes."
       - version: 1.0.0
         effective_date: 2026-11-10
         summary: First version.

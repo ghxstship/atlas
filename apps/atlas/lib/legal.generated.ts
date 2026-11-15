@@ -118,7 +118,7 @@ export const LEGAL_DOCUMENTS: readonly LegalDocument[] = [
   {
     slug: "data-retention-and-deletion-policy",
     title: "Data Retention and Deletion Policy",
-    version: "1.0.0",
+    version: "1.1.0",
     publish: "public",
     requiresAcceptanceAtSignup: false,
     acceptanceBy: [],
