@@ -1124,7 +1124,8 @@
         "confirm": "Tengo menos de 18 años. Cerrar mi cuenta",
         "back": "Volver"
       }
-    }
+    },
+    "planIntent": "Seleccionaste el plan {plan}. Crear una cuenta no genera ningún cargo. Revisas el plan en Facturación y plan una vez que exista tu organización."
   },
   "roles": {
     "owner": "Propietario",
@@ -1356,6 +1357,12 @@
         "endingTitle": "Este plan va a terminar",
         "endingBody": "Stripe aceptó tu solicitud. El plan sigue funcionando hasta el {date} y no se te volverá a cobrar. Para conservar el plan, renuévalo en el portal de facturación antes de esa fecha.",
         "endingBodyNoDate": "Stripe aceptó tu solicitud. El plan sigue funcionando hasta el final del período que pagaste y no se te volverá a cobrar. Para conservar el plan, renuévalo en el portal de facturación antes de esa fecha."
+      },
+      "intent": {
+        "choose": "Llegaste con el plan {plan} seleccionado. No se cobra nada, y el plan y la prueba de {org} siguen como están hasta que elijas {plan} abajo y aceptes sus términos.",
+        "later": "Llegaste con el plan {plan} seleccionado. No se cobra nada, y el plan y la prueba de {org} siguen como están.",
+        "jump": "Ir a {plan}",
+        "mark": "Seleccionado cuando llegaste"
       }
     },
     "organizations": {

@@ -1124,7 +1124,8 @@
         "confirm": "I am under 18. Close my account",
         "back": "Go back"
       }
-    }
+    },
+    "planIntent": "You selected the {plan} plan. Creating an account charges nothing. You review the plan in Billing and Plan once your organization exists."
   },
   "roles": {
     "owner": "Owner",
@@ -1356,6 +1357,12 @@
         "endingTitle": "This plan is ending",
         "endingBody": "Stripe has accepted your request. The plan keeps working until {date} and you will not be charged again. To keep the plan, renew it in the billing portal before then.",
         "endingBodyNoDate": "Stripe has accepted your request. The plan keeps working to the end of the period you paid for and you will not be charged again. To keep the plan, renew it in the billing portal before then."
+      },
+      "intent": {
+        "choose": "You arrived with the {plan} plan selected. Nothing is charged, and the plan and trial of {org} stay as they are until you choose {plan} below and agree to its terms.",
+        "later": "You arrived with the {plan} plan selected. Nothing is charged, and the plan and trial of {org} stay as they are.",
+        "jump": "Go to {plan}",
+        "mark": "Selected when you arrived"
       }
     },
     "organizations": {
