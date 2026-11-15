@@ -176,8 +176,9 @@ export function ScanSheet({
 }: ScanSheetProps): ReactElement {
   const theme = useTheme();
   return (
-    <View testID={testID} style={{ flex: 1, backgroundColor: theme.color.cameraBg }}>
-      <View style={{ flex: 1 }}>{camera}</View>
+    <View testID={testID} style={{ flexGrow: 1, backgroundColor: theme.color.cameraBg }}>
+      {/* Grows into the room left; on a short screen it keeps a viewfinder and the page scrolls instead. */}
+      <View style={{ flexGrow: 1, minHeight: theme.space["64"] * 2 }}>{camera}</View>
       <View
         style={{
           padding: theme.space["16"],

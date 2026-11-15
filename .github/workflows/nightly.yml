@@ -442,6 +442,29 @@ jobs:
           [ -z "$running" ] || echo "$running" | xargs docker restart -t 30 > /dev/null
           start
           infra/ci/supabase-wait-healthy.sh 600
+      # Healthy containers were not enough: Auth has no health check, and Kong restarted beside Auth and the
+      # rest, so it could route to addresses that changed. In run 43644388625 every container read healthy, yet
+      # the app's password sign-in failed twice (any non-network error reads "That email and password do not
+      # match") and field-sign-in stopped at the sign-in screen. Kong restarts last, against the services now
+      # running, and the run waits until a password sign-in through SUPABASE_URL, the app's own path, succeeds.
+      - name: Wait for sign-in through the API gateway
+        run: |
+          docker restart -t 30 supabase_kong_xos4 > /dev/null
+          deadline=$(($(date +%s) + 300))
+          until [ "$(curl -s -o /dev/null -w '%{http_code}' -H "apikey: $SUPABASE_ANON_KEY" \
+            "$SUPABASE_URL/auth/v1/health")" = 200 ] \
+            && [ "$(curl -s -o /dev/null -w '%{http_code}' -X POST -H "apikey: $SUPABASE_ANON_KEY" \
+              -H 'Content-Type: application/json' \
+              -d "{\"email\":\"field@example.com\",\"password\":\"${XOS_DEMO_PASSWORD:-xos-demo-2026}\"}" \
+              "$SUPABASE_URL/auth/v1/token?grant_type=password")" = 200 ]; do
+            if [ "$(date +%s)" -ge "$deadline" ]; then
+              echo "A password sign-in through $SUPABASE_URL did not succeed within 300 s." >&2
+              docker logs --tail 60 supabase_auth_xos4 >&2 2>&1 || true
+              docker logs --tail 40 supabase_kong_xos4 >&2 2>&1 || true
+              exit 1
+            fi
+            sleep 5
+          done
       - name: Install Compass on the simulator
         run: |
           xcrun simctl bootstatus "$UDID" -b

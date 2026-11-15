@@ -16,6 +16,14 @@ name: field-gate-in-out-override
 - tapOn:
     id: "scan-mode-credential"
 - tapOn: "Main Gate"
+# The scan page scrolls on the 320 by 640 Android emulator: the result row and Done sit below the access
+# points, and the code field and mode chips above them once it has scrolled.
+- scrollUntilVisible:
+    element:
+      id: "scan-direction"
+    direction: DOWN
+    visibilityPercentage: 100
+    timeout: 15000
 - assertVisible:
     id: "scan-direction"
 # Out is never refused, and it skips the device's decision.
@@ -25,15 +33,45 @@ name: field-gate-in-out-override
 - inputText: "${BADGE}"
 - tapOn:
     id: "scan-manual-submit"
+- scrollUntilVisible:
+    element:
+      text: ".*Exit recorded.*"
+    direction: DOWN
+    visibilityPercentage: 100
+    timeout: 15000
 - assertVisible: ".*Exit recorded.*"
 # The direction stays on this device across restarts, and changing zone keeps it, so go back to In for the denial.
+- scrollUntilVisible:
+    element:
+      text: "Backstage"
+    direction: UP
+    visibilityPercentage: 100
+    timeout: 15000
 - tapOn: "Backstage"
+- scrollUntilVisible:
+    element:
+      id: "scan-direction"
+    direction: DOWN
+    visibilityPercentage: 100
+    timeout: 15000
 - tapOn: "In"
+- scrollUntilVisible:
+    element:
+      id: "scan-manual"
+    direction: UP
+    visibilityPercentage: 100
+    timeout: 15000
 - tapOn:
     id: "scan-manual"
 - inputText: "${BADGE}"
 - tapOn:
     id: "scan-manual-submit"
+- scrollUntilVisible:
+    element:
+      text: ".*Access denied.*"
+    direction: DOWN
+    visibilityPercentage: 100
+    timeout: 15000
 - assertVisible: ".*Access denied.*"
 - tapOn:
     id: "scan-override"
@@ -42,6 +80,18 @@ name: field-gate-in-out-override
 - inputText: "Escorted by the production office."
 - tapOn:
     id: "scan-override-submit"
+- scrollUntilVisible:
+    element:
+      text: ".*Override recorded.*"
+    direction: DOWN
+    visibilityPercentage: 100
+    timeout: 15000
 - assertVisible: ".*Override recorded.*"
+- scrollUntilVisible:
+    element:
+      id: "scan-direction"
+    direction: UP
+    visibilityPercentage: 100
+    timeout: 15000
 - assertNotVisible:
     id: "scan-override"

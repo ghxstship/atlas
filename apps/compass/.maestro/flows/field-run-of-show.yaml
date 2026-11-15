@@ -10,6 +10,8 @@ name: field-run-of-show
 - tapOn:
     id: "tab-more"
 # The field menu can be longer than the screen (an Android emulator): bring the row into view first.
+# On the 320 by 640 Android emulator this screen runs below the fold; each target is scrolled to first
+# (a no-op where it is already in view).
 - scrollUntilVisible:
     element:
       id: "more-show"
@@ -20,18 +22,66 @@ name: field-run-of-show
     id: "more-show"
 - assertVisible:
     id: "run-of-show"
+- scrollUntilVisible:
+    element:
+      text: "Walk-in Music Out"
+    direction: DOWN
+    visibilityPercentage: 100
+    timeout: 15000
 - assertVisible: "Walk-in Music Out"
+- scrollUntilVisible:
+    element:
+      id: "next-cue-countdown"
+    direction: DOWN
+    visibilityPercentage: 100
+    timeout: 15000
 - assertVisible:
     id: "next-cue-countdown"
 # Pick a department once: the current and next cue cards show its call (ADR 0131).
+- scrollUntilVisible:
+    element:
+      id: "show-department-lighting"
+    direction: UP
+    visibilityPercentage: 100
+    timeout: 15000
 - tapOn:
     id: "show-department-lighting"
+- scrollUntilVisible:
+    element:
+      id: "your-call-next"
+    direction: DOWN
+    visibilityPercentage: 100
+    timeout: 15000
 - assertVisible:
     id: "your-call-next"
+- scrollUntilVisible:
+    element:
+      id: "show-department-all"
+    direction: UP
+    visibilityPercentage: 100
+    timeout: 15000
 - tapOn:
     id: "show-department-all"
+- scrollUntilVisible:
+    element:
+      id: "show-mode"
+    direction: DOWN
+    visibilityPercentage: 100
+    timeout: 15000
 - tapOn:
     id: "show-mode"
+- scrollUntilVisible:
+    element:
+      text: "Exit Show Mode"
+    direction: DOWN
+    visibilityPercentage: 100
+    timeout: 15000
 - assertVisible: "Exit Show Mode"
+- scrollUntilVisible:
+    element:
+      id: "show-mode"
+    direction: DOWN
+    visibilityPercentage: 100
+    timeout: 15000
 - tapOn:
     id: "show-mode"

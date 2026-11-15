@@ -10,10 +10,30 @@ name: vendor-external-scan
 - tapOn:
     id: "tab-more"
 # Purchase orders, deliveries and submittals are Compass screens; nothing opens Gateway from the menu.
+# On the 320 by 640 Android emulator this screen runs below the fold; each target is scrolled to first
+# (a no-op where it is already in view).
+- scrollUntilVisible:
+    element:
+      id: "more-purchase-orders"
+    direction: DOWN
+    visibilityPercentage: 100
+    timeout: 15000
 - assertVisible:
     id: "more-purchase-orders"
+- scrollUntilVisible:
+    element:
+      id: "more-deliveries"
+    direction: DOWN
+    visibilityPercentage: 100
+    timeout: 15000
 - assertVisible:
     id: "more-deliveries"
+- scrollUntilVisible:
+    element:
+      id: "more-submittals"
+    direction: DOWN
+    visibilityPercentage: 100
+    timeout: 15000
 - assertVisible:
     id: "more-submittals"
 - assertNotVisible:
@@ -22,6 +42,12 @@ name: vendor-external-scan
     id: "more-inspections"
 # The demo vendor's engagement is Complete (seed 0228), so Compass holds none of its project's orders
 # (Section 8.7): the screen says so instead of showing an empty page.
+- scrollUntilVisible:
+    element:
+      id: "more-purchase-orders"
+    direction: UP
+    visibilityPercentage: 100
+    timeout: 15000
 - tapOn:
     id: "more-purchase-orders"
 - extendedWaitUntil:

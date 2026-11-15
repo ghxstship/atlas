@@ -596,7 +596,7 @@ function LiveScan({
     router.navigate("/today");
   };
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flexGrow: 1 }}>
       {/* First under the mode chips, above the access points and the camera, so the keyboard never
           covers what is typed: it hid the field below the sheet, and then (A66) below the access points
           once a project's grid named five of them. */}
@@ -710,7 +710,7 @@ function LiveScan({
           />
         </View>
       ) : null}
-      <View style={{ flex: 1 }}>
+      <View style={{ flexGrow: 1 }}>
         <ScanSheet
           testID="scan-sheet"
           mode={grant.mode === "lookup" ? "asset" : grant.mode}
@@ -919,7 +919,7 @@ export default function ScanScreen(): ReactElement {
       ) : (
         header
       )}
-      <View style={{ flex: 1 }}>
+      <View style={{ flexGrow: 1 }}>
         <LiveScan
           key={`${active.mode}-${projectId ?? ""}`}
           grant={active}
