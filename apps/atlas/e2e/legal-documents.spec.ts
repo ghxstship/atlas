@@ -8,45 +8,62 @@ import { expectAccessible } from "./support";
  */
 
 const DOCUMENTS = [
-  // Privacy Policy 1.1.0 (2026-11-11): Sent, Inc. delivers text messages in place of Twilio.
+  // Privacy Policy 1.2.0 names the marketing site at ghxstship.tech (issue 117). It is final with
+  // its effective date ahead, so the page calls it upcoming until that day and in effect from it.
   {
     slug: "privacy-policy",
     title: "Privacy Policy",
     section: "2. Contact Points",
-    version: "1.1.0",
-    versions: 2,
+    version: "1.2.0",
+    effective: "2026-12-01",
+    versions: 3,
   },
   {
     slug: "terms-of-service",
     title: "Terms of Service",
     section: "1. Definitions",
     version: "1.0.0",
+    effective: "2026-11-10",
     versions: 1,
   },
 ];
 
+/** The day the pages compare an effective date with: today in UTC, as legalDay gives it. */
+const today = () => new Date().toISOString().slice(0, 10);
+
 test.describe("without JavaScript", () => {
   test.use({ javaScriptEnabled: false });
 
-  for (const { slug, title, section, version, versions } of DOCUMENTS) {
+  for (const { slug, title, section, version, effective, versions } of DOCUMENTS) {
     test(`/legal/${slug} shows its full text under the draft notice`, async ({ page }) => {
       const response = await page.goto(`/legal/${slug}`);
       expect(response?.status()).toBe(200);
       const h1 = page.getByRole("heading", { level: 1, name: title });
       await expect(h1).toBeVisible();
       await expect(page.getByRole("heading", { level: 2, name: section })).toBeVisible();
-      // In effect since 2026-11-10 (ADR 0168 sign-off): no draft notice, and the page states the version and its date.
+      // Final since 2026-11-10 (ADR 0168 sign-off): no draft notice, and the page states the version and its date.
       await expect(page.getByText("Draft before launch.")).toHaveCount(0);
       await expect(page.getByText("Draft, not yet in effect", { exact: true })).toHaveCount(0);
+      const upcoming = effective > today();
       await expect(
-        page.getByText(`Version ${version}, in effect from `, { exact: false }).first(),
+        page
+          .getByText(
+            upcoming
+              ? `Version ${version} of this document takes effect on `
+              : `Version ${version}, in effect from `,
+            { exact: false },
+          )
+          .first(),
       ).toBeVisible();
       // Terms of Service 15: every version, its effective date and a summary of changes.
       const history = page.getByRole("region", { name: "Version history" });
       await expect(history.getByRole("listitem")).toHaveCount(versions);
       await expect(history.getByText(/^Version 1\.0\.0: in effect from /)).toBeVisible();
       await expect(
-        history.getByText(`Version ${version}: in effect from `, { exact: false }),
+        history.getByText(
+          upcoming ? `Version ${version}: takes effect on ` : `Version ${version}: in effect from `,
+          { exact: false },
+        ),
       ).toBeVisible();
       await expect(history.getByText("First version.")).toHaveAttribute("lang", "en-US");
       await expect(h1.locator("xpath=ancestor::*[@lang='en-US'][1]")).toHaveCount(1);

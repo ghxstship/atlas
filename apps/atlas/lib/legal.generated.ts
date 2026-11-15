@@ -14,7 +14,7 @@ export const LEGAL_DOCUMENTS: readonly LegalDocument[] = [
   {
     slug: "privacy-policy",
     title: "Privacy Policy",
-    version: "1.1.0",
+    version: "1.2.0",
     publish: "public",
     requiresAcceptanceAtSignup: false,
     acceptanceBy: [],
@@ -22,7 +22,7 @@ export const LEGAL_DOCUMENTS: readonly LegalDocument[] = [
   {
     slug: "cookie-policy",
     title: "Cookie Policy",
-    version: "1.0.0",
+    version: "1.1.0",
     publish: "public",
     requiresAcceptanceAtSignup: false,
     acceptanceBy: [],
@@ -118,7 +118,7 @@ export const LEGAL_DOCUMENTS: readonly LegalDocument[] = [
   {
     slug: "data-retention-and-deletion-policy",
     title: "Data Retention and Deletion Policy",
-    version: "1.0.0",
+    version: "1.1.0",
     publish: "public",
     requiresAcceptanceAtSignup: false,
     acceptanceBy: [],

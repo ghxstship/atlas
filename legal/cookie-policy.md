@@ -1,13 +1,13 @@
 ---
 title: Cookie Policy
-version: 1.0.0
-effective_date: 2026-11-10
-status: In effect
+version: 1.1.0
+effective_date: 2026-12-01
+status: In effect from 2026-12-01
 ---
 
 # Cookie Policy
 
-This Cookie Policy explains how GHXSTSHIP Industries LLC ("GHXSTSHIP", "we" or "us") uses cookies and similar technologies on Atlas, Gateway and the documentation site. Compass is covered in Section 4. Our operator console is for GHXSTSHIP staff only and has no consent banner. This policy should be read with our Privacy Policy.
+This Cookie Policy explains how GHXSTSHIP Industries LLC ("GHXSTSHIP", "we" or "us") uses cookies and similar technologies on Atlas, Gateway, the documentation site and the marketing site at https://ghxstship.tech. Compass is covered in Section 4. Our operator console is for GHXSTSHIP staff only and has no consent banner. This policy should be read with our Privacy Policy.
 
 ## 1. What Cookies Are
 
@@ -17,11 +17,12 @@ Cookies are small files a website stores in your browser. Similar technologies i
 
 - **What runs before you choose.** Cookies needed to run the Service load straight away. Analytics stay off until you consent to Performance. Your language, theme and last workspace are also set before you choose, but only as session cookies that end with your visit, and they last 12 months only if you consent to Preferences. Section 3 lists three items that do not follow this rule today: `xos-prefs`, `xos.system-banners.dismissed` and the page caches.
 - **Granular choice.** The consent banner on Atlas and Gateway offers each category separately, with Accept All, Reject All and a choice per category given equal prominence.
-- **Your choice and the record of it.** Your choice is kept in a cookie in that browser for 12 months, so it applies only to that browser. We also record the decision on our servers as evidence. We do not read that record back to set your choice, so it does not follow you when you sign in on another device.
+- **Your choice and the record of it.** Your choice is kept in a cookie in that browser for 12 months, so it applies only to that browser. On Atlas and Gateway we also record the decision on our servers as evidence. We do not read that record back to set your choice, so it does not follow you when you sign in on another device.
 - **Global Privacy Control.** On Atlas and Gateway we treat a Global Privacy Control signal as a refusal of every non-essential category for that browser. The banner does not ask, and we record the signal.
 - **No advertising or cross-site tracking.** We do not use advertising cookies, cross-site tracking or fingerprinting, and we do not sell or share data collected through cookies. Atlas and Gateway load no third-party scripts, fonts or images, and their security policy blocks them.
 - **White-label domains.** On a Customer's custom domain, the same rules apply. The Customer may not add tracking to Atlas or Gateway through XOS.
 - **Documentation site.** It has no consent banner and does not act on Global Privacy Control, because it runs no analytics and sets only the two items in Section 3.
+- **Marketing site.** The marketing site at https://ghxstship.tech stores nothing in your browser today: no cookie, no local storage and no session storage. It runs no analytics, and its pages load no script, font, image or other resource from another host, with one exception: the Vercel Toolbar, a review tool for our own team, loads from vercel.live only in a browser that already holds Vercel's `__vercel_toolbar` cookie, which the site does not set. It has no sign-in and no form. Its links to sign in or sign up go to Atlas and Gateway, where the rest of this policy applies. Our host, Vercel, records each request to the site in its request log, with your IP address and the page requested, and keeps that log for the period its service sets for our plan (Privacy Policy, Section 3.1; Data Retention and Deletion Policy, Section 2). From the release in which the site shows our shared consent banner, the banner stores one first-party cookie, `xos-consent-decision`, listed in Section 3. That cookie is strictly necessary, because it only remembers your choice, and the site makes no record of the choice on our servers. Until then, a Global Privacy Control signal has nothing to turn off on the site. From then, the banner treats the signal as a refusal of every non-essential category: it does not ask, and the cookie records the signal. If you delete the cookie in your browser settings, the banner asks you again on your next visit. We add anything else the site stores to the table in Section 3 when it is released, and a new non-essential category always starts blocked.
 
 ## 3. Categories
 
@@ -57,6 +58,7 @@ We do not set marketing cookies. We measure no Web Vitals in the browser and we 
 | Web push subscription                                                                                                            | Atlas, Gateway                                   | Browser push, with your browser's permission                   | Delivers notifications you asked for                                                                                          | Until you unsubscribe or sign out                                             |
 | `xos-docs-brand`                                                                                                                 | Documentation site, on a Customer's branded docs | Cookie, strictly necessary                                     | Shows that Customer's branding                                                                                                | 1 hour                                                                        |
 | `xos-docs-theme`                                                                                                                 | Documentation site                               | Local storage, no consent asked                                | Your light or dark theme                                                                                                      | Until you clear it                                                            |
+| `xos-consent-decision`                                                                                                           | Marketing site, once it shows the banner         | Cookie, strictly necessary                                     | Your choice per category, its time, the policy version shown and the Global Privacy Control flag. No visitor ID               | 12 months                                                                     |
 
 The cookie tables on the Atlas and Gateway cookie settings pages are shorter than this one. They leave out items such as `xos-prefs`, and they show the local development name of the sign-in cookie. The table on this page is the complete one.
 

@@ -37,8 +37,11 @@ documents:
     owner_inputs: [1, 2, 3, 6]
   - slug: privacy-policy
     title: Privacy Policy
-    version: 1.1.0
+    version: 1.2.0
     history:
+      - version: 1.2.0
+        effective_date: 2026-12-01
+        summary: "Names the marketing site at ghxstship.tech: the request log its host keeps, and Global Privacy Control there. Not a material change: no new use of personal data."
       - version: 1.1.0
         effective_date: 2026-11-11
         summary: "Sent, Inc. (sent.dm) delivers text messages in place of Twilio, by SMS only. Not a material change: the purpose and the data are the same."
@@ -54,8 +57,11 @@ documents:
     owner_inputs: [2, 5, 6, 8, 9, 10]
   - slug: cookie-policy
     title: Cookie Policy
-    version: 1.0.0
+    version: 1.1.0
     history:
+      - version: 1.1.0
+        effective_date: 2026-12-01
+        summary: "Covers the marketing site at ghxstship.tech: nothing stored today, then the xos-consent-decision cookie once its consent banner shows. Not a material change: no new category."
       - version: 1.0.0
         effective_date: 2026-11-10
         summary: First version.
@@ -228,8 +234,11 @@ documents:
     owner_inputs: [6, 13]
   - slug: data-retention-and-deletion-policy
     title: Data Retention and Deletion Policy
-    version: 1.0.0
+    version: 1.1.0
     history:
+      - version: 1.1.0
+        effective_date: 2026-12-01
+        summary: "Adds a row for the request log Vercel keeps for the marketing site at ghxstship.tech. Not a material change: no period changes."
       - version: 1.0.0
         effective_date: 2026-11-10
         summary: First version.
