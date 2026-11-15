@@ -2,7 +2,6 @@ import { expect as baseExpect, settle, test, type Page } from "./engine-test";
 import {
   createOrganization,
   expectAccessible,
-  NEW_PROJECT_TIME_ZONE,
   signUp,
   testEmail,
   todayIn,
@@ -45,7 +44,11 @@ test("A132: plan shifts from a template, drag a ranked person onto one and watch
   await signUp(page, { name: "Olive Owner", email: testEmail("owner", id) });
   await createOrganization(page, { name: `Scheduling ${id}`, slug });
   await createProject(page, slug);
-  const day = todayIn(NEW_PROJECT_TIME_ZONE);
+  // The org-wide crew schedule (no project filter) shows the org's week, on the org's calendar (UTC, A71), so the
+  // day planned is the org's today. A New York day would sit in the previous week every Saturday evening in New
+  // York, when UTC is already Sunday and a Sunday payroll week has turned over. The template's 08:00 to 16:00 in
+  // the project's zone falls on that same UTC date, so the shifts are inside the board's week.
+  const day = todayIn("UTC");
 
   // Settings, Scheduling: a template for two stagehands, 08:00 to 16:00 with a 30-minute break.
   await page.goto(`/${slug}/settings/scheduling`);
