@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Packs the five design packages for npm: tokens, icons, i18n, schemas and ui.
+ * Packs the five design packages for npm: tokens, icons, schemas, i18n and ui.
  *
  * In the workspace they are `@xos/*`, private, at version 0.0.0, and consumed as TypeScript source. `@xos` on
  * npm belongs to someone else (ADR 0024, 2026-10-28 amendment), so each one publishes as `@ghxstship/xos-<name>`
@@ -34,7 +34,7 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const SCOPE = "@ghxstship";
 
 /** Publish order: a package comes after the packages it depends on. */
-export const PACKAGES = ["tokens", "icons", "i18n", "schemas", "ui"];
+export const PACKAGES = ["tokens", "icons", "schemas", "i18n", "ui"];
 
 export const publishedName = (pkg) => `${SCOPE}/xos-${pkg}`;
 /** npm names a scoped archive <scope>-<name>-<version>.tgz. */

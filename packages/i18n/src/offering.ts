@@ -1,3 +1,4 @@
+import { isPlanFeatureOffered } from "@xos/schemas/plans/offering";
 import { launchLocales, offeredLocaleList, type Locale } from "./locales.ts";
 
 /**
@@ -170,13 +171,15 @@ export function offeringPhrase(offering: Offering, locale: string): string {
 }
 
 /**
- * A plan feature that says the plan is sold somewhere: shown only while that territory is open. Mentioning customers in a
- * place is one of the signs of offering that GDPR Recital 23 names, so "EU data residency" stays off a price list until
- * the EEA opens.
+ * Whether a price list shows a plan feature. The statuses are the offering section of packages/schemas/plans.yaml
+ * (ADR 0035, 2026-11-15 amendment), read through @xos/schemas/plans/offering; this module keeps no list of its own.
+ * A feature stated not_offered is never shown. A feature stated for a territory is shown only while that territory
+ * is open: mentioning customers in a place is one of the signs of offering that GDPR Recital 23 names, so
+ * "EU data residency" stays off a price list until the EEA opens (ADR 0160).
  */
-const FEATURE_TERRITORY: Readonly<Record<string, string>> = { eu_data_residency: "EEA" };
-
 export function planFeatureOffered(feature: string, offering: Offering): boolean {
-  const territory = FEATURE_TERRITORY[feature];
-  return territory === undefined || offering.territories.some((t) => t.code === territory);
+  return isPlanFeatureOffered(
+    feature,
+    offering.territories.map((t) => t.code),
+  );
 }
