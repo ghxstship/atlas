@@ -16,6 +16,8 @@ It pins a release tag and reads these at that tag. A change to any of them is a 
 | Offered territories, languages and currencies | `private.territories`, ADR 0160 |
 | Feature status the page states | The files its claims register cites |
 
+The `offering` section of `plans.yaml` is part of the first subject: it states for every plan feature whether it is offered, and for extra seats and each add-on whether it is on sale, and the page shows a feature, an extra-seat price or an add-on only where that section says so (`@xos/schemas/plans/offering` reads it).
+
 ## What this repository does on a lockstep change
 
 When a pull request here changes a subject above, or changes a fact the page states, its author opens an issue in `ghxstship/atlas-marketing` labeled `lockstep`, titled `Lockstep: <what changed> in <tag>`, before the release train that carries it is tagged. The issue names the files and says what the page must change.
