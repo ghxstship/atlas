@@ -10,6 +10,7 @@ interface FontFamily {
   weights: number[];
   style: string;
   license: string;
+  licenseFile: string;
   files: { variable: string[]; static: string[] };
 }
 
@@ -70,5 +71,17 @@ describe("fonts.json states the fonts a consumer serves (issue 110)", () => {
       }
     }
     expect(guide).not.toMatch(/https?:\/\//);
+  });
+
+  it("FONTS.md names the license file each release carries, which differs by project", () => {
+    // Inter's release holds the OFL text as LICENSE.txt and has no OFL.txt; JetBrains Mono's holds OFL.txt.
+    expect(Object.fromEntries(families.map((f) => [f.family, f.licenseFile]))).toEqual({
+      Inter: "LICENSE.txt",
+      "JetBrains Mono": "OFL.txt",
+    });
+    for (const font of families) {
+      expect(guide).toContain(`\`${font.licenseFile}\` for ${font.family}`);
+    }
+    expect(guide).not.toMatch(/keep its `OFL\.txt`/);
   });
 });

@@ -8,6 +8,7 @@
       "weights": [400, 500, 600, 700],
       "style": "normal",
       "license": "OFL-1.1",
+      "licenseFile": "LICENSE.txt",
       "files": {
         "variable": ["InterVariable.woff2"],
         "static": [
@@ -26,6 +27,7 @@
       "weights": [400, 500],
       "style": "normal",
       "license": "OFL-1.1",
+      "licenseFile": "OFL.txt",
       "files": {
         "variable": [],
         "static": ["JetBrainsMono-Regular.woff2", "JetBrainsMono-Medium.woff2"]

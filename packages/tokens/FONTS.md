@@ -20,8 +20,9 @@ the rich text editor.
 
 ## Files
 
-Both families are published under the SIL Open Font License 1.1, which allows a site to host them. Take the files from
-each project's own release, keep its `OFL.txt` beside them, and serve them from the same origin as the page.
+Both families are published under the SIL Open Font License 1.1, which allows a site to host them and requires the
+license text to accompany every copy. Take the files from each project's own release, keep that release's license file
+beside them (`LICENSE.txt` for Inter, `OFL.txt` for JetBrains Mono), and serve them from the same origin as the page.
 
 | Family         | Files, as the upstream release names them                                                                                                                              |
 | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
