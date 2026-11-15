@@ -181,7 +181,11 @@ export function SignIn(): ReactElement {
         });
     setBusy(false);
     if (result.error) {
-      const network = result.error.status === 0 || /fetch|network/i.test(result.error.message);
+      // A gateway or server error (5xx) is no verdict on the credentials: it reads as the server being
+      // out of reach, as a lost connection does.
+      const { status } = result.error;
+      const network =
+        status === 0 || (status ?? 0) >= 500 || /fetch|network/i.test(result.error.message);
       setMessage({
         tone: "danger",
         text: t(network ? "compass.signIn.network" : "compass.signIn.invalid"),
