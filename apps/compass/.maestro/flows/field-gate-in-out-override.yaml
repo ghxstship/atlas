@@ -78,6 +78,9 @@ name: field-gate-in-out-override
 - tapOn:
     id: "scan-override-reason"
 - inputText: "Escorted by the production office."
+# The keyboard covers the sheet's footer on a small screen (run 43690467981: the Android emulator's
+# keyboard rose to the reason field, and the submit button left the hierarchy).
+- hideKeyboard
 - tapOn:
     id: "scan-override-submit"
 - scrollUntilVisible:
