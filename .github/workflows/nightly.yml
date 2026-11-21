@@ -438,21 +438,7 @@ jobs:
       - name: Wait for sign-in through the API gateway
         run: |
           docker restart -t 30 supabase_kong_xos4 > /dev/null
-          deadline=$(($(date +%s) + 300))
-          until [ "$(curl -s -o /dev/null -w '%{http_code}' -H "apikey: $SUPABASE_ANON_KEY" \
-            "$SUPABASE_URL/auth/v1/health")" = 200 ] \
-            && [ "$(curl -s -o /dev/null -w '%{http_code}' -X POST -H "apikey: $SUPABASE_ANON_KEY" \
-              -H 'Content-Type: application/json' \
-              -d "{\"email\":\"field@example.com\",\"password\":\"${XOS_DEMO_PASSWORD:-xos-demo-2026}\"}" \
-              "$SUPABASE_URL/auth/v1/token?grant_type=password")" = 200 ]; do
-            if [ "$(date +%s)" -ge "$deadline" ]; then
-              echo "A password sign-in through $SUPABASE_URL did not succeed within 300 s." >&2
-              docker logs --tail 60 supabase_auth_xos4 >&2 2>&1 || true
-              docker logs --tail 40 supabase_kong_xos4 >&2 2>&1 || true
-              exit 1
-            fi
-            sleep 5
-          done
+          XOS_SUPABASE_STACK=xos4 apps/compass/scripts/maestro-signin-wait.sh 300
       # The simulator boots once the stack answers, not beside it. Booted together (run 43658348574), the simulator's
       # first boot took the runner's CPUs from the 2 CPU VM: each `docker ps` of the health wait took 20 to 100 s,
       # Realtime answered /api/ping in 7.6 s, past its health check's timeout, and it was still
@@ -489,7 +475,20 @@ jobs:
             "$HOME/.maestro/bin/maestro" --device "$UDID" hierarchy > /dev/null && break
             [ "$attempt" = 3 ] && exit 1
           done
+          # The gate above passed before the simulator booted and the driver installed; run 43690467981
+          # then spent 30 minutes on the boot and a driver start that timed out, with the 2 CPU VM starved,
+          # and the app's sign-in failed where the gate's had succeeded. The stack answers a sign-in again
+          # here, just before the first flow, or the run stops with its Auth and Kong logs.
+          XOS_SUPABASE_STACK=xos4 apps/compass/scripts/maestro-signin-wait.sh 300
           apps/compass/scripts/maestro-ci.sh
+      # What the stack said while the flows ran: the sign-in screen shows one message for every refusal
+      # and one for every outage, so only these logs say which Auth or gateway error it was.
+      - name: Print the stack's Auth and Kong logs
+        if: failure()
+        run: |
+          docker ps -a --filter "label=com.supabase.cli.project=xos4" --format '{{.Names}} {{.Status}}' || true
+          docker logs --tail 150 supabase_auth_xos4 2>&1 | grep -E 'token|error|level' | tail -80 || true
+          docker logs --tail 80 supabase_kong_xos4 2>&1 || true
       # The flows' screenshots and logs, and the XCTest driver's own logs, which say why a driver did not start.
       - if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

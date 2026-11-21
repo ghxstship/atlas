@@ -1,7 +1,7 @@
 #!/bin/sh
 # CI: installs Maestro at MAESTRO_VERSION and runs apps/compass/.maestro against the installed release
 # build, with the variables apps/compass/scripts/maestro-ci-env.sh printed (SUPABASE_URL,
-# SUPABASE_ANON_KEY, KIOSK_DEVICE_KEY, KIOSK_PIN_1 to KIOSK_PIN_4) already in the environment.
+# SUPABASE_ANON_KEY, KIOSK_DEVICE_KEY, KIOSK_PIN_1 to KIOSK_PIN_4, BADGE) already in the environment.
 #
 #   apps/compass/scripts/maestro-ci.sh                              Android, or iOS with the network
 #                                                                   helper running: every flow
@@ -33,5 +33,6 @@ fi
   -e KIOSK_DEVICE_KEY="$KIOSK_DEVICE_KEY" \
   -e KIOSK_PIN_1="$KIOSK_PIN_1" -e KIOSK_PIN_2="$KIOSK_PIN_2" \
   -e KIOSK_PIN_3="$KIOSK_PIN_3" -e KIOSK_PIN_4="$KIOSK_PIN_4" \
+  -e BADGE="$BADGE" \
   --format junit --output "$OUT/report.xml" --test-output-dir "$OUT/flows" \
   "$@" apps/compass/.maestro
