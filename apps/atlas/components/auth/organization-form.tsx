@@ -18,6 +18,7 @@ export function OrganizationForm({
   dpa,
   countries,
   askAge = false,
+  plan = null,
 }: {
   terms: { href: string; title: string };
   dpa: { href: string; title: string };
@@ -25,6 +26,8 @@ export function OrganizationForm({
   countries: readonly { value: string; label: string }[];
   /** The person has not confirmed they are 18 or older yet (a first provider sign-in). */
   askAge?: boolean;
+  /** The self-serve plan the person chose before signing up, already checked (lib/auth/plan-intent.ts). */
+  plan?: string | null;
 }) {
   const t = useAuthCopy();
   const tr = useTranslations("shell.auth.organization");
@@ -50,6 +53,7 @@ export function OrganizationForm({
         <InlineAlert tone="danger">{errorMessage(t, state.error, state.errorValues)}</InlineAlert>
       ) : null}
       <input ref={zoneRef} type="hidden" name="orgTimeZone" defaultValue="" />
+      {plan === null ? null : <input type="hidden" name="plan" value={plan} />}
       <Input
         width="100%"
         id="org-name"

@@ -1,4 +1,6 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=JetBrains+Mono:wght@400;500&display=swap");
+/* The stylesheet of the design export (design/xos-design-system/components/bundle.css), formatted, without its
+   one remote font import: no stylesheet in this package requests another host. test/styles.test.ts holds the two
+   files equal apart from that line. Reference only (design handoff, section 2); never imported and never published. */
 
 /* XOS Design System components. Every value reads a token from tokens.css. */
 html,

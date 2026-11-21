@@ -3,6 +3,7 @@ import type { Metadata, Route } from "next";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { PublicHome } from "@/components/public-home";
+import { organizationStepPath, planIntent, planIntentLanding } from "@/lib/auth/plan-intent";
 import { LAST_ORG_COOKIE } from "@/lib/shell/last-org";
 import { getOrgWorkspaces } from "@/lib/shell/active-workspace";
 import { getMyOrganizations, getViewer } from "@/lib/shell/context";
@@ -21,6 +22,8 @@ export async function generateMetadata(): Promise<Metadata> {
  * Entry. A signed-in person goes to the start page (shell.start_page: Home, My Work, Inbox or
  * Projects) of the org they used last (or their first org), as it applies in the workspace their filter
  * chose (a workspace value beats the org's, Section 4.5.6), and a person with no org creates one.
+ * A `plan` naming a self-serve plan (docs/sign-up-links.md) goes with a person who has no org to the organization step,
+ * and opens Billing and Plan with that plan marked for a person who owns an org; anyone else never sees it applied.
  * Everyone else sees the public homepage, which says what XOS is, leads to sign in and links the
  * legal documents (RRR-248). An email link or an OAuth sign-in that fell back to the site root
  * (Supabase Auth's Site URL) still completes through /auth/callback, which also shows the error such
@@ -38,11 +41,14 @@ export default async function EntryPage({ searchParams }: PageProps<"/">) {
   }
   const viewer = await getViewer();
   if (!viewer) return <PublicHome />;
+  const intent = planIntent(query["plan"]);
   const orgs = await getMyOrganizations();
-  if (orgs.length === 0) redirect("/auth/organization");
+  if (orgs.length === 0) redirect(organizationStepPath(intent) as Route);
   const last = (await cookies()).get(LAST_ORG_COOKIE)?.value;
   const org = orgs.find((o) => o.slug === last) ?? orgs[0];
-  if (!org) redirect("/auth/organization");
+  if (!org) redirect(organizationStepPath(intent) as Route);
+  const chosen = planIntentLanding(orgs, org.slug, intent);
+  if (chosen !== null) redirect(chosen as Route);
   // The installed app's shortcuts (app/manifest.ts, A96) open a page of the org used last.
   const open = query["open"];
   if (typeof open === "string" && (APP_SHORTCUTS as readonly string[]).includes(open)) {

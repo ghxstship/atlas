@@ -8,6 +8,7 @@
   "exports": {
     "./tokens.json": "./xos.tokens.json",
     "./name-map.json": "./tokens/name-map.json",
+    "./fonts.json": "./fonts.json",
     "./tailwind/preset.cjs": "./tailwind/preset.cjs",
     "./contrast": "./scripts/check-contrast.js",
     "./ratio": "./scripts/ratio.js",
@@ -22,7 +23,9 @@
     "./native/theme.sunlight": "./dist/native/theme.sunlight.js"
   },
   "files": [
+    "FONTS.md",
     "dist",
+    "fonts.json",
     "scripts",
     "tailwind",
     "tokens",

@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type * as PlatformBilling from "@xos/platform/billing";
 import type * as DataBilling from "@xos/data/billing";
@@ -30,6 +32,7 @@ const data = vi.hoisted(() => ({
   getStripeCancellations: vi.fn(async () => ({ ok: true, data: [] as unknown[] })),
   requestPlanEnd: vi.fn(),
   banner: null as unknown,
+  seats: { used: 2, limit: 10 as number | null, sellsExtraSeats: true },
 }));
 
 vi.mock("server-only", () => ({}));
@@ -64,11 +67,11 @@ vi.mock("@xos/data", () => ({
   getSeatUsage: async () => ({
     ok: true,
     data: {
-      used: 2,
-      limit: 10,
-      planSeats: 10,
+      used: data.seats.used,
+      limit: data.seats.limit,
+      planSeats: data.seats.limit,
       extraSeats: 0,
-      sellsExtraSeats: true,
+      sellsExtraSeats: data.seats.sellsExtraSeats,
       grandfathered: false,
     },
   }),
@@ -117,7 +120,9 @@ const { BillingLifecycleNotice } = await import("@/components/lifecycle/billing-
 const { BillingPortalButton, EndPlanForm, RenewalConsentForm } =
   await import("@/components/settings/billing-forms");
 const { Button, ButtonLink, InlineAlert } = await import("@/components/ui");
-const { PLANS } = await import("@/lib/plans.generated");
+const { ADDONS, PLANS } = await import("@/lib/plans.generated");
+const { PLAN_OFFERING, addonOnSale, extraSeatsOnSale } =
+  await import("@xos/schemas/plans/offering");
 
 const TRIAL = {
   trialPlan: "pro",
@@ -187,6 +192,7 @@ beforeEach(() => {
     checkoutRefusal: null,
   };
   data.banner = TRIAL;
+  data.seats = { used: 2, limit: 10, sellsExtraSeats: true };
 });
 
 describe("billing before the owner sets the Stripe key", () => {
@@ -225,6 +231,71 @@ describe("billing before the owner sets the Stripe key", () => {
       checkout: false,
     });
     expect(data.getBillingAccount).not.toHaveBeenCalled();
+  });
+
+  it("lists a plan's features only where plans.yaml states them offered", async () => {
+    const listed = elements(await page())
+      .filter((e) => e.type === "li")
+      .map(textOf)
+      .filter((text) => text.startsWith("shell.plans.features."))
+      .map((text) => text.slice("shell.plans.features.".length));
+    const every = PLANS.flatMap((p) => p.adds);
+    // The launch offering has only the United States open, so a territory feature is not offered either.
+    const offered = every.filter((f) => PLAN_OFFERING.features[f]?.status === "offered");
+    expect(listed).toEqual(offered);
+    expect(every.filter((f) => !offered.includes(f))).toEqual([
+      "eu_data_residency",
+      "branded_compass_build",
+      "legend_early_access",
+    ]);
+    for (const withheld of ["eu_data_residency", "branded_compass_build", "legend_early_access"]) {
+      expect(listed).not.toContain(withheld);
+    }
+  });
+
+  it("shows no price and no way to buy for extra seats or a request pack while plans.yaml states them not on sale", async () => {
+    expect(extraSeatsOnSale()).toBe(false);
+    expect(ADDONS.map((a) => addonOnSale(a.code))).toEqual([false]);
+    const tree = await page();
+    const texts = elements(tree).map(textOf);
+    expect(texts.filter((t) => t.startsWith("extraSeat("))).toEqual([]);
+    expect(texts.filter((t) => t.startsWith("auroraPack."))).toEqual([]);
+    expect(ofType(tree, Button).map(textOf)).not.toContain("buySeats");
+    expect(ofType(tree, Button).map(textOf)).not.toContain("auroraPack.buy");
+    // The free plan still says it has no extra seats: that withholds nothing a customer could buy.
+    expect(texts).toContain("noExtraSeats");
+  });
+
+  it("tells an Owner whose seats are full nothing about extra seats while they are not on sale", async () => {
+    expect(extraSeatsOnSale()).toBe(false);
+    // A plan that prices extra seats (Core, Pro, Team): the page names the upgrade only. It neither offers extra
+    // seats nor says the plan sells none, since plans.yaml prices them and an Order may include them (Terms 5.3).
+    data.seats = { used: 10, limit: 10, sellsExtraSeats: true };
+    const priced = ofType(await page(), InlineAlert).map(textOf);
+    expect(priced).toContain("seatsFullNotOnSale");
+    expect(priced).not.toContain("seatsFull");
+    expect(priced).not.toContain("seatsFullUpgrade");
+    // A plan that prices none (Access) keeps the sentence that says so.
+    data.seats = { used: 3, limit: 3, sellsExtraSeats: false };
+    const unpriced = ofType(await page(), InlineAlert).map(textOf);
+    expect(unpriced).toContain("seatsFullUpgrade");
+    expect(unpriced).not.toContain("seatsFullNotOnSale");
+  });
+
+  it("words the seats-full notice for a plan that prices extra seats without naming them, in every catalog", () => {
+    for (const locale of ["en-US", "es-US"]) {
+      const catalog = JSON.parse(
+        readFileSync(
+          fileURLToPath(
+            new URL(`../../../packages/i18n/messages/${locale}/shell.json`, import.meta.url),
+          ),
+          "utf8",
+        ),
+      ) as { settings: { billing: Record<string, string> } };
+      const text = catalog.settings.billing["seatsFullNotOnSale"];
+      expect(text, locale).toBeTypeOf("string");
+      expect(text, locale).not.toMatch(/extra seat|asientos adicionales|sells no|no vende/i);
+    }
   });
 
   it("keeps the trial notice's Add a card disabled, and says how to get it done", async () => {
@@ -544,5 +615,135 @@ describe("billing once the key is set", () => {
       error: { kind: "refusal", rule: "billing_no_subscription", message: "" },
     });
     expect(await endPlanAction({}, portal)).toMatchObject({ rule: "billing_no_subscription" });
+  });
+});
+
+/**
+ * Issue 115 (docs/sign-up-links.md): `?plan=<code>` on Billing and Plan is the plan the Owner chose before signing up.
+ * The page names it and marks its card. It opens no review, renders no consent form and reaches no billing action.
+ */
+describe("a plan chosen before signing up", () => {
+  const marks = (tree: unknown) =>
+    elements(tree)
+      .filter((e) => e.props["data-testid"] === "plan-intent-mark")
+      .map(textOf);
+  const intentAlerts = (tree: unknown) =>
+    ofType(tree, InlineAlert)
+      .map(textOf)
+      .filter((text) => text.startsWith("intent."));
+  /** The plan whose card carries the mark: the list item that holds it. */
+  const markedCards = (tree: unknown) =>
+    elements(tree)
+      .filter((e) => e.type === "li" && typeof e.props["id"] === "string" && marks(e).length > 0)
+      .map((e) => e.props["id"]);
+  const untouched = () => {
+    expect(platform.createStripeClient).not.toHaveBeenCalled();
+    expect(platform.startPlanCheckout).not.toHaveBeenCalled();
+    expect(platform.openBillingPortal).not.toHaveBeenCalled();
+    expect(data.requestPlanEnd).not.toHaveBeenCalled();
+  };
+
+  beforeEach(() => {
+    data.requestPlanEnd.mockReset();
+  });
+
+  it("is named and marked while billing is closed, with nothing to click through", async () => {
+    const tree = await page({ plan: "core" });
+    expect(intentAlerts(tree)).toEqual(["intent.later(Northwind Live,shell.plans.core.name) "]);
+    expect(marks(tree)).toEqual(["intent.mark"]);
+    expect(markedCards(tree)).toEqual(["plan-core"]);
+    const jump = elements(tree).find((e) => e.type === "a" && e.props["href"] === "#plan-core");
+    expect(jump && textOf(jump)).toBe("intent.jump(shell.plans.core.name)");
+    expect(reviewLinks(tree)).toEqual([]);
+    expect(ofType(tree, RenewalConsentForm)).toEqual([]);
+    untouched();
+  });
+
+  it("starts no checkout once billing is open: the same Choose links, and no review", async () => {
+    config.key = "sk_test_abcdefghij";
+    const plain = await page();
+    for (const code of PLANS.filter((p) => p.selfServe).map((p) => p.code)) {
+      const tree = await page({ plan: code });
+      expect(intentAlerts(tree)).toEqual([
+        `intent.choose(Northwind Live,shell.plans.${code}.name) `,
+      ]);
+      expect(markedCards(tree)).toEqual([`plan-${code}`]);
+      // Exactly what the page offers without the parameter: a review is still the Owner's own click.
+      expect(reviewLinks(tree)).toEqual(reviewLinks(plain));
+      expect(ofType(tree, RenewalConsentForm)).toEqual([]);
+      const [notice] = ofType(tree, BillingLifecycleNotice);
+      expect(notice?.props["billing"]).toEqual(
+        ofType(plain, BillingLifecycleNotice)[0]?.props["billing"],
+      );
+    }
+    untouched();
+  });
+
+  it("keeps the plan on the Monthly and Annual links, so comparing terms keeps the notice and the mark", async () => {
+    config.key = "sk_test_abcdefghij";
+    const termLinks = (tree: unknown) =>
+      elements(tree)
+        .filter((e) => e.type === "nav")
+        .flatMap(elements)
+        .map((e) => e.props["href"])
+        .filter((href) => typeof href === "string");
+    const base = "/northwind-live/settings/billing-and-plan";
+    expect(termLinks(await page())).toEqual([base, `${base}?term=annual`]);
+    expect(termLinks(await page({ plan: "core" }))).toEqual([
+      `${base}?plan=core`,
+      `${base}?term=annual&plan=core`,
+    ]);
+    // The address the Annual link opens shows the same notice and mark, and still opens no review.
+    const annual = await page({ term: "annual", plan: "core" });
+    expect(intentAlerts(annual)).toEqual(["intent.choose(Northwind Live,shell.plans.core.name) "]);
+    expect(markedCards(annual)).toEqual(["plan-core"]);
+    expect(ofType(annual, RenewalConsentForm)).toEqual([]);
+    // A value that is not a self-serve plan is written into neither link.
+    for (const value of ["enterprise", "Core", "core&review=core"]) {
+      expect(termLinks(await page({ plan: value }))).toEqual([base, `${base}?term=annual`]);
+    }
+    untouched();
+  });
+
+  it("changes nothing for an unknown, free, quoted or malformed value", async () => {
+    for (const key of [undefined, "sk_test_abcdefghij"]) {
+      config.key = key;
+      const plain = await page();
+      for (const value of ["enterprise", "access", "Core", "core ", "core&review=core", "", "x"]) {
+        const tree = await page({ plan: value });
+        expect(intentAlerts(tree)).toEqual([]);
+        expect(marks(tree)).toEqual([]);
+        expect(ofType(tree, InlineAlert).map(textOf)).toEqual(
+          ofType(plain, InlineAlert).map(textOf),
+        );
+        expect(reviewLinks(tree)).toEqual(reviewLinks(plain));
+        expect(ofType(tree, RenewalConsentForm)).toEqual([]);
+      }
+      const repeated = await BillingSettingsPage({
+        params: Promise.resolve({ org: "northwind-live" }),
+        searchParams: Promise.resolve({ plan: ["core", "pro"] }),
+      } as never);
+      expect(marks(repeated)).toEqual([]);
+    }
+    untouched();
+  });
+
+  it("is not shown to an org that already pays for that plan", async () => {
+    config.key = "sk_test_abcdefghij";
+    data.account = {
+      paidThroughStripe: true,
+      hasStripeCustomer: true,
+      awaitingSubscription: false,
+      interval: "Monthly",
+      currentPeriodEnd: "2026-12-01T00:00:00Z",
+      checkoutRefusal: "billing_already_subscribed",
+    };
+    expect(intentAlerts(await page({ plan: "pro" }))).toEqual([]);
+    expect(marks(await page({ plan: "pro" }))).toEqual([]);
+    // Another plan is still named, without a Choose link the database would refuse.
+    const other = await page({ plan: "team" });
+    expect(intentAlerts(other)).toEqual(["intent.later(Northwind Live,shell.plans.team.name) "]);
+    expect(reviewLinks(other)).toEqual([]);
+    untouched();
   });
 });

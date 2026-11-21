@@ -51,4 +51,25 @@ describe("the organization form", () => {
     const input = container.querySelector<HTMLInputElement>('input[name="orgTimeZone"]');
     expect(input?.value).toBe(zone);
   });
+
+  it("sends the plan chosen before signing up only when the page passed one (issue 115)", () => {
+    const form = (plan?: string) =>
+      render(
+        h(NextIntlClientProvider, {
+          locale: "en-US",
+          messages: getMessages("en-US"),
+          timeZone: "America/New_York",
+          children: h(OrganizationForm, {
+            terms: { href: "/legal/terms", title: "Terms" },
+            dpa: { href: "/legal/dpa", title: "DPA" },
+            countries: [{ value: "US", label: "United States" }],
+            ...(plan === undefined ? {} : { plan }),
+          }),
+        }),
+      ).container.querySelector<HTMLInputElement>('input[name="plan"]');
+    expect(form()).toBeNull();
+    const sent = form("core");
+    expect(sent?.type).toBe("hidden");
+    expect(sent?.value).toBe("core");
+  });
 });

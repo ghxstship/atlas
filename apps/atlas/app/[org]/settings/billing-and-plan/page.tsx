@@ -7,6 +7,7 @@ import {
 } from "@xos/data/billing";
 import { getOrgBannerStatus } from "@xos/data/org-lifecycle";
 import { planFeatureOffered } from "@xos/i18n/offering";
+import { addonOnSale, extraSeatsOnSale } from "@xos/schemas/plans/offering";
 import type { Route } from "next";
 import Link from "next/link";
 import { getFormatter, getTranslations } from "next-intl/server";
@@ -21,6 +22,7 @@ import {
 import { StripeCancellationNotice } from "@/components/settings/stripe-cancellation-notice";
 import { requireNode } from "@/lib/shell/require-node";
 import { Button, ButtonLink, Card, InlineAlert } from "@/components/ui";
+import { planIntent } from "@/lib/auth/plan-intent";
 import { seatUsageKey, subscriptionOrAccess } from "@/lib/billing/current-subscription";
 import { renewalWording } from "@/lib/billing/renewal-terms";
 import { billingStatus } from "@/lib/billing/stripe";
@@ -38,8 +40,12 @@ const STANDING_REFUSALS = [
 
 /**
  * Billing and Plan (Section 16, Section 4.5.6 item 36; Owner only). Shows the current plan and its seat
- * usage, the plans of packages/schemas/plans.yaml with their prices, seats, extra-seat prices, limits
- * and features, and the Aurora request pack (ADR 0035).
+ * usage, and the plans of packages/schemas/plans.yaml with their prices, seats, limits and features.
+ *
+ * What the page lists as offered or on sale is the offering section of plans.yaml and nothing else (ADR 0035,
+ * 2026-11-15 amendment): a plan lists only the features stated offered, extra seats show a price and a way to buy
+ * only while they are on sale, and so does the Aurora request pack. The marketing site reads the same statuses, so
+ * the two cannot disagree. Neither is on sale today, so the page shows neither.
  *
  * ADR 0033 decision 59: XOS launches on the trial and the Access plan, and billing opens once the
  * owner sets the Stripe key. An org on a trial or Access chooses a self-serve plan and term and pays in
@@ -50,8 +56,11 @@ const STANDING_REFUSALS = [
  * and offers no second Checkout. Checkout is offered only where the database would open it (migration 904100201): a
  * client org its partner bills, a sandbox and a read-only org see why instead. Coming back from a Checkout that
  * carried the trial over, the page says the card is saved, since nothing is charged before the trial ends. Until the
- * key is set the page says billing is not open yet, and the buttons answer the same. Buying extra seats and packs
- * stays disabled; Enterprise is sold by quote and never checks out.
+ * key is set the page says billing is not open yet, and the buttons answer the same. Enterprise is sold by quote and
+ * never checks out.
+ * A `plan` parameter naming a self-serve plan (docs/sign-up-links.md) is the plan the Owner chose before signing up: the
+ * page says so and marks that plan's card, and does nothing else. It opens no review and no Checkout, and the plan and the
+ * trial stay as they are. Only an Owner reaches this page (requireNode answers 404 to everyone else).
  * Panels other modules contribute follow, such as A107's choice of what stays writable over the plan's limits.
  */
 export default async function BillingSettingsPage({
@@ -121,6 +130,9 @@ export default async function BillingSettingsPage({
     search["checkout"] === "canceled"
       ? search["checkout"]
       : null;
+  // Shown unless there is nothing left to choose: the org already pays for that plan, or must reactivate first.
+  const intent = planIntent(search["plan"]);
+  const chosen = intent !== null && !canceled && !(paid && current === intent) ? intent : null;
   const usage = seats.data;
   const org = ctx.org.slug;
   const page = `/${org}/settings/billing-and-plan`;
@@ -147,7 +159,10 @@ export default async function BillingSettingsPage({
   // Only the currencies of open territories are mentioned (ADR 0160).
   const offering = await currentOffering();
   const otherCurrencies = offering.currencies.filter((c) => c !== "USD");
-  const pack = ADDONS.find((a) => a.limit === "aurora_requests_per_month");
+  // What is on sale today, as plans.yaml states it. test/plan-offering.test.ts holds both closed until the page has a
+  // purchase to open.
+  const seatsOnSale = extraSeatsOnSale();
+  const pack = ADDONS.find((a) => a.limit === "aurora_requests_per_month" && addonOnSale(a.code));
   const founding = OFFERS.find((o) => o.code === "founding_customer");
   return (
     <>
@@ -172,6 +187,17 @@ export default async function BillingSettingsPage({
           >
             {t("canceledAction")}
           </Link>
+        </InlineAlert>
+      ) : null}
+      {chosen !== null ? (
+        <InlineAlert tone="info">
+          {t(buying ? "intent.choose" : "intent.later", {
+            org: ctx.org.name,
+            plan: name(chosen),
+          })}{" "}
+          <a href={`#plan-${chosen}`} className="font-medium text-accent-text underline">
+            {t("intent.jump", { plan: name(chosen) })}
+          </a>
         </InlineAlert>
       ) : null}
       <StripeCancellationNotice ctx={ctx} />
@@ -266,10 +292,18 @@ export default async function BillingSettingsPage({
           ) : null}
           {full ? (
             <InlineAlert tone="warning">
-              {usage.sellsExtraSeats ? t("seatsFull") : t("seatsFullUpgrade")}
+              {
+                // A plan that prices extra seats while they are not on sale gets the upgrade alone: the page neither
+                // offers them nor says the plan sells none, since an Order may include them (Terms of Service, 5.3).
+                !usage.sellsExtraSeats
+                  ? t("seatsFullUpgrade")
+                  : seatsOnSale
+                    ? t("seatsFull")
+                    : t("seatsFullNotOnSale")
+              }
             </InlineAlert>
           ) : null}
-          {usage.sellsExtraSeats ? (
+          {usage.sellsExtraSeats && seatsOnSale ? (
             <div>
               <Button variant="secondary" disabled>
                 {t("buySeats")}
@@ -284,8 +318,13 @@ export default async function BillingSettingsPage({
         <nav aria-label={t("term.label")} className="flex flex-wrap items-center gap-8">
           {(
             [
-              ["Monthly", page, t("term.monthly")],
-              ["Annual", `${page}?term=annual`, t("term.annual")],
+              // A plan chosen before signing up stays in both, so comparing terms keeps its notice and its mark.
+              ["Monthly", chosen === null ? page : `${page}?plan=${chosen}`, t("term.monthly")],
+              [
+                "Annual",
+                `${page}?term=annual${chosen === null ? "" : `&plan=${chosen}`}`,
+                t("term.annual"),
+              ],
             ] as const
           ).map(([value, href, label]) => (
             <Link
@@ -301,7 +340,7 @@ export default async function BillingSettingsPage({
       ) : null}
       <ul className="m-0 grid list-none grid-cols-1 gap-12 p-0">
         {PLANS.map((plan) => (
-          <li key={plan.code}>
+          <li key={plan.code} id={`plan-${plan.code}`} className="scroll-mt-16">
             <Card>
               <div className="flex flex-col gap-8">
                 <div className="flex flex-wrap items-baseline justify-between gap-8">
@@ -331,7 +370,9 @@ export default async function BillingSettingsPage({
                       : tp("seatsIncluded", { count: plan.limits["seats"] })}
                   </li>
                   {plan.usdExtraSeatMonthlyMinor !== null ? (
-                    <li>{tp("extraSeat", { price: usd(plan.usdExtraSeatMonthlyMinor) })}</li>
+                    seatsOnSale ? (
+                      <li>{tp("extraSeat", { price: usd(plan.usdExtraSeatMonthlyMinor) })}</li>
+                    ) : null
                   ) : plan.free ? (
                     <li className="text-text-secondary">{tp("noExtraSeats")}</li>
                   ) : null}
@@ -368,6 +409,14 @@ export default async function BillingSettingsPage({
                   </div>
                 ) : null}
                 <div className="flex flex-col gap-8">
+                  {plan.code === chosen ? (
+                    <span
+                      className="text-label-13 font-medium text-accent-text"
+                      data-testid="plan-intent-mark"
+                    >
+                      {t("intent.mark")}
+                    </span>
+                  ) : null}
                   {plan.code === current ? (
                     <span className="text-label-13 font-medium text-success-text">
                       {trialing ? t("trialPlan") : tp("current")}

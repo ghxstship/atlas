@@ -124,8 +124,8 @@ jobs:
         with:
           name: npm-packages
           path: npm
-      # The SDK first: the CLI depends on the exact SDK version. Then the design packages, ui last: it
-      # depends on the exact tokens, icons and i18n versions.
+      # The SDK first: the CLI depends on the exact SDK version. Then the design packages, each after the
+      # ones it depends on: i18n after schemas, and ui last, after tokens, icons and i18n.
       - name: Publish the SDK, the CLI and the design packages
         env:
           # Only the first publish uses NPM_TOKEN: npm adds a trusted publisher to a package that exists, and
@@ -147,7 +147,7 @@ jobs:
           # "./" keeps npm from reading "npm/<file>.tgz" as a GitHub owner/repo shorthand.
           publish @ghxstship/xos-sdk "./npm/ghxstship-xos-sdk-${VERSION}.tgz"
           publish @ghxstship/xos-cli "./npm/ghxstship-xos-cli-${VERSION}.tgz"
-          for name in tokens icons i18n schemas ui; do
+          for name in tokens icons schemas i18n ui; do
             # Absent for a tag before v4.16.0, which has no design packages.
             [ -f "./npm/ghxstship-xos-${name}-${VERSION}.tgz" ] || { echo "No ${name} archive for ${TAG}; skipping."; continue; }
             publish "@ghxstship/xos-${name}" "./npm/ghxstship-xos-${name}-${VERSION}.tgz"

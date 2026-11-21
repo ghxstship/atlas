@@ -14,7 +14,10 @@ It pins a release tag and reads these at that tag. A change to any of them is a 
 | Marketing components and their styles | `design/xos-design-system/components/`, then `packages/ui` |
 | Shared marketing strings under `mk.*` | `design/xos-design-system/export/i18n/`, then `packages/i18n` |
 | Offered territories, languages and currencies | `private.territories`, ADR 0160 |
+| Sign-up and sign-in addresses and their parameters | `docs/sign-up-links.md` |
 | Feature status the page states | The files its claims register cites |
+
+The `offering` section of `plans.yaml` is part of the first subject: it states for every plan feature whether it is offered, and for extra seats and each add-on whether it is on sale, and the page shows a feature, an extra-seat price or an add-on only where that section says so (`@xos/schemas/plans/offering` reads it).
 
 ## What this repository does on a lockstep change
 
@@ -37,6 +40,7 @@ Owner decision, 2026-11-14.
 - The product subdomains hold every sign-in, sign-up and onboarding sequence: `https://atlas.ghxstship.tech` for Atlas and `https://gateway.ghxstship.tech` for Gateway. The landing page links to them and never hosts an account form, a session or a password field of its own.
 - The other subdomains keep their owners here: `api`, `docs`, `console`, `status`, `atlas-staging` and `gateway-staging` (`infra/runbooks/production.md`).
 - The sign-in and sign-up addresses the landing page links to are product facts. A change to one is a lockstep change and gets an issue in `ghxstship/atlas-marketing` before the tag.
+- The `plan` parameter those addresses read, the plan codes it accepts and what the new Owner sees are product facts the marketing site reads from `docs/sign-up-links.md`; its plan buttons link to `/auth/sign-up?plan=<code>` with a self-serve plan code from `packages/schemas/plans.yaml`.
 - If Compass ever offers native passkeys, the apex must serve the apple-app-site-association file (`infra/runbooks/hosted-security-settings.md`). That becomes a request to the marketing site through an issue there.
 
 ## What this repository receives

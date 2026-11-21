@@ -1,0 +1,13 @@
+{
+  "$schema": "https://turborepo.com/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    "test": {
+      "inputs": [
+        "$TURBO_EXTENDS$",
+        "$TURBO_ROOT$/docs/adr/**",
+        "$TURBO_ROOT$/design/MARKETING_LOCKSTEP.md"
+      ]
+    }
+  }
+}

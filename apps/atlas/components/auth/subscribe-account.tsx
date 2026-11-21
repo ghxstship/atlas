@@ -17,11 +17,14 @@ export function SubscribeAccounts({
   terms,
   dpa,
   countries,
+  plan = null,
 }: {
   accounts: readonly { id: string; name: string; slug: string }[];
   terms: Doc;
   dpa: Doc;
   countries: readonly { value: string; label: string }[];
+  /** The self-serve plan the person chose before signing up, already checked (lib/auth/plan-intent.ts). */
+  plan?: string | null;
 }) {
   const t = useTranslations("subscribeAccount");
   if (accounts.length === 0) return null;
@@ -34,7 +37,14 @@ export function SubscribeAccounts({
         <p className="m-0 text-text-13 text-text-secondary">{t("lead")}</p>
       </div>
       {accounts.map((a) => (
-        <SubscribeForm key={a.id} account={a} terms={terms} dpa={dpa} countries={countries} />
+        <SubscribeForm
+          key={a.id}
+          account={a}
+          terms={terms}
+          dpa={dpa}
+          countries={countries}
+          plan={plan}
+        />
       ))}
       <h2 className="m-0 text-heading-16 font-semibold">{t("or")}</h2>
     </section>
@@ -48,11 +58,13 @@ function SubscribeForm({
   terms,
   dpa,
   countries,
+  plan,
 }: {
   account: { id: string; name: string; slug: string };
   terms: Doc;
   dpa: Doc;
   countries: readonly { value: string; label: string }[];
+  plan: string | null;
 }) {
   const t = useTranslations("subscribeAccount");
   const tr = useTranslations("shell.auth.organization");
@@ -68,6 +80,7 @@ function SubscribeForm({
     >
       <input type="hidden" name="accountId" value={account.id} />
       <input type="hidden" name="slug" value={account.slug} />
+      {plan === null ? null : <input type="hidden" name="plan" value={plan} />}
       {state.error === "territory_not_offered" ? (
         <InlineAlert tone="danger">
           {t("territory_not_offered", {
