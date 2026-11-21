@@ -7,7 +7,8 @@ agent runs a probe against a hosted project.
 ## 0169: the direct-endpoint probe
 
 Work package 0 of [ADR 0169](../../../docs/adr/0169-session-gate-on-the-data-endpoint.md). The owner approved it
-on 2026-11-20 (owner decision 1 of that record): throwaway objects on staging and a few requests.
+in the sessions of 2026-11-15 and 2026-11-20 (owner decision 2 of that record): throwaway objects on staging and
+a few requests.
 
 | File                                      | What it is                                                                   |
 | ----------------------------------------- | ---------------------------------------------------------------------------- |
@@ -78,18 +79,26 @@ email.
    Paste the token and press Return. The script takes no arguments and reads no file; it reads only these
    variables, and never prints the key or a token.
 
-4. **Optional, for question 5: an OAuth app token.** In the same browser session, register a test app in staging
-   Atlas (Settings, Integrations) with the redirect address `http://127.0.0.1:8976/callback`, then run the
-   authorization code flow with PKCE:
+4. **For question 5: an OAuth app token.** The rest of the probe runs without this step, but question 5 stays
+   open until it is done: skipping it selects nothing. In the same browser session, register a test app in
+   staging Atlas (the organization's Settings, Integrations, OAuth apps: an app name, the redirect URI
+   `http://127.0.0.1:8976/callback`, Register app) and copy the client ID it shows. The test person must be a
+   member of that organization. Then run the authorization code flow with PKCE:
 
    ```sh
    VERIFIER="$(openssl rand -base64 48 | tr -d '=+/\n')"
    CHALLENGE="$(printf '%s' "$VERIFIER" | openssl dgst -sha256 -binary | openssl base64 | tr '+/' '-_' | tr -d '=\n')"
-   echo "https://atlas-staging.ghxstship.tech/oauth/authorize?response_type=code&client_id=<client id>&redirect_uri=http%3A%2F%2F127.0.0.1%3A8976%2Fcallback&code_challenge=$CHALLENGE&code_challenge_method=S256&state=probe"
+   echo "https://atlas-staging.ghxstship.tech/oauth/authorize?response_type=code&client_id=<client id>&redirect_uri=http%3A%2F%2F127.0.0.1%3A8976%2Fcallback&scope=projects&code_challenge=$CHALLENGE&code_challenge_method=S256&state=probe"
    ```
 
-   Open the printed address in the browser where the test person is signed in and approve. The browser lands on
-   a page that does not load; copy the `code` value from its address bar. Then:
+   `scope` is required. Atlas refuses an authorization request without it for any app that is not an MCP
+   connector, with HTTP 400 and "This authorization request is invalid (scope)". Its value is one or more
+   capability groups, and an app registers none in advance: any group works. `projects` is the one to use,
+   because consent to it needs no second factor; `data`, `org` and `audit` reach Restricted data or the
+   organization's control and ask for step-up at consent.
+
+   Open the printed address in the browser where the test person is signed in and choose Allow on the consent
+   page. The browser lands on a page that does not load; copy the `code` value from its address bar. Then:
 
    ```sh
    read -rs CODE
@@ -103,7 +112,10 @@ email.
 
    The app must be authorized by the same browser session whose token is in `PROBE_ACCESS_TOKEN`, or the
    comparison in question 5 says `other-session` for the wrong reason. Without `PROBE_APP_TOKEN` the script
-   prints `Q5.app skipped` and everything else still runs.
+   prints `Q5.app skipped` and `Q5.verdict unanswered`, and everything else still runs. If the token request failed, the variable is empty
+   and the script prints the same line; `echo "${#PROBE_APP_TOKEN}"` prints the token's length, which is 0
+   then, without showing it. Run the script's requests again with this step done before recording an answer to
+   question 5.
 
 5. **Run.**
 
@@ -117,6 +129,12 @@ email.
 6. **Teardown.** In the same SQL editor, paste `0169-direct-endpoint-probe.teardown.sql` and run it. The result
    must be **zero rows**. Any row names an object that is left; run the file again. It can be run any number of
    times.
+
+   If the one row left is `bucket | storage.buckets: probe-0169`, running the file again does not help. The
+   bucket then holds an object the probe did not create (the probe's policy never admits one, so it came from
+   the dashboard or a secret-key upload), and the teardown leaves a bucket that holds anything. The SQL editor
+   may not show the warning that says so. Delete the bucket in the dashboard (Storage, the bucket `probe-0169`,
+   Delete bucket), then run the teardown once more; the result must then be zero rows.
 
 7. **Confirm nothing is left.** Run the script once more. It must stop with
    `the probe function is not on this project (HTTP 404)` and exit status 3. In the dashboard, Storage must show
@@ -164,7 +182,8 @@ reach the point where the question is asked, and the text says why.
 | `Q4.verdict`                                         | `as-designed`, `status-only` or `different`.                                                                                                                                                          |
 | `Q5.session.*`                                       | The claim names of the session token and the facts the gate reads: `aal`, the sign-in methods, whether they carry timestamps, the token lifetime, whether `session_id` is present and its row exists. |
 | `Q5.app.*`                                           | The same for the OAuth app token.                                                                                                                                                                     |
-| `Q5.verdict`                                         | `names-authorizing-session`, `other-session` or `no-session`.                                                                                                                                         |
+| `Q5.app`                                             | `skipped: ...` when `PROBE_APP_TOKEN` is not set or is empty. Question 5 was then not asked.                                                                                                          |
+| `Q5.verdict`                                         | `names-authorizing-session`, `other-session` or `no-session`; or `unanswered: ...` when no app token was sent or the project refused it before the probe function ran.                                |
 | `BRANCH.address_source`                              | The script's reading of question 1.                                                                                                                                                                   |
 | `DONE`                                               | The script reached its end.                                                                                                                                                                           |
 
@@ -174,7 +193,7 @@ cannot carry. Copy those lines into the record if a `Q3` answer surprises.
 
 ### Which answer selects which branch of the design
 
-The left column is ADR 0169's own wording; the owner decided each branch in advance (owner decisions 2, 8 and 9).
+The left column is ADR 0169's own wording; the owner decided each branch in advance (owner decisions 3, 9 and 10, in the owner's own numbering of 1 to 13).
 
 | Question                      | Answer                                                                                                            | Selects                                                                                                                                                                                                                   |
 | ----------------------------- | ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -192,7 +211,8 @@ The left column is ADR 0169's own wording; the owner decided each branch in adva
 |                               | `status-only`                                                                                                     | D2 holds for released Compass builds, which read the status alone. The new build reads the reason from `app.my_session_gate` instead of the hint.                                                                         |
 |                               | `different`                                                                                                       | The PostgREST layer is not enforced until the ADR is amended: released Compass builds would not halt safely.                                                                                                              |
 | 5. The app token              | `Q5.verdict` is `names-authorizing-session`                                                                       | The control `app_mfa` is built: an app token is refused for an organization whose second-factor rule the authorizing session did not meet.                                                                                |
-|                               | `other-session`, `no-session`, or skipped                                                                         | `app_mfa` is not built. The Security Overview keeps the sentence that apps and API keys act without a second factor.                                                                                                      |
+|                               | `other-session` or `no-session`                                                                                   | `app_mfa` is not built. The Security Overview keeps the sentence that apps and API keys act without a second factor.                                                                                                      |
+|                               | `Q5.app` is `skipped`, or `Q5.verdict` is `unanswered`                                                            | Nothing. Question 5 is still open: no one has looked at an app token's claims. Do step 4 again and rerun the script. Until then `app_mfa` is neither built nor ruled out.                                                 |
 
 The script cannot know your public address. Confirm `Q1.own_address` against the address your network shows
 (your router, or your VPN's status page) before reading question 1 as proven. If you ran from behind a
@@ -203,7 +223,11 @@ corporate proxy or a VPN, that exit address is what to expect.
 The SQL and the script were run end to end on 2026-11-21 against a local stack with no application schema
 (Supabase CLI 3.1.0: Postgres 17.11, PostgREST 16.5, Storage API 1.90.1, Realtime 2.154.0, Auth 2.197.0, Kong
 2.8.1), including the teardown, the teardown run twice, the setup run twice, and each refusal path of the
-script. That proves the probe works. It answers none of the questions for the hosted project:
+script. The setup and the teardown were also run on a database with no Storage and no Realtime tables, where
+the setup creates the four objects it can and the teardown removes them, and the teardown was run with an
+object placed in the probe bucket, where it leaves the bucket and lists it. That proves the probe works. Step 4
+was not walked against a running Atlas; its address has the parameters Atlas's own OAuth journey test sends
+(`apps/atlas/e2e/a99-auth.spec.ts`). It answers none of the questions for the hosted project:
 
 - **Question 1.** The local gateway is one Kong container. The hosted path has Supabase's edge in front of it,
   and the chain and hop count there are what the design needs.

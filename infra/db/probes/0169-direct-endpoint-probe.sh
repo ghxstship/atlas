@@ -511,7 +511,8 @@ claims_lines() {
 claims_lines "Q5.session" "$WORK/plain1.body"
 
 if [ -z "$APP_TOKEN" ]; then
-  line "Q5.app" "skipped: PROBE_APP_TOKEN is not set"
+  line "Q5.app" "skipped: PROBE_APP_TOKEN is not set or is empty"
+  line "Q5.verdict" "unanswered: no app token was sent, so question 5 is still open; do step 4 of the README and run again"
 else
   rest "$APP_TOKEN" echo "$WORK/app"
   app_status="$(cat "$WORK/app.status")"
@@ -529,7 +530,7 @@ else
     fi
   else
     line "Q5.app.body" "$(body_line "$WORK/app.body")"
-    line "Q5.verdict" "unanswered: the app token did not reach the probe function"
+    line "Q5.verdict" "unanswered: the app token did not reach the probe function, so question 5 is still open"
   fi
 fi
 

@@ -23,14 +23,17 @@ begin
   -- The bucket row. Supabase Storage refuses a DELETE on its tables unless storage.allow_delete_query is set, to
   -- keep stored files from losing their rows. This bucket never held a file, and the row is deleted only when it
   -- holds no object. The setting is switched on for that one statement and off again.
-  if pg_catalog.to_regclass('storage.buckets') is not null and pg_catalog.to_regclass('storage.objects') is not null
-     and exists (select 1 from storage.buckets where id = 'probe-0169') then
-    if exists (select 1 from storage.objects where bucket_id = 'probe-0169') then
-      raise warning 'probe_0169: bucket "probe-0169" holds objects, which the probe never creates. It is left in place; delete it in the dashboard (Storage, the bucket, Delete bucket).';
-    else
-      perform pg_catalog.set_config('storage.allow_delete_query', 'true', true);
-      delete from storage.buckets where id = 'probe-0169';
-      perform pg_catalog.set_config('storage.allow_delete_query', 'false', true);
+  -- The existence test and the query are separate IF statements on purpose: PL/pgSQL plans a whole IF expression
+  -- at once, so one that named storage.buckets beside the test would fail on a database without Storage's tables.
+  if pg_catalog.to_regclass('storage.buckets') is not null and pg_catalog.to_regclass('storage.objects') is not null then
+    if exists (select 1 from storage.buckets where id = 'probe-0169') then
+      if exists (select 1 from storage.objects where bucket_id = 'probe-0169') then
+        raise warning 'probe_0169: bucket "probe-0169" holds objects, which the probe never creates. It is left in place; delete it in the dashboard (Storage, the bucket, Delete bucket), then run this file again.';
+      else
+        perform pg_catalog.set_config('storage.allow_delete_query', 'true', true);
+        delete from storage.buckets where id = 'probe-0169';
+        perform pg_catalog.set_config('storage.allow_delete_query', 'false', true);
+      end if;
     end if;
   end if;
   if pg_catalog.to_regnamespace('api_public') is not null then
