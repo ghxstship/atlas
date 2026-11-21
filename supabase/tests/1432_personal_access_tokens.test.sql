@@ -14,11 +14,8 @@ grant select, insert on tok to public;
 create function pg_temp.as_stepped(p_key text, p_second_ago interval default interval '1 minute') returns void
 language plpgsql as $$
 begin
-  perform set_config('role', 'postgres', true);
-  perform set_config('request.jwt.claims', jsonb_build_object('sub', pg_temp.id(p_key || '_user'), 'role', 'authenticated',
-    'aal', 'aal2', 'amr', jsonb_build_array(jsonb_build_object('method', 'totp',
-      'timestamp', extract(epoch from now() - p_second_ago)::bigint)))::text, true);
-  perform set_config('role', 'authenticated', true);
+  perform pg_temp.sign_in(pg_temp.id(p_key || '_user'), 'aal2',
+    pg_temp.amr('password', greatest(interval '30 minutes', p_second_ago + interval '1 minute'), 'totp', p_second_ago));
 end $$;
 
 -- The org setting decides -------------------------------------------------------------------------------------------

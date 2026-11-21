@@ -12,11 +12,8 @@ select plan(33);
 create function pg_temp.as_stepped_up(p_key text) returns void
 language plpgsql as $$
 begin
-  perform set_config('role', 'postgres', true);
-  perform set_config('request.jwt.claims', json_build_object('sub', pg_temp.id(p_key || '_user'), 'role', 'authenticated',
-    'aal', 'aal2', 'amr', json_build_array(json_build_object('method', 'password', 'timestamp', extract(epoch from now())::bigint - 60),
-      json_build_object('method', 'totp', 'timestamp', extract(epoch from now())::bigint)))::text, true);
-  perform set_config('role', 'authenticated', true);
+  perform pg_temp.sign_in(pg_temp.id(p_key || '_user'), 'aal2',
+    pg_temp.amr('password', interval '60 seconds', 'totp', interval '0'));
 end $$;
 
 create function pg_temp.owners(p_org text) returns text

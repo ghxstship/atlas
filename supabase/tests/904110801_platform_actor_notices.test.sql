@@ -15,10 +15,7 @@ select * from no_plan();
 create function pg_temp.as_op(p_key text) returns void
 language plpgsql as $$
 begin
-  perform set_config('role', 'postgres', true);
-  perform set_config('request.jwt.claims',
-    json_build_object('sub', pg_temp.id(p_key || '_user'), 'role', 'authenticated', 'aal', 'aal2')::text, true);
-  perform set_config('role', 'authenticated', true);
+  perform pg_temp.as_user_stepped_up(p_key);
 end $$;
 
 -- World: carol (org_a) rates ivy after a finished engagement; ivy disputes it; tess, a Trust and Safety operator, decides.
@@ -60,8 +57,7 @@ select is((select actor_person_id from app.notifications where kind = 'rating_di
   'and no actor person');
 
 -- private.notify on its own, as the database calls it with carol signed in -----------------------------------------------
-select pg_temp.as_platform();
-select set_config('request.jwt.claims', json_build_object('sub', pg_temp.id('carol_user'), 'role', 'authenticated')::text, true);
+select pg_temp.claims('carol');
 create temporary table n (key text primary key, id uuid);
 insert into n select 'platform', private.notify(pg_temp.id('org_a'), pg_temp.id('ivy'), 'rating_dispute.decided', null, null, null,
   jsonb_build_object('outcome', 'Upheld', 'actorPlatform', true));

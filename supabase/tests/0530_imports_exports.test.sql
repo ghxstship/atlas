@@ -140,7 +140,7 @@ select throws_ok($$select app.request_export(pg_temp.id('org_a'), 'XLSX', 'Bank 
 select pg_temp.as_user('alice');
 select throws_ok($$select app.request_export(pg_temp.id('org_a'), 'XLSX', 'Bank details', array['app.vendor_bank_accounts.account_number'])$$,
   'XR001', 'step_up_required: Exporting Restricted columns needs step-up authentication.', 'Restricted exports need step-up');
-select set_config('request.jwt.claims', json_build_object('sub', pg_temp.id('alice_user'), 'role', 'authenticated', 'aal', 'aal2')::text, true);
+select pg_temp.as_user_stepped_up('alice');
 insert into k values ('exp', app.request_export(pg_temp.id('org_a'), 'PDF', 'Bank details', array['app.vendor_bank_accounts.account_number']));
 select is((select classification::text || ':' || watermark::text from app.export_jobs where id = (select id from k where key = 'exp')),
   'Restricted:true', 'after step-up a Restricted export is allowed and watermarked');

@@ -21,12 +21,9 @@ end $$;
 create function pg_temp.as_app(p_user text, p_client text) returns void
 language plpgsql as $$
 begin
-  perform set_config('role', 'postgres', true);
-  perform set_config('request.jwt.claims', jsonb_build_object('sub', pg_temp.id(p_user || '_user'), 'role', 'authenticated',
-    'aal', 'aal1', 'session_id', gen_random_uuid(), 'client_id', pg_temp.id(p_client), 'scope', 'email',
-    'amr', jsonb_build_array(jsonb_build_object('method', 'oauth_provider/authorization_code',
-      'timestamp', extract(epoch from now() - interval '1 hour')::bigint)))::text, true);
-  perform set_config('role', 'authenticated', true);
+  perform pg_temp.sign_in(pg_temp.id(p_user || '_user'), 'aal1',
+    pg_temp.amr('oauth_provider/authorization_code', interval '1 hour'),
+    jsonb_build_object('client_id', pg_temp.id(p_client), 'scope', 'email'), 'authenticated', pg_temp.id(p_client));
 end $$;
 create function pg_temp.propose(p_operation text, p_scopes text[], p_fields jsonb default '[{"field_path": "name", "value": "Encore Tour"}]')
 returns uuid language sql as $$

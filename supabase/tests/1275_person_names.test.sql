@@ -4,14 +4,14 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
+\ir 0199_session_identities.psql
 
 select plan(6);
 
 create function pg_temp.as_person(p_user uuid) returns void
 language plpgsql as $$
 begin
-  perform set_config('request.jwt.claims', json_build_object('sub', p_user, 'role', 'authenticated')::text, true);
-  perform set_config('role', 'authenticated', true);
+  perform pg_temp.sign_in(p_user);
 end $$;
 
 -- A person no demo org knows.

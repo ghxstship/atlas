@@ -11,7 +11,7 @@ set search_path = extensions, public;
 select plan(36);
 
 -- A session signed in p_signed_in ago with its first factor, plus a second factor p_second_ago (NULL for none).
-create function pg_temp.as_session(p_key text, p_aal text, p_first text, p_signed_in interval, p_second text, p_second_ago interval)
+create function pg_temp.as_suite_session(p_key text, p_aal text, p_first text, p_signed_in interval, p_second text, p_second_ago interval)
 returns void
 language plpgsql as $$
 declare
@@ -20,43 +20,39 @@ begin
   if p_second is not null then
     v_amr := jsonb_build_array(jsonb_build_object('method', p_second, 'timestamp', extract(epoch from now() - p_second_ago)::bigint)) || v_amr;
   end if;
-  perform set_config('role', 'postgres', true);
-  perform set_config('request.jwt.claims',
-    jsonb_build_object('sub', pg_temp.id(p_key || '_user'), 'role', 'authenticated', 'aal', p_aal,
-      'session_id', gen_random_uuid(), 'amr', v_amr)::text, true);
-  perform set_config('role', 'authenticated', true);
+  perform pg_temp.sign_in(pg_temp.id(p_key || '_user'), p_aal, v_amr);
 end $$;
 
 -- Second-factor status ------------------------------------------------------------------------------------------------------
 
-select pg_temp.as_session('alice', 'aal2', 'password', interval '2 hours', 'totp', interval '1 minute');
+select pg_temp.as_suite_session('alice', 'aal2', 'password', interval '2 hours', 'totp', interval '1 minute');
 select is((select session_aal from app.my_second_factor_status()), 'aal2', 'a session that passed a code is aal2');
 select is((select recent from app.my_second_factor_status()), true, 'a code a minute old is recent');
 select ok((select recent_until - second_factor_at from app.my_second_factor_status()) = interval '15 minutes',
   'it stays recent for 15 minutes');
 
-select pg_temp.as_session('alice', 'aal2', 'password', interval '2 hours', 'totp', interval '20 minutes');
+select pg_temp.as_suite_session('alice', 'aal2', 'password', interval '2 hours', 'totp', interval '20 minutes');
 select is((select session_aal from app.my_second_factor_status()), 'aal2', 'the session stays aal2 for its life');
 select is((select recent from app.my_second_factor_status()), false, 'but a code 20 minutes old is not recent');
 
-select pg_temp.as_session('alice', 'aal2', 'otp', interval '1 hour', 'mfa/webauthn', interval '30 seconds');
+select pg_temp.as_suite_session('alice', 'aal2', 'otp', interval '1 hour', 'mfa/webauthn', interval '30 seconds');
 select is((select recent from app.my_second_factor_status()), true, 'a security key passed as a second factor counts');
 
-select pg_temp.as_session('alice', 'aal1', 'passkey', interval '10 seconds', null, null);
+select pg_temp.as_suite_session('alice', 'aal1', 'passkey', interval '10 seconds', null, null);
 select is((select session_aal from app.my_second_factor_status()), 'aal1', 'a passkey sign-in alone is aal1');
 select is((select recent from app.my_second_factor_status()), false, 'and has no second factor to be recent');
 
-select pg_temp.as_session('alice', 'aal1', 'password', interval '2 hours', 'totp', interval '1 minute');
+select pg_temp.as_suite_session('alice', 'aal1', 'password', interval '2 hours', 'totp', interval '1 minute');
 select is((select recent from app.my_second_factor_status()), false, 'an amr entry without the aal2 claim is not recent');
 
 -- Step-up callers ------------------------------------------------------------------------------------------------------------
 
-select pg_temp.as_session('alice', 'aal1', 'passkey', interval '1 minute', null, null);
+select pg_temp.as_suite_session('alice', 'aal1', 'passkey', interval '1 minute', null, null);
 select throws_ok($$select app.start_break_glass((select id from world where key = 'org_a'), 'Payroll export failed during show day and must run now.')$$,
   'XR001', 'step_up_required: Verify with your second factor before taking emergency access.', 'a passkey sign-in alone cannot take emergency access');
 select throws_ok($$select app.request_export((select id from world where key = 'org_a'), 'CSV', 'Pay rates', array['app.pay_rates.rate_minor'])$$,
   'XR001', 'step_up_required: Exporting Restricted columns needs step-up authentication.', 'nor export Restricted columns');
-select pg_temp.as_session('alice', 'aal2', 'passkey', interval '2 hours', 'totp', interval '40 minutes');
+select pg_temp.as_suite_session('alice', 'aal2', 'passkey', interval '2 hours', 'totp', interval '40 minutes');
 select lives_ok($$select app.start_break_glass((select id from world where key = 'org_a'), 'Payroll export failed during show day and must run now.')$$,
   'a session that passed a code at sign-in takes emergency access');
 
@@ -90,10 +86,10 @@ select is(private.mfa_required(pg_temp.id('frank'), pg_temp.id('org_a')), true, 
 
 -- What the org asks of the session --------------------------------------------------------------------------------------------
 
-select pg_temp.as_session('dave', 'aal1', 'password', interval '1 hour', null, null);
+select pg_temp.as_suite_session('dave', 'aal1', 'password', interval '1 hour', null, null);
 select is((select mfa_required from app.my_org_auth_status(pg_temp.id('org_a'))), true, 'the status says a second factor is required');
 select is((select mfa_verified from app.my_org_auth_status(pg_temp.id('org_a'))), false, 'and that this session has not passed one');
-select pg_temp.as_session('dave', 'aal2', 'password', interval '1 hour', 'totp', interval '50 minutes');
+select pg_temp.as_suite_session('dave', 'aal2', 'password', interval '1 hour', 'totp', interval '50 minutes');
 select is((select mfa_verified from app.my_org_auth_status(pg_temp.id('org_a'))), true, 'a session that passed one at sign-in meets the policy');
 select is((select session_hours from app.my_org_auth_status(pg_temp.id('org_a'))), 336, 'the default session lifetime is 14 days');
 
@@ -102,14 +98,14 @@ select lives_ok($$select app.set_setting((select id from world where key = 'org_
   'an 8-hour session lifetime saves');
 select lives_ok($$select app.set_setting((select id from world where key = 'org_a'), 'security.idle_timeout_minutes', 'Organization', null, null, null, 15, false)$$,
   'a 15-minute idle timeout saves');
-select pg_temp.as_session('dave', 'aal2', 'password', interval '9 hours', 'totp', interval '9 hours');
+select pg_temp.as_suite_session('dave', 'aal2', 'password', interval '9 hours', 'totp', interval '9 hours');
 select is((select session_expired from app.my_org_auth_status(pg_temp.id('org_a'))), true, 'a sign-in older than the org''s 8 hours has ended for the org');
-select pg_temp.as_session('dave', 'aal2', 'password', interval '1 hour', 'totp', interval '1 hour');
+select pg_temp.as_suite_session('dave', 'aal2', 'password', interval '1 hour', 'totp', interval '1 hour');
 select is((select session_expired from app.my_org_auth_status(pg_temp.id('org_a'))), false, 'a sign-in an hour old has not');
 select ok((select session_expires_at - signed_in_at from app.my_org_auth_status(pg_temp.id('org_a'))) = interval '8 hours', 'it ends 8 hours after sign-in');
 select is((select idle_timeout_minutes from app.my_org_auth_status(pg_temp.id('org_a'))), 15, 'the guards read the 15-minute idle timeout');
 
-select pg_temp.as_session('xavier', 'aal1', 'password', interval '1 hour', null, null);
+select pg_temp.as_suite_session('xavier', 'aal1', 'password', interval '1 hour', null, null);
 select is((select count(*)::int from app.my_org_auth_status(pg_temp.id('org_a'))), 0, 'a non-member learns nothing about another org');
 
 select set_config('request.jwt.claims', json_build_object('sub', pg_temp.id('dave_user'), 'role', 'authenticated',
