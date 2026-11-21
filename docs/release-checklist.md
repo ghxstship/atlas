@@ -10,18 +10,31 @@ Statuses:
 - **Blocked on owner (OWNER)**: needs a decision, an account, a secret or a paid service that only the owner can provide. Named in the last section.
 - **Not started**.
 
+## XOS 4.17 release (2026-11-21)
+
+4.17 is 4.16 plus merge train 4.17 (#118), which answers five requests from the Atlas marketing site: the plan offering in `plans.yaml` and Billing and Plan (#108, #116), no remote font in the published design packages (#110), a plan intent on sign-up (#115), and Cookie Policy 1.1.0, Privacy Policy 1.2.0 and Data Retention and Deletion Policy 1.1.0, which cover ghxstship.tech and visit counting and take effect on 2026-12-01 (#117). No migrations. The first CI run failed the Spanish legal page spec, which still expected Privacy Policy 1.1.0 as in effect; `162ec761` fixed it. Two later failures were container start errors in one CI shard each, and each passed on a rerun.
+
+| Step                     | Status | Evidence                                                                                                                                           |
+| ------------------------ | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| CI on the release commit | Done   | PR #118 at `f74218d8`: 47 checks passed and 1 was skipped; merged as `77ced89e`                                                                    |
+| Migrations               | Done   | None in this train                                                                                                                                 |
+| Edge Functions           | Done   | `stripe-webhook` redeployed to production: its bundle embeds the plan registry, which gained the offering section. An unsigned request answers 400 |
+| Apps                     | Done   | PR #118 merged into `main` (`77ced89e`); GitHub records production deployments of Atlas and Gateway at that commit on 2026-11-21                   |
+| Packages                 | Done   | Tag `v4.17.0` started `publish-packages.yml`, approved under the owner's approval through the 5.0 series; 4.17.0 published to npm (seven) and PyPI |
+| Compass                  | OWNER  | Compass ships on its own cadence                                                                                                                   |
+
 ## XOS 4.16 release (2026-11-14)
 
 4.16 is 4.15 plus merge train 4.16 (#111), which answers three requests from the Atlas marketing site (`design/MARKETING_LOCKSTEP.md`): the Marketing layer of the design system in `packages/tokens`, `packages/ui` and `packages/i18n` (#105), the shared consent banner in `@xos/ui` with a script-free form that Atlas shows on every route (#107), and the five design packages on npm as `@ghxstship/xos-<name>` (#106). The Tailwind preset moved to `packages/tokens`. No migrations. The first CI run failed the route JavaScript budget and the Storybook baselines for the consent stories, and the second failed the served budget in all four Atlas journey shards, because the client banner added about 7 KB of script to every page; `216badf8` renders the script-free banner, and the third run passed.
 
-| Step                     | Status | Evidence                                                                                                                                                                |
-| ------------------------ | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| CI on the release commit | Done   | PR #111 at `216badf8`: 47 checks passed and 1 was skipped; merged as `96eb54ce`                                                                                         |
-| Migrations               | Done   | None in this train                                                                                                                                                      |
-| Edge Functions           | Done   | `wallet-pass` redeployed to production: its bundle embeds the token chunk, which gained the Display type steps                                                          |
-| Apps                     | Done   | PR #111 merged into `main` (`96eb54ce`), which Vercel deploys to production                                                                                             |
-| Packages                 | OWNER  | Tag `v4.16.0` started `publish-packages.yml`; `verify` passed, including the five design archives. The first publish of the design packages needs `NPM_TOKEN` once more |
-| Compass                  | OWNER  | Compass ships on its own cadence                                                                                                                                        |
+| Step                     | Status | Evidence                                                                                                                                                                     |
+| ------------------------ | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| CI on the release commit | Done   | PR #111 at `216badf8`: 47 checks passed and 1 was skipped; merged as `96eb54ce`                                                                                              |
+| Migrations               | Done   | None in this train                                                                                                                                                           |
+| Edge Functions           | Done   | `wallet-pass` redeployed to production: its bundle embeds the token chunk, which gained the Display type steps                                                               |
+| Apps                     | Done   | PR #111 merged into `main` (`96eb54ce`), which Vercel deploys to production                                                                                                  |
+| Packages                 | Done   | Tag `v4.16.0` started `publish-packages.yml`; the owner created the five design packages on npm and approved the run on 2026-11-15; 4.16.0 published to npm (seven) and PyPI |
+| Compass                  | OWNER  | Compass ships on its own cadence                                                                                                                                             |
 
 ## XOS 4.15 release (2026-11-14)
 
