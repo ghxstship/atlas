@@ -192,7 +192,7 @@ enforced on production; the ADR says which sentence changes when.
 Two hosted steps of that record are the owner's. **Neither is done now.** Each is done when the work package
 that needs it has shipped to that environment, staging first and then production, and not before.
 
-1. **Access token lifetime, from 3,600 to 900 seconds, with the refresh limit (ADR 0169 D10, owner decision 7).**
+1. **Access token lifetime, from 3,600 to 900 seconds, with the refresh limit (ADR 0169 D10, owner decision 8).**
    When: work package 12 of the ADR has shipped (`jwt_expiry = 900` and `token_refresh = 600` in
    `supabase/config.toml`). The owner applies it, or approves a named person applying it, both values in one
    sitting:
@@ -203,7 +203,7 @@ that needs it has shipped to that environment, staging first and then production
    Check: sign in to Atlas; the token answer's `expires_in` is 900, and Atlas, Gateway, Console and Compass stay
    signed in past 15 minutes. Rollback: set both values back.
 
-2. **The attestation key `XOS_DATA_ATTEST_KEY` (ADR 0169 D3, owner decision 6).** When: work packages 2, 7 and 8
+2. **The attestation key `XOS_DATA_ATTEST_KEY` (ADR 0169 D3, owner decision 7).** When: work packages 2, 7 and 8
    of the ADR have shipped to that environment, and before the first control there is switched to observe. The
    owner generates the key on the owner's own machine and enters it; no agent sees the value, and it is never
    pasted into a chat, an issue, a commit or a file in the repository. Staging and production get different
@@ -218,10 +218,13 @@ that needs it has shipped to that environment, staging first and then production
 
    Its rotation waits for 5.0, under the standing no-rotation decision of 2026-11-09.
 
-The staging probe (the ADR's work package 0, approved by the owner) is run by a person from
+The staging probe (the ADR's work package 0, approved by the owner, owner decision 2) is run by a person from
 `infra/db/probes/README.md`. It performs the check under "The client address behind proxies" above and four
 others, and removes what it creates. It has not been run. Record its output and date here when it has, with the
-value set for `xos.trusted_proxy_hops` if question 1 was proven.
+value set for `xos.trusted_proxy_hops` if question 1 was proven. Parts of the ADR's build wait for that record:
+its work packages 4 and 7, the Postgres Changes policy of package 6 and the `app_mfa` rule do not start before
+the answers they depend on are written here (the ADR's "What builds in parallel"). The owner's numbers above are
+the owner's own, 1 to 13, as the ADR's "Owner decisions" table lists them.
 
 ## Report runs (A35)
 
