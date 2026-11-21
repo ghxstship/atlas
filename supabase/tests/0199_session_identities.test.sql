@@ -3,13 +3,14 @@
 -- person a suite signs in has a live auth.sessions row, the amr rows of the factors passed, and the claims of the access
 -- token Supabase Auth issues for that session. pg_temp.as_user is a single-factor session, pg_temp.as_user_stepped_up
 -- a second-factor one, and pg_temp.as_session lets a suite choose the session's age, last activity, assurance level and
--- whether the row exists at all.
+-- whether the row exists at all. The claims and rows were compared with what a local Supabase Auth v2.197.0 issued;
+-- 0199_session_identities.psql lists what is modeled and what is not.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0200_identity_world.psql
 
-select plan(77);
+select plan(103);
 
 -- What a helper left on the transaction, kept under a key so it can be read back as the platform.
 create temporary table seen (key text primary key, claims jsonb, role text not null, uid uuid);
@@ -51,12 +52,18 @@ select is(pg_temp.claim('alice', 'email'), 'alice@northwind.test', 'email is the
 select is(pg_temp.claim('alice', 'is_anonymous'), 'false', 'the person is not anonymous');
 select is((select claims -> 'user_metadata' ->> 'full_name' from seen where key = 'alice'), 'Alice Moreno',
   'user_metadata is the account''s');
+select is((select claims -> 'user_metadata' from seen where key = 'alice'),
+  jsonb_build_object('full_name', 'Alice Moreno', 'age_confirmed', '18', 'signup_surface', 'Atlas', 'sub', pg_temp.id('alice_user'),
+    'email', 'alice@northwind.test', 'email_verified', true, 'phone_verified', false),
+  'with what Supabase Auth adds to the sign-up form''s answers');
+select is((select claims -> 'app_metadata' from seen where key = 'alice'), '{"provider": "email", "providers": ["email"]}'::jsonb,
+  'app_metadata names the email provider, as an email sign-up does');
 select is(pg_temp.claim('alice', 'aal'), 'aal1', 'a single-factor session is aal1');
 select is((select claims -> 'amr' from seen where key = 'alice'),
   jsonb_build_array(jsonb_build_object('method', 'password', 'timestamp', extract(epoch from now() - interval '30 minutes')::bigint)),
   'amr names the password, with the time it was given');
-select is(pg_temp.claim('alice', 'exp')::bigint - pg_temp.claim('alice', 'iat')::bigint, 3600::bigint,
-  'the token lives for jwt_expiry, 3,600 seconds');
+select is(pg_temp.claim('alice', 'exp')::bigint - pg_temp.claim('alice', 'iat')::bigint,
+  extract(epoch from pg_temp.token_lifetime())::bigint, 'the token lives for the token lifetime, [auth] jwt_expiry');
 select is(pg_temp.claim('alice', 'iat')::bigint, extract(epoch from now())::bigint, 'and was issued just now');
 
 select is((select s.user_id from auth.sessions s where s.id = pg_temp.session_of('alice')), pg_temp.id('alice_user'),
@@ -68,6 +75,7 @@ select is((select s.refreshed_at from auth.sessions s where s.id = pg_temp.sessi
   'and refreshed when the token was issued');
 select is((select array_agg(a.authentication_method order by a.authentication_method) from auth.mfa_amr_claims a
            where a.session_id = pg_temp.session_of('alice')), array['password'], 'the session has its amr row');
+select is((select s.factor_id from auth.sessions s where s.id = pg_temp.session_of('alice')), null, 'which names no second factor');
 select is(pg_temp.session_of('alice again'), pg_temp.session_of('alice'), 'the same person keeps the same session');
 select isnt(pg_temp.session_of('bob'), pg_temp.session_of('alice'), 'another person has another session');
 select is((select s.user_id from auth.sessions s where s.id = pg_temp.session_of('bob')), pg_temp.id('bob_user'),
@@ -92,6 +100,15 @@ select is((select s.aal::text from auth.sessions s where s.id = pg_temp.session_
 select is((select array_agg(a.authentication_method order by a.authentication_method) from auth.mfa_amr_claims a
            where a.session_id = pg_temp.session_of('alice aal2')), array['password', 'totp'], 'with an amr row for each factor');
 select isnt(pg_temp.session_of('alice aal2'), pg_temp.session_of('alice'), 'it is not the single-factor session');
+select is((select array_agg(f.factor_type::text || ' ' || f.status::text) from auth.mfa_factors f where f.user_id = pg_temp.id('alice_user')),
+  array['totp verified'], 'the person holds one verified authenticator app in Supabase Auth');
+select is((select s.factor_id from auth.sessions s where s.id = pg_temp.session_of('alice aal2')),
+  (select f.id from auth.mfa_factors f where f.user_id = pg_temp.id('alice_user')), 'the session names it as the factor it passed');
+select ok((select f.created_at < s.created_at from auth.mfa_factors f join auth.sessions s on s.factor_id = f.id
+           where s.id = pg_temp.session_of('alice aal2')), 'they enrolled it before this sign-in');
+select is(private.has_verified_second_factor(pg_temp.id('alice_user')), true, 'so the database reads the person as enrolled');
+select is(private.has_verified_second_factor(pg_temp.id('bob_user')), false, 'and a person who never stepped up as not enrolled');
+select is((select count(*)::int from auth.mfa_factors f where f.user_id = pg_temp.id('bob_user')), 0, 'with no factor row');
 select is((select array_agg(k order by k) from seen s, jsonb_object_keys(s.claims) k where s.key = 'alice aal2'),
   (select array_agg(k order by k) from seen s, jsonb_object_keys(s.claims) k where s.key = 'alice'),
   'and its token carries the same claims');
@@ -142,6 +159,11 @@ insert into opened select 'never refreshed', pg_temp.as_session('carol', p_age =
 select pg_temp.keep('never refreshed');
 insert into opened select 'aal2', pg_temp.as_session('carol', 'aal2', p_second_ago => interval '20 minutes');
 select pg_temp.keep('aal2');
+insert into opened select 'aal2 again', pg_temp.as_session('carol', 'aal2');
+select pg_temp.keep('aal2 again');
+insert into opened select 'expired', pg_temp.as_session('carol', p_age => interval '3 hours',
+  p_last_activity => pg_temp.token_lifetime() + interval '1 minute', p_expired => true);
+select pg_temp.keep('expired');
 insert into opened select 'signed out', pg_temp.as_session('carol', p_row => false);
 select pg_temp.keep('signed out');
 insert into opened select 'no session_id', pg_temp.as_session('carol', p_without => array['session_id']);
@@ -177,8 +199,9 @@ select is((select s.updated_at from auth.sessions s where s.id = pg_temp.session
   'in its updated_at');
 select is(pg_temp.claim('idle', 'iat')::bigint, extract(epoch from now() - interval '20 minutes')::bigint,
   'and in the time the token was issued');
-select is(pg_temp.claim('idle', 'exp')::bigint, extract(epoch from now() + interval '40 minutes')::bigint,
-  'so the token has 40 of its 60 minutes left');
+select is(pg_temp.claim('idle', 'exp')::bigint, extract(epoch from now() - interval '20 minutes' + pg_temp.token_lifetime())::bigint,
+  'so the token expires one token lifetime after that');
+select ok(pg_temp.claim('idle', 'exp')::bigint > extract(epoch from now())::bigint, 'and has not expired');
 select is((select s.created_at from auth.sessions s where s.id = pg_temp.session_of('idle')),
   pg_temp.whole(now() - interval '3 hours'), 'the sign-in time stays p_age');
 
@@ -198,6 +221,29 @@ select is((select claims -> 'amr' from seen where key = 'aal2'),
   'p_second_ago is when the second factor passed');
 select is((select a.updated_at from auth.mfa_amr_claims a where a.session_id = pg_temp.session_of('aal2') and a.authentication_method = 'totp'),
   pg_temp.whole(now() - interval '20 minutes'), 'on its amr row too');
+
+select is((select s.factor_id from auth.sessions s where s.id = pg_temp.session_of('aal2')),
+  (select f.id from auth.mfa_factors f where f.user_id = pg_temp.id('carol_user') and f.status::text = 'verified'),
+  'and the row names the person''s verified authenticator app');
+select is((select s.factor_id from auth.sessions s where s.id = pg_temp.session_of('aal2 again')),
+  (select s.factor_id from auth.sessions s where s.id = pg_temp.session_of('aal2')), 'which a later session of theirs passes again');
+select is((select count(*)::int from auth.mfa_factors f where f.user_id = pg_temp.id('carol_user')), 1, 'without a second enrollment');
+
+-- The token is issued at the last activity, so a last activity beyond the token lifetime is an expired token.
+select throws_ok(
+  $$select pg_temp.as_session('carol', p_age => interval '3 hours', p_last_activity => pg_temp.token_lifetime() + interval '1 minute')$$,
+  'P0001', null, 'a last activity beyond the token lifetime is refused: PostgREST would reject that token as expired');
+select throws_ok(
+  $$select pg_temp.as_session('carol', p_age => interval '3 hours', p_last_activity => pg_temp.token_lifetime())$$,
+  'P0001', null, 'as is one exactly at the lifetime');
+select lives_ok(
+  $$select pg_temp.as_session('carol', p_age => interval '3 hours', p_last_activity => pg_temp.token_lifetime() - interval '1 second')$$,
+  'one second inside the lifetime is a valid token');
+select pg_temp.as_platform();
+select ok(pg_temp.claim('expired', 'exp')::bigint < extract(epoch from now())::bigint,
+  'p_expired presents the expired token when that is the case under test');
+select is((select s.refreshed_at from auth.sessions s where s.id = pg_temp.session_of('expired')),
+  (now() - pg_temp.token_lifetime() - interval '1 minute') at time zone 'UTC', 'over a session last refreshed then');
 
 select isnt(pg_temp.session_of('signed out'), null, 'p_row false still names a session in the token');
 select is(pg_temp.session_of('signed out'), (select id from opened where key = 'signed out'), 'the one it returns');
@@ -226,12 +272,26 @@ select is((select claims from seen where key = 'anon'), '{"role": "anon"}'::json
 select is((select role from seen where key = 'anon'), 'anon', 'under the anon role');
 select is((select claims from seen where key = 'platform'), null, 'as_platform carries no token');
 
--- A token that outlived its account: no session row can stand behind it.
-select pg_temp.sign_in('00000000-0000-4000-8000-00000000dead');
+-- A token that outlived its account: no user row and no session row can stand behind it.
+select pg_temp.token_of_deleted_account('00000000-0000-4000-8000-00000000dead');
 select pg_temp.keep('gone');
 select pg_temp.as_platform();
-select is(pg_temp.claim('gone', 'sub'), '00000000-0000-4000-8000-00000000dead', 'sign_in for an account that is gone keeps the sub');
-select is((select count(*)::int from auth.sessions s where s.id = pg_temp.session_of('gone')), 0, 'and opens no session');
+select is(pg_temp.claim('gone', 'sub'), '00000000-0000-4000-8000-00000000dead', 'token_of_deleted_account keeps the sub of the account that is gone');
+select is((select role from seen where key = 'gone'), 'authenticated', 'under the authenticated role');
+select isnt(pg_temp.session_of('gone'), null, 'and names a session');
+select is((select count(*)::int from auth.sessions s where s.id = pg_temp.session_of('gone')), 0, 'that has no row');
+select throws_ok($$select pg_temp.token_of_deleted_account(pg_temp.id('alice_user'))$$, 'P0001', null,
+  'it is refused for a person whose account exists');
+
+-- A person the suite did not make is a mistake in the suite, never a token.
+select throws_ok($$select pg_temp.sign_in('00000000-0000-4000-8000-00000000dead')$$, 'P0001', null,
+  'sign_in refuses a user with no account');
+select throws_ok($$select pg_temp.as_user('nobody_here')$$, 'P0001', 'fixture: the world holds no person nobody_here',
+  'as_user refuses a key the world does not hold');
+select throws_ok($$select pg_temp.as_user_stepped_up('nobody_here')$$, 'P0001', null, 'as does as_user_stepped_up');
+select throws_ok($$select pg_temp.as_session('nobody_here')$$, 'P0001', null, 'and as_session');
+select throws_ok($$select pg_temp.as_deleted_user('alice')$$, 'P0001', null, 'as_deleted_user refuses a person who still has an account');
+select pg_temp.as_platform();
 
 -- Every session a helper opened is of a world person and rolls back with the suite.
 select is((select count(*)::int from auth.sessions s where s.user_agent = 'pgTAP'
