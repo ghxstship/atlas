@@ -4,7 +4,11 @@
 -- (app.workforce_directory). The cases: a single-factor session where everyone must verify; a session older than
 -- the lifetime; an idle session, also after a touch sent past the timeout; a session whose auth.sessions row is
 -- gone, including a step-up function at aal2; a caller outside the allow-list, with a session token and with an
--- API-key token; a token with no session_id claim.
+-- API-key token; a token with no session_id claim. Two more are attacks on the gate's own records: an attestation
+-- lifted from one of our servers and replayed to keep or regain a network pass, and a member who holds a slow write
+-- open while a control is in observe so that other members' calls wait on the observation counter. The second
+-- needs two connections, which pgTAP does not have: infra/db/test/session-gate-concurrency.sh makes the two calls,
+-- and this file holds that the counter is only ever taken with a lock that is tried, never waited for.
 --
 -- Package 2 (the gate core) created this file. What the gate core decides passes today: the verdict names the
 -- refusal of every case, a signed-out session cannot step up, and a refused session still reads why. Refusing the
@@ -17,7 +21,7 @@ set search_path = extensions, public;
 \ir 0300_domain_world.psql
 \ir 904180200_session_gate_fixture.psql
 
-select plan(38);
+select plan(43);
 
 select pg_temp.attack_rules();
 
@@ -109,6 +113,47 @@ select todo('work package 4 (the PostgREST pre-request) refuses the call: HTTP 4
 select is(pg_temp.read_projects(), 'XS401 session_ended', 'no session_id: reading a project list is refused');
 select is(pg_temp.insert_record(), 'XS401 session_ended', 'no session_id: inserting a record is refused');
 select is(pg_temp.call_directory(), 'XS401 session_ended', 'no session_id: a definer function that reads memberships inline is refused');
+
+-- A lifted attestation, replayed ---------------------------------------------------------------------------------------------
+-- The attacker holds a session token and an attestation one of our servers signed for that session inside the
+-- allowed network, and presents it again as the signed argument of app.touch_my_session.
+select pg_temp.attack('network');
+insert into world values ('lifted', pg_temp.private_text('select private.session_id()::text')::uuid);
+select app.touch_my_session('Compass', null, null, null,
+  pg_temp.attestation(pg_temp.id('bob_user'), pg_temp.id('lifted'), '203.0.113.7', interval '4 minutes 50 seconds'));
+select is(pg_temp.private_text('select private.session_direct_refusal()'), null,
+  'a replayed attestation: inside five minutes of its signature it still gives the pass');
+select pg_temp.as_owner_of_gate(format(
+  'update private.session_state set pass_at = pass_at - interval ''11 seconds'', last_activity_at = last_activity_at - interval ''11 seconds''
+   where session_id = %L', pg_temp.id('lifted')));
+select is(pg_temp.private_text('select private.session_direct_refusal()'), 'network_restricted',
+  'a replayed attestation: eleven seconds on, five minutes after the server signed it, the pass is over, whenever it was replayed');
+
+select pg_temp.attack('network');
+insert into world values ('moved', pg_temp.private_text('select private.session_id()::text')::uuid);
+select app.touch_my_session('Compass', null, null, null,
+  pg_temp.attestation(pg_temp.id('bob_user'), pg_temp.id('moved'), '198.51.100.7', interval '10 seconds'));
+select is(pg_temp.private_text('select private.session_direct_refusal()'), 'network_restricted',
+  'a session our server last saw outside the allowed network is refused');
+select app.touch_my_session('Compass', null, null, null,
+  pg_temp.attestation(pg_temp.id('bob_user'), pg_temp.id('moved'), '203.0.113.7', interval '3 minutes'));
+select is(pg_temp.private_text('select private.session_direct_refusal()'), 'network_restricted',
+  'and replaying an older attestation from inside the network does not move its pass back inside');
+
+-- A slow write under observe -------------------------------------------------------------------------------------------------
+-- Observe counts each call enforce would refuse in one row for the organization, control, kind of token and reason.
+-- A member who keeps a write open must not make every other member's call wait on that row.
+select pg_temp.as_platform();
+select pg_temp.gate_all('off');
+select pg_temp.gate('mfa', 'observe');
+select pg_temp.as_session('bob', 'aal1', interval '10 minutes');
+select pg_temp.private_text($$select private.session_verdict_store('postgrest')$$);
+select pg_temp.as_platform();
+select is((select count(*)::int from pg_locks l
+           where l.locktype = 'advisory' and l.pid = pg_backend_pid() and l.objsubid = 1 and l.granted
+             and ((l.classid::bigint << 32) | l.objid::bigint) = private.session_gate_lock_key('observe',
+                   concat_ws('|', to_char((now() at time zone 'UTC')::date, 'YYYYMMDD'), 'mfa', 'postgrest', pg_temp.id('org_a'), 'session', 'session_mfa_required'))), 1,
+  'observe: the counter of an observed call is written under a lock that is tried and never waited for, so a slow write stalls nobody');
 
 -- A refused session can still read why ----------------------------------------------------------------------------------------
 select pg_temp.attack('mfa');

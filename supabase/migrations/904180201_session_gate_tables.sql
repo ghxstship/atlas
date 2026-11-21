@@ -172,7 +172,7 @@ create index if not exists session_gate_observations_org_idx on private.session_
 alter table private.session_gate_observations enable row level security;
 revoke all on private.session_gate_observations from public, anon, authenticated;
 
-comment on table private.session_gate_observations is 'What observe mode counted (ADR 0169 D7): for each day, control, surface, organization, kind of token and reason, how many read-write calls enforce would have refused. It names no person, session or address. The two edge_* reasons count direct REST calls whose edge address agreed or disagreed with the session''s fresh network pass (ADR 0169 D4), the comparison that precedes switching the address source.';
+comment on table private.session_gate_observations is 'What observe mode counted (ADR 0169 D7): for each day, control, surface, organization, kind of token and reason, how many read-write calls enforce would have refused. It names no person, session or address. A call that arrives while another request is writing the same row is not counted (private.session_gate_observe never waits), so calls is a lower bound under concurrency; the xos_session_gate log line is written for every call and is the complete record. The two edge_* reasons count direct REST calls whose edge address agreed or disagreed with the session''s fresh network pass (ADR 0169 D4), the comparison that precedes switching the address source.';
 comment on column private.session_gate_observations.id is 'Row id. The tenant purge of 1270 names a row by its primary key.';
 comment on column private.session_gate_observations.observed_on is 'UTC day of the calls.';
 comment on column private.session_gate_observations.control is 'Control that would have refused.';
@@ -180,7 +180,7 @@ comment on column private.session_gate_observations.surface is 'Where the verdic
 comment on column private.session_gate_observations.org_id is 'Organization that would have refused, or NULL for a session refused as a whole and for the address comparison.';
 comment on column private.session_gate_observations.token_type is 'Kind of token: session, api_key or app.';
 comment on column private.session_gate_observations.reason is 'The refusal reason enforce would have given, or the outcome of the address comparison.';
-comment on column private.session_gate_observations.calls is 'Number of read-write calls counted.';
+comment on column private.session_gate_observations.calls is 'Number of read-write calls counted: a lower bound when calls arrive at once.';
 comment on column private.session_gate_observations.first_seen_at is 'First call counted in the row.';
 comment on column private.session_gate_observations.last_seen_at is 'Last call counted in the row.';
 

@@ -5,14 +5,20 @@
 -- from a verified attestation only, never from the address the client sends, and a touch after the idle timeout does
 -- not revive the session. private.require_second_factor refuses a signed-out session where the signed-out control
 -- is enforced, and nowhere else. Turning security.mfa_policy on needs an aal2 session where the second-factor
--- control is in observe or enforce.
+-- control is in observe or enforce. The pass is dated at the time the server signed the attestation, an older
+-- attestation never replaces a newer pass, a stamp that has nothing to write takes no lock on the session's row,
+-- and app.my_session_gate decides the verdict once however many organizations the person belongs to. Two requests
+-- at once are held by infra/db/test/session-gate-concurrency.sh, because pgTAP runs on one connection.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0200_identity_world.psql
 \ir 904180200_session_gate_fixture.psql
 
-select plan(53);
+select plan(61);
+
+-- Counts function calls inside this transaction, for the case that holds how often the verdict is computed.
+set local track_functions = 'all';
 
 select pg_temp.rule('org_a', 'alice', 'security.mfa_policy', 'everyone');
 select pg_temp.rule('org_a', 'alice', 'security.session_hours', p_integer => 8);
@@ -56,6 +62,14 @@ select results_eq($$select org_name, closed, reason from app.my_session_gate()$$
   'enforce: a member of two organizations reads each by name, one open and one closed');
 select results_eq($$select idle, network_allowed, blocked_reason from app.my_org_auth_status(pg_temp.id('org_b'))$$,
   $$values (false, true, null::text)$$, 'enforce: the organization that admits the session reads as passing');
+
+-- The verdict is decided once for the call, not once or twice for each organization (ADR 0169 D1).
+select set_config('gate_test.computed', (select coalesce(sum(calls), 0)::text from pg_stat_xact_user_functions
+  where schemaname = 'private' and funcname = 'session_verdict_compute'), true);
+select is((select count(*)::int from app.my_session_gate()), 2, 'enforce: with no stored verdict the gate still lists both organizations');
+select is((select coalesce(sum(calls), 0)::int from pg_stat_xact_user_functions
+           where schemaname = 'private' and funcname = 'session_verdict_compute') - current_setting('gate_test.computed')::int, 1,
+  'enforce: and app.my_session_gate computes the verdict once for a member of two organizations');
 
 select pg_temp.as_session('mia', 'aal2', interval '10 minutes', p_row => false);
 select results_eq($$select org_name, closed, reason from app.my_session_gate()$$,
@@ -106,10 +120,13 @@ select is((select now() - last_activity_at from private.session_state where sess
 
 select pg_temp.present_token(pg_temp.access_token(pg_temp.id('dave_user'), pg_temp.id('touch'), 'aal2',
   pg_temp.amr('password', interval '10 minutes', 'totp', interval '1 minute')));
-select app.touch_my_session('Compass', null, null, null, pg_temp.attestation(pg_temp.id('dave_user'), pg_temp.id('touch'), '203.0.113.77'));
+select app.touch_my_session('Compass', null, null, null,
+  pg_temp.attestation(pg_temp.id('dave_user'), pg_temp.id('touch'), '203.0.113.77', interval '20 seconds'));
 select pg_temp.as_platform();
-select results_eq($$select pass_address, pass_at = now(), last_activity_at = now() from private.session_state where session_id = pg_temp.id('touch')$$,
-  $$values ('203.0.113.77'::inet, true, true)$$, 'a touch with a signed attestation renews the pass at the attested address, at once');
+select results_eq($$select pass_address, pass_at = date_trunc('second', now() - interval '20 seconds'), last_activity_at = now()
+                    from private.session_state where session_id = pg_temp.id('touch')$$,
+  $$values ('203.0.113.77'::inet, true, true)$$,
+  'a touch with a signed attestation renews the pass at the attested address, at once, dated when the server signed it');
 
 select pg_temp.present_token(pg_temp.access_token(pg_temp.id('dave_user'), pg_temp.id('touch'), 'aal2',
   pg_temp.amr('password', interval '10 minutes', 'totp', interval '1 minute')));
@@ -128,6 +145,48 @@ select pg_temp.request_headers(null);
 select pg_temp.as_platform();
 select is((select host(pass_address) from private.session_state where session_id = pg_temp.id('touch')), '203.0.113.88',
   'the attestation our servers send as the request header renews the pass too');
+
+-- The pass is as old as its attestation, and an older attestation never replaces a newer pass.
+select pg_temp.present_token(pg_temp.access_token(pg_temp.id('dave_user'), pg_temp.id('touch'), 'aal2',
+  pg_temp.amr('password', interval '10 minutes', 'totp', interval '1 minute')));
+select set_config('gate_test.ctid', (select pg_temp.private_text(format('select ctid::text from private.session_state where session_id = %L', pg_temp.id('touch')))), true);
+select app.touch_my_session('Compass', null, null, null,
+  pg_temp.attestation(pg_temp.id('dave_user'), pg_temp.id('touch'), '203.0.113.77', interval '3 minutes'));
+select pg_temp.as_platform();
+select results_eq($$select pass_address, pass_at = date_trunc('second', now()) from private.session_state where session_id = pg_temp.id('touch')$$,
+  $$values ('203.0.113.88'::inet, true)$$, 'an older attestation presented after a newer one moves neither the pass nor its address');
+select is((select ctid::text from private.session_state where session_id = pg_temp.id('touch')), current_setting('gate_test.ctid'),
+  'and writes nothing');
+
+select pg_temp.session_state(pg_temp.id('touch'), interval '30 seconds', interval '2 minutes', '203.0.113.88', interval '90 seconds');
+select pg_temp.present_token(pg_temp.access_token(pg_temp.id('dave_user'), pg_temp.id('touch'), 'aal2',
+  pg_temp.amr('password', interval '10 minutes', 'totp', interval '1 minute')));
+select set_config('gate_test.ctid', (select pg_temp.private_text(format('select ctid::text from private.session_state where session_id = %L', pg_temp.id('touch')))), true);
+select app.touch_my_session('Compass', null, null, null,
+  pg_temp.attestation(pg_temp.id('dave_user'), pg_temp.id('touch'), '203.0.113.88', interval '2 minutes'));
+select app.touch_my_session('Compass', null, null, null,
+  pg_temp.attestation(pg_temp.id('dave_user'), pg_temp.id('touch'), '203.0.113.88', interval '4 minutes'));
+select pg_temp.as_platform();
+select is((select ctid::text from private.session_state where session_id = pg_temp.id('touch')), current_setting('gate_test.ctid'),
+  'an attestation replayed on every request inside the minute writes nothing, so the once-a-minute bound holds');
+select is((select now() - pass_at from private.session_state where session_id = pg_temp.id('touch')), interval '90 seconds',
+  'and the pass keeps its age');
+
+select pg_temp.present_token(pg_temp.access_token(pg_temp.id('dave_user'), pg_temp.id('touch'), 'aal2',
+  pg_temp.amr('password', interval '10 minutes', 'totp', interval '1 minute')));
+select app.touch_my_session('Compass', null, null, null,
+  pg_temp.attestation(pg_temp.id('dave_user'), pg_temp.id('touch'), '203.0.113.88', interval '-40 seconds'));
+select pg_temp.as_platform();
+select is((select pass_at from private.session_state where session_id = pg_temp.id('touch')), now(),
+  'an attestation dated ahead by a server clock renews the pass as of now, never later');
+
+-- A stamp with nothing to write leaves the row unlocked: xmax is the transaction that locked or changed a row.
+insert into world values ('quiet', pg_temp.as_session('dave', 'aal2', interval '10 minutes'));
+select app.touch_my_session('Atlas', null, null, null);
+select app.touch_my_session('Atlas', null, null, null);
+select pg_temp.as_platform();
+select is((select xmax::text from private.session_state where session_id = pg_temp.id('quiet')), '0',
+  'a stamp that writes nothing takes no lock on the session''s row, so two requests of one session never wait on it');
 
 -- The gap is folded in, so a touch after the timeout does not revive the session.
 select pg_temp.gate('idle', 'enforce');

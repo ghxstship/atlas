@@ -6,7 +6,12 @@
 -- before.
 --
 --   private.stamp_session_activity   new. Records an activity of the caller's session and, from a verified
---                                    attestation only, its network pass (ADR 0169 D4 and D5).
+--                                    attestation only, its network pass (ADR 0169 D4 and D5). The pass is dated
+--                                    when the server signed the attestation, so it ends five minutes after the
+--                                    server saw the address however late or often the attestation is presented,
+--                                    and an older attestation never replaces a newer pass. A stamp never waits:
+--                                    it reads the row without a lock, returns when there is nothing to write,
+--                                    and writes only under an advisory lock it tries for.
 --   app.touch_my_session             redefined from 1561_signed_in_sessions.sql, its only definition, every behavior
 --                                    kept. It gains p_attestation (the signed argument of ADR 0169 D4) and stamps the
 --                                    session's activity. A fifth parameter changes the signature, so the function is
@@ -21,7 +26,8 @@
 --                                    blocked_reason from the verdict, and names the caller's organizations through
 --                                    private.my_org_ids_base, so a refused session still gets its answer. Dropped
 --                                    and created again for the new return type, with its grants.
---   app.my_session_gate              new. Each of the caller's organizations by name, and why it is closed.
+--   app.my_session_gate              new. Each of the caller's organizations by name, and why it is closed. It
+--                                    asks for the verdict once, however many organizations there are.
 --   private.require_second_factor    redefined from 1333_require_second_factor.sql, its only definition, every
 --                                    behavior kept. Where the signed-out control refuses the session it now refuses
 --                                    session_ended: a session without a live auth.sessions row cannot step up.
@@ -49,6 +55,11 @@ declare
   v_refreshed timestamptz;
   v_verified boolean := false;
   v_address inet;
+  v_signed_at timestamptz;
+  v_pass_at timestamptz;
+  v_last_activity timestamptz;
+  v_stored_address inet;
+  v_stored_pass_at timestamptz;
 begin
   if v_user is null or v_session is null or private.api_key_scopes() is not null
      or current_setting('transaction_read_only', true) = 'on' then
@@ -60,27 +71,48 @@ begin
   if not found then
     return;
   end if;
-  -- The pass is written from a verified attestation only: the signed argument, or the header our servers send.
-  select a.verified, a.client_address into v_verified, v_address
+  -- The pass is written from a verified attestation only: the signed argument, or the header our servers send. It is
+  -- dated when the server signed it, never later than now, so a pass ends five minutes after the server saw the
+  -- address, not five minutes after the attestation was last presented.
+  select a.verified, a.client_address, a.signed_at into v_verified, v_address, v_signed_at
   from private.verify_attestation(coalesce(p_attestation, private.request_header('x-xos-attestation')), v_user, v_session) a;
-  v_verified := coalesce(v_verified, false) and v_address is not null;
+  v_verified := coalesce(v_verified, false) and v_address is not null and v_signed_at is not null;
+  v_pass_at := case when v_verified then least(now(), v_signed_at) end;
+
+  -- Nothing to write: the last recorded activity is under a minute old, and the attestation is absent, older than
+  -- the stored pass, or under a minute newer at the same address. This read takes no lock, so the requests of one
+  -- session inside a minute do not touch each other.
+  select st.last_activity_at, st.pass_address, st.pass_at into v_last_activity, v_stored_address, v_stored_pass_at
+  from private.session_state st
+  where st.session_id = v_session;
+  if found and v_last_activity >= now() - interval '1 minute'
+     and not (v_verified and (v_stored_pass_at is null or v_stored_pass_at < v_pass_at - interval '1 minute'
+                              or (v_stored_address is distinct from v_address and v_stored_pass_at < v_pass_at))) then
+    return;
+  end if;
+  -- One request at a time writes the session's row, and the others do not wait for it: the request that holds the
+  -- lock records the same activity. The advisory lock covers the session's first stamp as well, where two inserts
+  -- would wait on each other at the primary key.
+  if not pg_try_advisory_xact_lock(private.session_gate_lock_key('stamp', v_session::text)) then
+    return;
+  end if;
 
   insert into private.session_state as st (session_id, last_activity_at, longest_gap, pass_address, pass_at)
   values (v_session, now(),
           private.session_idle_span(v_created, v_refreshed, null, interval '0', now()),
-          case when v_verified then v_address end, case when v_verified then now() end)
+          case when v_verified then v_address end, v_pass_at)
   on conflict (session_id) do update
     set longest_gap = private.session_idle_span(v_created, v_refreshed, st.last_activity_at, st.longest_gap, now()),
         last_activity_at = now(),
-        pass_address = case when v_verified then v_address else st.pass_address end,
-        pass_at = case when v_verified then now() else st.pass_at end
+        pass_address = case when v_verified and (st.pass_at is null or st.pass_at < v_pass_at) then v_address else st.pass_address end,
+        pass_at = case when v_verified and (st.pass_at is null or st.pass_at < v_pass_at) then v_pass_at else st.pass_at end
     where st.last_activity_at < now() - interval '1 minute'
-       or (v_verified and (st.pass_at is null or st.pass_at < now() - interval '1 minute'
-                           or st.pass_address is distinct from v_address));
+       or (v_verified and (st.pass_at is null or st.pass_at < v_pass_at - interval '1 minute'
+                           or (st.pass_address is distinct from v_address and st.pass_at < v_pass_at)));
 end;
 $$;
 
-comment on function private.stamp_session_activity(text) is 'Records an activity of the caller''s own live session in private.session_state (ADR 0169 D5), folding the time since the last one into the longest gap, and renews the session''s network pass when the call carries a verified attestation with an address, as the argument or as the request header (ADR 0169 D4). Writes at most once a minute unless the pass changed, and nothing on a read-only transaction, for an API key, an app or a session that is gone. app.touch_my_session and the PostgREST pre-request call it.';
+comment on function private.stamp_session_activity(text) is 'Records an activity of the caller''s own live session in private.session_state (ADR 0169 D5), folding the time since the last one into the longest gap, and renews the session''s network pass when the call carries a verified attestation with an address, as the argument or as the request header (ADR 0169 D4). The pass is dated when the server signed the attestation and never later than now, and only a newer attestation replaces it, so replaying an attestation neither extends a pass nor moves it back to an earlier address. Writes at most once a minute unless a newer attestation names another address, and nothing on a read-only transaction, for an API key, an app or a session that is gone. It never waits on another request of the same session: it returns without a lock when there is nothing to write, and skips the write when another request is making it. app.touch_my_session and the PostgREST pre-request call it.';
 revoke all on function private.stamp_session_activity(text) from public, anon, authenticated;
 
 -- Recording the device, the activity and the pass -------------------------------------------------------------------------
@@ -252,13 +284,19 @@ stable
 security definer
 set search_path = ''
 as $$
-  select o.id, o.name, private.session_org_refusal(o.id) is not null, private.session_org_refusal(o.id)
-  from app.organizations o
+  -- The verdict is read once, and each organization's reason is taken from it as private.session_org_refusal gives
+  -- it. Asking that reader for each organization computes the whole verdict each time when none is stored.
+  with verdict as materialized (select private.session_verdict() as j)
+  select o.id, o.name,
+         coalesce(v.j ->> 'session', v.j -> 'orgs' -> o.id::text ->> 0) is not null,
+         coalesce(v.j ->> 'session', v.j -> 'orgs' -> o.id::text ->> 0)
+  from verdict v
+  cross join app.organizations o
   where o.id in (select private.my_org_ids_base())
   order by o.name, o.id;
 $$;
 
-comment on function app.my_session_gate() is 'Each organization the caller belongs to, by name, with whether it is closed to the caller''s session and why (ADR 0169 D2): session_ended, session_expired, session_idle, session_mfa_required or network_restricted, the strongest reason first. A refused session can still call it, so Atlas, Gateway and Compass can say which organization refuses and what to do. Nothing is closed while every control is off.';
+comment on function app.my_session_gate() is 'Each organization the caller belongs to, by name, with whether it is closed to the caller''s session and why (ADR 0169 D2): session_ended, session_expired, session_idle, session_mfa_required or network_restricted, the strongest reason first. A refused session can still call it, so Atlas, Gateway and Compass can say which organization refuses and what to do. Nothing is closed while every control is off. The verdict is decided once for the call, however many organizations the caller belongs to.';
 revoke all on function app.my_session_gate() from public, anon;
 grant execute on function app.my_session_gate() to authenticated;
 

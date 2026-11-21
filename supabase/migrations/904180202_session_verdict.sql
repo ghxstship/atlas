@@ -37,6 +37,12 @@
 -- is asked for a direct REST call (surface postgrest), private.request_ip() at xos.trusted_proxy_hops; otherwise
 -- the session's network pass while it is younger than five minutes. An API key or an app holds no pass.
 --
+-- No request waits on another for the gate's own records. private.session_gate_observe counts under a
+-- transaction-scoped advisory lock that it only tries for (private.session_gate_lock_key): a call that finds the
+-- counter of its row busy skips the count and never waits, so a member who holds a write open while a control is in
+-- observe stalls nobody. The log line is written for every call and is the complete record; the count is a lower
+-- bound under contention.
+--
 -- New functions only. No existing function is redefined here.
 
 -- Small readers of the configuration ------------------------------------------------------------------------------------
@@ -381,6 +387,18 @@ $$;
 comment on function private.session_gate_log_line(text, text, uuid, text, text) is 'The Postgres log line observe mode writes for one call enforce would have refused (ADR 0169 D7): the marker xos_session_gate and the control, surface, organization, kind of token and reason. It carries no person, session, address or email.';
 revoke all on function private.session_gate_log_line(text, text, uuid, text, text) from public, anon, authenticated;
 
+create or replace function private.session_gate_lock_key(p_kind text, p_key text)
+returns bigint
+language sql
+immutable
+set search_path = ''
+as $$
+  select hashtextextended('xos_session_gate|' || coalesce(p_kind, '') || '|' || coalesce(p_key, ''), 0);
+$$;
+
+comment on function private.session_gate_lock_key(text, text) is 'The advisory lock key of one of the session gate''s own rows (ADR 0169): p_kind observe with the day (YYYYMMDD), control, surface, organization when there is one, kind of token and reason joined by |, for a row of private.session_gate_observations; p_kind stamp with the session id, for a row of private.session_state. The gate takes these locks with pg_try_advisory_xact_lock only, so no request ever waits for one.';
+revoke all on function private.session_gate_lock_key(text, text) from public, anon, authenticated;
+
 create or replace function private.session_gate_observe(p_surface text, p_verdict jsonb)
 returns void
 language plpgsql
@@ -391,6 +409,9 @@ as $$
 declare
   v_surface text := lower(btrim(coalesce(p_surface, '')));
   v_item jsonb;
+  v_day date := (now() at time zone 'UTC')::date;
+  v_token text := p_verdict ->> 'token';
+  v_row record;
 begin
   if p_verdict is null or jsonb_typeof(p_verdict -> 'observed') is distinct from 'array'
      or jsonb_array_length(p_verdict -> 'observed') = 0 then
@@ -406,18 +427,28 @@ begin
   if current_setting('transaction_read_only', true) = 'on' then
     return;
   end if;
-  insert into private.session_gate_observations as o (observed_on, control, surface, org_id, token_type, reason, calls)
-  select (now() at time zone 'UTC')::date, e ->> 'control', v_surface, (e ->> 'org')::uuid, p_verdict ->> 'token',
-         e ->> 'reason', count(*)
-  from jsonb_array_elements(p_verdict -> 'observed') e
-  group by 2, 4, 6
-  order by 2, 4, 6
-  on conflict (observed_on, control, surface, org_id, token_type, reason) do update
-    set calls = o.calls + excluded.calls, last_seen_at = now();
+  -- Every observed read-write call of one organization, control, kind of token and reason counts in the same row,
+  -- and a row written here stays locked until the request's transaction ends. So the row is written only under an
+  -- advisory lock that is tried and never waited for: while another request holds it, this one skips the count. That
+  -- covers the first insert of the day too, where the wait would be on the unique index.
+  for v_row in
+    select e ->> 'control' as control, (e ->> 'org')::uuid as org_id, e ->> 'reason' as reason, count(*) as calls
+    from jsonb_array_elements(p_verdict -> 'observed') e
+    group by 1, 2, 3
+    order by 1, 2, 3
+  loop
+    if pg_try_advisory_xact_lock(private.session_gate_lock_key('observe',
+         concat_ws('|', to_char(v_day, 'YYYYMMDD'), v_row.control, v_surface, v_row.org_id, v_token, v_row.reason))) then
+      insert into private.session_gate_observations as o (observed_on, control, surface, org_id, token_type, reason, calls)
+      values (v_day, v_row.control, v_surface, v_row.org_id, v_token, v_row.reason, v_row.calls)
+      on conflict (observed_on, control, surface, org_id, token_type, reason) do update
+        set calls = o.calls + excluded.calls, last_seen_at = now();
+    end if;
+  end loop;
 end;
 $$;
 
-comment on function private.session_gate_observe(text, jsonb) is 'Records what observe mode saw in a verdict (ADR 0169 D7): one Postgres log line for each call enforce would have refused and, on a read-write transaction, a count in private.session_gate_observations. Refuses nothing. Called by private.session_verdict_store; a package that asks the verdict on another surface calls it with its own surface name.';
+comment on function private.session_gate_observe(text, jsonb) is 'Records what observe mode saw in a verdict (ADR 0169 D7): one Postgres log line for each call enforce would have refused and, on a read-write transaction, a count in private.session_gate_observations. Refuses nothing and waits for nothing: a count whose row another request is writing is skipped, so the log lines are the complete record and the counts a lower bound. Called by private.session_verdict_store; a package that asks the verdict on another surface calls it with its own surface name.';
 revoke all on function private.session_gate_observe(text, jsonb) from public, anon, authenticated;
 
 create or replace function private.session_verdict_store(p_surface text)
