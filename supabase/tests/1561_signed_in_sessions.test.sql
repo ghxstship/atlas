@@ -23,18 +23,25 @@ begin
   return v_id;
 end $$;
 
-create function pg_temp.as_session(p_user text, p_session text, p_key boolean default false) returns void
+create function pg_temp.as_suite_session(p_user text, p_session text, p_key boolean default false) returns void
 language plpgsql as $$
 begin
-  perform set_config('role', 'postgres', true);
-  perform set_config('request.jwt.claims',
-    jsonb_build_object('sub', pg_temp.id(p_user || '_user'), 'role', 'authenticated', 'aal', 'aal1',
+  if p_key then
+    -- An API key's token is not a session, whatever session_id it names.
+    perform pg_temp.present_token(jsonb_build_object('sub', pg_temp.id(p_user || '_user'), 'role', 'authenticated', 'aal', 'aal1',
       'session_id', coalesce(pg_temp.id(p_session), gen_random_uuid()),
-      'amr', jsonb_build_array(jsonb_build_object('method', case when p_key then 'xos_api_key' else 'password' end,
-        'timestamp', extract(epoch from now() - interval '1 hour')::bigint)),
-      'scopes', case when p_key then '["projects"]'::jsonb end)::text, true);
-  perform set_config('role', 'authenticated', true);
+      'amr', pg_temp.amr('xos_api_key', interval '1 hour'), 'scopes', '["projects"]'::jsonb));
+  else
+    -- The token of one of the sessions above; a key no session was opened under is a session that has ended.
+    perform pg_temp.present_token(pg_temp.access_token(pg_temp.id(p_user || '_user'),
+      coalesce(pg_temp.id(p_session), gen_random_uuid()), 'aal1', pg_temp.amr('password', interval '1 hour')));
+  end if;
 end $$;
+
+-- The suite counts a person's sessions, so it starts from the ones it opens: the sessions the world's sign-ins left
+-- (0199_session_identities.psql) are signed out first.
+select pg_temp.as_platform();
+delete from auth.sessions where user_agent = 'pgTAP';
 
 select pg_temp.new_session('alice', 'laptop', interval '3 hours');
 select pg_temp.new_session('alice', 'phone', interval '2 hours');
@@ -55,16 +62,16 @@ select is((select count(*)::int from pg_attribute a where a.attrelid = 'private.
 
 -- Recording the device ------------------------------------------------------------------------------------------------------
 
-select pg_temp.as_session('alice', 'laptop');
+select pg_temp.as_suite_session('alice', 'laptop');
 select lives_ok($$select app.touch_my_session('Atlas', '198.51.100.7', 'Lisbon, Lisbon, PT', 'Mozilla/5.0 (Macintosh) Chrome/141.0')$$,
   'Atlas records the laptop''s device');
-select pg_temp.as_session('alice', 'phone');
+select pg_temp.as_suite_session('alice', 'phone');
 select lives_ok($$select app.touch_my_session('Compass', 'not an address', e'Porto\n', 'Compass/1.0 (iPhone; iOS 26)')$$,
   'Compass records the phone, with an unreadable address');
 select app.touch_my_session('Kiosk', '198.51.100.9', null, 'x');
-select pg_temp.as_session('alice', 'tablet', true);
+select pg_temp.as_suite_session('alice', 'tablet', true);
 select app.touch_my_session('API', '198.51.100.10', null, 'curl/8');
-select pg_temp.as_session('alice', 'missing');
+select pg_temp.as_suite_session('alice', 'missing');
 select app.touch_my_session('Atlas', '198.51.100.11', null, 'Firefox');
 
 select pg_temp.as_platform();
@@ -79,7 +86,7 @@ select is((select count(*)::int from private.session_devices where user_id = pg_
 
 -- Listing ---------------------------------------------------------------------------------------------------------------
 
-select pg_temp.as_session('alice', 'laptop');
+select pg_temp.as_suite_session('alice', 'laptop');
 select is((select count(*)::int from app.my_sessions()), 3, 'alice sees her three sessions, not the app''s');
 select is((select session_id from app.my_sessions() limit 1), pg_temp.id('laptop'), 'this session first');
 select is((select is_current from app.my_sessions() where session_id = pg_temp.id('laptop')), true, 'marked current');
@@ -105,14 +112,14 @@ select is((select detail ->> 'surface' from private.account_security_events wher
   'Compass', 'the trail names what was signed out');
 
 -- The signed-out phone's token ends for every org at once.
-select pg_temp.as_session('alice', 'phone');
+select pg_temp.as_suite_session('alice', 'phone');
 select is((select session_ended from app.my_org_auth_status(pg_temp.id('org_a'))), true, 'the signed-out session has ended for the org');
-select pg_temp.as_session('alice', 'laptop');
+select pg_temp.as_suite_session('alice', 'laptop');
 select is((select session_ended from app.my_org_auth_status(pg_temp.id('org_a'))), false, 'a live session has not');
-select pg_temp.as_session('alice', 'phone', true);
+select pg_temp.as_suite_session('alice', 'phone', true);
 select is((select session_ended from app.my_org_auth_status(pg_temp.id('org_a'))), false, 'API keys stay exempt');
 
-select pg_temp.as_session('alice', 'laptop');
+select pg_temp.as_suite_session('alice', 'laptop');
 select is(app.sign_out_my_other_sessions(), 1, 'signing out every other session ends the tablet');
 select pg_temp.as_platform();
 select is((select count(*)::int from auth.sessions where user_id = pg_temp.id('alice_user') and oauth_client_id is null), 1,
@@ -121,7 +128,7 @@ select is((select count(*)::int from auth.sessions where id = pg_temp.id('app_se
 select is((select count(*)::int from app.notifications where recipient_person_id = pg_temp.id('alice') and kind = 'account.session_signed_out'), 2,
   'alice is told each time');
 
-select pg_temp.as_session('alice', 'laptop', true);
+select pg_temp.as_suite_session('alice', 'laptop', true);
 select throws_ok($$select app.sign_out_my_other_sessions()$$, '42501', null, 'an API key never signs a person out');
 
 select * from finish();

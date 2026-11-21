@@ -12,10 +12,7 @@ select plan(239);
 create function pg_temp.as_op(p_key text, p_aal text default 'aal2') returns void
 language plpgsql as $$
 begin
-  perform set_config('role', 'postgres', true);
-  perform set_config('request.jwt.claims',
-    json_build_object('sub', pg_temp.id(p_key || '_user'), 'role', 'authenticated', 'aal', p_aal)::text, true);
-  perform set_config('role', 'authenticated', true);
+  perform pg_temp.sign_in(pg_temp.id(p_key || '_user'), p_aal);
 end $$;
 
 -- A time as an operator types it: local, in the zone the queue counts in.

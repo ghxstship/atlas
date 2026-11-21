@@ -26,10 +26,8 @@ select * from no_plan();
 create function pg_temp.as_app(p_key text) returns void
 language plpgsql as $$
 begin
-  perform set_config('role', 'postgres', true);
-  perform set_config('request.jwt.claims', jsonb_build_object('sub', pg_temp.id(p_key || '_user'), 'role', 'authenticated',
-    'aal', 'aal1', 'client_id', gen_random_uuid())::text, true);
-  perform set_config('role', 'authenticated', true);
+  perform pg_temp.sign_in(pg_temp.id(p_key || '_user'), 'aal1',
+    pg_temp.amr('oauth_provider/authorization_code', interval '30 minutes'), jsonb_build_object('client_id', gen_random_uuid()));
 end $$;
 create function pg_temp.as_api_key(p_key text, p_scopes text[]) returns void
 language plpgsql as $$
@@ -462,10 +460,7 @@ select throws_ok($$select app.console_decide_rating_dispute((select id from worl
 create function pg_temp.as_op(p_key text) returns void
 language plpgsql as $$
 begin
-  perform set_config('role', 'postgres', true);
-  perform set_config('request.jwt.claims',
-    json_build_object('sub', pg_temp.id(p_key || '_user'), 'role', 'authenticated', 'aal', 'aal2')::text, true);
-  perform set_config('role', 'authenticated', true);
+  perform pg_temp.as_user_stepped_up(p_key);
 end $$;
 
 select pg_temp.as_op('tess');

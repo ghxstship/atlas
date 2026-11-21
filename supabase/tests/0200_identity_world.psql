@@ -13,6 +13,8 @@
 create temporary table world (key text primary key, id uuid not null);
 grant select, insert on world to public;
 
+\ir 0199_session_identities.psql
+
 create function pg_temp.id(p_key text) returns uuid
 language sql stable as $$ select w.id from world w where w.key = p_key $$;
 
@@ -31,42 +33,58 @@ begin
   perform set_config('role', 'anon', true);
 end $$;
 
+-- A person's single-factor session: a real auth.sessions row and the access token Supabase Auth issues for it
+-- (0199_session_identities.psql; ADR 0169, work package 1). The same person keeps the same session across calls.
 create function pg_temp.as_user(p_key text) returns void
 language plpgsql as $$
-declare
-  v_user uuid;
 begin
-  perform set_config('role', 'postgres', true);
-  select w.id into v_user from world w where w.key = p_key || '_user';
-  perform set_config('request.jwt.claims',
-    json_build_object('sub', v_user, 'role', 'authenticated')::text, true);
-  perform set_config('role', 'authenticated', true);
+  perform pg_temp.sign_in((select w.id from world w where w.key = p_key || '_user'));
 end $$;
 
 -- A99 (S9-08, migration 1562): a user whose session passed a second factor a minute ago, for the acts that ask for
--- step-up (assigning or removing someone else's role, creating an API key, changing billing).
+-- step-up (assigning or removing someone else's role, creating an API key, changing billing). A second-factor session
+-- of its own: aal2 on the row and in the token, with the TOTP entry in both.
 create function pg_temp.as_user_stepped_up(p_key text) returns void
+language plpgsql as $$
+begin
+  perform pg_temp.sign_in((select w.id from world w where w.key = p_key || '_user'), 'aal2');
+end $$;
+
+-- A session of the test's choosing, for the suites about the session itself (ADR 0169): its assurance level, how long
+-- ago the person signed in, how long ago the session was last active (its last token refresh, when the token on the
+-- request was issued), and whether the auth.sessions row still exists (false is a session signed out elsewhere whose
+-- token has not expired). At aal2 the second factor passed p_second_ago ago. p_without drops claims from the token
+-- (session_id, amr, aal), for a token an older issuer or a forger would present. Every call opens a new session and
+-- returns its id.
+create function pg_temp.as_session(p_key text, p_aal text default 'aal1', p_age interval default interval '30 minutes',
+  p_last_activity interval default interval '0', p_row boolean default true, p_second_ago interval default interval '1 minute',
+  p_without text[] default '{}')
+returns uuid
 language plpgsql as $$
 declare
   v_user uuid;
+  v_amr jsonb;
+  v_session uuid;
+  v_claims jsonb;
 begin
   perform set_config('role', 'postgres', true);
   select w.id into v_user from world w where w.key = p_key || '_user';
-  perform set_config('request.jwt.claims',
-    json_build_object('sub', v_user, 'role', 'authenticated', 'aal', 'aal2',
-      'amr', json_build_array(
-        json_build_object('method', 'totp', 'timestamp', extract(epoch from now() - interval '1 minute')::bigint),
-        json_build_object('method', 'password', 'timestamp', extract(epoch from now() - interval '1 hour')::bigint)))::text, true);
-  perform set_config('role', 'authenticated', true);
+  v_amr := case when p_aal = 'aal1' then pg_temp.amr('password', p_age)
+                else pg_temp.amr('password', p_age, 'totp', least(p_second_ago, p_age)) end;
+  v_session := pg_temp.open_session(v_user, p_aal, v_amr, p_last_activity);
+  v_claims := pg_temp.access_token(v_user, v_session, p_aal, v_amr, least(p_last_activity, p_age)) - p_without;
+  if not p_row then
+    delete from auth.sessions where id = v_session;
+  end if;
+  perform pg_temp.present_token(v_claims);
+  return v_session;
 end $$;
 
 -- Claims of a user while keeping the postgres role, for calling private helpers directly.
 create function pg_temp.claims(p_key text) returns void
 language plpgsql as $$
 begin
-  perform set_config('role', 'postgres', true);
-  perform set_config('request.jwt.claims',
-    json_build_object('sub', pg_temp.id(p_key || '_user'), 'role', 'authenticated')::text, true);
+  perform pg_temp.sign_in(pg_temp.id(p_key || '_user'), p_role := 'postgres');
 end $$;
 
 create function pg_temp.new_user(p_key text, p_email text, p_name text) returns void

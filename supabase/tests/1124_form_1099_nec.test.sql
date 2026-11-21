@@ -26,9 +26,10 @@ begin
   return v_id;
 end $$;
 
-create function pg_temp.step_up() returns void language sql as $$
-  select set_config('request.jwt.claims', (current_setting('request.jwt.claims')::jsonb || '{"aal": "aal2"}')::text, true);
-$$;
+create function pg_temp.step_up() returns void language plpgsql as $$
+begin
+  perform pg_temp.sign_in((current_setting('request.jwt.claims')::jsonb ->> 'sub')::uuid, 'aal2', p_role := current_setting('role'));
+end $$;
 
 -- World: ivy and art are individual independent contractors of org_a; acct_v is a vendor account (VENDOR_SUPPLIED).
 select pg_temp.pay('ivy', null, 45000, 'USD', '2025-03-10', true);

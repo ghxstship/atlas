@@ -4,8 +4,13 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
+\ir 0199_session_identities.psql
 
 select plan(10);
+
+-- The person whose sessions the suite presents.
+create temporary table person as
+select pg_temp.auth_user('step-up@northwind.test', 'Step-Up Fixture') as id;
 
 -- A session with the given aal and, optionally, a second factor p_second_ago (NULL for none); p_key true for an API key.
 create function pg_temp.as_session(p_aal text, p_second_ago interval, p_key boolean default false)
@@ -18,9 +23,14 @@ begin
   if p_second_ago is not null then
     v_amr := jsonb_build_array(jsonb_build_object('method', 'totp', 'timestamp', extract(epoch from now() - p_second_ago)::bigint)) || v_amr;
   end if;
-  perform set_config('request.jwt.claims',
-    jsonb_build_object('sub', gen_random_uuid(), 'role', 'authenticated', 'aal', p_aal, 'amr', v_amr,
-      'scopes', case when p_key then '["projects.read"]'::jsonb end)::text, true);
+  if p_key then
+    -- An API key's token is not a session: no auth.sessions row stands behind it.
+    perform set_config('request.jwt.claims',
+      jsonb_build_object('sub', gen_random_uuid(), 'role', 'authenticated', 'aal', p_aal, 'amr', v_amr,
+        'scopes', '["projects.read"]'::jsonb)::text, true);
+  else
+    perform pg_temp.sign_in((select id from person), p_aal, v_amr, p_role := 'postgres');
+  end if;
 end $$;
 
 select has_function('private', 'require_second_factor', array['text', 'boolean'], 'the step-up check exists');

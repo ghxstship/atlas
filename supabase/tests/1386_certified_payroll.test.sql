@@ -16,10 +16,7 @@ values (pg_temp.id('org_a'), 'compliance.us_forms', true, 'Test: the forms are o
 create function pg_temp.as_user_aal2(p_key text) returns void
 language plpgsql as $$
 begin
-  perform set_config('role', 'postgres', true);
-  perform set_config('request.jwt.claims',
-    json_build_object('sub', pg_temp.id(p_key || '_user'), 'role', 'authenticated', 'aal', 'aal2')::text, true);
-  perform set_config('role', 'authenticated', true);
+  perform pg_temp.as_user_stepped_up(p_key);
 end $$;
 
 -- Work: Frank, Monday to Friday 10 hours on the Northwind project (Miami-Dade: the federal weekly rule only).

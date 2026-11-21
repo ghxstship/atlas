@@ -12,9 +12,7 @@ select plan(13);
 create function pg_temp.claims_aal(p_key text, p_aal text) returns void
 language plpgsql as $$
 begin
-  perform set_config('role', 'postgres', true);
-  perform set_config('request.jwt.claims',
-    json_build_object('sub', pg_temp.id(p_key || '_user'), 'role', 'authenticated', 'aal', p_aal)::text, true);
+  perform pg_temp.sign_in(pg_temp.id(p_key || '_user'), p_aal, p_role := 'postgres');
 end $$;
 
 create function pg_temp.as_aal(p_key text, p_aal text) returns void
