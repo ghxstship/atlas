@@ -65,8 +65,8 @@ begin
   from private.verify_attestation(coalesce(p_attestation, private.request_header('x-xos-attestation')), v_user, v_session) a;
   v_verified := coalesce(v_verified, false) and v_address is not null;
 
-  insert into private.session_state as st (session_id, user_id, last_activity_at, longest_gap, pass_address, pass_at)
-  values (v_session, v_user, now(),
+  insert into private.session_state as st (session_id, last_activity_at, longest_gap, pass_address, pass_at)
+  values (v_session, now(),
           private.session_idle_span(v_created, v_refreshed, null, interval '0', now()),
           case when v_verified then v_address end, case when v_verified then now() end)
   on conflict (session_id) do update

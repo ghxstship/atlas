@@ -248,11 +248,12 @@ begin
           end if;
         end if;
 
-        -- idle: the longest time without an activity exceeds the organization's idle_timeout_minutes. No live row is idle.
+        -- idle: the longest time without an activity exceeds the organization's idle_timeout_minutes. No live row, or a
+        -- row with no sign-in time, is idle.
         v_mode := case when v_suspended ? (v_org.org_id::text || '/idle') then 'off'
                        else coalesce(v_org_modes ->> (v_org.org_id::text || '/idle'), v_config.idle) end;
         if v_mode <> 'off' then
-          v_fact := not v_live
+          v_fact := not v_live or v_created is null
             or private.session_idle_span(v_created, v_refreshed, v_last_activity, v_longest_gap, now())
                > make_interval(mins => v_org.idle_timeout_minutes);
           if v_fact and v_mode = 'enforce' then

@@ -167,6 +167,7 @@ create table if not exists private.session_gate_observations (
 
 create unique index if not exists session_gate_observations_key on private.session_gate_observations
   (observed_on, control, surface, org_id, token_type, reason) nulls not distinct;
+create index if not exists session_gate_observations_org_idx on private.session_gate_observations (org_id);
 
 alter table private.session_gate_observations enable row level security;
 revoke all on private.session_gate_observations from public, anon, authenticated;
@@ -187,7 +188,6 @@ comment on column private.session_gate_observations.last_seen_at is 'Last call c
 
 create table if not exists private.session_state (
   session_id uuid primary key references auth.sessions (id) on delete cascade,
-  user_id uuid not null references auth.users (id) on delete cascade,
   last_activity_at timestamptz not null default now(),
   longest_gap interval not null default interval '0',
   pass_address inet,
@@ -197,14 +197,11 @@ create table if not exists private.session_state (
   constraint session_state_pass_whole check ((pass_address is null) = (pass_at is null))
 );
 
-create index if not exists session_state_user_idx on private.session_state (user_id);
-
 alter table private.session_state enable row level security;
 revoke all on private.session_state from public, anon, authenticated;
 
 comment on table private.session_state is 'One row per Supabase Auth session, removed with it (ADR 0169 D4 and D5): the session''s last recorded activity, the longest gap between two of its activities, and its network pass. Written only by private.stamp_session_activity, at most once a minute, never from a value the client supplies. It replaces the activity role of private.session_devices, which keeps the device shown under Sessions.';
 comment on column private.session_state.session_id is 'Supabase Auth session (auth.sessions.id).';
-comment on column private.session_state.user_id is 'Sign-in the session belongs to.';
 comment on column private.session_state.last_activity_at is 'Last recorded activity: a read-write call the gate stamped, or app.touch_my_session.';
 comment on column private.session_state.longest_gap is 'Longest gap between two activities of the session so far. Kept, so activity after an idle timeout does not revive the session.';
 comment on column private.session_state.pass_address is 'Address at which one of our servers last saw the session, taken from a verified attestation only.';

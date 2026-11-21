@@ -91,8 +91,8 @@ returns void
 language plpgsql as $$
 begin
   perform pg_temp.as_owner_of_gate(format(
-    'insert into private.session_state (session_id, user_id, last_activity_at, longest_gap, pass_address, pass_at)
-     select s.id, s.user_id, now() - %L::interval, %L::interval, %L::inet, case when %L::inet is not null then now() - %L::interval end
+    'insert into private.session_state (session_id, last_activity_at, longest_gap, pass_address, pass_at)
+     select s.id, now() - %L::interval, %L::interval, %L::inet, case when %L::inet is not null then now() - %L::interval end
      from auth.sessions s where s.id = %L
      on conflict (session_id) do update set last_activity_at = excluded.last_activity_at, longest_gap = excluded.longest_gap,
        pass_address = excluded.pass_address, pass_at = excluded.pass_at',
