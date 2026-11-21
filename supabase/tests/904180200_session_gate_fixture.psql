@@ -1,0 +1,273 @@
+-- Shared pgTAP fixture for the session gate suites (ADR 0169, work package 2), included with \ir after a world
+-- (0200_identity_world.psql or 0300_domain_world.psql). Test-only: every function lives in pg_temp and every row
+-- rolls back with the suite. The file ends in .psql so pg_prove skips it.
+--
+--   pg_temp.gate(control, mode)                 the global mode of one control (ended, mfa, lifetime, idle, network)
+--   pg_temp.gate_all(mode)                      the global mode of all five
+--   pg_temp.gate_org(org, control, mode)        the mode of one control for one organization; NULL removes the row
+--   pg_temp.address_source(source)              pass or edge
+--   pg_temp.rule(org, owner, setting, t, b, i)  an Owner saves one of the organization's security settings
+--   pg_temp.allow_network(org, owner, cidr)     an Owner lists a network and turns the allow-list on
+--   pg_temp.session_state(session, ...)         the recorded activity and network pass of a session
+--   pg_temp.request_headers(headers)            the headers of the request, as PostgREST sets them
+--   pg_temp.attest_key(name)                    this stack's own attestation key in Vault, made at test time
+--   pg_temp.attestation(user, session, ...)     an attestation as our servers sign it
+--   pg_temp.verdict(surface)                    private.session_verdict_compute under the token on the request
+--   pg_temp.org_reasons(org, surface)           the reasons one organization refuses with, comma separated, or NULL
+--   pg_temp.private_text(sql)                   one value from a private reader, under the token on the request
+--   pg_temp.token(claims)                       presents hand-made claims as the authenticated role
+
+create temporary table gate_keys (name text primary key, key text not null);
+grant select on gate_keys to public;
+
+-- Runs p_sql as the platform role and puts the caller's role back, keeping the token on the request.
+create function pg_temp.as_owner_of_gate(p_sql text) returns void
+language plpgsql as $$
+declare
+  v_role text := current_setting('role');
+begin
+  perform set_config('role', 'postgres', true);
+  execute p_sql;
+  perform set_config('role', v_role, true);
+end $$;
+
+create function pg_temp.gate(p_control text, p_mode text) returns void
+language plpgsql as $$
+begin
+  perform pg_temp.as_owner_of_gate(format('update private.session_gate_config set %I = %L', p_control, p_mode));
+end $$;
+
+create function pg_temp.gate_all(p_mode text) returns void
+language plpgsql as $$
+begin
+  perform pg_temp.as_owner_of_gate(format(
+    'update private.session_gate_config set ended = %1$L, mfa = %1$L, lifetime = %1$L, idle = %1$L, network = %1$L', p_mode));
+end $$;
+
+create function pg_temp.gate_org(p_org text, p_control text, p_mode text) returns void
+language plpgsql as $$
+begin
+  if p_mode is null then
+    perform pg_temp.as_owner_of_gate(format('delete from private.session_gate_orgs where org_id = %L and control = %L',
+      pg_temp.id(p_org), p_control));
+  else
+    perform pg_temp.as_owner_of_gate(format(
+      'insert into private.session_gate_orgs (org_id, control, mode) values (%L, %L, %L)
+       on conflict (org_id, control) do update set mode = excluded.mode', pg_temp.id(p_org), p_control, p_mode));
+  end if;
+end $$;
+
+create function pg_temp.address_source(p_source text) returns void
+language plpgsql as $$
+begin
+  perform pg_temp.as_owner_of_gate(format('update private.session_gate_config set address_source = %L', p_source));
+end $$;
+
+-- An Owner saves a security setting through the product function, from a second-factor session so the guard of
+-- 904180204 never stands in a fixture's way, then the platform role is back.
+create function pg_temp.rule(p_org text, p_owner text, p_setting text, p_text text default null, p_boolean boolean default null,
+  p_integer bigint default null)
+returns void
+language plpgsql as $$
+begin
+  perform pg_temp.as_user_stepped_up(p_owner);
+  perform app.set_setting(pg_temp.id(p_org), p_setting, 'Organization', null, p_text, p_boolean, p_integer, false);
+  perform pg_temp.as_platform();
+end $$;
+
+create function pg_temp.allow_network(p_org text, p_owner text, p_cidr cidr) returns void
+language plpgsql as $$
+begin
+  perform pg_temp.as_user(p_owner);
+  insert into app.org_ip_allowlist (org_id, cidr, label) values (pg_temp.id(p_org), p_cidr, 'pgTAP network');
+  perform app.set_setting(pg_temp.id(p_org), 'security.ip_allowlist', 'Organization', null, null, true);
+  perform pg_temp.as_platform();
+end $$;
+
+-- The session's row in private.session_state: last recorded activity, longest gap, and a network pass when given.
+create function pg_temp.session_state(p_session uuid, p_last_activity interval default interval '0',
+  p_longest_gap interval default interval '0', p_pass_address inet default null, p_pass_age interval default interval '0')
+returns void
+language plpgsql as $$
+begin
+  perform pg_temp.as_owner_of_gate(format(
+    'insert into private.session_state (session_id, user_id, last_activity_at, longest_gap, pass_address, pass_at)
+     select s.id, s.user_id, now() - %L::interval, %L::interval, %L::inet, case when %L::inet is not null then now() - %L::interval end
+     from auth.sessions s where s.id = %L
+     on conflict (session_id) do update set last_activity_at = excluded.last_activity_at, longest_gap = excluded.longest_gap,
+       pass_address = excluded.pass_address, pass_at = excluded.pass_at',
+    p_last_activity, p_longest_gap, p_pass_address, p_pass_address, p_pass_age, p_session));
+end $$;
+
+create function pg_temp.request_headers(p_headers jsonb) returns void
+language plpgsql as $$
+begin
+  perform set_config('request.headers', coalesce(p_headers::text, ''), true);
+end $$;
+
+-- This stack's own attestation key: 32 random bytes made now, kept in Vault under the name the verifier reads.
+-- No key is written in the repository; the hosted key is the owner's (ADR 0169 D3).
+create function pg_temp.attest_key(p_name text default 'xos_data_attest_key') returns text
+language plpgsql as $$
+declare
+  v_role text := current_setting('role');
+  v_key text;
+begin
+  perform set_config('role', 'postgres', true);
+  select k.key into v_key from gate_keys k where k.name = p_name;
+  if v_key is null then
+    v_key := encode(extensions.gen_random_bytes(32), 'hex');
+    perform vault.create_secret(v_key, p_name, 'pgTAP: generated for this run');
+    insert into gate_keys values (p_name, v_key);
+  end if;
+  perform set_config('role', v_role, true);
+  return v_key;
+end $$;
+
+-- An attestation as createCallerClient signs it: v1,t=,a=,sid=,s= with HMAC-SHA256 over v1 / sub / sid / t / a.
+create function pg_temp.attestation(p_user uuid, p_session uuid, p_address text, p_ago interval default interval '0',
+  p_key text default null)
+returns text
+language plpgsql as $$
+declare
+  v_t text := floor(extract(epoch from now() - p_ago))::bigint::text;
+  v_sid text := coalesce(p_session::text, 'none');
+  v_a text := coalesce(p_address, 'unknown');
+  v_key text := coalesce(p_key, pg_temp.attest_key());
+begin
+  return format('v1,t=%s,a=%s,sid=%s,s=%s', v_t, v_a, v_sid,
+    encode(extensions.hmac(convert_to(concat_ws(chr(10), 'v1', p_user::text, v_sid, v_t, v_a), 'UTF8'),
+                           convert_to(v_key, 'UTF8'), 'sha256'), 'hex'));
+end $$;
+
+create function pg_temp.verdict(p_surface text default null) returns jsonb
+language plpgsql as $$
+declare
+  v_role text := current_setting('role');
+  v_verdict jsonb;
+begin
+  perform set_config('role', 'postgres', true);
+  v_verdict := private.session_verdict_compute(p_surface);
+  perform set_config('role', v_role, true);
+  return v_verdict;
+end $$;
+
+create function pg_temp.org_reasons(p_org text, p_surface text default null) returns text
+language sql as $$
+  select string_agg(r, ',' order by n)
+  from jsonb_array_elements_text(pg_temp.verdict(p_surface) -> 'orgs' -> pg_temp.id(p_org)::text) with ordinality x (r, n);
+$$;
+
+create function pg_temp.private_text(p_sql text) returns text
+language plpgsql as $$
+declare
+  v_role text := current_setting('role');
+  v_value text;
+begin
+  perform set_config('role', 'postgres', true);
+  execute p_sql into v_value;
+  perform set_config('role', v_role, true);
+  return v_value;
+end $$;
+
+create function pg_temp.token(p_claims jsonb) returns void
+language plpgsql as $$
+begin
+  perform pg_temp.present_token(p_claims);
+end $$;
+
+-- The attacker's test (ADR 0169, "Test plan"): the three files of block 99 share these two helpers.
+--
+--   pg_temp.attack_rules()             Northwind Live sets every rule: a second factor for everyone, an 8-hour
+--                                      lifetime, a 15-minute idle timeout and an allow-list of one network
+--   pg_temp.attack(scenario, person)   switches on the one control the scenario is about, signs the person in with
+--                                      a session (or presents a token) that breaks it, and returns the reason the
+--                                      gate must refuse with
+--   pg_temp.direct(sql, method, path)  makes a direct call to the data endpoint as PostgREST does: the request
+--                                      settings, then the pre-request when the gate has one (package 4), then the
+--                                      statement. Returns 'answered', the gate's refusal as '<code> <hint>',
+--                                      or 'error <SQLSTATE>' for any other error
+
+create function pg_temp.attack_rules() returns void
+language plpgsql as $$
+begin
+  perform pg_temp.rule('org_a', 'alice', 'security.mfa_policy', 'everyone');
+  perform pg_temp.rule('org_a', 'alice', 'security.session_hours', p_integer => 8);
+  perform pg_temp.rule('org_a', 'alice', 'security.idle_timeout_minutes', p_integer => 15);
+  perform pg_temp.allow_network('org_a', 'alice', '203.0.113.0/24');
+end $$;
+
+create function pg_temp.attack(p_scenario text, p_person text default 'bob') returns text
+language plpgsql as $$
+begin
+  perform pg_temp.as_platform();
+  perform pg_temp.gate_all('off');
+  perform pg_temp.request_headers(null);
+  case p_scenario
+    when 'passing' then
+      perform pg_temp.gate_all('enforce');
+      perform pg_temp.gate('network', 'off');
+      perform pg_temp.as_session(p_person, 'aal2', interval '10 minutes');
+      return null;
+    when 'mfa' then
+      perform pg_temp.gate('mfa', 'enforce');
+      perform pg_temp.as_session(p_person, 'aal1', interval '10 minutes');
+      return 'session_mfa_required';
+    when 'lifetime' then
+      perform pg_temp.gate('lifetime', 'enforce');
+      perform pg_temp.as_session(p_person, 'aal2', interval '9 hours');
+      return 'session_expired';
+    when 'idle' then
+      perform pg_temp.gate('idle', 'enforce');
+      perform pg_temp.as_session(p_person, 'aal2', interval '40 minutes', interval '20 minutes');
+      return 'session_idle';
+    when 'idle_touched' then
+      perform pg_temp.gate('idle', 'enforce');
+      perform pg_temp.as_session(p_person, 'aal2', interval '40 minutes', interval '20 minutes');
+      perform app.touch_my_session('Compass', null, null, null);
+      return 'session_idle';
+    when 'ended' then
+      perform pg_temp.gate('ended', 'enforce');
+      perform pg_temp.as_session(p_person, 'aal2', interval '10 minutes', p_row => false);
+      return 'session_ended';
+    when 'no_session_id' then
+      perform pg_temp.gate('ended', 'enforce');
+      perform pg_temp.as_session(p_person, 'aal2', interval '10 minutes', p_without => array['session_id']);
+      return 'session_ended';
+    when 'network' then
+      perform pg_temp.gate('network', 'enforce');
+      perform pg_temp.as_session(p_person, 'aal2', interval '10 minutes');
+      return 'network_restricted';
+    when 'network_key' then
+      perform pg_temp.gate('network', 'enforce');
+      perform pg_temp.token(jsonb_build_object('sub', pg_temp.id(p_person || '_user'), 'role', 'authenticated',
+        'scopes', jsonb_build_array('projects', 'records', 'crew', 'data'),
+        'amr', jsonb_build_array(jsonb_build_object('method', 'xos_api_key', 'timestamp', extract(epoch from now())::bigint))));
+      return 'network_restricted';
+    else
+      raise exception 'fixture: no attack scenario %', p_scenario;
+  end case;
+end $$;
+
+create function pg_temp.direct(p_sql text, p_method text default 'GET', p_path text default '/') returns text
+language plpgsql as $$
+declare
+  v_headers jsonb := coalesce(nullif(current_setting('request.headers', true), '')::jsonb, '{}'::jsonb);
+begin
+  perform set_config('request.method', p_method, true);
+  perform set_config('request.path', p_path, true);
+  perform set_config('request.headers',
+    (v_headers || jsonb_build_object(case when p_method in ('GET', 'HEAD') then 'accept-profile' else 'content-profile' end, 'app'))::text, true);
+  begin
+    if to_regprocedure('gate.pre_request()') is not null then
+      execute 'select gate.pre_request()';
+    end if;
+    execute p_sql;
+    return 'answered';
+  exception
+    when sqlstate 'PGRST' then
+      return (sqlerrm::jsonb ->> 'code') || ' ' || (sqlerrm::jsonb ->> 'hint');
+    when others then
+      return 'error ' || sqlstate;
+  end;
+end $$;
