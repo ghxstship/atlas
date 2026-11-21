@@ -1,0 +1,119 @@
+-- Session verdict benchmark (ADR 0169 D9: the pre-request adds at most 3 ms at p95 to a PostgREST request in
+-- enforce and at most 0.5 ms with every control off; the verdict is the pre-request's whole work but the raise).
+-- Run against a local stack only, never the shared one, in the conventions of 0399_rls_benchmark.psql:
+--   docker exec -i supabase_db_<project_id> psql -U postgres -d postgres -X -f - < supabase/tests/904180299_session_verdict_benchmark.psql
+-- from the supabase/tests directory, or with psql -f from that directory so the two \ir includes resolve.
+-- The file ends in .psql so pg_prove skips it; it runs in one transaction that rolls back, so nothing persists.
+-- It times private.session_verdict_store('postgrest'), the one call the pre-request makes, 1,000 times for each
+-- case, each call its own statement, and prints p50, p95, what a direct call would get (open, or the refusal)
+-- and the budget's verdict.
+-- It also times the Vault read of the attestation key alone, because ADR 0169 D3 moves the key to a private table
+-- if that read does not fit the budget. The attestation key is 32 random bytes made for the run.
+\set ON_ERROR_STOP on
+begin;
+create extension if not exists pgtap with schema extensions;
+set search_path = extensions, public;
+\ir 0200_identity_world.psql
+\ir 904180200_session_gate_fixture.psql
+
+create temporary table bench_results (bench text, run int, ms numeric);
+grant insert, select on bench_results to public;
+create temporary table bench_outcomes (bench text primary key, outcome text);
+grant insert, select on bench_outcomes to public;
+create temporary table bench_budget (bench text primary key, budget_ms numeric, sort int);
+grant select on bench_budget to public;
+insert into bench_budget values
+  ('off: a session that would break every rule', 0.5, 1),
+  ('enforce: a passing session, one organization with one rule', 3, 2),
+  ('enforce: a passing session, every rule set, fresh network pass', 3, 3),
+  ('enforce: a passing session, every rule set, attested call', 3, 4),
+  ('enforce: a passing session, edge address on a direct REST call', 3, 5),
+  ('enforce: a passing session in two organizations', 3, 6),
+  ('enforce: a refused session (second factor missing)', 3, 7),
+  ('enforce: an API-key token, attested call', 3, 8),
+  ('observe: a refused session, logged and counted', 3, 9),
+  ('the Vault read of the attestation key alone', 3, 10);
+
+-- Times p_sql p_runs times as the role and token on the request, after one warm-up.
+create function pg_temp.bench(p_bench text, p_sql text, p_runs int default 1000) returns void
+language plpgsql as $$
+declare
+  v_role text := current_setting('role');
+  v_start timestamptz;
+  i int;
+begin
+  perform set_config('role', 'postgres', true);
+  execute p_sql;
+  for i in 1..p_runs loop
+    v_start := clock_timestamp();
+    execute p_sql;
+    insert into bench_results values (p_bench, i, extract(epoch from clock_timestamp() - v_start) * 1000);
+  end loop;
+  insert into bench_outcomes values (p_bench, coalesce(private.session_direct_refusal(), 'open'));
+  perform set_config('role', v_role, true);
+end $$;
+
+select pg_temp.attack_rules();
+select pg_temp.rule('org_b', 'xavier', 'security.session_hours', p_integer => 24);
+select pg_temp.attest_key();
+set client_min_messages = warning;
+
+-- Off, as shipped.
+select pg_temp.gate_all('off');
+select pg_temp.as_session('dave', 'aal1', interval '9 hours', interval '20 minutes');
+select pg_temp.bench('off: a session that would break every rule', $$select private.session_verdict_store('postgrest')$$);
+
+-- Enforce.
+select pg_temp.gate_all('enforce');
+select pg_temp.as_session('xavier', 'aal1', interval '10 minutes');
+select pg_temp.bench('enforce: a passing session, one organization with one rule', $$select private.session_verdict_store('postgrest')$$);
+
+insert into world values ('bench', pg_temp.as_session('dave', 'aal2', interval '10 minutes'));
+select pg_temp.session_state(pg_temp.id('bench'), interval '2 minutes', interval '3 minutes', '203.0.113.40', interval '1 minute');
+select pg_temp.bench('enforce: a passing session, every rule set, fresh network pass', $$select private.session_verdict_store('postgrest')$$);
+
+select pg_temp.request_headers(jsonb_build_object('x-xos-attestation', pg_temp.attestation(pg_temp.id('dave_user'), pg_temp.id('bench'), '203.0.113.40')));
+select pg_temp.bench('enforce: a passing session, every rule set, attested call', $$select private.session_verdict_store('postgrest')$$);
+
+select pg_temp.address_source('edge');
+select pg_temp.session_state(pg_temp.id('bench'), interval '2 minutes', interval '3 minutes');
+select pg_temp.request_headers('{"x-forwarded-for": "198.51.100.7, 203.0.113.40"}');
+select pg_temp.bench('enforce: a passing session, edge address on a direct REST call', $$select private.session_verdict_store('postgrest')$$);
+select pg_temp.address_source('pass');
+select pg_temp.request_headers(null);
+
+insert into world values ('bench_two', pg_temp.as_session('mia', 'aal2', interval '10 minutes'));
+select pg_temp.session_state(pg_temp.id('bench_two'), interval '2 minutes', interval '3 minutes', '203.0.113.40', interval '1 minute');
+select pg_temp.bench('enforce: a passing session in two organizations', $$select private.session_verdict_store('postgrest')$$);
+
+select pg_temp.as_session('dave', 'aal1', interval '10 minutes');
+select pg_temp.bench('enforce: a refused session (second factor missing)', $$select private.session_verdict_store('postgrest')$$);
+
+select pg_temp.token(jsonb_build_object('sub', pg_temp.id('dave_user'), 'role', 'authenticated', 'scopes', jsonb_build_array('data'),
+  'amr', jsonb_build_array(jsonb_build_object('method', 'xos_api_key', 'timestamp', extract(epoch from now())::bigint))));
+select pg_temp.request_headers(jsonb_build_object('x-xos-attestation', pg_temp.attestation(pg_temp.id('dave_user'), null, '203.0.113.40')));
+select pg_temp.bench('enforce: an API-key token, attested call', $$select private.session_verdict_store('postgrest')$$);
+select pg_temp.request_headers(null);
+
+-- Observe: the log line and the counter upsert are part of the call.
+select pg_temp.gate_all('observe');
+select pg_temp.as_session('dave', 'aal1', interval '10 minutes');
+select pg_temp.bench('observe: a refused session, logged and counted', $$select private.session_verdict_store('postgrest')$$);
+
+select pg_temp.bench('the Vault read of the attestation key alone', $$select private.attestation_keys()$$);
+
+select pg_temp.as_platform();
+reset client_min_messages;
+select b.bench,
+  count(r.ms) as runs,
+  round(percentile_cont(0.5) within group (order by r.ms)::numeric, 3) as p50_ms,
+  round(percentile_cont(0.95) within group (order by r.ms)::numeric, 3) as p95_ms,
+  round(max(r.ms), 3) as max_ms,
+  b.budget_ms,
+  (select o.outcome from bench_outcomes o where o.bench = b.bench) as direct_call,
+  case when percentile_cont(0.95) within group (order by r.ms) <= b.budget_ms then 'pass' else 'FAIL' end as d9
+from bench_budget b left join bench_results r on r.bench = b.bench
+group by b.bench, b.budget_ms, b.sort
+order by b.sort;
+
+rollback;
