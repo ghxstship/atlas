@@ -10,7 +10,7 @@ set search_path = extensions, public;
 
 select plan(41);
 
-create function pg_temp.as_session(p_user text, p_aal text, p_second_ago interval, p_client uuid default null) returns void
+create function pg_temp.as_suite_session(p_user text, p_aal text, p_second_ago interval, p_client uuid default null) returns void
 language plpgsql as $$
 declare
   v_amr jsonb := jsonb_build_array(jsonb_build_object('method',
@@ -20,11 +20,9 @@ begin
   if p_second_ago is not null then
     v_amr := jsonb_build_array(jsonb_build_object('method', 'totp', 'timestamp', extract(epoch from now() - p_second_ago)::bigint)) || v_amr;
   end if;
-  perform set_config('role', 'postgres', true);
-  perform set_config('request.jwt.claims',
-    jsonb_strip_nulls(jsonb_build_object('sub', pg_temp.id(p_user || '_user'), 'role', 'authenticated', 'aal', p_aal,
-      'session_id', gen_random_uuid(), 'amr', v_amr, 'client_id', p_client, 'scope', case when p_client is not null then 'email' end))::text, true);
-  perform set_config('role', 'authenticated', true);
+  perform pg_temp.sign_in(pg_temp.id(p_user || '_user'), p_aal, v_amr,
+    jsonb_strip_nulls(jsonb_build_object('client_id', p_client, 'scope', case when p_client is not null then 'email' end)),
+    'authenticated', p_client);
 end $$;
 
 create temporary table authorizations (key text primary key, authorization_id text not null);
@@ -79,13 +77,13 @@ select pg_temp.authorization('s256', 's256');
 select pg_temp.authorization('restricted', 's256');
 select pg_temp.authorization('bad', 's256');
 
-select pg_temp.as_session('dave', 'aal1', null);
+select pg_temp.as_suite_session('dave', 'aal1', null);
 select lives_ok($$select app.record_oauth_request(pg_temp.auth_id('s256'), array['work', 'Projects', 'work'])$$,
   'a member records the groups the app asks for');
 select pg_temp.as_platform();
 select is((select scopes from private.oauth_requests where authorization_id = pg_temp.auth_id('s256')), 'projects work',
   'sorted, distinct and space-separated');
-select pg_temp.as_session('dave', 'aal1', null);
+select pg_temp.as_suite_session('dave', 'aal1', null);
 select throws_ok($$select app.record_oauth_request(pg_temp.auth_id('s256'), array['work'])$$, 'XR001',
   'oauth_request_recorded: This sign-in request was already started.', 'an authorization is recorded once');
 select throws_ok($$select app.record_oauth_request(pg_temp.auth_id('bad'), array['payroll'])$$, 'XR001',
@@ -94,13 +92,13 @@ select throws_ok($$select app.record_oauth_request('nosuchauthorization', array[
   'oauth_request_expired: This sign-in request has expired. Start again from the app.', 'an unknown authorization is refused');
 select lives_ok($$select app.record_oauth_request(pg_temp.auth_id('plain'), array['work'])$$, 'a plain-PKCE request is recorded');
 select lives_ok($$select app.record_oauth_request(pg_temp.auth_id('restricted'), array['data', 'work'])$$, 'and one asking for Restricted data');
-select pg_temp.as_session('xavier', 'aal1', null);
+select pg_temp.as_suite_session('xavier', 'aal1', null);
 select throws_ok($$select app.record_oauth_request(pg_temp.auth_id('bad'), array['work'])$$, 'XR001',
   'oauth_not_member: Only members of the org that registered the app can consent to it.', 'a non-member cannot');
 
 -- The consent page --------------------------------------------------------------------------------------------------------
 
-select pg_temp.as_session('dave', 'aal1', null);
+select pg_temp.as_suite_session('dave', 'aal1', null);
 select results_eq($$select app_name, org_name, scopes, restricted_scopes, pkce_s256 from app.oauth_consent_request(pg_temp.auth_id('s256'))$$,
   $$values ('Ledger Sync Two'::text, 'Northwind Live'::text, array['projects', 'work']::text[], '{}'::text[], true)$$,
   'the page shows the app, its org, the groups and that PKCE used S256');
@@ -109,10 +107,10 @@ select is((select restricted_scopes from app.oauth_consent_request(pg_temp.auth_
 select set_config('role', 'postgres', true);
 select ok(private.oauth_scope_restricted('org') and private.oauth_scope_restricted('audit') and not private.oauth_scope_restricted('work'),
   'so are org and audit; work is not');
-select pg_temp.as_session('carol', 'aal1', null);
+select pg_temp.as_suite_session('carol', 'aal1', null);
 select is((select count(*)::int from app.oauth_consent_request(pg_temp.auth_id('s256'))), 0, 'only the member who started it sees it');
 
-select pg_temp.as_session('dave', 'aal1', null);
+select pg_temp.as_suite_session('dave', 'aal1', null);
 select throws_ok($$select app.consent_oauth_request(pg_temp.auth_id('plain'))$$, 'XR001',
   'oauth_pkce_required: This app must use PKCE with S256. Ask its developer to update it.', 'consent needs PKCE with S256');
 select throws_ok($$select app.consent_oauth_request(pg_temp.auth_id('restricted'))$$, 'XR001',
@@ -129,7 +127,7 @@ select is((select count(*)::int from private.oauth_requests where authorization_
 -- mia belongs to Northwind Live and to Harbor Lights.
 select pg_temp.as_platform();
 insert into app.oauth_grants (oauth_app_id, person_id, scopes) values (pg_temp.id('app'), pg_temp.id('mia'), array['org', 'projects']);
-select pg_temp.as_session('mia', 'aal1', null, pg_temp.id('client'));
+select pg_temp.as_suite_session('mia', 'aal1', null, pg_temp.id('client'));
 select set_config('role', 'postgres', true);
 select is(private.api_key_scopes(), array['org', 'projects']::text[], 'an app''s session is scoped to the live grant');
 select results_eq($$select org_id from app.my_oauth_access()$$, $$values ((select id from world where key = 'org_a'))$$,
@@ -154,7 +152,7 @@ select is((private.custom_access_token_hook(jsonb_build_object('user_id', pg_tem
   pg_temp.id('org_a')::text, 'the token hook names the app''s org in its token');
 
 -- A client no registered app owns reaches nothing.
-select pg_temp.as_session('mia', 'aal1', null, gen_random_uuid());
+select pg_temp.as_suite_session('mia', 'aal1', null, gen_random_uuid());
 select set_config('role', 'postgres', true);
 select is(private.api_key_scopes(), '{}'::text[], 'an unknown client''s session has no scopes');
 select is((select count(*)::int from private.my_org_ids()), 0, 'and no org');
@@ -165,7 +163,7 @@ select pg_temp.as_platform();
 insert into auth.oauth_consents (id, user_id, client_id, scopes) values (gen_random_uuid(), pg_temp.id('mia_user'), pg_temp.id('client'), 'email');
 insert into auth.sessions (id, user_id, created_at, updated_at, aal, oauth_client_id)
 values (gen_random_uuid(), pg_temp.id('mia_user'), now(), now(), 'aal1', pg_temp.id('client'));
-select pg_temp.as_session('mia', 'aal1', null);
+select pg_temp.as_suite_session('mia', 'aal1', null);
 select is((select count(*)::int from app.my_oauth_apps()), 1, 'Connected apps lists mia''s grant');
 update app.oauth_grants set deleted_at = now() where oauth_app_id = pg_temp.id('app') and person_id = pg_temp.id('mia') and deleted_at is null;
 select pg_temp.as_platform();
@@ -173,7 +171,7 @@ select ok((select revoked_at is not null from auth.oauth_consents where user_id 
   'revoking the grant revokes Supabase Auth''s consent');
 select is((select count(*)::int from auth.sessions where user_id = pg_temp.id('mia_user') and oauth_client_id = pg_temp.id('client')), 0,
   'and ends the app''s sessions, so its refresh token stops working');
-select pg_temp.as_session('mia', 'aal1', null, pg_temp.id('client'));
+select pg_temp.as_suite_session('mia', 'aal1', null, pg_temp.id('client'));
 select set_config('role', 'postgres', true);
 select is(private.api_key_scopes(), '{}'::text[], 'its access token reaches nothing any more');
 
@@ -181,7 +179,7 @@ select is(private.api_key_scopes(), '{}'::text[], 'its access token reaches noth
 select pg_temp.as_platform();
 insert into auth.sessions (id, user_id, created_at, updated_at, aal, oauth_client_id)
 values (gen_random_uuid(), pg_temp.id('dave_user'), now(), now(), 'aal1', pg_temp.id('client'));
-select pg_temp.as_session('dave', 'aal1', null);
+select pg_temp.as_suite_session('dave', 'aal1', null);
 select lives_ok($$select app.grant_oauth_consent((select client_id from app_client), array['work'])$$,
   'dave consents again with fewer groups');
 select pg_temp.as_platform();

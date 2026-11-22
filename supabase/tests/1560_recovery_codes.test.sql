@@ -28,7 +28,7 @@ begin
 end $$;
 
 -- Claims of a session: its aal and, optionally, a second factor p_second_ago (NULL for none) or an API key.
-create function pg_temp.as_session(p_user text, p_session text, p_aal text, p_second_ago interval, p_key boolean default false)
+create function pg_temp.as_suite_session(p_user text, p_session text, p_aal text, p_second_ago interval, p_key boolean default false)
 returns void
 language plpgsql as $$
 declare
@@ -38,12 +38,13 @@ begin
   if p_second_ago is not null then
     v_amr := jsonb_build_array(jsonb_build_object('method', 'totp', 'timestamp', extract(epoch from now() - p_second_ago)::bigint)) || v_amr;
   end if;
-  perform set_config('role', 'postgres', true);
-  perform set_config('request.jwt.claims',
-    jsonb_build_object('sub', pg_temp.id(p_user || '_user'), 'role', 'authenticated', 'aal', p_aal,
-      'session_id', pg_temp.id(p_session), 'amr', v_amr,
-      'scopes', case when p_key then '["projects"]'::jsonb end)::text, true);
-  perform set_config('role', 'authenticated', true);
+  if p_key then
+    -- An API key's token is not a session, whatever session_id it names.
+    perform pg_temp.present_token(jsonb_build_object('sub', pg_temp.id(p_user || '_user'), 'role', 'authenticated', 'aal', p_aal,
+      'session_id', pg_temp.id(p_session), 'amr', v_amr, 'scopes', '["projects"]'::jsonb));
+  else
+    perform pg_temp.present_token(pg_temp.access_token(pg_temp.id(p_user || '_user'), pg_temp.id(p_session), p_aal, v_amr));
+  end if;
 end $$;
 
 create function pg_temp.add_factor(p_user text) returns void
@@ -73,18 +74,18 @@ select ok(obj_description('app.redeem_recovery_code(text)'::regprocedure, 'pg_pr
 
 -- Making codes ------------------------------------------------------------------------------------------------------------
 
-select pg_temp.as_session('alice', 's_alice', 'aal1', null);
+select pg_temp.as_suite_session('alice', 's_alice', 'aal1', null);
 select throws_ok($$select * from app.generate_recovery_codes()$$, 'XR001',
   'step_up_required: Confirm it is you with your second factor to make recovery codes.',
   'making codes needs step-up');
 
-select pg_temp.as_session('alice', 's_alice', 'aal2', interval '1 minute');
+select pg_temp.as_suite_session('alice', 's_alice', 'aal2', interval '1 minute');
 select throws_ok($$select * from app.generate_recovery_codes()$$, 'XR001',
   'recovery_codes_need_factor: Set up an authenticator app or a security key first; recovery codes stand in for it.',
   'codes stand in for a second factor the person holds');
 
 select pg_temp.add_factor('alice');
-select pg_temp.as_session('alice', 's_alice', 'aal2', interval '1 minute');
+select pg_temp.as_suite_session('alice', 's_alice', 'aal2', interval '1 minute');
 insert into codes select code from app.generate_recovery_codes();
 select is((select count(distinct code)::int from codes), 10, 'ten distinct codes come back once');
 select ok((select bool_and(code ~ '^[0-9a-hjkmnp-tv-z]{5}-[0-9a-hjkmnp-tv-z]{5}$') from codes),
@@ -103,14 +104,14 @@ select is((select count(*)::int from private.recovery_codes r join codes c on r.
 create temporary table old_codes as select code from codes;
 grant select on old_codes to public;
 delete from codes;
-select pg_temp.as_session('alice', 's_alice', 'aal2', interval '2 minutes');
+select pg_temp.as_suite_session('alice', 's_alice', 'aal2', interval '2 minutes');
 insert into codes select code from app.generate_recovery_codes();
 select is((select total from app.my_recovery_code_status()), 10, 'regenerating keeps one set of ten');
 select is((select count(*)::int from codes c join old_codes o using (code)), 0, 'with new codes');
 
 -- Spending a code ---------------------------------------------------------------------------------------------------------
 
-select pg_temp.as_session('alice', 's_alice', 'aal1', null);
+select pg_temp.as_suite_session('alice', 's_alice', 'aal1', null);
 select results_eq($$select outcome from app.redeem_recovery_code((select code from old_codes limit 1))$$,
   array['code_invalid'], 'a code of the replaced set no longer matches');
 select results_eq($$select outcome, remaining from app.redeem_recovery_code(upper(replace((select min(code) from codes), '-', ' ')))$$,
@@ -129,21 +130,19 @@ select is((select count(*)::int from private.account_security_events where user_
   and kind = 'recovery_code_used' and session_id = pg_temp.id('s_alice') and detail ->> 'remaining' = '9'), 1,
   'the use is on her account security trail, with the session and the codes left');
 
-select pg_temp.as_session('alice', 's_alice_2', 'aal1', null);
+select pg_temp.as_suite_session('alice', 's_alice_2', 'aal1', null);
 select results_eq($$select outcome from app.redeem_recovery_code((select min(code) from codes))$$,
   array['code_invalid'], 'a spent code is refused, even on another session');
 select results_eq($$select outcome from app.redeem_recovery_code('not a code')$$, array['code_invalid'], 'so is anything that is not a code');
 
 -- The step-up check counts a recovery code as a second factor.
-select set_config('request.jwt.claims', jsonb_build_object('sub', pg_temp.id('alice_user'), 'role', 'authenticated', 'aal', 'aal2',
-  'session_id', pg_temp.id('s_alice'), 'amr', jsonb_build_array(
-    jsonb_build_object('method', 'mfa/recovery_code', 'timestamp', extract(epoch from now())::bigint),
-    jsonb_build_object('method', 'password', 'timestamp', extract(epoch from now() - interval '1 hour')::bigint)))::text, true);
+select pg_temp.present_token(pg_temp.access_token(pg_temp.id('alice_user'), pg_temp.id('s_alice'), 'aal2',
+  pg_temp.amr('password', interval '1 hour', 'mfa/recovery_code', interval '0')));
 select is((select recent from app.my_second_factor_status()), true, 'a recovery code just used counts as a recent second factor');
 
 -- Wrong codes lock the person out ------------------------------------------------------------------------------------------
 
-select pg_temp.as_session('alice', 's_alice_2', 'aal1', null);
+select pg_temp.as_suite_session('alice', 's_alice_2', 'aal1', null);
 -- Three refused so far (old set, spent code, not a code); two more reach the limit of five.
 select results_eq($$select outcome from app.redeem_recovery_code('aaaaa-aaaaa')$$, array['code_invalid'], 'a fourth wrong code is refused');
 select results_eq($$select outcome from app.redeem_recovery_code('bbbbb-bbbbb')$$, array['code_invalid'], 'a fifth too');
@@ -157,14 +156,14 @@ select is((select count(*)::int from private.recovery_codes where user_id = pg_t
 
 -- Who may spend codes ------------------------------------------------------------------------------------------------------
 
-select pg_temp.as_session('alice', 's_bob', 'aal1', null);
+select pg_temp.as_suite_session('alice', 's_bob', 'aal1', null);
 select throws_ok($$select * from app.redeem_recovery_code('aaaaa-aaaaa')$$, '42501', 'session not found',
   'a code never raises a session that is not the caller''s');
-select pg_temp.as_session('alice', 's_alice', 'aal1', null, true);
+select pg_temp.as_suite_session('alice', 's_alice', 'aal1', null, true);
 select throws_ok($$select * from app.redeem_recovery_code('aaaaa-aaaaa')$$, 'XR001',
   'step_up_session_only: A recovery code needs a signed-in session, never an API key or an app.', 'nor an API key');
 select throws_ok($$select * from app.generate_recovery_codes()$$, 'XR001', null, 'an API key cannot make codes');
-select pg_temp.as_session('bob', 's_bob', 'aal1', null);
+select pg_temp.as_suite_session('bob', 's_bob', 'aal1', null);
 select is((select total from app.my_recovery_code_status()), 0, 'bob sees no codes of alice''s');
 select results_eq($$select outcome from app.redeem_recovery_code((select max(code) from codes))$$, array['no_codes'],
   'and her code does nothing for him: he holds no second factor');
@@ -175,7 +174,7 @@ select throws_ok($$select * from app.redeem_recovery_code('aaaaa-aaaaa')$$, '425
 
 select pg_temp.as_platform();
 delete from auth.mfa_factors where user_id = pg_temp.id('alice_user');
-select pg_temp.as_session('alice', 's_alice', 'aal2', interval '1 minute');
+select pg_temp.as_suite_session('alice', 's_alice', 'aal2', interval '1 minute');
 select is((select usable from app.my_recovery_code_status()), false, 'with no second factor left the codes are not usable');
 select is(app.prune_recovery_codes(), true, 'and pruning deletes them');
 select is((select total from app.my_recovery_code_status()), 0, 'none are left');

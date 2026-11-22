@@ -89067,9 +89067,12 @@ export type Database = {
       my_org_auth_status: {
         Args: { p_org_id: string };
         Returns: {
+          blocked_reason: string;
+          idle: boolean;
           idle_timeout_minutes: number;
           mfa_required: boolean;
           mfa_verified: boolean;
+          network_allowed: boolean;
           session_ended: boolean;
           session_expired: boolean;
           session_expires_at: string;
@@ -89188,6 +89191,15 @@ export type Database = {
           waiting: boolean;
         }[];
       };
+      my_session_gate: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          closed: boolean;
+          org_id: string;
+          org_name: string;
+          reason: string;
+        }[];
+      };
       my_sessions: {
         Args: Record<PropertyKey, never>;
         Returns: {
@@ -89289,8 +89301,10 @@ export type Database = {
         Args: { p_ip: string; p_org_id: string };
         Returns: {
           allowed: boolean;
+          blocked_reason: string;
           covered: boolean;
           enforced: boolean;
+          network_allowed: boolean;
         }[];
       };
       next_pay_period_dates: {
@@ -92387,6 +92401,7 @@ export type Database = {
       };
       touch_my_session: {
         Args: {
+          p_attestation?: string;
           p_client_address: string;
           p_place: string;
           p_surface: string;

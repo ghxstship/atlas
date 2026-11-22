@@ -29,6 +29,7 @@
     "over": "{count, plural, one {# es} other {# son}} de solo lectura.",
     "room": "Mantenga hasta {room, plural, one {# editable} other {# editables}}. Si no elige, siguen editables los más antiguos.",
     "noRoom": "Los Propietarios ocupan todos los asientos que incluye el plan, así que ningún otro miembro conserva uno. Mejore el plan o compre asientos adicionales para hacer espacio.",
+    "noRoomNotOnSale": "Los Propietarios ocupan todos los asientos que incluye el plan, así que ningún otro miembro conserva uno. Mejore el plan para hacer espacio.",
     "owner": "Propietario, siempre editable",
     "readOnly": "Solo lectura",
     "writable": "Editable",

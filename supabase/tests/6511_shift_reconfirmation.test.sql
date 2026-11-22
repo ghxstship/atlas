@@ -33,10 +33,8 @@ begin
   perform pg_temp.as_platform();
   insert into world values (p_key, v_id);
   -- The worker accepts, through their own session.
-  perform set_config('role', 'postgres', true);
-  perform set_config('request.jwt.claims', json_build_object('sub', (select p.user_id from app.memberships m join app.people p on p.id = m.person_id
-    where m.id = pg_temp.id(p_membership)), 'role', 'authenticated')::text, true);
-  perform set_config('role', 'authenticated', true);
+  perform pg_temp.sign_in((select p.user_id from app.memberships m join app.people p on p.id = m.person_id
+    where m.id = pg_temp.id(p_membership)));
   perform app.accept_shift(v_id);
   perform pg_temp.as_platform();
 end $$;

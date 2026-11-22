@@ -9,6 +9,7 @@ import {
   revokeInviteLink,
   updateOrganizationProfile,
 } from "@xos/data/profiles";
+import { seatCopyKey } from "@xos/i18n/offering";
 import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
 import { z } from "zod";
@@ -51,7 +52,8 @@ const KNOWN = new Set([
 ]);
 
 function errorKey(error: Parameters<typeof settingErrorKey>[0]): string {
-  if (error.kind === "refusal" && KNOWN.has(error.rule)) return error.rule;
+  // A seat refusal reads as plans.yaml states extra seats: on sale or not (seatCopyKey).
+  if (error.kind === "refusal" && KNOWN.has(error.rule)) return seatCopyKey(error.rule);
   if (error.kind === "conflict") return "handle_in_use";
   return settingErrorKey(error);
 }

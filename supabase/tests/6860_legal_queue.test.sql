@@ -12,10 +12,7 @@ select plan(239);
 create function pg_temp.as_op(p_key text, p_aal text default 'aal2') returns void
 language plpgsql as $$
 begin
-  perform set_config('role', 'postgres', true);
-  perform set_config('request.jwt.claims',
-    json_build_object('sub', pg_temp.id(p_key || '_user'), 'role', 'authenticated', 'aal', p_aal)::text, true);
-  perform set_config('role', 'authenticated', true);
+  perform pg_temp.sign_in(pg_temp.id(p_key || '_user'), p_aal);
 end $$;
 
 -- A time as an operator types it: local, in the zone the queue counts in.
@@ -398,7 +395,12 @@ select is(private.sweep_legal_queue('2026-11-17 02:00-05'), 0, 'not hourly');
 select is(private.sweep_legal_queue('2026-11-18 01:00-05'), 1, 'but every day it stays overdue');
 select is((select count(*)::int from private.legal_queue_events where legal_queue_item_id = pg_temp.id('alert') and event_kind = 'Alert Sent'), 4,
   'each alert is logged on the item');
-update app.legal_queue_items set due_at = now() - interval '1 day', received_at = now() - interval '9 days' where id = pg_temp.id('alert');
+-- Overdue both for the console, which reads the clock, and for the sweep below, which is given
+-- 2026-11-19: the earlier of the two keeps the item overdue at both on any day the suite runs.
+update app.legal_queue_items
+   set due_at = least(now(), '2026-11-19 01:00-05'::timestamptz) - interval '1 day',
+       received_at = least(now(), '2026-11-19 01:00-05'::timestamptz) - interval '9 days'
+ where id = pg_temp.id('alert');
 select pg_temp.as_op('olga');
 select is(app.console_legal_queue_overdue(), 1, 'the console''s banner counts it');
 select lives_ok($$select app.console_add_legal_alert_contact('Backup Person', 'Backup@Example.test')$$, 'a backup contact is added');

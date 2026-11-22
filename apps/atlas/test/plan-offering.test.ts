@@ -1,8 +1,10 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
+import { SEAT_OFFER_KEYS, seatCopyKey } from "@xos/i18n/offering";
 import { PLAN_OFFERING, addonOnSale, extraSeatsOnSale } from "@xos/schemas/plans/offering";
 import { describe, expect, it } from "vitest";
+import { errorMessage } from "@/components/auth/error-message";
 import { ADDONS, PLANS } from "@/lib/plans.generated";
 import { PLAN_REGISTRY } from "@/lib/billing/plan-registry.generated";
 
@@ -132,5 +134,76 @@ describe("purchases Atlas offers", () => {
       expect(extraSeatsOnSale()).toBe(false);
       expect(addonOnSale("aurora_requests_1000")).toBe(false);
     }
+  });
+});
+
+describe("seat copy Atlas shows", () => {
+  /**
+   * The database refuses a seat on a plan that prices extra seats as seat_limit_reached, whatever is on sale. Atlas
+   * turns the rule into a catalog key through seatCopyKey, which reads offering.extra_seats, so the copy offers extra
+   * seats only while plans.yaml states them on sale. packages/i18n/test/seat-copy.test.ts holds the catalogs and the
+   * database messages to the same status.
+   */
+  const naming = (pattern: RegExp) =>
+    sources.filter(({ text }) => pattern.test(text)).map((s) => s.path);
+
+  it("chooses the copy of a seat refusal by the status, wherever a refusal becomes a catalog key", () => {
+    // auth/actions.ts passes the rule on as `invite.<rule>`, and errorMessage chooses its copy.
+    const handedOn = ["app/auth/actions.ts"];
+    const named = naming(/\bseat_limit_reached\b/);
+    expect(named).toEqual(expect.arrayContaining(handedOn));
+    for (const path of named.filter((p) => !handedOn.includes(p))) {
+      const text = sources.find((s) => s.path === path)?.text ?? "";
+      expect(text, `${path} names the seat refusal, so it chooses its copy`).toContain(
+        "seatCopyKey(",
+      );
+    }
+    // The two forms that show any refusal of the platform and orgLifecycle catalogs by its rule.
+    for (const path of [
+      "components/platform/kit.tsx",
+      "components/lifecycle/forms.tsx",
+      "components/auth/error-message.ts",
+    ]) {
+      const text = sources.find((s) => s.path === path)?.text ?? "";
+      expect(text, path).toMatch(/refus\w+\.\$\{seatCopyKey\(/);
+    }
+  });
+
+  it("shows the invitation's seat refusal as the status states it", () => {
+    const asked: string[] = [];
+    const t = (key: string) => {
+      asked.push(key);
+      return key;
+    };
+    errorMessage(t, "invite.seat_limit_reached");
+    errorMessage(t, "invite.seat_limit_upgrade");
+    errorMessage(t, "invite.invite_invalid");
+    expect(asked).toEqual([
+      `invite.refused.${extraSeatsOnSale() ? "seat_limit_reached" : "seat_limit_reached_not_on_sale"}`,
+      "invite.refused.seat_limit_upgrade",
+      "invite.refused.invite_invalid",
+    ]);
+  });
+
+  it("reads every other key that offers extra seats through the status", () => {
+    const offerKeys = Object.keys(SEAT_OFFER_KEYS).filter((key) => key !== "seat_limit_reached");
+    const literal = new RegExp(`["'\`.](${offerKeys.join("|")})["'\`]`);
+    const using = sources.filter(({ text }) => literal.test(text));
+    expect(using.map((s) => s.path).sort()).toEqual([
+      "app/[org]/settings/billing-and-plan/page.tsx",
+      "components/settings/contributions/a107.tsx",
+    ]);
+    for (const { path, text } of using) {
+      expect(
+        /seatCopyKey\(|extraSeatsOnSale\(\)/.test(text),
+        `${path} shows copy that offers extra seats, so it reads whether they are on sale`,
+      ).toBe(true);
+    }
+    const panel = using.find((s) => s.path.endsWith("a107.tsx"))?.text ?? "";
+    expect(panel).toContain('t(seatCopyKey("panel.noRoom"))');
+    expect(panel).not.toContain('t("panel.noRoom")');
+    expect(seatCopyKey("panel.noRoom")).toBe(
+      extraSeatsOnSale() ? "panel.noRoom" : "panel.noRoomNotOnSale",
+    );
   });
 });

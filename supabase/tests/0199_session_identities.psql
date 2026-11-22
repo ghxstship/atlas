@@ -1,0 +1,227 @@
+-- Shared pgTAP fixture: the session and the access token of a signed-in person (ADR 0169, work package 1).
+-- Included with \ir by 0200_identity_world.psql, and directly by the suites that build no world. Test-only: every
+-- function lives in pg_temp and every row rolls back with the suite.
+--
+-- A person who signs in through Supabase Auth has a row in auth.sessions, one row in auth.mfa_amr_claims for each factor
+-- the session passed, and an access token whose claims name both. These helpers make the same three things, so a
+-- function or policy that reads the session behind a token finds what it finds on the hosted project:
+--
+--   pg_temp.token_lifetime()              how long an access token lives: [auth] jwt_expiry, kept here and nowhere else
+--   pg_temp.auth_user(email, name)        a confirmed auth.users row, as an email sign-up leaves it
+--   pg_temp.amr(first, ago, second, ago)  the amr claim, newest factor first, as Supabase Auth orders it
+--   pg_temp.enrolled_factor(user, at)     the person's verified authenticator app in auth.mfa_factors
+--   pg_temp.open_session(...)             the auth.sessions row and its auth.mfa_amr_claims rows
+--   pg_temp.access_token(...)             the claims of the access token for a session, through the token hook
+--   pg_temp.present_token(claims, role)   puts a token on the transaction, as PostgREST does for a request
+--   pg_temp.sign_in(user, aal, ...)       all of the above for one person; a person keeps one session for each
+--                                         way of signing in, so calling it again presents the same session
+--   pg_temp.token_of_deleted_account(...) the token that outlived an account: no user row, no session row
+--
+-- What is modeled, compared on 2026-11-21 with a token and the rows a local Supabase Auth v2.197.0 produced for an
+-- email sign-up, a TOTP enrollment and verification, and a refresh, under this project's supabase/config.toml:
+--
+--   * The claim names, and no other: iss, sub, aud, exp, iat, email, phone, app_metadata, user_metadata, role, aal,
+--     amr, session_id and is_anonymous, then whatever private.custom_access_token_hook adds or removes (the org_id
+--     claim, migrations 0920 and 1563). exp is iat plus pg_temp.token_lifetime(). A refresh moves iat and exp and
+--     leaves amr as it was. iss is the local Auth URL, [api] port 55421.
+--   * app_metadata is {"provider": "email", "providers": ["email"]} and user_metadata carries sub, email,
+--     email_verified and phone_verified beside what the sign-up form sent, for the people auth_user makes. A suite
+--     that inserts its own auth.users row presents whatever that row holds.
+--   * auth.sessions: created_at at sign-in, updated_at and refreshed_at at the last refresh, aal, and at aal2 by an
+--     authenticator app factor_id, the verified auth.mfa_factors row of the person.
+--   * auth.mfa_amr_claims: one row for each method.
+--
+-- What is not modeled:
+--
+--   * auth.identities and auth.refresh_tokens. Supabase Auth keeps one identity for each provider and one refresh
+--     token row for each refresh; no helper here writes either.
+--   * Stepping up in place. Supabase Auth raises the one session to aal2 and the token keeps its session_id. Here
+--     the single-factor and the second-factor session of a person are two rows, as for a person signed in on two
+--     devices who passed the second factor on one, so a suite can move between them.
+--   * A second factor other than an authenticator app. A session whose amr names another method (mfa/recovery_code)
+--     gets no auth.mfa_factors row and no factor_id.
+--   * The first notice of an enrollment. enrolled_factor describes a person who enrolled before the suite began, so
+--     the account.security_changed notice of that enrollment (migration 2050) is not sent again.
+--   * aud as an array. The first token the local Auth issued after it started carried aud ["authenticated"]; every
+--     later one carried the string, which is what the helpers present.
+--
+-- Tokens that are not sessions stay with the suites that mint them: API keys and personal API tokens (amr method
+-- xos_api_key, supabase/functions/api-token), the automation worker's token, service_role and anon.
+
+create temporary table test_sessions (signature text primary key, session_id uuid not null);
+
+-- [auth] jwt_expiry in supabase/config.toml. Every exp the helpers write and every suite that reasons about a token's
+-- remaining life reads it here; when the configured value changes, this is the one line that follows it.
+create function pg_temp.token_lifetime() returns interval
+language sql immutable as $$ select interval '3600 seconds' $$;
+
+create function pg_temp.auth_user(p_email text, p_name text) returns uuid
+language plpgsql as $$
+declare
+  v_user uuid := gen_random_uuid();
+begin
+  perform set_config('role', 'postgres', true);
+  insert into auth.users (id, instance_id, aud, role, email, email_confirmed_at, raw_app_meta_data, raw_user_meta_data,
+    created_at, updated_at)
+  values (v_user, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', p_email, now(),
+          jsonb_build_object('provider', 'email', 'providers', jsonb_build_array('email')),
+          -- The sign-up form's answers (everyone answered 18 or older, ADR 0156), then what Supabase Auth adds.
+          jsonb_build_object('full_name', p_name, 'age_confirmed', '18', 'signup_surface', 'Atlas',
+            'sub', v_user, 'email', p_email, 'email_verified', true, 'phone_verified', false),
+          now(), now());
+  return v_user;
+end $$;
+
+create function pg_temp.amr(p_first text, p_first_ago interval, p_second text default null, p_second_ago interval default null)
+returns jsonb
+language sql stable as $$
+  select case when p_second is null then '[]'::jsonb
+              else jsonb_build_array(jsonb_build_object('method', p_second,
+                     'timestamp', extract(epoch from now() - p_second_ago)::bigint)) end
+      || jsonb_build_array(jsonb_build_object('method', p_first, 'timestamp', extract(epoch from now() - p_first_ago)::bigint))
+$$;
+
+-- The verified authenticator app of a person, enrolled before p_before: the one they hold, or a new row. The person
+-- enrolled before the suite began, so the row is written without its triggers and the enrollment notice of migration
+-- 2050 is not sent a second time.
+create function pg_temp.enrolled_factor(p_user uuid, p_before timestamptz default now()) returns uuid
+language plpgsql as $$
+declare
+  v_id uuid;
+begin
+  perform set_config('role', 'postgres', true);
+  select f.id into v_id from auth.mfa_factors f
+  where f.user_id = p_user and f.factor_type::text = 'totp' and f.status::text = 'verified'
+  order by f.created_at limit 1;
+  if v_id is null then
+    v_id := gen_random_uuid();
+    -- As statements: the platform role may set this parameter through SET and not through set_config.
+    set local session_replication_role = replica;
+    insert into auth.mfa_factors (id, user_id, friendly_name, factor_type, status, created_at, updated_at, secret)
+    values (v_id, p_user, 'pgTAP authenticator', 'totp', 'verified', p_before - interval '1 day', p_before - interval '1 day',
+            'pgtap-not-a-secret');
+    set local session_replication_role = origin;
+  end if;
+  return v_id;
+end $$;
+
+-- The session row Supabase Auth keeps: created at the earliest factor, last refreshed p_last_activity ago (never
+-- refreshed when that is before the sign-in), with one amr row for each factor. A session that passed an
+-- authenticator app names the person's verified factor, enrolled if they held none. p_client names the Supabase Auth
+-- client of an app's session; a client Supabase Auth does not know leaves the row without one.
+create function pg_temp.open_session(p_user uuid, p_aal text, p_amr jsonb, p_last_activity interval default interval '0',
+  p_client uuid default null)
+returns uuid
+language plpgsql as $$
+declare
+  v_id uuid := gen_random_uuid();
+  v_signed_in timestamptz;
+  v_active timestamptz;
+  v_factor uuid;
+begin
+  perform set_config('role', 'postgres', true);
+  select to_timestamp(min((e ->> 'timestamp')::bigint)) into v_signed_in from jsonb_array_elements(p_amr) e;
+  v_signed_in := coalesce(v_signed_in, now());
+  v_active := greatest(now() - p_last_activity, v_signed_in);
+  if p_aal = 'aal2' and p_amr @> '[{"method": "totp"}]' then
+    v_factor := pg_temp.enrolled_factor(p_user, v_signed_in);
+  end if;
+  insert into auth.sessions (id, user_id, created_at, updated_at, refreshed_at, aal, factor_id, oauth_client_id, ip, user_agent)
+  values (v_id, p_user, v_signed_in, v_active, case when v_active > v_signed_in then v_active at time zone 'UTC' end,
+          p_aal::auth.aal_level, v_factor, (select c.id from auth.oauth_clients c where c.id = p_client), '192.0.2.10', 'pgTAP');
+  insert into auth.mfa_amr_claims (id, session_id, created_at, updated_at, authentication_method)
+  select gen_random_uuid(), v_id, to_timestamp(min((e ->> 'timestamp')::bigint)), to_timestamp(max((e ->> 'timestamp')::bigint)),
+         e ->> 'method'
+  from jsonb_array_elements(p_amr) e
+  group by e ->> 'method';
+  return v_id;
+end $$;
+
+-- The claims of the access token Supabase Auth issues for a session, p_issued_ago ago. p_extra holds what a kind of
+-- token adds before the hook runs (client_id and scope for an app's token).
+create function pg_temp.access_token(p_user uuid, p_session uuid, p_aal text, p_amr jsonb,
+  p_issued_ago interval default interval '0', p_extra jsonb default '{}')
+returns jsonb
+language plpgsql as $$
+declare
+  v_issued bigint := extract(epoch from now() - p_issued_ago)::bigint;
+  v_claims jsonb;
+begin
+  perform set_config('role', 'postgres', true);
+  select jsonb_build_object(
+    'iss', 'http://127.0.0.1:55421/auth/v1', 'sub', u.id, 'aud', 'authenticated', 'exp', v_issued + extract(epoch from pg_temp.token_lifetime())::bigint,
+    'iat', v_issued,
+    'email', coalesce(u.email, ''), 'phone', coalesce(u.phone, ''),
+    'app_metadata', coalesce(u.raw_app_meta_data, '{}'::jsonb), 'user_metadata', coalesce(u.raw_user_meta_data, '{}'::jsonb),
+    'role', 'authenticated', 'aal', p_aal, 'amr', p_amr, 'session_id', p_session, 'is_anonymous', u.is_anonymous)
+  into v_claims
+  from auth.users u where u.id = p_user;
+  if v_claims is null then
+    raise exception 'fixture: no auth.users row for %', p_user;
+  end if;
+  return private.custom_access_token_hook(
+    jsonb_build_object('user_id', p_user, 'claims', v_claims || coalesce(p_extra, '{}'::jsonb))) -> 'claims';
+end $$;
+
+create function pg_temp.present_token(p_claims jsonb, p_role text default 'authenticated') returns void
+language plpgsql as $$
+begin
+  perform set_config('role', 'postgres', true);
+  perform set_config('request.jwt.claims', p_claims::text, true);
+  perform set_config('role', p_role, true);
+end $$;
+
+-- Signs a person in and presents the token. p_amr defaults to a password 30 minutes ago and, at aal2, a TOTP code a
+-- minute ago; the token was refreshed just now. p_extra is merged into the claims (p_client and an app's client_id and
+-- scope, for an app's session). p_role 'postgres' keeps the platform role, for calling private helpers directly.
+-- Returns the session id. The person must have an account: a key the world does not hold, or an account that is gone,
+-- is an error here, and the token that outlived an account is pg_temp.token_of_deleted_account.
+create function pg_temp.sign_in(p_user uuid, p_aal text default 'aal1', p_amr jsonb default null, p_extra jsonb default '{}',
+  p_role text default 'authenticated', p_client uuid default null)
+returns uuid
+language plpgsql as $$
+declare
+  v_amr jsonb;
+  v_signature text;
+  v_session uuid;
+begin
+  perform set_config('role', 'postgres', true);
+  if p_user is null or not exists (select 1 from auth.users u where u.id = p_user) then
+    raise exception 'fixture: no auth.users row for %; the token of an account that is gone is pg_temp.token_of_deleted_account',
+      coalesce(p_user::text, 'a person the suite did not make');
+  end if;
+  v_amr := coalesce(p_amr, case when p_aal = 'aal1' then pg_temp.amr('password', interval '30 minutes')
+                                else pg_temp.amr('password', interval '30 minutes', 'totp', interval '1 minute') end);
+  v_signature := concat_ws('|', p_user, p_aal, v_amr, p_client);
+  select s.session_id into v_session
+  from test_sessions s
+  where s.signature = v_signature and exists (select 1 from auth.sessions a where a.id = s.session_id);
+  if v_session is null then
+    v_session := pg_temp.open_session(p_user, p_aal, v_amr, interval '0', p_client);
+    insert into test_sessions values (v_signature, v_session)
+    on conflict (signature) do update set session_id = excluded.session_id;
+  end if;
+  perform pg_temp.present_token(pg_temp.access_token(p_user, v_session, p_aal, v_amr, interval '0', p_extra), p_role);
+  return v_session;
+end $$;
+
+-- The token that outlived its account, presented after the account was deleted and before the token expired: the sub
+-- of a user that no longer exists and the session_id of a session deleted with it. No auth.users row and no
+-- auth.sessions row stands behind it, and it is an error to ask for one while the account exists. Returns the
+-- session id the token names.
+create function pg_temp.token_of_deleted_account(p_user uuid, p_aal text default 'aal1', p_role text default 'authenticated')
+returns uuid
+language plpgsql as $$
+declare
+  v_session uuid := gen_random_uuid();
+begin
+  perform set_config('role', 'postgres', true);
+  if p_user is null or exists (select 1 from auth.users u where u.id = p_user) then
+    raise exception 'fixture: % still has an account; sign them in with pg_temp.sign_in', coalesce(p_user::text, 'nobody');
+  end if;
+  perform pg_temp.present_token(jsonb_build_object('sub', p_user, 'role', 'authenticated', 'aal', p_aal,
+    'amr', case when p_aal = 'aal1' then pg_temp.amr('password', interval '30 minutes')
+                else pg_temp.amr('password', interval '30 minutes', 'totp', interval '1 minute') end,
+    'session_id', v_session), p_role);
+  return v_session;
+end $$;

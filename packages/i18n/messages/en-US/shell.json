@@ -1047,6 +1047,7 @@
         "invite_rate_limited": "Too many attempts. Wait 15 minutes, then open the invitation link again.",
         "invite_inviter_inactive": "The person who invited you can no longer add members. Ask an admin of the organization for a new invitation.",
         "seat_limit_reached": "This organization has no seat left for your role. Ask its Owner to buy extra seats or upgrade the plan, then open the invitation again.",
+        "seat_limit_reached_not_on_sale": "This organization has no seat left for your role. Ask its Owner to upgrade the plan or remove a member, then open the invitation again.",
         "seat_limit_upgrade": "This organization has no seat left for your role. Ask its Owner to upgrade the plan, then open the invitation again.",
         "member_blocked": "You cannot join this organization. Ask one of its administrators."
       },
@@ -1229,6 +1230,7 @@
         "sole_owner": "An organization keeps at least one Owner. Make someone else Owner first.",
         "plan_limit_exceeded": "Your plan has no seat left for that role. Choose Viewer or Field, or compare plans.",
         "seat_limit_reached": "All seats on your plan are in use. Buy extra seats in Billing and Plan, or upgrade the plan. Viewer and Field roles never take a seat.",
+        "seat_limit_reached_not_on_sale": "All seats on your plan are in use. Upgrade the plan in Billing and Plan, or remove a member to free a seat. If you are not an Owner, ask an Owner to upgrade. Viewer and Field roles never take a seat.",
         "seat_limit_upgrade": "All seats on your plan are in use, and it sells no extra seats. Upgrade the plan in Billing and Plan. Viewer and Field roles never take a seat.",
         "not_member": "That membership has already ended.",
         "not-found": "That member or invitation is no longer here. Reload the page.",

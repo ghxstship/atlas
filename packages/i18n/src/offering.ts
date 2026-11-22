@@ -1,4 +1,4 @@
-import { isPlanFeatureOffered } from "@xos/schemas/plans/offering";
+import { extraSeatsOnSale, isPlanFeatureOffered } from "@xos/schemas/plans/offering";
 import { launchLocales, offeredLocaleList, type Locale } from "./locales.ts";
 
 /**
@@ -182,4 +182,31 @@ export function planFeatureOffered(feature: string, offering: Offering): boolean
     feature,
     offering.territories.map((t) => t.code),
   );
+}
+
+/**
+ * The catalog keys whose copy offers extra seats, each with the key that reads in its place while extra seats are not
+ * on sale (ADR 0035, 2026-11-15 amendment). The pairs sit side by side in every catalog that holds one. `null` marks
+ * copy with no stand-in: it is shown only while extra seats are on sale. test/seat-copy.test.ts holds every catalog
+ * to this list, so a message that offers extra seats is always one of these keys.
+ */
+export const SEAT_OFFER_KEYS: Readonly<Record<string, string | null>> = {
+  seat_limit_reached: "seat_limit_reached_not_on_sale",
+  noRoom: "noRoomNotOnSale",
+  seatsFull: "seatsFullNotOnSale",
+  buySeats: null,
+};
+
+/**
+ * The catalog key to show for `key`, a key or a dotted path: itself, or its stand-in when its last segment offers
+ * extra seats and they are not on sale. The status is offering.extra_seats in plans.yaml, read through
+ * @xos/schemas/plans/offering; a refusal's rule passes through here on its way to a catalog, so the database keeps
+ * one rule (`seat_limit_reached`) and the copy follows what is on sale.
+ */
+export function seatCopyKey(key: string, onSale: boolean = extraSeatsOnSale()): string {
+  if (onSale) return key;
+  const at = key.lastIndexOf(".") + 1;
+  const leaf = key.slice(at);
+  const standIn = Object.hasOwn(SEAT_OFFER_KEYS, leaf) ? SEAT_OFFER_KEYS[leaf] : null;
+  return standIn ? key.slice(0, at) + standIn : key;
 }

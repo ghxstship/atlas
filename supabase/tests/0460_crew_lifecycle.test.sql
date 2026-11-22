@@ -14,10 +14,7 @@ select plan(55);
 create function pg_temp.as_user_aal2(p_key text) returns void
 language plpgsql as $$
 begin
-  perform set_config('role', 'postgres', true);
-  perform set_config('request.jwt.claims',
-    json_build_object('sub', pg_temp.id(p_key || '_user'), 'role', 'authenticated', 'aal', 'aal2')::text, true);
-  perform set_config('role', 'authenticated', true);
+  perform pg_temp.as_user_stepped_up(p_key);
 end $$;
 
 -- Shift lifecycle -------------------------------------------------------------------------------------------

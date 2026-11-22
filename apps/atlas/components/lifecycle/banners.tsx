@@ -6,6 +6,7 @@ import {
   windowLastDay,
   type OrgBannerStatus,
 } from "@xos/data/org-lifecycle";
+import { seatCopyKey } from "@xos/i18n/offering";
 import type { Route } from "next";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
@@ -129,7 +130,8 @@ export async function LifecycleBanners({
 
   if (status.ownershipOffer) {
     const refusals = Object.fromEntries([
-      ...[...OFFER_REFUSALS].map((rule) => [rule, t(`refusals.${rule}`)]),
+      // Keyed by the rule the database refuses with; the seat copy follows what is on sale (seatCopyKey).
+      ...[...OFFER_REFUSALS].map((rule) => [rule, t(`refusals.${seatCopyKey(rule)}`)]),
       ["other", t("refusals.other")],
     ]);
     banners.push(

@@ -82,7 +82,7 @@ select is((select result -> 'engagements_canceled' from private.account_deletion
   'the deletion is recorded with what it did');
 
 -- The same session again: idempotent ------------------------------------------------------------------------------
-select pg_temp.as_user('ivy');
+select pg_temp.as_deleted_user('ivy');
 select is((select r ->> 'replayed' from app.delete_my_account('ivy@freelance.test') r), 'true', 'a repeat answers with the stored result');
 select pg_temp.as_platform();
 select is((select count(*)::int from app.dsar_requests where subject_person_id = pg_temp.id('ivy')), 2, 'and records nothing twice');
@@ -95,7 +95,7 @@ select pg_temp.as_platform();
 select is((select (valid_to is not null or deleted_at is not null) from app.memberships where id = pg_temp.id('dave@org_a')), true, 'the membership has ended (one that began this instant is withdrawn instead)');
 select is((select count(*)::int from app.time_entries where membership_id = pg_temp.id('dave@org_a')), 1, 'their time entry stays for payroll retention');
 select is((select count(*)::int from app.memberships where id = pg_temp.id('frank@org_a') and valid_to is null), 1, 'nobody else''s membership changed');
-select pg_temp.as_user('dave');
+select pg_temp.as_deleted_user('dave');
 select throws_ok($$select app.account_deletion_preview()$$, '42501', null, 'the deleted session no longer resolves to a person');
 select is((select count(*)::int from app.projects where org_id = pg_temp.id('org_a')), 0, 'and reads nothing of the org');
 

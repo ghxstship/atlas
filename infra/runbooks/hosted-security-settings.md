@@ -182,6 +182,50 @@ Check the hosted project once, on staging, before relying on per-address limits 
 3. If there are any, set that count: `alter database postgres set xos.trusted_proxy_hops = '1';` (then
    reconnect). With 0 the database would count a proxy's address and share one limit among callers.
 
+## Session gate on the data endpoint (ADR 0169)
+
+ADR 0169, accepted on 2026-11-20, replaces "route all data access through the API" as the plan for the known
+limits this file states (the second-factor policy, session length, idle timeout, signed-out tokens and the IP
+allow-list on direct calls to the Supabase endpoint). Those limits stay as written above until each control is
+enforced on production; the ADR says which sentence changes when.
+
+Two hosted steps of that record are the owner's. **Neither is done now.** Each is done when the work package
+that needs it has shipped to that environment, staging first and then production, and not before.
+
+1. **Access token lifetime, from 3,600 to 900 seconds, with the refresh limit (ADR 0169 D10, owner decision 8).**
+   When: work package 12 of the ADR has shipped (`jwt_expiry = 900` and `token_refresh = 600` in
+   `supabase/config.toml`). The owner applies it, or approves a named person applying it, both values in one
+   sitting:
+   - Project Settings > JWT Keys > Legacy JWT Secret: set the access token expiry time to `900`.
+   - Authentication > Rate Limits: set the token refresh limit to four times its current value, `600` when it
+     is the default `150` per five minutes per address.
+
+   Check: sign in to Atlas; the token answer's `expires_in` is 900, and Atlas, Gateway, Console and Compass stay
+   signed in past 15 minutes. Rollback: set both values back.
+
+2. **The attestation key `XOS_DATA_ATTEST_KEY` (ADR 0169 D3, owner decision 7).** When: work packages 2, 7 and 8
+   of the ADR have shipped to that environment, and before the first control there is switched to observe. The
+   owner generates the key on the owner's own machine and enters it; no agent sees the value, and it is never
+   pasted into a chat, an issue, a commit or a file in the repository. Staging and production get different
+   values.
+   - Generate: `openssl rand -base64 48`.
+   - Vercel, projects `atlas`, `gateway` and `console`: Settings > Environment Variables, add
+     `XOS_DATA_ATTEST_KEY` as a Sensitive variable (Production for the production value, Preview for the
+     staging value), then redeploy all three.
+   - Supabase, Edge Functions > Secrets: add `XOS_DATA_ATTEST_KEY` with the same value.
+   - Supabase, SQL editor, without saving the query:
+     `select vault.create_secret('<the key>', 'xos_data_attest_key', 'ADR 0169 attestation key');`
+
+   Its rotation waits for 5.0, under the standing no-rotation decision of 2026-11-09.
+
+The staging probe (the ADR's work package 0, approved by the owner, owner decision 2) is run by a person from
+`infra/db/probes/README.md`. It performs the check under "The client address behind proxies" above and four
+others, and removes what it creates. It has not been run. Record its output and date here when it has, with the
+value set for `xos.trusted_proxy_hops` if question 1 was proven. Parts of the ADR's build wait for that record:
+its work packages 4 and 7, the Postgres Changes policy of package 6 and the `app_mfa` rule do not start before
+the answers they depend on are written here (the ADR's "What builds in parallel"). The owner's numbers above are
+the owner's own, 1 to 13, as the ADR's "Owner decisions" table lists them.
+
 ## Report runs (A35)
 
 Schedule the `report-run` Edge Function every minute with a secret key on the `apikey` header, as for

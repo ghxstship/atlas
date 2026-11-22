@@ -9,6 +9,7 @@ import {
   type DataError,
 } from "@xos/data";
 import { requireSecondFactor } from "@xos/data/auth-assurance";
+import { seatCopyKey } from "@xos/i18n/offering";
 import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
 import { z } from "zod";
@@ -46,7 +47,9 @@ const KNOWN_REFUSALS = new Set([
 ]);
 
 function errorKey(error: DataError): string {
-  if (error.kind === "refusal") return KNOWN_REFUSALS.has(error.rule) ? error.rule : "unexpected";
+  // A seat refusal reads as plans.yaml states extra seats: on sale or not (seatCopyKey).
+  if (error.kind === "refusal")
+    return KNOWN_REFUSALS.has(error.rule) ? seatCopyKey(error.rule) : "unexpected";
   if (error.kind === "not-found") return "not-found";
   return "unexpected";
 }

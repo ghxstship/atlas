@@ -13,6 +13,8 @@
 create temporary table world (key text primary key, id uuid not null);
 grant select, insert on world to public;
 
+\ir 0199_session_identities.psql
+
 create function pg_temp.id(p_key text) returns uuid
 language sql stable as $$ select w.id from world w where w.key = p_key $$;
 
@@ -31,54 +33,100 @@ begin
   perform set_config('role', 'anon', true);
 end $$;
 
-create function pg_temp.as_user(p_key text) returns void
+-- The sign-in of a world person, by key. A key the world does not hold is a mistake in the suite, never a token.
+create function pg_temp.world_user(p_key text) returns uuid
 language plpgsql as $$
 declare
   v_user uuid;
 begin
   perform set_config('role', 'postgres', true);
   select w.id into v_user from world w where w.key = p_key || '_user';
-  perform set_config('request.jwt.claims',
-    json_build_object('sub', v_user, 'role', 'authenticated')::text, true);
-  perform set_config('role', 'authenticated', true);
+  if v_user is null then
+    raise exception 'fixture: the world holds no person %', coalesce(p_key, '(null)');
+  end if;
+  return v_user;
+end $$;
+
+-- A person's single-factor session: a real auth.sessions row and the access token Supabase Auth issues for it
+-- (0199_session_identities.psql; ADR 0169, work package 1). The same person keeps the same session across calls.
+-- Once the account is deleted this is an error: the token that outlived it is pg_temp.as_deleted_user.
+create function pg_temp.as_user(p_key text) returns void
+language plpgsql as $$
+begin
+  perform pg_temp.sign_in(pg_temp.world_user(p_key));
+end $$;
+
+-- The token a world person still holds after deleting their account (pg_temp.token_of_deleted_account).
+create function pg_temp.as_deleted_user(p_key text) returns void
+language plpgsql as $$
+begin
+  perform pg_temp.token_of_deleted_account(pg_temp.world_user(p_key));
 end $$;
 
 -- A99 (S9-08, migration 1562): a user whose session passed a second factor a minute ago, for the acts that ask for
--- step-up (assigning or removing someone else's role, creating an API key, changing billing).
+-- step-up (assigning or removing someone else's role, creating an API key, changing billing). A second-factor session
+-- of its own: aal2 on the row and in the token, with the TOTP entry in both, and the person's verified authenticator
+-- app in auth.mfa_factors, which they hold from then on in every session.
 create function pg_temp.as_user_stepped_up(p_key text) returns void
 language plpgsql as $$
+begin
+  perform pg_temp.sign_in(pg_temp.world_user(p_key), 'aal2');
+end $$;
+
+-- A session of the test's choosing, for the suites about the session itself (ADR 0169): its assurance level, how long
+-- ago the person signed in, how long ago the session was last active (its last token refresh, when the token on the
+-- request was issued), and whether the auth.sessions row still exists (false is a session signed out elsewhere whose
+-- token has not expired). At aal2 the second factor passed p_second_ago ago. p_without drops claims from the token
+-- (session_id, amr, aal), for a token an older issuer or a forger would present. Every call opens a new session and
+-- returns its id.
+--
+-- The token was issued at the last activity, so it expires pg_temp.token_lifetime() after it. A last activity at or
+-- beyond that lifetime is a token PostgREST rejects as expired before any function of ours runs, which is not the
+-- case an idle test means to make: it is an error unless p_expired says the expired token is the point. An idle case
+-- therefore sets idle_timeout_minutes below the token lifetime and a last activity between the two.
+create function pg_temp.as_session(p_key text, p_aal text default 'aal1', p_age interval default interval '30 minutes',
+  p_last_activity interval default interval '0', p_row boolean default true, p_second_ago interval default interval '1 minute',
+  p_without text[] default '{}', p_expired boolean default false)
+returns uuid
+language plpgsql as $$
 declare
-  v_user uuid;
+  v_user uuid := pg_temp.world_user(p_key);
+  v_issued_ago interval := least(p_last_activity, p_age);
+  v_amr jsonb;
+  v_session uuid;
+  v_claims jsonb;
 begin
   perform set_config('role', 'postgres', true);
-  select w.id into v_user from world w where w.key = p_key || '_user';
-  perform set_config('request.jwt.claims',
-    json_build_object('sub', v_user, 'role', 'authenticated', 'aal', 'aal2',
-      'amr', json_build_array(
-        json_build_object('method', 'totp', 'timestamp', extract(epoch from now() - interval '1 minute')::bigint),
-        json_build_object('method', 'password', 'timestamp', extract(epoch from now() - interval '1 hour')::bigint)))::text, true);
-  perform set_config('role', 'authenticated', true);
+  if v_issued_ago >= pg_temp.token_lifetime() and not p_expired then
+    raise exception 'fixture: a token issued % ago has expired (tokens live %); set a last activity inside the token lifetime, or pass p_expired => true for an expired token',
+      v_issued_ago, pg_temp.token_lifetime();
+  end if;
+  v_amr := case when p_aal = 'aal1' then pg_temp.amr('password', p_age)
+                else pg_temp.amr('password', p_age, 'totp', least(p_second_ago, p_age)) end;
+  v_session := pg_temp.open_session(v_user, p_aal, v_amr, p_last_activity);
+  v_claims := pg_temp.access_token(v_user, v_session, p_aal, v_amr, v_issued_ago) - p_without;
+  if not p_row then
+    delete from auth.sessions where id = v_session;
+  end if;
+  perform pg_temp.present_token(v_claims);
+  return v_session;
 end $$;
 
 -- Claims of a user while keeping the postgres role, for calling private helpers directly.
 create function pg_temp.claims(p_key text) returns void
 language plpgsql as $$
 begin
-  perform set_config('role', 'postgres', true);
-  perform set_config('request.jwt.claims',
-    json_build_object('sub', pg_temp.id(p_key || '_user'), 'role', 'authenticated')::text, true);
+  perform pg_temp.sign_in(pg_temp.world_user(p_key), p_role := 'postgres');
 end $$;
 
 create function pg_temp.new_user(p_key text, p_email text, p_name text) returns void
 language plpgsql as $$
 declare
-  v_user uuid := gen_random_uuid();
+  v_user uuid;
 begin
   perform pg_temp.as_platform();
-  insert into auth.users (id, instance_id, aud, role, email, email_confirmed_at, raw_user_meta_data, created_at, updated_at)
-  values (v_user, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', p_email, now(),
-          -- Everyone here answered 18 or older at sign-up (ADR 0156); suites about the question make their own people.
-          jsonb_build_object('full_name', p_name, 'age_confirmed', '18', 'signup_surface', 'Atlas'), now(), now());
+  -- Everyone here answered 18 or older at sign-up (ADR 0156); suites about the question make their own people.
+  v_user := pg_temp.auth_user(p_email, p_name);
   insert into world values (p_key || '_user', v_user);
   insert into world select p_key, p.id from app.people p where p.user_id = v_user;
 end $$;
