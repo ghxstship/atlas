@@ -16,7 +16,7 @@
 //     XOS_SMS_DELIVER_TO_ANY=true; recorded otherwise. sent.dm posts delivery events to sms-webhook, the endpoint
 //     registered in its dashboard. Texts held by quiet hours go out as one summary per member and org when the quiet
 //     hours end (ADR 0033 decision 35).
-// One channel failing never stops the others: its error is logged and reported in the answer.
+// One channel failing never stops the others: its error is logged, and the answer names the channel that failed.
 //   * Push and SMS go first and keep sending batch after batch while each comes back full, within a time and batch
 //     budget, so a crisis alert to a whole project (6800) reaches phones within minutes; the claim takes the kinds
 //     that bypass quiet hours before any backlog. Email sends one batch a run: rendering is what costs CPU.
@@ -46,18 +46,11 @@ import {
 } from "../_vendor/notification-dispatch.js";
 import { createLogger, identityFromEnv } from "../_vendor/core.js";
 import { env, isServiceRequest, json, serve, serviceDb } from "../_shared/runtime.ts";
+import { channel as runChannel } from "./channel.ts";
 
 const logger = createLogger(identityFromEnv("edge.notification-dispatch", Deno.env.toObject()));
 
-async function channel<T>(name: string, run: () => Promise<T>): Promise<T | { error: string }> {
-  try {
-    return await run();
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    logger.error("A notification channel failed.", { channel: name, error: message });
-    return { error: message };
-  }
-}
+const channel = <T>(name: string, run: () => Promise<T>) => runChannel(logger, name, run);
 
 serve(async (request) => {
   if (!isServiceRequest(request)) {

@@ -222,10 +222,10 @@
     {
       "alert": 23,
       "rule": "js/stack-trace-exposure",
-      "path": "supabase/functions/stripe-webhook/index.ts",
-      "verdict": "real",
-      "reason": "No stack trace was sent, but the 400 reply to an unsigned caller carried the Stripe library's own message about how the signature check works.",
-      "change": "The reply carries a fixed sentence."
+      "path": "supabase/functions/_shared/runtime.ts",
+      "verdict": "not_exploitable",
+      "reason": "The flow starts in supabase/functions/notification-dispatch/index.ts: a failed channel's error text went into the JSON reply. Only a caller holding the project's secret key (the pg_cron worker schedule) gets that reply; every other caller is answered 401 before any channel runs.",
+      "change": "A failed channel is logged with its reason and answered with a fixed sentence naming the channel (notification-dispatch/channel.ts, packages/platform/test/notification-dispatch-channel.test.ts). Separately, stripe-webhook's 400 reply to a bad signature now carries a fixed sentence instead of the Stripe library's message."
     },
     {
       "alert": 21,
