@@ -113,13 +113,17 @@ var LOCAL_INBOX_HOST =
   /^(localhost|127\.0\.0\.1|\[::1\]|host\.docker\.internal|supabase_inbucket_[a-z0-9_-]+|[a-z0-9-]+\.localhost)$/i;
 /** Splits "Name <address>" into Mailpit's address shape. */
 function mailpitAddress(value) {
-  const match = /^\s*(.*?)\s*<([^>]+)>\s*$/.exec(value);
-  if (!match) return { Email: value.trim() };
-  const name = (match[1] ?? "").replace(/^"|"$/g, "");
+  const text = value.trim();
+  const open = text.endsWith(">")
+    ? text.indexOf("<", text.lastIndexOf(">", text.length - 2) + 1)
+    : -1;
+  if (open === -1 || open >= text.length - 2 || /[\n\r]/.test(text)) return { Email: text };
+  const email = text.slice(open + 1, -1);
+  const name = text.slice(0, open).trimEnd().replace(/^"|"$/g, "");
   return name === ""
-    ? { Email: match[2] }
+    ? { Email: email }
     : {
-        Email: match[2],
+        Email: email,
         Name: name,
       };
 }

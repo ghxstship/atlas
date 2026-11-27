@@ -137,6 +137,16 @@ async function bytesOf(
 // Google Drive ----------------------------------------------------------------------------------------------------------
 
 const DRIVE = "https://www.googleapis.com/drive/v3";
+
+/**
+ * A value inside a single-quoted string of a Drive search query. Drive reads a backslash as the escape character, so
+ * the backslash is escaped before the quote: escaping the quote alone lets `\'` close the string early and add
+ * terms to the query.
+ */
+export function driveQueryLiteral(value: string): string {
+  return value.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+}
+
 const DRIVE_FIELDS = "id,name,mimeType,size,webViewLink,version,modifiedTime,trashed";
 
 interface DriveFile {
@@ -205,7 +215,7 @@ export const googleDriveProvider: StorageProvider = {
     });
   },
   async listFolder(context, folderId) {
-    const q = `'${(folderId ?? "root").replace(/'/g, "\\'")}' in parents and trashed = false`;
+    const q = `'${driveQueryLiteral(folderId ?? "root")}' in parents and trashed = false`;
     const page = await callJson<{ files: DriveFile[] }>(context.http, "Google Drive", {
       method: "GET",
       url: `${DRIVE}/files?q=${encodeURIComponent(q)}&fields=${encodeURIComponent(`files(${DRIVE_FIELDS})`)}&pageSize=200&supportsAllDrives=true&includeItemsFromAllDrives=true`,

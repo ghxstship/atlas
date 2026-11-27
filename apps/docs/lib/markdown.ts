@@ -131,7 +131,8 @@ export function parseBody(markdown: string): Block[] {
     const quote = /^> ?(.*)$/.exec(line);
     const image = /^!\[([^\]]+)\]\(([^)\s]+)\)$/.exec(line);
     // A comment line, such as a help article's generated-list marker, ends the block like a blank line.
-    if (line === "" || /^<!--.*-->$/.test(line)) flush();
+    if (line === "" || (line.length >= 7 && line.startsWith("<!--") && line.endsWith("-->")))
+      flush();
     else if (h) {
       flush();
       heading(h[1] === "##" ? "h2" : "h3", h[2] as string);

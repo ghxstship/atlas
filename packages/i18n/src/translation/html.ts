@@ -74,5 +74,52 @@ export function parseSpans(html: string): HtmlNode[] {
 
 /** The visible text of a segment, without markup: what Google bills for, less the markup. */
 export function textOf(html: string): string {
-  return decodeEntities(html.replace(/<[^>]*>/g, ""));
+  return decodeEntities(stripTags(html));
+}
+
+/**
+ * The HTML without its `<...>` tags, as `html.replace(/<[^>]*>/g, "")` returns it. One pass by position, so removing
+ * one tag cannot leave the start of another to a second pattern, and an unclosed bracket costs nothing extra.
+ */
+export function stripTags(html: string): string {
+  let out = "";
+  let from = 0;
+  for (;;) {
+    const open = html.indexOf("<", from);
+    if (open === -1) break;
+    const close = html.indexOf(">", open + 1);
+    if (close === -1) break;
+    out += html.slice(from, open);
+    from = close + 1;
+  }
+  return out + html.slice(from);
+}
+
+const FROZEN_OPEN = '<span translate="no"';
+const SPAN_CLOSE = "</span>";
+
+/**
+ * The HTML without its frozen spans (`<span translate="no" ...>...</span>` on one line), content included, as
+ * `html.replace(/<span translate="no"[^>]*>.*?<\/span>/g, "")` returns it.
+ */
+export function stripFrozenSpans(html: string): string {
+  let out = "";
+  let kept = 0;
+  let from = 0;
+  for (;;) {
+    const open = html.indexOf(FROZEN_OPEN, from);
+    if (open === -1) break;
+    const openEnd = html.indexOf(">", open + FROZEN_OPEN.length);
+    if (openEnd === -1) break;
+    const close = html.indexOf(SPAN_CLOSE, openEnd + 1);
+    if (close === -1) break;
+    if (/[\n\r\u2028\u2029]/.test(html.slice(openEnd + 1, close))) {
+      from = open + 1;
+      continue;
+    }
+    out += html.slice(kept, open);
+    kept = close + SPAN_CLOSE.length;
+    from = kept;
+  }
+  return out + html.slice(kept);
 }

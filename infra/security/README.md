@@ -34,6 +34,9 @@ silences anything else.
   builds) under one exact license, `Pending counsel` or `Approved by counsel`. The two pending entries are the
   owner decision "Counsel review of FSL-1.1-Apache-2.0 and LGPL-3.0-or-later" in `legal/qa/gate-status.md`.
 - **Staging advisors**: `advisors-accepted.json`, by lint name and optionally by text in the lint's cache key.
+- **CodeQL alerts**: `codeql-findings.json`, one entry per alert with its rule, file, verdict (`real` or
+  `not_exploitable`), the reason and what the code does now. Alerts are not dismissed on GitHub; one closes when a
+  scan of main no longer finds it. An alert left in place has an empty `change` and a reason.
 - **ZAP alerts**: `zap/baseline-rules.tsv`, ZAP's own `-c` format. `IGNORE` lines say why; `FAIL` lines name
   the protections every page must keep (anti-clickjacking, CSP, no `X-Powered-By`). The file was written
   before the first staging run; record a decision for each warning of that run.

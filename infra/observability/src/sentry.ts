@@ -145,13 +145,31 @@ function newEventId(): string {
   return crypto.randomUUID().replace(/-/g, "");
 }
 
+/**
+ * One V8 stack line, `at fn (file:1:2)` or `at file:1:2`, as [function, file, line, column]. Read by position: the
+ * position is anchored at the end of the line, and the function name ends at the first " (" with a file after it. A
+ * single pattern with two open gaps retries along the whole line for every candidate split.
+ */
+export function readFrame(line: string): [string | undefined, string, string, string] | null {
+  const text = line.trimStart();
+  if (!text.startsWith("at ")) return null;
+  const position = /:(\d+):(\d+)\)?$/.exec(text);
+  if (position === null) return null;
+  const body = text.slice(3, position.index);
+  const paren = body.indexOf(" (", 1);
+  const named = paren !== -1 && paren + 2 < body.length;
+  const file = named ? body.slice(paren + 2) : body;
+  if (file === "") return null;
+  return [named ? body.slice(0, paren) : undefined, file, position[1] ?? "", position[2] ?? ""];
+}
+
 function frames(stack: string | undefined): Array<Record<string, unknown>> | undefined {
   if (!stack) return undefined;
   const parsed: Array<Record<string, unknown>> = [];
   for (const line of stack.split("\n")) {
-    const match = /^\s*at (?:(.+?) \()?(.+?):(\d+):(\d+)\)?$/.exec(line);
-    if (!match) continue;
-    const [, fn, file, lineno, colno] = match;
+    const frame = readFrame(line);
+    if (!frame) continue;
+    const [fn, file, lineno, colno] = frame;
     parsed.push({
       function: fn ?? "?",
       filename: redactString(file ?? "?", 512),

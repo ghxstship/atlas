@@ -119,13 +119,30 @@ export function minorToDecimal(minor: bigint | number, exponent: number): string
   return `${negative ? "-" : ""}${whole}${fraction}`;
 }
 
+/**
+ * The text without the run of one character at its end, as `text.replace(/x+$/, "")` returns it. One pass from the
+ * end: the pattern retries from every position of a long run, which is quadratic on text a caller chose.
+ */
+export function withoutTrailing(text: string, character: string): string {
+  let end = text.length;
+  while (end > 0 && text.charAt(end - 1) === character) end--;
+  return end === text.length ? text : text.slice(0, end);
+}
+
+/** The text without the run of one character at its start. */
+export function withoutLeading(text: string, character: string): string {
+  let start = 0;
+  while (start < text.length && text.charAt(start) === character) start++;
+  return start === 0 ? text : text.slice(start);
+}
+
 /** Parses a decimal amount into integer minor units; refuses more precision than the currency has. */
 export function decimalToMinor(amount: string | number, exponent: number): bigint {
   const text = typeof amount === "number" ? amount.toFixed(exponent) : amount.trim();
   const match = /^(-)?(\d+)(?:\.(\d+))?$/.exec(text);
   if (match === null)
     throw new IntegrationError("amount_malformed", `${text} is not a decimal amount.`);
-  const fraction = (match[3] ?? "").replace(/0+$/, "");
+  const fraction = withoutTrailing(match[3] ?? "", "0");
   if (fraction.length > exponent) {
     throw new IntegrationError(
       "amount_precision",

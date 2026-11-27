@@ -70,9 +70,13 @@ export async function online(): Promise<boolean> {
 
 async function serve(): Promise<void> {
   const listenPort = Number(process.env["NETWORK_HELPER_PORT"] ?? "57158");
-  const steps: Record<string, () => Promise<boolean>> = { offline, online };
+  // A map, so a path such as /constructor finds no step instead of a method every object inherits.
+  const steps = new Map<string, () => Promise<boolean>>([
+    ["offline", offline],
+    ["online", online],
+  ]);
   const server = createServer((req, res) => {
-    const step = steps[(req.url ?? "").replace(/^\//, "")];
+    const step = steps.get((req.url ?? "").replace(/^\//, ""));
     if (req.method !== "POST" || !step) {
       res.writeHead(404).end();
       return;

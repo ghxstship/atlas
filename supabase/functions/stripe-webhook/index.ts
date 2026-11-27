@@ -32,7 +32,8 @@ serve(async (request) => {
         type: "/problems/invalid-signature",
         title: "Invalid signature",
         status: 400,
-        detail: error.message,
+        // A fixed sentence: the library's own message describes how the check works and is not the caller's to read.
+        detail: "The Stripe-Signature header is missing or does not match this payload.",
       });
     }
     throw error;

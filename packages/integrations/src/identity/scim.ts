@@ -1,4 +1,5 @@
 import { StoreError, unwrap, type DbClient, type DbResponse } from "../framework/db.ts";
+import { withoutLeading, withoutTrailing } from "../framework/support.ts";
 
 /**
  * A SCIM 2.0 service provider (RFC 7643, RFC 7644) for the Users and Groups an identity provider pushes.
@@ -264,6 +265,18 @@ interface UserBody {
   groups?: { display?: unknown; value?: unknown }[];
 }
 
+/**
+ * Whether the text has the shape local@domain.tld: no white space, one at sign with text before it, and a dot inside
+ * the domain with text on both sides. What /^[^\s@]+@[^\s@]+\.[^\s@]+$/ accepts, read by position so a long
+ * address from an identity provider costs one pass.
+ */
+export function isEmailShaped(text: string): boolean {
+  if (/\s/.test(text)) return false;
+  const at = text.indexOf("@");
+  if (at <= 0 || at !== text.lastIndexOf("@")) return false;
+  return text.slice(at + 2, -1).includes(".");
+}
+
 function readUser(
   body: unknown,
 ): { email: string; fullName: string | null; active: boolean; groups: string[] | null } | string {
@@ -278,8 +291,7 @@ function readUser(
   )
     .trim()
     .toLowerCase();
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
-    return "userName or a primary email must be an email address.";
+  if (!isEmailShaped(email)) return "userName or a primary email must be an email address.";
   const formatted = typeof user.name?.formatted === "string" ? user.name.formatted : null;
   const parts = [user.name?.givenName, user.name?.familyName].filter(
     (p): p is string => typeof p === "string" && p.length > 0,
@@ -386,7 +398,7 @@ export async function handleScimRequest(
   const providerId = token === undefined ? null : await store.providerForToken(token);
   if (providerId === null)
     return scimError(401, "The bearer token is not valid for SCIM provisioning.");
-  const [resource, id, extra] = request.path.replace(/^\/+|\/+$/g, "").split("/");
+  const [resource, id, extra] = withoutLeading(withoutTrailing(request.path, "/"), "/").split("/");
   if (extra !== undefined) return scimError(404, "No such SCIM resource.");
   const method = request.method.toUpperCase();
 

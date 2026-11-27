@@ -19,8 +19,13 @@ const { version: platformVersion } = require("zapier-platform-core");
 
 const DEFAULT_BASE_URL = "https://api.ghxstship.tech/v1";
 
-const baseUrl = (bundle) =>
-  String(bundle.authData.base_url || DEFAULT_BASE_URL).replace(/\/+$/, "");
+/** The API base without the slashes at its end, read from the end so a long run of slashes costs one pass. */
+const baseUrl = (bundle) => {
+  const url = String(bundle.authData.base_url || DEFAULT_BASE_URL);
+  let end = url.length;
+  while (end > 0 && url.charAt(end - 1) === "/") end--;
+  return url.slice(0, end);
+};
 
 /** A fresh Idempotency-Key for each POST (the API requires one on every POST). */
 const idempotencyKey = (z, bundle) =>

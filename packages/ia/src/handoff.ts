@@ -72,7 +72,9 @@ export function compassSchemeUrl(target: HandoffTarget): string {
 }
 
 function trimOrigin(origin: string): string {
-  return origin.replace(/\/+$/, "");
+  let end = origin.length;
+  while (end > 0 && origin.charAt(end - 1) === "/") end--;
+  return origin.slice(0, end);
 }
 
 /**

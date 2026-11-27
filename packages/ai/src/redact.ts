@@ -110,7 +110,7 @@ const PATTERNS: readonly (readonly [RegExp, string])[] = [
  * label. The label stays, so the reader sees what was withheld.
  */
 const IDENTITY =
-  /\b(passport(?:\s+(?:no\.?|number|#|expiry|expiration(?:\s+date)?|exp\.?))?|date\s+of\s+birth|birth\s*date|d\.?o\.?b\.?|known\s+traveler(?:\s+(?:no\.?|number|#))?|ktn|redress(?:\s+(?:no\.?|number|#))?)(?![a-z])(\s*[:#]?\s*)(\d{1,2}[\s-]?[a-z]{3}[\s-]?\d{2,4}|[a-z0-9][a-z0-9/.-]{2,19})/gi;
+  /\b(passport(?:\s+(?:no\.?|number|#|expiry|expiration(?:\s+date)?|exp\.?))?|date\s+of\s+birth|birth\s*date|d\.?o\.?b\.?|known\s+traveler(?:\s+(?:no\.?|number|#))?|ktn|redress(?:\s+(?:no\.?|number|#))?)(?![a-z])(\s*(?:[:#]\s*)?)(\d{1,2}[\s-]?[a-z]{3}[\s-]?\d{2,4}|[a-z0-9][a-z0-9/.-]{2,19})/gi;
 
 /** Replaces the values of passport, date of birth, known traveler and redress labels with [withheld]. */
 export function withholdIdentity(text: string): string {
