@@ -157,3 +157,125 @@ describe("ConsentBannerStatic links and the privacy signal", () => {
     expect(screen.queryByRole("button")).toBeNull();
   });
 });
+
+const screenBarClasses = (): string[] => {
+  const html = renderToStaticMarkup(<ConsentBannerStatic {...COPY} />);
+  return /<section[^>]*class="([^"]*)"/.exec(html)?.[1]?.split(" ") ?? [];
+};
+
+describe("ConsentBannerStatic is a bar at the bottom edge", () => {
+  const BAR = [
+    "sticky",
+    "bottom-0",
+    "order-last",
+    "mt-auto",
+    "z-header",
+    "max-h-(--ui-consent-bar-max)",
+    "overflow-y-auto",
+    "border-t",
+    "shadow-menu",
+    "pb-[calc(var(--space-16)+env(safe-area-inset-bottom))]",
+    "px-[max(var(--space-16),env(safe-area-inset-left),env(safe-area-inset-right))]",
+    "print:hidden",
+  ];
+
+  it("sticks to the bottom, full width, with a top border, its own scroll and the safe areas", () => {
+    const { container } = render(<ConsentBannerStatic {...COPY} />);
+    const bar = screen.getByRole("region", { name: "Cookies" });
+    expect(bar.hasAttribute("data-xos-consent-bar")).toBe(true);
+    const classes = bar.className.split(" ");
+    expect(classes).toEqual(expect.arrayContaining(BAR));
+    expect(classes).not.toContain("border-b");
+    expect(classes.some((c) => /^(?:fixed|absolute|w-|max-w-)/.test(c))).toBe(false);
+    // First in the DOM, so keyboard and screen reader users reach it before the page.
+    expect(container.firstElementChild).toBe(bar);
+  });
+
+  it("draws the privacy signal confirmation in the same bar", () => {
+    render(<ConsentBannerStatic {...COPY} gpc gpcLabel="Opt-Out Request Honored" />);
+    const bar = screen.getByRole("region", { name: "Cookies" });
+    expect(bar.hasAttribute("data-xos-consent-bar")).toBe(true);
+    expect(bar.className.split(" ")).toEqual(expect.arrayContaining(BAR));
+  });
+
+  it("makes its parent a column so it is drawn last and holds its own height at the end", () => {
+    const css = readFileSync(join(process.cwd(), "src/styles/base.css"), "utf8");
+    const rule = /:where\(\*\):has\(> \[data-xos-consent-bar\]\) \{([^}]*)\}/.exec(css)?.[1] ?? "";
+    expect(rule).toContain("display: flex;");
+    expect(rule).toContain("flex-direction: column;");
+    expect(rule).toContain("min-block-size: 100dvh;");
+  });
+
+  it("shares the viewport with a one-viewport app shell instead of covering its bottom", () => {
+    const css = readFileSync(join(process.cwd(), "src/styles/base.css"), "utf8");
+    const body = (selector: string): string => {
+      const at = css.indexOf(`${selector} {`);
+      return at < 0 ? "" : css.slice(at, css.indexOf("}", at));
+    };
+    expect(body(":where(*):has(> [data-xos-consent-bar]):has(> [data-xos-viewport])")).toContain(
+      "block-size: 100dvh;",
+    );
+    const shell = body(":where(*):has(> [data-xos-consent-bar]) > [data-xos-viewport]");
+    expect(shell).toContain("flex: 1 1 0;");
+    expect(shell).toContain("min-block-size: 0;");
+    expect(body(":where(*):has(> [data-xos-viewport]) > [data-xos-consent-bar]")).toContain(
+      "max-block-size: var(--ui-consent-bar-shell-max);",
+    );
+    expect(css).toContain(
+      "--ui-consent-bar-shell-max: max(calc(100dvh - var(--ui-shell-min)), 30dvh);",
+    );
+  });
+
+  it("keeps keyboard focus above the bar's tallest height, with the phone tab bar added (2.4.11)", () => {
+    const css = readFileSync(join(process.cwd(), "src/styles/base.css"), "utf8");
+    const body = (selector: string): string => {
+      const at = css.indexOf(`${selector} {`);
+      return at < 0 ? "" : css.slice(at, css.indexOf("}", at));
+    };
+    // The scroll padding is the bar's cap, the same token its max height reads.
+    expect(css).toContain("--ui-consent-bar-max: 60dvh;");
+    expect(screenBarClasses()).toContain("max-h-(--ui-consent-bar-max)");
+    expect(body("html:has([data-xos-consent-bar])")).toContain(
+      "scroll-padding-bottom: calc(var(--ui-consent-bar-max) + var(--space-16));",
+    );
+    // With the tab bar on a phone (A23-001) the two add up, and this rule comes after the tab bar's
+    // own, with a higher specificity, so it wins wherever both are present.
+    const both = "html:has([data-xos-consent-bar]):has([data-xos-bottom-bar])";
+    expect(body(both)).toContain(
+      "scroll-padding-bottom: calc(var(--ui-consent-bar-max) + var(--ui-bottom-bar) + var(--space-16));",
+    );
+    expect(css.indexOf(both)).toBeGreaterThan(css.indexOf("html:has([data-xos-bottom-bar]),"));
+    const media = css.lastIndexOf("@media (width < 48rem)", css.indexOf(both));
+    expect(css.slice(media, css.indexOf(both))).not.toContain("}\n}");
+  });
+
+  it("ends a viewport-pinned scroller above the bar's tallest height, so it scrolls inside (2.4.11)", () => {
+    const css = readFileSync(join(process.cwd(), "src/styles/base.css"), "utf8");
+    const body = (selector: string): string => {
+      const at = css.indexOf(`${selector} {`);
+      return at < 0 ? "" : css.slice(at, css.indexOf("}", at));
+    };
+    // Unlayered, so it wins over a max-h utility on the element.
+    const pinned = body("html:has([data-xos-consent-bar]) [data-xos-pinned]");
+    expect(pinned).toContain(
+      "max-block-size: calc(100dvh - var(--ui-consent-bar-max) - var(--space-16));",
+    );
+    expect(pinned).toContain("scroll-padding-block: var(--space-8);");
+    expect(
+      body("html:has([data-xos-consent-bar]):has([data-xos-bottom-bar]) [data-xos-pinned]"),
+    ).toContain("var(--ui-bottom-bar)");
+  });
+
+  it("sits over the page and the sidebar and under every overlay on the z-index scale", () => {
+    const tokens = JSON.parse(
+      readFileSync(join(process.cwd(), "../tokens/xos.tokens.json"), "utf8"),
+    ) as { zIndex: { tokens: { name: string; value: string }[] } };
+    const z = (name: string): number =>
+      Number(tokens.zIndex.tokens.find((token) => token.name === name)?.value);
+    const bar = z("z-header");
+    for (const below of ["z-base", "z-sticky", "z-sidebar"]) expect(bar).toBeGreaterThan(z(below));
+    for (const above of ["z-dropdown", "z-popover", "z-peek", "z-dialog", "z-toast", "z-tooltip"]) {
+      expect(bar).toBeLessThan(z(above));
+    }
+  });
+});

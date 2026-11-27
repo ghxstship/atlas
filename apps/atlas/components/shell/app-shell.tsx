@@ -8,6 +8,7 @@ import { negotiatedLocale } from "@/i18n/request";
 import { lockedLocale, selectableLocales } from "@/i18n/negotiate";
 import { PATH_HEADER } from "@/lib/auth/assurance";
 import { currentOffering } from "@/lib/offering";
+import { cookieBarShows } from "@/lib/privacy/consent";
 import { getAiFeatures } from "@/lib/aurora/features";
 import { observability } from "@/lib/observability";
 import { getOrgWorkspaces } from "@/lib/shell/active-workspace";
@@ -146,6 +147,8 @@ export async function AppShell({ ctx, children }: { ctx: OrgContext; children: R
         nodeId: findRoute(sitemap, path)?.id ?? null,
       }
     : null;
+  // Whether the cookie bar is on this page, below the shell: the help tour offer and tips wait for it.
+  const consentBar = await cookieBarShows(path ?? "");
   // Quick add in the Create menu creates records, read on the org's calendar (Section 11.7).
   const quickAdd = ctx.capabilities.has("work.record.write")
     ? { org: ctx.org.slug, timeZone: await getOrgTimeZone(ctx) }
@@ -175,6 +178,7 @@ export async function AppShell({ ctx, children }: { ctx: OrgContext; children: R
       keys={keys}
       create={createItems(sitemap, { nav: ctx.nav, capabilities: ctx.capabilities, params, t })}
       quickAdd={quickAdd}
+      consentBar={consentBar}
       lens={<RoleLensSwitch ctx={ctx} t={t} />}
     >
       <ReporterUser personId={ctx.viewer.person?.id ?? null} />

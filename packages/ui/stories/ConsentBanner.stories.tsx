@@ -1,6 +1,7 @@
 import { useState, type ReactElement } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import {
+  Button,
   ConsentBanner,
   ConsentSettings,
   type ConsentAdapter,
@@ -141,5 +142,38 @@ export const ScriptFree: StoryObj = {
       categories={CATEGORIES}
       action="#consent"
     />
+  ),
+};
+
+/**
+ * The bar on a page longer than the screen: it stays at the bottom edge while the page scrolls and,
+ * at the end, sits after the footer, so the last button and the footer are never under it.
+ */
+export const OnALongPage: StoryObj = {
+  name: "On a Long Page",
+  render: () => (
+    <div className="bg-bg-canvas text-text-primary">
+      <ConsentBannerStatic
+        {...COPY}
+        policy={POLICY}
+        settings={{ label: "Cookie settings", href: "#cookie-settings" }}
+        chooseLabel="Choose cookies"
+        categories={CATEGORIES}
+        action="#consent"
+      />
+      <main className="mx-auto flex max-w-layout-reading flex-col gap-16 p-24">
+        {Array.from({ length: 24 }, (_, index) => (
+          <p key={index} className="m-0 text-text-13">
+            Paragraph {index + 1} of the page.
+          </p>
+        ))}
+        <div>
+          <Button>The last button</Button>
+        </div>
+      </main>
+      <footer className="border-t border-border-subtle p-24 text-text-13 text-text-secondary">
+        The page footer
+      </footer>
+    </div>
   ),
 };

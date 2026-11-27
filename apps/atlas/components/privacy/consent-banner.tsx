@@ -1,7 +1,7 @@
 import { ConsentBannerStatic } from "@xos/ui/consent/static";
 import { getTranslations } from "next-intl/server";
 import { saveCookieChoice } from "@/lib/privacy/actions";
-import { consentState } from "@/lib/privacy/consent";
+import { bannerPending, consentState } from "@/lib/privacy/consent";
 import { routerLink } from "./consent-link";
 
 /**
@@ -15,7 +15,7 @@ import { routerLink } from "./consent-link";
  */
 export async function ConsentBanner() {
   const state = await consentState();
-  if (state.consent !== null || state.gpc) return null;
+  if (!bannerPending(state)) return null;
   const t = await getTranslations("compliance.cookies");
   return (
     <ConsentBannerStatic
