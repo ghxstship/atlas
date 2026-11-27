@@ -43,7 +43,7 @@ begin
     join pg_catalog.pg_attribute a on a.attrelid = i.indrelid and a.attnum = k.attnum
     where i.indrelid = p_table::regclass and i.indisprimary;
     if v_key is null then
-      raise exception '% has no primary key to purge by.', p_table;
+      raise exception '% has no primary key to purge by.', p_table using errcode = '55000';
     end if;
     v_has_org := exists (
       select 1 from pg_catalog.pg_attribute a where a.attrelid = p_table::regclass and a.attname = 'org_id' and not a.attisdropped);
