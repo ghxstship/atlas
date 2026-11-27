@@ -201,6 +201,23 @@ describe("ConsentBannerStatic is a bar at the bottom edge", () => {
     expect(rule).toContain("min-block-size: 100dvh;");
   });
 
+  it("shares the viewport with a one-viewport app shell instead of covering its bottom", () => {
+    const css = readFileSync(join(process.cwd(), "src/styles/base.css"), "utf8");
+    const body = (selector: string): string => {
+      const at = css.indexOf(`${selector} {`);
+      return at < 0 ? "" : css.slice(at, css.indexOf("}", at));
+    };
+    expect(body(":where(*):has(> [data-xos-consent-bar]):has(> [data-xos-viewport])")).toContain(
+      "block-size: 100dvh;",
+    );
+    const shell = body(":where(*):has(> [data-xos-consent-bar]) > [data-xos-viewport]");
+    expect(shell).toContain("flex: 1 1 0;");
+    expect(shell).toContain("min-block-size: 0;");
+    expect(body(":where(*):has(> [data-xos-viewport]) > [data-xos-consent-bar]")).toContain(
+      "max-block-size: max(calc(100dvh - var(--ui-shell-min)), 30dvh);",
+    );
+  });
+
   it("sits over the page and the sidebar and under every overlay on the z-index scale", () => {
     const tokens = JSON.parse(
       readFileSync(join(process.cwd(), "../tokens/xos.tokens.json"), "utf8"),

@@ -153,6 +153,25 @@
   min-block-size: 100dvh;
 }
 
+/* A page one viewport tall that scrolls inside itself (an app shell, marked data-xos-viewport, whose
+   bottom tab bar is sticky in its own scroll area) shares the viewport with the bar instead of
+   running under it: the parent is exactly the viewport tall, the shell takes the height the bar
+   leaves, and the bar is held short enough that the shell keeps its minimum height (the bar scrolls
+   inside past that). The shell's tab bar and the end of its scroll area sit just above the bar. */
+:where(*):has(> [data-xos-consent-bar]):has(> [data-xos-viewport]) {
+  block-size: 100dvh;
+}
+
+:where(*):has(> [data-xos-consent-bar]) > [data-xos-viewport] {
+  flex: 1 1 0;
+  block-size: auto;
+  min-block-size: 0;
+}
+
+:where(*):has(> [data-xos-viewport]) > [data-xos-consent-bar] {
+  max-block-size: max(calc(100dvh - var(--ui-shell-min)), 30dvh);
+}
+
 @media (prefers-reduced-motion: reduce) {
   :root:not([data-motion="full"]) *,
   :root:not([data-motion="full"]) *::before,

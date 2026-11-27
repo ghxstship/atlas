@@ -389,7 +389,8 @@ export function ShellFrame(props: ShellFrameProps) {
 
   return (
     <ShellKeysContext.Provider value={props.keys}>
-      <div data-focus={focus ? "true" : undefined} className="xos-shell h-dvh">
+      {/* data-xos-viewport: next to the cookie bar the shell takes the height the bar leaves (@xos/ui styles/base.css). */}
+      <div data-xos-viewport="" data-focus={focus ? "true" : undefined} className="xos-shell h-dvh">
         {/* Bypass blocks (2.4.1): the first stop skips the sidebar and header to the page (A23-011). */}
         <a
           href="#content"
