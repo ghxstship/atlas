@@ -70,6 +70,9 @@ const OPEN_PATHS = new Set([
   "/auth/callback",
   "/auth/confirm",
   "/auth/check-email",
+  // Asking for a reset link needs no session. /auth/reset-password is not here: a person who holds a second
+  // factor passes it before choosing a new password (lib/auth/recovery.ts).
+  "/auth/forgot-password",
   "/auth/session",
   "/auth/sso",
   "/auth/not-found",

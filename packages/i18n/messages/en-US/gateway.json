@@ -2739,7 +2739,8 @@
       "magicLink": "Email me a sign-in link",
       "password": "Sign in with password",
       "noAccount": "New to Gateway?",
-      "toSignUp": "Create an account"
+      "toSignUp": "Create an account",
+      "forgotPassword": "Forgot password?"
     },
     "signUp": {
       "title": "Create your Gateway account",
@@ -2767,6 +2768,26 @@
       "body": "We sent a link to {email}. Open it on this device to continue.",
       "bodyNoEmail": "We sent you a link. Open it on this device to continue.",
       "back": "Back to sign in"
+    },
+    "forgotPassword": {
+      "title": "Reset your password",
+      "lead": "Enter the email address you sign in with. We email you a link to choose a new password.",
+      "submit": "Email me a reset link",
+      "sent": "If an account uses {email}, a reset link is on its way. Open it on this device. No email after a few minutes? Check the address and your spam folder, or go back and sign in with an email link.",
+      "back": "Back to sign in"
+    },
+    "resetPassword": {
+      "title": "Choose a new password",
+      "lead": "For {email}. Saving it signs you out on your other devices.",
+      "new": "New password",
+      "confirm": "Confirm new password",
+      "submit": "Save new password",
+      "doneTitle": "Your password is changed",
+      "doneBody": "Your other devices are signed out. Use the new password the next time you sign in.",
+      "continue": "Continue to Gateway",
+      "expiredTitle": "This reset link no longer works",
+      "expiredBody": "A reset link works once, for a short time, in the browser that asked for it. Request a new one.",
+      "requestNew": "Request a new link"
     },
     "signOut": "Sign out",
     "session": {
@@ -2867,10 +2888,12 @@
       "email_not_confirmed": "Confirm your email first: open the link we sent you, then sign in.",
       "user_already_exists": "An account with this email already exists. Sign in instead.",
       "weak_password": "Choose a different password: this one is too weak or appears in a known data breach. Use at least 12 characters with letters and numbers.",
+      "same_password": "That is your current password. Choose a different one.",
       "over_email_send_rate_limit": "We sent too many emails to this address. Wait a few minutes, then try again.",
       "over_request_rate_limit": "Too many attempts. Wait a minute, then try again.",
       "provider_disabled": "That sign-in method is not turned on for Gateway yet. Use email instead.",
       "link_invalid": "This link expired or was already used. Request a new one.",
+      "reset_link_invalid": "This reset link expired or was already used.",
       "oauth_cancelled": "You left the sign-in before it finished. Choose a way to sign in to try again.",
       "oauth_expired": "This sign-in expired or was started in another browser. Start again on this page.",
       "provider_error": "Your sign-in could not be completed. Try again in a moment, or use an email link instead.",
@@ -2881,6 +2904,7 @@
       "email": "Enter an email address like name@company.com.",
       "password": "Enter a password of at least 12 characters with letters and numbers.",
       "passwordContext": "Choose a password that does not contain your name, your email or a product name such as Gateway.",
+      "passwordConfirm": "Enter the same password in both fields.",
       "terms": "Accept the Worker Terms to create your account: tick the box above the button.",
       "age": "Choose the answer that is true for you."
     },
