@@ -175,7 +175,7 @@ describe("an engagement's records calendar (components/engagement/tabs-client.ts
     );
   });
 
-  it("keeps a record with no date on its placeholder date", () => {
+  it("keeps a record with no date on the 9999-12-31 sentinel", () => {
     expect(
       scheduleDay("9999-12-31", "America/New_York", { display: "event", viewerZone: null }),
     ).toBe("9999-12-31");
