@@ -3,10 +3,10 @@
   "defaultLanguage": "en-US",
   "category": "Business",
   "contact": {
-    "email": "OWNER_SUPPORT_EMAIL",
-    "website": "https://OWNER_DOMAIN",
-    "privacyPolicyUrl": "https://app.OWNER_DOMAIN/legal/privacy-policy",
-    "accountDeletionUrl": "https://app.OWNER_DOMAIN/legal/account-deletion"
+    "email": "support@ghxstship.pro",
+    "website": "https://ghxstship.tech",
+    "privacyPolicyUrl": "https://atlas.ghxstship.tech/legal/privacy-policy",
+    "accountDeletionUrl": "https://atlas.ghxstship.tech/legal/account-deletion"
   },
   "listings": {
     "en-US": {

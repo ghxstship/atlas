@@ -13,7 +13,7 @@ Play's terms: **collected** means sent off the device; **shared** means sent to 
 | Does your app collect or share any of the required user data types?                         | Yes                                                                                                                                                      |
 | Is all of the user data collected by your app encrypted in transit?                         | Yes. Compass talks to the API over HTTPS; the release build guard in `app.config.ts` stops a preview or production build whose server URLs are not https |
 | Which methods of account creation does your app support?                                    | Username and password; Username and other authentication (a one-time email link)                                                                         |
-| Delete account URL                                                                          | `https://app.OWNER_DOMAIN/legal/account-deletion` (`legal/account-deletion.md`, published by Atlas)                                                      |
+| Delete account URL                                                                          | `https://atlas.ghxstship.tech/legal/account-deletion` (`legal/account-deletion.md`, published by Atlas)                                                  |
 | Can users request that some or all of their data is deleted without deleting their account? | No in the app. The privacy policy's rights requests cover it; counsel may change this to Yes with that link                                              |
 
 ### Data types
@@ -57,7 +57,7 @@ Every collected type below is: collected, **not shared**, **not processed epheme
 
 | Declaration                       | Answer                                                                                                                                       |
 | --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| Privacy policy                    | `https://app.OWNER_DOMAIN/legal/privacy-policy`                                                                                              |
+| Privacy policy                    | `https://atlas.ghxstship.tech/legal/privacy-policy`                                                                                          |
 | Ads                               | No, the app does not contain ads                                                                                                             |
 | App access                        | All or some functionality is restricted; the demo account instructions are in `store/review-notes.md`, Google Play: App access               |
 | Content rating                    | The IARC questionnaire answers in `store/age-rating.md`                                                                                      |
