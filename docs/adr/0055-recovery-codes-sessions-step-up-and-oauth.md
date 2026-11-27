@@ -75,7 +75,7 @@ forgot password path on 2026-11-27, in Atlas and Gateway alike (each has its own
 12. **The link returns only to the app's own origin.** Its address is built from `ATLAS_SITE_URL` or
     `GATEWAY_SITE_URL`, never from the request or the form, and Supabase Auth's Redirect URLs allow only the apps'
     callbacks. The email is the repository's `supabase/templates/recovery.html`; the production runbook, step 6,
-    names pasting it into the hosted Reset Password template as an owner step.
+    names pasting it into the hosted Reset Password template as an owner step (branch r419-auth-emails).
 13. **Only a fresh reset session sets a password.** `/auth/callback` sends a code exchanged from a reset link to
     `/auth/reset-password` whatever `next` says. That page and its action accept only a session whose access token
     lists the `recovery` method within the last 30 minutes, so a session left open on a shared computer cannot be
