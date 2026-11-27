@@ -252,6 +252,15 @@ an error. Rollback: put back the values recorded before the change.
    `supabase config push`, which would push the repository's local values too (`hosted-security-settings.md`).
    Check that the Site URL is `https://atlas.ghxstship.tech` and that no template names staging or the demo tenant
    (`packages/email/test/auth-templates.test.ts` checks the repository's copies).
+   **Release 4.19 (OWNER):** Atlas and Gateway gain a forgot password page (owner decision of 2026-11-27), the first
+   product path that sends the Reset password email. Before 4.19 reaches production, paste the subject of
+   `[auth.email.template.recovery]` ("Reset your XOS password") and the HTML of `supabase/templates/recovery.html` into
+   Authentication, Emails, Templates, Reset Password, replacing what is there: 4.19 adds the sentence that tells the
+   person to open the link in the browser where they asked. The link must stay `{{ .ConfirmationURL }}`: it returns
+   to `/auth/callback?next=/auth/reset-password` on Atlas or Gateway, which the step 5 Redirect URLs already allow.
+   Verify: on `https://atlas.ghxstship.tech/auth/forgot-password`, request a reset for a test account; the email
+   arrives with the XOS brand, its link opens Choose a new password, and the new password signs in. Rollback: paste
+   back the previous HTML (the forgot password page then sends that email instead).
 4. Set the email rate limit (Authentication, Rate Limits) to about 100 emails an hour, sent through Resend (ADR 0033,
    decision 43). Watch the Auth logs for sign-up confirmations, magic links and password resets after launch, and
    raise it before real volume reaches it. The repository's local value (`email_sent = 2` an hour in

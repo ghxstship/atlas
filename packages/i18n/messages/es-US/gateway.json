@@ -2884,7 +2884,7 @@
       }
     },
     "errors": {
-      "invalid_credentials": "El correo y la contraseña no coinciden. Revisa ambos o usa un enlace de acceso.",
+      "invalid_credentials": "El correo y la contraseña no coinciden. Revisa ambos, restablece tu contraseña o usa un enlace de acceso.",
       "email_not_confirmed": "Primero confirma tu correo: abre el enlace que te enviamos y luego inicia sesión.",
       "user_already_exists": "Ya existe una cuenta con este correo. Inicia sesión.",
       "weak_password": "Elige otra contraseña: esta es demasiado débil o aparece en una filtración de datos conocida. Usa al menos 12 caracteres con letras y números.",

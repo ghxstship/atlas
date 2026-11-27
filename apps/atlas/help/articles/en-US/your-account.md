@@ -16,6 +16,8 @@ Choose what your profile shows and to whom. You can hide your rates, show your p
 
 Sign in with a link sent to your email, with **Continue with Google**, or with a password. Google uses the account you pick on Google's screen. When its email address is the one on your account, you sign in to that account, with all your organizations; a Google account with another email address creates a new account. Compass works the same way. On a shared phone, sign out of Compass so that it asks which Google account to use next time.
 
+Forgot your password? Choose **Forgot password?** on the sign-in page and enter your email. We email you a link that works once, for a short time, in the same browser. If you hold a second factor, you use it before you choose the new password. Saving the new password signs you out on your other devices.
+
 ## Security
 
 Manage your sign-in methods, passkeys and sessions. Signing out of a session ends it on that device at once.

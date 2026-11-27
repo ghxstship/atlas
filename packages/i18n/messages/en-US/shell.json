@@ -1085,7 +1085,7 @@
       "signedOutElsewhere": "You signed out in another tab."
     },
     "errors": {
-      "invalid_credentials": "That email and password do not match. Check both, or use a sign-in link instead.",
+      "invalid_credentials": "That email and password do not match. Check both, reset your password, or use a sign-in link instead.",
       "email_not_confirmed": "Confirm your email first: open the link we sent you, then sign in.",
       "user_already_exists": "An account with this email already exists. Sign in instead.",
       "weak_password": "Choose a different password: this one is too weak or appears in a known data breach. Use at least 12 characters with letters and numbers.",
