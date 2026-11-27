@@ -25,8 +25,8 @@ Compiled for a page with one element, minified by Tailwind 4.3.3 at release 4.19
 
 | Entry                                            | Bytes   | Gzip   |
 | ------------------------------------------------ | ------- | ------ |
-| `@xos/ui/styles.css` and `@xos/ui/marketing.css` | 111,932 | 19,774 |
-| `@xos/ui/marketing/styles.css`                   | 69,933  | 12,848 |
+| `@xos/ui/styles.css` and `@xos/ui/marketing.css` | 112,128 | 19,791 |
+| `@xos/ui/marketing/styles.css`                   | 70,865  | 13,016 |
 
 ### Other `@xos/ui` components on the page
 
@@ -46,7 +46,7 @@ Every visible string of the components is in the `ui` namespace of `@xos/i18n`, 
 | Import                                      | Holds                                                                                                                              |
 | ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
 | `@xos/i18n/ui/<locale>/<group>.json`        | One message group under its own key, for example `{ "mk": { ... } }`. Spreading several gives a catalog of the shape of `ui.json`. |
-| `@xos/i18n/ui-cuts/<locale>/marketing.json` | Every group the Marketing layer reads: `brand`, `link`, `mk`, `nav`, `phase` and `tooltip` (1.6 KB in en-US).                      |
+| `@xos/i18n/ui-cuts/<locale>/marketing.json` | Every group the Marketing layer reads: `brand`, `gate`, `link`, `mk`, `nav`, `phase`, `result` and `tooltip` (2.0 KB in en-US).    |
 
 A test in this package fails when a Marketing component reads a group the cut does not hold, so the cut is complete for `@xos/ui/marketing` at every release.
 

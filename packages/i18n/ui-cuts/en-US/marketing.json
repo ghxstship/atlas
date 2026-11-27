@@ -2,6 +2,15 @@
   "brand": {
     "size": "{width} x {height}"
   },
+  "gate": {
+    "allMet": "All blocking criteria met.",
+    "blocking": "Blocking",
+    "criteriaMet": "Criteria met",
+    "metCount": "{met} of {total} met",
+    "openMany": "{n} blocking criteria open.",
+    "openOne": "{n} blocking criterion open.",
+    "readiness": "Gate readiness"
+  },
   "link": {
     "newTab": "Opens in a new tab"
   },
@@ -69,6 +78,11 @@
   "phase": {
     "gate": "Gate {n}",
     "gateName": "Gate {n} · {name}"
+  },
+  "result": {
+    "gap": "Gap",
+    "met": "Met",
+    "unknown": "Unknown"
   },
   "tooltip": {
     "withShortcut": "{label} ({shortcut})"

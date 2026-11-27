@@ -2,6 +2,15 @@
   "brand": {
     "size": "{width} x {height}"
   },
+  "gate": {
+    "allMet": "Se cumplen todos los criterios bloqueantes.",
+    "blocking": "Bloqueante",
+    "criteriaMet": "Criterios cumplidos",
+    "metCount": "{met} de {total} cumplidos",
+    "openMany": "{n} criterios bloqueantes abiertos.",
+    "openOne": "{n} criterio bloqueante abierto.",
+    "readiness": "Preparación de la compuerta"
+  },
   "link": {
     "newTab": "Se abre en una pestaña nueva"
   },
@@ -69,6 +78,11 @@
   "phase": {
     "gate": "Compuerta {n}",
     "gateName": "Compuerta {n} · {name}"
+  },
+  "result": {
+    "gap": "Brecha",
+    "met": "Cumplido",
+    "unknown": "Desconocido"
   },
   "tooltip": {
     "withShortcut": "{label} ({shortcut})"

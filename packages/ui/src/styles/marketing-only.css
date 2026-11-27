@@ -20,8 +20,11 @@
 @source "../BrandMark/BrandMark.tsx";
 @source "../Button/Button.tsx";
 @source "../Button/button-class.ts";
+@source "../Chips/Chips.shared.tsx";
 @source "../Chips/Chips.types.ts";
+@source "../Chips/DepartmentChip.tsx";
 @source "../Chips/Tag.tsx";
+@source "../Chips/chipClass.tsx";
 @source "../Chips/codeClass.tsx";
 @source "../Field/Field.tsx";
 @source "../Forms/Forms.types.ts";
@@ -38,6 +41,9 @@
 @source "../Navigation/SegmentedControl.tsx";
 @source "../Surface/Skeleton.tsx";
 @source "../Surface/Surface.tsx";
+@source "../XOS/GateReadinessPanelView.tsx";
+@source "../XOS/ResultIcon.tsx";
+@source "../XOS/XOS.types.ts";
 @source "../lib/context.tsx";
 @source "../lib/cx.ts";
 @source "../lib/format.ts";
