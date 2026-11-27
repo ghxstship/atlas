@@ -184,6 +184,12 @@ export function SignInForm({ next }: { next: string }) {
       <Submit pending={pending} method="password" variant="secondary">
         {t("signIn.password")}
       </Submit>
+      <Link
+        href="/auth/forgot-password"
+        className="self-start text-text-13 text-accent-text underline"
+      >
+        {t("signIn.forgotPassword")}
+      </Link>
     </form>
   );
 }

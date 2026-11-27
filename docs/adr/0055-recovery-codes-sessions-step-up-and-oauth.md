@@ -62,6 +62,31 @@ What the local stack does was checked on Supabase Auth v2.197.0 before deciding 
 20. **Revocation**: revoking a grant (Connected apps, or the `/oauth-grants` resource) revokes Supabase Auth's consent and deletes the app's sessions for that person, so the refresh token stops at once and the access token reaches nothing.
 21. `/oauth/token` forwards form-encoded code and refresh grants to Supabase Auth unchanged, outside the proxy (no CSRF check, no cookie), with the app's address as the one `X-Forwarded-For` entry so Supabase Auth's per-address limits count apps, not Atlas.
 
+### Forgot password (amendment, 2026-11-27, release 4.19)
+
+Until 4.19 a person who forgot their password could recover only with an emailed sign-in link. The owner approved a
+forgot password path on 2026-11-27, in Atlas and Gateway alike (each has its own password sign-in):
+
+11. **The request never says whether an account exists.** `/auth/forgot-password` takes one Email field and calls
+    Supabase Auth's `resetPasswordForEmail`. Supabase Auth answers an unknown address as it answers a known one, and
+    the page reads every answer about the address (sent, the per-address interval, the hourly email limit, a mail
+    fault) as the same sentence. Only a malformed address and the request rate limit, which counts requests before any
+    account is looked up, read differently. The rate limits are Supabase Auth's, the same ones the sign-in link has.
+12. **The link returns only to the app's own origin.** Its address is built from `ATLAS_SITE_URL` or
+    `GATEWAY_SITE_URL`, never from the request or the form, and Supabase Auth's Redirect URLs allow only the apps'
+    callbacks. The email is the repository's `supabase/templates/recovery.html`; the production runbook, step 6,
+    names pasting it into the hosted Reset Password template as an owner step (branch r419-auth-emails).
+13. **Only a fresh reset session sets a password.** `/auth/callback` sends a code exchanged from a reset link to
+    `/auth/reset-password` whatever `next` says. That page and its action accept only a session whose access token
+    lists the `recovery` method within the last 30 minutes, so a session left open on a shared computer cannot be
+    turned into a new password. The new password follows the sign-up rules (`lib/auth/password.ts`), typed twice.
+14. **A recovered session does not skip the second factor.** A person who holds a verified factor is sent to
+    `/auth/mfa` first (Atlas's proxy does it, and the page and action repeat it for Gateway, whose proxy guards only
+    sitemap routes); an `insufficient_aal` refusal from Supabase Auth leads there too. A recovery code (decision 3) still serves
+    someone who lost their factor. An org's MFA policy applies at its pages as before.
+15. **Other sessions end.** Saving the password calls `app.sign_out_my_other_sessions` (decision 9), the action of
+    "Sign out all other sessions"; neither app had a password change of its own before 4.19. No migration is needed.
+
 ## Consequences
 
 - Invariant 8's recovery-code clause is implemented and tested (`supabase/tests/1560_recovery_codes.test.sql` names `inv_08_token_rpcs_hashed_secrets`).

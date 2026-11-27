@@ -4003,6 +4003,19 @@ export const HELP_BODIES: HelpBodies = {
       {
         t: "p",
         c: [
+          { t: "text", v: "Forgot your password? On the sign-in page, choose " },
+          { t: "strong", v: "Use a password" },
+          { t: "text", v: ", then " },
+          { t: "strong", v: "Forgot password?" },
+          {
+            t: "text",
+            v: ", and enter your email. We email you a link that works once, for a short time, in the same browser. If you hold a second factor, you use it before you choose the new password. Saving the new password signs you out on your other devices.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
           { t: "text", v: "Each device keeps its own session. " },
           { t: "strong", v: "Sign out on this device" },
           {
@@ -8334,6 +8347,19 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "Gateway te da acceso primero con un enlace por correo o con tu proveedor conectado. La contraseña es opcional.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "¿Olvidaste tu contraseña? En la página de inicio de sesión, elige " },
+          { t: "strong", v: "Usar contraseña" },
+          { t: "text", v: " y luego " },
+          { t: "strong", v: "¿Olvidaste tu contraseña?" },
+          {
+            t: "text",
+            v: ", y escribe tu correo. Te enviamos un enlace que funciona una vez, por poco tiempo, en el mismo navegador. Si tienes un segundo factor, lo usas antes de elegir la contraseña nueva. Al guardar la contraseña nueva, se cierra tu sesión en tus otros dispositivos.",
           },
         ],
       },

@@ -4237,6 +4237,17 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Forgot your password? Choose " },
+          { t: "strong", v: "Forgot password?" },
+          {
+            t: "text",
+            v: " on the sign-in page and enter your email. We email you a link that works once, for a short time, in the same browser. If you hold a second factor, you use it before you choose the new password. Saving the new password signs you out on your other devices.",
+          },
+        ],
+      },
       { t: "h2", v: "Security" },
       {
         t: "p",
@@ -8478,6 +8489,17 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: " o con una contraseña. Google usa la cuenta que usted elija en la pantalla de Google. Si su correo es el de su cuenta, entra a esa cuenta, con todas sus organizaciones; una cuenta de Google con otro correo crea una cuenta nueva. Compass funciona igual. En un teléfono compartido, cierre la sesión de Compass para que la próxima vez le pregunte qué cuenta de Google usar.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "¿Olvidó su contraseña? Elija " },
+          { t: "strong", v: "¿Olvidaste tu contraseña?" },
+          {
+            t: "text",
+            v: " en la página de inicio de sesión y escriba su correo. Le enviamos un enlace que funciona una vez, por poco tiempo, en el mismo navegador. Si tiene un segundo factor, lo usa antes de elegir la contraseña nueva. Al guardar la contraseña nueva, se cierra su sesión en sus otros dispositivos.",
           },
         ],
       },

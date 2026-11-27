@@ -2,6 +2,7 @@ import { owesAgeAnswer } from "@xos/data/consent";
 import { NextResponse, type NextRequest } from "next/server";
 import { authErrorKey, oauthCallbackError, type AuthErrorKey } from "@/lib/auth/errors";
 import { isOAuthProvider } from "@/lib/auth/providers";
+import { exchangedResetLink, RESET_PASSWORD_PATH } from "@/lib/auth/recovery";
 import { safeNext, signInErrorPath } from "@/lib/auth/redirect";
 import { ssoLanding } from "@/lib/auth/sso-landing";
 import { createServerSupabase } from "@/lib/supabase/server";
@@ -24,6 +25,7 @@ function goTo(path: string): NextResponse {
  * has not answered the age question answers it first, however they signed in: a provider, single
  * sign-on and SCIM all make accounts before any form (ADR 0156). Then an Enterprise single sign-on
  * (A77) joins the identity provider's org when it adds people just in time (lib/auth/sso-landing.ts).
+ * A password reset link returns here too and goes on to /auth/reset-password.
  */
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const params = request.nextUrl.searchParams;
@@ -49,6 +51,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const key = authErrorKey(error);
     return back(key === "link_invalid" ? "oauth_expired" : key);
   }
+  // A reset link lands on the page that sets the new password, whatever `next` says (lib/auth/recovery.ts). auth-js
+  // marks the code verifier of a reset, so this does not depend on the address in the email. A person who holds a
+  // second factor passes it first: the proxy sends that page to /auth/mfa at aal1.
+  if (exchangedResetLink(data, Date.now())) return goTo(RESET_PASSWORD_PATH);
   // A failed read carries on: the proxy asks at the next page, and the database refuses a join until it is answered.
   if (await owesAgeAnswer(db)) return goTo(`/auth/age?next=${encodeURIComponent(next)}`);
   const landing = await ssoLanding(db, data.user?.app_metadata["provider"], next);

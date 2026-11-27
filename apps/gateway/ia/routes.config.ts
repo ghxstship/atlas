@@ -11,6 +11,9 @@ export const SHELL_ROUTES: Readonly<Record<string, string>> = {
   "/auth/sign-in": "Auth template: magic link, OAuth and password sign-in.",
   "/auth/sign-up": "Auth template: account creation.",
   "/auth/check-email": "Auth template: magic link and confirmation sent.",
+  "/auth/forgot-password": "Auth template: asks for a password reset link (release 4.19).",
+  "/auth/reset-password":
+    "Auth template: sets a new password on a session a reset link opened (release 4.19).",
   "/auth/age": "Auth template: the age question for anyone who has not answered at 18 (ADR 0156).",
   "/auth/age-refused":
     "Auth template: what someone who answered under 18 is told, with no account left (ADR 0156).",

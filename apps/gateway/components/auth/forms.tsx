@@ -29,7 +29,7 @@ type Translate = (key: string, values?: Record<string, string>) => string;
 
 export type AuthMethod = "link" | "password";
 
-function useAuthCopy(): Translate {
+export function useAuthCopy(): Translate {
   const t = useTranslations("gateway.auth");
   return (key, values) => (t as unknown as Translate)(key, values);
 }
@@ -40,14 +40,14 @@ export function errorMessage(t: Translate, key: string): string {
 }
 
 /** The field's error message, or an empty string (no error shown). */
-function fieldError(t: Translate, state: FormState, field: string): string {
+export function fieldError(t: Translate, state: FormState, field: string): string {
   const key = state.fieldErrors?.[field];
   return key === undefined ? "" : t(`errors.${key}`);
 }
 
-const INITIAL: FormState = {};
+export const INITIAL: FormState = {};
 
-function Submit({ pending, children }: { pending: boolean; children: ReactNode }) {
+export function Submit({ pending, children }: { pending: boolean; children: ReactNode }) {
   return (
     <Button
       type="submit"
@@ -138,6 +138,14 @@ export function SignInForm({ next, initial = "link" }: { next: string; initial?:
       <Submit pending={password ? passwordPending : linkPending}>
         {t(password ? "signIn.password" : "signIn.magicLink")}
       </Submit>
+      {password ? (
+        <Link
+          href="/auth/forgot-password"
+          className="inline-flex min-h-touch-min items-center self-start text-text-13 font-medium text-accent-text underline"
+        >
+          {t("signIn.forgotPassword")}
+        </Link>
+      ) : null}
       <MethodSwitch label={t(password ? "useLink" : "usePassword")} onSwitch={toggle} />
     </form>
   );
