@@ -15,6 +15,25 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 /**
+ * The signed-in person, whether they still owe their second factor, and whether the session opened a reset link
+ * recently enough to choose a password (lib/auth/recovery.ts).
+ */
+async function resetSession() {
+  const db = await createServerSupabase();
+  const { data: auth } = await db.auth.getUser();
+  const user = auth.user;
+  if (!user) return { user: null, owesSecondFactor: false, fresh: false };
+  const { data: current } = await db.auth.getSession();
+  const token = current.session?.access_token;
+  const holdsFactor = (user.factors ?? []).some((f) => f.status === "verified");
+  return {
+    user,
+    owesSecondFactor: holdsFactor && tokenAal(token) === "aal1",
+    fresh: recoveryIsFresh(token, Date.now()),
+  };
+}
+
+/**
  * The page a reset link opens, after /auth/callback exchanged its code (lib/auth/recovery.ts). It shows the form only
  * to a session that came from a reset link in the last half hour; anyone else reads that the link no longer works and
  * can ask for a new one. A person who holds a second factor passes it first: the proxy sends them to /auth/mfa before
@@ -25,15 +44,8 @@ export default async function ResetPasswordPage({
 }: PageProps<"/auth/reset-password">) {
   const done = (await searchParams)["done"] !== undefined;
   const t = await getTranslations("shell.auth.resetPassword");
-  const db = await createServerSupabase();
-  const { data: auth } = await db.auth.getUser();
-  const user = auth.user;
-  const { data: current } = user ? await db.auth.getSession() : { data: { session: null } };
-  const token = current.session?.access_token;
-  if (user && (user.factors ?? []).some((f) => f.status === "verified")) {
-    if (tokenAal(token) === "aal1")
-      redirect(secondFactorRedirect(RESET_PASSWORD_PATH, "") as Route);
-  }
+  const { user, owesSecondFactor, fresh } = await resetSession();
+  if (owesSecondFactor) redirect(secondFactorRedirect(RESET_PASSWORD_PATH, "") as Route);
 
   if (user && done) {
     return (
@@ -46,7 +58,7 @@ export default async function ResetPasswordPage({
     );
   }
 
-  if (!user || !recoveryIsFresh(token, Date.now())) {
+  if (!user || !fresh) {
     return (
       <div className="flex flex-col items-center gap-16 text-center">
         <Link2Off aria-hidden="true" className="size-32 text-text-tertiary" />
