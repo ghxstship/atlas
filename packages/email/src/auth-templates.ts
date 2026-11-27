@@ -80,6 +80,20 @@ const NOTICE_ES = "Este aviso no requiere ninguna acción si el cambio fue tuyo.
 const NOT_YOU_NOTICE_EN = `If you did not make this change, reset your password now with the button above and write to <a href="mailto:${AUTH_EMAIL_SUPPORT_ADDRESS}" class="x-link" style="color:{{accent-text}}">${AUTH_EMAIL_SUPPORT_ADDRESS}</a> with "Security" in the subject line.`;
 const NOT_YOU_NOTICE_ES = `Si no hiciste este cambio, restablece tu contraseña ahora con el botón de arriba y escribe a <a href="mailto:${AUTH_EMAIL_SUPPORT_ADDRESS}" class="x-link" style="color:{{accent-text}}">${AUTH_EMAIL_SUPPORT_ADDRESS}</a> con "Security" en el asunto.`;
 
+/**
+ * The inbox preview line: the body without markup. Tags are removed until none remain, then any
+ * stray angle bracket, so no fragment of a tag can survive into the preview (CodeQL
+ * js/incomplete-multi-character-sanitization). The bodies are this file's own constants.
+ */
+function plainText(html: string): string {
+  let text = html;
+  for (let previous = ""; previous !== text;) {
+    previous = text;
+    text = text.replace(/<[^>]*>/g, "");
+  }
+  return text.replace(/[<>]/g, "");
+}
+
 function notice(
   name: string,
   subject: string,
@@ -92,7 +106,7 @@ function notice(
     kind: "notification",
     file: `${name}_notification.html`,
     subject,
-    preview: en.body.replace(/<[^>]+>/g, ""),
+    preview: plainText(en.body),
     url: RESET_URL,
     variables,
     en: {
