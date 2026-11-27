@@ -13,7 +13,9 @@
  * where the `@xos/ui` ones read the provider. MarketingPoints and PlanLimits draw the two lists the
  * cards use. The four that print no shared string take no locale.
  *
- * Styles: import "@xos/ui/marketing.css" after "@xos/ui/styles.css".
+ * Styles: import "@xos/ui/marketing.css" after "@xos/ui/styles.css". A page that renders only this
+ * layer imports "@xos/ui/marketing/styles.css" in place of both, and ships the `ui` message groups
+ * these components read from "@xos/i18n/ui-cuts/<locale>/marketing.json" (MARKETING.md).
  */
 export type * from "./Marketing/Marketing.types.ts";
 export { marketingCopy, type MarketingCopy } from "./Marketing/marketing-copy.ts";

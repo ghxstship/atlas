@@ -1,0 +1,11 @@
+{
+  "calendar": {
+    "agenda": "Agenda",
+    "day": "Día",
+    "month": "Mes",
+    "more": "+{n} más",
+    "range": "Rango",
+    "week": "Semana",
+    "dayTypes": "Tipos de día"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "recordList": {
+    "columns": {
+      "select": "Seleccionar",
+      "state": "Estado",
+      "key": "Clave",
+      "title": "Registro",
+      "labels": "Etiquetas",
+      "next": "Próxima fecha",
+      "owner": "Responsable",
+      "action": "Acción"
+    }
+  }
+}

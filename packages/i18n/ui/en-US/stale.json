@@ -1,0 +1,11 @@
+{
+  "stale": {
+    "basis": "evidence date",
+    "current": "Current",
+    "degraded": "Degraded One Step",
+    "expired": "Expired",
+    "modeled": "Modeled",
+    "months": "{n} mo",
+    "title": "{n} months since {basis}"
+  }
+}

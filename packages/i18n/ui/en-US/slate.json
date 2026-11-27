@@ -1,0 +1,9 @@
+{
+  "slate": {
+    "filled": "Positions filled",
+    "include": "Include {name}",
+    "positions": "{n} of {total} positions",
+    "submit": "Submit Slate",
+    "title": "Staff Slate"
+  }
+}

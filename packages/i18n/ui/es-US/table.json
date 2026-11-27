@@ -1,0 +1,9 @@
+{
+  "table": {
+    "resizeColumn": "Cambiar el ancho de la columna {column}",
+    "row": "Fila {n}",
+    "total": "Total",
+    "selectAll": "Seleccionar todas las filas",
+    "selectRow": "Seleccionar {row}"
+  }
+}

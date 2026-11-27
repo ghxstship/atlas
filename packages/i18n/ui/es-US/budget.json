@@ -1,0 +1,13 @@
+{
+  "budget": {
+    "amount": "Monto",
+    "costCenter": "Centro de costos",
+    "gl": "Cuenta GL",
+    "grade": "Grado",
+    "line": "Línea",
+    "qty": "Cantidad",
+    "rate": "Tarifa",
+    "unmapped": "Cuenta sin asignar",
+    "urid": "URID"
+  }
+}

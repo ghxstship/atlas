@@ -1,0 +1,8 @@
+{
+  "conflict": {
+    "keep": "Conservar selección",
+    "server": "Guardado en el servidor",
+    "title": "Resolver conflicto",
+    "yours": "Suyo"
+  }
+}

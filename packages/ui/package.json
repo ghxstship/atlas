@@ -28,6 +28,7 @@
     "./pwa/action-outcome": "./src/pwa/action-outcome.tsx",
     "./styles.css": "./src/styles/index.css",
     "./marketing.css": "./src/styles/marketing.css",
+    "./marketing/styles.css": "./src/styles/marketing-only.css",
     "./tailwind.config.cjs": "./tailwind.config.cjs",
     "./brand/*": "./src/brand/defaults/*"
   },

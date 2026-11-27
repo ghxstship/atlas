@@ -1,0 +1,6 @@
+{
+  "count": {
+    "of": "{n} of {total}",
+    "step": "Step {n} of {total}"
+  }
+}

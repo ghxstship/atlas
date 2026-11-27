@@ -1,0 +1,21 @@
+{
+  "action": {
+    "cancel": "Cancel",
+    "clear": "Clear",
+    "close": "Close",
+    "copyLink": "Copy Link",
+    "dismiss": "Dismiss",
+    "done": "Done",
+    "download": "Download",
+    "later": "Later",
+    "reset": "Reset",
+    "retry": "Retry",
+    "save": "Save",
+    "saved": "Saved",
+    "send": "Send",
+    "snooze": "Snooze",
+    "start": "Start",
+    "undo": "Undo",
+    "view": "View"
+  }
+}

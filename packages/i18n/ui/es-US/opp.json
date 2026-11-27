@@ -1,0 +1,8 @@
+{
+  "opp": {
+    "apply": "Postularse",
+    "missing": "Falta: {list}",
+    "qualified": "Cumple todos los requisitos",
+    "search": "Buscar oportunidades"
+  }
+}

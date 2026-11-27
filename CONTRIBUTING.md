@@ -38,7 +38,7 @@ en-US is the source. Google Cloud Translation produces and reviews every other l
    - A project gate is a "compuerta", and a door or vehicle gate is a "puerta".
    - Product names (XOS, Atlas, Gateway, Compass, Aurora), plan names and canon codes stay as they are.
    - The full list is `packages/i18n/translation/terms.json`.
-3. **Regenerate the catalogs.** Run `pnpm --filter @xos/i18n generate:catalogs` if you added a namespace file or changed a string that `packages/i18n/client-extracts.json` copies.
+3. **Regenerate the catalogs.** Run `pnpm --filter @xos/i18n generate:catalogs` if you added a namespace file, changed a string that `packages/i18n/client-extracts.json` copies, or changed `ui.json` in en-US or es-US: the generator also writes that namespace by message group under `packages/i18n/ui/` and `packages/i18n/ui-cuts/` (`packages/ui/MARKETING.md`).
 4. **Run `pnpm verify`.** The translation check in it fails on a missing key, a broken ICU structure, a lost protected word or a broken terminology rule.
    - It warns, without failing, when an es-US string is older than its en-US source.
    - The owner's next `pnpm --filter @xos/i18n translate` run replaces those warned strings with Google's version.

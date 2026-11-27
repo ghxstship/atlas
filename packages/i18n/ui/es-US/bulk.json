@@ -1,0 +1,8 @@
+{
+  "bulk": {
+    "clear": "Borrar selección",
+    "label": "Acciones masivas",
+    "selected": "{n} seleccionados",
+    "itemSelected": "Seleccionado"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "feedback": {
+    "failed": "Your feedback did not send. Try again.",
+    "hint": "Describe what you expected and what you saw.",
+    "privacy": "Only what you choose here is sent. Nothing else is captured.",
+    "question": "What happened?",
+    "screenshot": "Attach a screenshot of this page",
+    "thanks": "Thanks. The platform team will read this.",
+    "title": "Send Feedback"
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "money": {
+    "blankHelp": "Blank means unpriced. Enter 0 only for a confirmed zero.",
+    "rateOnRequest": "Rate on Request",
+    "unpriced": "Unpriced"
+  }
+}

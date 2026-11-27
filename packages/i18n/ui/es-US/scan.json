@@ -1,0 +1,10 @@
+{
+  "scan": {
+    "asset": "Activo",
+    "credential": "Credencial",
+    "mode": "Modo de escaneo",
+    "nfc": "Leer NFC",
+    "receiving": "Recepción",
+    "torch": "Linterna"
+  }
+}

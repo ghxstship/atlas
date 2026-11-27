@@ -1,0 +1,57 @@
+/* @xos/ui/marketing/styles.css: the Tailwind 4 entry for a public page that renders only the
+   Marketing layer (lockstep issue 123). It takes the place of both lines a public page wrote before:
+     @import "@xos/ui/styles.css";
+     @import "@xos/ui/marketing.css";
+   becomes
+     @import "@xos/ui/marketing/styles.css";
+
+   The tokens, the base rules, the component rules and the Marketing sheet are the same files the
+   product entry loads. The one difference is what Tailwind scans for utilities: index.css scans all
+   of src, and this entry scans src/Marketing and the modules those components import, listed below
+   one file at a time. test/marketing-entry.test.ts fails when the list and the imports differ, so a
+   component the Marketing layer starts to use is added here in the same change.
+
+   A page that also renders another @xos/ui component (the consent banner, for example) names that
+   component's folder with a `@source` line of its own, after this import (MARKETING.md). */
+@import "tailwindcss";
+@config "../../tailwind.config.cjs";
+@source "../Marketing";
+@source "../Avatar/avatar-class.ts";
+@source "../BrandMark/BrandMark.tsx";
+@source "../Button/Button.tsx";
+@source "../Button/button-class.ts";
+@source "../Chips/Chips.types.ts";
+@source "../Chips/Tag.tsx";
+@source "../Chips/codeClass.tsx";
+@source "../Field/Field.tsx";
+@source "../Forms/Forms.types.ts";
+@source "../Forms/Select.tsx";
+@source "../Glyphs/Glyphs.tsx";
+@source "../Icon/Icon.tsx";
+@source "../Identity/BrandSlotFrame.tsx";
+@source "../Identity/Identity.types.ts";
+@source "../Kbd/Kbd.tsx";
+@source "../Layout/Layout.types.ts";
+@source "../Layout/ScrollRegion.tsx";
+@source "../Link/link-class.ts";
+@source "../Navigation/Navigation.types.ts";
+@source "../Navigation/SegmentedControl.tsx";
+@source "../Surface/Skeleton.tsx";
+@source "../Surface/Surface.tsx";
+@source "../lib/context.tsx";
+@source "../lib/cx.ts";
+@source "../lib/format.ts";
+@source "../lib/hooks.ts";
+@source "../lib/i18n.ts";
+@source "../lib/icons.ts";
+@source "../lib/preferences.ts";
+@source "../lib/theme.ts";
+
+@import "@xos/tokens/css/base.css";
+@import "@xos/tokens/css/theme.dark.css";
+@import "@xos/tokens/css/theme.light.css";
+@import "@xos/tokens/css/theme.sunlight.css";
+
+@import "./base.css";
+@import "./components.css";
+@import "./marketing.css";

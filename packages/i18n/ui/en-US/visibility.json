@@ -1,0 +1,7 @@
+{
+  "visibility": {
+    "application": "On Apply",
+    "private": "Private",
+    "public": "Public"
+  }
+}

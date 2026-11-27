@@ -1,0 +1,8 @@
+{
+  "conflict": {
+    "keep": "Keep Selected",
+    "server": "Saved on Server",
+    "title": "Resolve Conflict",
+    "yours": "Yours"
+  }
+}

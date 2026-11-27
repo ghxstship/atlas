@@ -1,0 +1,11 @@
+{
+  "gate": {
+    "allMet": "Se cumplen todos los criterios bloqueantes.",
+    "blocking": "Bloqueante",
+    "criteriaMet": "Criterios cumplidos",
+    "metCount": "{met} de {total} cumplidos",
+    "openMany": "{n} criterios bloqueantes abiertos.",
+    "openOne": "{n} criterio bloqueante abierto.",
+    "readiness": "Preparación de la compuerta"
+  }
+}

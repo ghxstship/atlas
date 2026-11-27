@@ -1,0 +1,14 @@
+{
+  "recordList": {
+    "columns": {
+      "select": "Select",
+      "state": "State",
+      "key": "Key",
+      "title": "Record",
+      "labels": "Labels",
+      "next": "Next date",
+      "owner": "Owner",
+      "action": "Action"
+    }
+  }
+}

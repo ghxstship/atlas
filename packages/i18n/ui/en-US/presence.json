@@ -1,0 +1,8 @@
+{
+  "presence": {
+    "editing": "{n} editing",
+    "namesEditing": "{names}, editing now",
+    "namesViewing": "{names}, viewing now",
+    "viewing": "{n} viewing"
+  }
+}

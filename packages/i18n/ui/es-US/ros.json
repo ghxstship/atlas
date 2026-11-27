@@ -1,0 +1,10 @@
+{
+  "ros": {
+    "go": "Go",
+    "label": "Guion del evento",
+    "live": "En vivo",
+    "nextIn": "Siguiente cue en",
+    "standby": "En espera",
+    "skipped": "Omitido"
+  }
+}

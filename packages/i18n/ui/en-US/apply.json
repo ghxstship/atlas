@@ -1,0 +1,9 @@
+{
+  "apply": {
+    "available": "I'm available on every listed date",
+    "draftSaved": "Draft saved",
+    "shared": "What {org} will see",
+    "submit": "Submit Application",
+    "title": "Apply: {role}"
+  }
+}

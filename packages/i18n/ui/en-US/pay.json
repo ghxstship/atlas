@@ -1,0 +1,10 @@
+{
+  "pay": {
+    "approved": "Approved",
+    "expected": "Expected {date}",
+    "label": "Payment for {key}",
+    "paid": "Paid",
+    "scheduled": "Scheduled",
+    "submitted": "Submitted"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "ecode": {
+    "authorities": "Local authorities",
+    "role": {
+      "bombSquad": "Bomb Squad",
+      "ems": "EMS",
+      "federal": "Federal",
+      "fire": "Fire",
+      "lawEnforcement": "Law Enforcement"
+    },
+    "service": {
+      "bombSquad": "the local bomb squad",
+      "ems": "emergency medical services",
+      "federal": "federal authorities",
+      "fire": "the local fire department",
+      "lawEnforcement": "local law enforcement"
+    }
+  }
+}

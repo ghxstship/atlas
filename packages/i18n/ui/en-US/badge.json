@@ -1,0 +1,10 @@
+{
+  "badge": {
+    "brightness": "Raise brightness",
+    "label": "Credential for {name}",
+    "qr": "Credential code {key}",
+    "valid": "Valid {from} to {to}",
+    "wallet": "Add to Wallet",
+    "zones": "Zones"
+  }
+}

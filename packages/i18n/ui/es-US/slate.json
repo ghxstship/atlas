@@ -1,0 +1,9 @@
+{
+  "slate": {
+    "filled": "Puestos cubiertos",
+    "include": "Incluir a {name}",
+    "positions": "{n} de {total} puestos",
+    "submit": "Enviar nómina",
+    "title": "Nómina de personal"
+  }
+}

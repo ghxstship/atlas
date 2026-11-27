@@ -1,0 +1,10 @@
+{
+  "nav": {
+    "account": "Abrir el menú de la cuenta de {name}",
+    "breadcrumb": "Ruta de navegación",
+    "main": "Principal",
+    "next": "Siguiente",
+    "pagination": "Paginación",
+    "previous": "Anterior"
+  }
+}
