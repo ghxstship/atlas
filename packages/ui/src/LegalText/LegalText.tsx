@@ -225,6 +225,7 @@ export function LegalOutline({
   return (
     <nav
       aria-label={label}
+      data-xos-pinned=""
       className="sticky top-0 flex max-h-dvh flex-col gap-8 overflow-y-auto text-text-13"
     >
       <p className="m-0 text-text-12 font-semibold text-text-secondary">{label}</p>

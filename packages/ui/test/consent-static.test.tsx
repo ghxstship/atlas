@@ -249,6 +249,23 @@ describe("ConsentBannerStatic is a bar at the bottom edge", () => {
     expect(css.slice(media, css.indexOf(both))).not.toContain("}\n}");
   });
 
+  it("ends a viewport-pinned scroller above the bar's tallest height, so it scrolls inside (2.4.11)", () => {
+    const css = readFileSync(join(process.cwd(), "src/styles/base.css"), "utf8");
+    const body = (selector: string): string => {
+      const at = css.indexOf(`${selector} {`);
+      return at < 0 ? "" : css.slice(at, css.indexOf("}", at));
+    };
+    // Unlayered, so it wins over a max-h utility on the element.
+    const pinned = body("html:has([data-xos-consent-bar]) [data-xos-pinned]");
+    expect(pinned).toContain(
+      "max-block-size: calc(100dvh - var(--ui-consent-bar-max) - var(--space-16));",
+    );
+    expect(pinned).toContain("scroll-padding-block: var(--space-8);");
+    expect(
+      body("html:has([data-xos-consent-bar]):has([data-xos-bottom-bar]) [data-xos-pinned]"),
+    ).toContain("var(--ui-bottom-bar)");
+  });
+
   it("sits over the page and the sidebar and under every overlay on the z-index scale", () => {
     const tokens = JSON.parse(
       readFileSync(join(process.cwd(), "../tokens/xos.tokens.json"), "utf8"),

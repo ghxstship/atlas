@@ -193,6 +193,24 @@ html:has([data-xos-consent-bar]) {
   }
 }
 
+/* An element pinned to the top of the viewport that scrolls inside itself (marked data-xos-pinned,
+   such as the legal outline, LegalText.tsx) does not move when the page scrolls, so the page's
+   scroll padding cannot bring its lower links out from under the bar. While the bar is on screen it
+   ends above the bar's tallest height and scrolls inside past that, for the mouse and the keyboard
+   alike (WCAG 2.4.11); its own scroll padding keeps a focused link and its ring clear of its edges. */
+html:has([data-xos-consent-bar]) [data-xos-pinned] {
+  max-block-size: calc(100dvh - var(--ui-consent-bar-max) - var(--space-16));
+  scroll-padding-block: var(--space-8);
+}
+
+@media (width < 48rem) {
+  html:has([data-xos-consent-bar]):has([data-xos-bottom-bar]) [data-xos-pinned] {
+    max-block-size: calc(
+      100dvh - var(--ui-consent-bar-max) - var(--ui-bottom-bar) - var(--space-16)
+    );
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   :root:not([data-motion="full"]) *,
   :root:not([data-motion="full"]) *::before,
