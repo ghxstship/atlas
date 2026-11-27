@@ -56,7 +56,7 @@ export async function requestPasswordReset(_: FormState, form: FormData): Promis
 
 /**
  * Sets the new password on a session that came from a reset link, then ends every other session of the account.
- * A person who holds a second factor passes it first; Supabase Auth refuses the change at aal1 too.
+ * A person who holds a second factor passes it first; an `insufficient_aal` refusal from Supabase Auth leads there too.
  */
 export async function setNewPassword(_: FormState, form: FormData): Promise<FormState> {
   const db = await createServerSupabase();

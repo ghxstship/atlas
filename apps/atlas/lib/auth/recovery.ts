@@ -6,8 +6,8 @@
  *   - the request answers the same way whether or not an account uses the address (no account enumeration);
  *   - only a session that came from a reset link, in the last RECOVERY_WINDOW_SECONDS, may set a password there, so a
  *     session left open on a shared computer cannot be turned into a password;
- *   - a person who holds a second factor passes it first: the page sends them to /auth/mfa, and Supabase Auth refuses
- *     the change at aal1 on its own.
+ *   - a person who holds a second factor passes it first: the page sends them to /auth/mfa, and so does an
+ *     `insufficient_aal` refusal from Supabase Auth.
  */
 
 export const FORGOT_PASSWORD_PATH = "/auth/forgot-password";

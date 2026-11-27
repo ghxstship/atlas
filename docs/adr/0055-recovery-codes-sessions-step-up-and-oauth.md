@@ -82,7 +82,7 @@ forgot password path on 2026-11-27, in Atlas and Gateway alike (each has its own
     turned into a new password. The new password follows the sign-up rules (`lib/auth/password.ts`), typed twice.
 14. **A recovered session does not skip the second factor.** A person who holds a verified factor is sent to
     `/auth/mfa` first (Atlas's proxy does it, and the page and action repeat it for Gateway, whose proxy guards only
-    sitemap routes); Supabase Auth refuses the change at aal1 as well. A recovery code (decision 3) still serves
+    sitemap routes); an `insufficient_aal` refusal from Supabase Auth leads there too. A recovery code (decision 3) still serves
     someone who lost their factor. An org's MFA policy applies at its pages as before.
 15. **Other sessions end.** Saving the password calls `app.sign_out_my_other_sessions` (decision 9), the action of
     "Sign out all other sessions"; neither app had a password change of its own before 4.19. No migration is needed.
