@@ -155,7 +155,10 @@ const BOOT_BUDGET_KB: Record<string, number> = {
   // and the approval reminder in both locales (about 1.5 KB at boot; train 6).
   // B16: subscription pauses join the hourly job (about 6.6 KB of its own code) beside the merged notice copy; 238.2 KB
   // in merge train 7, about 10 percent above that.
-  "org-lifecycle": 262,
+  // Merge train 4.19: the CodeQL fixes in the shared email chunk (about 1.0 KB) and the session gate's
+  // access.session_rule_suspended notice in both locales (about 0.9 KB) each fit alone and together came to
+  // 262.5 KB; about 10 percent above that.
+  "org-lifecycle": 289,
   // 4.9 email branding (904090003): the delivery worker skips a suppressed recipient, sends the org's From name and
   // reply-to, and composes both emails through the branded packages/email templates, which load on the first delivery;
   // 129.5 KB at boot.
