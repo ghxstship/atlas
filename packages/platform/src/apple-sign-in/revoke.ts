@@ -15,6 +15,9 @@
  * name the subject of the caller's own Apple identity in Supabase Auth, read with the caller's token. It loads no npm
  * package (A85).
  */
+
+import { withoutTrailingSlashes } from "../strings.ts";
+
 export const APPLE_ID_ORIGIN = "https://appleid.apple.com";
 
 /** How long a client secret lives. Apple allows six months; each one here signs a single request. */
@@ -327,7 +330,7 @@ export function callerAppleSubjectLoader(options: {
 }): () => Promise<string | null> {
   const send = options.fetch ?? fetch;
   return async () => {
-    const response = await send(`${options.supabaseUrl.replace(/\/+$/, "")}/auth/v1/user`, {
+    const response = await send(`${withoutTrailingSlashes(options.supabaseUrl)}/auth/v1/user`, {
       headers: {
         apikey: options.anonKey,
         authorization: options.authorization,

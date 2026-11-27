@@ -5,6 +5,8 @@
  * addresses.
  */
 
+import { firstAngleGroup } from "../strings.ts";
+
 /** A reply address, as app.receive_inbound_email reads it (0550). Other local parts are project inboxes. */
 const REPLY_LOCAL_PART = /^r-[0-9a-f]{32}-/;
 
@@ -34,7 +36,7 @@ export function stripQuotedText(text: string): string {
 export function localPartFor(recipients: readonly string[], inboundDomain: string): string | null {
   const domain = inboundDomain.toLowerCase();
   for (const recipient of recipients) {
-    const address = (/<([^>]+)>/.exec(recipient)?.[1] ?? recipient).trim().toLowerCase();
+    const address = (firstAngleGroup(recipient) ?? recipient).trim().toLowerCase();
     const at = address.lastIndexOf("@");
     if (at > 0 && address.slice(at + 1) === domain) return postgresText(address.slice(0, at));
   }

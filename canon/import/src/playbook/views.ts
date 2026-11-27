@@ -31,7 +31,8 @@ const NORMALIZERS: Readonly<Record<FieldType, string>> = {
 };
 
 export function normalized(type: FieldType | undefined, expr: string): string {
-  return NORMALIZERS[type ?? "text"].replace("$", expr);
+  // A function as the replacement, so a dollar sign inside the expression is text and not a pattern such as $&.
+  return NORMALIZERS[type ?? "text"].replace(/\$/g, () => expr);
 }
 
 function computedChain(entry: SheetEntry, base: string): string {

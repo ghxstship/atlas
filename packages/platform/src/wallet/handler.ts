@@ -11,6 +11,7 @@
  */
 import { buildPkpass, type AppleWalletEnv, type WalletLabels, type WalletPass } from "./apple.ts";
 import { googleSaveUrl, type GoogleWalletEnv } from "./google.ts";
+import { withoutTrailingSlashes } from "../strings.ts";
 
 export const PKPASS_TYPE = "application/vnd.apple.pkpass";
 
@@ -178,7 +179,7 @@ export function publicBrandLogo(options: {
 }): BrandLogo {
   const send = options.fetch ?? fetch;
   const url = (path: string) =>
-    `${options.supabaseUrl.replace(/\/+$/, "")}/storage/v1/object/public/org-brand/${path
+    `${withoutTrailingSlashes(options.supabaseUrl)}/storage/v1/object/public/org-brand/${path
       .split("/")
       .map(encodeURIComponent)
       .join("/")}`;
@@ -208,7 +209,7 @@ export function callerPassLoader(options: {
   const send = options.fetch ?? fetch;
   return async (kind, id) => {
     const response = await send(
-      `${options.supabaseUrl.replace(/\/+$/, "")}/rest/v1/rpc/my_wallet_pass`,
+      `${withoutTrailingSlashes(options.supabaseUrl)}/rest/v1/rpc/my_wallet_pass`,
       {
         method: "POST",
         headers: {

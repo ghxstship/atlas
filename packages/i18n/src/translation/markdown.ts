@@ -7,7 +7,15 @@
  * escapes and protected words are frozen spans; links, bold and italic are spans whose text is
  * translated and whose markup (and link target) is restored afterwards.
  */
-import { MarkupError, escapeHtml, frozenSpan, parseSpans, type HtmlNode } from "./html.ts";
+import {
+  MarkupError,
+  escapeHtml,
+  frozenSpan,
+  parseSpans,
+  stripFrozenSpans,
+  stripTags,
+  type HtmlNode,
+} from "./html.ts";
 import { PlanError, tidy, type Plan, type ProtectFn, type Segment } from "./icu.ts";
 
 type Mask =
@@ -51,7 +59,7 @@ class Builder {
   }
 
   private visible(html: string): string {
-    return html.replace(/<span translate="no"[^>]*>.*?<\/span>/g, "").replace(/<[^>]*>/g, "");
+    return stripTags(stripFrozenSpans(html));
   }
 
   private id(prefix: string): string {

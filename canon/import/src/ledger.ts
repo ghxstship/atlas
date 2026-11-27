@@ -127,6 +127,11 @@ export function localDatabaseUrl(paths: RepoPaths): string {
   return `postgresql://postgres:postgres@127.0.0.1:${port}/postgres`;
 }
 
+/** A value inside a Markdown table cell: the backslash first, then the bar that would end the cell. */
+function tableCell(value: string): string {
+  return value.replace(/[\\|]/g, "\\$&");
+}
+
 export function roundTripReport(diffs: readonly CellDiff[], check: LedgerCheck): string {
   const lines = [
     "# Playbook round trip",
@@ -139,7 +144,7 @@ export function roundTripReport(diffs: readonly CellDiff[], check: LedgerCheck):
   const unexplained = new Set(check.unexplained);
   for (const d of diffs) {
     lines.push(
-      `| ${d.sheet} | ${d.column}${d.row} | ${d.header} | ${d.source.replace(/\|/g, "\\|")} | ${d.database.replace(/\|/g, "\\|")} | ${unexplained.has(d) ? "no" : "ruling"} |`,
+      `| ${d.sheet} | ${d.column}${d.row} | ${d.header} | ${tableCell(d.source)} | ${tableCell(d.database)} | ${unexplained.has(d) ? "no" : "ruling"} |`,
     );
   }
   return `${lines.join("\n")}\n`;

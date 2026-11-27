@@ -7,6 +7,7 @@ import { z } from "zod";
 import type { PlatformDb } from "../stores.ts";
 import type { FetchLike } from "../webhooks/dispatch.ts";
 import { inboundMessageId, localPartFor, receiveInbound, type InboundStore } from "./parse.ts";
+import { withoutTrailingSlashes } from "../strings.ts";
 
 export const RESEND_API_URL = "https://api.resend.com";
 /** The bucket raw messages are kept in (migration 1651); its file size limit is the same 50 MiB. */
@@ -148,13 +149,73 @@ function characterReference(digits: string, radix: number): string {
     : "\ufffd";
 }
 
+/** The elements whose content never belongs in the text of a message. */
+const DROPPED_ELEMENTS = ["head", "style", "script", "blockquote"] as const;
+
+/**
+ * The HTML without its head, style, script and blockquote elements, content included. One pass over the text: a
+ * regular expression with a lazy body rescans to the end from every unclosed opening tag, which is quadratic on
+ * mail an outside sender wrote. A closing tag is the name followed by white space, a slash or the bracket, as HTML
+ * reads it, so `</script foo>` closes too. An element with no closing tag is left for the tag strip that follows.
+ */
+function withoutDroppedElements(html: string): string {
+  const opening = /<(head|style|script|blockquote)\b/gi;
+  const closing = new Map<string, RegExp>(
+    DROPPED_ELEMENTS.map((name) => [name, new RegExp(`</${name}(?=[\\s/>])`, "gi")]),
+  );
+  const unclosed = new Set<string>();
+  let out = "";
+  let kept = 0;
+  for (;;) {
+    const open = opening.exec(html);
+    if (open === null) break;
+    const name = (open[1] ?? "").toLowerCase();
+    const closer = closing.get(name);
+    if (closer === undefined || unclosed.has(name)) continue;
+    const openEnd = html.indexOf(">", opening.lastIndex);
+    // Without a closing bracket here, no later opening tag has one either.
+    if (openEnd === -1) break;
+    closer.lastIndex = openEnd + 1;
+    const close = closer.exec(html);
+    const closeEnd = close === null ? -1 : html.indexOf(">", closer.lastIndex);
+    if (closeEnd === -1) {
+      unclosed.add(name);
+      continue;
+    }
+    out += html.slice(kept, open.index);
+    kept = closeEnd + 1;
+    opening.lastIndex = kept;
+  }
+  return out + html.slice(kept);
+}
+
+/** The text without `<...>` tags, as `text.replace(/<[^>]+>/g, "")` returns it, in one pass. */
+function withoutTags(text: string): string {
+  let out = "";
+  let from = 0;
+  for (;;) {
+    const open = text.indexOf("<", from);
+    if (open === -1) break;
+    const close = text.indexOf(">", open + 1);
+    if (close === -1) break;
+    if (close === open + 1) {
+      out += text.slice(from, close);
+      from = close;
+      continue;
+    }
+    out += text.slice(from, open);
+    from = close + 1;
+  }
+  return out + text.slice(from);
+}
+
 /** Text from an HTML-only body: no scripts, styles or quoted blockquotes, block ends as line breaks, entities decoded. */
 export function htmlToText(html: string): string {
-  return html
-    .replace(/<(head|style|script|blockquote)\b[^>]*>[\s\S]*?<\/\1\s*>/gi, "")
-    .replace(/<br\s*\/?>/gi, "\n")
-    .replace(/<\/(p|div|li|tr|h[1-6])\s*>/gi, "\n")
-    .replace(/<[^>]+>/g, "")
+  return withoutTags(
+    withoutDroppedElements(html)
+      .replace(/<br\s*\/?>/gi, "\n")
+      .replace(/<\/(p|div|li|tr|h[1-6])\s*>/gi, "\n"),
+  )
     .replace(/&(#x[0-9a-f]+|#\d+|[a-z]+);/gi, (entity, code: string) => {
       if (code.startsWith("#x") || code.startsWith("#X"))
         return characterReference(code.slice(2), 16);
@@ -178,7 +239,7 @@ export function storageRawMailStore(options: {
   readonly fetch?: FetchLike;
 }): RawMailStore {
   const send = options.fetch ?? ((url: string, init: RequestInit) => fetch(url, init));
-  const base = `${options.url.replace(/\/+$/, "")}/storage/v1/object/${INBOUND_MAIL_BUCKET}`;
+  const base = `${withoutTrailingSlashes(options.url)}/storage/v1/object/${INBOUND_MAIL_BUCKET}`;
   return {
     async put(objectName, bytes) {
       const path = objectName.split("/").map(encodeURIComponent).join("/");

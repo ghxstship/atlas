@@ -75,7 +75,11 @@ export const EVENT_TYPE = /^[a-z][a-z_]*\.[a-z][a-z_]*$/;
 
 /** Trims spaces only, as Postgres btrim does by default. */
 export function trimSpaces(text: string): string {
-  return text.replace(/^ +| +$/g, "");
+  let start = 0;
+  let end = text.length;
+  while (start < end && text.charCodeAt(start) === 32) start++;
+  while (end > start && text.charCodeAt(end - 1) === 32) end--;
+  return text.slice(start, end);
 }
 
 /** Length in code points, as Postgres char_length counts. */

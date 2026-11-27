@@ -1,6 +1,7 @@
 import { createHash, createHmac } from "node:crypto";
 import { IntegrationError } from "../framework/errors.ts";
 import type { HttpClient } from "../framework/http.ts";
+import { withoutTrailing } from "../framework/text.ts";
 import type { WarehouseObject, WarehouseProvider, WarehouseTarget } from "./provider.ts";
 
 /**
@@ -75,7 +76,7 @@ export function objectUrl(target: WarehouseTarget, key: string): URL {
   if (target.endpointUrl === null) {
     return new URL(`https://${target.bucket}.s3.${region}.amazonaws.com/${encodeKey(key)}`);
   }
-  const base = target.endpointUrl.replace(/\/+$/, "");
+  const base = withoutTrailing(target.endpointUrl, "/");
   return new URL(`${base}/${encodeURIComponent(target.bucket)}/${encodeKey(key)}`);
 }
 

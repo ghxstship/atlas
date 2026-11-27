@@ -17,6 +17,11 @@ export class RolloutInputError extends Error {
   override name = "RolloutInputError";
 }
 
+/** A value inside a LIKE pattern: the escape character first, then the two wildcards. */
+function likeLiteral(value: string): string {
+  return value.replace(/[\\_%]/g, "\\$&");
+}
+
 function assertFlag(flagKey: string): void {
   if (!FLAG_KEY.test(flagKey))
     throw new RolloutInputError(`Flag key ${JSON.stringify(flagKey)} is not a valid flag key.`);
@@ -72,7 +77,7 @@ export function rollbackRolloutSql(flagKey: string): string {
     `-- Roll ${flagKey} back: remove rollout overrides; manual overrides stay.`,
     "begin;",
     "update app.feature_flag_overrides set deleted_at = now()",
-    `where flag_key = '${flagKey}' and deleted_at is null and reason like 'rollout:${flagKey.replace(/_/g, "\\_")}:%';`,
+    `where flag_key = '${flagKey}' and deleted_at is null and reason like 'rollout:${likeLiteral(flagKey)}:%';`,
     "commit;",
     "",
   ].join("\n");
@@ -86,7 +91,7 @@ export function completeRolloutSql(flagKey: string): string {
     "begin;",
     `update private.feature_flags set default_enabled = true where flag_key = '${flagKey}';`,
     "update app.feature_flag_overrides set deleted_at = now()",
-    `where flag_key = '${flagKey}' and deleted_at is null and reason like 'rollout:${flagKey.replace(/_/g, "\\_")}:%';`,
+    `where flag_key = '${flagKey}' and deleted_at is null and reason like 'rollout:${likeLiteral(flagKey)}:%';`,
     "commit;",
     "",
   ].join("\n");

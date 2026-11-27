@@ -180,10 +180,15 @@ const LOCAL_INBOX_HOST =
 
 /** Splits "Name <address>" into Mailpit's address shape. */
 function mailpitAddress(value: string): { Email: string; Name?: string } {
-  const match = /^\s*(.*?)\s*<([^>]+)>\s*$/.exec(value);
-  if (!match) return { Email: value.trim() };
-  const name = (match[1] ?? "").replace(/^"|"$/g, "");
-  return name === "" ? { Email: match[2] as string } : { Email: match[2] as string, Name: name };
+  // Read by position: the address is the last `<...>` group and it ends the value; the name is what stands before.
+  const text = value.trim();
+  const open = text.endsWith(">")
+    ? text.indexOf("<", text.lastIndexOf(">", text.length - 2) + 1)
+    : -1;
+  if (open === -1 || open >= text.length - 2 || /[\n\r]/.test(text)) return { Email: text };
+  const email = text.slice(open + 1, -1);
+  const name = text.slice(0, open).trimEnd().replace(/^"|"$/g, "");
+  return name === "" ? { Email: email } : { Email: email, Name: name };
 }
 
 /**

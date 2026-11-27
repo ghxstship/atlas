@@ -155,8 +155,26 @@ export function transformMessage(message: string, transform: TextTransform): str
 
 const accent: TextTransform = (text) => text.replace(/[A-Za-z]/g, (c) => ACCENTS[c] ?? c);
 
+/**
+ * The length of the message without its `{...}` groups, each running from a brace to the next closing brace, as
+ * `message.replace(/\{[^}]*\}/g, "").length` counts it. One pass: the pattern rescans to the end from every opening
+ * brace that is never closed.
+ */
+function lengthOutsideBraces(message: string): number {
+  let length = message.length;
+  let from = 0;
+  for (;;) {
+    const open = message.indexOf("{", from);
+    if (open === -1) return length;
+    const close = message.indexOf("}", open + 1);
+    if (close === -1) return length;
+    length -= close - open + 1;
+    from = close + 1;
+  }
+}
+
 function pad(message: string): string {
-  const letters = message.replace(/\{[^}]*\}/g, "").length;
+  const letters = lengthOutsideBraces(message);
   const extra = Math.max(1, Math.ceil(letters * 0.4));
   return `[${message} ${"·".repeat(extra)}]`;
 }

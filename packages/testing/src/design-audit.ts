@@ -24,7 +24,8 @@ const DURATION = /^[\d.]+m?s$/;
 const INLINE_LENGTH =
   /\b(?:width|height|margin\w*|padding\w*|gap|top|left|right|bottom|fontSize|borderRadius|inset\w*)\s*:\s*["'`]-?[\d.]+(?:px|rem|em)["'`]/g;
 const VAR_REF = /var\(\s*(--[a-zA-Z0-9-]+)/g;
-const VAR_DEF = /(--[a-zA-Z0-9-]+)\s*:/g;
+/** A custom property name. Whether a colon follows it is read by position (`definedProperties`). */
+const VAR_NAME = /--[a-zA-Z0-9-]+/g;
 /** Lines that opt out with a reason, for values that are data rather than design (a brand color). */
 const ALLOW = /design-audit-allow:\s*\S/;
 
@@ -61,7 +62,13 @@ export function findRawValues(file: string, source: string): Finding[] {
 /** Custom property names a file defines (`--name:`), in CSS or in inline style objects. */
 export function definedProperties(source: string): Set<string> {
   const names = new Set<string>();
-  for (const match of source.matchAll(VAR_DEF)) if (match[1]) names.add(match[1]);
+  // The name runs to the end of its characters, then white space and a colon make it a definition. Reading the colon
+  // by position keeps a long run of hyphens (a rule in a comment) to one pass.
+  for (const match of source.matchAll(VAR_NAME)) {
+    let after = match.index + match[0].length;
+    while (after < source.length && /\s/.test(source.charAt(after))) after++;
+    if (source.charAt(after) === ":") names.add(match[0]);
+  }
   for (const match of source.matchAll(/["'](--[a-zA-Z0-9-]+)["']\s*:/g)) {
     if (match[1]) names.add(match[1]);
   }
@@ -103,12 +110,18 @@ export function exportedNames(source: string): Set<string> {
   )) {
     if (match[1]) names.add(match[1]);
   }
-  for (const match of source.matchAll(/export\s*\{([^}]*)\}/g)) {
-    for (const part of (match[1] ?? "").split(",")) {
+  // Each `export {` list runs to the next closing brace; with none left, no later list closes either.
+  const list = /export\s*\{/g;
+  for (let open = list.exec(source); open !== null; open = list.exec(source)) {
+    const close = source.indexOf("}", list.lastIndex);
+    if (close === -1) break;
+    const body = source.slice(list.lastIndex, close);
+    list.lastIndex = close + 1;
+    for (const part of body.split(",")) {
       const name = part
         .trim()
         .replace(/^type\s+/, "")
-        .split(/\s+as\s+/)
+        .split(/\sas\s/)
         .pop()
         ?.trim();
       if (name && !part.trim().startsWith("type ")) names.add(name);

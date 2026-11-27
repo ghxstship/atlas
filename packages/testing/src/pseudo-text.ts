@@ -100,10 +100,17 @@ const SEPARATORS = /\s*(?:·|•|\u2014|\u2013|\||\/|,|:|›|>|\(|\)|\+)\s*|\s+-
 /** A record key (NWS-12) or a code (US-FL-MIAMI-DADE, G2.CONTRACTS), with any hyphen glyph. */
 const CODE = /^[A-Z0-9]+(?:[-‐‑‒\u2013−_.][A-Z0-9]+)*$/;
 
+/** One character of the punctuation and white space trimmed from both ends of a piece of text. */
+const EDGE_PUNCTUATION = /[\s·•.,:;|/()\u2013\u2014-]/;
+
 /** Whether unwrapped text is data (or formatting of data) rather than copy that missed a catalog. */
 export function isData(raw: string, data: KnownText): boolean {
   // Punctuation code puts between values ("· NWS") belongs to neither side.
-  const text = raw.replace(/^[\s·•.,:;|/()\u2013\u2014-]+|[\s·•.,:;|/()\u2013\u2014-]+$/g, "");
+  let start = 0;
+  let end = raw.length;
+  while (start < end && EDGE_PUNCTUATION.test(raw.charAt(start))) start++;
+  while (end > start && EDGE_PUNCTUATION.test(raw.charAt(end - 1))) end--;
+  const text = raw.slice(start, end);
   if (!/[A-Za-z]{2,}/.test(text)) return true;
   // A site shown by its host name, unless it is a catalog key shown raw.
   if (HOST.test(text) && !isCatalogKey(text)) return true;

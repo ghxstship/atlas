@@ -1,0 +1,351 @@
+{
+  "$comment": "CodeQL code-scanning alerts triaged against the code (infra/security/README.md, Accepted findings). Each entry names the alert, its rule and file, a verdict (real: input an outside party or another service chooses reaches the code on a server, or the code was wrong; not_exploitable: it cannot), the reason for the verdict, and what the code does now. An alert is never dismissed on GitHub from here: it closes when a scan no longer finds it. Add an entry with an empty change only for an alert left in place, and say why.",
+  "recorded": "2026-11-27",
+  "release": "4.19.0",
+  "findings": [
+    {
+      "alert": 63,
+      "rule": "js/polynomial-redos",
+      "path": "packages/ui/src/Editing/timeShorthand.ts",
+      "verdict": "not_exploitable",
+      "reason": "The text is what a person types into a time field in their own browser; nothing an outside party sends reaches it.",
+      "change": "The range separator takes at most one space on each side, since the text is already reduced to single spaces."
+    },
+    {
+      "alert": 62,
+      "rule": "js/polynomial-redos",
+      "path": "packages/ui/src/Editing/parseQuickAdd.tsx",
+      "verdict": "not_exploitable",
+      "reason": "The text is what a person types into the quick-add field in their own browser.",
+      "change": "Trailing punctuation of a token is trimmed by position."
+    },
+    {
+      "alert": 61,
+      "rule": "js/polynomial-redos",
+      "path": "packages/ui/src/Editing/quickAddCore.ts",
+      "verdict": "not_exploitable",
+      "reason": "The text is what a person types into the quick-add field in their own browser.",
+      "change": "White space is reduced to single spaces first, so the second pattern removes one space and never a run."
+    },
+    {
+      "alert": 60,
+      "rule": "js/polynomial-redos",
+      "path": "packages/testing/src/pseudo-text.ts",
+      "verdict": "not_exploitable",
+      "reason": "@xos/testing is a private development dependency; this reads text of the repository's own rendered pages in CI.",
+      "change": "Edge punctuation is trimmed by position."
+    },
+    {
+      "alert": 59,
+      "rule": "js/polynomial-redos",
+      "path": "packages/testing/src/design-audit.ts",
+      "verdict": "not_exploitable",
+      "reason": "The design audit reads the repository's own source files in CI.",
+      "change": "Export aliases split on one space on each side of `as`; the name is trimmed afterward as before."
+    },
+    {
+      "alert": 58,
+      "rule": "js/polynomial-redos",
+      "path": "packages/testing/src/design-audit.ts",
+      "verdict": "not_exploitable",
+      "reason": "The design audit reads the repository's own source files in CI.",
+      "change": "Each `export {` list is closed by position; with no closing brace left the scan stops."
+    },
+    {
+      "alert": 57,
+      "rule": "js/polynomial-redos",
+      "path": "packages/testing/src/design-audit.ts",
+      "verdict": "not_exploitable",
+      "reason": "The design audit reads the repository's own source files in CI.",
+      "change": "A custom property name is matched whole and the colon after it is read by position."
+    },
+    {
+      "alert": 54,
+      "rule": "js/polynomial-redos",
+      "path": "packages/schemas/src/automations/model.ts",
+      "verdict": "real",
+      "reason": "trimSpaces runs on the server over automation text an organization member wrote; a field with a long run of spaces inside it cost quadratic time.",
+      "change": "Spaces are trimmed from both ends by position."
+    },
+    {
+      "alert": 53,
+      "rule": "js/polynomial-redos",
+      "path": "packages/platform/src/wallet/handler.ts",
+      "verdict": "not_exploitable",
+      "reason": "The value is SUPABASE_URL, set by the deployment.",
+      "change": "Trailing slashes are trimmed by position (withoutTrailingSlashes)."
+    },
+    {
+      "alert": 52,
+      "rule": "js/polynomial-redos",
+      "path": "packages/platform/src/wallet/handler.ts",
+      "verdict": "not_exploitable",
+      "reason": "The value is SUPABASE_URL, set by the deployment.",
+      "change": "Trailing slashes are trimmed by position (withoutTrailingSlashes)."
+    },
+    {
+      "alert": 50,
+      "rule": "js/polynomial-redos",
+      "path": "packages/platform/src/scanning/clamav.ts",
+      "verdict": "not_exploitable",
+      "reason": "The reply comes from the clamd service the deployment runs, over its own connection, and is one short line.",
+      "change": "The verdict line is read by position."
+    },
+    {
+      "alert": 49,
+      "rule": "js/polynomial-redos",
+      "path": "packages/platform/src/scanning/clamav.ts",
+      "verdict": "not_exploitable",
+      "reason": "The reply comes from the clamd service the deployment runs.",
+      "change": "Trailing NUL bytes are trimmed by position."
+    },
+    {
+      "alert": 48,
+      "rule": "js/polynomial-redos",
+      "path": "packages/platform/src/inbound/resend.ts",
+      "verdict": "not_exploitable",
+      "reason": "The value is SUPABASE_URL, set by the deployment.",
+      "change": "Trailing slashes are trimmed by position (withoutTrailingSlashes)."
+    },
+    {
+      "alert": 47,
+      "rule": "js/polynomial-redos",
+      "path": "packages/platform/src/inbound/parse.ts",
+      "verdict": "real",
+      "reason": "Recipient headers of inbound mail are written by whoever sends the message; a recipient made of opening brackets cost quadratic time in the inbound-email function.",
+      "change": "The address inside angle brackets is read by position (firstAngleGroup)."
+    },
+    {
+      "alert": 46,
+      "rule": "js/polynomial-redos",
+      "path": "packages/platform/src/apple-sign-in/revoke.ts",
+      "verdict": "not_exploitable",
+      "reason": "The value is SUPABASE_URL, set by the deployment.",
+      "change": "Trailing slashes are trimmed by position (withoutTrailingSlashes)."
+    },
+    {
+      "alert": 45,
+      "rule": "js/polynomial-redos",
+      "path": "packages/integrations/src/warehouse/s3.ts",
+      "verdict": "not_exploitable",
+      "reason": "The endpoint is a warehouse setting an organization administrator saves for their own export; it is parsed as a URL right after.",
+      "change": "Trailing slashes are trimmed by position (withoutTrailing)."
+    },
+    {
+      "alert": 44,
+      "rule": "js/polynomial-redos",
+      "path": "packages/integrations/src/identity/scim.ts",
+      "verdict": "real",
+      "reason": "The path of a SCIM request is trimmed after the bearer token is accepted, so only an identity provider holding a provisioning token reaches it; a path of many slashes then cost quadratic time.",
+      "change": "Slashes are trimmed from both ends by position."
+    },
+    {
+      "alert": 43,
+      "rule": "js/polynomial-redos",
+      "path": "packages/integrations/src/identity/scim.ts",
+      "verdict": "real",
+      "reason": "The email of a SCIM user comes from the identity provider's request body; a long value of alternating dots cost quadratic time.",
+      "change": "The shape of an email address is checked by position (isEmailShaped), accepting exactly what the pattern accepted."
+    },
+    {
+      "alert": 42,
+      "rule": "js/polynomial-redos",
+      "path": "packages/integrations/src/framework/support.ts",
+      "verdict": "real",
+      "reason": "Amounts come from accounting and ticketing providers' responses; a fraction with a long run of zeros that is not at its end cost quadratic time.",
+      "change": "Trailing zeros are trimmed by position (withoutTrailing)."
+    },
+    {
+      "alert": 41,
+      "rule": "js/polynomial-redos",
+      "path": "packages/integrations/automation/zapier/index.js",
+      "verdict": "not_exploitable",
+      "reason": "The base URL is the connecting person's own setting and the code runs in their Zapier account.",
+      "change": "Trailing slashes are trimmed by position."
+    },
+    {
+      "alert": 40,
+      "rule": "js/polynomial-redos",
+      "path": "packages/ia/src/handoff.ts",
+      "verdict": "not_exploitable",
+      "reason": "The origin is the application's configured public URL.",
+      "change": "Trailing slashes are trimmed by position."
+    },
+    {
+      "alert": 39,
+      "rule": "js/polynomial-redos",
+      "path": "packages/i18n/src/pseudo.ts",
+      "verdict": "not_exploitable",
+      "reason": "The messages are the repository's own catalogs, and pseudo-locales never ship to production.",
+      "change": "The length outside braces is counted by position."
+    },
+    {
+      "alert": 38,
+      "rule": "js/polynomial-redos",
+      "path": "packages/help/src/model.ts",
+      "verdict": "not_exploitable",
+      "reason": "Help articles are Markdown files in the repository.",
+      "change": "Inline Markdown is parsed by position; an exhaustive comparison over 5.4 million short strings found no difference from the pattern."
+    },
+    {
+      "alert": 37,
+      "rule": "js/polynomial-redos",
+      "path": "packages/email/src/transport.ts",
+      "verdict": "not_exploitable",
+      "reason": "The Mailpit transport is refused outside local hosts; it runs only on a developer stack and in CI.",
+      "change": "A `Name <address>` value is split by position."
+    },
+    {
+      "alert": 36,
+      "rule": "js/polynomial-redos",
+      "path": "packages/ai/src/redact.ts",
+      "verdict": "real",
+      "reason": "redactText runs on the server over documents and prompts a member supplies before any provider sees them; a label followed by a long run of spaces cost quadratic time.",
+      "change": "The separator after a label is one run of spaces, then optionally a colon or number sign and a second run, so no text can be split two ways."
+    },
+    {
+      "alert": 34,
+      "rule": "js/polynomial-redos",
+      "path": "infra/observability/src/sentry.ts",
+      "verdict": "not_exploitable",
+      "reason": "The stack is the one the runtime produced for an error the service itself caught.",
+      "change": "A V8 frame is read by position (readFrame)."
+    },
+    {
+      "alert": 33,
+      "rule": "js/polynomial-redos",
+      "path": "infra/observability/src/browser.ts",
+      "verdict": "not_exploitable",
+      "reason": "trimStack runs in the browser on the stack of an error raised there.",
+      "change": "A frame line is recognized by two anchored checks."
+    },
+    {
+      "alert": 23,
+      "rule": "js/stack-trace-exposure",
+      "path": "supabase/functions/_shared/runtime.ts",
+      "verdict": "not_exploitable",
+      "reason": "The flow starts in supabase/functions/notification-dispatch/index.ts: a failed channel's error text went into the JSON reply. Only a caller holding the project's secret key (the pg_cron worker schedule) gets that reply; every other caller is answered 401 before any channel runs.",
+      "change": "A failed channel is logged with its reason and answered with a fixed sentence naming the channel (notification-dispatch/channel.ts, packages/platform/test/notification-dispatch-channel.test.ts). Separately, stripe-webhook's 400 reply to a bad signature now carries a fixed sentence instead of the Stripe library's message."
+    },
+    {
+      "alert": 21,
+      "rule": "js/unvalidated-dynamic-method-call",
+      "path": "apps/compass/scripts/maestro-network.ts",
+      "verdict": "not_exploitable",
+      "reason": "The helper listens on a developer machine or a CI runner during Maestro journeys and is not part of any product; a path such as /constructor could only crash that helper.",
+      "change": "Steps are held in a Map, so only the two step names resolve."
+    },
+    {
+      "alert": 20,
+      "rule": "js/bad-tag-filter",
+      "path": "packages/ui/scripts/generate-stories.mjs",
+      "verdict": "not_exploitable",
+      "reason": "The pattern extracts the inline script of the repository's own design cards at build time; it filters nothing.",
+      "change": "The pattern reads the tag in either case and any spelling of the closing tag."
+    },
+    {
+      "alert": 19,
+      "rule": "js/bad-tag-filter",
+      "path": "packages/help/src/model.ts",
+      "verdict": "not_exploitable",
+      "reason": "The check asks whether one line of a repository Markdown file is a comment marker; a line holds no line break and nothing is filtered.",
+      "change": "The check compares the start and end of the line."
+    },
+    {
+      "alert": 18,
+      "rule": "js/bad-tag-filter",
+      "path": "apps/docs/lib/markdown.ts",
+      "verdict": "not_exploitable",
+      "reason": "The check asks whether one line of a repository Markdown file is a comment marker; a line holds no line break and nothing is filtered.",
+      "change": "The check compares the start and end of the line."
+    },
+    {
+      "alert": 15,
+      "rule": "js/incomplete-sanitization",
+      "path": "packages/integrations/src/connectors/storage/index.ts",
+      "verdict": "real",
+      "reason": "A folder id containing a backslash before a quote closed the quoted string of the Google Drive search query and could add terms to it. The query still ran with the organization's own connection, so it could list only files that connection could already read.",
+      "change": "The backslash is escaped before the quote (driveQueryLiteral)."
+    },
+    {
+      "alert": 13,
+      "rule": "js/incomplete-sanitization",
+      "path": "infra/delivery/src/flag-rollout.ts",
+      "verdict": "not_exploitable",
+      "reason": "The flag key is checked against ^[a-z][a-z0-9_.]*$ before any SQL is written, so it holds no backslash, quote or percent sign; an operator runs the tool.",
+      "change": "The LIKE literal escapes the backslash and both wildcards (likeLiteral)."
+    },
+    {
+      "alert": 12,
+      "rule": "js/incomplete-sanitization",
+      "path": "infra/delivery/src/flag-rollout.ts",
+      "verdict": "not_exploitable",
+      "reason": "The flag key is checked against ^[a-z][a-z0-9_.]*$ before any SQL is written; an operator runs the tool.",
+      "change": "The LIKE literal escapes the backslash and both wildcards (likeLiteral)."
+    },
+    {
+      "alert": 11,
+      "rule": "js/incomplete-sanitization",
+      "path": "canon/import/src/reports.ts",
+      "verdict": "not_exploitable",
+      "reason": "The value is a cell of a Markdown report the import tool writes to a git-ignored folder for the operator to read; nothing parses it.",
+      "change": "The backslash is escaped along with the bar."
+    },
+    {
+      "alert": 10,
+      "rule": "js/incomplete-sanitization",
+      "path": "canon/import/src/playbook/views.ts",
+      "verdict": "not_exploitable",
+      "reason": "Each normalizer template holds exactly one dollar sign, written in the same file, so replacing the first occurrence replaced all of them.",
+      "change": "The placeholder is replaced through a function, which also keeps a dollar sign inside the expression as text."
+    },
+    {
+      "alert": 9,
+      "rule": "js/incomplete-sanitization",
+      "path": "canon/import/src/ledger.ts",
+      "verdict": "not_exploitable",
+      "reason": "The value is a cell of a Markdown report the import tool writes for the operator to read.",
+      "change": "The backslash is escaped along with the bar (tableCell)."
+    },
+    {
+      "alert": 8,
+      "rule": "js/incomplete-sanitization",
+      "path": "canon/import/src/ledger.ts",
+      "verdict": "not_exploitable",
+      "reason": "The value is a cell of a Markdown report the import tool writes for the operator to read.",
+      "change": "The backslash is escaped along with the bar (tableCell)."
+    },
+    {
+      "alert": 7,
+      "rule": "js/incomplete-multi-character-sanitization",
+      "path": "packages/platform/src/inbound/resend.ts",
+      "verdict": "real",
+      "reason": "htmlToText returns plain text that is stored and shown as text, so a leftover tag is never markup. The finding still marked a defect: the element pattern rescanned to the end from every unclosed opening tag, quadratic on mail an outside sender wrote, and a closing tag with attributes kept script content in the text.",
+      "change": "Elements and tags are removed in one pass by position."
+    },
+    {
+      "alert": 6,
+      "rule": "js/incomplete-multi-character-sanitization",
+      "path": "packages/platform/src/inbound/resend.ts",
+      "verdict": "real",
+      "reason": "Same call as alert 7.",
+      "change": "Elements and tags are removed in one pass by position."
+    },
+    {
+      "alert": 4,
+      "rule": "js/incomplete-multi-character-sanitization",
+      "path": "packages/i18n/src/translation/markdown.ts",
+      "verdict": "not_exploitable",
+      "reason": "The markup is built by this module with escaped text, and the result only answers whether a segment holds a letter; it is never rendered.",
+      "change": "Frozen spans and tags are removed by position (stripFrozenSpans, stripTags)."
+    },
+    {
+      "alert": 3,
+      "rule": "js/incomplete-multi-character-sanitization",
+      "path": "packages/i18n/src/translation/html.ts",
+      "verdict": "not_exploitable",
+      "reason": "textOf counts the characters Google bills for; its result is never rendered as markup.",
+      "change": "Tags are removed by position (stripTags)."
+    }
+  ]
+}
