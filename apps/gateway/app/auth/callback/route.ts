@@ -55,12 +55,14 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const key = authErrorKey(error);
     return back(key === "link_invalid" ? "oauth_expired" : key);
   }
+  // A new account accepted the Worker Terms at sign-up; the first session writes them to the log. That includes a
+  // reset link, which confirms an address whose confirmation email was never opened: the acceptance is written now,
+  // with this request's address and time, not at some later sign-in.
+  await recordPendingAcceptances(db, clientIp(request.headers));
   // A reset link lands on the page that sets the new password, whatever `next` says (lib/auth/recovery.ts). auth-js
   // marks the code verifier of a reset, so this does not depend on the address in the email. That page asks a person
   // who holds a second factor to pass it first.
   if (exchangedResetLink(data, Date.now())) return goTo(RESET_PASSWORD_PATH);
-  // A new account accepted the Worker Terms at sign-up; the first session writes them to the log.
-  await recordPendingAcceptances(db, clientIp(request.headers));
   // A provider creates the account before any form: it accepts the Worker Terms next (A59-025), unless it is
   // going to delete itself, which never waits on accepting anything (Worker Terms 13).
   if (oauth && !skipsTermsStep(next) && (await missingSignUpAcceptances(db)).length > 0) {
