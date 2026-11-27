@@ -245,13 +245,33 @@ an error. Rollback: put back the values recorded before the change.
    records in `production.md`, "Domains".
 2. Authentication, Emails, SMTP Settings: enable custom SMTP, host `smtp.resend.com`, port 465, user `resend`,
    password the Resend API key (secret), sender `no-reply@mail.ghxstship.tech`, sender name `XOS`.
-3. Templates (confirm signup, invite, magic link, change email, reset password, reauthentication): the product's
-   own email goes through the Edge Functions; the auth emails wear the XOS platform brand from the repository's
-   `supabase/templates` (4.9 email branding audit). For each, paste the subject from `supabase/config.toml`
-   (`[auth.email.template.<name>]`) and the file's HTML into Authentication, Emails, Templates. Never push them with
-   `supabase config push`, which would push the repository's local values too (`hosted-security-settings.md`).
-   Check that the Site URL is `https://atlas.ghxstship.tech` and that no template names staging or the demo tenant
-   (`packages/email/test/auth-templates.test.ts` checks the repository's copies).
+3. Templates, applied from the repository. The product's own email goes through the Edge Functions; the emails
+   Supabase Auth sends wear the XOS platform brand, en-US with a short es-US version under it. The repository holds
+   all thirteen: the six auth emails (confirm signup, invite, magic link, change email address, reset password,
+   reauthentication) and the seven security notices (password changed, email address changed, phone number changed,
+   verification method added, verification method removed, sign-in method linked, sign-in method removed). Each is
+   a file in `supabase/templates`, generated from `packages/email/src/auth-templates.ts`, and a section of
+   `supabase/config.toml` that names its subject (`[auth.email.template.<name>]` or
+   `[auth.email.notification.<name>]`). Apply them from the commit being released:
+   1. In the worktree of that commit, run `pnpm --filter @xos/email auth-templates` and then
+      `pnpm --filter @xos/email exec vitest run test/auth-templates.test.ts`. The first rewrites the files from the
+      module and leaves `git status` clean when they are current; the second checks that every file parses, uses only
+      the variables Supabase Auth fills for it, loads nothing remote, and matches its `config.toml` subject.
+   2. Authentication, Emails, Templates: for each of the six auth emails, paste the `subject` from its
+      `[auth.email.template.<name>]` section and the whole file's HTML, then save.
+   3. Authentication, Emails, Security notifications (Notifications in some dashboard versions): for each of the seven
+      notices, turn it on, paste the `subject` from its `[auth.email.notification.<name>]` section and the whole
+      `<name>_notification.html` file, then save.
+   4. Authentication, Providers, Email: set Email OTP Expiration to 3600 seconds, the `otp_expiry` the emails state
+      ("expires in 1 hour").
+   5. Send a password reset and a magic link to a test account, open both in a mail client in light and in dark mode,
+      and check that the reset link reaches `https://atlas.ghxstship.tech/auth/reset-password` through
+      `/auth/callback`.
+      Never push the templates with `supabase config push`, which would push the repository's local values too
+      (`hosted-security-settings.md`). Check that the Site URL is `https://atlas.ghxstship.tech`: the security notices
+      link to `{{ .SiteURL }}/auth/forgot-password`. The emails load no image, so they need no hosted logo: the mark is
+      the platform monogram tile drawn in HTML, as the apps draw it until the platform marks are set
+      (`packages/ui/src/brand/defaults/README.md`).
 4. Set the email rate limit (Authentication, Rate Limits) to about 100 emails an hour, sent through Resend (ADR 0033,
    decision 43). Watch the Auth logs for sign-up confirmations, magic links and password resets after launch, and
    raise it before real volume reaches it. The repository's local value (`email_sent = 2` an hour in
