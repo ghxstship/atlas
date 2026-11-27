@@ -1,0 +1,11 @@
+{
+  "grid": {
+    "derived": "Derived from canon. Edit the source record to change it.",
+    "hint": "Arrow keys move, Enter edits, Delete clears to Unpriced, paste from Excel fills the range.",
+    "row": "Row",
+    "newRow": "New row",
+    "hintAppend": "Arrow keys and Tab move, Enter edits and moves down, and typing in the last row adds a row. Paste from a spreadsheet fills the range.",
+    "cellError": "Row {row}, {column}: {message}",
+    "newRowMark": "+"
+  }
+}

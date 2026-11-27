@@ -1,0 +1,7 @@
+{
+  "color": {
+    "blocked": "Este color no se puede guardar hasta que pasen todas las verificaciones.",
+    "hex": "Valor hex de {label}",
+    "invalid": "Ingrese un color hex como #4F57D9."
+  }
+}

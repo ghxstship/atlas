@@ -1,0 +1,12 @@
+{
+  "chart": {
+    "chart": "Chart",
+    "legend": "Legend",
+    "noValue": "No value",
+    "other": "Other",
+    "point": "{series}, {category}: {value}",
+    "table": "Table",
+    "tableHint": "Switch to Table for every value.",
+    "view": "View"
+  }
+}

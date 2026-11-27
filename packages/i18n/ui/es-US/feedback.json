@@ -1,0 +1,11 @@
+{
+  "feedback": {
+    "failed": "Sus comentarios no se enviaron. Inténtelo de nuevo.",
+    "hint": "Describa lo que esperaba y lo que vio.",
+    "privacy": "Solo se envía lo que elija aquí. No se captura nada más.",
+    "question": "¿Qué pasó?",
+    "screenshot": "Adjuntar una captura de esta página",
+    "thanks": "Gracias. El equipo de la plataforma lo leerá.",
+    "title": "Enviar comentarios"
+  }
+}

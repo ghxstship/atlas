@@ -1,0 +1,6 @@
+{
+  "matrix": {
+    "cell": "{row}, {col}: {n} records",
+    "empty": "{row}, {col}: none"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "bid": {
+    "extended": "Extended",
+    "item": "Item",
+    "line": "Line",
+    "lines": "Bid lines",
+    "qty": "Qty",
+    "sealed": "Sealed bid",
+    "sealedBody": "Bids stay sealed until {deadline}. No bidder sees another bid.",
+    "total": "Bid Total",
+    "unit": "Unit",
+    "unitPrice": "Unit Price"
+  }
+}

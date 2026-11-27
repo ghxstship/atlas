@@ -1,0 +1,6 @@
+{
+  "phase": {
+    "gate": "Compuerta {n}",
+    "gateName": "Compuerta {n} · {name}"
+  }
+}

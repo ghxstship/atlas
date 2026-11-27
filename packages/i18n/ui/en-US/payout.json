@@ -1,0 +1,14 @@
+{
+  "payout": {
+    "account": "Account Number",
+    "accountHelp": "Encrypted on entry. Only the last four digits are shown after saving.",
+    "checking": "Checking",
+    "masked": "•••• {last4}",
+    "routing": "Routing Number",
+    "routingHint": "9 digits",
+    "save": "Save Securely",
+    "savings": "Savings",
+    "title": "Payout Details",
+    "type": "Account Type"
+  }
+}

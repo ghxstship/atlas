@@ -1,0 +1,6 @@
+{
+  "incident": {
+    "help": "Critical types use hold to confirm. Reports queue offline and send when you reconnect.",
+    "title": "Report Incident"
+  }
+}

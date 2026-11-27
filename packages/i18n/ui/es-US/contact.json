@@ -1,0 +1,6 @@
+{
+  "contact": {
+    "call": "Llamar a {name}",
+    "message": "Enviar mensaje a {name}"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "inspection": {
+    "addPhoto": "Add Photo",
+    "fail": "Fail",
+    "pass": "Pass",
+    "whatFailed": "What failed?"
+  }
+}

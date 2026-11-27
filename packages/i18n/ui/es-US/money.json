@@ -1,0 +1,7 @@
+{
+  "money": {
+    "blankHelp": "En blanco significa sin precio. Ingrese 0 solo para un cero confirmado.",
+    "rateOnRequest": "Tarifa a solicitud",
+    "unpriced": "Sin precio"
+  }
+}

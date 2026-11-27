@@ -1,0 +1,7 @@
+{
+  "access": {
+    "allowed": "{cat} in {zone}: allowed",
+    "credential": "Credential",
+    "denied": "{cat} in {zone}: denied"
+  }
+}

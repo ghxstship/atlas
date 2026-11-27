@@ -1,0 +1,14 @@
+{
+  "bid": {
+    "extended": "Extendido",
+    "item": "Artículo",
+    "line": "Línea",
+    "lines": "Líneas de la oferta",
+    "qty": "Cantidad",
+    "sealed": "Oferta sellada",
+    "sealedBody": "Las ofertas permanecen selladas hasta {deadline}. Ningún oferente ve otra oferta.",
+    "total": "Total de la oferta",
+    "unit": "Unidad",
+    "unitPrice": "Precio unitario"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "rating": {
+    "comment": "Public comment",
+    "label": "Rating",
+    "release": "Both ratings are released together once both are in, or after 14 days.",
+    "star": "{n} star",
+    "stars": "{n} stars",
+    "submit": "Submit Rating",
+    "title": "Rate {name}"
+  }
+}

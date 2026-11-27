@@ -1,0 +1,12 @@
+{
+  "chart": {
+    "chart": "Gráfico",
+    "legend": "Leyenda",
+    "noValue": "Sin valor",
+    "other": "Otros",
+    "point": "{series}, {category}: {value}",
+    "table": "Tabla",
+    "tableHint": "Cambie a Tabla para ver todos los valores.",
+    "view": "Vista"
+  }
+}

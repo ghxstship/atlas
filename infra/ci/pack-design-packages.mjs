@@ -69,6 +69,22 @@ const TOOLING = {
 /** Packages whose stylesheets name the font families, so their README says which fonts a consumer serves. */
 const FONT_PACKAGES = ["tokens", "ui"];
 
+/** What a public page imports to ship part of a package, for the generated README (lockstep issue 123). */
+const PUBLIC_PAGE_GUIDE = {
+  ui: [
+    "## Public pages",
+    "",
+    "A page that renders only the Marketing layer imports `@xos/ui/marketing/styles.css` in place of `@xos/ui/styles.css` and `@xos/ui/marketing.css`, and ships only the strings those components read. `MARKETING.md` in this package has both.",
+    "",
+  ],
+  i18n: [
+    "## The `ui` namespace in parts",
+    "",
+    `\`@xos/i18n/ui/<locale>/<group>.json\` holds one message group of the \`ui\` namespace, and \`@xos/i18n/ui-cuts/<locale>/marketing.json\` the groups the Marketing layer of \`@xos/ui\` reads, for en-US and es-US. \`MARKETING.md\` in \`${publishedName("ui")}\` says how a page uses them.`,
+    "",
+  ],
+};
+
 /** Build output a package exports but git does not track. The caller builds it before packing. */
 const BUILT = { tokens: ["dist"] };
 
@@ -292,6 +308,7 @@ function readme(manifest, pkg, version, thirdParty, fonts) {
       : []),
     "",
     ...(FONT_PACKAGES.includes(pkg) ? fontsSection(fonts, pkg) : []),
+    ...(PUBLIC_PAGE_GUIDE[pkg] ?? []),
     "## License",
     "",
     `${manifest.license}. See \`LICENSE\`${thirdParty ? " and `THIRD_PARTY_NOTICES`" : ""}.`,

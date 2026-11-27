@@ -1,0 +1,9 @@
+{
+  "apply": {
+    "available": "Estoy disponible en todas las fechas indicadas",
+    "draftSaved": "Borrador guardado",
+    "shared": "Lo que verá {org}",
+    "submit": "Enviar solicitud",
+    "title": "Postularse: {role}"
+  }
+}

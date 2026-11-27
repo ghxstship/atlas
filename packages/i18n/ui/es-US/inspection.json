@@ -1,0 +1,8 @@
+{
+  "inspection": {
+    "addPhoto": "Agregar foto",
+    "fail": "No aprobado",
+    "pass": "Aprobado",
+    "whatFailed": "¿Qué falló?"
+  }
+}

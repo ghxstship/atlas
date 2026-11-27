@@ -1,0 +1,7 @@
+{
+  "color": {
+    "blocked": "This color can't be saved until every check passes.",
+    "hex": "{label} hex value",
+    "invalid": "Enter a hex color such as #4F57D9."
+  }
+}

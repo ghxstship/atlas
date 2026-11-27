@@ -1,0 +1,8 @@
+{
+  "recon": {
+    "capability": "Capacidad del recinto",
+    "notDeclared": "No declarado",
+    "requirement": "Requisito",
+    "result": "Resultado"
+  }
+}

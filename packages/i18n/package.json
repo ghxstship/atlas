@@ -15,7 +15,9 @@
     "./units": "./src/formats/units.ts",
     "./phone": "./src/formats/phone.ts",
     "./extracts": "./src/extracts.generated.ts",
-    "./messages/*": "./messages/*"
+    "./messages/*": "./messages/*",
+    "./ui/*": "./ui/*",
+    "./ui-cuts/*": "./ui-cuts/*"
   },
   "sideEffects": false,
   "scripts": {

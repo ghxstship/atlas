@@ -1,0 +1,8 @@
+{
+  "recon": {
+    "capability": "Venue Capability",
+    "notDeclared": "Not declared",
+    "requirement": "Requirement",
+    "result": "Result"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "badge": {
+    "brightness": "Subir el brillo",
+    "label": "Credencial de {name}",
+    "qr": "Código de credencial {key}",
+    "valid": "Válida del {from} al {to}",
+    "wallet": "Agregar a Wallet",
+    "zones": "Zonas"
+  }
+}

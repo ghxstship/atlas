@@ -1,0 +1,10 @@
+{
+  "shortcutEditor": {
+    "action": "Action",
+    "change": "Change",
+    "edit": "Edit",
+    "press": "Press Keys",
+    "shortcut": "Shortcut",
+    "none": "Not set"
+  }
+}
