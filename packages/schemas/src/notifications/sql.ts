@@ -37,10 +37,12 @@ import type { NotificationKindRegistry } from "./model.ts";
  * rating_dispute.decided (6821, ADR 0158), the sensitive data notices account.sensitive_data_attested and account.sensitive_consent_needed
  * (ADR 0164, 6852 and 6853), the legal queue's legal_clock_alert and moderation_notice emails (ADR 0167), and carries 6799's.
  * 904090099 (4.9, block 00) adds the stakeholder_pack email (904090003: a pack email wears the org's brand) and carries
- * 6999's. Each sits at the top of its train's or release block so the highest seed carries every kind.
+ * 6999's. 904190999 (4.19, block 09) adds the session gate's access.session_rule_suspended (904190902, ADR 0169 D8:
+ * support suspended one session rule of an org) and carries 904090099's. Each sits at the top of its train's or release
+ * block so the highest seed carries every kind.
  */
 export const NOTIFICATION_KIND_SEED_MIGRATION =
-  "supabase/migrations/904090099_notification_kind_seed.sql";
+  "supabase/migrations/904190999_notification_kind_seed.sql";
 
 /** The pgTAP drift test of the seed, named for its migration. */
 export const NOTIFICATION_KIND_DRIFT_TEST = NOTIFICATION_KIND_SEED_MIGRATION.replace(
