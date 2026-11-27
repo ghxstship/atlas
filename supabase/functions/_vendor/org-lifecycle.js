@@ -3,8 +3,12 @@
 import { optionalText, rows, text as text$1 } from "./chunks/platform-stores.js";
 import { defaultLocale, isLaunchLocale } from "./chunks/i18n-locales.js";
 import "./chunks/data-result.js";
-import { IntegrationError, asIntegrationError } from "./chunks/integrations-framework-errors.js";
-import { callJson, httpFromFetch } from "./chunks/integrations-framework-http.js";
+import {
+  IntegrationError,
+  asIntegrationError,
+  callJson,
+  httpFromFetch,
+} from "./chunks/integrations-framework-http.js";
 import { lazyResendClient, readEmailEnv, recipientAllowed } from "./chunks/email-env.js";
 import {
   email_default as email_default$1,

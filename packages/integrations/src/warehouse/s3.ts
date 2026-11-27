@@ -1,7 +1,7 @@
 import { createHash, createHmac } from "node:crypto";
 import { IntegrationError } from "../framework/errors.ts";
 import type { HttpClient } from "../framework/http.ts";
-import { withoutTrailing } from "../framework/support.ts";
+import { withoutTrailing } from "../framework/text.ts";
 import type { WarehouseObject, WarehouseProvider, WarehouseTarget } from "./provider.ts";
 
 /**

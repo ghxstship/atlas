@@ -155,12 +155,13 @@ const DROPPED_ELEMENTS = ["head", "style", "script", "blockquote"] as const;
 /**
  * The HTML without its head, style, script and blockquote elements, content included. One pass over the text: a
  * regular expression with a lazy body rescans to the end from every unclosed opening tag, which is quadratic on
- * mail an outside sender wrote. An element with no closing tag is left for the tag strip that follows.
+ * mail an outside sender wrote. A closing tag is the name followed by white space, a slash or the bracket, as HTML
+ * reads it, so `</script foo>` closes too. An element with no closing tag is left for the tag strip that follows.
  */
 function withoutDroppedElements(html: string): string {
   const opening = /<(head|style|script|blockquote)\b/gi;
   const closing = new Map<string, RegExp>(
-    DROPPED_ELEMENTS.map((name) => [name, new RegExp(`</${name}\\b`, "gi")]),
+    DROPPED_ELEMENTS.map((name) => [name, new RegExp(`</${name}(?=[\\s/>])`, "gi")]),
   );
   const unclosed = new Set<string>();
   let out = "";

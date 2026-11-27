@@ -1,5 +1,5 @@
 import { StoreError, unwrap, type DbClient, type DbResponse } from "../framework/db.ts";
-import { withoutLeading, withoutTrailing } from "../framework/support.ts";
+import { withoutLeading, withoutTrailing } from "../framework/text.ts";
 
 /**
  * A SCIM 2.0 service provider (RFC 7643, RFC 7644) for the Users and Groups an identity provider pushes.

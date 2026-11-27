@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { driveQueryLiteral } from "../src/connectors/storage/index.ts";
-import { decimalToMinor, withoutLeading, withoutTrailing } from "../src/framework/support.ts";
+import { decimalToMinor } from "../src/framework/support.ts";
+import { withoutLeading, withoutTrailing } from "../src/framework/text.ts";
 import { isEmailShaped } from "../src/identity/scim.ts";
 import { objectUrl } from "../src/warehouse/s3.ts";
 

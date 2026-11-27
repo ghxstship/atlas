@@ -4,9 +4,23 @@ import { csvField } from "./chunks/data-client.js";
 import { warehouseProvider } from "./chunks/data-enums-generated.js";
 import "./chunks/data-result.js";
 import {
-  SYNC_SCOPES,
   StoreError,
   asDbClient,
+  unwrap,
+  withoutTrailing,
+} from "./chunks/integrations-framework-text.js";
+import {
+  chatConnectors,
+  integrationsTranslator,
+  mintChatSession,
+  slackFailure,
+  supabaseCommunicationSource,
+  unfurlLinks,
+} from "./chunks/integrations-inbound-session.js";
+import {
+  ItemTally,
+  SYNC_SCOPES,
+  connectorRegistry,
   contentHash,
   credentialField,
   decimalToMinor,
@@ -16,20 +30,14 @@ import {
   providerEntry,
   scopesFor,
   sha256Hex,
-  unwrap,
-  withoutTrailing,
-} from "./chunks/integrations-framework-support.js";
+} from "./chunks/integrations-framework-connector.js";
 import {
-  chatConnectors,
-  integrationsTranslator,
-  mintChatSession,
-  slackFailure,
-  supabaseCommunicationSource,
-  unfurlLinks,
-} from "./chunks/integrations-inbound-session.js";
-import { IntegrationError, asIntegrationError } from "./chunks/integrations-framework-errors.js";
-import { ItemTally, connectorRegistry } from "./chunks/integrations-framework-connector.js";
-import { callJson, callRaw, httpFromFetch } from "./chunks/integrations-framework-http.js";
+  IntegrationError,
+  asIntegrationError,
+  callJson,
+  callRaw,
+  httpFromFetch,
+} from "./chunks/integrations-framework-http.js";
 import { isPublicAddress } from "./chunks/platform-webhooks-dispatch.js";
 import {
   storageConnectors,

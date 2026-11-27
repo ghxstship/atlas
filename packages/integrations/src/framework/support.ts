@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { usesClientCredentials } from "./catalog.ts";
 import { IntegrationError } from "./errors.ts";
+import { withoutTrailing } from "./text.ts";
 
 /**
  * A credential as read from Vault. OAuth connectors store JSON (`{"access_token": ..., "realm_id": ...}`);
@@ -117,23 +118,6 @@ export function minorToDecimal(minor: bigint | number, exponent: number): string
   const whole = exponent === 0 ? digits : digits.slice(0, -exponent);
   const fraction = exponent === 0 ? "" : `.${digits.slice(-exponent)}`;
   return `${negative ? "-" : ""}${whole}${fraction}`;
-}
-
-/**
- * The text without the run of one character at its end, as `text.replace(/x+$/, "")` returns it. One pass from the
- * end: the pattern retries from every position of a long run, which is quadratic on text a caller chose.
- */
-export function withoutTrailing(text: string, character: string): string {
-  let end = text.length;
-  while (end > 0 && text.charAt(end - 1) === character) end--;
-  return end === text.length ? text : text.slice(0, end);
-}
-
-/** The text without the run of one character at its start. */
-export function withoutLeading(text: string, character: string): string {
-  let start = 0;
-  while (start < text.length && text.charAt(start) === character) start++;
-  return start === 0 ? text : text.slice(start);
 }
 
 /** Parses a decimal amount into integer minor units; refuses more precision than the currency has. */

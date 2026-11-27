@@ -5,7 +5,7 @@ import {
   unwrap,
   withoutLeading,
   withoutTrailing,
-} from "./chunks/integrations-framework-support.js";
+} from "./chunks/integrations-framework-text.js";
 //#region ../integrations/src/identity/scim.ts
 var USER_SCHEMA = "urn:ietf:params:scim:schemas:core:2.0:User";
 var GROUP_SCHEMA = "urn:ietf:params:scim:schemas:core:2.0:Group";
