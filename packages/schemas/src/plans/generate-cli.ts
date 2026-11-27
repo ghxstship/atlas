@@ -2,19 +2,27 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { format, resolveConfig } from "prettier";
 import { loadPlanRegistry } from "./load.ts";
-import { PLAN_OFFERING_MODULE, renderPlanOfferingModule } from "./offering-module.ts";
+import {
+  PLAN_OFFERING_JSON,
+  PLAN_OFFERING_MODULE,
+  renderPlanOfferingJson,
+  renderPlanOfferingModule,
+} from "./offering-module.ts";
 import { PLAN_SEED_MIGRATION, renderPlanSeedSql } from "./sql.ts";
 
 /**
  * Plan registry CLI.
- *   generate-cli.ts           writes the plan seed migration and the generated offering module from plans.yaml
- *   generate-cli.ts --check   writes nothing and exits 1 when either is out of date
+ *   generate-cli.ts           writes the plan seed migration, the generated offering module and the offering JSON
+ *                             file from plans.yaml
+ *   generate-cli.ts --check   writes nothing and exits 1 when any of them is out of date
  */
 const repoRoot = fileURLToPath(new URL("../../../../", import.meta.url));
 const packageRoot = fileURLToPath(new URL("../../", import.meta.url));
 const registry = loadPlanRegistry();
 const modulePath = `${packageRoot}${PLAN_OFFERING_MODULE}`;
+const jsonPath = `${packageRoot}${PLAN_OFFERING_JSON}`;
 const options = (await resolveConfig(modulePath)) ?? {};
+const jsonOptions = (await resolveConfig(jsonPath)) ?? {};
 
 const outputs: [string, string, string][] = [
   [PLAN_SEED_MIGRATION, `${repoRoot}${PLAN_SEED_MIGRATION}`, renderPlanSeedSql(registry)],
@@ -22,6 +30,11 @@ const outputs: [string, string, string][] = [
     `packages/schemas/${PLAN_OFFERING_MODULE}`,
     modulePath,
     await format(renderPlanOfferingModule(registry), { ...options, filepath: modulePath }),
+  ],
+  [
+    `packages/schemas/${PLAN_OFFERING_JSON}`,
+    jsonPath,
+    await format(renderPlanOfferingJson(registry), { ...jsonOptions, filepath: jsonPath }),
   ],
 ];
 

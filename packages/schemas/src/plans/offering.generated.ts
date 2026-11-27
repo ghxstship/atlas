@@ -4,6 +4,7 @@ import type { PlanOffering } from "./model.ts";
 
 /** What is offered and on sale today: the offering section of plans.yaml. */
 export const PLAN_OFFERING: PlanOffering = {
+  openTerritories: ["US"],
   features: {
     approvals: {
       status: "offered",

@@ -18,13 +18,22 @@ export function planFeatureOffering(
 }
 
 /**
+ * The territory codes open at this release: `open_territories` in the offering section of plans.yaml, which a test
+ * holds to what the migrations seed in private.territories (ADR 0160). An operator can open or close a territory in
+ * the console between releases, so a caller with database access reads api_public.offered_territories instead.
+ */
+export function openTerritoryCodes(offering: PlanOffering = PLAN_OFFERING): readonly string[] {
+  return offering.openTerritories;
+}
+
+/**
  * True when a price list may show the feature. `openTerritories` holds the codes of the territories open in
- * private.territories (ADR 0160); a caller that cannot read them passes none, and a territory feature then reads
- * as not offered. A code the registry does not list is not offered.
+ * private.territories (ADR 0160); a caller that cannot read them passes none, and the territories open at this
+ * release decide (`openTerritoryCodes`). A code the registry does not list is not offered.
  */
 export function isPlanFeatureOffered(
   feature: string,
-  openTerritories: readonly string[] = [],
+  openTerritories?: readonly string[],
   offering: PlanOffering = PLAN_OFFERING,
 ): boolean {
   const stated = planFeatureOffering(feature, offering);
@@ -33,14 +42,14 @@ export function isPlanFeatureOffered(
   return (
     stated.status === "territory" &&
     stated.territory !== null &&
-    openTerritories.includes(stated.territory)
+    (openTerritories ?? offering.openTerritories).includes(stated.territory)
   );
 }
 
 /** The features of a list a price list may show, in the order given. */
 export function offeredPlanFeatures(
   features: readonly string[],
-  openTerritories: readonly string[] = [],
+  openTerritories?: readonly string[],
   offering: PlanOffering = PLAN_OFFERING,
 ): string[] {
   return features.filter((f) => isPlanFeatureOffered(f, openTerritories, offering));

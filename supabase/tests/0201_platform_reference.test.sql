@@ -43,10 +43,10 @@ select ok(
   and not exists (select 1 from private.plan_features where plan_code = 'core' and feature_code = 'public_marketplace_listings'),
   'public marketplace listings require Pro or above'
 );
-select is(
-  (select count(*)::integer from private.plan_features where plan_code = 'access'),
-  0,
-  'Access includes no gated feature'
+select results_eq(
+  $$select feature_code::text from private.plan_features where plan_code = 'access'$$,
+  $$values ('support_session_controls')$$,
+  'Access includes no gated feature: only support session controls, which every plan has (plan seed 904190501)'
 );
 select results_eq(
   $$select plan_code from private.plan_features where feature_code = 'aurora_ai'
