@@ -12,12 +12,24 @@ import { type SegmentedControlProps } from "./Navigation.types.ts";
  * toggle group, roving focus and collection code, about 4 KB gzip on every page with a view
  * switcher (gate 10).
  */
-export function SegmentedControl({
+export function SegmentedControl(props: SegmentedControlProps): ReactElement {
+  return <Segments {...props} />;
+}
+
+/**
+ * The radio group behind SegmentedControl. With `selectOnArrow` an arrow key, Home or End turns on
+ * the segment it moves to, as a native radio group does, so the tab stop is always the focused
+ * segment. The Marketing billing period and theme groups set it (lockstep issue 124): their change
+ * is instant and stays on the page. SegmentedControl leaves it off, because a product segment can
+ * load a view, and an arrow key that passes over one must not load it.
+ */
+export function Segments({
   label,
   value,
   options,
   onChange,
-}: SegmentedControlProps): ReactElement {
+  selectOnArrow = false,
+}: SegmentedControlProps & { selectOnArrow?: boolean }): ReactElement {
   const dir = Direction.useDirection();
   const [current, setCurrent] = useControllable<string>(
     undefined,
@@ -45,6 +57,8 @@ export function SegmentedControl({
     if (next === null) return;
     event.preventDefault();
     refs.current[next]?.focus();
+    const target = options[next];
+    if (selectOnArrow && target && target.value !== current) setCurrent(target.value);
   };
   return (
     <div

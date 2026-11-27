@@ -334,6 +334,16 @@
 .xos-mkt-nav-panel .xos-mkt-actions {
   margin-block-start: var(--space-16);
 }
+/* The actions repeated in the open panel keep the Button look and take the panel's row size: a
+   44 px target in 16 px type, the size of the section links above them. Without this the repeated
+   Sign In link stayed at its bar size, 32 px high in 13 px type (lockstep issue 124). */
+.xos-mkt-nav-panel .xos-mkt-actions > a {
+  min-block-size: var(--density-target-coarse);
+  padding-inline: var(--space-16);
+  font: var(--typography-text-16);
+  font-weight: var(--font-weight-medium);
+  line-height: 1;
+}
 .xos-mkt-skip {
   position: absolute;
   inset-inline-start: var(--space-8);

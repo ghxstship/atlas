@@ -25,6 +25,8 @@ export type {
   AIDisclosureBadgeProps,
   CodeSampleProps,
   MarketingFooterProps,
+  MarketingPointsProps,
+  PlanLimitsProps,
 } from "./Marketing.types.ts";
 export { ButtonLink } from "./ButtonLink.tsx";
 export { MarketingNav } from "./MarketingNav.tsx";
@@ -38,6 +40,8 @@ export { FAQ } from "./FAQ.tsx";
 export { Testimonial } from "./Testimonial.tsx";
 export { CodeSample } from "./CodeSample.tsx";
 export { MarketingFooter } from "./MarketingFooter.tsx";
+export { MarketingPoints } from "./MarketingPoints.tsx";
+export { PlanLimits } from "./PlanLimits.tsx";
 export {
   ProofStatStrip,
   GateLifecycleRail,

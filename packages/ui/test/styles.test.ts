@@ -135,6 +135,16 @@ describe("component styles on Tailwind 4.3.3 with the token preset", () => {
     );
   });
 
+  it("gives the actions repeated in the open phone menu the panel's row size (issue 124)", () => {
+    const rule = /\.xos-mkt-nav-panel \.xos-mkt-actions > a\s*\{([^}]*)\}/.exec(css)?.[1] ?? "";
+    expect(rule).toContain("min-block-size: var(--density-target-coarse)");
+    expect(rule).toContain("font: var(--typography-text-16)");
+    // The same two values the section links above them take.
+    const links = /\.xos-mkt-nav-panel ul a\s*\{([^}]*)\}/.exec(css)?.[1] ?? "";
+    expect(links).toContain("min-block-size: var(--density-target-coarse)");
+    expect(links).toContain("font: var(--typography-text-16)");
+  });
+
   it("defines every component dimension it reads", () => {
     const defined = new Set([...css.matchAll(/(--ui-[\w-]+)\s*:/g)].map((m) => m[1]));
     const read = new Set<string>();

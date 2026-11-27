@@ -7,6 +7,9 @@ import type {
   FAQProps as ReferenceFAQProps,
   FeatureGridProps as ReferenceFeatureGridProps,
   GateLifecycleRailProps as ReferenceGateLifecycleRailProps,
+  GateReadinessPanelProps as ReferenceGateReadinessPanelProps,
+  IconName,
+  LinkProps as ReferenceLinkProps,
   LogoSlotWallProps as ReferenceLogoSlotWallProps,
   MarketingFooterProps as ReferenceMarketingFooterProps,
   MarketingHeroProps as ReferenceMarketingHeroProps,
@@ -61,4 +64,27 @@ export type TestimonialProps = ReferenceTestimonialProps;
 export type LogoSlotWallProps = ReferenceLogoSlotWallProps & MarketingLocaleProps;
 export type AIDisclosureBadgeProps = ReferenceAIDisclosureBadgeProps & MarketingLocaleProps;
 export type CodeSampleProps = ReferenceCodeSampleProps;
+
+/** Link rendered on the server: the reference props and the page's locale for the new-tab label. */
+export type StaticLinkProps = ReferenceLinkProps & MarketingLocaleProps;
+
+/**
+ * GateReadinessPanel rendered on the server: the reference props and the page's locale. It takes no
+ * handlers, because a function cannot cross from a server component to the browser.
+ */
+export type StaticGateReadinessPanelProps = ReferenceGateReadinessPanelProps & MarketingLocaleProps;
+
+export interface MarketingPointsProps {
+  /** The claims, one line each. */
+  points: string[];
+  /** The registered icon that leads every point; a check by default. */
+  icon?: IconName;
+  /** The icon's color as a CSS value such as `var(--color-text-secondary)`; success by default. */
+  iconColor?: string;
+}
+
+export interface PlanLimitsProps {
+  /** The rows in order: a label and the value it reads at the end of the row. */
+  limits: { label: string; value: string }[];
+}
 export type MarketingFooterProps = ReferenceMarketingFooterProps;
