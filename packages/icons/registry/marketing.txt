@@ -5,3 +5,9 @@ CircleDot
 CircleMinus
 DoorOpen
 LayoutDashboard
+# Icons the Marketing site names on its Developers, trust and Aurora sections (ghxstship/atlas issue 121).
+Accessibility
+Bot
+Braces
+Terminal
+ToggleLeft
