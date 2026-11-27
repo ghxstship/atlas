@@ -1,7 +1,9 @@
 import type { Engagement, Representation } from "@xos/data/gateway";
 import { describe, expect, it } from "vitest";
-import { needsYou } from "../lib/home";
+import { scheduleDay } from "../lib/format";
+import { needsYou, pickUpNext } from "../lib/home";
 import { blockDays, blockRange } from "../lib/profile";
+import { byDay, itemDay, mergeUpcoming, type UpcomingItem } from "../lib/upcoming";
 
 /**
  * Gateway dates a person reads as "today" or as a day of their availability on their own calendar, never the
@@ -80,5 +82,102 @@ describe("the profile's availability days (lib/profile.ts)", () => {
   it("ends a block on its last day, not the day it stops", () => {
     expect(blockDays([answer, own], "Unavailable", zones)).toEqual(["2027-01-05", "2027-01-06"]);
     expect(blockRange(own, zones)).toEqual({ first: "2027-01-05", last: "2027-01-06" });
+  });
+});
+
+describe("Home's Up Next card (lib/home.ts)", () => {
+  // The engagement's last day is New Year's Eve, still today in New York though UTC is on New Year's Day.
+  const lastDay = {
+    id: "eng-2",
+    state: "Active",
+    startDate: "2026-12-28",
+    endDate: "2026-12-31",
+  } as unknown as Engagement;
+
+  it("keeps an engagement on its last day on the person's calendar", () => {
+    expect(pickUpNext([], [lastDay], NOW, "2026-12-31")).toEqual({
+      kind: "engagement",
+      engagement: lastDay,
+    });
+  });
+
+  it("drops it once that day is over on the person's calendar", () => {
+    expect(pickUpNext([], [lastDay], NOW, "2027-01-01")).toBeNull();
+  });
+});
+
+describe("Work, Upcoming (lib/upcoming.ts)", () => {
+  const input = {
+    now: NOW,
+    today: "2026-12-31",
+    engagements: [
+      {
+        id: "eng-3",
+        key: "E-3",
+        state: "Active",
+        startDate: "2026-12-31",
+        endDate: null,
+        jobTitle: "Stagehand",
+        projectName: "Countdown",
+        orgName: "Harbor Events",
+        projectId: "proj-1",
+      } as unknown as Engagement,
+    ],
+    shifts: [],
+    records: [],
+    docks: [],
+    lodging: [],
+    interviews: [],
+  };
+
+  it("lists an item dated today on the person's calendar", () => {
+    expect(mergeUpcoming(input).map((i) => i.id)).toEqual(["start-eng-3"]);
+  });
+
+  // A New York shift at 20:00 on New Year's Eve, already 01:00 on New Year's Day in UTC.
+  const shift: UpcomingItem = {
+    id: "shift-1",
+    kind: "shift",
+    title: "Load-out",
+    at: "2027-01-01T01:00:00Z",
+    endsAt: "2027-01-01T05:00:00Z",
+    timeZone: "America/New_York",
+    orgName: null,
+    projectName: null,
+    engagementKey: null,
+    detail: null,
+  };
+  const eventZone = { display: "event", viewerZone: null } as const;
+
+  it("puts a timed item under its day in the zone its time is shown in", () => {
+    expect(itemDay(shift, eventZone)).toBe("2026-12-31");
+    expect(byDay([shift], eventZone).map(([day]) => day)).toEqual(["2026-12-31"]);
+  });
+
+  it("follows the person's own zone when they chose it", () => {
+    const tokyo = { display: "viewer", viewerZone: "Asia/Tokyo" } as const;
+    expect(itemDay(shift, tokyo)).toBe("2027-01-01");
+  });
+
+  it("keeps a date-only item on its own date", () => {
+    const start = mergeUpcoming(input)[0] as UpcomingItem;
+    expect(itemDay(start, eventZone)).toBe("2026-12-31");
+  });
+});
+
+describe("an engagement's records calendar (components/engagement/tabs-client.tsx)", () => {
+  // A set time at 20:00 on New Year's Eve in the project's New York zone, 01:00 on New Year's Day in UTC.
+  const setTime = "2027-01-01T01:00:00Z";
+
+  it("puts a record on its day in the project's zone", () => {
+    expect(scheduleDay(setTime, "America/New_York", { display: "event", viewerZone: null })).toBe(
+      "2026-12-31",
+    );
+  });
+
+  it("keeps a record with no date on its placeholder date", () => {
+    expect(
+      scheduleDay("9999-12-31", "America/New_York", { display: "event", viewerZone: null }),
+    ).toBe("9999-12-31");
   });
 });

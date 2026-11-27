@@ -2,10 +2,15 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { createPastedImportAction } from "@/app/[org]/import/actions";
 import { weekSchedule } from "@/components/assets/units-view";
 import { HolidayPresetForm } from "@/components/crew/holiday-preset-form";
+import { inspectionDay } from "@/components/safety/inspections/inspections-page";
+import { linkExpiryDay } from "@/components/settings/profile-panels";
+import { eventDay } from "@/components/workforce/events";
 import { dayFromToday } from "@/components/live/live-link-list";
 import { contributions as a134 } from "@/components/settings/contributions/a134";
 import { contributions as a30 } from "@/components/settings/contributions/a30";
 import { linkZone } from "@/components/views/live-link-dialog";
+import { startingOn } from "@/lib/crew/time";
+import { calendarDay } from "@/lib/shell/time-zone";
 import { createShareLinkAction, loadShareLinksAction } from "@/lib/files/share-actions";
 import { loadDisplayLinksAction } from "@/lib/live-links/actions";
 import { context, elements, viewerDb } from "./org-calendar-support";
@@ -241,5 +246,34 @@ describe("a unit's week of custody (Assets, Units, resource schedule)", () => {
       "2026-12-31",
     );
     expect(week.people[0]?.shifts.map((s) => s.day)).toEqual(["2026-12-31"]);
+  });
+});
+
+describe("timestamps a person reads as a day", () => {
+  // 21:00 on New Year's Eve in New York, already 02:00 on New Year's Day in UTC.
+  const evening = "2027-01-01T02:00:00Z";
+  const zone = ORG["locale.time_zone"];
+
+  it("date a join link's expiry on the org's calendar (Settings, Joining)", () => {
+    expect(linkExpiryDay(evening, zone)).toBe("2026-12-31");
+  });
+
+  it("place an event on its day on the org's calendar (Schedule, Events)", () => {
+    expect(eventDay(evening, zone)).toBe("2026-12-31");
+  });
+
+  it("place an inspection on its calendar day on the org's calendar (Safety, Inspections)", () => {
+    expect(inspectionDay(evening, zone)).toBe("2026-12-31");
+  });
+
+  it("place a custom object's timestamp field on its day, a date field as written (Objects calendar)", () => {
+    expect(calendarDay(evening, zone)).toBe("2026-12-31");
+    expect(calendarDay("2027-01-01", zone)).toBe("2027-01-01");
+  });
+
+  it("place a dock slot or work order on its day in its project's zone (crew resource lanes)", () => {
+    const slot = { id: "d1", startsAt: evening, timeZone: "America/New_York" };
+    expect(startingOn([slot], "2026-12-31")).toEqual([slot]);
+    expect(startingOn([slot], "2027-01-01")).toEqual([]);
   });
 });

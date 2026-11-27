@@ -1,3 +1,4 @@
+import { addCalendarDays, zoneOrUtc } from "./calendar.ts";
 import type { XosClient } from "./client.ts";
 import { personNames } from "./person-names.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
@@ -26,6 +27,8 @@ export interface LaneSlot {
   readonly label: string;
   readonly startsAt: string;
   readonly endsAt: string;
+  /** The project's time zone (UTC when unset): the calendar the slot's day and time are read on. */
+  readonly timeZone: string;
 }
 
 export interface VendorLane {
@@ -64,9 +67,16 @@ interface SlotRow {
   zone_id: string;
   starts_at: string;
   ends_at: string;
-  project: { project_key: string } | null;
+  project: { project_key: string; time_zone: string | null } | null;
   zone: { code: string; name: string } | null;
 }
+
+/**
+ * The instants a week of dates spans on any project's calendar: a day either side of the UTC dates, since
+ * zones run from UTC-12 to UTC+14 and the grid places each slot on its day in its project's zone.
+ */
+const weekStartBound = (from: string) => `${addCalendarDays(from, -1)}T00:00:00Z`;
+const weekEndBound = (to: string) => `${addCalendarDays(to, 2)}T00:00:00Z`;
 
 const overlaps = (startDate: string, endDate: string | null, from: string, to: string) =>
   startDate <= to && (endDate === null || endDate >= from);
@@ -94,13 +104,13 @@ export async function listVendorLanes(
     untyped(db)
       .from("dock_slots")
       .select(
-        "id, project_id, engagement_id, zone_id, starts_at, ends_at, project:projects!dock_slots_project_id_fkey(project_key), zone:zones(code, name)",
+        "id, project_id, engagement_id, zone_id, starts_at, ends_at, project:projects!dock_slots_project_id_fkey(project_key, time_zone), zone:zones(code, name)",
       )
       .in("project_id", [...input.projectIds])
       .is("deleted_at", null)
       .not("engagement_id", "is", null)
-      .lt("starts_at", `${input.to}T23:59:59Z`)
-      .gt("ends_at", `${input.from}T00:00:00Z`)
+      .lt("starts_at", weekEndBound(input.to))
+      .gt("ends_at", weekStartBound(input.from))
       .limit(1000),
   ]);
   if (engagements.error) return fail(toDataError(engagements.error));
@@ -164,6 +174,7 @@ export async function listVendorLanes(
             label: s.zone ? `${s.zone.code} ${s.zone.name}` : "",
             startsAt: s.starts_at,
             endsAt: s.ends_at,
+            timeZone: zoneOrUtc(s.project?.time_zone),
           })),
       }))
       .sort((a, b) => a.label.localeCompare(b.label) || a.key.localeCompare(b.key)),
@@ -183,7 +194,7 @@ interface WorkOrderRow {
   zone_id: string | null;
   scheduled_starts_at: string | null;
   scheduled_ends_at: string | null;
-  project: { project_key: string } | null;
+  project: { project_key: string; time_zone: string | null } | null;
 }
 
 /** Zone lanes: the zones of the venues of the projects in view, with the week's dock slots and work orders. */
@@ -211,31 +222,31 @@ export async function listZoneLanes(
     untyped(db)
       .from("dock_slots")
       .select(
-        "id, project_id, engagement_id, zone_id, starts_at, ends_at, project:projects!dock_slots_project_id_fkey(project_key), zone:zones(code, name)",
+        "id, project_id, engagement_id, zone_id, starts_at, ends_at, project:projects!dock_slots_project_id_fkey(project_key, time_zone), zone:zones(code, name)",
       )
       .in("zone_id", zoneIds)
       .in("project_id", [...input.projectIds])
       .is("deleted_at", null)
-      .lt("starts_at", `${input.to}T23:59:59Z`)
-      .gt("ends_at", `${input.from}T00:00:00Z`)
+      .lt("starts_at", weekEndBound(input.to))
+      .gt("ends_at", weekStartBound(input.from))
       .limit(1000),
     untyped(db)
       .from("work_orders")
       .select(
-        "id, title, zone_id, scheduled_starts_at, scheduled_ends_at, project:projects!work_orders_project_id_fkey(project_key)",
+        "id, title, zone_id, scheduled_starts_at, scheduled_ends_at, project:projects!work_orders_project_id_fkey(project_key, time_zone)",
       )
       .in("zone_id", zoneIds)
       .in("project_id", [...input.projectIds])
       .is("deleted_at", null)
       .not("scheduled_starts_at", "is", null)
-      .lt("scheduled_starts_at", `${input.to}T23:59:59Z`)
+      .lt("scheduled_starts_at", weekEndBound(input.to))
       .limit(1000),
   ]);
   if (slots.error) return fail(toDataError(slots.error));
   if (orders.error) return fail(toDataError(orders.error));
   const slotRows = slots.data as unknown as SlotRow[];
   const orderRows = (orders.data as unknown as WorkOrderRow[]).filter(
-    (o) => (o.scheduled_ends_at ?? o.scheduled_starts_at ?? "") >= `${input.from}T00:00:00Z`,
+    (o) => (o.scheduled_ends_at ?? o.scheduled_starts_at ?? "") >= weekStartBound(input.from),
   );
   return ok(
     zoneRows.map((z) => ({
@@ -250,6 +261,7 @@ export async function listZoneLanes(
           label: s.project?.project_key ?? "",
           startsAt: s.starts_at,
           endsAt: s.ends_at,
+          timeZone: zoneOrUtc(s.project?.time_zone),
         })),
       workOrders: orderRows
         .filter((o) => o.zone_id === z.id)
@@ -259,6 +271,7 @@ export async function listZoneLanes(
           label: o.title,
           startsAt: o.scheduled_starts_at ?? "",
           endsAt: o.scheduled_ends_at ?? o.scheduled_starts_at ?? "",
+          timeZone: zoneOrUtc(o.project?.time_zone),
         })),
     })),
   );

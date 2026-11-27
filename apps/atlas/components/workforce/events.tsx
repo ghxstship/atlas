@@ -33,7 +33,8 @@ import {
 import type { Copy } from "@/lib/collection-kit/i18n";
 import { collectionState, withQuery, type SearchParams } from "@/lib/collection-kit/page";
 import type { OrgContext } from "@/lib/shell/context";
-import { orgToday } from "@/lib/shell/time-zone";
+import { dateIn, todayIn } from "@xos/data/calendar";
+import { getOrgTimeZone } from "@/lib/shell/time-zone";
 import { requestNow } from "@/lib/workforce/time";
 import { REFUSALS, audienceFields, audienceLabel, orgPickers, workforceCopy } from "./shared";
 import { CollectionPage } from "@/components/platform/collection-page";
@@ -56,6 +57,11 @@ function eventState(e: WorkforceEvent, t: Copy): KitState {
  * agenda and check-in. Invitees answer and check in from an hour before the start; the organizer sees
  * the roster and checks people in. Creating an event invites its audience.
  */
+/** The day an event sits on in the list and calendar: its start's date on the org's calendar, not the UTC date. */
+export function eventDay(startsAt: string, orgZone: string): string {
+  return dateIn(new Date(startsAt), orgZone);
+}
+
 export async function EventsSection({
   ctx,
   path,
@@ -65,7 +71,8 @@ export async function EventsSection({
   path: string;
   search: SearchParams;
 }) {
-  const state = collectionState(search, VIEWS, await orgToday(ctx));
+  const orgZone = await getOrgTimeZone(ctx);
+  const state = collectionState(search, VIEWS, todayIn(orgZone));
   const [t, format, events, pickers] = await Promise.all([
     workforceCopy(),
     getFormatter(),
@@ -84,8 +91,9 @@ export async function EventsSection({
   }
   const canSchedule = ctx.role !== "viewer";
   const me = ctx.org.membershipId;
+  // Times read on the org's calendar, the same one that places each event on its day.
   const when = (d: string) =>
-    format.dateTime(new Date(d), { dateStyle: "medium", timeStyle: "short" });
+    format.dateTime(new Date(d), { dateStyle: "medium", timeStyle: "short", timeZone: orgZone });
   const selected = state.peek ? events.data.find((e) => e.id === state.peek) : undefined;
   const createHref = withQuery(path, state, { create: "1" });
 
@@ -245,7 +253,7 @@ export async function EventsSection({
     key: t(`events.kinds.${e.kind}`),
     title: e.title,
     state: eventState(e, t),
-    date: e.startsAt.slice(0, 10),
+    date: eventDay(e.startsAt, orgZone),
     meta: t("events.line", {
       time: when(e.startsAt),
       location: e.location ?? t("events.noLocation"),

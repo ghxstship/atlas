@@ -1,3 +1,4 @@
+import { dateIn, todayIn } from "@xos/data/calendar";
 import { listProjectOptions } from "@xos/data/places";
 import {
   inspectionProgress,
@@ -43,7 +44,7 @@ import { chooseView, matchesSearch, param, withQuery } from "@/components/places
 import { requireNode } from "@/lib/shell/require-node";
 import type { OrgContext } from "@/lib/shell/context";
 import { nodeHref } from "@/lib/shell/sitemap";
-import { orgToday } from "@/lib/shell/time-zone";
+import { getOrgTimeZone } from "@/lib/shell/time-zone";
 import { getTranslate, type Translate } from "@/lib/shell/translate";
 import { ResultForm, StartInspectionForm } from "./inspection-forms";
 import { DocumentActions } from "@/components/documents/document-actions";
@@ -57,6 +58,11 @@ const PROGRESS_STATE: Record<InspectionProgress, RecordState> = {
   "ready-for-sign-off": "in-review",
   "signed-off": "complete",
 };
+
+/** The calendar day an inspection sits on: its date on the org's calendar, not the UTC date of the instant. */
+export function inspectionDay(inspectedAt: string, orgZone: string): string {
+  return dateIn(new Date(inspectedAt), orgZone);
+}
 
 /** Safety > Inspections at org level (Section 4.5.5), with a project filter. */
 export async function InspectionsPage({
@@ -134,8 +140,10 @@ export async function InspectionsView({
     inspectionProgress(i, templateBy.get(i.templateId)?.items.length ?? 0);
   const titleOf = (i: Inspection) =>
     templateBy.get(i.templateId)?.name ?? t("permits.inspections.untitled");
+  // Times read on the org's calendar, the same one that places each inspection on its calendar day.
+  const orgZone = await getOrgTimeZone(ctx);
   const when = (iso: string) =>
-    format.dateTime(new Date(iso), { dateStyle: "medium", timeStyle: "short" });
+    format.dateTime(new Date(iso), { dateStyle: "medium", timeStyle: "short", timeZone: orgZone });
   const q = param(search, "q");
   const inArchive = (archivedAt: string | null) =>
     archive === "all" || (archive === "archived") === (archivedAt !== null);
@@ -313,7 +321,7 @@ export async function InspectionsView({
     );
   } else if (views.current === "calendar") {
     // Today and this month on the org's calendar, not UTC's (A71).
-    const today = await orgToday(ctx);
+    const today = todayIn(orgZone);
     const month = param(search, "month") ?? `${today.slice(0, 7)}-01`;
     body = (
       <PeekCalendar
@@ -321,7 +329,7 @@ export async function InspectionsView({
         today={today}
         events={rows.map((i) => ({
           id: i.id,
-          date: i.inspectedAt.slice(0, 10),
+          date: inspectionDay(i.inspectedAt, orgZone),
           label: `${titleOf(i)} ${projectBy.get(i.projectId)?.key ?? ""}`.trim(),
           state: PROGRESS_STATE[progressOf(i)],
         }))}

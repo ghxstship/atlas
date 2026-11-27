@@ -112,3 +112,11 @@ export function hoursFromMinutes(minutes: number): number {
 export function hasStarted(iso: string): boolean {
   return Date.parse(iso) <= Date.now();
 }
+
+/** The items that start on a date in their own time zone (a shift's, or a dock slot's or work order's project zone). */
+export function startingOn<T extends { readonly startsAt: string; readonly timeZone: string }>(
+  items: readonly T[],
+  day: string,
+): T[] {
+  return items.filter((x) => dayIn(x.startsAt, x.timeZone) === day);
+}

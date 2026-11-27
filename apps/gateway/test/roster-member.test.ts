@@ -283,13 +283,19 @@ describe("Gateway Home for a person on a roster", () => {
   it("picks the roster engagement by its arrival window", () => {
     const own = engagement({ id: "own", startDate: "2027-06-03" });
     const roster = rostered();
-    expect(pickUpNext([], [own], now, [roster])).toEqual({
+    expect(pickUpNext([], [own], now, "2027-05-30", [roster])).toEqual({
       kind: "engagement",
       engagement: roster,
     });
-    expect(pickUpNext([], [own], now, [])).toEqual({ kind: "engagement", engagement: own });
+    expect(pickUpNext([], [own], now, "2027-05-30", [])).toEqual({
+      kind: "engagement",
+      engagement: own,
+    });
     const past = rostered({ arrivalEndsAt: "2027-05-29T00:00:00Z" });
-    expect(pickUpNext([], [own], now, [past])).toEqual({ kind: "engagement", engagement: own });
+    expect(pickUpNext([], [own], now, "2027-05-30", [past])).toEqual({
+      kind: "engagement",
+      engagement: own,
+    });
   });
 
   it("adds parking and the party's lead to Up Next", () => {

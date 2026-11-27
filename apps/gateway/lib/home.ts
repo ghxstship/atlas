@@ -53,15 +53,18 @@ export type UpNext =
 /**
  * The soonest dated record ahead, else the next engagement to start: one the person holds by its
  * start date, or one they work on a party's roster (R8) by the start of their arrival window.
+ * Timed records and arrival windows compare as instants; an engagement's dates compare with `today`,
+ * the person's own calendar date (personToday), never the UTC date, a day ahead on an American
+ * evening, when an engagement on its last day would drop out of Up Next.
  */
 export function pickUpNext(
   records: readonly SharedRecord[],
   engagements: readonly Engagement[],
   now: Date,
+  today: string,
   rosterEngagements: readonly RosterEngagement[] = [],
 ): UpNext | null {
   const at = now.toISOString();
-  const today = at.slice(0, 10);
   const ahead = records
     .filter((r) => (UP_NEXT_KINDS as readonly string[]).includes(r.kind))
     .filter((r) => r.state !== "Canceled" && r.state !== "Complete")

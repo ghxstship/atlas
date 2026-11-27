@@ -40,7 +40,8 @@ import { getTranslate } from "@/lib/shell/translate";
 import { PageSkeleton } from "@/components/projects/page-skeleton";
 import { Suspense } from "react";
 import { sitemap } from "@/lib/shell/sitemap";
-import { orgToday } from "@/lib/shell/time-zone";
+import { calendarDay, getOrgTimeZone } from "@/lib/shell/time-zone";
+import { todayIn } from "@xos/data/calendar";
 
 const BOARD_STATES: readonly RecordState[] = [
   "proposed",
@@ -165,10 +166,11 @@ async function ObjectRecords({
     ...(calendar ? (["calendar"] as const) : []),
   ];
   const preferred = object.defaultView.toLowerCase() as ViewKind;
+  const orgZone = await getOrgTimeZone(ctx);
   const state = collectionState(
     query["view"] ? query : { ...query, view: views.includes(preferred) ? preferred : "list" },
     views,
-    await orgToday(ctx),
+    todayIn(orgZone),
   );
   const records = await listObjectRecords(ctx.viewer.db, object, archivedOf(query));
   if (!records.ok) {
@@ -201,7 +203,8 @@ async function ObjectRecords({
       title: r.title,
       ...(boardValue?.kind === "choice" ? { boardValue: boardValue.choiceId } : {}),
       ...(date && (date.kind === "date" || date.kind === "timestamp")
-        ? { date: date.value.slice(0, 10) }
+        ? // A timestamp field sits on its day on the org's calendar, as the calendar's today does.
+          { date: calendarDay(date.value, orgZone) }
         : {}),
       ...(meta ? { meta } : {}),
       cells: {
