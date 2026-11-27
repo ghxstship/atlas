@@ -22,10 +22,13 @@ appId: pro.ghxstship.compass
     optional: true
 - tapOn:
     id: "more-settings"
+# Maestro's default of 20 seconds was three swipes on the hosted iOS simulator: Sign Out was still half under
+# the screen's edge when the scroll gave up (run 45038257851, field-clock-in-out).
 - scrollUntilVisible:
     element:
       id: "settings-sign-out"
     direction: DOWN
+    timeout: 90000
 - tapOn:
     id: "settings-sign-out"
 # With changes still waiting, the first tap only warns and the button turns into the confirmation. Wait for

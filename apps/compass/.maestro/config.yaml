@@ -18,8 +18,11 @@ flows:
 # scripts/gallery-snapshots.sh; the suite's release build has no gallery.
 excludeTags:
   - gallery
+# A failed flow does not stop the run: every flow signs in for itself, and the nightly needs a verdict for each
+# flow. Stopping at the first failure left 44 of the suite's flows with no result on Android and all but one on iOS
+# (run 45870505730). The run still fails when any flow does.
 executionOrder:
-  continueOnFailure: false
+  continueOnFailure: true
   flowsOrder:
     - field-sign-in
     - field-clock-in-out

@@ -5,8 +5,9 @@ name: field-gate-in-out-override
 ---
 # Run as the Demo Producer, who issues credentials on NWS and so may override (cached once online). BADGE is the
 # Demo Field Lead's CREW badge number from seed 0217 (CR-...), for example from the Atlas Issued page. Backstage opens
-# to that category 12 hours after the start of the seeded day, so before then an In scan there is denied as outside
-# the access window, which is the denial this flow overrides.
+# to that category at noon New York time on the seeded day, and no sooner than eight hours after the seed ran, so on a
+# freshly seeded stack an In scan there is denied as outside the access window, which is the denial this flow
+# overrides.
 - runFlow:
     file: ../subflows/sign-in.yaml
     env:

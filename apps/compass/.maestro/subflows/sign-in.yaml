@@ -7,6 +7,22 @@ appId: pro.ghxstship.compass
 # clear a development build on an iOS 26 simulator). Grant location, camera and microphone before the run
 # (on a simulator: xcrun simctl privacy booted grant location-always|camera|microphone <app id>); the
 # permissions block of launchApp fails the same way there.
+# The suite goes on after a failed flow (config.yaml), and an offline flow that failed part way left the device
+# in airplane mode, or on iOS the stack's gateway stopped: the network comes back before every sign-in, so one
+# failure does not fail every flow after it. Both are no-ops when the device is already online.
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - setAirplaneMode: disabled
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - runScript:
+          file: ../scripts/network.js
+          env:
+            STEP: online
 - launchApp:
     stopApp: true
 - runFlow:
@@ -89,10 +105,14 @@ appId: pro.ghxstship.compass
             visible: "Not Now"
           commands:
             - tapOn: "Not Now"
+# Maestro counts a wait's timeout from the last tap or typed text, not from where the wait starts: the offer above
+# and the two checks after it had used 26 of this wait's 30 seconds, so it gave up 7 seconds in (run 45870505730).
+# On that runner the sign-in itself had been accepted, and reading the person's access took longer than the run
+# waited: each request to the 2 CPU stack took 5 to 15 seconds beside the simulator. Four minutes from the tap.
 - extendedWaitUntil:
     visible:
       id: "tab-bar|identity-failed"
-    timeout: 30000
+    timeout: 240000
 # A loaded local stack can time out the first read of the person's access; the error screen offers Try
 # Again, as a person would use it.
 - repeat:
@@ -105,8 +125,8 @@ appId: pro.ghxstship.compass
       - extendedWaitUntil:
           visible:
             id: "tab-bar|identity-failed"
-          timeout: 60000
+          timeout: 120000
 - extendedWaitUntil:
     visible:
       id: "tab-bar"
-    timeout: 30000
+    timeout: 120000
