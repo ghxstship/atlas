@@ -38,11 +38,14 @@ export function HelpCenter({
   org,
   nodeId,
   shortcut,
+  consentBar = false,
 }: {
   org: string;
   /** The sitemap node of the page in view, which the shell resolves (null while it cannot yet). */
   nodeId: string | null;
   shortcut?: string | undefined;
+  /** The cookie bar is on the page: no tour offer or tip until it is answered (help-panel.tsx). */
+  consentBar?: boolean;
 }) {
   const t = useTranslations("help");
   const search = useSearchParams();
@@ -87,13 +90,13 @@ export function HelpCenter({
     const tours = forNode(HELP_GUIDES.tours, nodeId);
     const requested = search.get("tour");
     if (requested !== null && tours.some((x) => x.key === requested)) return true;
-    if (!state) return false;
+    if (!state || consentBar) return false;
     const seen = new Set(state.tours.map((x) => x.tourKey));
     return (
       tours.some((x) => !seen.has(x.key)) ||
       forNode(HELP_GUIDES.tips, nodeId).some((x) => !state.dismissedTips.includes(x.key))
     );
-  }, [nodeId, search, state]);
+  }, [nodeId, search, state, consentBar]);
 
   const loaded = useOnDemand(panel, open || offers);
   const preload = () =>
@@ -126,6 +129,7 @@ export function HelpCenter({
           setOpen={setOpen}
           view={view}
           setView={setView}
+          consentBar={consentBar}
         />
       ) : null}
     </>

@@ -158,6 +158,11 @@ describe("ConsentBannerStatic links and the privacy signal", () => {
   });
 });
 
+const screenBarClasses = (): string[] => {
+  const html = renderToStaticMarkup(<ConsentBannerStatic {...COPY} />);
+  return /<section[^>]*class="([^"]*)"/.exec(html)?.[1]?.split(" ") ?? [];
+};
+
 describe("ConsentBannerStatic is a bar at the bottom edge", () => {
   const BAR = [
     "sticky",
@@ -165,7 +170,7 @@ describe("ConsentBannerStatic is a bar at the bottom edge", () => {
     "order-last",
     "mt-auto",
     "z-header",
-    "max-h-[60dvh]",
+    "max-h-(--ui-consent-bar-max)",
     "overflow-y-auto",
     "border-t",
     "shadow-menu",
@@ -214,8 +219,34 @@ describe("ConsentBannerStatic is a bar at the bottom edge", () => {
     expect(shell).toContain("flex: 1 1 0;");
     expect(shell).toContain("min-block-size: 0;");
     expect(body(":where(*):has(> [data-xos-viewport]) > [data-xos-consent-bar]")).toContain(
-      "max-block-size: max(calc(100dvh - var(--ui-shell-min)), 30dvh);",
+      "max-block-size: var(--ui-consent-bar-shell-max);",
     );
+    expect(css).toContain(
+      "--ui-consent-bar-shell-max: max(calc(100dvh - var(--ui-shell-min)), 30dvh);",
+    );
+  });
+
+  it("keeps keyboard focus above the bar's tallest height, with the phone tab bar added (2.4.11)", () => {
+    const css = readFileSync(join(process.cwd(), "src/styles/base.css"), "utf8");
+    const body = (selector: string): string => {
+      const at = css.indexOf(`${selector} {`);
+      return at < 0 ? "" : css.slice(at, css.indexOf("}", at));
+    };
+    // The scroll padding is the bar's cap, the same token its max height reads.
+    expect(css).toContain("--ui-consent-bar-max: 60dvh;");
+    expect(screenBarClasses()).toContain("max-h-(--ui-consent-bar-max)");
+    expect(body("html:has([data-xos-consent-bar])")).toContain(
+      "scroll-padding-bottom: calc(var(--ui-consent-bar-max) + var(--space-16));",
+    );
+    // With the tab bar on a phone (A23-001) the two add up, and this rule comes after the tab bar's
+    // own, with a higher specificity, so it wins wherever both are present.
+    const both = "html:has([data-xos-consent-bar]):has([data-xos-bottom-bar])";
+    expect(body(both)).toContain(
+      "scroll-padding-bottom: calc(var(--ui-consent-bar-max) + var(--ui-bottom-bar) + var(--space-16));",
+    );
+    expect(css.indexOf(both)).toBeGreaterThan(css.indexOf("html:has([data-xos-bottom-bar]),"));
+    const media = css.lastIndexOf("@media (width < 48rem)", css.indexOf(both));
+    expect(css.slice(media, css.indexOf(both))).not.toContain("}\n}");
   });
 
   it("sits over the page and the sidebar and under every overlay on the z-index scale", () => {

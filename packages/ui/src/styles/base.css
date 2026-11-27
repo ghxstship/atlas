@@ -132,6 +132,10 @@
   --ui-bottom-bar: calc(
     var(--space-6) + var(--density-touch-min) + var(--space-20) + env(safe-area-inset-bottom)
   );
+  /* The cookie bar's tallest height (ConsentBanner/bar.ts), and its tallest beside an app shell, which
+     keeps the shell's minimum height (and is never under 30% of the viewport). */
+  --ui-consent-bar-max: 60dvh;
+  --ui-consent-bar-shell-max: max(calc(100dvh - var(--ui-shell-min)), 30dvh);
 }
 
 @media (width < 48rem) {
@@ -169,7 +173,24 @@
 }
 
 :where(*):has(> [data-xos-viewport]) > [data-xos-consent-bar] {
-  max-block-size: max(calc(100dvh - var(--ui-shell-min)), 30dvh);
+  max-block-size: var(--ui-consent-bar-shell-max);
+}
+
+/* While the bar is on screen it covers the bottom of the viewport until the page reaches its end, so
+   keyboard focus, scrollIntoView and fragment links stop above its tallest height (WCAG 2.4.11): the
+   cap, not a measured height, because the bar's height changes with the copy, the language, the
+   screen width and an open Choose panel, and no script measures it. Scrolling never runs short: at
+   the end of the page the bar sits in the flow after the footer. On a phone with the bottom tab bar
+   the two add up (A23-001). Beside an app shell the page itself does not scroll on a tall enough
+   screen; the shell's scroll area stops above its tab bar as before. */
+html:has([data-xos-consent-bar]) {
+  scroll-padding-bottom: calc(var(--ui-consent-bar-max) + var(--space-16));
+}
+
+@media (width < 48rem) {
+  html:has([data-xos-consent-bar]):has([data-xos-bottom-bar]) {
+    scroll-padding-bottom: calc(var(--ui-consent-bar-max) + var(--ui-bottom-bar) + var(--space-16));
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -13,11 +13,14 @@ import { cx } from "../lib/cx.ts";
  *
  * `z-header` puts it over the page, sticky rows and the sidebar, and under dropdowns, popovers,
  * side peeks, dialogs, the command menu, toasts and tooltips. The safe-area insets keep it clear
- * of a phone's home indicator and rounded corners, and `max-h-[60dvh]` with its own scroll keeps
- * the open Choose panel from covering the whole screen of a short phone.
+ * of a phone's home indicator and rounded corners, and its cap, `--ui-consent-bar-max` (60% of the
+ * viewport), with its own scroll keeps the open Choose panel from covering the whole screen of a
+ * short phone. The page's scroll padding is that cap too (styles/base.css), so keyboard focus never
+ * lands on a control under the bar (WCAG 2.4.11).
  */
 export const consentBarClass = cx(
-  "sticky bottom-0 z-header order-last mt-auto max-h-[60dvh] overflow-y-auto overscroll-contain",
+  "sticky bottom-0 z-header order-last mt-auto max-h-(--ui-consent-bar-max)",
+  "overflow-y-auto overscroll-contain",
   "border-t border-border-subtle bg-bg-surface shadow-menu",
   "pt-16 pb-[calc(var(--space-16)+env(safe-area-inset-bottom))]",
   "px-[max(var(--space-16),env(safe-area-inset-left),env(safe-area-inset-right))]",

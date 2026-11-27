@@ -38,6 +38,12 @@ export interface HelpPanelProps {
   readonly setOpen: (open: boolean) => void;
   readonly view: View;
   readonly setView: (view: View) => void;
+  /**
+   * The cookie bar is on the page (the shell reads it on the server). The tour offer and tips wait
+   * until the visitor answers it, so they never cover its text or links, and the offer is not
+   * recorded as made; a tour the person starts sits above the bar's tallest height.
+   */
+  readonly consentBar?: boolean;
 }
 
 /**
@@ -56,6 +62,7 @@ export function HelpPanel({
   setOpen,
   view,
   setView,
+  consentBar = false,
 }: HelpPanelProps) {
   const t = useTranslations("help") as unknown as Translate;
   const search = useSearchParams();
@@ -68,26 +75,27 @@ export function HelpPanel({
   const pageTours = useMemo(() => forNode(HELP_GUIDES.tours, nodeId), [nodeId]);
 
   // Offer each page's tour the person has never been offered. The offer stays until they start or
-  // decline it; recording it as Offered keeps it from returning on a later visit.
+  // decline it; recording it as Offered keeps it from returning on a later visit. While the cookie
+  // bar is on the page nothing is offered, so the offer is not used up behind the bar.
   const offered: Tour | null = useMemo(() => {
-    if (!state || running) return null;
+    if (!state || running || consentBar) return null;
     return (
       pageTours.find((tour) => !seenTours.has(tour.key) && !closedOffers.includes(tour.key)) ?? null
     );
-  }, [state, running, pageTours, seenTours, closedOffers]);
+  }, [state, running, consentBar, pageTours, seenTours, closedOffers]);
 
   useEffect(() => {
     if (offered) void recordTourAction(org, offered.key, "Offered");
   }, [offered, org]);
 
   const tip: Tip | null = useMemo(() => {
-    if (!state || offered || running || open) return null;
+    if (!state || offered || running || open || consentBar) return null;
     return (
       forNode(HELP_GUIDES.tips, nodeId).find(
         (x) => !state.dismissedTips.includes(x.key) && !hiddenTips.includes(x.key),
       ) ?? null
     );
-  }, [state, offered, running, open, nodeId, hiddenTips]);
+  }, [state, offered, running, open, consentBar, nodeId, hiddenTips]);
 
   // A tip or tour offer waits while a drawer, dialog, peek or the navigation drawer is open, so it
   // never covers the overlay's own actions (A59-002); it shows again once the overlay closes.
@@ -200,6 +208,7 @@ export function HelpPanel({
           tour={running.tour}
           step={running.step}
           t={t}
+          consentBar={consentBar}
           onMove={async (step) => {
             if (step >= running.tour.steps.length) {
               // Finishing waits for the save, so leaving the page right after never loses it.
@@ -280,8 +289,14 @@ function useReservedSpace(ref: React.RefObject<HTMLElement | null>) {
 
 /* On phones the cards sit above the bottom tab bar, so they never cover it or the control in focus
    (WCAG 2.4.11, A23-002). */
-const CARD_POSITION =
+export const CARD_POSITION =
   "fixed bottom-16 max-md:bottom-[calc(var(--ui-bottom-bar)+var(--space-16))] end-16 z-toast";
+
+/* A tour step started while the cookie bar is on the page sits above the bar's tallest height beside
+   the shell (@xos/ui styles/base.css), and on phones above the tab bar too, so it never covers the
+   bar's text or links, whatever the bar's height. */
+export const CARD_POSITION_ABOVE_CONSENT =
+  "fixed bottom-[calc(var(--ui-consent-bar-shell-max)+var(--space-16))] max-md:bottom-[calc(var(--ui-consent-bar-shell-max)+var(--ui-bottom-bar)+var(--space-16))] end-16 z-toast";
 
 function Card({
   label,
@@ -315,12 +330,14 @@ function TourStep({
   tour,
   step,
   t,
+  consentBar,
   onMove,
   onEnd,
 }: {
   tour: Tour;
   step: number;
   t: Translate;
+  consentBar: boolean;
   onMove: (step: number) => void | Promise<void>;
   onEnd: () => void;
 }) {
@@ -349,7 +366,8 @@ function TourStep({
       tabIndex={-1}
       aria-label={t("tours.label")}
       aria-describedby={`tour-${tour.key}-${step}`}
-      className={`${CARD_POSITION} flex w-(--ui-dialog) max-w-[calc(100vw-var(--space-32))] flex-col gap-8 rounded-card bg-bg-raised p-16 text-text-13 shadow-menu outline-none focus-visible:ring-(length:--stroke-width-focus) focus-visible:ring-focus-ring forced-colors:border`}
+      data-help-tour-step=""
+      className={`${consentBar ? CARD_POSITION_ABOVE_CONSENT : CARD_POSITION} flex w-(--ui-dialog) max-w-[calc(100vw-var(--space-32))] flex-col gap-8 rounded-card bg-bg-raised p-16 text-text-13 shadow-menu outline-none focus-visible:ring-(length:--stroke-width-focus) focus-visible:ring-focus-ring forced-colors:border`}
     >
       <p className="m-0 text-text-12 text-text-secondary">
         {t("tours.step", { current: step + 1, total: tour.steps.length })}
