@@ -141,7 +141,7 @@ with recursive fns as (
   from pg_proc p join pg_namespace n on n.oid = p.pronamespace
   where n.nspname in ('app', 'private', 'api_public', 'api_external', 'xpms') and p.prokind = 'f'
 ), walk (name) as (
-  select 'private.session_verdict_compute'
+  select 'private.session_verdict_compute'::text collate "C"
   union
   select callee.name
   from walk w
