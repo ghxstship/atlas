@@ -240,9 +240,12 @@ otp_expiry = 3600
 # admin_email = "admin@email.com"
 # sender_name = "Admin"
 
-# The sign-in emails Supabase Auth sends wear the XOS platform brand (4.9 email branding audit): the templates in
-# supabase/templates, in the look of packages/email's layout. Production sets the same subjects and HTML in the hosted
-# project (infra/runbooks/promote-to-production.md, step 6); packages/email/test/auth-templates.test.ts checks both.
+# The emails Supabase Auth sends wear the XOS platform brand, with the en-US text and a short es-US version under it:
+# the six auth emails and the seven security notices, generated into supabase/templates from
+# packages/email/src/auth-templates.ts (`pnpm --filter @xos/email auth-templates`). Links and codes expire with
+# otp_expiry above (1 hour), as the emails say. Production applies the same subjects, HTML and notice switches in the
+# hosted project (infra/runbooks/promote-to-production.md, step 6); packages/email/test/auth-templates.test.ts checks
+# that these sections, the files and the module agree.
 [auth.email.template.confirmation]
 subject = "Confirm your email for XOS"
 content_path = "./supabase/templates/confirmation.html"
@@ -267,11 +270,40 @@ content_path = "./supabase/templates/recovery.html"
 subject = "Your XOS confirmation code"
 content_path = "./supabase/templates/reauthentication.html"
 
-# Uncomment to customize notification email template
-# [auth.email.notification.password_changed]
-# enabled = true
-# subject = "Your password has been changed"
-# content_path = "./templates/password_changed_notification.html"
+[auth.email.notification.password_changed]
+enabled = true
+subject = "Your XOS password was changed"
+content_path = "./supabase/templates/password_changed_notification.html"
+
+[auth.email.notification.email_changed]
+enabled = true
+subject = "Your XOS email address was changed"
+content_path = "./supabase/templates/email_changed_notification.html"
+
+[auth.email.notification.phone_changed]
+enabled = true
+subject = "Your XOS phone number was changed"
+content_path = "./supabase/templates/phone_changed_notification.html"
+
+[auth.email.notification.mfa_factor_enrolled]
+enabled = true
+subject = "A verification method was added to your XOS account"
+content_path = "./supabase/templates/mfa_factor_enrolled_notification.html"
+
+[auth.email.notification.mfa_factor_unenrolled]
+enabled = true
+subject = "A verification method was removed from your XOS account"
+content_path = "./supabase/templates/mfa_factor_unenrolled_notification.html"
+
+[auth.email.notification.identity_linked]
+enabled = true
+subject = "A sign-in method was linked to your XOS account"
+content_path = "./supabase/templates/identity_linked_notification.html"
+
+[auth.email.notification.identity_unlinked]
+enabled = true
+subject = "A sign-in method was removed from your XOS account"
+content_path = "./supabase/templates/identity_unlinked_notification.html"
 
 [auth.sms]
 # SMS sign-in on or off (Supabase CLI 3's `enabled`).
