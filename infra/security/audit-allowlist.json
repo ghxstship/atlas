@@ -6,18 +6,18 @@
       "package": "glob",
       "severity": "moderate",
       "path": "apps/compass > expo > @expo/config > glob",
-      "reason": "Reached only by Expo's tooling: @expo/config, @expo/prebuild-config and @expo/cli glob the repository's own app config, plugins and native targets (glob 10.5.0 and 13.0.6), never a pattern from a person, and pass no AbortSignal, which is what the advisory bypasses. The fix is glob 14, a major release Expo has not taken; Atlas's one path, @sentry/bundler-plugins' source map upload, takes 14.0.4 by override (pnpm-workspace.yaml), since it calls only glob() with options 14 keeps. Remove this entry when Expo moves to glob 14 (RRR-242). Accepted 2026-10-31; re-reviewed 2026-11-10 after the two-week rule was removed.",
+      "reason": "Reached only by Expo's tooling: @expo/config, @expo/prebuild-config and @expo/cli glob the repository's own app config, plugins and native targets (glob 10.5.0 and 13.0.6), never a pattern from a person, and pass no AbortSignal, which is what the advisory bypasses. The fix is glob 14, a major release Expo has not taken; Atlas's one path, @sentry/bundler-plugins' source map upload, takes 14.0.4 by override (pnpm-workspace.yaml), since it calls only glob() with options 14 keeps. Remove this entry when Expo moves to glob 14 (RRR-242). Accepted 2026-10-31; re-reviewed 2026-11-10 after the two-week rule was removed. Re-reviewed 2026-11-27: no release removes every path. expo 57.0.34 brings @expo/config and @expo/cli 57 on glob ^14.0.3, but glob 10.5.0 stays with @bacons/apple-targets 5.0.0 (its latest, glob ^10.4.2) and with the @expo/config 11 that eas-cli takes through @expo/prebuild-config 9, and glob 13.0.6 with eas-cli (its latest, 27.11.0, still pins @expo/config 55.0.10), with style-dictionary (its latest, 5.8.0, takes @bundled-es-modules/glob ^13.0.6) and with Storybook's react-docgen plugin. All are build or test tooling over the repository's own patterns, with no AbortSignal; the reasoning above holds.",
       "recorded": "2026-10-31",
-      "review_by": "2026-12-10"
+      "review_by": "2027-01-10"
     },
     {
       "id": "GHSA-g3hv-75wg-m249",
       "package": "minimatch",
       "severity": "moderate",
       "path": "apps/compass > expo > @expo/config > glob > minimatch",
-      "reason": "No pattern a person supplies reaches it: minimatch 9.0.9 and 10.2.6 come with the glob of Expo's tooling (GHSA-3g3m-2fjr-6pw4 above) and with ESLint, which match the repository's own patterns at build and lint time. minimatch below 7 is not affected, so exceljs's archiver path (minimatch 3.1.5) is clear, and eas-cli's 5.x takes 5.1.9 by override. The fix is minimatch 11, a major release; it comes with glob 14 where that is overridden. Remove this entry when Expo and ESLint move to minimatch 11 (RRR-242). Accepted 2026-10-31; re-reviewed 2026-11-10 after the two-week rule was removed.",
+      "reason": "No pattern a person supplies reaches it: minimatch 9.0.9 and 10.2.6 come with the glob of Expo's tooling (GHSA-3g3m-2fjr-6pw4 above) and with ESLint, which match the repository's own patterns at build and lint time. minimatch below 7 is not affected, so exceljs's archiver path (minimatch 3.1.5) is clear, and eas-cli's 5.x takes 5.1.9 by override. The fix is minimatch 11, a major release; it comes with glob 14 where that is overridden. Remove this entry when Expo and ESLint move to minimatch 11 (RRR-242). Accepted 2026-10-31; re-reviewed 2026-11-10 after the two-week rule was removed. Re-reviewed 2026-11-27: eslint 10.16.0, @eslint/config-array 0.23.7, @typescript-eslint/typescript-estree 8.74.0 and @oclif/core 5.1.12 now take minimatch ^11, but minimatch 9.0.9 and 10.2.6 stay with the glob 10.5.0 and 13.0.6 that GHSA-3g3m-2fjr-6pw4 above keeps, so no upgrade removes the advisory; the reasoning above holds.",
       "recorded": "2026-10-31",
-      "review_by": "2026-12-10"
+      "review_by": "2027-01-10"
     },
     {
       "id": "GHSA-gcqx-w48m-w2h4",
