@@ -3,10 +3,11 @@
 import { useState, type CSSProperties, type ReactElement } from "react";
 import { cx } from "../lib/cx.ts";
 import { useLocale, useMessages, useT } from "../lib/context.tsx";
-import { SegmentedControl } from "../Navigation/SegmentedControl.tsx";
+import { Segments } from "../Navigation/SegmentedControl.tsx";
 import { cardClass } from "../Surface/Surface.tsx";
 import { ButtonLink } from "./ButtonLink.tsx";
 import { MarketingPoints } from "./MarketingPoints.tsx";
+import { PlanLimits } from "./PlanLimits.tsx";
 import { PriceDisplay } from "./PriceDisplay.tsx";
 import { type PricingTableProps } from "./Marketing.types.ts";
 
@@ -40,11 +41,12 @@ export function PricingTable({
   return (
     <div className="xos-mkt-pricing">
       <div className="xos-mkt-pricing-bar">
-        <SegmentedControl
+        <Segments
           label={t("mk.pricing.period")}
           value={selected}
           options={periods.map((p) => ({ value: p.value, label: p.label }))}
           onChange={change}
+          selectOnArrow
         />
         {periods.map((p) =>
           p.note ? (
@@ -94,16 +96,7 @@ export function PricingTable({
                   {plan.cta.label}
                 </ButtonLink>
               ) : null}
-              {plan.limits ? (
-                <dl className="xos-mkt-plan-limits">
-                  {plan.limits.map((limit) => (
-                    <div key={limit.label}>
-                      <dt>{limit.label}</dt>
-                      <dd className="tabular-nums">{limit.value}</dd>
-                    </div>
-                  ))}
-                </dl>
-              ) : null}
+              {plan.limits ? <PlanLimits limits={plan.limits} /> : null}
               {plan.features ? (
                 <div className="xos-mkt-plan-features">
                   {plan.featuresTitle ? (

@@ -18,6 +18,17 @@ the sign-off is recorded here. ADR 0006 and ADR 0014 (open decision 11) point to
 | en-XA  | Pseudo-locale for CI (Section 15) | Generated, never reviewed          | n/a      | n/a        | Accented and 40 percent longer, generated into `messages/pseudo`.                                                                                                                                    |
 | ar-XB  | Pseudo-locale for CI (Section 15) | Generated, never reviewed          | n/a      | n/a        | Right to left, generated into `messages/pseudo`.                                                                                                                                                     |
 
+## Settled terms
+
+A settled term is fixed by a decision record and held by a test. A native review reads the catalog with these terms in place; changing one takes a new decision record, not a catalog edit.
+
+| Term                                         | Locale | Settled as                                                         | Decision                           | Held by                    |
+| -------------------------------------------- | ------ | ------------------------------------------------------------------ | ---------------------------------- | -------------------------- |
+| A project lifecycle gate ("Gate 3" in en-US) | es-US  | "compuerta", as in "Compuerta 3"                                   | Owner decision 27, ADR 0034 item 3 | `test/terminology.test.ts` |
+| A physical door or gate                      | es-US  | "puerta": the guest door list, door times, a venue or vehicle gate | Owner decision 27, ADR 0034 item 3 | `test/terminology.test.ts` |
+
+This answers the marketing site's question about the es-US gate term (lockstep issue 124): its Spanish copy says "compuerta" for a lifecycle gate and keeps "puerta" for doors. The design export's "Gate {n}" was the untranslated en-US string.
+
 ## How to record a sign-off
 
 1. The reviewer reads every namespace of the locale in `messages/<locale>/` and the help articles of the shells.
