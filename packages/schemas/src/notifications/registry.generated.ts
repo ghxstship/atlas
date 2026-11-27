@@ -543,6 +543,14 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
     channels: ["In App", "Email", "SMS", "Push"],
   },
   {
+    kind: "access.session_rule_suspended",
+    category: "account",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+  },
+  {
     kind: "billing.trial_ending",
     category: "account",
     emailTemplate: "notification",

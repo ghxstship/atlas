@@ -154,7 +154,7 @@ select pg_temp.as_platform();
 select set_eq($$select n.nspname || '.' || p.proname from pg_proc p join pg_namespace n on n.oid = p.pronamespace
                 where n.nspname not in ('pg_catalog', 'information_schema')
                   and p.prosrc ~ '(my_org_ids_base|my_membership_ids_base|person_capability_reach_base)'$$,
-  $$values ('app.network_access'), ('app.my_session_gate'), ('private.person_capability_reach_base')$$,
+  $$values ('app.network_access'), ('app.my_session_gate'), ('app.start_break_glass'), ('private.person_capability_reach_base')$$,
   'only the gate''s recovery functions reference a twin (the reach twin calls itself for delegations)');
 
 select * from finish();

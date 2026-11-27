@@ -1,4 +1,4 @@
--- 904090099_notification_kind_seed.test.sql
+-- 904190999_notification_kind_seed.test.sql
 -- Generated from packages/schemas/notification-kinds.yaml by
 -- `pnpm --filter @xos/schemas generate:notifications`. Never edit by hand.
 --
@@ -212,6 +212,10 @@ select set_eq(
   ('access.break_glass_started', 'Email', 'account', 'notification'),
   ('access.break_glass_started', 'SMS', 'account', null::text),
   ('access.break_glass_started', 'Push', 'account', null::text),
+  ('access.session_rule_suspended', 'In App', 'account', null::text),
+  ('access.session_rule_suspended', 'Email', 'account', 'notification'),
+  ('access.session_rule_suspended', 'SMS', 'account', null::text),
+  ('access.session_rule_suspended', 'Push', 'account', null::text),
   ('billing.trial_ending', 'In App', 'account', null::text),
   ('billing.trial_ending', 'Email', 'account', 'notification'),
   ('billing.trial_ending', 'SMS', 'account', null::text),

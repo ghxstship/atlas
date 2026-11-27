@@ -50,6 +50,14 @@ const ARGS: Readonly<Record<string, Record<string, string>>> = {
     orgName: "Demo Productions",
     reason: "Owner locked out by the allow-list",
   },
+  // ADR 0169 D8 (904190902), as app.suspend_session_gate_control stores it.
+  "access.session_rule_suspended": {
+    orgName: "Demo Productions",
+    actorName: "GHXSTSHIP",
+    control: "network",
+    reason: "Every Owner is outside the listed networks during the tour.",
+    until: "2026-11-28T15:30:00Z",
+  },
   "account.security_changed": { change: "password" },
   // A99's account notices (1560, 1561), as private.notify_account stores them.
   "account.recovery_code_used": { remaining: "9" },

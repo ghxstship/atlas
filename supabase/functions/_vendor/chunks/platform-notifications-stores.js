@@ -359,6 +359,14 @@ var NOTIFICATION_KINDS = [
     channels: ["In App", "Email", "SMS", "Push"],
   },
   {
+    kind: "access.session_rule_suspended",
+    category: "account",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+  },
+  {
     kind: "billing.trial_ending",
     category: "account",
     emailTemplate: "notification",
@@ -957,7 +965,7 @@ z.strictObject({
   categories: z.array(categorySchema).min(1),
   kinds: z.array(kindSchema).min(1),
 });
-"supabase/migrations/904090099_notification_kind_seed.sql"
+"supabase/migrations/904190999_notification_kind_seed.sql"
   .replace("supabase/migrations/", "supabase/tests/")
   .replace(/\.sql$/, ".test.sql");
 //#endregion
