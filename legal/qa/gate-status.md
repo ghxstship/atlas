@@ -14,7 +14,20 @@ Statuses:
 
 Fixes made by A47 on its branch are marked (A47).
 
+## State on 2026-11-27
+
+The rows below are the audit as last edited on 2026-11-08; they were not re-audited gate by gate on 2026-11-27. This section records what the latest runs on main show, on `2392bdb6` (release 4.18.0), which is in production.
+
+- **CI, push run 45012154291 (2026-11-22):** 39 of 40 jobs passed. They cover gates 1 to 3 (format, guard, lint, typecheck, test, build), 4 and 12 (migrations and pgTAP, with the database types check), 6 and 8 (Playwright journeys and axe for Atlas, Gateway and the docs site), 9 (Storybook and core-screen baselines), 10 (route JavaScript budget), 11 (secret scan, Semgrep, dependency audit, licenses and SBOM), 14 (canon check), 16 (pseudo-locale journeys and routes), 19 (veraPDF) and 20 (oasdiff against the latest tag).
+- **Gate 11 fails on main:** the job "Supabase advisors on staging" failed because the Management API answered 401 for the staging project, so the `SUPABASE_ACCESS_TOKEN` repository secret, last set on 2026-10-25, is refused. It failed the same way on `77ced89e` (4.17). The owner replaces the secret.
+- **Nightly, run 45870505730 (2026-11-26):** Lighthouse budgets for Atlas, Gateway and the docs site (gate 10), the RLS benchmark (gate 17), the k6 smoke and the Firefox and WebKit journeys (gate 6) passed. Compass Maestro on iOS and on Android (gate 7) failed. Nightly has failed on each of the twelve nights from 2026-11-15 to 2026-11-26.
+- **Green without running:** the Aurora AI evals job (gate 21) reports success with every step skipped, because no `ANTHROPIC_API_KEY` secret is set; both ZAP baseline jobs report success with the scan skipped, because no `VERCEL_AUTOMATION_BYPASS_SECRET` is set. On that run neither tested anything, and neither secret is among the repository's listed secrets.
+- **Rows whose remaining gap predates these jobs:** gates 6, 12, 15, 17, 20, 23, 28 and 30 name a job, a drift step or a released document as not yet on main. Each of those now runs on main, as listed above. Gate 7's runner decision is made: both Maestro jobs run nightly, and both fail.
+- **Section 20.1:** production exists and holds every migration through 904180204, as does staging (migration lists read on 2026-11-27). The eleven criteria were not re-run against staging in this pass.
+
 ## Summary
+
+The counts below are the audit's, not a recount on 2026-11-27.
 
 | Status           | Gates                                                              | Count |
 | ---------------- | ------------------------------------------------------------------ | ----- |
@@ -63,8 +76,7 @@ Fixes made by A47 on its branch are marked (A47).
 
 ## Section 20.1 platform criteria
 
-Each item must pass in CI and in deployed staging. No production deploy exists and staging has not
-received the current migrations, so no item is complete.
+Each item must pass in CI and in deployed staging. When these rows were written no production deploy existed. Production has run since 2026-11-01 and staging holds every migration (State on 2026-11-27, above); the rows have not been re-run against staging since.
 
 | #   | Criterion                               | Status           | Evidence                                                                                                                                 | Remaining gap                                                                                                                  |
 | --- | --------------------------------------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
