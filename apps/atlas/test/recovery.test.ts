@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { opensWithoutSecondFactor } from "@/lib/auth/assurance";
+import { authErrorKey } from "@/lib/auth/errors";
 import {
   exchangedResetLink,
   newPasswordError,
@@ -100,6 +101,12 @@ describe("the second factor", () => {
 });
 
 describe("Supabase Auth's answers", () => {
+  it("names a used or expired link on the sign-in page, where the callback sends it", () => {
+    // /auth/sign-in?error=link_invalid: a reset link opened twice, or after it expired.
+    expect(authErrorKey({ code: "link_invalid" })).toBe("link_invalid");
+    expect(authErrorKey({ code: "otp_expired" })).toBe("link_invalid");
+  });
+
   it("reads every answer about an address as sent, so none tells whether an account uses it", () => {
     expect(resetRequestOutcome(null)).toBe("sent");
     // Only an address with an account can reach the per-address interval, the hourly email limit or a mail fault.
