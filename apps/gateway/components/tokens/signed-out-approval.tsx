@@ -9,6 +9,7 @@ import {
   requestApprovalCodeAction,
   type SignedOutApprovalResult,
 } from "@/lib/actions/one-tap";
+import { signedOutApprovalProblem } from "./signed-out-approval-problem";
 
 type Translate = (key: string, values?: Record<string, string | number>) => string;
 
@@ -35,21 +36,15 @@ export function SignedOutApproval({
   const [result, setResult] = useState<SignedOutApprovalResult | null>(null);
   const [preview, setPreview] = useState<SignedOutApprovalResult | null>(null);
 
-  const problem =
-    result === null || result.outcome === "ok" || result.outcome === "code_sent"
-      ? null
-      : result.outcome === "refused"
-        ? to(result.refusal ?? "unexpected")
-        : t(`outcome.${result.outcome}`, { attemptsLeft: result.attemptsLeft ?? 0 });
+  if (result?.outcome === "decided")
+    return <InlineAlert tone="success">{t(`done.${action}`)}</InlineAlert>;
+
+  const problem = signedOutApprovalProblem(result, t, to);
   const finished =
-    result?.outcome === "decided" ||
     result?.outcome === "approval_link_locked" ||
     result?.outcome === "notification_action_used" ||
     result?.outcome === "notification_action_expired" ||
     result?.outcome === "notification_action_invalid";
-
-  if (result?.outcome === "decided")
-    return <InlineAlert tone="success">{t(`done.${action}`)}</InlineAlert>;
 
   const requestCode = () =>
     start(async () => {
