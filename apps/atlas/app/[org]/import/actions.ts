@@ -24,6 +24,7 @@ import { z } from "zod";
 import { done, field, inputError, type PlatformActionState } from "@/lib/platform/state";
 import { fromDataError } from "@/lib/platform/data-error";
 import { contextFor } from "@/lib/platform/action-context";
+import { orgToday } from "@/lib/shell/time-zone";
 import { getTranslate } from "@/lib/shell/translate";
 
 /**
@@ -141,7 +142,8 @@ export async function createPastedImportAction(
     targetCode: parsed.data.target,
     text: parsed.data.text,
     filename: t("platform.imports.paste.filename", {
-      date: new Date().toISOString().slice(0, 10),
+      // Named for today on the org's calendar, never the UTC date, a day ahead on an American evening.
+      date: await orgToday(ctx),
     }).slice(0, 255),
     objectPath: importObjectPath(person.id, crypto.randomUUID(), "csv"),
     ...destination,

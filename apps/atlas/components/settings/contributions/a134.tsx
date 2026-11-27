@@ -11,6 +11,7 @@ import { getFormatter } from "next-intl/server";
 import type { ReactNode } from "react";
 import { ActionForm } from "@/components/platform/kit";
 import { Checkbox, InlineAlert, Input, Select } from "@/components/ui";
+import { orgToday } from "@/lib/shell/time-zone";
 import { getTranslate, type Translate } from "@/lib/shell/translate";
 import {
   earningCodeAction,
@@ -400,10 +401,13 @@ function scopeOf(t: Translate, c: HolidayCalendar): string {
 async function HolidayCalendarsPanel({ ctx }: SettingsPanelProps) {
   const [t, format] = await Promise.all([getTranslate(), getFormatter()]);
   const canEdit = ctx.capabilities.has("org.payroll.write");
-  const [calendars, venues] = await Promise.all([
+  const [calendars, venues, today] = await Promise.all([
     listHolidayCalendars(ctx.viewer.db, ctx.org.id),
     canEdit ? listVenues(ctx.viewer.db, ctx.org.id) : null,
+    orgToday(ctx),
   ]);
+  // The presets offer this year on the org's calendar, never the UTC year, a year ahead late on New Year's Eve.
+  const thisYear = Number(today.slice(0, 4));
   const org = ctx.org.slug;
   // A venue has one calendar, so a venue already assigned is not offered again.
   const assigned = new Set(
@@ -487,7 +491,7 @@ async function HolidayCalendarsPanel({ ctx }: SettingsPanelProps) {
                     org={org}
                     calendarId={c.id}
                     calendarName={c.name}
-                    thisYear={new Date().getUTCFullYear()}
+                    thisYear={thisYear}
                   />
                   <ActionForm
                     action={holidayAction}

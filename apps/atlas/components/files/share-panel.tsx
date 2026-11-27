@@ -10,6 +10,7 @@ import {
 } from "@xos/data/share-links";
 import { useFormatter, useTranslations } from "next-intl";
 import { useCallback, useEffect, useId, useState, useTransition } from "react";
+import { dayFromToday } from "@/components/live/live-link-list";
 import {
   classifyFileAction,
   createShareLinkAction,
@@ -25,12 +26,6 @@ import {
  */
 
 type Translate = (key: string, values?: Record<string, string | number>) => string;
-
-function day(offset: number): string {
-  const d = new Date();
-  d.setUTCDate(d.getUTCDate() + offset);
-  return d.toISOString().slice(0, 10);
-}
 
 function CopyField({
   id,
@@ -145,6 +140,8 @@ export function SharePanel({
   const id = useId();
   const [classification, setClassification] = useState<DataClassification>(initial);
   const [links, setLinks] = useState<readonly ShareLink[] | null>(null);
+  // The org's zone, where a picked day ends; UTC until the links load.
+  const [zone, setZone] = useState("UTC");
   const [created, setCreated] = useState<CreatedLink | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -154,8 +151,10 @@ export function SharePanel({
 
   const refresh = useCallback(() => {
     void loadShareLinksAction(org, attachmentId).then((result) => {
-      if (result.ok) setLinks(result.data);
-      else setError(result.error);
+      if (result.ok) {
+        setLinks(result.data.links);
+        setZone(result.data.timeZone);
+      } else setError(result.error);
     });
   }, [org, attachmentId]);
   useEffect(refresh, [refresh]);
@@ -266,13 +265,15 @@ export function SharePanel({
         >
           <h4 className="m-0 text-label-13 font-medium">{t("share.create.heading")}</h4>
           <Input
+            key={zone}
             id={`${id}-expires`}
             name="expiresOn"
             type="date"
             label={t("share.create.expiresOn")}
-            defaultValue={day(7)}
-            min={day(0)}
-            max={day(limit)}
+            defaultValue={dayFromToday(7, zone)}
+            min={dayFromToday(0, zone)}
+            // The last day offered ends inside the limit, so the database never refuses it.
+            max={dayFromToday(limit - 1, zone)}
             help={
               classification === "Public"
                 ? t("share.create.noExpiry")

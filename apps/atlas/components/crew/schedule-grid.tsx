@@ -5,7 +5,7 @@ import Link from "next/link";
 import type { Route } from "next";
 import { getFormatter } from "next-intl/server";
 import { stateIcon } from "@/lib/crew/states";
-import { addDays, dayIn, hoursFromMinutes } from "@/lib/crew/time";
+import { addDays, dayIn, hoursFromMinutes, startingOn } from "@/lib/crew/time";
 import { getTranslate } from "@/lib/shell/translate";
 import { Avatar, StateIcon } from "./ui";
 import { DayTypeTags } from "@/components/schedule/day-type-tags";
@@ -126,7 +126,7 @@ export async function ScheduleGrid(props: {
       className="mb-2 flex items-center gap-4 rounded-chip bg-bg-hover px-6 py-2 text-text-12"
     >
       <span className="tabular-nums">
-        {format.dateTime(new Date(slot.startsAt), { timeStyle: "short" })}
+        {format.dateTime(new Date(slot.startsAt), { timeZone: slot.timeZone, timeStyle: "short" })}
       </span>
       <span className="truncate">
         {t(kind === "dock" ? "crew.lanes.dockSlot" : "crew.lanes.workOrder", {
@@ -136,8 +136,8 @@ export async function ScheduleGrid(props: {
       </span>
     </span>
   );
-  const slotsOn = (list: readonly LaneSlot[], d: string) =>
-    list.filter((x) => x.startsAt.slice(0, 10) === d);
+  // A slot sits on its day in its project's zone, as a shift does, not on the UTC date of its start.
+  const slotsOn = (list: readonly LaneSlot[], d: string) => startingOn(list, d);
   const band = props.dayTypes && props.dayTypes.size > 0 ? props.dayTypes : null;
   return (
     <div className="flex flex-col gap-8">

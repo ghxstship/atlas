@@ -11,6 +11,7 @@ import {
   type AssetUnitHire,
   type CustodyLedgerEntry,
 } from "@xos/data/assets";
+import { startOfDayIn } from "@xos/data/calendar";
 import { getFormatter } from "next-intl/server";
 import Link from "next/link";
 import type { Route } from "next";
@@ -31,7 +32,7 @@ import {
 } from "@/lib/assets/views";
 import type { OrgContext } from "@/lib/shell/context";
 import { customFieldList } from "@/lib/custom-fields/server";
-import { orgToday } from "@/lib/shell/time-zone";
+import { getOrgTimeZone, orgToday } from "@/lib/shell/time-zone";
 import { getTranslate } from "@/lib/shell/translate";
 import { LiveRefresh } from "@/components/live/live-refresh";
 
@@ -317,8 +318,12 @@ function stateOptions(t: (key: string) => string) {
   return ASSET_STATES.map((s) => ({ value: s, label: t(`assets.states.${assetStateKey(s)}`) }));
 }
 
-/** This week by unit: the days each unit was held by a person, from the custody ledger. */
-async function weekSchedule(
+/**
+ * This week by unit: the days each unit was held by a person, from the custody ledger. A day is the org's
+ * calendar day (`today` is the org's), so a handover is counted against the end of that day in the org's
+ * zone, never UTC midnight, hours early in the Americas.
+ */
+export async function weekSchedule(
   ctx: OrgContext,
   units: readonly AssetUnit[],
   format: Awaited<ReturnType<typeof getFormatter>>,
@@ -332,10 +337,11 @@ async function weekSchedule(
     d.setUTCDate(start.getUTCDate() + i);
     return d;
   });
-  const ledger = must(
-    await listAssetCustody(ctx.viewer.db, ctx.org.id, { limit: 1000 }),
-    "custody ledger",
-  );
+  const [custody, zone] = await Promise.all([
+    listAssetCustody(ctx.viewer.db, ctx.org.id, { limit: 1000 }),
+    getOrgTimeZone(ctx),
+  ]);
+  const ledger = must(custody, "custody ledger");
   const byUnit = new Map<string, CustodyLedgerEntry[]>();
   for (const entry of ledger)
     byUnit.set(entry.unitId, [...(byUnit.get(entry.unitId) ?? []), entry]);
@@ -352,8 +358,9 @@ async function weekSchedule(
       shifts: days.flatMap((d) => {
         // Custody is a record of the past; days after today show nothing yet.
         if (d.toISOString().slice(0, 10) > today) return [];
-        const end = new Date(d);
-        end.setUTCDate(d.getUTCDate() + 1);
+        const next = new Date(d);
+        next.setUTCDate(d.getUTCDate() + 1);
+        const end = new Date(startOfDayIn(next.toISOString().slice(0, 10), zone));
         const held = (byUnit.get(u.id) ?? []).find((e) => new Date(e.since) < end);
         if (!held || (held.membershipId === null && held.engagementId === null)) return [];
         return [

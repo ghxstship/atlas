@@ -11,7 +11,13 @@ import {
 import { RegionError, Section } from "@/components/page/page";
 import { Calendar, Tag } from "@/components/ui";
 import { hasArea, tabHref } from "@/lib/engagement";
-import { formatDate, formatDateTime, formatMoney, formatScheduleTime } from "@/lib/format";
+import {
+  formatDate,
+  formatDateTime,
+  formatMoney,
+  formatScheduleTime,
+  scheduleDay,
+} from "@/lib/format";
 import { enumLabelKey } from "@/lib/shell/translate";
 import { toneFor } from "@/lib/states";
 import { ApprovalForm, DeliverableForm } from "./forms";
@@ -183,15 +189,18 @@ export async function RecordsTab({
       />
     );
   }
+  // Each record sits on its day in the zone its time is shown in, not on the UTC date of its start.
+  const dayOf = (r: (typeof records.data)[number]) =>
+    scheduleDay(recordDate(r), r.timeZone ?? view.engagement.projectTimeZone, view.scheduleView);
   const first = recordDate(records.data[0] ?? { startsAt: null, dueAt: null, endsAt: null });
   return (
     <div className="flex flex-col gap-16">
       {calendar && first !== "9999-12-31" ? (
         <Calendar
-          month={`${first.slice(0, 7)}-01`}
+          month={`${records.data[0] ? dayOf(records.data[0]).slice(0, 7) : first.slice(0, 7)}-01`}
           today={view.today}
           events={records.data.map((r) => ({
-            date: recordDate(r).slice(0, 10),
+            date: dayOf(r),
             label: r.title,
             state: "scheduled" as const,
           }))}

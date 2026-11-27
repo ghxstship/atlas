@@ -34,14 +34,18 @@ export function DisplayLinkDialog({
   const errors = useTranslations("views.liveLink.errors") as unknown as Translate;
   const id = useId();
   const [links, setLinks] = useState<readonly LiveLink[] | null>(null);
+  // The running order's project zone, where a picked day ends; UTC until the links load.
+  const [zone, setZone] = useState("UTC");
   const [created, setCreated] = useState<CreatedLiveLinkView | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
 
   const refresh = useCallback(() => {
     void loadDisplayLinksAction(org, run.id).then((result) => {
-      if (result.ok) setLinks(result.data);
-      else setError(result.error);
+      if (result.ok) {
+        setLinks(result.data.links);
+        setZone(result.data.timeZone);
+      } else setError(result.error);
     });
   }, [org, run.id]);
   useEffect(refresh, [refresh]);
@@ -93,8 +97,8 @@ export function DisplayLinkDialog({
             name="expiresOn"
             type="date"
             label={t("expiresOn")}
-            min={dayFromToday(1)}
-            max={dayFromToday(90)}
+            min={dayFromToday(1, zone)}
+            max={dayFromToday(90, zone)}
             help={t("expiresHelp")}
           />
           <Input

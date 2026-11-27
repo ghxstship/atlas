@@ -1,4 +1,4 @@
-import { todayIn, zoneOrUtc } from "@xos/data/calendar";
+import { dateIn, todayIn, zoneOrUtc } from "@xos/data/calendar";
 import { getOrgSettingValue } from "@xos/data/settings";
 import { cache } from "react";
 import type { OrgContext } from "./context";
@@ -17,6 +17,14 @@ export const getOrgTimeZone = cache(async (ctx: OrgContext): Promise<string> => 
 /** Today on the org's calendar, as `YYYY-MM-DD`; never the UTC date, a day ahead in the evening. */
 export async function orgToday(ctx: OrgContext): Promise<string> {
   return todayIn(await getOrgTimeZone(ctx));
+}
+
+/**
+ * The calendar day a date or timestamp value sits on in a zone: a `YYYY-MM-DD` date as written, a
+ * timestamp's date in the zone, never the UTC date of the instant.
+ */
+export function calendarDay(value: string, zone: string): string {
+  return /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : dateIn(new Date(value), zone);
 }
 
 /** The first day of a week for a payroll.week_start value: 1 for monday, else 0 (sunday, the default). */

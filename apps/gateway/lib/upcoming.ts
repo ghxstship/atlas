@@ -1,4 +1,5 @@
 import type { Engagement, ExternalRow, SharedRecord } from "@xos/data/gateway";
+import { scheduleDay, type ScheduleView } from "./format";
 
 /**
  * Work, Upcoming (Section 4.5.8): every dated thing across orgs in one time-ordered list: shifts,
@@ -22,6 +23,12 @@ export interface UpcomingItem {
 
 export function mergeUpcoming(input: {
   readonly now: Date;
+  /**
+   * Today on the person's own calendar (personToday): a date-only item (lodging check-in, an
+   * engagement's first day) stays listed through that day, never only through the UTC date, a day
+   * ahead on an American evening.
+   */
+  readonly today: string;
   readonly engagements: readonly Engagement[];
   readonly shifts: readonly ExternalRow<"shifts">[];
   readonly records: readonly SharedRecord[];
@@ -30,7 +37,7 @@ export function mergeUpcoming(input: {
   readonly interviews: readonly { id: string; title: string; orgName: string | null; at: string }[];
 }): UpcomingItem[] {
   const at = input.now.toISOString();
-  const today = at.slice(0, 10);
+  const today = input.today;
   const byEngagement = new Map(input.engagements.map((e) => [e.id, e]));
   const byProject = new Map(input.engagements.map((e) => [e.projectId, e]));
   const items: UpcomingItem[] = [];
@@ -134,12 +141,24 @@ export function mergeUpcoming(input: {
     .sort((a, b) => a.at.localeCompare(b.at));
 }
 
-/** Items grouped by calendar date (UTC date of the start). */
-export function byDay(items: readonly UpcomingItem[]): [string, UpcomingItem[]][] {
+/**
+ * The calendar day a person reads an item on: a date-only item's own date, else the date of its
+ * start in the zone its time is shown in (formatScheduleTime: the event's zone, or the person's own
+ * when they chose it), so a 20:00 shift in New York sits under its own day, not the next UTC date.
+ */
+export function itemDay(item: UpcomingItem, view: ScheduleView): string {
+  return scheduleDay(item.at, item.timeZone, view);
+}
+
+/** Items grouped by the day the person reads them on (itemDay), in day order. */
+export function byDay(
+  items: readonly UpcomingItem[],
+  view: ScheduleView,
+): [string, UpcomingItem[]][] {
   const groups = new Map<string, UpcomingItem[]>();
   for (const item of items) {
-    const day = item.at.slice(0, 10);
+    const day = itemDay(item, view);
     groups.set(day, [...(groups.get(day) ?? []), item]);
   }
-  return [...groups];
+  return [...groups].sort(([a], [b]) => a.localeCompare(b));
 }

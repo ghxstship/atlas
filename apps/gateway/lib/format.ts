@@ -3,6 +3,7 @@
  * null is unpriced and is never formatted as zero, so these helpers take null and say so. Dates
  * stored as ISO dates are formatted in UTC so a calendar date never shifts a day across zones.
  */
+import { dateIn } from "@xos/data/calendar";
 import { displayTimeZone, formatZonedDateTime, type TimeZoneDisplay } from "@xos/ui/preferences";
 
 /** The number of minor units in one major unit of a currency (100 for USD, 1 for JPY). */
@@ -110,6 +111,20 @@ export function scheduleViewFrom(
   const display = value("me.time_zone_display") === "viewer" ? "viewer" : "event";
   const zone = value("locale.time_zone");
   return { display, viewerZone: typeof zone === "string" && isZone(zone) ? zone : null };
+}
+
+/**
+ * The calendar day a person reads a schedule item on: a date-only value as written, else the date of
+ * the instant in the zone formatScheduleTime shows it in (the event's zone, or the person's own when
+ * they chose it), never the UTC date, a day ahead on an American evening.
+ */
+export function scheduleDay(
+  iso: string,
+  eventZone: string | null | undefined,
+  view: ScheduleView,
+): string {
+  if (iso.length === 10) return iso;
+  return dateIn(new Date(iso), displayTimeZone(eventZone, view.display, view.viewerZone) ?? "UTC");
 }
 
 /**
