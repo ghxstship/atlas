@@ -1,4 +1,5 @@
 import { getSubscription, listRoleCapabilities, listRoles, listWorkspaces } from "@xos/data";
+import { dateIn } from "@xos/data/calendar";
 import type { Route } from "next";
 import Link from "next/link";
 import {
@@ -43,6 +44,7 @@ import { LEGAL_DOCUMENTS } from "@/lib/legal.generated";
 import { planHasFeature } from "@/lib/settings/plan";
 import { choiceLabelKey, formText, workspaceSettings } from "@/lib/settings/registry";
 import { sitemap } from "@/lib/shell/sitemap";
+import { getOrgTimeZone } from "@/lib/shell/time-zone";
 import { getTranslate, type Translate } from "@/lib/shell/translate";
 import type { SettingsContribution, SettingsPanelProps } from "./types";
 
@@ -350,7 +352,10 @@ async function ModulesPanel({ ctx }: SettingsPanelProps) {
 
 async function LegalPanel({ ctx }: SettingsPanelProps) {
   const t = await getTranslate();
-  const acceptances = await listOrgLegalAcceptances(ctx.viewer.db, ctx.org.id);
+  const [acceptances, zone] = await Promise.all([
+    listOrgLegalAcceptances(ctx.viewer.db, ctx.org.id),
+    getOrgTimeZone(ctx),
+  ]);
   if (!acceptances.ok) return <LoadFailed message={t("settings.loadFailed")} />;
   const accepted = new Set(acceptances.data.map((a) => `${a.documentSlug}@${a.documentVersion}`));
   const pending = LEGAL_DOCUMENTS.filter(
@@ -382,7 +387,8 @@ async function LegalPanel({ ctx }: SettingsPanelProps) {
               <span className="text-text-12 text-text-secondary">
                 {t("settings.legal.acceptedBy", {
                   name: a.personName ?? t("settings.legal.unnamed"),
-                  date: new Date(a.acceptedAt).toISOString().slice(0, 10),
+                  // The day it was accepted on the org's calendar, never the UTC date.
+                  date: dateIn(new Date(a.acceptedAt), zone),
                 })}
               </span>
             </li>

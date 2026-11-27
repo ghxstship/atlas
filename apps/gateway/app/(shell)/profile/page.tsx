@@ -43,30 +43,13 @@ import {
 } from "@/lib/actions/profile";
 import { formatDate, formatDateRange } from "@/lib/format";
 import { personToday } from "@/lib/time-zone";
-import { profileStrength, STRENGTH_LINKS } from "@/lib/profile";
+import { blockDays, blockRange, profileStrength, STRENGTH_LINKS } from "@/lib/profile";
 import { requireNode } from "@/lib/shell/sitemap";
 import { enumLabelKey, getTranslate, type Translate } from "@/lib/shell/translate";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslate();
   return { title: t("nav.gateway.avatar.profile") };
-}
-
-/** Days from blocks, as ISO dates, for the availability calendar. */
-function blockDays(
-  blocks: readonly { startsAt: string; endsAt: string; kind: string }[],
-  kind: string,
-): string[] {
-  const days: string[] = [];
-  for (const b of blocks.filter((x) => x.kind === kind)) {
-    const d = new Date(b.startsAt);
-    const end = new Date(b.endsAt);
-    while (d < end && days.length < 400) {
-      days.push(d.toISOString().slice(0, 10));
-      d.setUTCDate(d.getUTCDate() + 1);
-    }
-  }
-  return days;
 }
 
 /** A dispute's standing under a rating, or the way to file one. */
@@ -210,6 +193,8 @@ export default async function ProfilePage() {
     ? representations.data.filter((r) => r.artistPersonId === ctx.personId)
     : [];
   const calendarId = calendars.ok ? (calendars.data.find((c) => c.org_id === null)?.id ?? "") : "";
+  // Each block's days are on its own calendar's zone: an org's poll answers sit on its project's (6123).
+  const zones = new Map(calendars.ok ? calendars.data.map((c) => [c.id, c.time_zone]) : []);
   const name = p.preferredName ?? ctx.personName ?? p.handle;
 
   return (
@@ -338,15 +323,15 @@ export default async function ProfilePage() {
       <Section title={t("gateway.profile.availability.title")} id="availability">
         <AvailabilityCalendar
           month={`${today.slice(0, 7)}-01`}
-          available={blockDays(blocks, "Available")}
-          booked={blockDays(blocks, "Unavailable")}
+          available={blockDays(blocks, "Available", zones)}
+          booked={blockDays(blocks, "Unavailable", zones)}
         />
         {blocks.length > 0 ? (
           <RowList
             label={t("gateway.profile.availability.title")}
             items={blocks.map((b) => ({
               id: b.id,
-              title: formatDateRange(locale, b.startsAt.slice(0, 10), b.endsAt.slice(0, 10)),
+              title: formatDateRange(locale, blockRange(b, zones).first, blockRange(b, zones).last),
               tag: {
                 label: t(enumLabelKey("availabilityKind", b.kind)),
                 tone: b.kind === "Available" ? ("success" as const) : ("neutral" as const),

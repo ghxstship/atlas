@@ -1,5 +1,6 @@
 "use client";
 
+import { todayIn } from "@xos/data/calendar";
 import type { LiveLink } from "@xos/data/live-links";
 import { Button, Input } from "@xos/ui";
 import { useFormatter, useTranslations } from "next-intl";
@@ -175,9 +176,12 @@ export function LiveLinkList({
   );
 }
 
-/** A calendar day `offset` days from today, as a date input wants it. */
-export function dayFromToday(offset: number): string {
-  const d = new Date();
-  d.setUTCDate(d.getUTCDate() + offset);
-  return d.toISOString().slice(0, 10);
+/**
+ * A calendar day `offset` days from today in the link's time zone (its project's), as a date input wants it.
+ * The picked day ends in that zone (lib/live-links/expiry.ts), so the bounds count from that zone's today,
+ * never the UTC date, which is a day ahead on an American evening (A71, RRR-116).
+ */
+export function dayFromToday(offset: number, timeZone: string, now: Date = new Date()): string {
+  const [y = 0, m = 1, d = 1] = todayIn(timeZone, now).split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, d + offset)).toISOString().slice(0, 10);
 }
