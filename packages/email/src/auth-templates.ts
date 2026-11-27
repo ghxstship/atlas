@@ -11,7 +11,10 @@ import { color, fontFamily, layout, radius, space, stroke, text } from "./theme.
  *
  * Every link goes through Supabase Auth's own `{{ .ConfirmationURL }}`, as the apps expect: Atlas and Gateway start
  * each email flow with PKCE and a redirect to /auth/callback, which exchanges the code (a reset link goes on to
- * /auth/reset-password). The security notices point at /auth/forgot-password on the Site URL.
+ * /auth/reset-password). The code verifier lives only in the browser that asked, so the sign-up, sign-in and reset
+ * emails tell the reader to open the link there. The security notices and the reauthentication email point at
+ * /auth/forgot-password on the Site URL, a route release 4.19 adds (branch r419-forgot-password):
+ * AUTH_EMAIL_SITE_PATHS lists every Site URL path the emails link to, and the test checks each one is an Atlas page.
  *
  * The emails load nothing: no image, font, stylesheet or tracking pixel. The mark is the platform brand's monogram
  * tile, drawn in HTML as BrandMark draws it until the platform marks are set (packages/ui/src/brand/defaults).
@@ -64,6 +67,9 @@ export interface AuthEmail {
 }
 
 const CONFIRMATION_URL = "{{ .ConfirmationURL }}";
+/** Every path under `{{ .SiteURL }}` (Atlas) that an email links to; test/auth-templates.test.ts checks each is a page. */
+export const AUTH_EMAIL_SITE_PATHS = ["/auth/forgot-password"] as const;
+
 const RESET_URL = "{{ .SiteURL }}/auth/forgot-password";
 const EMAIL = "<strong>{{ .Email }}</strong>";
 
@@ -118,7 +124,9 @@ export const AUTH_EMAILS: readonly AuthEmail[] = [
     variables: [],
     en: {
       heading: "Confirm your email",
-      paragraphs: [`Confirm ${EMAIL} to finish signing up for XOS.`],
+      paragraphs: [
+        `Confirm ${EMAIL} to finish signing up for XOS. Open the link in the browser where you signed up: it works only there.`,
+      ],
       action: "Confirm email",
       expiry: LINK_HOUR_EN,
       notYou:
@@ -126,7 +134,9 @@ export const AUTH_EMAILS: readonly AuthEmail[] = [
     },
     es: {
       heading: "Confirma tu correo",
-      paragraphs: [`Confirma ${EMAIL} para terminar de registrarte en XOS.`],
+      paragraphs: [
+        `Confirma ${EMAIL} para terminar de registrarte en XOS. Abre el enlace en el navegador donde te registraste: solo funciona ahí.`,
+      ],
       action: "Confirmar correo",
       expiry: LINK_HOUR_ES,
       notYou:
@@ -171,7 +181,7 @@ export const AUTH_EMAILS: readonly AuthEmail[] = [
     en: {
       heading: "Sign in to XOS",
       paragraphs: [
-        `Use the button below to sign in as ${EMAIL}. Open it on the device where you asked for it.`,
+        `Use the button below to sign in as ${EMAIL}. Open it in the browser where you asked for it: it works only there.`,
       ],
       action: "Sign in",
       expiry: LINK_HOUR_EN,
@@ -181,7 +191,7 @@ export const AUTH_EMAILS: readonly AuthEmail[] = [
     es: {
       heading: "Inicia sesión en XOS",
       paragraphs: [
-        `Usa el botón de abajo para iniciar sesión como ${EMAIL}. Ábrelo en el dispositivo donde lo pediste.`,
+        `Usa el botón de abajo para iniciar sesión como ${EMAIL}. Ábrelo en el navegador donde lo pediste: solo funciona ahí.`,
       ],
       action: "Iniciar sesión",
       expiry: LINK_HOUR_ES,
@@ -226,7 +236,9 @@ export const AUTH_EMAILS: readonly AuthEmail[] = [
     variables: [],
     en: {
       heading: "Reset your password",
-      paragraphs: [`Use the button below to choose a new password for ${EMAIL}.`],
+      paragraphs: [
+        `Use the button below to choose a new password for ${EMAIL}. Open it in the browser where you asked for the reset: it works only there.`,
+      ],
       action: "Reset password",
       expiry: LINK_HOUR_EN,
       notYou:
@@ -234,7 +246,9 @@ export const AUTH_EMAILS: readonly AuthEmail[] = [
     },
     es: {
       heading: "Restablece tu contraseña",
-      paragraphs: [`Usa el botón de abajo para elegir una nueva contraseña para ${EMAIL}.`],
+      paragraphs: [
+        `Usa el botón de abajo para elegir una nueva contraseña para ${EMAIL}. Ábrelo en el navegador donde pediste el cambio: solo funciona ahí.`,
+      ],
       action: "Restablecer contraseña",
       expiry: LINK_HOUR_ES,
       notYou:

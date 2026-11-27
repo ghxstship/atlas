@@ -252,7 +252,15 @@ an error. Rollback: put back the values recorded before the change.
    verification method added, verification method removed, sign-in method linked, sign-in method removed). Each is
    a file in `supabase/templates`, generated from `packages/email/src/auth-templates.ts`, and a section of
    `supabase/config.toml` that names its subject (`[auth.email.template.<name>]` or
-   `[auth.email.notification.<name>]`). Apply them from the commit being released:
+   `[auth.email.notification.<name>]`). **Release 4.19 (OWNER):** this release brings both the templates and the
+   forgot password page in Atlas and Gateway (owner decisions of 2026-11-27), the first product path that sends the
+   Reset password email. The security notices and the reauthentication email link to `/auth/forgot-password`, so apply
+   the templates only from the 4.19 release commit, and only once `https://atlas.ghxstship.tech/auth/forgot-password`
+   answers 200 (`curl -s -o /dev/null -w '%{http_code}' https://atlas.ghxstship.tech/auth/forgot-password`); before
+   then a notice's Reset password button would open a 404. The reset and sign-up links must stay
+   `{{ .ConfirmationURL }}`: they use PKCE and return to `/auth/callback` (a reset with
+   `next=/auth/reset-password`) on Atlas or Gateway, which the step 5 Redirect URLs already allow, and they work only
+   in the browser that asked, which the emails say. Apply them from the commit being released:
    1. In the worktree of that commit, run `pnpm --filter @xos/email auth-templates` and then
       `pnpm --filter @xos/email exec vitest run test/auth-templates.test.ts`. The first rewrites the files from the
       module and leaves `git status` clean when they are current; the second checks that every file parses, uses only
@@ -264,9 +272,11 @@ an error. Rollback: put back the values recorded before the change.
       `<name>_notification.html` file, then save.
    4. Authentication, Providers, Email: set Email OTP Expiration to 3600 seconds, the `otp_expiry` the emails state
       ("expires in 1 hour").
-   5. Send a password reset and a magic link to a test account, open both in a mail client in light and in dark mode,
-      and check that the reset link reaches `https://atlas.ghxstship.tech/auth/reset-password` through
-      `/auth/callback`.
+   5. Verify: on `https://atlas.ghxstship.tech/auth/forgot-password`, request a reset for a test account, and send
+      it a magic link. Open both in a mail client in light and in dark mode, in the browser that asked: the emails
+      wear the XOS brand, the reset link reaches Choose a new password (`/auth/reset-password`) through
+      `/auth/callback`, and the new password signs in. Rollback: paste back the HTML recorded before the change (the
+      forgot password page then sends that email instead).
       Never push the templates with `supabase config push`, which would push the repository's local values too
       (`hosted-security-settings.md`). Check that the Site URL is `https://atlas.ghxstship.tech`: the security notices
       link to `{{ .SiteURL }}/auth/forgot-password`. The emails load no image, so they need no hosted logo: the mark is

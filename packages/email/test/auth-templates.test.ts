@@ -1,9 +1,10 @@
-import { readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
   AUTH_EMAIL_LINK_SECONDS,
   AUTH_EMAIL_POSTAL_ADDRESS,
+  AUTH_EMAIL_SITE_PATHS,
   AUTH_EMAIL_SUPPORT_ADDRESS,
   AUTH_EMAILS,
   allowedVariables,
@@ -77,6 +78,39 @@ describe("Supabase Auth email templates", () => {
     expect(AUTH_EMAIL_POSTAL_ADDRESS).toBe(
       "GHXSTSHIP Industries LLC, 66 W Flagler St, Suite 900, PMB 12524, Miami, FL 33130, United States",
     );
+  });
+
+  it("tells the reader to open a PKCE link where they asked: sign-up, sign-in and reset", () => {
+    for (const name of ["confirmation", "magic_link", "recovery"]) {
+      const html = read(AUTH_EMAILS.find((e) => e.name === name)?.file ?? "");
+      expect(html, name).toMatch(/in the browser where you/);
+      expect(html, name).toMatch(/en el navegador donde/);
+    }
+  });
+
+  /**
+   * Site URL paths that arrive with another 4.19 branch. /auth/forgot-password is added by r419-forgot-password; once
+   * the 4.19 train merges both branches the page exists, this test fails on the entry, and the train deletes it, so
+   * from then on the route is checked like any other. Production applies these emails only once the route answers 200
+   * (infra/runbooks/promote-to-production.md, step 6).
+   */
+  const ARRIVING_WITH_4_19 = new Set<string>(["/auth/forgot-password"]);
+
+  it("links only to Site URL paths it lists, each an Atlas page", () => {
+    const linked = new Set<string>();
+    for (const email of AUTH_EMAILS) {
+      for (const m of read(email.file).matchAll(/\{\{ \.SiteURL \}\}(\/[^"<\s]*)/g))
+        linked.add(m[1] ?? "");
+    }
+    expect([...linked].sort()).toEqual([...AUTH_EMAIL_SITE_PATHS].sort());
+    for (const path of AUTH_EMAIL_SITE_PATHS) {
+      const page = existsSync(`${root}apps/atlas/app${path}/page.tsx`);
+      if (ARRIVING_WITH_4_19.has(path)) {
+        expect(page, `${path} is now a page: remove it from ARRIVING_WITH_4_19`).toBe(false);
+      } else {
+        expect(page, `${path} has no page in apps/atlas/app`).toBe(true);
+      }
+    }
   });
 
   for (const email of AUTH_EMAILS) {
