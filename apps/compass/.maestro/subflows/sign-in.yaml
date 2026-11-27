@@ -7,12 +7,17 @@ appId: pro.ghxstship.compass
 # clear a development build on an iOS 26 simulator). Grant location, camera and microphone before the run
 # (on a simulator: xcrun simctl privacy booted grant location-always|camera|microphone <app id>); the
 # permissions block of launchApp fails the same way there.
+# The network comes back first, so an offline flow that failed part way does not fail every flow after it.
+- runFlow: network-online.yaml
 - launchApp:
     stopApp: true
 - runFlow:
     when:
       true: ${typeof DEV_URL !== "undefined" && DEV_URL !== ""}
     file: open-dev-bundle.yaml
+# A stored session whose server stopped answering left Compass on its loading skeleton past this wait on Android
+# (run 45247413192, field-gate-in-out-override). Compass now fails a request with no response after a minute
+# (src/data/offlineFetch.ts) and opens on the cached identity or the error screen, both handled below.
 - extendedWaitUntil:
     visible:
       id: "sign-in|tab-bar|identity-failed|no-access"
@@ -89,10 +94,16 @@ appId: pro.ghxstship.compass
             visible: "Not Now"
           commands:
             - tapOn: "Not Now"
+# In run 45870505730 this wait had 30 seconds and failed about 9 seconds after it started (started 19:46:15.194,
+# failed 19:46:23.919), 35 seconds after the tap on Sign In ended (19:45:49.334). From those timestamps the timeout
+# appears to count from the last tap or typed text rather than from the start of the wait; that is inferred from
+# this one log, not checked against Maestro's source or documentation. On that runner the sign-in had been accepted
+# (Auth logged the login), and reading the person's access took longer than the run waited: each request to the
+# 2 CPU stack took 5 to 15 seconds beside the simulator. Four minutes, which covers either reading of the timeout.
 - extendedWaitUntil:
     visible:
       id: "tab-bar|identity-failed"
-    timeout: 30000
+    timeout: 240000
 # A loaded local stack can time out the first read of the person's access; the error screen offers Try
 # Again, as a person would use it.
 - repeat:
@@ -105,8 +116,8 @@ appId: pro.ghxstship.compass
       - extendedWaitUntil:
           visible:
             id: "tab-bar|identity-failed"
-          timeout: 60000
+          timeout: 120000
 - extendedWaitUntil:
     visible:
       id: "tab-bar"
-    timeout: 30000
+    timeout: 120000

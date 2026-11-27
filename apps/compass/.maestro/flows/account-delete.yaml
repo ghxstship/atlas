@@ -5,6 +5,9 @@ name: account-delete
 ---
 # A throwaway account with no organization or engagement lands on the no-access screen Compass shows such a
 # sign-in (C-12); it offers Delete Account there, as Settings, Account does for members and crew (SIM-004).
+# The network comes back first, so an offline flow that failed part way does not fail this one (the throwaway
+# account is created through the stack's gateway).
+- runFlow: ../subflows/network-online.yaml
 - runScript:
     file: ../scripts/throwaway-account.js
 - assertTrue: ${output.throwaway.status == 200}
@@ -61,10 +64,11 @@ name: account-delete
       - tapOn: "Not Now"
 # A new sign-in answers the age and accepts the documents before anything else (ADR 0156).
 - runFlow: ../subflows/first-sign-in-answers.yaml
+# Accepting reads the access again before Compass shows where the account stands.
 - extendedWaitUntil:
     visible:
       id: "no-access"
-    timeout: 30000
+    timeout: 120000
 - tapOn:
     id: "no-access-delete-account"
 - extendedWaitUntil:

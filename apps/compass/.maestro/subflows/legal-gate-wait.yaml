@@ -1,0 +1,26 @@
+appId: pro.ghxstship.compass
+---
+# After a new account's password sign-in: waits for the age question (ADR 0156) as the sign-in subflow waits for
+# the tabs. Reading the account's legal step and access takes several requests, each 5 to 15 seconds on the
+# nightly's 2 CPU iOS stack (run 45870505730), so four minutes. A read the loaded stack timed out shows the error
+# screen, or for the legal step the connection screen (legal-connection), and Try Again is used on either as a
+# person would use it.
+- extendedWaitUntil:
+    visible:
+      id: "legal-gate-age|identity-failed|legal-connection"
+    timeout: 240000
+- repeat:
+    times: 3
+    while:
+      visible:
+        id: "identity-failed|legal-connection"
+    commands:
+      - tapOn: "Try Again"
+      - extendedWaitUntil:
+          visible:
+            id: "legal-gate-age|identity-failed|legal-connection"
+          timeout: 120000
+- extendedWaitUntil:
+    visible:
+      id: "legal-gate-age"
+    timeout: 120000

@@ -1,0 +1,18 @@
+appId: pro.ghxstship.compass
+---
+# Puts the network back before a sign-in. The suite goes on after a failed flow (config.yaml), and an offline flow
+# that failed part way left the device in airplane mode, or on iOS the stack's gateway stopped: one failure then
+# failed every flow after it. Both steps are no-ops when the device is already online.
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - setAirplaneMode: disabled
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - runScript:
+          file: ../scripts/network.js
+          env:
+            STEP: online

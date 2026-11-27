@@ -16,6 +16,7 @@ import {
   type OpenedStore,
 } from "../data/localDatabase";
 import { offlineAwareFetch } from "../data/offlineFetch";
+import { xhrFetch } from "../data/xhrFetch";
 
 export interface CompassConfig {
   readonly supabaseUrl: string;
@@ -58,10 +59,12 @@ export function createSupabase(config: CompassConfig): SupabaseClient {
       autoRefreshToken: true,
       detectSessionInUrl: false,
     },
-    // Offline, a server call fails at once instead of waiting with no answer (Android airplane mode).
+    // Offline, a server call fails at once instead of waiting with no answer (Android airplane mode). xhrFetch
+    // reports the headers and download progress, so the time limit measures silence, not the whole download.
     global: {
       fetch: offlineAwareFetch(
         async () => (await Network.getNetworkStateAsync()).isConnected !== false,
+        xhrFetch,
       ),
     },
   });

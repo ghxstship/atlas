@@ -4,7 +4,7 @@
 --   * the Northwind Pier venue with three zones and a geofence around the site, so clock-in shows
 --     "You're at Northwind Pier Site"
 --   * today's shift for the Demo Field Lead, published and accepted, so Today leads with Clock In
---   * a CREW credential category, an access grid for the Main Gate and Backstage open today, and badges for
+--   * a CREW credential category, an access grid for the Main Gate (open today) and Backstage (open later), and badges for
 --     the Demo Field Lead and the external crew person, so gate scans grant and deny
 --   * a radio plan and two published SOPs for Reference
 --   * a Stage Safety Walk inspection template with four items, one critical
@@ -74,7 +74,10 @@ begin
     (c_org, c_category, c_crew, v_day_start - interval '1 day', v_day_start + interval '30 days');
   insert into app.access_grid (org_id, credential_category_id, zone_id, access_level_enum_id, window_starts_at, window_ends_at) values
     (c_org, c_category, c_zone_gate, v_full_access, v_day_start, v_day_start + interval '30 days'),
-    (c_org, c_category, c_zone_backstage, v_full_access, v_day_start + interval '12 hours', v_day_start + interval '30 days');
+    -- Backstage opens to the crew at noon New York time, or eight hours after the seed runs if that is later: the
+    -- Compass flow field-gate-in-out-override overrides the denial of a scan there before it opens, and the nightly
+    -- suite reached it after noon (13:22 in New York in run 45870505730), when the scan was granted.
+    (c_org, c_category, c_zone_backstage, v_full_access, greatest(v_day_start + interval '12 hours', now() + interval '8 hours'), v_day_start + interval '30 days');
 
   -- Reference: radio plan and SOPs ------------------------------------------------------------------------------
   insert into app.radio_channels (org_id, project_id, channel_number, name, zone_id) values

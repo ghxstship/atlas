@@ -284,6 +284,18 @@ export function identityOutcome(error: unknown): IdentityOutcome {
   };
 }
 
+/**
+ * The launch state once a session arrives. On the sign-in screen it becomes the loading state: the sign-in was
+ * accepted and the person's access is being read, which takes several requests, so the form must not sit idle as if
+ * nothing had happened (nightly run 45870505730: sign-in answered 200 and the form stayed up for the 36 seconds the
+ * run still lasted). Every other state stays: a refreshed token must not blank an open app.
+ */
+export function phaseOnSession<P extends { readonly kind: string }>(
+  current: P,
+): P | { readonly kind: "starting" } {
+  return current.kind === "signed-out" ? { kind: "starting" } : current;
+}
+
 /** The person with the given org active; an unknown or missing org falls back to the first context. */
 export function activateOrg(
   contexts: readonly OrgContext[],

@@ -19,10 +19,13 @@ name: settings-sunlight-sign-out
 - tapOn:
     id: "settings-theme-sunlight"
 - assertVisible: "Highest contrast for bright sun."
+# As in the sign-out subflow: Maestro's default of 20 seconds stopped short of Sign Out on the hosted iOS
+# simulator (run 45038257851, field-clock-in-out).
 - scrollUntilVisible:
     element:
       id: "settings-sign-out"
     direction: DOWN
+    timeout: 90000
 - tapOn:
     id: "settings-sign-out"
 - extendedWaitUntil:

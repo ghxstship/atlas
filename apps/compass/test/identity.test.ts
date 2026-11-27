@@ -9,6 +9,7 @@ import {
   identityOutcome,
   internalAudience,
   NoAccessYet,
+  phaseOnSession,
   representedArtists,
   resolveIdentity,
   scopeFor,
@@ -465,5 +466,18 @@ describe("resolveIdentity", () => {
       step: "access",
       message: "odd",
     });
+  });
+});
+
+describe("phaseOnSession", () => {
+  it("leaves the sign-in form for the loading state when the sign-in is accepted", () => {
+    expect(phaseOnSession({ kind: "signed-out" })).toEqual({ kind: "starting" });
+  });
+
+  it("keeps every other state, so a refreshed token never blanks an open app", () => {
+    for (const kind of ["starting", "ready", "second-factor", "legal-required", "no-access"]) {
+      const current = { kind };
+      expect(phaseOnSession(current)).toBe(current);
+    }
   });
 });
