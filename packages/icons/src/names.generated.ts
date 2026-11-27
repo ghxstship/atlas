@@ -2,6 +2,7 @@
 
 /** Every icon name XOS draws by name, sorted. Imports nothing, so a bundle that only checks names stays small. */
 export const registeredIconNames = [
+  "Accessibility",
   "Activity",
   "AlarmClock",
   "Archive",
@@ -25,8 +26,10 @@ export const registeredIconNames = [
   "Bookmark",
   "BookmarkCheck",
   "BookmarkPlus",
+  "Bot",
   "Box",
   "Boxes",
+  "Braces",
   "Briefcase",
   "BriefcaseBusiness",
   "Building2",
@@ -200,9 +203,11 @@ export const registeredIconNames = [
   "Table2",
   "Target",
   "Tent",
+  "Terminal",
   "ThumbsUp",
   "Ticket",
   "Timer",
+  "ToggleLeft",
   "Trash2",
   "TriangleAlert",
   "Truck",

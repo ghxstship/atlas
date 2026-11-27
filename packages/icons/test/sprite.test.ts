@@ -27,4 +27,11 @@ describe("icon sprite (ADR 0027)", () => {
     expect(isRegisteredIcon("home")).toBe(true);
     expect(isRegisteredIcon("Airplay")).toBe(false);
   });
+
+  it("registers the icons the Marketing site names, each with a symbol (issue 121)", () => {
+    for (const name of ["Accessibility", "Bot", "Braces", "Terminal", "ToggleLeft"]) {
+      expect(isRegisteredIcon(name), name).toBe(true);
+      expect(sprite, name).toContain(`<symbol id="${name}" viewBox="0 0 24 24">`);
+    }
+  });
 });

@@ -7,7 +7,7 @@ export const PLANS: readonly PlanSummary[] = [
     code: "access",
     free: true,
     extends: null,
-    adds: [],
+    adds: ["support_session_controls"],
     limits: {
       seats: 1,
       active_projects: 1,
@@ -92,7 +92,6 @@ export const PLANS: readonly PlanSummary[] = [
       "eu_data_residency",
       "branded_compass_build",
       "sla_credits",
-      "support_session_controls",
       "legend_early_access",
     ],
     limits: {
