@@ -46,7 +46,7 @@ export function offlineAwareFetch(
     try {
       return await base(input, { ...init, signal: controller.signal });
     } catch (error) {
-      if (timedOut) throw new TypeError("Network request timed out");
+      if (timedOut) throw new TypeError("Network request timed out", { cause: error });
       throw error;
     } finally {
       // The limit covers the wait for the response to start; reading its body is the caller's.
