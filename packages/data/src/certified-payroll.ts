@@ -1,3 +1,4 @@
+import { todayIn } from "./calendar.ts";
 import type { XosClient } from "./client.ts";
 import { complianceModel, complianceTools, toCsvFile } from "./documents/compliance.ts";
 import type { DocumentBlock, DocumentModel } from "./documents/model.ts";
@@ -298,6 +299,8 @@ export interface CertifiedPayrollContext {
   readonly watermark: string;
   /** The person issuing it, printed as the certifying official. */
   readonly certifyingOfficial: string;
+  /** The org's time zone: the Statement of Compliance is dated on its calendar, never the UTC date. */
+  readonly timeZone: string;
   readonly now?: Date;
 }
 
@@ -394,7 +397,7 @@ export function certifiedPayrollModel(
         { label: t("wh347.statement.name"), value: ctx.certifyingOfficial },
         {
           label: t("wh347.statement.date"),
-          value: f.day((ctx.now ?? new Date()).toISOString().slice(0, 10)),
+          value: f.day(todayIn(ctx.timeZone, ctx.now)),
         },
       ],
     },

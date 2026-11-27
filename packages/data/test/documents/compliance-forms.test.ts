@@ -141,7 +141,11 @@ describe("WH-347", () => {
   });
 
   it("prints straight and overtime rows per worker and the Statement of Compliance", () => {
-    const model = certifiedPayrollModel(PAYROLL, { ...ctx(), certifyingOfficial: "Alice Morgan" });
+    const model = certifiedPayrollModel(PAYROLL, {
+      ...ctx(),
+      certifyingOfficial: "Alice Morgan",
+      timeZone: "America/New_York",
+    });
     const table = model.blocks.find((b) => b.kind === "table");
     expect(table && "rows" in table ? table.rows.length : 0).toBe(4);
     const body = texts(model);
@@ -152,9 +156,29 @@ describe("WH-347", () => {
     expect(model.facts.recordKey).toBe("WH-347 No. 3, week ending 2026-06-14");
   });
 
+  it("dates the Statement of Compliance on the org's calendar, never the UTC date", () => {
+    // 22:00 on Oct 21 in New York is already Oct 22 in UTC; in Tokyo it is 11:00 on Oct 22.
+    const statementDate = (timeZone: string) => {
+      const model = certifiedPayrollModel(PAYROLL, {
+        ...ctx(),
+        certifyingOfficial: "Alice Morgan",
+        timeZone,
+        now: new Date("2026-10-22T02:00:00Z"),
+      });
+      const statement = model.blocks.filter((b) => b.kind === "fields").at(-1);
+      return statement && "fields" in statement ? statement.fields.at(-1)?.value : undefined;
+    };
+    expect(statementDate("America/New_York")).toBe("October 21, 2026");
+    expect(statementDate("Asia/Tokyo")).toBe("October 22, 2026");
+  });
+
   it("renders tagged PDFs with the watermark", async () => {
     const bytes = await renderDocumentPdf(
-      certifiedPayrollModel(PAYROLL, { ...ctx(), certifyingOfficial: "Alice Morgan" }),
+      certifiedPayrollModel(PAYROLL, {
+        ...ctx(),
+        certifyingOfficial: "Alice Morgan",
+        timeZone: "America/New_York",
+      }),
       { paper: "letter", orientation: "landscape" },
     );
     const pdf = Buffer.from(bytes).toString("latin1");

@@ -1,3 +1,4 @@
+import { todayIn } from "@xos/data/calendar";
 import {
   certifiedPayrollCsv,
   certifiedPayrollModel,
@@ -23,6 +24,7 @@ import { getMessages, isLocale } from "@xos/i18n";
 import { getLocale } from "next-intl/server";
 import { env } from "@/lib/env";
 import type { OrgContext } from "@/lib/shell/context";
+import { getOrgTimeZone } from "@/lib/shell/time-zone";
 
 /**
  * The Section 14.5 compliance forms as files (ADR 0041): OSHA Forms 300, 300A and 301 and the WH-347
@@ -96,6 +98,8 @@ export async function complianceFormFile(ctx: OrgContext, request: FormRequest):
   const db = ctx.viewer.db;
   const site = env().ATLAS_SITE_URL;
   const now = new Date();
+  // The forms are the org's: a log's default year and the statement's date are on its calendar, never UTC's.
+  const timeZone = await getOrgTimeZone(ctx);
   const watermark = watermarkText(messages, locale, ctx.viewer.email ?? ctx.viewer.userId, now);
   const brand = () =>
     loadDocumentBrand(db, ctx.org.id, ctx.org.name, (name) => t("facts.logoAlt", { name }));
@@ -140,6 +144,7 @@ export async function complianceFormFile(ctx: OrgContext, request: FormRequest):
         recordUrl: new URL(`/${ctx.org.slug}/settings/payroll-and-time-off`, site).toString(),
         watermark,
         certifyingOfficial: ctx.viewer.person?.fullName ?? ctx.viewer.email ?? "",
+        timeZone,
         now,
       }),
       true,
@@ -171,7 +176,7 @@ export async function complianceFormFile(ctx: OrgContext, request: FormRequest):
 
   const establishment = await getOshaEstablishment(db, request.id);
   if (!establishment.ok || !establishment.data) return { ok: false, status: 404 };
-  const year = request.year ?? now.getUTCFullYear();
+  const year = request.year ?? Number(todayIn(timeZone, now).slice(0, 4));
   const name = `${request.form}-${year}-${slug(establishment.data.name)}`;
   if (request.form === "osha-300") {
     const cases = await listOshaCases(db, { establishmentId: request.id, year });
