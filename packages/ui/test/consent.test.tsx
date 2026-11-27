@@ -24,6 +24,8 @@ import {
   type ConsentState,
 } from "../src/index.ts";
 import * as subpath from "../src/ConsentBanner/index.ts";
+import { consentBarClass } from "../src/ConsentBanner/bar.ts";
+import { ConsentBannerStatic } from "../src/ConsentBanner/static.ts";
 import { expectAccessible } from "./a11y.ts";
 
 /**
@@ -700,5 +702,24 @@ describe("ConsentSettings", () => {
     await waitFor(() => expect(adapter.written).toHaveLength(2));
     expect(adapter.written[1]?.categories).toEqual({ preferences: false, performance: false });
     expect(onChoice.mock.calls).toEqual([["save"], ["none"]]);
+  });
+});
+
+describe("ConsentBanner is the same bottom bar as ConsentBannerStatic", () => {
+  it("draws the choices and the privacy signal in the bar, first in the DOM", () => {
+    const { container, unmount } = render(<ConsentBanner {...COPY} />);
+    const bar = container.firstElementChild as HTMLElement;
+    expect(bar.tagName).toBe("SECTION");
+    expect(bar.hasAttribute("data-xos-consent-bar")).toBe(true);
+    expect(bar.className).toBe(consentBarClass);
+    expect(bar.className.split(" ")).toEqual(
+      expect.arrayContaining(["sticky", "bottom-0", "order-last", "z-header", "border-t"]),
+    );
+    unmount();
+    const signal = render(<ConsentBanner {...COPY} gpc gpcLabel={GPC_TEXT} />);
+    expect((signal.container.firstElementChild as HTMLElement).className).toBe(consentBarClass);
+    signal.unmount();
+    const fixed = render(<ConsentBannerStatic {...COPY} action="/consent" />);
+    expect((fixed.container.firstElementChild as HTMLElement).className).toBe(consentBarClass);
   });
 });

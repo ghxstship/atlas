@@ -1,12 +1,12 @@
 "use client";
 
 import { useId, useRef, type ReactElement, type ReactNode } from "react";
-import { cx } from "../lib/cx.ts";
 import { useT } from "../lib/context.tsx";
 import { Button } from "../Button/Button.tsx";
 import { Checkbox } from "../Forms/Checkbox.tsx";
 import { Icon } from "../Icon/Icon.tsx";
 import { Link, linkClass } from "../Link/Link.tsx";
+import { consentBarClass, consentInnerClass, consentTextClass } from "./bar.ts";
 import type { ConsentChoice } from "./consent.ts";
 import {
   tickedCategories,
@@ -79,17 +79,13 @@ export interface ConsentBannerProps {
   record?: ConsentRecording;
 }
 
-const sectionClass = cx(
-  "border-b border-border-subtle bg-bg-surface p-16 font-sans text-text-primary print:hidden",
-);
-const innerClass = cx("mx-auto flex max-w-layout-reading flex-col gap-12");
-const textClass = cx("m-0 text-text-13 text-text-secondary");
-
 /**
  * The cookie banner both sites share (Section 14.3). Accept and Reject are the same Button, side by
  * side, and no category behind Choose starts ticked. A Global Privacy Control signal, from the
  * request (`gpc`) or from `navigator.globalPrivacyControl`, is a refusal: the banner shows the
- * confirmation and offers no choices. Every string is a prop or comes from the `ui` catalog.
+ * confirmation and offers no choices. Every string is a prop or comes from the `ui` catalog. It is
+ * a bar at the bottom edge of the viewport (bar.ts): render it as a direct child of the body, or of
+ * the element that holds the whole page, ahead of the page.
  */
 export function ConsentBanner({
   title,
@@ -123,8 +119,8 @@ export function ConsentBanner({
 
   if (signal) {
     return (
-      <section className={sectionClass} aria-label={title}>
-        <div className={innerClass}>
+      <section data-xos-consent-bar="" className={consentBarClass} aria-label={title}>
+        <div className={consentInnerClass}>
           <p className="m-0 flex items-center gap-8 text-text-13" role="status">
             <span className="flex text-success">
               <Icon name="ShieldCheck" size={16} />
@@ -141,13 +137,13 @@ export function ConsentBanner({
   const posts = action !== undefined;
   const type = posts ? "submit" : "button";
   return (
-    <section className={sectionClass} aria-labelledby={id}>
-      <div className={innerClass}>
+    <section data-xos-consent-bar="" className={consentBarClass} aria-labelledby={id}>
+      <div className={consentInnerClass}>
         <h2 id={id} className="m-0 text-heading-16 font-semibold">
           {title}
         </h2>
         {body || policy || settings ? (
-          <p className={textClass}>
+          <p className={consentTextClass}>
             {body}
             {policy ? (
               <>
@@ -189,7 +185,7 @@ export function ConsentBanner({
               className="mt-8 flex flex-col items-start gap-8 text-text-13"
             >
               <input type="hidden" name="choice" value="save" />
-              {necessary ? <p className={textClass}>{necessary}</p> : null}
+              {necessary ? <p className={consentTextClass}>{necessary}</p> : null}
               {categories.map((c) => (
                 <Checkbox key={c.name} name={c.name} label={c.label} />
               ))}

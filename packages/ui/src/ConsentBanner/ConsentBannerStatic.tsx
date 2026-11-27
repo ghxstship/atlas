@@ -1,8 +1,8 @@
 import type { ReactElement, ReactNode } from "react";
 import { buttonClass } from "../Button/button-class.ts";
 import { Icon } from "../Icon/Icon.tsx";
-import { cx } from "../lib/cx.ts";
 import { linkClass } from "../Link/link-class.ts";
+import { consentBarClass, consentInnerClass, consentTextClass } from "./bar.ts";
 import type { ConsentCategory, ConsentLink } from "./ConsentBanner.tsx";
 
 /**
@@ -47,11 +47,6 @@ type ConsentBannerStaticSignal =
 
 export type ConsentBannerStaticProps = ConsentBannerStaticCopy & ConsentBannerStaticSignal;
 
-const sectionClass = cx(
-  "border-b border-border-subtle bg-bg-surface p-16 font-sans text-text-primary print:hidden",
-);
-const innerClass = cx("mx-auto flex max-w-layout-reading flex-col gap-12");
-const textClass = cx("m-0 text-text-13 text-text-secondary");
 /** Accept and Reject are this one class: the same variant and the same size. */
 const choiceClass = buttonClass("secondary", "lg");
 
@@ -71,7 +66,9 @@ function link(target: ConsentLink, renderLink: ConsentStaticLinkRenderer | undef
  * that renders it sends no JavaScript for it (ADR 0027). Atlas shows it on every route. It reads
  * nothing from the browser: it does not see `navigator.globalPrivacyControl`, keeps no record and
  * does not hide itself, so the server decides whether to render it and passes `gpc` from the
- * request header. Use ConsentBanner where the banner keeps the decision through an adapter.
+ * request header. Use ConsentBanner where the banner keeps the decision through an adapter. Both
+ * draw the same bar at the bottom edge of the viewport (bar.ts); render it as a direct child of
+ * the body, or of the element that holds the whole page, ahead of the page.
  */
 export function ConsentBannerStatic({
   title,
@@ -92,8 +89,8 @@ export function ConsentBannerStatic({
 }: ConsentBannerStaticProps): ReactElement {
   if (gpc) {
     return (
-      <section className={sectionClass} aria-label={title}>
-        <div className={innerClass}>
+      <section data-xos-consent-bar="" className={consentBarClass} aria-label={title}>
+        <div className={consentInnerClass}>
           <p className="m-0 flex items-center gap-8 text-text-13" role="status">
             <span className="flex text-success">
               <Icon name="ShieldCheck" size={16} />
@@ -105,13 +102,13 @@ export function ConsentBannerStatic({
     );
   }
   return (
-    <section className={sectionClass} aria-labelledby={headingId}>
-      <div className={innerClass}>
+    <section data-xos-consent-bar="" className={consentBarClass} aria-labelledby={headingId}>
+      <div className={consentInnerClass}>
         <h2 id={headingId} className="m-0 text-heading-16 font-semibold">
           {title}
         </h2>
         {body || policy || settings ? (
-          <p className={textClass}>
+          <p className={consentTextClass}>
             {body}
             {policy ? <> {link(policy, renderLink)}</> : null}
             {settings ? (
@@ -142,7 +139,7 @@ export function ConsentBannerStatic({
               className="mt-8 flex flex-col items-start gap-8 text-text-13"
             >
               <input type="hidden" name="choice" value="save" />
-              {necessary ? <p className={textClass}>{necessary}</p> : null}
+              {necessary ? <p className={consentTextClass}>{necessary}</p> : null}
               {categories.map((category) => (
                 <label key={category.name} className="flex items-start gap-8">
                   <input type="checkbox" name={category.name} className="mt-2" />

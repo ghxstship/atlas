@@ -9,6 +9,16 @@ ConsentBanner asks a visitor once which cookies a site may set, and ConsentSetti
 - A category `name` is a letter followed by letters, digits, underscores or hyphens, 64 characters at most (`CONSENT_CATEGORY_NAME`): `preferences`, `analytics_storage` and `Marketing` fit. The cookie adapter rejects a write with any other name, and reads nothing from a cookie that holds one.
 - The links are plain anchors. An app with a router passes `renderLink` to draw them with its own link component.
 
+## A bar at the bottom of the viewport
+
+Both banners draw the same bar (`bar.ts`, decision 2026-11-27): full width at the bottom edge of the viewport, with a border and the menu shadow on top, safe-area padding for a phone's home indicator and corners, and at most 60% of the viewport tall, scrolling inside when Choose is open on a short screen. Print hides it.
+
+- Render it as a direct child of the body, or of the element that holds the whole page, ahead of the page content. It stays first in the DOM, so keyboard and screen reader users reach it before the page.
+- It reserves its own space with no script. `[data-xos-consent-bar]` makes its parent a flex column at least the viewport tall (`styles/base.css`), and the bar takes `order-last`, an auto top margin and `position: sticky; bottom: 0`. While the page scrolls it stays at the bottom edge like a fixed bar; at the end of the page it sits in the flow after the footer, so the last button and the footer are never under it, with Choose closed or open. A spacer or a body padding would need the bar's height, which changes with the copy, the language and the screen width.
+- A browser without `:has()` draws the bar in place, at the top of the page.
+- On the z-index scale it is `z-header`: over the page, sticky rows and the sidebar, under dropdowns, popovers, side peeks, dialogs, the command menu, toasts and tooltips. Those overlays are drawn over the bar when they open; none is drawn under it.
+- An app shell one viewport tall (Atlas's `h-dvh` shell, whose bottom tab bar is sticky inside it) gets the bar's height as page scroll: the bar covers the shell's bottom edge until the page is scrolled, as the top banner pushed it below the screen before.
+
 ## With no script
 
 `ConsentBannerStatic`, from `@xos/ui/consent/static`, is the same banner with no hooks, context or event handlers: a server component that renders it sends no JavaScript for it. Atlas shows it on every route, because the client ConsentBanner adds about 7 KB of script to each page that renders it.

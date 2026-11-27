@@ -141,6 +141,18 @@
   }
 }
 
+/* The cookie bar (ConsentBanner, ConsentBannerStatic) comes first in the DOM and is drawn last, stuck
+   to the bottom edge of the viewport. Its parent, the body or the element that holds the whole page,
+   becomes a column at least the viewport tall: the bar takes order-last and an auto top margin, so
+   it sits at the bottom edge on a short page and, at the end of a long one, after the footer in the
+   flow, where it holds its own height and covers nothing. A browser without :has() draws it in
+   place at the top of the page, as before. */
+:where(*):has(> [data-xos-consent-bar]) {
+  display: flex;
+  flex-direction: column;
+  min-block-size: 100dvh;
+}
+
 @media (prefers-reduced-motion: reduce) {
   :root:not([data-motion="full"]) *,
   :root:not([data-motion="full"]) *::before,
