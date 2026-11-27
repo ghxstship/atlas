@@ -698,7 +698,7 @@ describe("kiosk", () => {
     });
     expect(
       afterServer(
-        { kind: "photo", worker: must(roster[1]), digits: "1234" },
+        { kind: "photo", worker: must(roster[1]), digits: "1234", attemptsLeft: 5 },
         { ok: false, reason: "kiosk_device_unregistered" },
       ),
     ).toEqual({ kind: "unregistered" });

@@ -293,7 +293,7 @@ describe("kiosk photo on punch", () => {
   it("names kiosks off and a missing photo as their own refusals", () => {
     expect(refusalFromServer("kiosk_disabled")).toBe("kiosk-disabled");
     expect(refusalFromServer("punch_photo_required")).toBe("photo-required");
-    const photo: KioskStep = { kind: "photo", worker, digits: "2468" };
+    const photo: KioskStep = { kind: "photo", worker, digits: "2468", attemptsLeft: 5 };
     expect(afterServer(photo, { ok: false, reason: "punch_photo_required" })).toEqual({
       kind: "refused",
       worker,

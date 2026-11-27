@@ -3,7 +3,7 @@ import { uuidv7 } from "@xos/sync";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
-import { useEffect, useRef, useState, type ReactElement } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactElement } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, View } from "react-native";
 import {
@@ -15,14 +15,20 @@ import {
   forgetKiosk,
   KIOSK_RESET_MS,
   KIOSK_START,
+  hasQueuedPunch,
   kioskPhotoPath,
   kioskPunchKind,
+  kioskWarmer,
+  learnShift,
   pickWorker,
   pressDigit,
+  rosterWithKnowledge,
   searchRoster,
-  sendKioskPunch,
+  singleFlight,
+  submitKioskPunch,
   type KioskStep,
   type RosterEntry,
+  type ShiftKnowledge,
 } from "../src/domain/kiosk";
 import { kioskRules, soundsOn } from "../src/domain/settings";
 import { useCompass, useRows } from "../src/runtime/CompassProvider";
@@ -51,6 +57,10 @@ const REFUSED_KEY = {
   "request-invalid": "compass.kiosk.refused.requestInvalid",
   "kiosk-disabled": "compass.kiosk.refused.kioskDisabled",
   "photo-required": "compass.kiosk.refused.photoRequired",
+  "already-in": "compass.kiosk.refused.alreadyIn",
+  "not-in": "compass.kiosk.refused.notIn",
+  "rate-limited": "compass.kiosk.refused.rateLimited",
+  "punch-refused": "compass.kiosk.refused.punchRefused",
 } as const;
 
 /**
@@ -154,10 +164,13 @@ function Setup({ onKey }: { readonly onKey: (key: string) => void }): ReactEleme
 
 function PinPad({
   step,
+  sending,
   onStep,
   onSubmit,
 }: {
   readonly step: KioskStep;
+  /** A punch is on its way: the keypad and the button take no taps until its outcome shows. */
+  readonly sending: boolean;
   readonly onStep: (s: KioskStep) => void;
   readonly onSubmit: () => void;
 }): ReactElement {
@@ -186,7 +199,9 @@ function PinPad({
             <Pressable
               key={k}
               testID={`kiosk-key-${k}`}
+              disabled={sending}
               accessibilityRole="button"
+              accessibilityState={{ disabled: sending }}
               accessibilityLabel={
                 k === "del" ? t("compass.kiosk.backspace") : t("compass.kiosk.digit", { digit: k })
               }
@@ -212,7 +227,8 @@ function PinPad({
         testID="kiosk-submit"
         size="lg"
         block
-        disabled={!canSubmitPin(step)}
+        loading={sending}
+        disabled={sending || !canSubmitPin(step)}
         label={
           step.kind === "pin" && kioskPunchKind(step.worker) === "Out"
             ? t("compass.kiosk.punchOut")
@@ -257,80 +273,100 @@ function Kiosk(): ReactElement {
     (e) => e.clock_out === null,
   );
   const supervisor = useAllowed("kiosk.operate");
+  // One punch at a time: a second tap while a punch is on its way builds no second punch.
+  const flight = useRef(singleFlight()).current;
+  const [sending, setSending] = useState(false);
+  // Who this kiosk just clocked in or out, until the synced time entries say the same.
+  const [known, setKnown] = useState<ShiftKnowledge>({});
+  const functionUrl = `${config.supabaseUrl}/functions/v1/kiosk-punch`;
+  // Wakes the function while the worker types the PIN, so the punch meets a started worker.
+  const warm = useMemo(
+    () => kioskWarmer(() => fetch(functionUrl, { method: "GET" })),
+    [functionUrl],
+  );
   useEffect(() => {
     if (step.kind !== "done" && step.kind !== "refused") return undefined;
     const timer = setTimeout(() => setStep(KIOSK_START), KIOSK_RESET_MS);
     return () => clearTimeout(timer);
   }, [step]);
+  const current = rosterWithKnowledge(
+    roster.map((r) => ({
+      membershipId: r.id,
+      displayName: r.display_name,
+      onShift: open.some((e) => e.membership_id === r.id),
+    })),
+    known,
+    Date.now(),
+  );
+  const entries: RosterEntry[] = current.roster;
+  // What the synced rows now agree with is forgotten, so a later change made elsewhere is believed.
+  const settled = current.known;
+  useEffect(() => {
+    if (settled !== known) setKnown(settled);
+  }, [settled, known]);
   if (!settings.kioskDeviceKey)
     return <Setup onKey={(key) => updateSettings({ kioskDeviceKey: key })} />;
-  const entries: RosterEntry[] = roster.map((r) => ({
-    membershipId: r.id,
-    displayName: r.display_name,
-    onShift: open.some((e) => e.membership_id === r.id),
-  }));
-  const submit = async (photo: { path: string; localUri: string } | null = null) => {
-    if ((step.kind !== "pin" && step.kind !== "photo") || !engine || !settings.kioskDeviceKey)
-      return;
-    const input = buildKioskPunch(
-      {
-        deviceKey: settings.kioskDeviceKey,
-        projectId,
-        worker: step.worker,
-        pin: step.digits,
-        deviceAt: new Date().toISOString(),
-        monotonicAt: deviceClock.monotonicNow(),
-        bootId: deviceClock.bootId(),
-        photoUri: null,
-        photo,
-      },
-      Date.now(),
-    );
-    if (!status?.online) {
-      await engine.outbox.enqueue(input);
-      setStep(afterServer(step, { ok: "queued" }));
-      return;
-    }
-    const token = (await client.auth.getSession()).data.session?.access_token;
-    if (photo) {
-      const stored = await fieldMediaUploader(client)(photo.path, photo.localUri);
-      if (stored.error && stored.error.statusCode !== "409") {
-        // The photo could not be stored yet: the punch queues with it and both upload together.
-        await engine.outbox.enqueue(input);
-        setStep(afterServer(step, { ok: "queued" }));
+  const submit = (photo: { path: string; localUri: string } | null = null) =>
+    flight.run(async () => {
+      if ((step.kind !== "pin" && step.kind !== "photo") || !engine || !settings.kioskDeviceKey)
         return;
-      }
-    }
-    try {
-      const response = await sendKioskPunch(() =>
-        fetch(`${config.supabaseUrl}/functions/v1/kiosk-punch`, {
-          method: "POST",
-          headers: {
-            "content-type": "application/json",
-            ...(token ? { authorization: `Bearer ${token}` } : {}),
+      setSending(true);
+      try {
+        // The punch and its id are built once per tap. Every send of it, now or from the queue, carries
+        // this id, so the server records it once (app.record_punch).
+        const input = buildKioskPunch(
+          {
+            deviceKey: settings.kioskDeviceKey,
+            projectId,
+            worker: step.worker,
+            pin: step.digits,
+            deviceAt: new Date().toISOString(),
+            monotonicAt: deviceClock.monotonicNow(),
+            bootId: deviceClock.bootId(),
+            photoUri: null,
+            photo,
           },
-          body: JSON.stringify({ ...input.payload, monotonicOffsetMs: 0 }),
-        }),
-      );
-      if (response.ok) {
-        void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        setStep(afterServer(step, { ok: true }));
-        return;
+          Date.now(),
+        );
+        const outcome = await submitKioskPunch(input, {
+          online: status?.online === true,
+          enqueue: (punch) => engine.outbox.enqueue(punch),
+          queuedAhead: async () =>
+            hasQueuedPunch(await engine.outbox.all(), step.worker.membershipId),
+          ...(photo
+            ? {
+                storePhoto: async () => {
+                  const stored = await fieldMediaUploader(client)(photo.path, photo.localUri);
+                  return !stored.error || stored.error.statusCode === "409";
+                },
+              }
+            : {}),
+          post: async (body, signal) => {
+            const token = (await client.auth.getSession()).data.session?.access_token;
+            return fetch(functionUrl, {
+              method: "POST",
+              headers: {
+                "content-type": "application/json",
+                ...(token ? { authorization: `Bearer ${token}` } : {}),
+              },
+              body: JSON.stringify(body),
+              signal,
+            });
+          },
+        });
+        if (outcome.ok === true)
+          void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        if (outcome.ok === false)
+          void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+        setKnown((k) =>
+          learnShift(k, step.worker.membershipId, kioskPunchKind(step.worker), outcome, Date.now()),
+        );
+        // The outcome belongs to the step it was sent from, and shows only while that step is on screen.
+        setStep((now) => (now === step ? afterServer(step, outcome) : now));
+      } finally {
+        setSending(false);
       }
-      const body = (await response.json()) as { reason?: string };
-      if (response.status === 422) {
-        void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-        setStep(afterServer(step, { ok: false, reason: body.reason ?? "kiosk_request_invalid" }));
-        return;
-      }
-      await engine.outbox.enqueue(input);
-      setStep(afterServer(step, { ok: "queued" }));
-    } catch {
-      // The network dropped mid-request: the punch queues with its id, so a retry cannot double it.
-      await engine.outbox.enqueue(input);
-      setStep(afterServer(step, { ok: "queued" }));
-    }
-  };
+    });
   const forget = async () => {
     const outcome = await forgetKiosk({
       supervisor,
@@ -388,7 +424,10 @@ function Kiosk(): ReactElement {
                   testID={`kiosk-worker-${w.membershipId}`}
                   icon="user"
                   title={w.displayName}
-                  onPress={() => setStep(pickWorker(w))}
+                  onPress={() => {
+                    warm();
+                    setStep(pickWorker(w));
+                  }}
                 />
               ))
           )}
@@ -403,6 +442,7 @@ function Kiosk(): ReactElement {
           </Text>
           <PinPad
             step={step}
+            sending={sending}
             onStep={setStep}
             onSubmit={() => {
               // Photo on punch: the PIN leads to the camera first.
@@ -412,6 +452,7 @@ function Kiosk(): ReactElement {
           />
           <Button
             variant="ghost"
+            disabled={sending}
             label={t("compass.common.back")}
             onPress={() => setStep(KIOSK_START)}
           />
@@ -442,11 +483,11 @@ function Kiosk(): ReactElement {
             block
             icon="camera"
             loading={capturing}
-            disabled={!permission?.granted || !projectId || !resolved?.orgId}
+            disabled={capturing || !permission?.granted || !projectId || !resolved?.orgId}
             label={t("compass.photo.take")}
             onPress={() =>
               void (async () => {
-                if (!camera.current || !projectId || !resolved?.orgId) return;
+                if (capturing || !camera.current || !projectId || !resolved?.orgId) return;
                 setCapturing(true);
                 try {
                   const shot = await camera.current.takePictureAsync({
@@ -470,6 +511,7 @@ function Kiosk(): ReactElement {
           />
           <Button
             variant="ghost"
+            disabled={sending}
             label={t("compass.common.back")}
             onPress={() => setStep(KIOSK_START)}
           />
