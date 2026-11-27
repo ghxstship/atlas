@@ -22,6 +22,8 @@ import {
   FeatureGrid,
   GateLifecycleRail,
   LogoSlotWall,
+  MarketingPoints,
+  PlanLimits,
   MarketingFooter,
   MarketingHero,
   MarketingNav,
@@ -500,6 +502,182 @@ describe("server-rendered components", () => {
   });
 });
 
+describe("product components on a public page (issue 122)", () => {
+  const criteria = [
+    {
+      code: "G3.BUDGET_APPROVED",
+      label: "Budget approved",
+      result: "met" as const,
+      blocking: true,
+    },
+    {
+      code: "G3.PERMITS_FILED",
+      label: "Permits filed",
+      result: "gap" as const,
+      blocking: true,
+      action: "File permits",
+    },
+    {
+      label: "Insurance bound",
+      result: "met" as const,
+      blocking: false,
+      evidence: "COI.pdf",
+    },
+  ];
+
+  it("exports the eight from the Marketing entry", () => {
+    const entry = Marketing as Record<string, unknown>;
+    for (const name of [
+      "BrandMark",
+      "Card",
+      "DepartmentChip",
+      "Icon",
+      "Link",
+      "GateReadinessPanel",
+      "MarketingPoints",
+      "PlanLimits",
+    ]) {
+      expect(typeof entry[name], name).toBe("function");
+    }
+    // The provider-free forms are their own components; the four without strings are the same ones.
+    expect(Marketing.Link).not.toBe(Ui.Link);
+    expect(Marketing.GateReadinessPanel).not.toBe(Ui.GateReadinessPanel);
+    expect(Marketing.BrandMark).toBe(Ui.BrandMark);
+    expect(Marketing.Card).toBe(Ui.Card);
+    expect(Marketing.DepartmentChip).toBe(Ui.DepartmentChip);
+    expect(Marketing.Icon).toBe(Ui.Icon);
+  });
+
+  it("renders the four without strings on the server, with no provider", () => {
+    const html = renderToStaticMarkup(
+      <Marketing.Card title="Switches" meta="3">
+        <Marketing.BrandMark name="Atlas" />
+        <Marketing.DepartmentChip name="Production" code="2000" />
+        <Marketing.Icon name="Check" label="Included" />
+      </Marketing.Card>,
+    );
+    expect(html).toContain("<strong");
+    expect(html).toContain('aria-label="Atlas"');
+    expect(html).toContain("Production");
+    expect(html).toContain("<title>Included</title>");
+  });
+
+  it("renders Link on the server and names the new tab in the page's locale", () => {
+    const plain = renderToStaticMarkup(<Marketing.Link href="/pricing">Pricing</Marketing.Link>);
+    expect(plain).toBe(
+      renderToStaticMarkup(
+        <XOSProvider>
+          <Ui.Link href="/pricing">Pricing</Ui.Link>
+        </XOSProvider>,
+      ),
+    );
+    expect(plain).not.toContain("<svg");
+    const external = (
+      <Marketing.Link href="https://example.com" external>
+        Source
+      </Marketing.Link>
+    );
+    const en = renderToStaticMarkup(external);
+    expect(en).toContain('target="_blank"');
+    expect(en).toContain('rel="noopener noreferrer"');
+    expect(en).toContain("<title>Opens in a new tab</title>");
+    const spanish = renderToStaticMarkup(
+      <Marketing.Link href="https://example.com" external locale="es-US" messages={es}>
+        Fuente
+      </Marketing.Link>,
+    );
+    expect(spanish).toContain(`<title>${es["link.newTab"]}</title>`);
+    expect(spanish).not.toContain("Opens in a new tab");
+  });
+
+  it("renders GateReadinessPanel on the server with the markup of the product panel", async () => {
+    const props = { gate: 3, code: "ADV" as const, name: "Advance", nextLabel: "Open Gate 4" };
+    const server = renderToStaticMarkup(
+      <Marketing.GateReadinessPanel {...props} criteria={criteria} />,
+    );
+    const product = renderToStaticMarkup(
+      <XOSProvider>
+        <Ui.GateReadinessPanel {...props} criteria={criteria} />
+      </XOSProvider>,
+    );
+    expect(server).toBe(product);
+    expect(server).toContain("Gate 3 · Advance");
+    expect(server).toContain("2 of 3 met");
+    expect(server).toContain("1 blocking criterion open.");
+    expect(server).toMatch(/<button type="button" disabled=""[^>]*>Open Gate 4/);
+    expect(server).toContain("File permits");
+
+    const spanish = renderToStaticMarkup(
+      <Marketing.GateReadinessPanel
+        {...props}
+        name="Avance"
+        criteria={criteria}
+        locale="es-US"
+        messages={es}
+      />,
+    );
+    // ADR 0034 item 3: a project gate is a "compuerta" in es-US.
+    expect(spanish).toContain("Compuerta 3 · Avance");
+    expect(spanish).toContain(`aria-label="${es["gate.readiness"]}"`);
+    expect(spanish).not.toContain("Gate readiness");
+
+    const { container } = render(
+      <Marketing.GateReadinessPanel
+        {...props}
+        criteria={criteria.map((c) => ({ ...c, result: "met" as const }))}
+      />,
+    );
+    expect(
+      (screen.getByRole("button", { name: /Open Gate 4/ }) as HTMLButtonElement).disabled,
+    ).toBe(false);
+    expect(screen.getByText("All blocking criteria met.")).toBeTruthy();
+    await expectAccessible(container);
+  });
+
+  it("draws points with a check, or with the icon and color given", () => {
+    const { container, rerender } = render(
+      <MarketingPoints points={["Gate readiness", "Audit log"]} />,
+    );
+    const items = container.querySelectorAll(".xos-mkt-points li");
+    expect([...items].map((item) => item.textContent)).toEqual(["Gate readiness", "Audit log"]);
+    expect(items[0]?.querySelector("use")?.getAttribute("href")).toMatch(/#Check$/);
+    expect(items[0]?.querySelector("svg")?.getAttribute("aria-hidden")).toBe("true");
+    expect(items[0]?.querySelector("svg")?.style.color).toBe("");
+
+    rerender(
+      <MarketingPoints
+        points={["Summaries"]}
+        icon="Sparkles"
+        iconColor="var(--color-text-secondary)"
+      />,
+    );
+    const svg = container.querySelector(".xos-mkt-points svg") as SVGElement;
+    expect(svg.querySelector("use")?.getAttribute("href")).toMatch(/#Sparkles$/);
+    expect(svg.style.color).toBe("var(--color-text-secondary)");
+  });
+
+  it("draws plan limits as a description list, the same rows PricingTable prints", async () => {
+    const limits = [
+      { label: "Seats", value: "1" },
+      { label: "Storage", value: "5 GB" },
+    ];
+    const { container } = render(<PlanLimits limits={limits} />);
+    const list = container.querySelector("dl.xos-mkt-plan-limits") as HTMLElement;
+    expect([...list.querySelectorAll("dt")].map((dt) => dt.textContent)).toEqual([
+      "Seats",
+      "Storage",
+    ]);
+    expect([...list.querySelectorAll("dd")].map((dd) => dd.textContent)).toEqual(["1", "5 GB"]);
+    expect(list.querySelector("dd")?.className).toBe("tabular-nums");
+    await expectAccessible(container);
+
+    const table = render(<PricingTable periods={periods} plans={plans.slice(0, 1)} />);
+    expect(table.container.querySelector(".xos-mkt-plan-limits")?.outerHTML).toBe(
+      renderToStaticMarkup(<PlanLimits limits={[{ label: "Seats", value: "1" }]} />),
+    );
+  });
+});
+
 describe("components bound to the provider", () => {
   it("follow the locale of the nearest XOSProvider when imported from @xos/ui", () => {
     render(
@@ -721,6 +899,26 @@ describe("PricingTable", () => {
     expect(screen.getByRole("status").textContent).toBe("Prices now show Annual billing.");
   });
 
+  it("turns on the period an arrow key moves to, and keeps the tab stop on it (issue 124)", async () => {
+    const onChange = vi.fn();
+    render(<PricingTable periods={periods} plans={plans.slice(1, 2)} onChange={onChange} />);
+    const monthly = screen.getByRole("radio", { name: "Monthly" });
+    const annual = screen.getByRole("radio", { name: "Annual" });
+    await userEvent.tab();
+    while (document.activeElement !== monthly) await userEvent.tab();
+    await userEvent.keyboard("{ArrowRight}");
+    expect(document.activeElement).toBe(annual);
+    expect(annual.getAttribute("aria-checked")).toBe("true");
+    expect(annual.getAttribute("tabindex")).toBe("0");
+    expect(monthly.getAttribute("tabindex")).toBe("-1");
+    expect(onChange).toHaveBeenLastCalledWith("annual");
+    expect(screen.getByRole("status").textContent).toBe("Prices now show Annual billing.");
+    await userEvent.keyboard("{Home}");
+    expect(document.activeElement).toBe(monthly);
+    expect(monthly.getAttribute("aria-checked")).toBe("true");
+    expect(onChange).toHaveBeenCalledTimes(2);
+  });
+
   it("starts on the given period and prints no tax label without a tax mode", () => {
     const { container } = render(
       <PricingTable periods={periods} period="annual" plans={plans.slice(1, 2)} />,
@@ -811,6 +1009,29 @@ describe("MarketingFooter", () => {
     await userEvent.click(screen.getByRole("radio", { name: "Sunlight" }));
     expect(document.documentElement.dataset["theme"]).toBe("sunlight");
     await expectAccessible(container);
+  });
+
+  it("applies the theme an arrow key moves to (issue 124)", async () => {
+    const onTheme = vi.fn();
+    render(
+      <MarketingFooter
+        brand="Atlas"
+        label="Footer"
+        columns={columns}
+        legal="Legal line."
+        onTheme={onTheme}
+      />,
+    );
+    const dark = screen.getByRole("radio", { name: "Dark" });
+    dark.focus();
+    await userEvent.keyboard("{ArrowRight}");
+    const light = screen.getByRole("radio", { name: "Light" });
+    expect(document.activeElement).toBe(light);
+    expect(light.getAttribute("aria-checked")).toBe("true");
+    expect(light.getAttribute("tabindex")).toBe("0");
+    expect(onTheme).toHaveBeenLastCalledWith("light");
+    await userEvent.keyboard("{End}");
+    expect(onTheme).toHaveBeenLastCalledWith("sunlight");
   });
 
   it("hands the theme to onTheme when given, and drops the controls when asked", async () => {

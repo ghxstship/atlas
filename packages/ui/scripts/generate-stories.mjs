@@ -23,7 +23,8 @@ function story(name, html) {
   const card = /@dsCard(?:\s+group="([^"]+)")?(?:\s+height=(\d+))?/.exec(html);
   const group = card?.[1] ?? "Foundations";
   const height = Number(card?.[2] ?? 240);
-  const script = /<script>([\s\S]*?)<\/script>/.exec(html)?.[1];
+  // The card's inline script: the bare opening tag in either case, up to a closing tag however it is spelled.
+  const script = /<script>([\s\S]*?)<\/script\b[^>]*>/i.exec(html)?.[1];
   if (!script) return null;
   const body = script
     .replace(/^\s*var X = window\.XOS, h = React\.createElement;\s*$/m, "")

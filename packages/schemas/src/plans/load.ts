@@ -94,7 +94,11 @@ const saleOfferingSchema = z.strictObject({
   basis: z.array(basisSchema).default([]),
 });
 
+/** A private.territories code, as its territories_code_format check reads. */
+const TERRITORY_CODE = /^[A-Z][A-Z0-9]{1,7}$/;
+
 const offeringSchema = z.strictObject({
+  open_territories: z.array(z.string().regex(TERRITORY_CODE)),
   features: z.record(z.string(), featureOfferingSchema),
   extra_seats: saleOfferingSchema,
   addons: z.record(z.string(), saleOfferingSchema).default({}),
@@ -316,6 +320,9 @@ export function validatePlans(raw: RawRegistry): string[] {
     }
   }
 
+  if (new Set(raw.offering.open_territories).size !== raw.offering.open_territories.length) {
+    issues.push(`offering.open_territories lists a territory twice`);
+  }
   if (!sameList(Object.keys(raw.offering.features), raw.features)) {
     issues.push(`offering.features must state exactly the features, in order`);
   }
@@ -445,6 +452,7 @@ function toRegistry(raw: RawRegistry): PlanRegistry {
     promotionCode: o.stripe.promotion_code,
   }));
   const offering: PlanOffering = {
+    openTerritories: raw.offering.open_territories,
     features: Object.fromEntries(
       Object.entries(raw.offering.features).map(([code, f]) => [
         code,

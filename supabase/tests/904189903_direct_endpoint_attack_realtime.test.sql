@@ -7,8 +7,10 @@
 -- Package 2 (the gate core) created this file. What the gate core decides passes today: for every case the verdict
 -- names an organization that refuses the session, which is what the Realtime policies will read. Refusing the
 -- change and the join is the work of work package 6: those cases are marked todo and name it, and it removes the
--- marks in this file. The staging probe of 2026-11-21 did not answer what a channel join policy can read (Q3b), so
--- the channel half of package 6 also waits for that question to be run again. No case is skipped, except that a
+-- marks in this file. The staging probe of 2026-11-21 did not answer what a channel join policy can read (Q3b); that
+-- question blocks no build, because the channel policies read the claims, and the staging step of the test plan
+-- decides the hosted join. Package 3 gates the helpers the channel and read policies rest on, so the join and change
+-- cases pass on a local stack while still marked; package 6 removes the marks. No case is skipped, except that a
 -- database on which Realtime has made no partition of realtime.messages for today cannot store a message at all;
 -- the channel cases then say so by name instead of running.
 begin;
@@ -65,7 +67,7 @@ begin
   end if;
   perform pg_temp.join_channel();
   if p_todo then
-    perform todo('work package 6 (Realtime), once probe question 3b is answered, refuses the join of a private channel', 2);
+    perform todo('work package 6 (Realtime) refuses the join of a private channel through private.ensure_realtime_channel_policies', 2);
   end if;
   return next is(pg_temp.received(), 0, p_label || ': a private channel delivers nothing to the session');
   return next throws_ok(pg_temp.send(), '42501', null, p_label || ': and takes nothing from it');

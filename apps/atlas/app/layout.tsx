@@ -72,6 +72,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
           timeZone={time.timeZone}
         >
           <XOSProvider locale={formatting} preferences={preferences} messages={overrides}>
+            {/* First in the DOM and drawn as a bar at the bottom edge, after the page (@xos/ui ConsentBanner/bar.ts). */}
             {bannerOff ? null : <ConsentBanner />}
             {children}
             <PwaRuntime analytics={analytics && !publicLive} />

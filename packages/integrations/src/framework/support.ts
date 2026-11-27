@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { usesClientCredentials } from "./catalog.ts";
 import { IntegrationError } from "./errors.ts";
+import { withoutTrailing } from "./text.ts";
 
 /**
  * A credential as read from Vault. OAuth connectors store JSON (`{"access_token": ..., "realm_id": ...}`);
@@ -125,7 +126,7 @@ export function decimalToMinor(amount: string | number, exponent: number): bigin
   const match = /^(-)?(\d+)(?:\.(\d+))?$/.exec(text);
   if (match === null)
     throw new IntegrationError("amount_malformed", `${text} is not a decimal amount.`);
-  const fraction = (match[3] ?? "").replace(/0+$/, "");
+  const fraction = withoutTrailing(match[3] ?? "", "0");
   if (fraction.length > exponent) {
     throw new IntegrationError(
       "amount_precision",

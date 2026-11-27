@@ -52,8 +52,8 @@ select is((select column_default from information_schema.columns
   'a partner agreement defaults to the 30 percent wholesale discount');
 select is((select count(*)::integer from private.plan_features where plan_code = 'enterprise'), 23,
   'Enterprise keeps every feature');
-select is((select count(*)::integer from private.plan_features where plan_code = 'core'), 5,
-  'Core keeps its features');
+select is((select count(*)::integer from private.plan_features where plan_code = 'core'), 6,
+  'Core keeps its features, with the support session controls every plan has since plan seed 904190501');
 
 select * from finish();
 rollback;

@@ -67,6 +67,8 @@ let accepted: { document_slug: string }[];
 let recorded: Record<string, unknown>[];
 /** Age confirmations written through app.confirm_minimum_age (migration 1381). */
 let ages: Record<string, unknown>[];
+/** How the session authenticated, as the access token's `amr` claim lists it; a reset link adds `recovery`. */
+let sessionAmr: { method: string; timestamp: number }[] | undefined;
 
 function json(body: unknown): Response {
   return new Response(JSON.stringify(body), { headers: { "content-type": "application/json" } });
@@ -76,7 +78,11 @@ const b64url = (text: string) => Buffer.from(text).toString("base64url");
 
 function session(): Record<string, unknown> {
   const now = Math.floor(Date.now() / 1000);
-  const claims = { sub: "4f1c2e7a-0000-4000-8000-000000000127", exp: now + 3600 };
+  const claims = {
+    sub: "4f1c2e7a-0000-4000-8000-000000000127",
+    exp: now + 3600,
+    ...(sessionAmr ? { amr: sessionAmr } : {}),
+  };
   return {
     access_token: [b64url('{"alg":"HS256"}'), b64url(JSON.stringify(claims)), "sig"].join("."),
     token_type: "bearer",
@@ -103,6 +109,7 @@ beforeEach(() => {
   accepted = [];
   recorded = [];
   ages = [];
+  sessionAmr = undefined;
   confirmed = false;
   signOuts = [];
   closing = [];
@@ -321,6 +328,20 @@ describe("Gateway: the Worker Terms for an account Google created (A59-025)", ()
     expect(start.pathname).toBe("/auth/v1/authorize");
     const { to } = await callback("code=abc&next=%2Fauth%2Fclaim");
     expect(to.pathname).toBe("/auth/claim");
+  });
+
+  it("writes a pending acceptance when a reset link is the first session, then sets the password", async () => {
+    // Signed up with a password, never opened the confirmation email, used Forgot password: the reset link confirms the
+    // address and is the account's first session.
+    userMetadata = {
+      pending_legal_acceptances: [{ slug: "worker-terms", version: "1.0.0" }],
+    };
+    sessionAmr = [{ method: "recovery", timestamp: Math.floor(Date.now() / 1000) }];
+    await startWith({ provider: "google" });
+    const { to } = await callback("code=abc&next=%2Fauth%2Fclaim");
+    expect(to.pathname).toBe("/auth/reset-password");
+    expect(recorded).toHaveLength(1);
+    expect(JSON.stringify(recorded[0])).toContain("worker-terms");
   });
 
   it("records the acceptance with the current versions, then continues", async () => {

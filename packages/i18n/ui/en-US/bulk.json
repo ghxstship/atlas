@@ -1,0 +1,8 @@
+{
+  "bulk": {
+    "clear": "Clear selection",
+    "label": "Bulk actions",
+    "selected": "{n} selected",
+    "itemSelected": "Selected"
+  }
+}

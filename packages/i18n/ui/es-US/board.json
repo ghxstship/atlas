@@ -1,0 +1,9 @@
+{
+  "board": {
+    "add": "Nuevo registro",
+    "dropped": "{title} soltado en {column}.",
+    "moved": "{title} movido a {column}.",
+    "picked": "{title} tomado en {column}. Las flechas lo mueven, Espacio lo suelta, Escape cancela.",
+    "returned": "{title} devuelto a {column}."
+  }
+}

@@ -10,6 +10,8 @@ const KNOWN = new Set([
   "over_email_send_rate_limit",
   "over_request_rate_limit",
   "provider_disabled",
+  // The callback's own key for a used or expired emailed link: /auth/sign-in?error=link_invalid reads it back.
+  "link_invalid",
   "oauth_cancelled",
   "oauth_expired",
   "provider_error",

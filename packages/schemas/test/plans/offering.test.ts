@@ -1,10 +1,13 @@
-import { existsSync, readFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
   PLANS_YAML_PATH,
   PLAN_OFFERING,
+  PLAN_OFFERING_JSON,
   PLAN_OFFERING_MODULE,
+  PLAN_SEED_MIGRATION,
   PlanRegistryError,
   addonOffering,
   addonOnSale,
@@ -12,8 +15,10 @@ import {
   isPlanFeatureOffered,
   loadPlanRegistry,
   offeredPlanFeatures,
+  openTerritoryCodes,
   parsePlanRegistry,
   planFeatureOffering,
+  renderPlanOfferingJson,
   renderPlanOfferingModule,
   type OfferingBasis,
   type PlanOffering,
@@ -77,6 +82,77 @@ describe("the offering section of plans.yaml", () => {
     expect(rendered).toContain(JSON.stringify(offering, null, 2));
   });
 
+  it("ships as JSON beside the module, readable with no loader and equal to plans.yaml (issue 125)", () => {
+    const committed = readFileSync(`${packageRoot}${PLAN_OFFERING_JSON}`, "utf8");
+    expect(JSON.parse(committed)).toEqual(offering);
+    expect(JSON.parse(renderPlanOfferingJson(registry))).toEqual(offering);
+    const manifest = JSON.parse(readFileSync(`${packageRoot}package.json`, "utf8")) as {
+      exports: Record<string, string>;
+    };
+    expect(manifest.exports["./plans/offering.json"]).toBe(`./${PLAN_OFFERING_JSON}`);
+    // Plain Node, with no TypeScript loader and no flag, reads the file through the package export.
+    const printed = execFileSync(
+      process.execPath,
+      [
+        "--input-type=module",
+        "--eval",
+        'import { createRequire } from "node:module"; const o = createRequire(import.meta.url)("@xos/schemas/plans/offering.json"); console.log(JSON.stringify([o.openTerritories, o.features.eu_data_residency.status, o.extraSeats.status]));',
+      ],
+      { cwd: packageRoot, encoding: "utf8" },
+    );
+    expect(JSON.parse(printed)).toEqual([["US"], "territory", "not_on_sale"]);
+  });
+
+  it("lists the open territories as the migrations seed them (ADR 0160, issue 125)", () => {
+    const seeded = readdirSync(`${repoRoot}supabase/migrations`)
+      .filter((file) => file.endsWith(".sql"))
+      .sort()
+      .flatMap((file) => {
+        const text = read(`supabase/migrations/${file}`);
+        const inserts = text.matchAll(
+          /^insert into private\.territories \(code, name_en, name_es, offered, change_reason\) values\n([\s\S]*?);$/gm,
+        );
+        return [...inserts].flatMap((insert) =>
+          [
+            ...(insert[1] ?? "").matchAll(/^\s*\('([A-Z0-9]+)', '.*?', '.*?', (true|false), /gm),
+          ].map((row): [string, boolean] => [row[1] ?? "", row[2] === "true"]),
+        );
+      });
+    expect(seeded.length).toBeGreaterThan(1);
+    expect(offering.openTerritories).toEqual(
+      seeded.filter(([, open]) => open).map(([code]) => code),
+    );
+    expect(openTerritoryCodes()).toEqual(["US"]);
+    // No migration opens or closes a territory outside the seed and the console functions.
+    const statements = readdirSync(`${repoRoot}supabase/migrations`)
+      .map((file) => read(`supabase/migrations/${file}`))
+      .join("\n")
+      .match(/^update private\.territories\b/gm);
+    expect(statements).toBeNull();
+    // Every territory a feature is offered in is one the database knows.
+    const known = seeded.map(([code]) => code);
+    for (const feature of Object.values(offering.features)) {
+      if (feature.territory !== null) expect(known).toContain(feature.territory);
+    }
+    // The pgTAP file of the current plan seed holds the database to the same list.
+    expect(
+      read(PLAN_SEED_MIGRATION.replace("/migrations/", "/tests/").replace(/\.sql$/, ".test.sql")),
+    ).toContain(`$$values ${offering.openTerritories.map((code) => `('${code}')`).join(", ")}$$`);
+  });
+
+  it("puts support session controls on the plan that first includes them, the free plan (issue 125)", () => {
+    expect(registry.plans.map((p) => p.features.includes("support_session_controls"))).toEqual(
+      registry.plans.map(() => true),
+    );
+    expect(registry.plans[0]?.free).toBe(true);
+    expect(registry.plans[0]?.features).toEqual(["support_session_controls"]);
+    // Each plan above lists only what it adds, so the code appears once in the plan lists of the file.
+    expect(yamlText.match(/^ +(?:features: )?\[.*\bsupport_session_controls\b.*\]$/gm)).toEqual([
+      "    features: [support_session_controls]",
+    ]);
+    expect(offering.features["support_session_controls"]?.status).toBe("offered");
+  });
+
   it("explains each status in a comment block at the top of the section", () => {
     const comment = yamlText.slice(
       yamlText.indexOf("# What is offered and on sale today"),
@@ -117,6 +193,7 @@ describe("offering helpers", () => {
     expect(isPlanFeatureOffered("branded_compass_build")).toBe(false);
     expect(isPlanFeatureOffered("legend_early_access", ["US", "EEA"])).toBe(false);
     expect(isPlanFeatureOffered("eu_data_residency")).toBe(false);
+    expect(isPlanFeatureOffered("eu_data_residency", [])).toBe(false);
     expect(isPlanFeatureOffered("eu_data_residency", ["US"])).toBe(false);
     expect(isPlanFeatureOffered("eu_data_residency", ["US", "EEA"])).toBe(true);
   });
@@ -147,13 +224,24 @@ describe("offering helpers", () => {
     expect(extraSeatsOnSale()).toBe(false);
     expect(addonOnSale("aurora_requests_1000")).toBe(false);
     const open: PlanOffering = {
-      features: { scim: { status: "territory", territory: null, basis: [] } },
+      openTerritories: ["EEA"],
+      features: {
+        scim: { status: "territory", territory: null, basis: [] },
+        eu_data_residency: { status: "territory", territory: "EEA", basis: [] },
+      },
       extraSeats: { status: "on_sale", basis: [] },
       addons: { aurora_requests_1000: { status: "on_sale", basis: [] } },
     };
     expect(extraSeatsOnSale(open)).toBe(true);
     expect(addonOnSale("aurora_requests_1000", open)).toBe(true);
     expect(isPlanFeatureOffered("scim", ["EEA"], open)).toBe(false);
+    // With no territories passed, the offering's own open territories decide; passed ones replace them.
+    expect(openTerritoryCodes(open)).toEqual(["EEA"]);
+    expect(isPlanFeatureOffered("eu_data_residency", undefined, open)).toBe(true);
+    expect(offeredPlanFeatures(["eu_data_residency"], undefined, open)).toEqual([
+      "eu_data_residency",
+    ]);
+    expect(isPlanFeatureOffered("eu_data_residency", ["US"], open)).toBe(false);
   });
 });
 
@@ -188,6 +276,19 @@ describe("offering validation", () => {
       /exactly the features, in order/,
     ],
     ["an unknown status", "    scim: { status: offered }", "    scim: { status: soon }", /status/],
+    ["no list of open territories", "  open_territories: [US]\n", "", /open_territories/],
+    [
+      "an open territory listed twice",
+      "  open_territories: [US]\n",
+      "  open_territories: [US, US]\n",
+      /offering\.open_territories lists a territory twice/,
+    ],
+    [
+      "an open territory that is not a territory code",
+      "  open_territories: [US]\n",
+      "  open_territories: [us]\n",
+      /open_territories/,
+    ],
     [
       "a feature withheld with no basis",
       "    scim: { status: offered }",

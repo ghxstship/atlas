@@ -1,4 +1,5 @@
-import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
+import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { betaLocales, launchLocales } from "../src/locales.ts";
 
@@ -12,6 +13,10 @@ import { betaLocales, launchLocales } from "../src/locales.ts";
  * every key a Beta catalog lacks falls back to en-US. Each Beta locale gets its own module,
  * src/beta/<locale>.generated.ts, which src/load.ts imports only when that locale is asked for, so no
  * bundle carries every catalog.
+ *
+ * It also writes the `ui` namespace one message group at a time, ui/<locale>/<group>.json, and the
+ * cuts ui-cuts.json names, ui-cuts/<locale>/<cut>.json, for a page that ships part of that namespace
+ * to the browser (lockstep issue 123).
  */
 const root = fileURLToPath(new URL("../", import.meta.url));
 const LOCALES = launchLocales;
@@ -170,7 +175,59 @@ const betaIndex = [
   "",
 ].join("\n");
 
+/**
+ * The `ui` namespace by message group (lockstep issue 123). @xos/ui falls back to the whole en-US
+ * `ui` file, most of it product copy. A public page imports only the groups its components read:
+ * ui/<locale>/<group>.json holds one group under its own key, so spreading several of them gives a
+ * catalog of the shape of ui.json. ui-cuts.json names the cuts that ship ready-made, and
+ * ui-cuts/<locale>/<cut>.json holds each: `marketing` is every group the Marketing layer of @xos/ui
+ * reads, which a test in that package holds to its imports. Launch locales only: a Beta locale's
+ * strings reach a page through its provider.
+ */
+const uiCuts = JSON.parse(readFileSync(`${root}ui-cuts.json`, "utf8")) as Record<string, string[]>;
+const json = (value: unknown) => `${JSON.stringify(value, null, 2)}\n`;
+const uiGroups = Object.keys(
+  JSON.parse(readFileSync(`${root}messages/en-US/ui.json`, "utf8")) as Record<string, unknown>,
+);
+const uiOutputs: Record<string, string> = {};
+for (const locale of LOCALES) {
+  const ui = JSON.parse(readFileSync(`${root}messages/${locale}/ui.json`, "utf8")) as Record<
+    string,
+    unknown
+  >;
+  for (const group of uiGroups) {
+    if (!NAMESPACE.test(group) || ui[group] === undefined) {
+      console.error(`messages/${locale}/ui.json: ${group} is not a camelCase message group there.`);
+      process.exit(1);
+    }
+    uiOutputs[`ui/${locale}/${group}.json`] = json({ [group]: ui[group] });
+  }
+  for (const [cut, groups] of Object.entries(uiCuts)) {
+    const unknown = groups.filter((group) => !uiGroups.includes(group));
+    if (!NAMESPACE.test(cut) || unknown.length > 0 || groups.join() !== [...groups].sort().join()) {
+      console.error(
+        `ui-cuts.json: ${cut} must be a camelCase name with a sorted list of ui message groups${unknown.length > 0 ? `; ${unknown.join(", ")} is not one` : ""}.`,
+      );
+      process.exit(1);
+    }
+    uiOutputs[`ui-cuts/${locale}/${cut}.json`] = json(
+      Object.fromEntries(groups.map((group) => [group, ui[group]])),
+    );
+  }
+}
+/** Generated files under ui/ and ui-cuts/ that no group or cut produces any more. */
+const staleUi = ["ui", "ui-cuts"].flatMap((dir) =>
+  LOCALES.flatMap((locale) =>
+    existsSync(`${root}${dir}/${locale}`)
+      ? readdirSync(`${root}${dir}/${locale}`)
+          .map((file) => `${dir}/${locale}/${file}`)
+          .filter((file) => !(file in uiOutputs))
+      : [],
+  ),
+);
+
 const outputs: Record<string, string> = {
+  ...uiOutputs,
   "src/catalogs.generated.ts": lines.join("\n"),
   "src/extracts.generated.ts": extractLines.join("\n"),
   "src/beta.generated.ts": betaIndex,
@@ -193,11 +250,19 @@ if (process.argv.includes("--check")) {
       process.exit(1);
     }
   }
+  if (staleUi.length > 0) {
+    console.error(`${staleUi.join(", ")} has no source any more. Run generate:catalogs.`);
+    process.exit(1);
+  }
   console.log("The generated catalog modules match the message files.");
 } else {
   mkdirSync(`${root}src/beta`, { recursive: true });
-  for (const [file, output] of Object.entries(outputs)) writeFileSync(`${root}${file}`, output);
+  for (const file of staleUi) rmSync(`${root}${file}`);
+  for (const [file, output] of Object.entries(outputs)) {
+    mkdirSync(dirname(`${root}${file}`), { recursive: true });
+    writeFileSync(`${root}${file}`, output);
+  }
   console.log(
-    `Wrote src/catalogs.generated.ts with ${namespaces.length} namespaces, ${Object.keys(extracts).length} client extracts and ${betaLocales.length} Beta catalog modules.`,
+    `Wrote src/catalogs.generated.ts with ${namespaces.length} namespaces, ${Object.keys(extracts).length} client extracts, ${betaLocales.length} Beta catalog modules and ${Object.keys(uiOutputs).length} files of the ui namespace by group.`,
   );
 }

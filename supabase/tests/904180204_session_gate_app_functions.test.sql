@@ -233,8 +233,10 @@ select pg_temp.gate('ended', 'enforce');
 select throws_ok($$select pg_temp.private_text('select private.require_second_factor(''create an API key'')::text')$$, 'XR001',
   'session_ended: This session was signed out. Sign in again to create an API key.',
   'ended enforce: a session with no live row cannot step up');
-select throws_ok($$select * from app.create_api_key(pg_temp.id('org_a'), 'Payroll sync', array['crew'], now() + interval '30 days')$$, 'XR001',
-  'session_ended: This session was signed out. Sign in again to create an API key.',
+-- Since 904190901 the gated helpers leave the signed-out session no organization, so the function refuses it at its
+-- capability check, before it reaches the step-up check above.
+select throws_ok($$select * from app.create_api_key(pg_temp.id('org_a'), 'Payroll sync', array['crew'], now() + interval '30 days')$$, '42501',
+  'organization not found',
   'ended enforce: a step-up function refuses the signed-out session at aal2');
 select pg_temp.as_session('alice', 'aal2', interval '10 minutes');
 select lives_ok($$select pg_temp.private_text('select private.require_second_factor(''create an API key'')::text')$$,

@@ -14,6 +14,12 @@ export {
   extraSeatsOnSale,
   isPlanFeatureOffered,
   offeredPlanFeatures,
+  openTerritoryCodes,
   planFeatureOffering,
 } from "./offering.ts";
-export { PLAN_OFFERING_MODULE, renderPlanOfferingModule } from "./offering-module.ts";
+export {
+  PLAN_OFFERING_JSON,
+  PLAN_OFFERING_MODULE,
+  renderPlanOfferingJson,
+  renderPlanOfferingModule,
+} from "./offering-module.ts";

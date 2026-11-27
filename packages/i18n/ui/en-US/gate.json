@@ -1,0 +1,11 @@
+{
+  "gate": {
+    "allMet": "All blocking criteria met.",
+    "blocking": "Blocking",
+    "criteriaMet": "Criteria met",
+    "metCount": "{met} of {total} met",
+    "openMany": "{n} blocking criteria open.",
+    "openOne": "{n} blocking criterion open.",
+    "readiness": "Gate readiness"
+  }
+}

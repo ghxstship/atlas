@@ -1,0 +1,11 @@
+{
+  "stale": {
+    "basis": "la fecha de la evidencia",
+    "current": "Vigente",
+    "degraded": "Degradado un nivel",
+    "expired": "Vencido",
+    "modeled": "Modelado",
+    "months": "{n} meses",
+    "title": "{n} meses desde {basis}"
+  }
+}

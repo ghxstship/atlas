@@ -1,0 +1,13 @@
+{
+  "budget": {
+    "amount": "Amount",
+    "costCenter": "Cost Center",
+    "gl": "GL Account",
+    "grade": "Grade",
+    "line": "Line",
+    "qty": "Qty",
+    "rate": "Rate",
+    "unmapped": "Unmapped Account",
+    "urid": "URID"
+  }
+}

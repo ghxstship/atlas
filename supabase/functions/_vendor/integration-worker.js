@@ -3,7 +3,12 @@
 import { csvField } from "./chunks/data-client.js";
 import { warehouseProvider } from "./chunks/data-enums-generated.js";
 import "./chunks/data-result.js";
-import { StoreError, asDbClient, unwrap } from "./chunks/integrations-framework-db.js";
+import {
+  StoreError,
+  asDbClient,
+  unwrap,
+  withoutTrailing,
+} from "./chunks/integrations-framework-text.js";
 import {
   chatConnectors,
   integrationsTranslator,
@@ -431,7 +436,7 @@ function objectUrl(target, key) {
   const region = target.region ?? "us-east-1";
   if (target.endpointUrl === null)
     return new URL(`https://${target.bucket}.s3.${region}.amazonaws.com/${encodeKey(key)}`);
-  const base = target.endpointUrl.replace(/\/+$/, "");
+  const base = withoutTrailing(target.endpointUrl, "/");
   return new URL(`${base}/${encodeURIComponent(target.bucket)}/${encodeKey(key)}`);
 }
 /** Signs a PUT of `body` to `key` (AWS Signature Version 4, service s3, unsigned query). */

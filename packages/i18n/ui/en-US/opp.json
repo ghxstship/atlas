@@ -1,0 +1,8 @@
+{
+  "opp": {
+    "apply": "Apply",
+    "missing": "Missing: {list}",
+    "qualified": "You meet every requirement",
+    "search": "Search opportunities"
+  }
+}

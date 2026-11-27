@@ -431,6 +431,13 @@ kinds:
     emitted_by:
       - emitter: supabase/migrations/1203_break_glass_sessions.sql#app.start_break_glass
         test: supabase/tests/1203_break_glass_sessions.test.sql
+  # ADR 0169 D8 (904190902): support suspended one session rule of the org for at most 24 hours, for lockout
+  # recovery. It goes to the Owners, for the platform: the operator is in the audit ledger, never on the notice.
+  - kind: access.session_rule_suspended
+    category: account
+    emitted_by:
+      - emitter: supabase/migrations/904190902_session_gate_override_writer.sql#app.suspend_session_gate_control
+        test: supabase/tests/904190902_session_gate_override_writer.test.sql
   # Org lifecycle: trial, deletion and recovery, ownership, white label, partners (A79, 1350 to 1355)
   - kind: billing.trial_ending
     category: account

@@ -5,3 +5,5 @@ BrandMark renders the tenant's logo, switching light and dark files with the the
 - Props: `name` (required, also the alt text), `logoLight`, `logoDark`, `monogram`, `size` (`sm` 20 px, `md` 28 px, `lg` 40 px), `iconOnly`.
 - With no logo uploaded, the monogram tile uses `accent-default` and `accent-text-on`, so it follows the tenant accent automatically.
 - The platform brand marks are not set yet; until they are, the platform also renders through this fallback.
+
+`@xos/ui/marketing` exports BrandMark too. It holds no state and prints no shared string, so a server component renders it with no client module.

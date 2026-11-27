@@ -1,0 +1,6 @@
+{
+  "incident": {
+    "help": "Los tipos críticos se confirman manteniendo presionado. Los reportes se ponen en cola sin conexión y se envían al reconectarse.",
+    "title": "Reportar incidente"
+  }
+}

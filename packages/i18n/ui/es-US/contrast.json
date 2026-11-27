@@ -1,0 +1,7 @@
+{
+  "contrast": {
+    "fail": "No cumple AA",
+    "pass": "Cumple AA",
+    "ratio": "{r}:1"
+  }
+}

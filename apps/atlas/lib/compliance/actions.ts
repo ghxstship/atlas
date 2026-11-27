@@ -13,6 +13,7 @@ import { z } from "zod";
 import { usComplianceFormsOn } from "@/lib/compliance/flag";
 import { errorKey, type ActionState } from "@/lib/operations/state";
 import { getOrgContext } from "@/lib/shell/context";
+import { orgToday } from "@/lib/shell/time-zone";
 
 /**
  * Section 14.5 compliance records (ADR 0041): OSHA establishments, cases and annual summaries
@@ -133,7 +134,8 @@ export async function saveOshaSummaryAction(_: ActionState, form: FormData): Pro
     certifiedBy: certify ? (ctx.viewer.person?.id ?? null) : null,
     certifierTitle: input.data.title,
     certifierPhone: input.data.phone,
-    certifiedOn: certify ? new Date().toISOString().slice(0, 10) : null,
+    // Certified today on the org's calendar, never the UTC date, a day ahead on an American evening.
+    certifiedOn: certify ? await orgToday(ctx) : null,
   });
   if (!saved.ok) return { error: errorKey(saved.error) };
   revalidatePath(`/${ctx.org.slug}/settings/locations-and-venues`);
@@ -232,7 +234,8 @@ export async function recordOshaCaseAction(_: ActionState, form: FormData): Prom
     completed_by: ctx.viewer.person?.id ?? null,
     completed_title: d.completedTitle,
     completed_phone: d.completedPhone,
-    completed_on: new Date().toISOString().slice(0, 10),
+    // Completed today on the org's calendar, never the UTC date.
+    completed_on: await orgToday(ctx),
   });
   if (!saved.ok) return { error: errorKey(saved.error) };
   revalidatePath(`/${ctx.org.slug}/safety/incidents`);

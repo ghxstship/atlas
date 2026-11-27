@@ -579,6 +579,8 @@ export {
   AIDisclosureBadge,
   CodeSample,
   MarketingFooter,
+  MarketingPoints,
+  PlanLimits,
   type MarketingLocaleProps,
   type MarketingLink,
   type Persona,
@@ -603,4 +605,6 @@ export {
   type AIDisclosureBadgeProps,
   type CodeSampleProps,
   type MarketingFooterProps,
+  type MarketingPointsProps,
+  type PlanLimitsProps,
 } from "./Marketing/Marketing.tsx";

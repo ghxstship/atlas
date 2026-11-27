@@ -1,39 +1,56 @@
 <!doctype html>
-<html lang="en" dir="ltr">
+<html lang="en-US" dir="ltr" xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="color-scheme" content="light">
+    <meta name="x-apple-disable-message-reformatting">
+    <meta name="color-scheme" content="light dark">
+    <meta name="supported-color-schemes" content="light dark">
     <title>Your XOS confirmation code</title>
+    <style>
+      :root{color-scheme:light dark;supported-color-schemes:light dark}
+      @media (prefers-color-scheme: dark){.x-bg{background-color:#16171A !important}.x-card{background-color:#1C1D21 !important;border-color:#26272C !important}.x-text{color:#EDEEF0 !important}.x-muted{color:#A0A3AB !important}.x-link{color:#8B92F5 !important}.x-rule{border-color:#26272C !important}.x-btn{background-color:#5B63E8 !important}.x-code{background-color:#16171A !important;color:#EDEEF0 !important}}
+      [data-ogsc] .x-bg{background-color:#16171A !important}[data-ogsc] .x-card{background-color:#1C1D21 !important;border-color:#26272C !important}[data-ogsc] .x-text{color:#EDEEF0 !important}[data-ogsc] .x-muted{color:#A0A3AB !important}[data-ogsc] .x-link{color:#8B92F5 !important}[data-ogsc] .x-rule{border-color:#26272C !important}[data-ogsc] .x-btn{background-color:#5B63E8 !important}[data-ogsc] .x-code{background-color:#16171A !important;color:#EDEEF0 !important}
+      a{text-decoration:underline}
+      @media (max-width:640px){.x-pad{padding:24px !important}}
+    </style>
   </head>
-  <!-- XOS platform email (Supabase Auth), in the look of packages/email's layout and its Light theme tokens. Edit the
-       wording here and in supabase/config.toml's subjects together; packages/email/test/auth-templates.test.ts checks them. -->
-  <body style="margin:0;padding:24px 0;background-color:#F7F7F8;font-family:Inter,'Inter Variable',system-ui,-apple-system,'Segoe UI',sans-serif">
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#F7F7F8">
+  <!-- Generated from packages/email/src/auth-templates.ts by `pnpm --filter @xos/email auth-templates`. Never edit by hand:
+       edit the module, regenerate, and keep supabase/config.toml's subject in step (packages/email/test/auth-templates.test.ts). -->
+  <body class="x-bg" style="margin:0;padding:0;background-color:#F7F7F8;font-family:Inter, 'Inter Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;-webkit-text-size-adjust:100%">
+    <div style="display:none;max-height:0;overflow:hidden;mso-hide:all">Your XOS confirmation code is inside.</div>
+    <table role="presentation" class="x-bg" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#F7F7F8" style="background-color:#F7F7F8">
       <tr>
-        <td align="center" style="padding:0 16px">
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background-color:#FFFFFF;border:1px solid #E6E6E9;border-radius:12px">
+        <td align="center" style="padding:24px 16px">
+          <table role="presentation" class="x-card" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#FFFFFF" style="max-width:560px;background-color:#FFFFFF;border:1px solid #E6E6E9;border-radius:8px">
             <tr>
-              <td style="padding:32px">
-                <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+              <td class="x-pad" style="padding:32px;font-family:Inter, 'Inter Variable', system-ui, -apple-system, 'Segoe UI', sans-serif">
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0">
                   <tr>
-                    <td style="padding:0 0 24px;font-size:20px;line-height:1.2;font-weight:700;letter-spacing:2px;color:#17181C">XOS</td>
+                    <td class="x-btn" width="32" height="32" align="center" valign="middle" bgcolor="#4F57D9" aria-hidden="true" style="width:32px;height:32px;border-radius:6px;background-color:#4F57D9;color:#FFFFFF;font-size:16px;line-height:1.2;font-weight:600;line-height:32px;font-weight:700">X</td>
+                    <td class="x-text" style="padding:0 0 0 8px;font-size:20px;line-height:1.2;font-weight:600;line-height:32px;color:#17181C">XOS</td>
                   </tr>
-                  <tr>
-                    <td style="padding:0 0 16px"><h1 style="margin:0;font-size:20px;line-height:1.25;font-weight:600;color:#17181C">Confirm it is you</h1></td>
-                  </tr>
-          <tr>
-            <td style="padding:0 0 16px;font-size:14px;line-height:1.45;color:#17181C">Enter this code in XOS to confirm the change you are making. It expires soon.</td>
-          </tr>
-          <tr>
-            <td style="padding:8px 0 24px;font-size:28px;line-height:1.2;font-weight:600;letter-spacing:4px;color:#17181C;font-family:ui-monospace,SFMono-Regular,Menlo,monospace">{{ .Token }}</td>
-          </tr>
-                  <tr>
-                    <td style="padding:24px 0 0;border-top:1px solid #E6E6E9;font-size:12px;line-height:1.45;color:#5B5E66">You are receiving this email because a change on this XOS account needs your confirmation. If it was not you, do not share the code, and review your account's security.</td>
-                  </tr>
-                  <tr>
-                    <td style="padding:8px 0 0;font-size:12px;line-height:1.45;color:#5B5E66">Sent by XOS, 66 W Flagler St, Suite 900, PMB 12524, Miami, FL 33130.</td>
-                  </tr>
+                </table>
+                <div style="height:24px;line-height:24px;font-size:0">&nbsp;</div>
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" lang="en-US">
+                  <tr><td style="padding:0 0 16px"><h1 class="x-text" style="margin:0;font-size:20px;line-height:1.2;font-weight:600;color:#17181C">Your confirmation code</h1></td></tr>
+                  <tr><td class="x-text" style="padding:0 0 16px;font-size:14px;line-height:1.45;font-weight:400;color:#17181C">Enter this code in XOS to confirm a change to the account of <strong>{{ .Email }}</strong>.</td></tr>
+                  <tr><td style="padding:0 0 16px"><table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td class="x-code" style="padding:12px 20px;background-color:#F7F7F8;border-radius:6px;font-family:'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;font-size:32px;line-height:1.2;font-weight:600;letter-spacing:4px;color:#17181C">{{ .Token }}</td></tr></table></td></tr>
+                  <tr><td class="x-muted" style="padding:0 0 8px;font-size:12px;line-height:1.45;font-weight:400;color:#5B5E66">The code works once and expires in 1 hour.</td></tr>
+                  <tr><td class="x-muted" style="padding:0 0 8px;font-size:12px;line-height:1.45;font-weight:400;color:#5B5E66">If you did not ask for a code, someone may know your password. Reset it at <a href="{{ .SiteURL }}/auth/forgot-password" class="x-link" style="color:#4F57D9">{{ .SiteURL }}/auth/forgot-password</a> and never share this code.</td></tr>
+                </table>
+                <div class="x-rule" style="height:16px;line-height:16px;font-size:0;border-top:1px solid #E6E6E9;margin-top:16px">&nbsp;</div>
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" lang="es-US">
+                  <tr><td style="padding:0 0 16px"><h2 class="x-text" style="margin:0;font-size:16px;line-height:1.2;font-weight:600;color:#17181C">Tu código de confirmación</h2></td></tr>
+                  <tr><td class="x-text" style="padding:0 0 16px;font-size:14px;line-height:1.45;font-weight:400;color:#17181C">Escribe este código en XOS para confirmar un cambio en la cuenta de <strong>{{ .Email }}</strong>.</td></tr>
+                  <tr><td style="padding:0 0 16px"><table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td class="x-code" style="padding:12px 20px;background-color:#F7F7F8;border-radius:6px;font-family:'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;font-size:32px;line-height:1.2;font-weight:600;letter-spacing:4px;color:#17181C">{{ .Token }}</td></tr></table></td></tr>
+                  <tr><td class="x-muted" style="padding:0 0 8px;font-size:12px;line-height:1.45;font-weight:400;color:#5B5E66">El código funciona una vez y vence en 1 hora.</td></tr>
+                  <tr><td class="x-muted" style="padding:0 0 8px;font-size:12px;line-height:1.45;font-weight:400;color:#5B5E66">Si no pediste un código, alguien podría conocer tu contraseña. Restablécela y nunca compartas este código.</td></tr>
+                </table>
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                  <tr><td class="x-muted x-rule" style="padding:16px 0 0;border-top:1px solid #E6E6E9;font-size:12px;line-height:1.45;font-weight:400;color:#5B5E66">Questions? Write to <a href="mailto:support@ghxstship.pro" class="x-link" style="color:#4F57D9">support@ghxstship.pro</a>. / ¿Preguntas? Escribe a <a href="mailto:support@ghxstship.pro" class="x-link" style="color:#4F57D9">support@ghxstship.pro</a>.</td></tr>
+                  <tr><td class="x-muted" style="padding:8px 0 0;font-size:12px;line-height:1.45;font-weight:400;color:#5B5E66">You are receiving this email because of activity on your XOS account. / Recibes este correo por actividad en tu cuenta de XOS.</td></tr>
+                  <tr><td class="x-muted" style="padding:8px 0 0;font-size:12px;line-height:1.45;font-weight:400;color:#5B5E66">Sent by XOS, GHXSTSHIP Industries LLC, 66 W Flagler St, Suite 900, PMB 12524, Miami, FL 33130, United States.</td></tr>
                 </table>
               </td>
             </tr>

@@ -42,6 +42,13 @@ const TOKEN = /(^|\s)([@#/~])([\p{L}\p{N}][\p{L}\p{N}_.-]*)/gu;
 const URID = /^\d{4}\.\d{2}\.\d{2}$/;
 
 /** Whether a sigil's text names something of its type: people, tags and kinds start with a letter. */
+/** A token's body without the dots, underscores and hyphens at its end, which belong to the sentence around it. */
+function withoutTrailingPunctuation(body: string): string {
+  let end = body.length;
+  while (end > 0 && "._-".includes(body.charAt(end - 1))) end--;
+  return body.slice(0, end);
+}
+
 function accepts(type: QuickAddTokenType, body: string): boolean {
   if (body === "") return false;
   if (type === "tag") return /^\p{L}/u.test(body) || URID.test(body);
@@ -131,7 +138,7 @@ export function parseQuickAdd(text: string, options: Date | QuickAddOptions = {}
   let masked = text;
   for (const match of text.matchAll(TOKEN)) {
     const type = SIGIL_TYPES[match[2] ?? ""];
-    const body = (match[3] ?? "").replace(/[._-]+$/u, "");
+    const body = withoutTrailingPunctuation(match[3] ?? "");
     if (type === undefined || !accepts(type, body)) continue;
     const index = (match.index ?? 0) + (match[1] ?? "").length;
     masked = blank(masked, index, body.length + 1);

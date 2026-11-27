@@ -37,10 +37,20 @@ function lengthPrefix(length: number): Uint8Array {
 
 /** Reads clamd's reply into a verdict. Anything that is not OK or FOUND is not a verdict. */
 export function parseClamdReply(reply: string): ScanVerdict {
-  const text = reply.replace(/\0+$/, "").trim();
+  let end = reply.length;
+  while (end > 0 && reply.charCodeAt(end - 1) === 0) end--;
+  const text = reply.slice(0, end).trim();
   if (text.endsWith(": OK")) return { clean: true };
-  const found = /^.*?:\s+(.+)\s+FOUND$/.exec(text);
-  if (found !== null) return { clean: false, signature: (found[1] ?? "").slice(0, 200) };
+  // "stream: Eicar-Test-Signature FOUND": the signature sits between the first colon that a space follows and the
+  // closing word. Read by position, since a pattern with two open-ended gaps is quadratic on a long reply.
+  if (/\sFOUND$/.test(text) && !/[\n\r]/.test(text)) {
+    let colon = text.indexOf(":");
+    while (colon !== -1 && text.charAt(colon + 1).trim() !== "")
+      colon = text.indexOf(":", colon + 1);
+    const signature =
+      colon === -1 ? "" : text.slice(colon + 1, text.length - "FOUND".length).trim();
+    if (signature !== "") return { clean: false, signature: signature.slice(0, 200) };
+  }
   throw new ScannerUnavailableError(`clamd gave no verdict: ${text.slice(0, 200)}`);
 }
 

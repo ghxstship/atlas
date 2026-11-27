@@ -373,7 +373,11 @@ for (const locale of LOCALES) {
         ],
         [
           `certified-payroll.${locale}.letter.pdf`,
-          certifiedPayrollModel(PAYROLL, { ...forms, certifyingOfficial: "Alice Morgan" }),
+          certifiedPayrollModel(PAYROLL, {
+            ...forms,
+            certifyingOfficial: "Alice Morgan",
+            timeZone: "America/New_York",
+          }),
           "landscape",
         ],
       ] as const;

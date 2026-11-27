@@ -92,11 +92,14 @@ function tokenOf(span: QuickAddSpan): QuickAddToken {
 
 /** One space between words, none before punctuation a removed token left behind. */
 export function tidyTitle(text: string): string {
-  return text
-    .replace(/\s+/g, " ")
-    .replace(/\s+([,.;:!?])/g, "$1")
-    .replace(/^[,.;:!?]\s*/, "")
-    .trim();
+  return (
+    text
+      .replace(/\s+/g, " ")
+      // Every run of white space is one space by now, so one space is all there is to remove.
+      .replace(/ ([,.;:!?])/g, "$1")
+      .replace(/^[,.;:!?]\s*/, "")
+      .trim()
+  );
 }
 
 /**

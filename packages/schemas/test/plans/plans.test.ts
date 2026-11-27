@@ -173,6 +173,11 @@ describe("generated plan seed migration", () => {
       "enterprise:legend_early_access",
       "pro:aurora_ai",
       "team:aurora_ai",
+      // Every plan has support session controls (ADR 0035, 2026-11-27 amendment); 0201 seeded them on Enterprise only.
+      "access:support_session_controls",
+      "core:support_session_controls",
+      "pro:support_session_controls",
+      "team:support_session_controls",
     ];
     expect(generated).toEqual([...seededFeatures(), ...added].sort());
   });
@@ -276,8 +281,8 @@ describe("plan registry validation", () => {
   it("rejects Stripe lookup keys on the free plan", () => {
     expect(
       broken(
-        "    features: []\n",
-        "    features: []\n    stripe:\n      product_lookup_key: xos_plan_access_v4\n      prices:\n        monthly: access_monthly\n        annual: access_annual\n",
+        "    features: [support_session_controls]\n",
+        "    features: [support_session_controls]\n    stripe:\n      product_lookup_key: xos_plan_access_v4\n      prices:\n        monthly: access_monthly\n        annual: access_annual\n",
       ),
     ).toThrow(/is free, so it has no Stripe price/);
   });

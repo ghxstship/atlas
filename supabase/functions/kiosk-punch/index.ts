@@ -12,6 +12,9 @@ import { kioskPunch, parseKioskPunchRequest } from "../_vendor/kiosk-punch.js";
 import { json, serve, serviceDb } from "../_shared/runtime.ts";
 
 serve(async (request) => {
+  // A kiosk wakes the function while a worker types the PIN (Compass 4.19), so the punch that follows
+  // meets a started worker. Nothing is read and nothing is answered but the status.
+  if (request.method === "GET") return new Response(null, { status: 204 });
   if (request.method !== "POST")
     return json(405, {
       type: "/problems/method-not-allowed",

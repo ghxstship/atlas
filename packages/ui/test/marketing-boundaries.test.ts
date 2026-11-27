@@ -63,8 +63,45 @@ describe("Marketing layer module boundaries", () => {
     );
   });
 
+  it("reaches no hook, no context and no client module from the product components a public page shows (issue 122)", () => {
+    // What `@xos/ui/marketing` exports for issue 122, by the module each export comes from.
+    const entry = readFileSync(`${src}marketing.ts`, "utf8");
+    const modules: Record<string, string> = {
+      BrandMark: "BrandMark/BrandMark.tsx",
+      Card: "Surface/Surface.tsx",
+      DepartmentChip: "Chips/DepartmentChip.tsx",
+      Icon: "Icon/Icon.tsx",
+      Link: "Marketing/StaticLink.tsx",
+      GateReadinessPanel: "Marketing/StaticGateReadinessPanel.tsx",
+      MarketingPoints: "Marketing/MarketingPoints.tsx",
+      PlanLimits: "Marketing/PlanLimits.tsx",
+    };
+    const offending: string[] = [];
+    const visited = new Set<string>();
+    const visit = (file: string) => {
+      if (visited.has(file)) return;
+      visited.add(file);
+      const text = readFileSync(file, "utf8");
+      if (/^"use client";|lib\/context\.tsx|\buse[A-Z]\w*\(|createContext/.test(text)) {
+        offending.push(file);
+      }
+      for (const match of text.matchAll(/from "(\.[^"]+\.tsx?)"/g)) {
+        visit(fileURLToPath(new URL(match[1] ?? "", `file://${file}`)));
+      }
+    };
+    for (const [name, file] of Object.entries(modules)) {
+      expect(entry, name).toMatch(
+        new RegExp(
+          `export \\{[^}]*\\b${name}\\b[^}]*\\} from "\\./${file.replace(/[./]/g, "\\$&")}"`,
+        ),
+      );
+      visit(`${src}${file}`);
+    }
+    expect(offending.map((file) => file.slice(src.length))).toEqual([]);
+  });
+
   it("ships a README for each ported component", () => {
-    for (const name of [...SERVER, ...CLIENT]) {
+    for (const name of [...SERVER, ...CLIENT, "MarketingPoints", "PlanLimits"]) {
       expect(readFileSync(`${src}${name}/README.md`, "utf8")).toContain(`# ${name}`);
     }
   });

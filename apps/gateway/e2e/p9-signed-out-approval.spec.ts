@@ -244,7 +244,7 @@ test("P9: five wrong codes lock the link, even for the right code", async ({ pag
   const since = Date.now();
   const gated = await gatedPass();
   try {
-    const { reject } = await approvalLinks(base, gated.number, since);
+    const { approve, reject } = await approvalLinks(base, gated.number, since);
     await page.goto(reject);
     await expect(
       page.getByRole("heading", { level: 1, name: "Reject this request from your email" }),
@@ -267,11 +267,13 @@ test("P9: five wrong codes lock the link, even for the right code", async ({ pag
     ).toBeVisible();
 
     // Locked for both links of the email, whatever code comes next.
-    await page.goto(reject);
-    await expect(
-      page.getByText("Too many wrong codes. This link is locked; sign in to decide."),
-    ).toBeVisible();
-    await expect(page.getByRole("button", { name: "Email me a code" })).toHaveCount(0);
+    for (const link of [reject, approve]) {
+      await page.goto(link);
+      await expect(
+        page.getByText("Too many wrong codes. This link is locked; sign in to decide."),
+      ).toBeVisible();
+      await expect(page.getByRole("button", { name: "Email me a code" })).toHaveCount(0);
+    }
     const [locked] = await sql<{ failed_attempts: number }>(
       `select max(t.failed_attempts)::int as failed_attempts from private.notification_action_tokens t
          join app.notifications n on n.id = t.notification_id

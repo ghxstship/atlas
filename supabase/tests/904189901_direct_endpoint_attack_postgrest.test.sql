@@ -82,8 +82,10 @@ select is(pg_temp.call_directory(), 'XS401 session_idle', 'idle, then a touch: a
 -- A session signed out from another device ------------------------------------------------------------------------------------
 select pg_temp.attack('ended', 'alice');
 select is(pg_temp.private_text('select private.session_direct_refusal()'), 'session_ended', 'signed out: the verdict refuses the direct call');
-select throws_ok($$select * from app.create_api_key(pg_temp.id('org_a'), 'Attack suite key', array['crew'], now() + interval '30 days')$$, 'XR001',
-  'session_ended: This session was signed out. Sign in again to create an API key.',
+-- Since 904190901 the gated helpers leave a signed-out session no organization, so the function refuses it at its
+-- capability check, before the step-up check (904180204's suite holds that the step-up check refuses it too).
+select throws_ok($$select * from app.create_api_key(pg_temp.id('org_a'), 'Attack suite key', array['crew'], now() + interval '30 days')$$, '42501',
+  'organization not found',
   'signed out: a step-up function at aal2 refuses the session');
 select todo('work package 4 (the PostgREST pre-request) refuses the call: HTTP 401, code XS401, hint session_ended', 3);
 select is(pg_temp.read_projects(), 'XS401 session_ended', 'signed out: reading a project list is refused');

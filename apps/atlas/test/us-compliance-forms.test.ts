@@ -19,7 +19,10 @@ vi.mock("next-intl/server", () => ({
 }));
 vi.mock("next/cache", () => ({ revalidatePath: () => undefined }));
 vi.mock("@/lib/shell/context", () => ({ getOrgContext: async () => state.ctx }));
-vi.mock("@/lib/shell/time-zone", () => ({ getOrgWeekStart: async () => 1 }));
+vi.mock("@/lib/shell/time-zone", () => ({
+  getOrgWeekStart: async () => 1,
+  orgToday: async () => "2026-11-27",
+}));
 vi.mock("@xos/data/certified-payroll", () => ({
   getCertifiedPayrollHeader: async () => ({ ok: true, data: null }),
   saveCertifiedPayrollHeader: writes.header,

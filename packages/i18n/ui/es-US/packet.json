@@ -1,0 +1,13 @@
+{
+  "packet": {
+    "expired": "Vencido",
+    "minutes": "{n} min",
+    "minutesLeft": "Quedan unos {n} min",
+    "required": "Obligatorio",
+    "review": "En revisión",
+    "title": "Paquete de incorporación",
+    "todo": "Pendiente",
+    "verified": "Verificado",
+    "verifiedCount": "{n} de {total} verificados"
+  }
+}

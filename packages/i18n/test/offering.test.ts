@@ -50,6 +50,8 @@ function clientAnswering(answer: { data: unknown; error: unknown }): OfferingCli
 describe("where XOS is offered (ADR 0160)", () => {
   it("defaults to the United States alone, in dollars, in the launch languages", () => {
     expect(DEFAULT_OFFERING.territories.map((t) => t.code)).toEqual(["US"]);
+    // The same list plans.yaml publishes for a price list that cannot read the database (issue 125).
+    expect(DEFAULT_OFFERING.territories.map((t) => t.code)).toEqual(PLAN_OFFERING.openTerritories);
     expect(DEFAULT_OFFERING.currencies).toEqual(["USD"]);
     expect(DEFAULT_OFFERING.locales).toEqual([...launchLocales]);
     expect(DEFAULT_OFFERING.countries).toContain("PR");

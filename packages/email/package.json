@@ -16,6 +16,7 @@
   "scripts": {
     "lint": "eslint . --max-warnings 0",
     "typecheck": "tsc --noEmit",
+    "auth-templates": "node --experimental-strip-types --no-warnings scripts/auth-templates.ts",
     "test": "vitest run --coverage"
   },
   "dependencies": {

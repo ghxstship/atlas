@@ -45,6 +45,8 @@ const NEEDS: Readonly<Record<string, readonly string[]>> = {
   "crisis_alert.ended": ["project"],
   // 2050: which sign-in setting changed (password, email, phone, a second factor, a passkey or the recovery codes).
   "account.security_changed": ["change"],
+  // ADR 0169 D8 (904190902): which session rule support suspended, and until when.
+  "access.session_rule_suspended": ["control", "until"],
   // A99: a recovery code used (the codes left) and sessions signed out (how many).
   "account.recovery_code_used": ["remaining"],
   "account.session_signed_out": ["count"],
@@ -119,6 +121,8 @@ const TARGETS: Readonly<Record<string, string>> = {
   incidents: "safety/incidents",
   "app.incidents": "safety/incidents",
   break_glass_sessions: "settings/security",
+  // ADR 0169 D8: a session rule support suspended opens Security settings, where the rules are.
+  session_gate_overrides: "settings/security",
   report_deliveries: "reports",
 };
 

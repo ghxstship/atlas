@@ -81,6 +81,12 @@ jobs:
             test -s "$RUNNER_TEMP/npm/ghxstship-xos-${name}-${VERSION}.tgz"
           done
           tar -tzf "$RUNNER_TEMP/npm/ghxstship-xos-schemas-${VERSION}.tgz" | grep -qx package/plans.yaml
+          # The offering ships as JSON too, for a script with no TypeScript loader (ghxstship/atlas issue 125). A tag
+          # before v4.19.0 has none.
+          if [ -f packages/schemas/src/plans/offering.generated.json ]; then
+            tar -xzOf "$RUNNER_TEMP/npm/ghxstship-xos-schemas-${VERSION}.tgz" package/src/plans/offering.generated.json \
+              | node -e 'let s="";process.stdin.on("data",(c)=>(s+=c)).on("end",()=>{const o=JSON.parse(s);if(!Array.isArray(o.openTerritories)||!o.features||!o.extraSeats||!o.addons)process.exit(1)})'
+          fi
           # The packed ui must depend on these exact sibling versions through npm aliases, never workspace:*.
           TOKENS_RANGE="$(tar -xzOf "$RUNNER_TEMP/npm/ghxstship-xos-ui-${VERSION}.tgz" package/package.json \
             | node -e 'let s="";process.stdin.on("data",(c)=>(s+=c)).on("end",()=>console.log(JSON.parse(s).dependencies["@xos/tokens"]))')"

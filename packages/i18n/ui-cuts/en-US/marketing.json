@@ -1,0 +1,90 @@
+{
+  "brand": {
+    "size": "{width} x {height}"
+  },
+  "gate": {
+    "allMet": "All blocking criteria met.",
+    "blocking": "Blocking",
+    "criteriaMet": "Criteria met",
+    "metCount": "{met} of {total} met",
+    "openMany": "{n} blocking criteria open.",
+    "openOne": "{n} blocking criterion open.",
+    "readiness": "Gate readiness"
+  },
+  "link": {
+    "newTab": "Opens in a new tab"
+  },
+  "mk": {
+    "ai": {
+      "badge": "AI feature"
+    },
+    "cmp": {
+      "feature": "Feature",
+      "no": "No",
+      "partial": "Partial",
+      "unpublished": "Unpublished",
+      "verified": "Last verified {date}.",
+      "yes": "Yes"
+    },
+    "code": {
+      "copied": "Copied",
+      "copy": "Copy"
+    },
+    "consent": {
+      "gpc": "Opt-Out Request Honored"
+    },
+    "footer": {
+      "language": "Language",
+      "theme": "Theme"
+    },
+    "logo": {
+      "slot": "Logo Slot {n}"
+    },
+    "nav": {
+      "close": "Close Menu",
+      "menu": "Menu"
+    },
+    "price": {
+      "from": "From {price}",
+      "perMonth": "per month",
+      "perYear": "per year",
+      "quoted": "Quoted",
+      "taxExclusive": "{currency}, excluding applicable taxes.",
+      "taxInclusive": "{currency}, including applicable taxes."
+    },
+    "pricing": {
+      "changed": "Prices now show {period} billing.",
+      "period": "Billing Period",
+      "recommended": "Recommended"
+    },
+    "proof": {
+      "source": "Source: {label}"
+    },
+    "skip": "Skip to content",
+    "theme": {
+      "dark": "Dark",
+      "light": "Light",
+      "sunlight": "Sunlight"
+    }
+  },
+  "nav": {
+    "account": "Open the account menu for {name}",
+    "breadcrumb": "Breadcrumb",
+    "main": "Main",
+    "next": "Next",
+    "pagination": "Pagination",
+    "previous": "Previous"
+  },
+  "phase": {
+    "gate": "Gate {n}",
+    "gateName": "Gate {n} · {name}"
+  },
+  "result": {
+    "gap": "Gap",
+    "met": "Met",
+    "unknown": "Unknown"
+  },
+  "tooltip": {
+    "withShortcut": "{label} ({shortcut})"
+  }
+}

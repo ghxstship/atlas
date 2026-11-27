@@ -1009,7 +1009,8 @@
       "magicLink": "Envíame un enlace de acceso",
       "password": "Iniciar sesión con contraseña",
       "noAccount": "¿Eres nuevo en Atlas?",
-      "toSignUp": "Crear una cuenta"
+      "toSignUp": "Crear una cuenta",
+      "forgotPassword": "¿Olvidaste tu contraseña?"
     },
     "signUp": {
       "title": "Crea tu cuenta de Atlas",
@@ -1029,6 +1030,26 @@
       "body": "Enviamos un enlace a {email}. Ábrelo en este dispositivo para continuar.",
       "bodyNoEmail": "Te enviamos un enlace. Ábrelo en este dispositivo para continuar.",
       "back": "Volver a iniciar sesión"
+    },
+    "forgotPassword": {
+      "title": "Restablece tu contraseña",
+      "lead": "Ingresa el correo electrónico con el que inicias sesión. Te enviamos un enlace para elegir una contraseña nueva.",
+      "submit": "Envíame un enlace para restablecerla",
+      "sent": "Si una cuenta usa {email}, un enlace para restablecer la contraseña va en camino. Ábrelo en este dispositivo. ¿No llega el correo después de unos minutos? Revisa la dirección y tu carpeta de correo no deseado, o regresa e inicia sesión con un enlace por correo.",
+      "back": "Volver a iniciar sesión"
+    },
+    "resetPassword": {
+      "title": "Elige una contraseña nueva",
+      "lead": "Para {email}. Al guardarla, se cierra tu sesión en tus otros dispositivos.",
+      "new": "Contraseña nueva",
+      "confirm": "Confirma la contraseña nueva",
+      "submit": "Guardar contraseña nueva",
+      "doneTitle": "Tu contraseña cambió",
+      "doneBody": "Se cerró la sesión en tus otros dispositivos. Usa la contraseña nueva la próxima vez que inicies sesión.",
+      "continue": "Continuar a Atlas",
+      "expiredTitle": "Este enlace para restablecer ya no funciona",
+      "expiredBody": "Un enlace para restablecer funciona una vez, por poco tiempo, en el navegador que lo pidió. Solicita uno nuevo.",
+      "requestNew": "Solicitar un enlace nuevo"
     },
     "organization": {
       "title": "Crea tu organización",
@@ -1064,14 +1085,16 @@
       "signedOutElsewhere": "Cerraste sesión en otra pestaña."
     },
     "errors": {
-      "invalid_credentials": "El correo y la contraseña no coinciden. Revisa ambos o usa un enlace de acceso.",
+      "invalid_credentials": "El correo y la contraseña no coinciden. Revisa ambos, restablece tu contraseña o usa un enlace de acceso.",
       "email_not_confirmed": "Primero confirma tu correo: abre el enlace que te enviamos y luego inicia sesión.",
       "user_already_exists": "Ya existe una cuenta con este correo. Inicia sesión.",
       "weak_password": "Elige otra contraseña: esta es demasiado débil o aparece en una filtración de datos conocida. Usa al menos 12 caracteres con letras y números.",
+      "same_password": "Esa es tu contraseña actual. Elige una distinta.",
       "over_email_send_rate_limit": "Enviamos demasiados correos a esta dirección. Espera unos minutos y vuelve a intentarlo.",
       "over_request_rate_limit": "Demasiados intentos. Espera un minuto y vuelve a intentarlo.",
       "provider_disabled": "Ese método de acceso aún no está activado en Atlas. Usa tu correo.",
       "link_invalid": "Este enlace venció o ya se usó. Solicita uno nuevo.",
+      "reset_link_invalid": "Este enlace para restablecer venció o ya se usó.",
       "oauth_cancelled": "Saliste del inicio de sesión antes de terminar. Elige una forma de iniciar sesión para volver a intentarlo.",
       "oauth_expired": "Este inicio de sesión venció o empezó en otro navegador. Vuelve a empezar en esta página.",
       "provider_error": "No se pudo completar tu inicio de sesión. Vuelve a intentarlo en un momento o usa un enlace por correo.",
@@ -1083,6 +1106,7 @@
       "email": "Escribe un correo como nombre@empresa.com.",
       "password": "Escribe una contraseña de al menos 12 caracteres con letras y números.",
       "passwordContext": "Elige una contraseña que no contenga tu nombre, tu correo ni un nombre de producto como Atlas.",
+      "passwordConfirm": "Ingresa la misma contraseña en los dos campos.",
       "orgName": "Escribe el nombre de tu organización.",
       "orgCountry": "Elige el país donde está establecida tu organización.",
       "territory_not_offered": "XOS no se ofrece en el país de tu organización ({country}), así que no creamos esta organización. XOS se ofrece a organizaciones en {territories}. Si una organización te invitó a trabajar con ella, no necesitas crear una: abre tu invitación. Si tu organización tiene un contrato firmado con GHXSTSHIP, pide a tu contacto allí que la configure.",

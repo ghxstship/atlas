@@ -1,0 +1,11 @@
+{
+  "rating": {
+    "comment": "Comentario público",
+    "label": "Calificación",
+    "release": "Ambas calificaciones se publican juntas cuando estén las dos, o después de 14 días.",
+    "star": "{n} estrella",
+    "stars": "{n} estrellas",
+    "submit": "Enviar calificación",
+    "title": "Calificar a {name}"
+  }
+}

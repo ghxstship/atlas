@@ -8,7 +8,7 @@ import { getOrgContext } from "@/lib/shell/context";
 import { type WorkflowActionState } from "@/lib/workflow/state";
 import { fromDataError } from "@/lib/workflow/data-error";
 
-/** Restores a row from Trash as the viewer (app.restore_trash_item): the table's own rules decide. */
+/** Restores a row from Trash as the viewer (app.restore_trash_item): the table's own rules decide, or its restore rule for a table members never update directly. */
 export async function restoreAction(
   _: WorkflowActionState,
   form: FormData,

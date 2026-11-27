@@ -12,6 +12,7 @@
     "./capabilities/codes": "./src/capabilities/codes.generated.ts",
     "./plans": "./src/plans/index.ts",
     "./plans/offering": "./src/plans/offering.ts",
+    "./plans/offering.json": "./src/plans/offering.generated.json",
     "./plans.yaml": "./plans.yaml",
     "./settings": "./src/settings/index.ts",
     "./shortcuts": "./src/shortcuts/index.ts",

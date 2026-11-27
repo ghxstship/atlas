@@ -303,6 +303,7 @@ describe("the routed kinds follow their senders", () => {
     "organization.deletion_recovered",
     "organization.white_label_reverting",
     "organization.white_label_reverted",
+    "access.session_rule_suspended",
   ];
 
   it("keeps each capability-picked notice for the capability its sender picks by", () => {

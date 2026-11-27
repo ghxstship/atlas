@@ -1,0 +1,9 @@
+{
+  "board": {
+    "add": "New Record",
+    "dropped": "{title} dropped in {column}.",
+    "moved": "{title} moved to {column}.",
+    "picked": "{title} picked up in {column}. Arrow keys move it, Space drops it, Escape cancels.",
+    "returned": "{title} returned to {column}."
+  }
+}

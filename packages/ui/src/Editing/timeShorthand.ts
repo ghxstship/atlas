@@ -100,7 +100,11 @@ function hhmm(minutes: number): string {
   return `${String(Math.floor(within / 60)).padStart(2, "0")}:${String(within % 60).padStart(2, "0")}`;
 }
 
-const RANGE = /\s*(?:-|\u2013|\u2014|\bto\b|\bhasta\b|\s(?:a)\s(?=\d))\s*/u;
+/**
+ * The separator of a range, in text `normalize` has already reduced to single spaces. At most one space on each
+ * side, so the pattern never retries along a run of spaces.
+ */
+const RANGE = / ?(?:-|\u2013|\u2014|\bto\b|\bhasta\b| a (?=\d)) ?/u;
 
 /** Reads a time or a time range typed as shorthand, or null when the text is not shorthand. */
 export function parseTimeShorthand(

@@ -1,0 +1,15 @@
+{
+  "$schema": "https://turborepo.com/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    "test": {
+      "inputs": [
+        "$TURBO_EXTENDS$",
+        "$TURBO_ROOT$/docs/integration-connectors.md",
+        "$TURBO_ROOT$/docs/release-checklist.md",
+        "$TURBO_ROOT$/docs/adr/0033-owner-decisions-2026-10-19.md",
+        "$TURBO_ROOT$/design/MARKETING_LOCKSTEP.md"
+      ]
+    }
+  }
+}

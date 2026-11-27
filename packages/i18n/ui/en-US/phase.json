@@ -1,0 +1,6 @@
+{
+  "phase": {
+    "gate": "Gate {n}",
+    "gateName": "Gate {n} · {name}"
+  }
+}

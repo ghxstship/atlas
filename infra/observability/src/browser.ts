@@ -54,11 +54,21 @@ export function scrubText(text: string): string {
   return out;
 }
 
+/**
+ * Whether a line is a stack frame: V8's `at ...`, or `fn@url:1:2` with an at sign somewhere before the position.
+ * Two anchored checks, since one pattern with an open gap after the at sign retries from every at sign of a line.
+ */
+function isFrameLine(line: string): boolean {
+  if (/^\s*at\s/.test(line)) return true;
+  const position = /:\d+:\d+$/.exec(line);
+  return position !== null && line.slice(0, position.index).includes("@");
+}
+
 /** Keeps only stack frame lines (V8 `at ...` and Firefox/Safari `fn@url:1:2`), scrubbed. */
 export function trimStack(stack: string | undefined): string | undefined {
   const lines = (stack ?? "")
     .split("\n")
-    .filter((line) => /^\s*at\s|@.*:\d+:\d+$/.test(line))
+    .filter(isFrameLine)
     .slice(0, MAX_FRAMES)
     .map((line) => scrubText(line.trim()));
   return lines.length > 0 ? lines.join("\n") : undefined;

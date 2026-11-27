@@ -4,7 +4,7 @@ import { useState, type ReactElement } from "react";
 import { useT } from "../lib/context.tsx";
 import { applyTheme, isThemePreference } from "../lib/theme.ts";
 import { Select } from "../Forms/Select.tsx";
-import { SegmentedControl } from "../Navigation/SegmentedControl.tsx";
+import { Segments } from "../Navigation/SegmentedControl.tsx";
 import { type MarketingFooterProps } from "./Marketing.types.ts";
 
 /**
@@ -68,10 +68,11 @@ export function MarketingFooter({
             {themes ? (
               <div className="xos-mkt-footer-theme">
                 <span className="xos-mkt-label">{t("mk.footer.theme")}</span>
-                <SegmentedControl
+                <Segments
                   label={t("mk.footer.theme")}
                   value={current}
                   onChange={setTheme}
+                  selectOnArrow
                   options={[
                     { value: "dark", label: t("mk.theme.dark") },
                     { value: "light", label: t("mk.theme.light") },

@@ -755,7 +755,11 @@
       "pinLocked": "Este PIN se bloqueó por demasiados intentos. Pide a tu supervisor que lo restablezca.",
       "requestInvalid": "No se pudo leer esa marcación. Empieza de nuevo.",
       "kioskDisabled": "Los quioscos están desactivados en esta organización. Pide a un administrador que los active en Atlas.",
-      "photoRequired": "Este proyecto pide una foto en cada fichaje en el quiosco. Empieza de nuevo y toma la foto."
+      "photoRequired": "Este proyecto pide una foto en cada fichaje en el quiosco. Empieza de nuevo y toma la foto.",
+      "alreadyIn": "Ya marcaste entrada, así que nada se registró dos veces. Para marcar salida, busca tu nombre de nuevo.",
+      "notIn": "No has marcado entrada. Para marcarla, busca tu nombre de nuevo.",
+      "rateLimited": "Este quiosco recibió demasiados PIN incorrectos. Espera 15 minutos o pide a tu supervisor que registre tu marcación.",
+      "punchRefused": "Esta marcación no se registró. Pide a tu supervisor que revise tu turno."
     },
     "unregistered": {
       "title": "Este dispositivo ya no está registrado como quiosco",

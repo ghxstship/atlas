@@ -57,7 +57,7 @@ export const PLAN_REGISTRY: PlanRegistry = {
         active_external_engagements_per_month: 25,
         aurora_requests_per_month: 0,
       },
-      features: [],
+      features: ["support_session_controls"],
       prices: {
         USD: { monthlyMinor: 0, annualMinor: 0 },
         EUR: { monthlyMinor: 0, annualMinor: 0 },
@@ -82,7 +82,14 @@ export const PLAN_REGISTRY: PlanRegistry = {
         active_external_engagements_per_month: 250,
         aurora_requests_per_month: 500,
       },
-      features: ["approvals", "advancing", "procurement", "upl_export", "aurora_ai"],
+      features: [
+        "approvals",
+        "advancing",
+        "procurement",
+        "upl_export",
+        "support_session_controls",
+        "aurora_ai",
+      ],
       prices: {
         USD: { monthlyMinor: 14900, annualMinor: 149000 },
         EUR: { monthlyMinor: 13900, annualMinor: 139000 },
@@ -132,6 +139,7 @@ export const PLAN_REGISTRY: PlanRegistry = {
         "api_keys",
         "webhooks",
         "public_marketplace_listings",
+        "support_session_controls",
         "aurora_ai",
       ],
       prices: {
@@ -188,6 +196,7 @@ export const PLAN_REGISTRY: PlanRegistry = {
         "audit_export",
         "payroll_export",
         "priority_support",
+        "support_session_controls",
         "aurora_ai",
       ],
       prices: {
@@ -292,6 +301,7 @@ export const PLAN_REGISTRY: PlanRegistry = {
     },
   ],
   offering: {
+    openTerritories: ["US"],
     features: {
       approvals: { status: "offered", territory: null, basis: [] },
       advancing: { status: "offered", territory: null, basis: [] },

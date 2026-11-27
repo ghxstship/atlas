@@ -269,6 +269,10 @@
       "break_glass_started": {
         "subject": "Acceso de emergencia en {orgName}",
         "body": "{actorName} tomó acceso completo de emergencia a {orgName} durante una hora. Motivo: {reason}"
+      },
+      "session_rule_suspended": {
+        "subject": "Una regla de sesión está suspendida en {orgName}",
+        "body": "El soporte de {actorName} suspendió {control, select, ended {la comprobación de sesiones cerradas} mfa {el requisito de segundo factor} lifetime {la duración de la sesión} idle {el tiempo de inactividad} network {la lista de IP permitidas} other {una regla de sesión}} de {orgName} hasta el {until, date, long} a las {until, time, short}. Después, la regla vuelve a aplicarse. Motivo: {reason}"
       }
     },
     "opportunity": {

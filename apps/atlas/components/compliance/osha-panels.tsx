@@ -21,6 +21,7 @@ import {
 } from "@/lib/compliance/actions";
 import { usComplianceFormsOn } from "@/lib/compliance/flag";
 import type { OrgContext } from "@/lib/shell/context";
+import { orgToday } from "@/lib/shell/time-zone";
 
 /**
  * OSHA recordkeeping in Atlas (Section 14.5, 29 CFR Part 1904; migration 1385, ADR 0041). Settings,
@@ -190,7 +191,8 @@ export async function OshaEstablishmentsPanel({ ctx }: { ctx: OrgContext }) {
   const t = await copy();
   const establishments = await listOshaEstablishments(ctx.viewer.db, ctx.org.id);
   const list = establishments.ok ? establishments.data : [];
-  const thisYear = new Date().getUTCFullYear();
+  // This year on the org's calendar: on New Year's Eve in the Americas the UTC year has already turned.
+  const thisYear = Number((await orgToday(ctx)).slice(0, 4));
   const canWrite = ctx.capabilities.has("safety.incident.close");
   return (
     <section aria-labelledby="osha-heading" className="flex flex-col gap-12">

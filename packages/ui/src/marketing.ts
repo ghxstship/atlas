@@ -7,7 +7,15 @@
  * page's `locale` and `messages` (`flattenMessages` turns a locale's nested `ui` catalog into that
  * form); the five client ones read the nearest XOSProvider.
  *
- * Styles: import "@xos/ui/marketing.css" after "@xos/ui/styles.css".
+ * The product components a public page shows are here too, each rendering on the server with no
+ * client module (lockstep issue 122): BrandMark, Card, DepartmentChip and Icon as `@xos/ui` exports
+ * them, and Link and GateReadinessPanel as props-driven forms that take `locale` and `messages`
+ * where the `@xos/ui` ones read the provider. MarketingPoints and PlanLimits draw the two lists the
+ * cards use. The four that print no shared string take no locale.
+ *
+ * Styles: import "@xos/ui/marketing.css" after "@xos/ui/styles.css". A page that renders only this
+ * layer imports "@xos/ui/marketing/styles.css" in place of both, and ships the `ui` message groups
+ * these components read from "@xos/i18n/ui-cuts/<locale>/marketing.json" (MARKETING.md).
  */
 export type * from "./Marketing/Marketing.types.ts";
 export { marketingCopy, type MarketingCopy } from "./Marketing/marketing-copy.ts";
@@ -26,6 +34,15 @@ export { FAQ } from "./Marketing/FAQ.tsx";
 export { Testimonial } from "./Marketing/Testimonial.tsx";
 export { LogoSlotWall } from "./Marketing/LogoSlotWall.tsx";
 export { AIDisclosureBadge } from "./Marketing/AIDisclosureBadge.tsx";
+export { MarketingPoints } from "./Marketing/MarketingPoints.tsx";
+export { PlanLimits } from "./Marketing/PlanLimits.tsx";
+export { StaticLink as Link } from "./Marketing/StaticLink.tsx";
+export { StaticGateReadinessPanel as GateReadinessPanel } from "./Marketing/StaticGateReadinessPanel.tsx";
+export { BrandMark, monogram, type BrandMarkProps } from "./BrandMark/BrandMark.tsx";
+export { Card, type CardProps } from "./Surface/Surface.tsx";
+export { DepartmentChip } from "./Chips/DepartmentChip.tsx";
+export { type DepartmentChipProps } from "./Chips/Chips.types.ts";
+export { Icon, type IconProps } from "./Icon/Icon.tsx";
 export { MarketingNav } from "./Marketing/MarketingNav.tsx";
 export { PersonaSwitcher } from "./Marketing/PersonaSwitcher.tsx";
 export { PricingTable } from "./Marketing/PricingTable.tsx";

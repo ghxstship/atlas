@@ -351,7 +351,7 @@ export const workflowCorrections: readonly CorrectionInput[] = [
             : {
                 ...a,
                 description:
-                  "Restores a soft-deleted row within its retention period, as the caller (app.restore_trash_item): the table's own update rules decide. Rows that reference it and were deleted with it come back too. A row past retention answers 422 (trash_restore_expired), a live row 422 (trash_not_deleted).",
+                  "Restores a soft-deleted row within its retention period, as the caller (app.restore_trash_item): the table's own update rules decide, or, for a table members never update directly, the rule of the people who manage the row. Rows that reference it and were deleted with it come back too, except access, credentials and restricted records. A row past retention answers 422 (trash_restore_expired), a live row 422 (trash_not_deleted), a chat message a moderator removed 422 (trash_removed_by_moderation).",
                 response: TrashRestoreResult,
                 rpc: "restore_trash_item",
               },

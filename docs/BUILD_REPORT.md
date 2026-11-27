@@ -1,9 +1,12 @@
 # XOS 4.0 Build Report (draft)
 
 Drafted by A47 (RRR-91) on main e40eddf, 2026-10-18, for the orchestrator to complete at release
-(Section 21). The release has not happened: there is no production deploy, no v4.0.0 tag and no
-published package. Figures are measured from the repository unless a source is named. The gate
-detail is in [legal/qa/gate-status.md](../legal/qa/gate-status.md).
+(Section 21). When it was drafted the release had not happened. Since then the tag `v4.0.0` was made,
+production has run since 4.1 (2026-11-01) and the current release is 4.18.0 (2026-11-22); each release
+is recorded in the [release checklist](release-checklist.md). The figures below are the draft's, measured
+from the repository on 2026-10-18 unless a source is named, and were not recounted for 4.18.0; only
+"Deployed URLs and package versions" was brought up to date on 2026-11-27. The gate detail is in
+[legal/qa/gate-status.md](../legal/qa/gate-status.md).
 
 **Release checklist:** [docs/release-checklist.md](release-checklist.md) tracks every Section 20.3
 criterion and Wave 7 exit item with its status and evidence, and lists every owner-blocked item in
@@ -164,11 +167,21 @@ pages. Route JavaScript passes on Gateway, docs and Atlas sign-in; Atlas signed-
 
 ## Deployed URLs and package versions
 
-None yet. The Vercel project `atlas` points at the staging Supabase project `xos-atlas-staging`,
-which has not received the current migrations. Nothing is published. `@xos/sdk`, `@xos/cli` and
-`xos-sdk` (PyPI) are publish-ready at 4.0.0 (A55); every other workspace package stays private at
-0.0.0. Compass is not in TestFlight or Play internal testing. Status and owner actions:
-[release checklist](release-checklist.md), items 3a, 4 and 5.
+As read on 2026-11-27, at release 4.18.0 (`2392bdb6`):
+
+- Atlas: https://atlas.ghxstship.tech, with the API at https://api.ghxstship.tech
+- Gateway: https://gateway.ghxstship.tech
+- Docs: https://docs.ghxstship.tech
+- Operator console: https://console.ghxstship.tech
+- Status page: https://status.ghxstship.tech
+- Marketing site: https://ghxstship.tech
+
+Production is the Supabase project `fquuqnzlpobaawucczgq` and staging is `rmrzfolncwhnhygmfxnw`; both hold
+every migration through 904180204. On npm, `@ghxstship/xos-sdk`, `@ghxstship/xos-cli`, `@ghxstship/xos-tokens`,
+`@ghxstship/xos-ui`, `@ghxstship/xos-i18n`, `@ghxstship/xos-icons` and `@ghxstship/xos-schemas` are at 4.18.0,
+and `xos-sdk` on PyPI is at 4.18.0; every other workspace package stays private. Compass is not in TestFlight
+or Play internal testing. Status and owner actions: [release checklist](release-checklist.md), items 3a, 4
+and 5.
 
 ## Canon
 

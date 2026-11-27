@@ -198,6 +198,12 @@ describe("the outline", () => {
     ).toEqual(["#section-1", "#section-2", "#section-3"]);
   });
 
+  it("marks the pinned outline so it ends above the cookie bar (styles/base.css)", () => {
+    render(<LegalOutline blocks={blocks} label="On this page" />);
+    const nav = screen.getByRole("navigation", { name: "On this page" });
+    expect(nav.hasAttribute("data-xos-pinned")).toBe(true);
+  });
+
   it("opens in the page's flow with no script, as a disclosure", () => {
     const { container } = render(<LegalContents blocks={blocks} label="On this page" />);
     expect(container.querySelector("details summary")?.textContent).toBe("On this page");

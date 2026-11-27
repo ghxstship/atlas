@@ -755,7 +755,11 @@
       "pinLocked": "This PIN is locked after too many tries. Ask your supervisor to reset it.",
       "requestInvalid": "That punch could not be read. Start again.",
       "kioskDisabled": "Kiosks are off for this organization. Ask an admin to turn them on in Atlas.",
-      "photoRequired": "This project asks for a photo at every kiosk punch. Start again and take the photo."
+      "photoRequired": "This project asks for a photo at every kiosk punch. Start again and take the photo.",
+      "alreadyIn": "You are already clocked in, so nothing was recorded twice. To clock out, find your name again.",
+      "notIn": "You are not clocked in. To clock in, find your name again.",
+      "rateLimited": "This kiosk had too many wrong PINs. Wait 15 minutes, or ask your supervisor to record your punch.",
+      "punchRefused": "This punch was not recorded. Ask your supervisor to check your shift."
     },
     "unregistered": {
       "title": "This device is no longer registered as a kiosk",

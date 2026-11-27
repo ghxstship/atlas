@@ -100,6 +100,11 @@ export interface ShellFrameProps {
   readonly create: readonly CreateItem[];
   /** Quick add in the Create menu (Section 11.7), for people who may create records. */
   readonly quickAdd?: ShellQuickAdd | null;
+  /**
+   * The cookie bar is on the page, below the shell (lib/privacy/consent.ts cookieBarShows): the help
+   * tour offer and tips wait until the visitor answers it, and a tour they start sits above it.
+   */
+  readonly consentBar?: boolean;
   /** The role lens under the org switcher (A128), rendered on the server: it adds no JavaScript here. */
   readonly lens?: ReactNode;
   readonly children: ReactNode;
@@ -389,7 +394,8 @@ export function ShellFrame(props: ShellFrameProps) {
 
   return (
     <ShellKeysContext.Provider value={props.keys}>
-      <div data-focus={focus ? "true" : undefined} className="xos-shell h-dvh">
+      {/* data-xos-viewport: next to the cookie bar the shell takes the height the bar leaves (@xos/ui styles/base.css). */}
+      <div data-xos-viewport="" data-focus={focus ? "true" : undefined} className="xos-shell h-dvh">
         {/* Bypass blocks (2.4.1): the first stop skips the sidebar and header to the page (A23-011). */}
         <a
           href="#content"
@@ -427,7 +433,12 @@ export function ShellFrame(props: ShellFrameProps) {
                 canManage={props.canManageAi}
                 shortcut={props.keys.display["aurora"]}
               />
-              <HelpCenter org={org.slug} nodeId={nodeId} shortcut={props.keys.display["help"]} />
+              <HelpCenter
+                org={org.slug}
+                nodeId={nodeId}
+                shortcut={props.keys.display["help"]}
+                consentBar={props.consentBar ?? false}
+              />
               <DeferredDropdownMenu
                 label={t("shell.chrome.account")}
                 icon="CircleUserRound"

@@ -70,9 +70,15 @@ export async function online(): Promise<boolean> {
 
 async function serve(): Promise<void> {
   const listenPort = Number(process.env["NETWORK_HELPER_PORT"] ?? "57158");
-  const steps: Record<string, () => Promise<boolean>> = { offline, online };
+  // Each path names its step by an explicit comparison, so no request picks a function by name
+  // (CodeQL js/unvalidated-dynamic-method-call) and any other path, /constructor included, finds none.
+  const stepFor = (path: string): (() => Promise<boolean>) | undefined => {
+    if (path === "/offline") return offline;
+    if (path === "/online") return online;
+    return undefined;
+  };
   const server = createServer((req, res) => {
-    const step = steps[(req.url ?? "").replace(/^\//, "")];
+    const step = stepFor(req.url ?? "");
     if (req.method !== "POST" || !step) {
       res.writeHead(404).end();
       return;

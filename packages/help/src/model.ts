@@ -97,24 +97,82 @@ export function helpLocale(locale: string): HelpLocale {
   return (HELP_LOCALES as readonly string[]).includes(locale) ? (locale as HelpLocale) : "en-US";
 }
 
-/** Parses inline Markdown: **bold**, `code` and [text](href). */
+/**
+ * A search for the next character of one kind that remembers its last answer, so a scan that restarts from each
+ * position of the text still reads every character once.
+ */
+function nextOf(text: string, wanted: (character: string) => boolean): (from: number) => number {
+  let askedFrom = -1;
+  let found = -1;
+  return (from) => {
+    if (askedFrom !== -1 && askedFrom <= from && (found === -1 || found >= from)) return found;
+    askedFrom = from;
+    found = -1;
+    for (let i = from; i < text.length; i++) {
+      if (wanted(text.charAt(i))) {
+        found = i;
+        break;
+      }
+    }
+    return found;
+  };
+}
+
+/**
+ * Parses inline Markdown: **bold**, `code` and [text](href). Read by position rather than with one pattern: a pattern
+ * rescans to the end of the text from every opening mark that is never closed.
+ */
 export function parseInline(text: string): Inline[] {
   const out: Inline[] = [];
-  const pattern = /\*\*([^*]+)\*\*|`([^`]+)`|\[([^\]]+)\]\(([^)\s]+)\)/g;
+  const star = nextOf(text, (c) => c === "*");
+  const tick = nextOf(text, (c) => c === "`");
+  const bracket = nextOf(text, (c) => c === "]");
+  const hrefEnd = nextOf(text, (c) => c === ")" || /\s/.test(c));
   let last = 0;
-  for (const m of text.matchAll(pattern)) {
-    const at = m.index;
+  let at = 0;
+  const push = (inline: Inline, end: number) => {
     if (at > last) out.push({ t: "text", v: text.slice(last, at) });
-    if (m[1] !== undefined) out.push({ t: "strong", v: m[1] });
-    else if (m[2] !== undefined) out.push({ t: "code", v: m[2] });
-    else out.push({ t: "link", v: m[3] as string, href: m[4] as string });
-    last = at + m[0].length;
+    out.push(inline);
+    at = end;
+    last = end;
+  };
+  while (at < text.length) {
+    const c = text.charAt(at);
+    if (c === "*" && text.charAt(at + 1) === "*") {
+      const close = star(at + 2);
+      if (close > at + 2 && text.charAt(close + 1) === "*") {
+        push({ t: "strong", v: text.slice(at + 2, close) }, close + 2);
+        continue;
+      }
+    } else if (c === "`") {
+      const close = tick(at + 1);
+      if (close > at + 1) {
+        push({ t: "code", v: text.slice(at + 1, close) }, close + 1);
+        continue;
+      }
+    } else if (c === "[") {
+      const close = bracket(at + 1);
+      if (close > at + 1 && text.charAt(close + 1) === "(") {
+        const end = hrefEnd(close + 2);
+        if (end > close + 2 && text.charAt(end) === ")") {
+          push(
+            { t: "link", v: text.slice(at + 1, close), href: text.slice(close + 2, end) },
+            end + 1,
+          );
+          continue;
+        }
+      }
+    }
+    at++;
   }
   if (last < text.length) out.push({ t: "text", v: text.slice(last) });
   return out;
 }
 
-const COMMENT = /^<!--.*-->$/;
+/** Whether a line is one whole HTML comment, such as a generated-list marker. A line holds no line break. */
+function isCommentLine(line: string): boolean {
+  return line.length >= 7 && line.startsWith("<!--") && line.endsWith("-->");
+}
 
 /** Parses the article Markdown subset into blocks. */
 export function parseBody(markdown: string): Block[] {
@@ -133,7 +191,7 @@ export function parseBody(markdown: string): Block[] {
     const bullet = /^- (.+)$/.exec(line);
     const numbered = /^\d+\. (.+)$/.exec(line);
     // A comment line, such as a generated list's marker, ends the block before it like a blank line.
-    if (line === "" || COMMENT.test(line)) flush();
+    if (line === "" || isCommentLine(line)) flush();
     else if (heading) {
       flush();
       blocks.push({ t: heading[1] === "##" ? "h2" : "h3", v: heading[2] as string });

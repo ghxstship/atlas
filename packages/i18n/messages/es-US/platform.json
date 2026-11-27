@@ -786,7 +786,8 @@
     "otherKind": "Notificación",
     "kinds": {
       "access": {
-        "break_glass_started": "Acceso de emergencia tomado"
+        "break_glass_started": "Acceso de emergencia tomado",
+        "session_rule_suspended": "Regla de sesión suspendida"
       },
       "account": {
         "security_changed": "Cambió la seguridad de la cuenta",

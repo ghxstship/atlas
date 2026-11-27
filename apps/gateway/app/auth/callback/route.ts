@@ -8,6 +8,7 @@ import {
   skipsTermsStep,
 } from "@/lib/auth/legal";
 import { isOAuthProvider } from "@/lib/auth/providers";
+import { exchangedResetLink, RESET_PASSWORD_PATH } from "@/lib/auth/recovery";
 import { safeNext, signInErrorPath } from "@/lib/auth/redirect";
 import { createServerSupabase } from "@/lib/supabase/server";
 
@@ -28,6 +29,7 @@ function goTo(path: string): NextResponse {
  * `next` survives both ways (safeNext keeps it on this site), so a token flow's claim page or an
  * engagement is where the person lands once signed in. `provider` is set by signInWithProvider: an
  * OAuth code that cannot be exchanged means the sign-in expired or started in another browser.
+ * A password reset link returns here too and goes on to /auth/reset-password.
  */
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const params = request.nextUrl.searchParams;
@@ -44,14 +46,23 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   // Without it, as now, the verifier of the latest flow started in this browser is used.
   const flowId = params.get("sb_flow_id");
   const db = await createServerSupabase();
-  const { error } = await db.auth.exchangeCodeForSession(code, flowId ? { flowId } : undefined);
+  const { data, error } = await db.auth.exchangeCodeForSession(
+    code,
+    flowId ? { flowId } : undefined,
+  );
   if (error) {
     if (!oauth) return back("link_invalid");
     const key = authErrorKey(error);
     return back(key === "link_invalid" ? "oauth_expired" : key);
   }
-  // A new account accepted the Worker Terms at sign-up; the first session writes them to the log.
+  // A new account accepted the Worker Terms at sign-up; the first session writes them to the log. That includes a
+  // reset link, which confirms an address whose confirmation email was never opened: the acceptance is written now,
+  // with this request's address and time, not at some later sign-in.
   await recordPendingAcceptances(db, clientIp(request.headers));
+  // A reset link lands on the page that sets the new password, whatever `next` says (lib/auth/recovery.ts). auth-js
+  // marks the code verifier of a reset, so this does not depend on the address in the email. That page asks a person
+  // who holds a second factor to pass it first.
+  if (exchangedResetLink(data, Date.now())) return goTo(RESET_PASSWORD_PATH);
   // A provider creates the account before any form: it accepts the Worker Terms next (A59-025), unless it is
   // going to delete itself, which never waits on accepting anything (Worker Terms 13).
   if (oauth && !skipsTermsStep(next) && (await missingSignUpAcceptances(db)).length > 0) {

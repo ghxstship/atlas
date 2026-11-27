@@ -1,0 +1,21 @@
+{
+  "action": {
+    "cancel": "Cancelar",
+    "clear": "Borrar",
+    "close": "Cerrar",
+    "copyLink": "Copiar enlace",
+    "dismiss": "Descartar",
+    "done": "Listo",
+    "download": "Descargar",
+    "later": "Más tarde",
+    "reset": "Restablecer",
+    "retry": "Reintentar",
+    "save": "Guardar",
+    "saved": "Guardado",
+    "send": "Enviar",
+    "snooze": "Posponer",
+    "start": "Iniciar",
+    "undo": "Deshacer",
+    "view": "Ver"
+  }
+}

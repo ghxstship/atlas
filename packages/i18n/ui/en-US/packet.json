@@ -1,0 +1,13 @@
+{
+  "packet": {
+    "expired": "Expired",
+    "minutes": "{n} min",
+    "minutesLeft": "About {n} min left",
+    "required": "Required",
+    "review": "In Review",
+    "title": "Onboarding Packet",
+    "todo": "To Do",
+    "verified": "Verified",
+    "verifiedCount": "{n} of {total} verified"
+  }
+}

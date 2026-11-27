@@ -1,0 +1,12 @@
+{
+  "date": {
+    "choose": "Elegir fecha",
+    "chooseRange": "Elegir fechas",
+    "days": "{n} días",
+    "nextMonth": "Mes siguiente",
+    "pick": "Elija una fecha",
+    "prevMonth": "Mes anterior",
+    "rangeTo": "a",
+    "rangeValue": "{start} al {end}"
+  }
+}

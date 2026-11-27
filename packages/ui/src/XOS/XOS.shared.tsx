@@ -2,32 +2,8 @@ import { useRef, useState, type KeyboardEvent } from "react";
 import { Direction } from "radix-ui";
 import type { EmergencyAuthority } from "../types/reference";
 import { cx } from "../lib/cx.ts";
-import { type Translate } from "../lib/context.tsx";
-import { Icon } from "../Icon/Icon.tsx";
-import { type Result } from "./XOS.types.ts";
 
-export const RESULT: Record<Result, { icon: string; className: string; key: string }> = {
-  met: { icon: "CircleCheck", className: cx("text-success"), key: "result.met" },
-  gap: { icon: "CircleX", className: cx("text-danger"), key: "result.gap" },
-  unknown: { icon: "CircleHelp", className: cx("text-warning"), key: "result.unknown" },
-};
-
-export function ResultIcon({
-  result,
-  t,
-  labeled = true,
-}: {
-  result: Result;
-  t: Translate;
-  labeled?: boolean;
-}) {
-  const r = RESULT[result];
-  return (
-    <span className={r.className}>
-      <Icon name={r.icon} size={14} {...(labeled ? { label: t(r.key) } : {})} />
-    </span>
-  );
-}
+export { RESULT, ResultIcon } from "./ResultIcon.tsx";
 
 export const tableClass = cx("w-full border-collapse text-text-13");
 

@@ -1,0 +1,14 @@
+{
+  "payout": {
+    "account": "Número de cuenta",
+    "accountHelp": "Se cifra al ingresarlo. Después de guardar, solo se muestran los últimos cuatro dígitos.",
+    "checking": "Corriente",
+    "masked": "•••• {last4}",
+    "routing": "Número de ruta",
+    "routingHint": "9 dígitos",
+    "save": "Guardar de forma segura",
+    "savings": "Ahorros",
+    "title": "Datos de pago",
+    "type": "Tipo de cuenta"
+  }
+}

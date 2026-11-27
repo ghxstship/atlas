@@ -1,0 +1,9 @@
+{
+  "table": {
+    "resizeColumn": "Resize column {column}",
+    "row": "Row {n}",
+    "total": "Total",
+    "selectAll": "Select all rows",
+    "selectRow": "Select {row}"
+  }
+}

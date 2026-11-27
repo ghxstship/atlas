@@ -1,0 +1,7 @@
+{
+  "filter": {
+    "add": "Agregar filtro",
+    "label": "Filtros",
+    "remove": "Quitar filtro {field}"
+  }
+}

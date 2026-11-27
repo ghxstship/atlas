@@ -394,6 +394,9 @@ settings:
         test: supabase/tests/1399_payroll_state_rules_and_org_week.test.sql
       - consumer: apps/atlas/lib/shell/time-zone.ts#getOrgWeekStart
         test: apps/atlas/test/org-calendar.test.ts
+      # The WH-347's default week ending is the last full week of the org's payroll week.
+      - consumer: apps/atlas/components/compliance/certified-payroll-panel.tsx#CertifiedPayrollPanel
+        test: apps/atlas/test/org-calendar-panels.test.ts
 
   # Gateway and marketplace -------------------------------------------------------------------------------------
   - key: gateway.marketplace_visibility
@@ -538,6 +541,9 @@ settings:
         test: supabase/tests/1398_payroll_calendar_and_away_since.test.sql
       - consumer: apps/atlas/lib/shell/time-zone.ts#getOrgTimeZone
         test: apps/atlas/test/org-calendar.test.ts
+      # The warehouse's nightly hour is on the org's clock, the one the scheduler places it on (1401).
+      - consumer: apps/atlas/components/settings/contributions/a83.tsx#WarehousePanel
+        test: apps/atlas/test/org-calendar-panels.test.ts
       # Aurora's relative dates ("overdue", "this month") resolve on this calendar (A95).
       - consumer: packages/data/src/settings.ts#readOrgTimeZone
         test: packages/data/test/settings.test.ts

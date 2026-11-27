@@ -119,6 +119,11 @@ export interface SaleOffering {
  * in `PlanDefinition.features` and prices in the price books.
  */
 export interface PlanOffering {
+  /**
+   * The private.territories codes open as the migrations seed them at this release (ADR 0160). A reader with
+   * database access reads api_public.offered_territories instead.
+   */
+  readonly openTerritories: readonly string[];
   /** Every feature of the registry, in registry order. */
   readonly features: Readonly<Record<string, FeatureOffering>>;
   /** Extra seats, on every plan that prices them. */

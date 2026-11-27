@@ -685,14 +685,21 @@ function lengthPrefix(length) {
 }
 /** Reads clamd's reply into a verdict. Anything that is not OK or FOUND is not a verdict. */
 function parseClamdReply(reply) {
-  const text = reply.replace(/\0+$/, "").trim();
+  let end = reply.length;
+  while (end > 0 && reply.charCodeAt(end - 1) === 0) end--;
+  const text = reply.slice(0, end).trim();
   if (text.endsWith(": OK")) return { clean: true };
-  const found = /^.*?:\s+(.+)\s+FOUND$/.exec(text);
-  if (found !== null)
-    return {
-      clean: false,
-      signature: (found[1] ?? "").slice(0, 200),
-    };
+  if (/\sFOUND$/.test(text) && !/[\n\r]/.test(text)) {
+    let colon = text.indexOf(":");
+    while (colon !== -1 && text.charAt(colon + 1).trim() !== "")
+      colon = text.indexOf(":", colon + 1);
+    const signature = colon === -1 ? "" : text.slice(colon + 1, text.length - 5).trim();
+    if (signature !== "")
+      return {
+        clean: false,
+        signature: signature.slice(0, 200),
+      };
+  }
   throw new ScannerUnavailableError(`clamd gave no verdict: ${text.slice(0, 200)}`);
 }
 /** Rejects after `ms`, so a clamd that stops answering cannot hold a worker for ever. */

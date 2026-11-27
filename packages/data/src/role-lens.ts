@@ -139,7 +139,8 @@ export const ROLE_ROUTED_KINDS: Readonly<Record<string, readonly string[]>> = {
 
 /**
  * Notification kinds sent to the holders of platform roles, and those roles' codes: deletion and white-label
- * notices to the Owner role (private.org_owner_ids), break-glass notices to Owner and Admin. Only those roles'
+ * notices and a session rule suspended by support (ADR 0169 D8) to the Owner role (private.org_owner_ids), break-glass
+ * notices to Owner and Admin. Only those roles'
  * lenses keep them; a custom role that holds the same capabilities did not bring them.
  */
 export const SYSTEM_ROLE_ROUTED_KINDS: Readonly<Record<string, readonly string[]>> = {
@@ -148,6 +149,7 @@ export const SYSTEM_ROLE_ROUTED_KINDS: Readonly<Record<string, readonly string[]
   "organization.white_label_reverting": ["owner"],
   "organization.white_label_reverted": ["owner"],
   "access.break_glass_started": ["owner", "admin"],
+  "access.session_rule_suspended": ["owner"],
 };
 
 /** The parts of an Inbox item the lens reads; Atlas's InboxItem and Compass's notification rows both fit. */

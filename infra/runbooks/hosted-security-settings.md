@@ -220,11 +220,39 @@ that needs it has shipped to that environment, staging first and then production
 
 The staging probe (the ADR's work package 0, approved by the owner, owner decision 2) is run by a person from
 `infra/db/probes/README.md`. It performs the check under "The client address behind proxies" above and four
-others, and removes what it creates. It has not been run. Record its output and date here when it has, with the
-value set for `xos.trusted_proxy_hops` if question 1 was proven. Parts of the ADR's build wait for that record:
-its work packages 4 and 7, the Postgres Changes policy of package 6 and the `app_mfa` rule do not start before
-the answers they depend on are written here (the ADR's "What builds in parallel"). The owner's numbers above are
-the owner's own, 1 to 13, as the ADR's "Owner decisions" table lists them.
+others, and removes what it creates. Parts of the ADR's build wait for its answers to be written here: work
+packages 4 and 7, the Postgres Changes policy of package 6 and the `app_mfa` rule do not start before the
+answers they depend on are recorded (the ADR's "What builds in parallel"). The owner's numbers above are the
+owner's own, 1 to 13, as the ADR's "Owner decisions" table lists them.
+
+### The staging probe of 2026-11-21
+
+The probe ran once, on 2026-11-21, against the persistent staging branch (`rmrzfolncwhnhygmfxnw`). The setup
+reported seven objects present, the script exited 0, the teardown returned zero rows, and a query afterwards
+found no probe schema, function, bucket, policy or publication member. The full output is
+`infra/db/probes/0169-results-2026-11-21.md`. It has not run against production, which is a separate project
+behind the same platform.
+
+| Question                      | Probe lines                                                                                                                                                    | Answer                                                                                                        | What it releases or leaves open                                                                                                                             |
+| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. Address chain on REST      | `Q1.verdict` `consistent: the gateway appends; client-sent entries stay on the left`; `Q1.trusted_proxy_hops` `0`; `Q1.x_real_ip.verdict` `absent`             | Proven on staging. An outside address service reported the same address the database read.                    | `xos.trusted_proxy_hops = 0`. The address source `edge` is available for direct REST calls; it ships as `pass` and the switch is the owner's (ADR 0169 D4). |
+| 2. Custom request header      | `Q2.custom_header` `reached: 256 characters sent, the same 256 read in the database`                                                                           | Reached.                                                                                                      | Work packages 4 and 7 may start.                                                                                                                            |
+| 3a. Storage policy            | `Q3a.storage.policy_evaluated`, `.headers`, `.claims`, `.claim.session_id`, `.x_forwarded_for` all `yes`; `.own_address_hops` `1`; `.holds_when_spoofed` `yes` | The policy reads the claims and the caller's address, one hop from the right.                                 | Nothing in the build waited for it. Exact enforcement on Storage is a later switch and an amendment of the ADR; Storage ships on the network pass.          |
+| 3b. Channel-join policy       | `Q3b.realtime.policy_evaluated` `no: open=unanswered (MissingPartition ...)`                                                                                   | Not answered: Realtime found no `realtime.messages` partition on the staging branch before any policy ran.    | Nothing in the build waits for it. Channel joins stay on the network pass. A second run needs the owner's approval.                                         |
+| 3c. Postgres Changes policy   | `Q3c.changes.policy_evaluated` `yes`; `Q3c.changes.claims` `yes`; `Q3c.changes.claim.session_id` `yes`; `Q3c.changes.headers` `no`                             | The policy reads the claims the verdict needs, and no header or address.                                      | The Postgres Changes policy of work package 6 may start.                                                                                                    |
+| 4. Refusal of a whole request | `Q4.refusal.status` `401`; `Q4.verdict` `as-designed: HTTP 401 with code XS401 and the reason as hint`                                                         | As designed.                                                                                                  | Work package 4 may start, and work package 9 reads the reason from the hint.                                                                                |
+| 5. OAuth app token            | `Q5.app` `skipped: PROBE_APP_TOKEN is not set or is empty`; `Q5.verdict` `unanswered`                                                                          | Not answered: no app token was sent. The session token carried `session_id`, `aal` and `amr` with timestamps. | The `app_mfa` rule is not written. Step 4 of the README and a second run, which needs the owner's approval, answer it.                                      |
+
+**`xos.trusted_proxy_hops` is 0 on the hosted project.** Question 1 was proven on staging with zero trusted hops
+on direct REST calls: the gateway appends the caller's address as the rightmost entry of `x-forwarded-for`, and
+a client-sent entry stays on its left. Zero is the setting's default, so the answer asks for no change to the
+setting, and the check under "The client address behind proxies" above is done for staging. On Storage the
+caller's address sits one hop from the right (`Q3a.storage.own_address_hops` is 1); `xos.trusted_proxy_hops`
+does not apply there, because the gate does not read the edge address on Storage.
+
+Recording these answers lifts the wait on those work packages and switches nothing. The registration of the
+PostgREST pre-request (work package 4) is its own migration, applied last, because it runs on every request from
+the moment it lands; its switch-off is rehearsed on staging before it reaches production (ADR 0169 D7).
 
 ## Report runs (A35)
 

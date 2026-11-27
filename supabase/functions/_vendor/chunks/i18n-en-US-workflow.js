@@ -111,6 +111,8 @@ var refusals = {
   trash_not_deleted: "This item is no longer in Trash.",
   trash_restore_expired:
     "Its retention period has ended; it's about to be purged and can't come back.",
+  trash_removed_by_moderation:
+    "A moderator removed this message, so it can't be restored from Trash.",
   template_unpublished: "Publish a version of the template before creating projects from it.",
   template_time_zone_required: "Choose the project's time zone; this template doesn't set one.",
   template_version_published: "A published version can't change. Start a new draft instead.",
