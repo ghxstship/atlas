@@ -88045,6 +88045,10 @@ export type Database = {
         };
       };
       end_membership: { Args: { p_membership_id: string }; Returns: undefined };
+      end_session_gate_suspension: {
+        Args: { p_actor: string; p_override_id: string };
+        Returns: boolean;
+      };
       end_standing_grant: { Args: { p_standing_grant_id: string }; Returns: string };
       end_support_session: { Args: { p_support_session_id: string }; Returns: string };
       engaged_guest_list: {
@@ -92346,6 +92350,16 @@ export type Database = {
         }[];
       };
       survey_results: { Args: { p_survey_id: string }; Returns: Json };
+      suspend_session_gate_control: {
+        Args: {
+          p_actor: string;
+          p_control: string;
+          p_hours?: number;
+          p_org_id: string;
+          p_reason: string;
+        };
+        Returns: string;
+      };
       sync_subscription_from_stripe: {
         Args: {
           p_billing_interval: Database["app"]["Enums"]["billing_interval"];
