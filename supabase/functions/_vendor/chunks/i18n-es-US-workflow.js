@@ -115,6 +115,8 @@ var refusals = {
   trash_not_restorable: "Los elementos de este tipo no se restauran desde la Papelera.",
   trash_not_deleted: "Este elemento ya no está en la Papelera.",
   trash_restore_expired: "Su período de retención terminó; se purgará pronto y no puede volver.",
+  trash_removed_by_moderation:
+    "Un moderador eliminó este mensaje, así que no se puede restaurar desde la Papelera.",
   template_unpublished: "Publique una versión de la plantilla antes de crear proyectos con ella.",
   template_time_zone_required: "Elija la zona horaria del proyecto; esta plantilla no la define.",
   template_version_published: "Una versión publicada no cambia. Inicie un borrador nuevo.",

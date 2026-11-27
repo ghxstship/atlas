@@ -103,4 +103,66 @@ depends on it. pgTAP 2390 fails otherwise.
 - Nine tables already in Trash cannot be restored by anyone through `app.restore_trash_item`, because members hold no
   update policy or grant on them (`support_tickets`, `rating_replies`, `party_threads`, `chat_messages`, `feed_posts`,
   `poll_options`, `surveys`, `occupancy_counters`, `shared_reports`). They are left as they are and recorded for a
-  later decision.
+  later decision. The amendment of 4.19 below decides them.
+
+## Amendment of 4.19: restore rules, and rows that never come back (RRR-198)
+
+- Migrations: `904190301_trash_restore_rules.sql`
+
+### 5. The nine tables stay in Trash and are restored by rule
+
+Members hold no UPDATE on the nine tables because their rows change only through their RPCs. Granting UPDATE on
+`deleted_at` would also let the same people delete rows these tables never let them delete, so the nine are restored
+by `app.restore_trash_row_by_rule`, a definer function `app.restore_trash_item` calls for the tables in
+`private.trash_ruled_tables()`. The rule is the one the table's own RPCs already apply to the people who manage a row,
+and it also requires that the person reads the row:
+
+| Table                | Who restores a deleted row                                                                                      |
+| -------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `support_tickets`    | The requester, or a responder of the Organization queue (`org.help.write`), as `app.transition_support_ticket`. |
+| `rating_replies`     | The person who replied.                                                                                         |
+| `party_threads`      | The org side (`opportunities.engagement.write`) or the party, as `app.start_party_thread`.                      |
+| `chat_messages`      | The author, when the author deleted it and still takes part in the conversation.                                |
+| `feed_posts`         | The author or a communication admin (`org.communication.write`), as `app.hide_feed_post`.                       |
+| `poll_options`       | The same people, through the option's poll and its post.                                                        |
+| `surveys`            | The author or `knowledge.sop.publish`, as `app.transition_survey`.                                              |
+| `occupancy_counters` | `safety.emergency_code.write`, as `app.close_occupancy_counter`.                                                |
+| `shared_reports`     | `reports.report.export`, as `app.revoke_shared_report`. A restored share stays revoked or expired.              |
+
+Only `chat_messages` has a delete path for members (`app.delete_chat_message`, and a moderator's removal). A row of the
+other eight reaches Trash when the service role deletes it. A message a moderator removed is not restored from Trash
+(`trash_removed_by_moderation`); that decision is reversed by its appeal. `private.guard_chat_message` still refuses
+any change to a deleted message, and lets it come back only inside this restore, with its text unchanged.
+
+Everything else about a restore is as before: the caller reads the row through its row level security, the row is
+deleted and inside its retention period, rows deleted with it come back, and `trash.restored` is emitted.
+`app.restore_trash_item` runs as the caller, who holds no USAGE on the `private` schema, so the rule is an `app`
+function. Called by itself it applies the same checks and only ever clears `deleted_at`.
+
+pgTAP 904190301 asserts that every table in Trash either lets members update `deleted_at` under an update policy or
+has a restore rule, so a table can no longer sit in Trash with no way back.
+
+### 6. Excluded tables say whether their rows come back with a parent
+
+`app.restore_trash_item` also restores the rows that reference the restored row and were deleted with it. Migrations
+after 2390 keep tables out of Trash whose rows are meant to come back that way (a question template's questions, a
+segment's cues, a running order's colors). 1031 and 2390 keep tables out because their rows never come back. The
+cascade walked both kinds wherever the caller could update `deleted_at`, so restoring a team could restore the
+members removed with it, and restoring an incident could restore its medical encounters.
+
+`private.trash_excluded_tables.returns_with_parent` (default true) now says which is which, and the cascade leaves the
+tables where it is false: access and authority (memberships, roles held, team and workspace members, grants,
+delegations, invitations, spend authorities, service accounts, OAuth apps and grants, identity providers, SCIM, the
+IP allow-list and the member blocklist), credentials and links (API keys, personal access tokens, kiosk PINs,
+calendar feeds, inbound addresses, crew access, form, live, showcaller and vendor intake links, stakeholder packs
+and their recipients, warehouse destinations, integration connections, MCP connectors), and restricted or legally
+kept records (payout and vendor bank accounts, tax forms, background checks, medical encounters, the OSHA record,
+consent records and legal holds). No database function removes such a row together with a parent that is in Trash,
+so this guards against a client or a later migration that stamps a parent and such rows with one deletion time.
+
+### Rule for migrations, extended
+
+A migration that lists a table in `private.trash_excluded_tables` sets `returns_with_parent` to false when its rows
+are access, authority, a credential or link, or a restricted or legally kept record. A migration that puts a table in
+Trash whose rows members never update directly adds its restore rule to `app.restore_trash_row_by_rule` and its name
+to `private.trash_ruled_tables()`, or excludes the table. pgTAP 904190301 fails otherwise.
