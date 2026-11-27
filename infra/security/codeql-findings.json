@@ -297,7 +297,7 @@
       "path": "canon/import/src/playbook/views.ts",
       "verdict": "not_exploitable",
       "reason": "Each normalizer template holds exactly one dollar sign, written in the same file, so replacing the first occurrence replaced all of them.",
-      "change": "The placeholder is replaced through a function, which also keeps a dollar sign inside the expression as text."
+      "change": "The template's dollar sign is replaced through a function, which also keeps a dollar sign inside the expression as text."
     },
     {
       "alert": 9,
