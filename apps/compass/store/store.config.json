@@ -22,10 +22,10 @@
           "run of show"
         ],
         "releaseNotes": "The first release of Compass 4.0: clock in on site, scan credentials, assets and deliveries, report incidents and inspections, follow the run of show, and keep working offline.",
-        "marketingUrl": "https://OWNER_DOMAIN",
-        "supportUrl": "https://docs.OWNER_DOMAIN/en-US/help",
-        "privacyPolicyUrl": "https://app.OWNER_DOMAIN/legal/privacy-policy",
-        "privacyChoicesUrl": "https://app.OWNER_DOMAIN/legal/account-deletion",
+        "marketingUrl": "https://ghxstship.tech",
+        "supportUrl": "https://docs.ghxstship.tech/en-US/help",
+        "privacyPolicyUrl": "https://atlas.ghxstship.tech/legal/privacy-policy",
+        "privacyChoicesUrl": "https://atlas.ghxstship.tech/legal/account-deletion",
         "screenshots": {
           "APP_IPHONE_67": [
             "store/apple/screenshot/en-US/APP_IPHONE_67/01-today.png",
@@ -59,10 +59,10 @@
           "inspecciones"
         ],
         "releaseNotes": "La primera versión de Compass 4.0: marca entrada en el lugar, escanea credenciales, equipo y entregas, reporta incidentes e inspecciones, sigue el orden del show y sigue trabajando sin conexión.",
-        "marketingUrl": "https://OWNER_DOMAIN",
-        "supportUrl": "https://docs.OWNER_DOMAIN/es-US/help",
-        "privacyPolicyUrl": "https://app.OWNER_DOMAIN/legal/privacy-policy",
-        "privacyChoicesUrl": "https://app.OWNER_DOMAIN/legal/account-deletion",
+        "marketingUrl": "https://ghxstship.tech",
+        "supportUrl": "https://docs.ghxstship.tech/es-US/help",
+        "privacyPolicyUrl": "https://atlas.ghxstship.tech/legal/privacy-policy",
+        "privacyChoicesUrl": "https://atlas.ghxstship.tech/legal/account-deletion",
         "screenshots": {
           "APP_IPHONE_67": [
             "store/apple/screenshot/es-MX/APP_IPHONE_67/01-today.png",
