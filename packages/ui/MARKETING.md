@@ -26,7 +26,7 @@ Compiled for a page with one element, minified by Tailwind 4.3.3 at release 4.19
 | Entry                                            | Bytes   | Gzip   |
 | ------------------------------------------------ | ------- | ------ |
 | `@xos/ui/styles.css` and `@xos/ui/marketing.css` | 111,932 | 19,774 |
-| `@xos/ui/marketing/styles.css`                   | 69,975  | 12,851 |
+| `@xos/ui/marketing/styles.css`                   | 69,933  | 12,848 |
 
 ### Other `@xos/ui` components on the page
 
