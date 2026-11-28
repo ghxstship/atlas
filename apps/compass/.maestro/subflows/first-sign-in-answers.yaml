@@ -1,10 +1,7 @@
 appId: pro.ghxstship.compass
 # What a new sign-in answers before anything else (ADR 0156): 18 or older, then the documents.
 ---
-- extendedWaitUntil:
-    visible:
-      id: "legal-gate-age"
-    timeout: 30000
+- runFlow: legal-gate-wait.yaml
 - tapOn:
     id: "legal-gate-age-over"
 - extendedWaitUntil:

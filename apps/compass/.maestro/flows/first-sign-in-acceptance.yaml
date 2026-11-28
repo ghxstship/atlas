@@ -3,6 +3,9 @@ appId: pro.ghxstship.compass
 # Named after its file: config.yaml orders flows by name.
 name: first-sign-in-acceptance
 ---
+# The network comes back first, so an offline flow that failed part way does not fail this one (the throwaway
+# account is created through the stack's gateway).
+- runFlow: ../subflows/network-online.yaml
 - runScript:
     file: ../scripts/throwaway-account.js
 - assertTrue: ${output.throwaway.status == 200}
@@ -57,16 +60,17 @@ name: first-sign-in-acceptance
     commands:
       - tapOn: "Not Now"
 - runFlow: ../subflows/first-sign-in-answers.yaml
+# Accepting reads the access again before Compass shows where the account stands.
 - extendedWaitUntil:
     visible:
       id: "no-access"
-    timeout: 30000
+    timeout: 120000
 - stopApp
 - launchApp
 - extendedWaitUntil:
     visible:
       id: "no-access"
-    timeout: 60000
+    timeout: 120000
 - assertNotVisible:
     id: "legal-gate-age"
 - tapOn:

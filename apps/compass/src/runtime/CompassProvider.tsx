@@ -44,6 +44,7 @@ import {
   identityOutcome,
   internalAudience,
   isServerUnreachable,
+  phaseOnSession,
   projectOrgs,
   replayOrgOf,
   resolveIdentity,
@@ -553,7 +554,11 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
         setResolvedSettings(NO_VALUES);
         void SecureStore.deleteItemAsync(RESOLVED_KEY);
         setPhase({ kind: "signed-out" });
-      } else if (engine) void engine.authRestored();
+      } else {
+        // Accepted: the form gives way to the loading state while the identity effect below reads the access.
+        setPhase((current) => phaseOnSession(current));
+        if (engine) void engine.authRestored();
+      }
     });
     return () => data.subscription.unsubscribe();
   }, [client, engine]);

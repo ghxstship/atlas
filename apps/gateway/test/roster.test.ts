@@ -148,6 +148,7 @@ describe("Home asks for answers first", () => {
       ],
       personId: "me",
       now: new Date("2027-05-01T12:00:00Z"),
+      today: "2027-05-01",
     });
     expect(items.map((i) => i.kind)).toEqual(["invitation", "membership", "roster"]);
     expect(items[2]?.kind === "roster" && items[2].entry.id).toBe("pending");
@@ -163,6 +164,7 @@ describe("Home asks for answers first", () => {
         representations: [],
         personId: "me",
         now: new Date("2027-05-01T12:00:00Z"),
+        today: "2027-05-01",
       }),
     ).toEqual([]);
   });

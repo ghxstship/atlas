@@ -37,9 +37,11 @@ export function LiveLinkDialog({
   const id = useId();
   const [links, setLinks] = useState<readonly LiveLink[] | null>(null);
   const [projects, setProjects] = useState<readonly ProjectRef[]>([]);
+  const [picked, setPicked] = useState<string>("");
   const [created, setCreated] = useState<CreatedLiveLinkView | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
+  const zone = linkZone(projects, projectKey ?? picked);
 
   const refresh = useCallback(() => {
     void loadViewLinksAction(org, view.id).then((result) => {
@@ -93,16 +95,19 @@ export function LiveLinkDialog({
               help={t("projectHelp")}
               placeholder={t("project")}
               options={projects.map((p) => ({ value: p.key, label: `${p.key} · ${p.name}` }))}
+              onChange={(event) => setPicked(event.target.value)}
             />
           )}
           <Input
+            // The link's day ends in its project's zone, so the bounds follow the project shown or picked.
+            key={zone}
             id={`${id}-expires`}
             name="expiresOn"
             type="date"
             label={t("expiresOn")}
-            defaultValue={dayFromToday(30)}
-            min={dayFromToday(1)}
-            max={dayFromToday(90)}
+            defaultValue={dayFromToday(30, zone)}
+            min={dayFromToday(1, zone)}
+            max={dayFromToday(90, zone)}
             help={t("expiresHelp")}
           />
           <Input
@@ -122,4 +127,9 @@ export function LiveLinkDialog({
       </div>
     </Dialog>
   );
+}
+
+/** The zone a link's day ends in: its project's, the first project's until one is picked, else UTC. */
+export function linkZone(projects: readonly ProjectRef[], key: string): string {
+  return (projects.find((p) => p.key === key) ?? projects[0])?.timeZone ?? "UTC";
 }

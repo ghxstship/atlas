@@ -12,7 +12,9 @@ import {
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { env } from "@/lib/env";
+import { expiryFor } from "@/lib/live-links/expiry";
 import { getOrgContext } from "@/lib/shell/context";
+import { getOrgTimeZone } from "@/lib/shell/time-zone";
 
 /**
  * Share links and file classification from a file's row (Section 8.6, finding A65-016; migration
@@ -35,16 +37,22 @@ async function context(org: string) {
   return ctx;
 }
 
-/** The file's links, newest first, for the share panel. */
+/**
+ * The file's links, newest first, for the share panel, and the org's zone: a picked day ends on the org's
+ * calendar, so the panel's date bounds count from the org's today, never the UTC date (A71, RRR-116).
+ */
 export async function loadShareLinksAction(
   org: string,
   attachmentId: string,
-): Promise<ShareActionResult<readonly ShareLink[]>> {
+): Promise<ShareActionResult<{ links: readonly ShareLink[]; timeZone: string }>> {
   const ctx = await context(org);
   const id = z.uuid().safeParse(attachmentId);
   if (!ctx || !id.success) return { ok: false, error: "notFound" };
-  const links = await listShareLinks(ctx.viewer.db, id.data);
-  return links.ok ? { ok: true, data: links.data } : refused(links.error);
+  const [links, timeZone] = await Promise.all([
+    listShareLinks(ctx.viewer.db, id.data),
+    getOrgTimeZone(ctx),
+  ]);
+  return links.ok ? { ok: true, data: { links: links.data, timeZone } } : refused(links.error);
 }
 
 /** Raises or lowers a file's classification. */
@@ -66,7 +74,7 @@ export async function classifyFileAction(
 
 const createSchema = z.object({
   attachmentId: z.uuid(),
-  /** A calendar day; the link expires at the end of it in UTC. Empty for a Public file's open link. */
+  /** A calendar day; the link expires at the end of it on the org's calendar. Empty for a Public file's open link. */
   expiresOn: z.union([z.literal(""), z.iso.date()]),
   recipientEmail: z.union([z.literal(""), z.email().max(320)]),
   note: z.string().trim().max(200),
@@ -96,7 +104,8 @@ export async function createShareLinkAction(
   const p = parsed.data;
   const created = await createShareLink(ctx.viewer.db, {
     attachmentId: p.attachmentId,
-    expiresAt: p.expiresOn === "" ? null : `${p.expiresOn}T23:59:59Z`,
+    // The end of the picked day on the org's calendar, never the end of a UTC day (hours early in the Americas).
+    expiresAt: p.expiresOn === "" ? null : expiryFor(p.expiresOn, await getOrgTimeZone(ctx)),
     recipientEmail: p.recipientEmail === "" ? null : p.recipientEmail,
     note: p.note === "" ? null : p.note,
   });

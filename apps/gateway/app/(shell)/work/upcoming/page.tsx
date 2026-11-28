@@ -18,7 +18,7 @@ import { lensApplications, lensEngagements } from "@/lib/shell/role-lens";
 import { requireNode, sitemap } from "@/lib/shell/sitemap";
 import { getScheduleView, personToday } from "@/lib/time-zone";
 import { enumLabelKey, getTranslate, type Translate } from "@/lib/shell/translate";
-import { byDay, mergeUpcoming, type UpcomingItem } from "@/lib/upcoming";
+import { byDay, itemDay, mergeUpcoming, type UpcomingItem } from "@/lib/upcoming";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslate();
@@ -80,6 +80,7 @@ export default async function UpcomingPage({ searchParams }: PageProps<"/work/up
   const [today, schedule] = await Promise.all([personToday(ctx), getScheduleView(ctx)]);
   const items = mergeUpcoming({
     now,
+    today,
     engagements: current,
     shifts: shifts.ok ? shifts.data : [],
     records: records.ok ? records.data : [],
@@ -162,7 +163,7 @@ export default async function UpcomingPage({ searchParams }: PageProps<"/work/up
             month={month}
             today={today}
             events={items.map((i) => ({
-              date: i.at.slice(0, 10),
+              date: itemDay(i, schedule),
               label: i.title,
               state: "scheduled" as const,
             }))}
@@ -170,7 +171,7 @@ export default async function UpcomingPage({ searchParams }: PageProps<"/work/up
         </div>
       ) : (
         <div className="flex flex-col gap-16">
-          {byDay(items).map(([day, dayItems]) => (
+          {byDay(items, schedule).map(([day, dayItems]) => (
             <section key={day} aria-labelledby={`day-${day}`} className="flex flex-col gap-8">
               <h2 id={`day-${day}`} className="m-0 text-text-13 font-semibold text-text-secondary">
                 {formatDate(locale, day)}

@@ -16,6 +16,8 @@ import {
   PROFILE_SECTIONS,
 } from "@xos/data/profiles";
 import { Input, InlineAlert, Select } from "@/components/ui";
+import { dateIn } from "@xos/data/calendar";
+import { getOrgTimeZone } from "@/lib/shell/time-zone";
 import { getTranslate } from "@/lib/shell/translate";
 import type { SettingsPanelProps } from "./contributions/types";
 import {
@@ -338,15 +340,21 @@ export async function OrgProfilePanel({ ctx }: SettingsPanelProps) {
   );
 }
 
+/** A join link's last day on the org's calendar, never the UTC date of its expiry (a day ahead on an American evening). */
+export function linkExpiryDay(expiresAt: string, orgZone: string): string {
+  return dateIn(new Date(expiresAt), orgZone);
+}
+
 export async function JoiningPanel({ ctx }: SettingsPanelProps) {
   const t = await getTranslate();
   const canInvite = ctx.capabilities.has("org.members.invite");
   const canManage = ctx.capabilities.has("org.members.manage");
   if (!canInvite && !canManage) return null;
-  const [roles, links, requests] = await Promise.all([
+  const [roles, links, requests, orgZone] = await Promise.all([
     listRoles(ctx.viewer.db, ctx.org.id),
     canInvite ? listInviteLinks(ctx.viewer.db, ctx.org.id) : null,
     canManage ? listPendingJoinRequests(ctx.viewer.db, ctx.org.id) : null,
+    getOrgTimeZone(ctx),
   ]);
   if (!roles.ok || (links && !links.ok) || (requests && !requests.ok)) {
     return <Failed message={t("profiles.loadFailed")} />;
@@ -374,7 +382,7 @@ export async function JoiningPanel({ ctx }: SettingsPanelProps) {
                       role: roleLabel(l.roleId),
                       used: l.useCount,
                       max: l.maxUses,
-                      date: l.expiresAt.slice(0, 10),
+                      date: linkExpiryDay(l.expiresAt, orgZone),
                     })}
                   </span>
                   <RevokeLinkButton org={ctx.org.slug} linkId={l.id} />

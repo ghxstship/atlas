@@ -64,16 +64,24 @@ export async function loadViewLinksAction(
   return { ok: true, data: { links: links.data, projects: projects.data } };
 }
 
-/** A running order's display screen links. */
+/**
+ * A running order's display screen links, and its project's zone: a picked day ends there, so the
+ * dialog's date bounds count from that zone's today, never the UTC date.
+ */
 export async function loadDisplayLinksAction(
   org: string,
   runOfShowId: string,
-): Promise<LiveLinkActionResult<readonly LiveLink[]>> {
+): Promise<LiveLinkActionResult<{ links: readonly LiveLink[]; timeZone: string }>> {
   const ctx = await getOrgContext(org);
   const run = id.safeParse(runOfShowId);
   if (!ctx || !run.success) return { ok: false, error: "notFound" };
-  const links = await listLiveLinks(ctx.viewer.db, { runOfShowId: run.data });
-  return links.ok ? { ok: true, data: links.data } : refused(links.error);
+  const [links, show] = await Promise.all([
+    listLiveLinks(ctx.viewer.db, { runOfShowId: run.data }),
+    getRunOfShow(ctx.viewer.db, run.data),
+  ]);
+  if (!links.ok) return refused(links.error);
+  if (!show.ok) return refused(show.error);
+  return { ok: true, data: { links: links.data, timeZone: show.data.timeZone } };
 }
 
 const viewSchema = z.object({

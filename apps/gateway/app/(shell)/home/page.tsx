@@ -51,7 +51,7 @@ import {
   formatScheduleTime,
   type ScheduleView,
 } from "@/lib/format";
-import { getScheduleView } from "@/lib/time-zone";
+import { getScheduleView, personToday } from "@/lib/time-zone";
 import {
   needsYou,
   pickUpNext,
@@ -146,7 +146,9 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
     listStillComing(ctx.db),
   ]);
   const rostered = rosterEngagements.ok ? rosterEngagements.data : [];
-  const upNext = records.ok ? pickUpNext(records.data, current, now, rostered) : null;
+  // Home lists the person's items across orgs, so "today" is on their own calendar (RRR-116).
+  const today = await personToday(ctx);
+  const upNext = records.ok ? pickUpNext(records.data, current, now, today, rostered) : null;
   const details = upNext?.engagement
     ? await loadUpNextDetails(
         ctx,
@@ -166,6 +168,7 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
     stillComing: stillComing.ok ? stillComing.data : [],
     personId: ctx.personId,
     now,
+    today,
   });
   const failed =
     !records.ok ||

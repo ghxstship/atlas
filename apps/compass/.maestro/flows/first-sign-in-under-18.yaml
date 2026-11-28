@@ -3,6 +3,9 @@ appId: pro.ghxstship.compass
 # Named after its file: config.yaml orders flows by name.
 name: first-sign-in-under-18
 ---
+# The network comes back first, so an offline flow that failed part way does not fail this one (the throwaway
+# account is created through the stack's gateway).
+- runFlow: ../subflows/network-online.yaml
 - runScript:
     file: ../scripts/throwaway-account.js
 - assertTrue: ${output.throwaway.status == 200}
@@ -56,10 +59,7 @@ name: first-sign-in-under-18
       visible: "Not Now"
     commands:
       - tapOn: "Not Now"
-- extendedWaitUntil:
-    visible:
-      id: "legal-gate-age"
-    timeout: 30000
+- runFlow: ../subflows/legal-gate-wait.yaml
 - tapOn:
     id: "legal-gate-age-under"
 - extendedWaitUntil:

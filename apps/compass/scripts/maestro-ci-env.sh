@@ -8,6 +8,7 @@
 #   KIOSK_DEVICE_KEY                  a kiosk registered for the demo org (supervisor-kiosk)
 #   KIOSK_PIN_1 .. KIOSK_PIN_4        the Demo Field Tech's kiosk PIN, one digit each
 #   BADGE                             the Demo Field Lead's CREW badge number (field-gate-in-out-override)
+#   PASS                              the pass code of an Approved guest of the demo project (field-door-guest-pass)
 #
 # The kiosk is registered and the PIN set as the Demo Admin (org.time_attendance.write), through the
 # same functions Atlas calls (app.register_kiosk_device, app.set_kiosk_pin), in one transaction. Ids
@@ -21,6 +22,8 @@ FIELD_TECH_MEMBERSHIP="01920000-0000-7000-8000-00000000a106"
 # The Demo Field Lead and the CREW category of supabase/seeds/0217_compass.sql.
 FIELD_LEAD="01920000-0000-7000-8000-000000000104"
 CREW_CATEGORY="01920000-0000-7000-8000-000000217041"
+# Avery Brooks, the Approved guest of supabase/seeds/0229_workforce.sql whom no seed checks in.
+DOOR_GUEST="01920000-0000-7000-8000-000002290101"
 PIN="${KIOSK_PIN:-2468}"
 
 status="$(supabase status -o env 2>/dev/null)"
@@ -59,10 +62,22 @@ case "$badge" in
     ;;
 esac
 
+# The database stamps the code when the guest is approved (GP- and ten characters), so it is read too.
+pass="$(docker exec -i "$db" psql -U postgres -d postgres -X -qAt -v ON_ERROR_STOP=1 -c \
+  "select pass_code from app.guest_list_entries where id = '$DOOR_GUEST' and entry_state = 'Approved' and deleted_at is null")"
+case "$pass" in
+  GP-*) ;;
+  *)
+    echo "The demo project has no Approved guest with a pass: is supabase/seeds/0229_workforce.sql loaded?" >&2
+    exit 1
+    ;;
+esac
+
 echo "SUPABASE_URL=$api_url"
 echo "SUPABASE_ANON_KEY=$anon_key"
 echo "KIOSK_DEVICE_KEY=$device_key"
 echo "BADGE=$badge"
+echo "PASS=$pass"
 i=1
 for digit in $(printf '%s' "$PIN" | cut -c1-4 | sed 's/./& /g'); do
   echo "KIOSK_PIN_$i=$digit"

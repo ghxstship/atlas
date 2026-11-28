@@ -53,15 +53,18 @@ export type UpNext =
 /**
  * The soonest dated record ahead, else the next engagement to start: one the person holds by its
  * start date, or one they work on a party's roster (R8) by the start of their arrival window.
+ * Timed records and arrival windows compare as instants; an engagement's dates compare with `today`,
+ * the person's own calendar date (personToday), never the UTC date, a day ahead on an American
+ * evening, when an engagement on its last day would drop out of Up Next.
  */
 export function pickUpNext(
   records: readonly SharedRecord[],
   engagements: readonly Engagement[],
   now: Date,
+  today: string,
   rosterEngagements: readonly RosterEngagement[] = [],
 ): UpNext | null {
   const at = now.toISOString();
-  const today = at.slice(0, 10);
   const ahead = records
     .filter((r) => (UP_NEXT_KINDS as readonly string[]).includes(r.kind))
     .filter((r) => r.state !== "Canceled" && r.state !== "Complete")
@@ -134,8 +137,10 @@ export function needsYou(input: {
   readonly stillComing?: readonly StillComingItem[];
   readonly personId: string;
   readonly now: Date;
+  /** Today on the person's own calendar (personToday), never the UTC date, a day ahead on an American evening. */
+  readonly today: string;
 }): FeedItem[] {
-  const today = input.now.toISOString().slice(0, 10);
+  const today = input.today;
   const byId = new Map(input.engagements.map((e) => [e.id, e]));
   const items: FeedItem[] = [];
   for (const ask of input.stillComing ?? []) items.push({ kind: "stillComing", ask });
@@ -180,7 +185,7 @@ export function needsYou(input: {
   for (const engagement of input.engagements) {
     if (
       engagement.state === "Complete" &&
-      (engagement.endDate ?? engagement.startDate) >= isoDaysAgo(input.now, 14)
+      (engagement.endDate ?? engagement.startDate) >= isoDaysBefore(today, 14)
     ) {
       items.push({ kind: "rate", engagement });
     }
@@ -188,8 +193,10 @@ export function needsYou(input: {
   return items;
 }
 
-function isoDaysAgo(now: Date, days: number): string {
-  return new Date(now.getTime() - days * 86_400_000).toISOString().slice(0, 10);
+/** The calendar day `days` before a YYYY-MM-DD day. */
+function isoDaysBefore(day: string, days: number): string {
+  const [y = 0, m = 1, d = 1] = day.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, d - days)).toISOString().slice(0, 10);
 }
 
 /** How many things to bring the Up Next card lists before it says how many more there are. */

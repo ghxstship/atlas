@@ -28,12 +28,18 @@ if [ -z "${BADGE:-}" ]; then
   BADGE="$(docker exec -i "supabase_db_$XOS_SUPABASE_STACK" psql -U postgres -d postgres -X -qAt -c \
     "select credential_number from app.credentials where holder_person_id = '01920000-0000-7000-8000-000000000104' and credential_category_id = '01920000-0000-7000-8000-000000217041' and deleted_at is null")"
 fi
+# field-door-guest-pass reads the pass of Avery Brooks, the Approved guest of seed 0229 whom no seed checks in.
+if [ -z "${PASS:-}" ]; then
+  PASS="$(docker exec -i "supabase_db_$XOS_SUPABASE_STACK" psql -U postgres -d postgres -X -qAt -c \
+    "select pass_code from app.guest_list_entries where id = '01920000-0000-7000-8000-000002290101' and entry_state = 'Approved' and deleted_at is null")"
+fi
 if [ "$#" -eq 0 ]; then set -- .maestro; fi
 maestro --device "$UDID" ${MAESTRO_DRIVER_PORT:+--port "$MAESTRO_DRIVER_PORT"} test \
   -e XOS_DEMO_PASSWORD="$XOS_DEMO_PASSWORD" \
   -e SUPABASE_URL="$SUPABASE_URL" \
   -e SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY" \
   -e BADGE="$BADGE" \
+  -e PASS="$PASS" \
   ${KIOSK_DEVICE_KEY:+-e KIOSK_DEVICE_KEY="$KIOSK_DEVICE_KEY"} \
   ${KIOSK_DEVICE_KEY:+-e KIOSK_PIN_1="$KIOSK_PIN_1" -e KIOSK_PIN_2="$KIOSK_PIN_2"} \
   ${KIOSK_DEVICE_KEY:+-e KIOSK_PIN_3="$KIOSK_PIN_3" -e KIOSK_PIN_4="$KIOSK_PIN_4"} \

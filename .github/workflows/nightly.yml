@@ -12,6 +12,31 @@ permissions:
   contents: read
 
 jobs:
+  # Two jobs below need a repository secret the owner adds. A job cannot read secrets in its own `if`, so this
+  # one says which are set and the others are skipped at job level when theirs is missing: until 4.19 each ran
+  # with every step skipped and reported success, which read as a passing scan and passing evals (run 45870505730).
+  configured:
+    name: Which optional secrets are set
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      anthropic: ${{ steps.probe.outputs.anthropic }}
+      zap: ${{ steps.probe.outputs.zap }}
+    steps:
+      - id: probe
+        env:
+          HAS_ANTHROPIC: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+          HAS_BYPASS: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET != '' }}
+        run: |
+          echo "anthropic=$HAS_ANTHROPIC" >> "$GITHUB_OUTPUT"
+          echo "zap=$HAS_BYPASS" >> "$GITHUB_OUTPUT"
+          if [ "$HAS_ANTHROPIC" != "true" ]; then
+            echo "::warning title=Aurora AI evals not run::Gate 21 has no result tonight. Add the ANTHROPIC_API_KEY repository secret."
+          fi
+          if [ "$HAS_BYPASS" != "true" ]; then
+            echo "::warning title=ZAP baseline not run::Staging was not scanned tonight. Add the VERCEL_AUTOMATION_BYPASS_SECRET repository secret (infra/security/README.md)."
+          fi
+
   # Every signed-in route in the generated sitemaps (about 250 in Atlas, 60 in Gateway) and the public
   # key pages, each against the gate 10 budgets (packages/testing/src/lighthouse-routes.ts). One app per
   # runner: Atlas alone takes about an hour at one desktop run per page.
@@ -120,10 +145,12 @@ jobs:
   # Section 9 testing: the OWASP ZAP baseline (spider plus passive rules, no attacks) against the staging
   # deployments, nightly rather than per push because staging deploys from its own branch. Both sit behind
   # Vercel deployment protection, so the job needs the VERCEL_AUTOMATION_BYPASS_SECRET repository secret
-  # (owner step); without it the job passes with a notice. ZAP sends the bypass header only to the target
+  # (owner step); without it the job is skipped and the run carries a warning. ZAP sends the bypass header only to the target
   # host. Accepted alerts and the rules that must never alert are in infra/security/zap/baseline-rules.tsv.
   zap-baseline:
     name: ZAP baseline (${{ matrix.app }} staging)
+    needs: configured
+    if: needs.configured.outputs.zap == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     strategy:
@@ -133,34 +160,19 @@ jobs:
           - { app: atlas, url: "https://atlas-staging.ghxstship.tech" }
           - { app: gateway, url: "https://gateway-staging.ghxstship.tech" }
     steps:
-      - name: Skip without the bypass secret
-        id: gate
-        env:
-          HAS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET != '' }}
-        run: |
-          if [ "$HAS_SECRET" = "true" ]; then
-            echo "run=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "::notice title=ZAP baseline skipped::Add the VERCEL_AUTOMATION_BYPASS_SECRET repository secret to scan staging (infra/security/README.md)."
-            echo "run=false" >> "$GITHUB_OUTPUT"
-          fi
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        if: steps.gate.outputs.run == 'true'
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        if: steps.gate.outputs.run == 'true'
         with:
           node-version-file: .nvmrc
       - name: Pull the pinned ZAP image
-        if: steps.gate.outputs.run == 'true'
         run: docker pull ghcr.io/zaproxy/zaproxy:2.17.0
       - name: Baseline scan and verdict
-        if: steps.gate.outputs.run == 'true'
         env:
           TARGET: ${{ matrix.url }}
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
         run: sh infra/security/zap-baseline.sh "$TARGET" zap
       # The reports are scrubbed of the bypass value before this step (infra/security/src/cli.ts zap).
-      - if: always() && steps.gate.outputs.run == 'true'
+      - if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: zap-${{ matrix.app }}
@@ -190,25 +202,22 @@ jobs:
   # Anthropic key is configured; the monthly spend cap is set on the key in the Anthropic console.
   ai-evals:
     name: Aurora AI evals (gate 21)
+    needs: configured
+    # Skipped, not passed, where the Anthropic key is not configured; unit tests use a fake model client.
+    if: needs.configured.outputs.anthropic == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    # Runs only where the Anthropic key is configured; unit tests use a fake model client.
     env:
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        if: env.ANTHROPIC_API_KEY != ''
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
-        if: env.ANTHROPIC_API_KEY != ''
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        if: env.ANTHROPIC_API_KEY != ''
         with:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-        if: env.ANTHROPIC_API_KEY != ''
       - run: pnpm --filter @xos/ai evals
-        if: env.ANTHROPIC_API_KEY != ''
 
   # Owner decision 13 (ADR 0033): the journeys in Firefox and WebKit run nightly; Chromium runs on
   # every push in ci.yml. Atlas runs about 360 journeys: on one runner Firefox reached 229 of them in
@@ -293,7 +302,10 @@ jobs:
   maestro-ios:
     name: Compass Maestro on iOS (gate 7)
     runs-on: macos-15-intel
-    timeout-minutes: 150
+    # GitHub's limit for a job. The run before the first flow takes about two hours here (images 21 minutes, the
+    # stack 10, the build 32, the VM and stack again 8, the simulator 15, Maestro and its driver 15), which left
+    # the flows half an hour of the earlier 150 minutes: not enough for the suite even with every flow passing.
+    timeout-minutes: 360
     env:
       # 2.12.1 (2026-11-02) carries "Fix inputText crashing on iOS pincode screens": on 2.0.10 the XCTest driver
       # dropped its connection typing the password in field-sign-in (run 42768003872).
@@ -334,7 +346,7 @@ jobs:
       # then stopped the stack: it keeps the stack here, and the next step waits up to ten minutes.
       - run: supabase start --ignore-health-check -x studio,imgproxy,logflare,vector,postgres-meta,supavisor
       - run: infra/ci/supabase-wait-healthy.sh 600
-      # SUPABASE_URL, SUPABASE_ANON_KEY, a registered kiosk and the Field Tech's kiosk PIN.
+      # SUPABASE_URL, SUPABASE_ANON_KEY, a registered kiosk, the Field Tech's kiosk PIN, a crew badge and a guest pass.
       - name: Prepare the Maestro run against the CI stack
         run: apps/compass/scripts/maestro-ci-env.sh >> "$GITHUB_ENV"
       # The Intel runner has 4 CPUs and 14 GB. With the Colima VM (2 CPUs, 6 GB) and the stack running, the Release build
@@ -503,7 +515,9 @@ jobs:
   maestro-android:
     name: Compass Maestro on Android (gate 7)
     runs-on: ubuntu-24.04
-    timeout-minutes: 90
+    # The build and the emulator take about 35 minutes and a flow about two (ten passed in 19 minutes, run
+    # 45870505730), so the suite's flows alone need close to two hours: 90 minutes could never finish it.
+    timeout-minutes: 240
     env:
       MAESTRO_VERSION: 2.12.1
     steps:
@@ -531,7 +545,7 @@ jobs:
       # Services no test uses stay off; the images come from GHCR first (infra/ci/README.md).
       - run: infra/ci/supabase-images.sh start
       - run: supabase start -x studio,imgproxy,logflare,vector,postgres-meta,supavisor
-      # SUPABASE_URL (the host's 127.0.0.1, where Maestro's scripts run), the anon key and the kiosk.
+      # SUPABASE_URL (the host's 127.0.0.1, where Maestro's scripts run), the anon key, the kiosk, a badge and a pass.
       - name: Prepare the Maestro run against the CI stack
         run: apps/compass/scripts/maestro-ci-env.sh >> "$GITHUB_ENV"
       - name: Build the release APK against the CI stack (the emulator reaches the host at 10.0.2.2)
